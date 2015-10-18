@@ -56,12 +56,7 @@ pub fn configure(config : &mut Config) {
 }
 
 fn parse_global_cfg(matches : &ArgMatches<>, config : &mut ConfigBase) {
-    if matches.is_present("verbose") {
-        config.verbosity = true;
-    }
-
-    if matches.is_present("debugging") {
-        config.debugging = true;
-    }
+    config.verbosity = matches.is_present("verbose");
+    config.debugging = matches.is_present("debugging");
 }
 
