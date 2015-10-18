@@ -8,6 +8,7 @@ mod cli;
 mod error;
 mod runtime;
 mod module;
+mod storage;
 
 fn main() {
     let mut config = Config::new();
