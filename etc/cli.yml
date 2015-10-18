@@ -1,0 +1,137 @@
+name: imag
+version: 0.1
+author: Matthias Beyer <mail@beyermatthias.de>
+about: PIM-Suite for the console
+args:
+    - verbose:
+        short: v
+        long: verbose
+        help: Enable verbosity
+        required: false
+
+    - debug:
+        short: d
+        long: debug
+        help: Sets the level of debugging information
+        required: false
+
+subcommands:
+    - cal:
+        about: Calendar module
+        version: 0.1
+        author: Matthias Beyer <mail@beyermatthias.de>
+        args:
+            - verbose:
+                short: v
+                long: verbose
+                help: Enable verbosity
+                required: false
+
+            - debug:
+                short: d
+                long: debug
+                help: Sets the level of debugging information
+                required: false
+
+    - cont:
+        about: Contact module
+        version: 0.1
+        author: Matthias Beyer <mail@beyermatthias.de>
+        args:
+            - verbose:
+                short: v
+                long: verbose
+                help: Enable verbosity
+                required: false
+
+            - debug:
+                short: d
+                long: debug
+                help: Sets the level of debugging information
+                required: false
+
+    - mail:
+        about: Mail module
+        version: 0.1
+        author: Matthias Beyer <mail@beyermatthias.de>
+        args:
+            - verbose:
+                short: v
+                long: verbose
+                help: Enable verbosity
+                required: false
+
+            - debug:
+                short: d
+                long: debug
+                help: Sets the level of debugging information
+                required: false
+
+    - wiki:
+        about: Wiki module
+        version: 0.1
+        author: Matthias Beyer <mail@beyermatthias.de>
+        args:
+            - verbose:
+                short: v
+                long: verbose
+                help: Enable verbosity
+                required: false
+
+            - debug:
+                short: d
+                long: debug
+                help: Sets the level of debugging information
+                required: false
+
+    - bm:
+        about: Bookmark module
+        version: 0.1
+        author: Matthias Beyer <mail@beyermatthias.de>
+        args:
+            - verbose:
+                short: v
+                long: verbose
+                help: Enable verbosity
+                required: false
+
+            - debug:
+                short: d
+                long: debug
+                help: Sets the level of debugging information
+                required: false
+
+    - todo:
+        about: Todo module
+        version: 0.1
+        author: Matthias Beyer <mail@beyermatthias.de>
+        args:
+            - verbose:
+                short: v
+                long: verbose
+                help: Enable verbosity
+                required: false
+
+            - debug:
+                short: d
+                long: debug
+                help: Sets the level of debugging information
+                required: false
+
+    - news:
+        about: News module
+        version: 0.1
+        author: Matthias Beyer <mail@beyermatthias.de>
+        args:
+            - verbose:
+                short: v
+                long: verbose
+                help: Enable verbosity
+                required: false
+
+            - debug:
+                short: d
+                long: debug
+                help: Sets the level of debugging information
+                required: false
+

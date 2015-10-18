@@ -1,0 +1,19 @@
+[package]
+name = "imag"
+version = "0.1.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+log = "0.3.2"
+regex = "0.1.41"
+url = "0.2.37"
+uuid = "0.1.18"
+
+yaml-rust = "0.2.2"
+
+chrono = "0.2.16"
+
+clap = { version = "1.4.5", features = ["yaml"] }
+rustty = "0.1.9"
+term = "0.2.12"
+
