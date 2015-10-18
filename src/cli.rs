@@ -8,7 +8,7 @@ struct ConfigBase {
 
 pub struct ModuleConfig {
     base : ConfigBase,
-    load : bool,
+    pub load : bool,
 }
 
 impl ModuleConfig {
@@ -25,7 +25,7 @@ impl ModuleConfig {
 
 pub struct Config {
     base            : ConfigBase,
-    module_configs  : Vec<ModuleConfig>,
+    pub module_configs  : Vec<ModuleConfig>,
 }
 
 impl Config {
@@ -37,6 +37,14 @@ impl Config {
             },
             module_configs: vec![],
         }
+    }
+
+    pub fn is_verbose(&self) -> bool {
+        self.base.verbosity
+    }
+
+    pub fn is_debugging(&self) -> bool {
+        self.base.debugging
     }
 }
 
