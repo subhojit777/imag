@@ -5,6 +5,7 @@ use runtime::Runtime;
 use module::Module;
 
 mod cli;
+mod error;
 mod runtime;
 mod module;
 
