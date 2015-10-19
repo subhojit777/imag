@@ -7,5 +7,6 @@ pub trait Module {
     fn name(self) -> String;
 
     fn execute(&self, &rt : Runtime) -> Option<Error>;
+    fn shutdown(&self, &rt : Runtime) -> Option<Error>;
 
 }
