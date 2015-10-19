@@ -6,18 +6,12 @@ pub use module::todo::TodoModule;
 
 pub trait Module {
 
-    fn load(&self, &rt : Runtime) -> Option<Self>;
-    fn callnames() -> [String];
-    fn name(&self) -> String;
+    fn new(&rt : Runtime) -> Self;
+    fn callnames() -> &'static [str];
+    fn name(&self) -> &'static str;
 
     fn execute(&self, &rt : Runtime) -> Option<Error>;
     fn shutdown(&self, &rt : Runtime) -> Option<Error>;
-
-}
-
-pub trait TouchingModule : Module {
-
-    fn load_with_path(&self, rt : &Runtime, path : &Path) -> Self;
 
 }
 
