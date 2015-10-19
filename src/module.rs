@@ -1,5 +1,4 @@
 use runtime::Runtime;
-use error::ImagError;
 use error::ImagErrorBase;
 
 pub struct ModuleError {
@@ -23,36 +22,6 @@ impl ModuleError {
         }
     }
 
-}
-
-impl<'a> ImagError<'a> for ModuleError {
-    fn print(&self, rt: &Runtime) {
-        if self.base.longdesc.is_empty() {
-            let s = format!("{}: {}\n\n{}\n\n",
-                            self.module_name,
-                            self.base.shortdesc,
-                            self.base.longdesc);
-            rt.print(&s)
-        } else {
-            let s = format!("{}: {}\n",
-                            self.module_name,
-                            self.base.shortdesc);
-            rt.print(&s)
-        }
-    }
-
-    fn print_short(&self, rt : &Runtime) {
-        let s = format!("{}: {}\n", self.module_name, self.base.shortdesc);
-        rt.print(&s)
-    }
-
-    fn print_long(&self, rt : &Runtime) {
-        let s = format!("{}: {}\n\n{}\n\n",
-                        self.module_name,
-                        self.base.shortdesc,
-                        self.base.longdesc);
-        rt.print(&s)
-    }
 }
 
 pub trait Module {
