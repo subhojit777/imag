@@ -1,4 +1,4 @@
-use cli::Config;
+pub use cli::Config;
 
 use std::io::stderr;
 use std::io::Write;
