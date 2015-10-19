@@ -2,11 +2,13 @@
 
 use cli::Config;
 use runtime::Runtime;
-use module::Module;
 
 mod cli;
 mod runtime;
-mod module;
+mod module {
+    mod todo;
+}
+
 mod storage;
 
 fn main() {
