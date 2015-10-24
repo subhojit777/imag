@@ -5,10 +5,7 @@ use runtime::Runtime;
 
 mod cli;
 mod runtime;
-mod module {
-    mod todo;
-}
-
+mod module;
 mod storage;
 
 fn main() {

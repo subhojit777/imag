@@ -1,8 +1,10 @@
-pub use runtime::Runtime;
-pub use std::error::Error;
-pub use std::fs::Path;
+use runtime::Runtime;
+use std::error::Error;
+use std::path::Path;
 
-pub use module::todo::TodoModule;
+use module::todo::TodoModule;
+
+mod todo;
 
 pub trait Module {
 

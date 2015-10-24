@@ -1,5 +1,7 @@
-use super::Module;
+use runtime::Runtime;
+use module::Module;
 use std::path::Path;
+use std::error::Error;
 
 pub struct TodoModule {
     path: Option<String>,
