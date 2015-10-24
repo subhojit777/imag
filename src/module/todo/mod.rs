@@ -9,7 +9,7 @@ pub struct TodoModule {
 
 impl Module for TodoModule {
 
-    fn new(rt : &Runtime) -> TodoModule {
+    fn new(&rt : Runtime) -> TodoModule {
         TodoModule {
             path: None
         }
