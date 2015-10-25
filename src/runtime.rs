@@ -4,7 +4,7 @@ use std::io::stderr;
 use std::io::Write;
 
 pub struct Runtime<'a> {
-    config : Config<'a>,
+    pub config : Config<'a>,
 }
 
 impl<'a> Runtime<'a> {
