@@ -50,6 +50,7 @@ impl Module for BMModule {
 fn add<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> ModuleResult {
     let url = sub.value_of("url").unwrap();
     let tags = get_tags(rt, sub);
+    info!("Adding url '{}' with tags '{:?}'", url, tags.unwrap_or(vec!()));
 
     Ok(())
 }
@@ -58,6 +59,17 @@ fn list<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> ModuleResult {
     let tags    = get_tags(rt, sub);
     let matcher = get_matcher(rt, sub);
 
+    match matcher {
+        Some(reg) => {
+            info!("Listing urls with matcher '{}' and with tags {:?}",
+                     reg.as_str(),
+                     tags.unwrap_or(vec!()));
+        }
+        None => {
+            info!("Listing urls with tags {:?}", tags.unwrap_or(vec!()));
+        }
+    }
+
     Ok(())
 }
 
@@ -65,6 +77,24 @@ fn remove<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> ModuleResult {
     let tags    = get_tags(rt, sub);
     let matcher = get_matcher(rt, sub);
     let id      = get_id(rt, sub);
+
+    match id {
+        Some(idstr) => {
+            info!("Removing urls with id '{}'", idstr);
+        }
+        None => {
+            match matcher {
+                Some(reg) => {
+                    info!("Removing urls with matcher '{}' and with tags {:?}",
+                             reg.as_str(),
+                             tags.unwrap_or(vec!()));
+                }
+                None => {
+                    info!("Listing urls with tags {:?}", tags.unwrap_or(vec!()));
+                }
+            }
+        }
+    }
 
     Ok(())
 }
