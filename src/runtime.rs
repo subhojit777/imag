@@ -3,13 +3,13 @@ pub use cli::Config;
 use std::io::stderr;
 use std::io::Write;
 
-pub struct Runtime {
-    config : Config,
+pub struct Runtime<'a> {
+    config : Config<'a>,
 }
 
-impl Runtime {
+impl<'a> Runtime<'a> {
 
-    pub fn new(config : Config) -> Runtime {
+    pub fn new(config : Config<'a>) -> Runtime<'a> {
         Runtime {
             config: config,
         }
