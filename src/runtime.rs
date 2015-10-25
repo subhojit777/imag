@@ -15,19 +15,19 @@ impl<'a> Runtime<'a> {
         }
     }
 
-    pub fn debug(&self, string : &String) {
+    pub fn debug(&self, string : &'static str) {
         if self.config.is_debugging() {
             println!("{}", string);
         }
     }
 
-    pub fn print(&self, string : &String) {
+    pub fn print(&self, string : &'static str) {
         if self.config.is_verbose() || self.config.is_debugging() {
             println!("{}", string);
         }
     }
 
-    pub fn trace(string : &String) {
+    pub fn trace(string : &'static str) {
         // writeln!(&mut stderr, "{}", string);
     }
 
