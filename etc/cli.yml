@@ -113,6 +113,71 @@ subcommands:
                 help: Sets the level of debugging information
                 required: false
 
+        subcommands:
+            - add:
+                about: Add bookmark
+                version: 0.1
+                author: Matthias Beyer <mail@beyermatthias.de>
+                args:
+                    - url:
+                        short: u
+                        long: url
+                        help: Add a new URL as bookmark
+                        required: true
+                        takes_value: true
+
+                    - tags:
+                        short: t
+                        long: tags
+                        help: Add these tags to the URL
+                        required: false
+                        takes_value: true
+
+            - list:
+                about: List bookmarks
+                version: 0.1
+                author: Matthias Beyer <mail@beyermatthias.de>
+                args:
+                    - match:
+                        short: m
+                        long: match
+                        help: Match for regex
+                        required: false
+                        takes_value: true
+
+                    - tags:
+                        short: t
+                        long: tags
+                        help: Filter for these tags
+                        required: false
+                        takes_value: true
+
+            - remove:
+                about: Remove bookmark(s)
+                version: 0.1
+                author: Matthias Beyer <mail@beyermatthias.de>
+                args:
+                    - id:
+                        long: id
+                        help: Delete Bookmark with ID
+                        required: false
+                        takes_value: true
+
+                    - match:
+                        short: m
+                        long: match
+                        help: Match for regex
+                        required: false
+                        takes_value: true
+
+                    - tags:
+                        short: t
+                        long: tags
+                        help: Filter for these tags
+                        required: false
+                        takes_value: true
+
+
     - todo:
         about: Todo module
         version: 0.1

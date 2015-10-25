@@ -4,14 +4,16 @@
 #[macro_use] extern crate serde_json;
 #[macro_use] extern crate glob;
 #[macro_use] extern crate uuid;
-#[macro_use] extern crate prettytable;
+#[macro_use] extern crate regex;
 extern crate config;
-extern crate regex;
 
 use cli::CliConfig;
 use configuration::Configuration;
 use runtime::{ImagLogger, Runtime};
 use clap::App;
+use module::Module;
+use module::ModuleError;
+use module::bm::BMModule;
 
 mod cli;
 mod configuration;
@@ -35,6 +37,16 @@ fn main() {
     let rt = Runtime::new(configuration, config);
 
     debug!("Runtime      : {:?}", &rt);
+
+    if let Some(matches) = rt.config.cli_matches.subcommand_matches("bm") {
+        let module : BMModule = Module::new(&rt);
+        module.execute(&rt);
+        module.shutdown(&rt);
+    } else {
+        // Err(ModuleError::mk("No commandline call"))
+        info!("No commandline call...")
+    }
+
 
     info!("Hello, world!");
 }
