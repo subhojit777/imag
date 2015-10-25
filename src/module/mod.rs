@@ -16,9 +16,9 @@ pub struct ModuleError {
 }
 
 impl ModuleError {
-    fn mk(desc: String) -> ModuleError {
+    fn mk(desc: &'static str) -> ModuleError {
         ModuleError {
-            desc: desc,
+            desc: desc.to_owned().to_string(),
         }
     }
 }
