@@ -1,6 +1,6 @@
 extern crate clap;
 
-use cli::Config;
+use cli::CliConfig;
 
 use std::path::Path;
 use clap::{App, ArgMatches};
@@ -18,7 +18,7 @@ pub struct Configuration {
 
 impl Configuration {
 
-    pub fn new(config: &Config) -> Configuration {
+    pub fn new(config: &CliConfig) -> Configuration {
         let rtp = rtp_path(config);
 
         let mut verbose     = false;
@@ -59,7 +59,7 @@ impl Configuration {
 
 }
 
-fn rtp_path(config: &Config) -> String {
+fn rtp_path(config: &CliConfig) -> String {
     String::from(config.cli_matches.value_of("rtp").unwrap_or("~/.imag/store/"))
 }
 

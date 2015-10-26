@@ -1,6 +1,6 @@
 extern crate log;
 
-pub use cli::Config;
+pub use cli::CliConfig;
 pub use configuration::Configuration as Cfg;
 
 use std::io::stderr;
@@ -23,7 +23,7 @@ impl ImagLogger {
         ImagLogger::init_logger(LogLevelFilter::Error)
     }
 
-    pub fn init(cfg: &Cfg, config: &Config) -> Result<(), SetLoggerError> {
+    pub fn init(cfg: &Cfg, config: &CliConfig) -> Result<(), SetLoggerError> {
         if config.is_debugging() || cfg.is_debugging() {
             ImagLogger::init_logger(LogLevelFilter::Debug)
         } else if config.is_verbose() || cfg.is_debugging() {
@@ -58,13 +58,13 @@ impl log::Log for ImagLogger {
 }
 
 pub struct Runtime<'a> {
-    pub config : Config<'a>,
+    pub config : CliConfig<'a>,
     pub configuration : Cfg,
 }
 
 impl<'a> Runtime<'a> {
 
-    pub fn new(cfg: Cfg, config : Config<'a>) -> Runtime<'a> {
+    pub fn new(cfg: Cfg, config : CliConfig<'a>) -> Runtime<'a> {
         Runtime {
             config: config,
             configuration: cfg,
