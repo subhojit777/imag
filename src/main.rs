@@ -19,5 +19,5 @@ fn main() {
     let logger = ImagLogger::init(&config);
     let rt = Runtime::new(config);
 
-    println!("Hello, world!");
+    info!("Hello, world!");
 }

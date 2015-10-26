@@ -37,8 +37,7 @@ impl Error for ModuleError {
 
 impl Display for ModuleError {
     fn fmt(&self, f: &mut Formatter) -> FMTResult {
-        write!(f, "ModuleError: {}",
-               self.description())
+        write!(f, "ModuleError: {}", self.description())
     }
 }
 

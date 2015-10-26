@@ -36,6 +36,7 @@ impl ImagLogger {
     fn init_logger(lvlflt : LogLevelFilter) -> Result<(), SetLoggerError> {
         log::set_logger(|max_log_lvl| {
             max_log_lvl.set(lvlflt);
+            debug!("Init logger with: {}", lvlflt);
             Box::new(ImagLogger::new(lvlflt.to_log_level().unwrap()))
         })
     }
