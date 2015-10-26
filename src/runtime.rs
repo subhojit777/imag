@@ -1,6 +1,7 @@
 extern crate log;
 
-pub use cli::Config;
+pub use cli::CliConfig;
+pub use configuration::Configuration as Cfg;
 
 use std::io::stderr;
 use std::io::Write;
@@ -22,10 +23,10 @@ impl ImagLogger {
         ImagLogger::init_logger(LogLevelFilter::Error)
     }
 
-    pub fn init(config: &Config) -> Result<(), SetLoggerError> {
-        if config.is_debugging() {
+    pub fn init(cfg: &Cfg, config: &CliConfig) -> Result<(), SetLoggerError> {
+        if config.is_debugging() || cfg.is_debugging() {
             ImagLogger::init_logger(LogLevelFilter::Debug)
-        } else if config.is_verbose() {
+        } else if config.is_verbose() || cfg.is_debugging() {
             ImagLogger::init_logger(LogLevelFilter::Info)
         } else {
             ImagLogger::init_logger(LogLevelFilter::Error)
@@ -57,23 +58,25 @@ impl log::Log for ImagLogger {
 }
 
 pub struct Runtime<'a> {
-    pub config : Config<'a>,
+    pub config : CliConfig<'a>,
+    pub configuration : Cfg,
 }
 
 impl<'a> Runtime<'a> {
 
-    pub fn new(config : Config<'a>) -> Runtime<'a> {
+    pub fn new(cfg: Cfg, config : CliConfig<'a>) -> Runtime<'a> {
         Runtime {
             config: config,
+            configuration: cfg,
         }
     }
 
     pub fn is_verbose(&self) -> bool {
-        self.config.is_verbose()
+        self.config.is_verbose() || self.configuration.is_verbose()
     }
 
     pub fn is_debugging(&self) -> bool {
-        self.config.is_debugging()
+        self.config.is_debugging() || self.configuration.is_verbose()
     }
 
 }

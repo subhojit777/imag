@@ -13,14 +13,14 @@ impl ModuleConfig {
     }
 }
 
-pub struct Config<'a> {
+pub struct CliConfig<'a> {
     pub module_configs  : Vec<ModuleConfig>,
     pub cli_matches     : ArgMatches<'a, 'a>,
 }
 
-impl<'a> Config<'a> {
-    pub fn new(app : clap::App<'a, 'a, 'a, 'a, 'a, 'a>) -> Config<'a> {
-        Config {
+impl<'a> CliConfig<'a> {
+    pub fn new(app : clap::App<'a, 'a, 'a, 'a, 'a, 'a>) -> CliConfig<'a> {
+        CliConfig {
             module_configs: vec![],
             cli_matches: app.get_matches(),
         }
