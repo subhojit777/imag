@@ -15,14 +15,16 @@ mod module;
 mod storage;
 
 fn main() {
-    let early_logger = ImagLogger::early().unwrap();
     let yaml = load_yaml!("../etc/cli.yml");
     let app = App::from_yaml(yaml);
     let mut config = CliConfig::new(app);
     let configuration = Configuration::new(&config);
 
     let logger = ImagLogger::init(&configuration, &config);
+    debug!("Logger created!");
+
     let rt = Runtime::new(configuration, config);
+    debug!("Runtime created!");
 
     info!("Hello, world!");
 }
