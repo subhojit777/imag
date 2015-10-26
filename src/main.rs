@@ -21,7 +21,7 @@ fn main() {
     let configuration = Configuration::new(&config);
 
     let logger = ImagLogger::init(&configuration, &config);
-    let rt = Runtime::new(config);
+    let rt = Runtime::new(configuration, config);
 
     info!("Hello, world!");
 }

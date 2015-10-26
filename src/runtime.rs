@@ -59,22 +59,24 @@ impl log::Log for ImagLogger {
 
 pub struct Runtime<'a> {
     pub config : Config<'a>,
+    pub configuration : Cfg,
 }
 
 impl<'a> Runtime<'a> {
 
-    pub fn new(config : Config<'a>) -> Runtime<'a> {
+    pub fn new(cfg: Cfg, config : Config<'a>) -> Runtime<'a> {
         Runtime {
             config: config,
+            configuration: cfg,
         }
     }
 
     pub fn is_verbose(&self) -> bool {
-        self.config.is_verbose()
+        self.config.is_verbose() || self.configuration.is_verbose()
     }
 
     pub fn is_debugging(&self) -> bool {
-        self.config.is_debugging()
+        self.config.is_debugging() || self.configuration.is_verbose()
     }
 
 }
