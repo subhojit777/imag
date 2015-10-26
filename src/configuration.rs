@@ -11,6 +11,7 @@ use config::types::ScalarValue as S;
 
 pub struct Configuration {
     pub rtp         : String,
+    pub store_sub   : String,
     pub verbose     : bool,
     pub debugging   : bool,
 }
@@ -22,6 +23,7 @@ impl Configuration {
 
         let mut verbose     = false;
         let mut debugging   = false;
+        let mut store_sub   = String::from("/store");
 
         if let Some(cfg) = fetch_config(&rtp) {
             if let Some(v) = cfg.lookup_boolean("verbose") {
@@ -30,11 +32,15 @@ impl Configuration {
             if let Some(d) = cfg.lookup_boolean("debug") {
                 debugging = d;
             }
+            if let Some(s) = cfg.lookup_str("store") {
+                store_sub = String::from(s);
+            }
         }
 
         Configuration {
             verbose: verbose,
             debugging: debugging,
+            store_sub: store_sub,
             rtp: rtp,
         }
     }
@@ -45,6 +51,10 @@ impl Configuration {
 
     pub fn is_debugging(&self) -> bool {
         self.debugging
+    }
+
+    pub fn store_path_str(&self) -> String {
+        format!("{}{}", self.rtp, self.store_sub)
     }
 
 }
