@@ -20,7 +20,7 @@ fn main() {
     let mut config = Config::new(app);
     let configuration = Configuration::new(&config);
 
-    let logger = ImagLogger::init(&config);
+    let logger = ImagLogger::init(&configuration, &config);
     let rt = Runtime::new(config);
 
     info!("Hello, world!");
