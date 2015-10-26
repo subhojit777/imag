@@ -27,11 +27,11 @@ impl<'a> Config<'a> {
     }
 
     pub fn is_verbose(&self) -> bool {
-        self.cli_matches.is_present("verbose")
+        self.cli_matches.is_present("verbose") || self.is_debugging()
     }
 
     pub fn is_debugging(&self) -> bool {
-        self.cli_matches.is_present("debugging")
+        self.cli_matches.is_present("debug")
     }
 }
 
