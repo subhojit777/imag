@@ -1,13 +1,14 @@
 #[macro_use] extern crate clap;
 #[macro_use] extern crate log;
+extern crate config;
 
 use cli::Config;
-use config::Configuration;
+use configuration::Configuration;
 use runtime::{ImagLogger, Runtime};
 use clap::App;
 
 mod cli;
-mod config;
+mod configuration;
 mod runtime;
 mod module;
 mod storage;
