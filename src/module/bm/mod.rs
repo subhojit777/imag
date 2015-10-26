@@ -32,9 +32,18 @@ impl Module for BMModule {
     fn execute(&self, rt : &Runtime) -> ModuleResult {
         let cmd = rt.config.cli_matches.subcommand_matches("bm").unwrap();
         match cmd.subcommand_name() {
-            Some("add")     => { add(rt, cmd.subcommand_matches("add").unwrap()) }
-            Some("list")    => { list(rt, cmd.subcommand_matches("list").unwrap()) }
-            Some("remove")  => { list(rt, cmd.subcommand_matches("remove").unwrap()) }
+            Some("add")     => {
+                debug!("Calling 'add'...");
+                add(rt, cmd.subcommand_matches("add").unwrap())
+            }
+            Some("list")    => {
+                debug!("Calling 'list'...");
+                list(rt, cmd.subcommand_matches("list").unwrap())
+            }
+            Some("remove")  => {
+                debug!("Calling 'remove'...");
+                list(rt, cmd.subcommand_matches("remove").unwrap())
+            }
             _ => {
                 info!("Not calling any of add, list, remove");
                 Ok(())
@@ -100,6 +109,7 @@ fn remove<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> ModuleResult {
 }
 
 fn get_tags<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Option<Vec<String>> {
+    debug!("Fetching tags from commandline");
     sub.value_of("tags").and_then(|tags|
                                   Some(tags.split(",")
                                        .collect::<Vec<_>>()
@@ -112,6 +122,7 @@ fn get_tags<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Option<Vec<String>> {
 }
 
 fn get_matcher<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Option<Regex> {
+    debug!("Fetching matcher from commandline");
     if let Some(s) = sub.value_of("match") {
         if let Ok(r) = Regex::new(s) {
             return Some(r)
@@ -124,6 +135,7 @@ fn get_matcher<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Option<Regex> {
 }
 
 fn get_id<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Option<String> {
+    debug!("Fetching id from commandline");
     sub.value_of("id").and_then(|s| Some(String::from(s)))
 }
 
