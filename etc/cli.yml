@@ -15,6 +15,12 @@ args:
         help: Sets the level of debugging information
         required: false
 
+    - rtp:
+        short: r
+        long: runtimepath
+        help: Set the runtime path
+        required: false
+
 subcommands:
     - cal:
         about: Calendar module
