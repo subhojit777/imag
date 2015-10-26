@@ -19,26 +19,19 @@ impl ImagLogger {
         }
     }
 
-    pub fn early() -> Result<(), SetLoggerError> {
-        ImagLogger::init_logger(LogLevelFilter::Error)
-    }
-
     pub fn init(cfg: &Cfg, config: &CliConfig) -> Result<(), SetLoggerError> {
-        if config.is_debugging() || cfg.is_debugging() {
-            ImagLogger::init_logger(LogLevelFilter::Debug)
+        let lvl = if config.is_debugging() || cfg.is_debugging() {
+            LogLevelFilter::Debug
         } else if config.is_verbose() || cfg.is_debugging() {
-            ImagLogger::init_logger(LogLevelFilter::Info)
+            LogLevelFilter::Info
         } else {
-            ImagLogger::init_logger(LogLevelFilter::Error)
-        }
+            LogLevelFilter::Error
+        };
 
-    }
-
-    fn init_logger(lvlflt : LogLevelFilter) -> Result<(), SetLoggerError> {
         log::set_logger(|max_log_lvl| {
-            max_log_lvl.set(lvlflt);
-            debug!("Init logger with: {}", lvlflt);
-            Box::new(ImagLogger::new(lvlflt.to_log_level().unwrap()))
+            max_log_lvl.set(lvl);
+            debug!("Init logger with: {}", lvl);
+            Box::new(ImagLogger::new(lvl.to_log_level().unwrap()))
         })
     }
 
