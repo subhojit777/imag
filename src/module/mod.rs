@@ -123,10 +123,10 @@ pub mod file {
         fn get_abbrev(&self) -> String;
     }
 
-    pub trait FileParser {
-        fn new(header_parser: &header::FileHeaderParser) -> FileParser;
-        fn read(&self, string: String) -> (header::FileHeaderData, FileData);
-        fn write(&self, hdr: &header::FileHeaderData, data: &FileData) -> Result<String, ParserError>;
+    pub trait FileDataParser {
+        fn new() -> FileDataParser;
+        fn read(&self, string: String) -> FileData;
+        fn write(&self, data: &FileData) -> Result<String, ParserError>;
     }
 
     pub type HeaderDataTpl = (Option<String>, Option<String>);
