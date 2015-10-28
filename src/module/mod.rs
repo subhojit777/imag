@@ -121,7 +121,7 @@ pub mod file {
 
     pub trait FileDataParser : Sized {
         fn new() -> FileDataParser;
-        fn read(&self, string: String) -> FileData;
+        fn read(&self, string: String) -> Result<FileData, ParserError>;
         fn write(&self, data: &FileData) -> Result<String, ParserError>;
     }
 
