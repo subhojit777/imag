@@ -86,36 +86,32 @@ pub mod file {
         }
     }
 
-    pub mod header {
+    pub enum FileHeaderSpec {
+        Null,
+        Bool,
+        Integer,
+        UInteger,
+        Float,
+        Text,
+        Key { name: String, value_type: Box<FileHeaderSpec> },
+        Array { allowed_types: Box<Vec<FileHeaderSpec>> },
+    }
 
-        pub enum FileHeaderSpec {
-            Null,
-            Bool,
-            Integer,
-            UInteger,
-            Float,
-            Text,
-            Key { name: String, value_type: Box<FileHeaderSpec> },
-            Array { allowed_types: Box<Vec<FileHeaderSpec>> },
-        }
+    pub enum FileHeaderData {
+        Null,
+        Bool(bool),
+        Integer(i64),
+        UInteger(u64),
+        Float(f64),
+        Text(String),
+        Key { name: String, value: Box<FileHeaderData> },
+        Array { values: Box<Vec<FileHeaderData>> },
+    }
 
-        pub enum FileHeaderData {
-            Null,
-            Bool(bool),
-            Integer(i64),
-            UInteger(u64),
-            Float(f64),
-            Text(String),
-            Key { name: String, value: Box<FileHeaderData> },
-            Array { values: Box<Vec<FileHeaderData>> },
-        }
-
-        pub trait FileHeaderParser : Sized {
-            fn new(spec: &FileHeaderSpec) -> Self;
-            fn read(&self, string: &String) -> Result<FileHeaderData, super::ParserError>;
-            fn write(&self, data: &FileHeaderData) -> Result<String, super::ParserError>;
-        }
-
+    pub trait FileHeaderParser : Sized {
+        fn new(spec: &FileHeaderSpec) -> Self;
+        fn read(&self, string: &String) -> Result<FileHeaderData, ParserError>;
+        fn write(&self, data: &FileHeaderData) -> Result<String, ParserError>;
     }
 
     pub trait FileData : Sized {
