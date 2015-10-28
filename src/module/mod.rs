@@ -110,7 +110,7 @@ pub mod file {
 
     pub trait FileHeaderParser : Sized {
         fn new(spec: &FileHeaderSpec) -> Self;
-        fn read(&self, string: String) -> Result<FileHeaderData, ParserError>;
+        fn read(&self, string: Option<String>) -> Result<FileHeaderData, ParserError>;
         fn write(&self, data: &FileHeaderData) -> Result<String, ParserError>;
     }
 
@@ -119,15 +119,59 @@ pub mod file {
         fn get_abbrev(&self) -> String;
     }
 
-    pub trait FileDataParser : Sized {
-        fn new() -> FileDataParser;
-        fn read(&self, string: String) -> Result<FileData, ParserError>;
-        fn write(&self, data: &FileData) -> Result<String, ParserError>;
+    pub trait FileDataParser<FD: FileData + Sized> : Sized {
+        fn new() -> Self;
+        fn read(&self, string: Option<String>) -> Result<FD, ParserError>;
+        fn write(&self, data: &FD) -> Result<String, ParserError>;
     }
 
-    pub type HeaderDataTpl = (Option<String>, Option<String>);
+    type TextTpl = (Option<String>, Option<String>);
 
-    pub fn divide_text(text: String) -> Result<HeaderDataTpl, ParserError> {
+    pub struct Parser<HP, DP>
+    {
+        headerp : HP,
+        datap : DP,
+    }
+
+    impl<HP, DP> Parser<HP, DP> where
+        HP: FileHeaderParser,
+    {
+
+        fn new(headerp: HP, datap: DP) -> Parser<HP, DP> {
+            Parser {
+                headerp: headerp,
+                datap: datap,
+            }
+        }
+
+        fn read<FD>(&self, s: String) -> Result<(FileHeaderData, FD), ParserError>
+            where FD: FileData + Sized,
+                  DP: FileDataParser<FD>
+        {
+            let divided = divide_text(&s);
+
+            if divided.is_err() {
+                return Err(divided.err().unwrap());
+            }
+
+            let (header, data) = divided.ok().unwrap();
+
+            let h_parseres = self.headerp.read(header);
+            let d_parseres = self.datap.read(data);
+
+            if h_parseres.is_err() {
+                return Err(h_parseres.err().unwrap());
+            }
+
+            if d_parseres.is_err() {
+                return Err(d_parseres.err().unwrap());
+            }
+
+            Ok((h_parseres.ok().unwrap(), d_parseres.ok().unwrap()))
+        }
+    }
+
+    fn divide_text(text: &String) -> Result<TextTpl, ParserError> {
         let re = Regex::new(r"(?m)^\-\-\-$\n(.*)^\-\-\-$\n(.*)").unwrap();
 
         let captures = re.captures(&text[..]).unwrap_or(
