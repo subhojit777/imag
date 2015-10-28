@@ -1,6 +1,7 @@
 #[macro_use] extern crate clap;
 #[macro_use] extern crate log;
 extern crate config;
+extern crate regex;
 
 use cli::CliConfig;
 use configuration::Configuration;
