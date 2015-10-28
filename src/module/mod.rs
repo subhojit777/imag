@@ -64,6 +64,26 @@ pub mod file {
         explanation: Option<String>,
     }
 
+    impl ParserError {
+        fn new(sum: &'static str, text: String, idx: i32, expl: &'static str) -> ParserError {
+            ParserError {
+                summary: String::from(sum),
+                parsertext: text,
+                index: idx,
+                explanation: Some(String::from(expl)),
+            }
+        }
+
+        fn short(sum: &'static str, text: String, idx: i32) -> ParserError {
+            ParserError {
+                summary: String::from(sum),
+                parsertext: text,
+                index: idx,
+                explanation: None
+            }
+        }
+    }
+
     pub mod header {
 
         pub enum FileHeaderSpec {
