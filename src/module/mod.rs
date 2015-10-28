@@ -110,7 +110,7 @@ pub mod file {
 
     pub trait FileHeaderParser : Sized {
         fn new(spec: &FileHeaderSpec) -> Self;
-        fn read(&self, string: &String) -> Result<FileHeaderData, ParserError>;
+        fn read(&self, string: String) -> Result<FileHeaderData, ParserError>;
         fn write(&self, data: &FileHeaderData) -> Result<String, ParserError>;
     }
 
