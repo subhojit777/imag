@@ -110,7 +110,7 @@ pub mod file {
             Array { values: Box<Vec<FileHeaderData>> },
         }
 
-        pub trait FileHeaderParser {
+        pub trait FileHeaderParser : Sized {
             fn new(spec: &FileHeaderSpec) -> Self;
             fn read(&self, string: &String) -> Result<FileHeaderData, super::ParserError>;
             fn write(&self, data: &FileHeaderData) -> Result<String, super::ParserError>;
@@ -118,12 +118,12 @@ pub mod file {
 
     }
 
-    pub trait FileData {
+    pub trait FileData : Sized {
         fn get_fulltext(&self) -> String;
         fn get_abbrev(&self) -> String;
     }
 
-    pub trait FileDataParser {
+    pub trait FileDataParser : Sized {
         fn new() -> FileDataParser;
         fn read(&self, string: String) -> FileData;
         fn write(&self, data: &FileData) -> Result<String, ParserError>;
