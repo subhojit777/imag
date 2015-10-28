@@ -57,6 +57,8 @@ pub trait Module {
 
 pub mod file {
 
+    use regex::Regex;
+
     pub struct ParserError {
         summary: String,
         parsertext: String,
@@ -125,6 +127,28 @@ pub mod file {
         fn new(header_parser: &header::FileHeaderParser) -> FileParser;
         fn read(&self, string: String) -> (header::FileHeaderData, FileData);
         fn write(&self, hdr: &header::FileHeaderData, data: &FileData) -> Result<String, ParserError>;
+    }
+
+    pub type HeaderDataTpl = (Option<String>, Option<String>);
+
+    pub fn divide_text(text: String) -> Result<HeaderDataTpl, ParserError> {
+        let re = Regex::new(r"(?m)^\-\-\-$\n(.*)^\-\-\-$\n(.*)").unwrap();
+
+        let captures = re.captures(&text[..]).unwrap_or(
+            return Err(ParserError::new("Cannot run regex on text",
+                                        text.clone(), 0,
+                                        "Cannot run regex on text to divide it into header and content."))
+        );
+
+        if captures.len() != 2 {
+            return Err(ParserError::new("Unexpected Regex output",
+                                        text.clone(), 0,
+                                        "The regex to divide text into header and content had an unexpected output."))
+        }
+
+        let header  = captures.at(0).map(|s| String::from(s));
+        let content = captures.at(1).map(|s| String::from(s));
+        Ok((header, content))
     }
 
 }
