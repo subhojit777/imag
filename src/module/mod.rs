@@ -169,6 +169,25 @@ pub mod file {
 
             Ok((h_parseres.ok().unwrap(), d_parseres.ok().unwrap()))
         }
+
+        fn write<FD>(&self, tpl : (FileHeaderData, FD)) -> Result<String, ParserError>
+            where FD: FileData + Sized,
+                  DP: FileDataParser<FD>
+        {
+            let (header, data) = tpl;
+            let h_text = self.headerp.write(&header);
+            let d_text = self.datap.write(&data);
+
+            if h_text.is_err() {
+                return Err(h_text.err().unwrap());
+            }
+
+            if d_text.is_err() {
+                return Err(d_text.err().unwrap());
+            }
+
+            Ok(h_text.ok().unwrap() + &d_text.ok().unwrap()[..])
+        }
     }
 
     fn divide_text(text: &String) -> Result<TextTpl, ParserError> {
