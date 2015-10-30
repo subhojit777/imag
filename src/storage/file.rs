@@ -1,3 +1,7 @@
+use std::error::Error;
+use std::fmt::{Debug, Display, Formatter};
+use std::fmt;
+
 #[derive(Debug)]
 pub enum FileHeaderSpec {
     Null,
@@ -25,5 +29,49 @@ pub enum FileHeaderData {
 pub trait FileData : Sized {
     fn get_fulltext(&self) -> String;
     fn get_abbrev(&self) -> String;
+}
+
+pub struct MatchError {
+    summary: String,
+    path: Vec<FileHeaderSpec>,
+    expected: FileHeaderSpec,
+    found: FileHeaderSpec
+}
+
+impl MatchError {
+    pub fn format(&self) -> String {
+        format!("MatchError: {:?}\n\nHaving: {:?}\nExpected: {:?}\nFound: {:?}\n",
+               self.summary, self.path, self.expected, self.found)
+    }
+}
+
+impl Error for MatchError {
+
+    fn description(&self) -> &str {
+        &self.summary[..]
+    }
+
+    fn cause(&self) -> Option<&Error> {
+        None
+    }
+
+}
+
+impl Debug for MatchError {
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "{}", self.format());
+        Ok(())
+    }
+
+}
+
+impl Display for MatchError {
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "{}", self.format());
+        Ok(())
+    }
+
 }
 
