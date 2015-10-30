@@ -52,21 +52,34 @@ impl Display for FileHeaderSpec {
 
 }
 
-pub struct MatchError {
+pub struct MatchError<'a> {
     summary: String,
     path: Vec<FileHeaderSpec>,
-    expected: FileHeaderSpec,
-    found: FileHeaderSpec
+    expected: &'a FileHeaderSpec,
+    found: &'a FileHeaderData
 }
 
-impl MatchError {
+impl<'a> MatchError<'a> {
+
+    pub fn new(s: String,
+               path: Vec<FileHeaderSpec>,
+               ex: &'a FileHeaderSpec,
+               found: &'a FileHeaderData) -> MatchError<'a> {
+        MatchError {
+            summary: s,
+            path: path,
+            expected: ex,
+            found: found,
+        }
+    }
+
     pub fn format(&self) -> String {
         format!("MatchError: {:?}\n\nHaving: {:?}\nExpected: {:?}\nFound: {:?}\n",
                self.summary, self.path, self.expected, self.found)
     }
 }
 
-impl Error for MatchError {
+impl<'a> Error for MatchError<'a> {
 
     fn description(&self) -> &str {
         &self.summary[..]
@@ -78,7 +91,7 @@ impl Error for MatchError {
 
 }
 
-impl Debug for MatchError {
+impl<'a> Debug for MatchError<'a> {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
         write!(fmt, "{}", self.format());
@@ -87,7 +100,7 @@ impl Debug for MatchError {
 
 }
 
-impl Display for MatchError {
+impl<'a> Display for MatchError<'a> {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
         write!(fmt, "{}", self.format());
@@ -96,11 +109,10 @@ impl Display for MatchError {
 
 }
 
-pub fn match_header_spec(spec: &FileHeaderSpec, data: &FileHeaderData)
-    -> Option<MatchError>
+pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
+    -> Option<MatchError<'a>>
 {
-    let tpl = (spec, data);
-    match tpl {
+    match (spec, data) {
         (&FileHeaderSpec::Null,     &FileHeaderData::Null)           => { }
         (&FileHeaderSpec::Bool,     &FileHeaderData::Bool(_))        => { }
         (&FileHeaderSpec::Integer,  &FileHeaderData::Integer(_))     => { }
@@ -130,7 +142,12 @@ pub fn match_header_spec(spec: &FileHeaderSpec, data: &FileHeaderData)
             }
         }
 
-        _ => { unreachable!() }
+        (k, v) => {
+            return Some(MatchError::new(String::from("Expected type does not match found type"),
+                                 vec![],
+                                 k, v
+                                 ))
+        }
     }
     None
 }
