@@ -11,6 +11,7 @@ pub enum FileHeaderSpec {
     Float,
     Text,
     Key { name: String, value_type: Box<FileHeaderSpec> },
+    Map { keys: Vec<FileHeaderSpec> },
     Array { allowed_types: Box<Vec<FileHeaderSpec>> },
 }
 
@@ -23,6 +24,7 @@ pub enum FileHeaderData {
     Float(f64),
     Text(String),
     Key { name: String, value: Box<FileHeaderData> },
+    Map { keys: Vec<FileHeaderData> },
     Array { values: Box<Vec<FileHeaderData>> },
 }
 
@@ -43,6 +45,9 @@ impl Display for FileHeaderSpec {
             &FileHeaderSpec::Text       => write!(fmt, "Text"),
             &FileHeaderSpec::Key{name: ref n, value_type: ref vt} => {
                 write!(fmt, "Key({:?}) -> {:?}", n, vt)
+            }
+            &FileHeaderSpec::Map{keys: ref ks} => {
+                write!(fmt, "Map -> {:?}", ks)
             }
             &FileHeaderSpec::Array{allowed_types: ref at}  => {
                 write!(fmt, "Array({:?})", at)
@@ -125,6 +130,18 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
                 // error
             }
             return match_header_spec(&*vtype, &*val);
+        }
+
+        (
+            &FileHeaderSpec::Map{keys: ref sks},
+            &FileHeaderData::Map{keys: ref dks}
+        ) => {
+            for (s, d) in sks.iter().zip(dks.iter()) {
+                let res = match_header_spec(s, d);
+                if res.is_some() {
+                    return res;
+                }
+            }
         }
 
         (
