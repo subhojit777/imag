@@ -1,4 +1,7 @@
 use regex::Regex;
+use std::error::Error;
+use std::fmt::{Debug, Display, Formatter};
+use std::fmt;
 
 use super::file::*;
 
@@ -28,6 +31,48 @@ impl ParserError {
         }
     }
 }
+
+impl Error for ParserError {
+
+    fn description(&self) -> &str {
+        &self.summary[..]
+    }
+
+    fn cause(&self) -> Option<&Error> {
+        None
+    }
+
+}
+
+impl Debug for ParserError {
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "ParserError: {}\n\n", self.summary);
+
+        if let Some(ref e) = self.explanation {
+            write!(fmt, "{}\n\n", e);
+        }
+
+        write!(fmt, "On position {}\nin\n{}", self.index, self.parsertext);
+        Ok(())
+    }
+
+}
+
+impl Display for ParserError {
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "ParserError: {}", self.summary);
+
+        if let Some(ref e) = self.explanation {
+            write!(fmt, "\n\n{}", e);
+        }
+
+        Ok(())
+    }
+
+}
+
 
 pub trait FileHeaderParser : Sized {
     fn new(spec: &FileHeaderSpec) -> Self;
