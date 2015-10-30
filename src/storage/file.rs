@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum FileHeaderSpec {
     Null,
     Bool,
@@ -9,6 +10,7 @@ pub enum FileHeaderSpec {
     Array { allowed_types: Box<Vec<FileHeaderSpec>> },
 }
 
+#[derive(Debug)]
 pub enum FileHeaderData {
     Null,
     Bool(bool),
