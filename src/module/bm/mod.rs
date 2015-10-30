@@ -7,6 +7,8 @@ use std::result::Result;
 use clap::ArgMatches;
 use regex::Regex;
 
+mod header;
+
 pub struct BMModule {
     path: Option<String>,
 }
