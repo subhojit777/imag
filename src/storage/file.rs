@@ -10,9 +10,9 @@ pub enum FileHeaderSpec {
     UInteger,
     Float,
     Text,
-    Key { name: String, value_type: Box<FileHeaderSpec> },
+    Key { name: &'static str, value_type: Box<FileHeaderSpec> },
     Map { keys: Vec<FileHeaderSpec> },
-    Array { allowed_types: Box<Vec<FileHeaderSpec>> },
+    Array { allowed_types: Vec<FileHeaderSpec> },
 }
 
 #[derive(Debug)]
