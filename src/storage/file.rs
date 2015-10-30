@@ -54,7 +54,6 @@ impl Display for FileHeaderSpec {
 
 pub struct MatchError<'a> {
     summary: String,
-    path: Vec<FileHeaderSpec>,
     expected: &'a FileHeaderSpec,
     found: &'a FileHeaderData
 }
@@ -62,20 +61,18 @@ pub struct MatchError<'a> {
 impl<'a> MatchError<'a> {
 
     pub fn new(s: String,
-               path: Vec<FileHeaderSpec>,
                ex: &'a FileHeaderSpec,
                found: &'a FileHeaderData) -> MatchError<'a> {
         MatchError {
             summary: s,
-            path: path,
             expected: ex,
             found: found,
         }
     }
 
     pub fn format(&self) -> String {
-        format!("MatchError: {:?}\n\nHaving: {:?}\nExpected: {:?}\nFound: {:?}\n",
-               self.summary, self.path, self.expected, self.found)
+        format!("MatchError: {:?}\nExpected: {:?}\nFound: {:?}\n",
+               self.summary, self.expected, self.found)
     }
 }
 
@@ -144,7 +141,6 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
 
         (k, v) => {
             return Some(MatchError::new(String::from("Expected type does not match found type"),
-                                 vec![],
                                  k, v
                                  ))
         }
