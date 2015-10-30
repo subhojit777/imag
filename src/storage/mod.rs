@@ -4,6 +4,6 @@ pub use std::error::Error;
 
 pub use runtime::Runtime;
 
-mod file;
-mod parser;
+pub mod file;
+pub mod parser;
 
