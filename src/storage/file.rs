@@ -96,3 +96,42 @@ impl Display for MatchError {
 
 }
 
+pub fn match_header_spec(spec: &FileHeaderSpec, data: &FileHeaderData)
+    -> Option<MatchError>
+{
+    let tpl = (spec, data);
+    match tpl {
+        (&FileHeaderSpec::Null,     &FileHeaderData::Null)           => { }
+        (&FileHeaderSpec::Bool,     &FileHeaderData::Bool(_))        => { }
+        (&FileHeaderSpec::Integer,  &FileHeaderData::Integer(_))     => { }
+        (&FileHeaderSpec::UInteger, &FileHeaderData::UInteger(_))    => { }
+        (&FileHeaderSpec::Float,    &FileHeaderData::Float(_))       => { }
+        (&FileHeaderSpec::Text,     &FileHeaderData::Text(_))        => { }
+
+        (
+            &FileHeaderSpec::Key{name: ref kname, value_type: ref vtype},
+            &FileHeaderData::Key{name: ref n, value: ref val}
+        ) => {
+            if kname != n {
+                // error
+            }
+            return match_header_spec(&*vtype, &*val);
+        }
+
+        (
+            &FileHeaderSpec::Array{allowed_types: ref vtypes},
+            &FileHeaderData::Array{values: ref vs}
+        ) => {
+            for (t, v) in vtypes.iter().zip(vs.iter()) {
+                let res = match_header_spec(t, v);
+                if res.is_some() {
+                    return res;
+                }
+            }
+        }
+
+        _ => { unreachable!() }
+    }
+    None
+}
+
