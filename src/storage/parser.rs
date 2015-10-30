@@ -109,7 +109,7 @@ impl<HP, DP> Parser<HP, DP> where
         where FD: FileData + Sized,
               DP: FileDataParser<FD>
     {
-        let divided = divide_text(&s);
+        let divided = self.divide_text(&s);
 
         if divided.is_err() {
             return Err(divided.err().unwrap());
@@ -149,25 +149,26 @@ impl<HP, DP> Parser<HP, DP> where
 
         Ok(h_text.ok().unwrap() + &d_text.ok().unwrap()[..])
     }
-}
 
-fn divide_text(text: &String) -> Result<TextTpl, ParserError> {
-    let re = Regex::new(r"(?m)^\-\-\-$\n(.*)^\-\-\-$\n(.*)").unwrap();
+    fn divide_text(&self, text: &String) -> Result<TextTpl, ParserError> {
+        let re = Regex::new(r"(?m)^\-\-\-$\n(.*)^\-\-\-$\n(.*)").unwrap();
 
-    let captures = re.captures(&text[..]).unwrap_or(
-        return Err(ParserError::new("Cannot run regex on text",
-                                    text.clone(), 0,
-                                    "Cannot run regex on text to divide it into header and content."))
-    );
+        let captures = re.captures(&text[..]).unwrap_or(
+            return Err(ParserError::new("Cannot run regex on text",
+                                        text.clone(), 0,
+                                        "Cannot run regex on text to divide it into header and content."))
+        );
 
-    if captures.len() != 2 {
-        return Err(ParserError::new("Unexpected Regex output",
-                                    text.clone(), 0,
-                                    "The regex to divide text into header and content had an unexpected output."))
+        if captures.len() != 2 {
+            return Err(ParserError::new("Unexpected Regex output",
+                                        text.clone(), 0,
+                                        "The regex to divide text into header and content had an unexpected output."))
+        }
+
+        let header  = captures.at(0).map(|s| String::from(s));
+        let content = captures.at(1).map(|s| String::from(s));
+        Ok((header, content))
     }
 
-    let header  = captures.at(0).map(|s| String::from(s));
-    let content = captures.at(1).map(|s| String::from(s));
-    Ok((header, content))
 }
 
