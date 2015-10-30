@@ -4,6 +4,8 @@ pub use std::error::Error;
 
 pub use runtime::Runtime;
 
+mod file;
+
 pub trait StorageBackend {
 
     fn name(&self) -> String;
