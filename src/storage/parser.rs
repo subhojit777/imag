@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 
-use super::file::*;
+use super::file::{FileHeaderSpec, FileHeaderData, FileData};
 
 pub struct ParserError {
     summary: String,

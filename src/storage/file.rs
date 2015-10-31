@@ -2,6 +2,8 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 
+use super::parser::{FileHeaderParser, FileDataParser, Parser, ParserError};
+
 #[derive(Debug)]
 pub enum FileHeaderSpec {
     Null,
@@ -163,5 +165,42 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
         }
     }
     None
+}
+
+pub type FileID = String;
+
+pub struct File<D: FileData> {
+    header  : FileHeaderData,
+    data    : D,
+    id      : String
+}
+
+impl<D: FileData> File<D> {
+
+    fn new<HP, DP>(prs: &Parser<HP, DP>, path: &String) -> Result<File<D>, ParserError>
+        where HP: FileHeaderParser,
+              DP: FileDataParser<D>,
+    {
+        File::<D>::read_file(path).and_then(|p| prs.read(p))
+                             .and_then(|(h, d)|
+            Ok(File {
+                header: h,
+                data: d,
+                id: File::<D>::get_id_from_path(path),
+            }))
+    }
+
+    fn getID(&self) -> FileID {
+        self.id.clone()
+    }
+
+    fn get_id_from_path(p: &String) -> FileID {
+        String::from("")
+    }
+
+    fn read_file(p: &String) -> Result<String, ParserError> {
+        Ok(String::from(""))
+    }
+
 }
 
