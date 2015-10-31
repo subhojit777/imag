@@ -12,6 +12,7 @@ log = "0.3.2"
 regex = "0.1.41"
 url = "0.2.37"
 uuid = "0.1.18"
+chan_signal = "0.1.4"
 
 config = "0.1.2"
 
