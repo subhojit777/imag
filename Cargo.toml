@@ -21,4 +21,5 @@ chrono = "0.2.16"
 clap = { version = "1.4.5", features = ["yaml"] }
 rustty = "0.1.9"
 term = "0.2.12"
+term_grid = "0.1.2"
 
