@@ -105,7 +105,7 @@ impl<HP, DP> Parser<HP, DP> where
         }
     }
 
-    fn read<FD>(&self, s: String) -> Result<(FileHeaderData, FD), ParserError>
+    pub fn read<FD>(&self, s: String) -> Result<(FileHeaderData, FD), ParserError>
         where FD: FileData + Sized,
               DP: FileDataParser<FD>
     {
