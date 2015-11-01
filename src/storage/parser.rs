@@ -128,18 +128,10 @@ impl<HP, DP> Parser<HP, DP> where
               DP: FileDataParser<FD>
     {
         let (header, data) = tpl;
-        let h_text = self.headerp.write(&header);
-        let d_text = self.datap.write(&data);
+        let h_text = try!(self.headerp.write(&header));
+        let d_text = try!(self.datap.write(&data));
 
-        if h_text.is_err() {
-            return Err(h_text.err().unwrap());
-        }
-
-        if d_text.is_err() {
-            return Err(d_text.err().unwrap());
-        }
-
-        Ok(h_text.ok().unwrap() + &d_text.ok().unwrap()[..])
+        Ok(h_text + &d_text[..])
     }
 
     fn divide_text(&self, text: &String) -> Result<TextTpl, ParserError> {
