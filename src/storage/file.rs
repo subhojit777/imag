@@ -129,7 +129,7 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
             &FileHeaderData::Key{name: ref n, value: ref val}
         ) => {
             if kname != n {
-                // error
+                unimplemented!();
             }
             return match_header_spec(&*vtype, &*val);
         }
