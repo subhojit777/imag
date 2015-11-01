@@ -117,18 +117,10 @@ impl<HP, DP> Parser<HP, DP> where
 
         let (header, data) = divided.ok().unwrap();
 
-        let h_parseres = self.headerp.read(header);
-        let d_parseres = self.datap.read(data);
+        let h_parseres = try!(self.headerp.read(header));
+        let d_parseres = try!(self.datap.read(data));
 
-        if h_parseres.is_err() {
-            return Err(h_parseres.err().unwrap());
-        }
-
-        if d_parseres.is_err() {
-            return Err(d_parseres.err().unwrap());
-        }
-
-        Ok((h_parseres.ok().unwrap(), d_parseres.ok().unwrap()))
+        Ok((h_parseres, d_parseres))
     }
 
     fn write<FD>(&self, tpl : (FileHeaderData, FD)) -> Result<String, ParserError>
