@@ -8,7 +8,7 @@ let
 in
 
 pkgs.stdenv.mkDerivation rec {
-    name = "unfug.org";
+    name = "imag";
     src = ./.;
     version = "0.0.0";
 
