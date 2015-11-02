@@ -1,6 +1,4 @@
-{ stdenv
-, pkgs ? (import <nixpkgs> {})
-}:
+{ pkgs ? (import <nixpkgs> {}) }:
 
 let
   env = with pkgs.rustPlatform; [
@@ -9,7 +7,7 @@ let
   ];
 in
 
-stdenv.mkDerivation rec {
+pkgs.stdenv.mkDerivation rec {
     name = "unfug.org";
     src = ./.;
     version = "0.0.0";
