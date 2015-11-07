@@ -116,6 +116,13 @@ fn get_tags<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Option<Vec<String>> {
                                   Some(tags.split(",")
                                        .collect::<Vec<_>>()
                                        .iter()
+                                       .filter(|e|
+                                            if e.contains(" ") {
+                                                warn!("Tag contains spaces: '{}'", e);
+                                                true
+                                            } else {
+                                                false
+                                            })
                                        .map(|s| s.to_string())
                                        .collect()
                                       )
