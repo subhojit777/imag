@@ -40,7 +40,7 @@ Bookmarks should be stored in a simple format:
 Each file is one bookmark and the filename is a SHA512.
 
 | Required core feature                 | Purpose       |
-+ :------------------------------------ + :------------ +
+| :------------------------------------ | :------------ |
 | Filesystem access (RW)                | Data storage  |
 | JSON File backend                     | Data format   |
 | Git backend                           | Data sync     |
@@ -51,7 +51,7 @@ Contacts are just read and indexed by `imag`, to create an internal index of
 them and to be able to refer to.
 
 | Required core feature                 | Purpose       |
-+ :------------------------------------ + :------------ +
+| :------------------------------------ | :------------ |
 | Filesystem access (RW)                | Data access   |
 | vcard file format parsing             | Data access   |
 
@@ -61,7 +61,7 @@ Calendar are just read and indexed by `imag`, to create an internal index of
 them and to be able to refer to.
 
 | Required core feature                 | Purpose       |
-+ :------------------------------------ + :------------ +
+| :------------------------------------ | :------------ |
 | Filesystem access (RW)                | Data access   |
 | ical file format parsing              | Data access   |
 
@@ -75,7 +75,7 @@ Some of these things (like linking contacts, calendar entries) should be
 linked automatically.
 
 | Required core feature                 | Purpose       |
-+ :------------------------------------ + :------------ +
+| :------------------------------------ | :------------ |
 | Filesystem access (RO)                | Data access   |
 | Maildir file format parsing           | Data access   |
 | mbox file format parsing (later)      | Data access   |
@@ -91,7 +91,7 @@ simple markdown files which have a YAML header, nothing too special for the
 first step.
 
 | Required core feature                 | Purpose       |
-+ :------------------------------------ + :------------ +
+| :------------------------------------ | :------------ |
 | Filesystem access (RW)                | Data access   |
 | YAML parsing                          | Data parsing  |
 | Markdown parsing                      | Data parsing  |
@@ -104,7 +104,7 @@ first step.
 taskwarrior through a wrapper here.
 
 | Required core feature                 | Purpose       |
-+ :------------------------------------ + :------------ +
+| :------------------------------------ | :------------ |
 | Filesystem access (RO)                | Data access   |
 | Taskwarrior backend                   | Data parsing  |
 | Git backend                           | Data sync     |
@@ -115,7 +115,7 @@ taskwarrior through a wrapper here.
 Simply dot-and-tick lists.
 
 | Required core feature                 | Purpose       |
-+ :------------------------------------ + :------------ +
+| :------------------------------------ | :------------ |
 | Filesystem access (RW)                | Data access   |
 | YAML parsing                          | Data parsing  |
 | Markdown parsing                      | Data parsing  |
@@ -129,7 +129,7 @@ here as well... didn't waste too much thoughts on this by now. If we have the
 PDF data, we need git-annex.
 
 | Required core feature                 | Purpose       |
-+ :------------------------------------ + :------------ +
+| :------------------------------------ | :------------ |
 | Filesystem access (RW)                | Data access   |
 | BibTex parsing                        | Data parsing  |
 | Git backend                           | Data sync     |
@@ -141,7 +141,7 @@ PDF data, we need git-annex.
 Just indexing, reading news is not task of `imag` and so isn't syncing.
 
 | Required core feature                 | Purpose       |
-+ :------------------------------------ + :------------ +
+| :------------------------------------ | :------------ |
 | Filesystem access (RO)                | Data access   |
 | RSS parsing                           | Data parsing  |
 | Git backend                           | Data sync     |
