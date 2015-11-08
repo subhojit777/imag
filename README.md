@@ -146,3 +146,7 @@ Just indexing, reading news is not task of `imag` and so isn't syncing.
 | RSS parsing                           | Data parsing  |
 | Git backend                           | Data sync     |
 
+# License
+
+This code is released under terms of GNU GPLv2.
+
