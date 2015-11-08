@@ -74,8 +74,8 @@ impl Display for ParserError {
 }
 
 
-pub trait FileHeaderParser : Sized {
-    fn new(spec: &FileHeaderSpec) -> Self;
+pub trait FileHeaderParser<'a> : Sized {
+    fn new(spec: &'a FileHeaderSpec) -> Self;
     fn read(&self, string: Option<String>) -> Result<FileHeaderData, ParserError>;
     fn write(&self, data: &FileHeaderData) -> Result<String, ParserError>;
 }
@@ -94,8 +94,8 @@ pub struct Parser<HP, DP>
     datap : DP,
 }
 
-impl<HP, DP> Parser<HP, DP> where
-    HP: FileHeaderParser,
+impl<'a, HP, DP> Parser<HP, DP> where
+    HP: FileHeaderParser<'a>,
 {
 
     fn new(headerp: HP, datap: DP) -> Parser<HP, DP> {
