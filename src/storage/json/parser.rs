@@ -1,5 +1,11 @@
 use serde_json::{Value, from_str};
 use serde_json::error::Result as R;
+use serde_json::Serializer;
+use serde::ser::Serialize;
+use serde::ser::Serializer as Ser;
+
+use std::collections::HashMap;
+use std::io::stdout;
 
 use super::super::parser::{FileHeaderParser, ParserError};
 use super::super::file::{FileHeaderSpec, FileHeaderData};
@@ -35,6 +41,9 @@ impl<'a> FileHeaderParser<'a> for JsonHeaderParser<'a> {
     }
 
     fn write(&self, data: &FileHeaderData) -> Result<String, ParserError> {
+        let mut ser = Serializer::pretty(stdout());
+        data.serialize(&mut ser);
+        Ok(String::from(""))
     }
 
 }
@@ -64,4 +73,31 @@ fn visit_json(v: &Value) -> FileHeaderData {
             }
         }
     }
+}
+
+impl Serialize for FileHeaderData {
+
+    fn serialize<S>(&self, ser: &mut S) -> Result<(), S::Error>
+        where S: Ser
+    {
+        match self {
+            &FileHeaderData::Null               => {
+                let o : Option<bool> = None;
+                o.serialize(ser)
+            },
+            &FileHeaderData::Bool(ref b)            => b.serialize(ser),
+            &FileHeaderData::Integer(ref i)         => i.serialize(ser),
+            &FileHeaderData::UInteger(ref u)        => u.serialize(ser),
+            &FileHeaderData::Float(ref f)           => f.serialize(ser),
+            &FileHeaderData::Text(ref s)            => (&s[..]).serialize(ser),
+            &FileHeaderData::Array{values: ref vs}  => vs.serialize(ser),
+            &FileHeaderData::Map{keys: ref ks}      => ks.serialize(ser),
+            &FileHeaderData::Key{name: ref n, value: ref v}   => {
+                let mut hm = HashMap::new();
+                hm.insert(n, v);
+                hm.serialize(ser)
+            }
+        }
+    }
+
 }
