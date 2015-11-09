@@ -8,6 +8,7 @@ dependencies = [
  "log 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustty 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "term 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "term_grid 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
