@@ -1,5 +1,7 @@
 #[macro_use] extern crate clap;
 #[macro_use] extern crate log;
+#[macro_use] extern crate serde;
+#[macro_use] extern crate serde_json;
 extern crate config;
 extern crate regex;
 

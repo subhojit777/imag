@@ -175,10 +175,10 @@ pub struct File<D: FileData> {
     id      : String
 }
 
-impl<D: FileData> File<D> {
+impl<'a, D: FileData> File<D> {
 
     fn new<HP, DP>(prs: &Parser<HP, DP>, path: &String) -> Result<File<D>, ParserError>
-        where HP: FileHeaderParser,
+        where HP: FileHeaderParser<'a>,
               DP: FileDataParser<D>,
     {
         File::<D>::read_file(path).and_then(|p| prs.read(p))
