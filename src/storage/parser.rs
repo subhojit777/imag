@@ -13,7 +13,7 @@ pub struct ParserError {
 }
 
 impl ParserError {
-    fn new(sum: &'static str, text: String, idx: i32, expl: &'static str) -> ParserError {
+    pub fn new(sum: &'static str, text: String, idx: i32, expl: &'static str) -> ParserError {
         ParserError {
             summary: String::from(sum),
             parsertext: text,
@@ -22,7 +22,7 @@ impl ParserError {
         }
     }
 
-    fn short(sum: &'static str, text: String, idx: i32) -> ParserError {
+    pub fn short(sum: &'static str, text: String, idx: i32) -> ParserError {
         ParserError {
             summary: String::from(sum),
             parsertext: text,
