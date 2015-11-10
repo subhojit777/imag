@@ -118,9 +118,9 @@ fn get_tags<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Vec<String> {
                                        .filter(|e|
                                             if e.contains(" ") {
                                                 warn!("Tag contains spaces: '{}'", e);
-                                                true
-                                            } else {
                                                 false
+                                            } else {
+                                                true
                                             }).collect()
                                       )
                                  ).or(Some(vec![])).unwrap()
