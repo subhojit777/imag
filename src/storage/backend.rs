@@ -1,5 +1,7 @@
 use std::error::Error;
 use std::fmt::Display;
+use std::fmt::Formatter;
+use std::fmt::Result as FMTResult;
 
 use super::file::FileID;
 use super::file::File;
@@ -40,14 +42,44 @@ impl<'a> StorageBackend<'a> {
 }
 
 #[derive(Debug)]
-pub struct StorageBackendError;
+pub struct StorageBackendError {
+    pub action: String,             // The file system action in words
+    pub desc: String,               // A short description
+    pub explanation: String,        // A long, user friendly description
+    pub dataDump: Option<String>    // Data dump, if any
+}
 
 impl StorageBackendError {
+    fn new(action: &'static str,
+           desc  : &'static str,
+           explan: &'static str,
+           data  : Option<String>) -> StorageBackendError
+    {
+        StorageBackendError {
+            action:         String::from(action),
+            desc:           String::from(desc),
+            explanation:    String::from(explan),
+            dataDump:       data,
+        }
+    }
 }
 
 impl Error for StorageBackendError {
+
+    fn description(&self) -> &str {
+        &self.desc[..]
+    }
+
+    fn cause(&self) -> Option<&Error> {
+        None
+    }
+
 }
 
 impl Display for StorageBackendError {
+    fn fmt(&self, f: &mut Formatter) -> FMTResult {
+        write!(f, "StorageBackendError[{}]: {}\n\n{}",
+               self.action, self.desc, self.explanation)
+    }
 }
 
