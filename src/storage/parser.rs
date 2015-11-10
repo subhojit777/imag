@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 
-use super::file::{FileHeaderSpec, FileHeaderData, FileData};
+use super::file::{FileHeaderSpec, FileHeaderData};
 
 pub struct ParserError {
     summary: String,
@@ -80,34 +80,24 @@ pub trait FileHeaderParser<'a> : Sized {
     fn write(&self, data: &FileHeaderData) -> Result<String, ParserError>;
 }
 
-pub trait FileDataParser<FD: FileData + Sized> : Sized {
-    fn new() -> Self;
-    fn read(&self, string: Option<String>) -> Result<FD, ParserError>;
-    fn write(&self, data: &FD) -> Result<String, ParserError>;
-}
-
 type TextTpl = (Option<String>, Option<String>);
 
-pub struct Parser<HP, DP>
+pub struct Parser<HP>
 {
     headerp : HP,
-    datap : DP,
 }
 
-impl<'a, HP, DP> Parser<HP, DP> where
+impl<'a, HP> Parser<HP> where
     HP: FileHeaderParser<'a>,
 {
 
-    fn new(headerp: HP, datap: DP) -> Parser<HP, DP> {
+    fn new(headerp: HP) -> Parser<HP> {
         Parser {
             headerp: headerp,
-            datap: datap,
         }
     }
 
-    pub fn read<FD>(&self, s: String) -> Result<(FileHeaderData, FD), ParserError>
-        where FD: FileData + Sized,
-              DP: FileDataParser<FD>
+    pub fn read(&self, s: String) -> Result<(FileHeaderData, String), ParserError>
     {
         let divided = self.divide_text(&s);
 
@@ -118,20 +108,16 @@ impl<'a, HP, DP> Parser<HP, DP> where
         let (header, data) = divided.ok().unwrap();
 
         let h_parseres = try!(self.headerp.read(header));
-        let d_parseres = try!(self.datap.read(data));
 
-        Ok((h_parseres, d_parseres))
+        Ok((h_parseres, data.unwrap_or(String::new())))
     }
 
-    fn write<FD>(&self, tpl : (FileHeaderData, FD)) -> Result<String, ParserError>
-        where FD: FileData + Sized,
-              DP: FileDataParser<FD>
+    fn write(&self, tpl : (FileHeaderData, String)) -> Result<String, ParserError>
     {
         let (header, data) = tpl;
         let h_text = try!(self.headerp.write(&header));
-        let d_text = try!(self.datap.write(&data));
 
-        Ok(h_text + &d_text[..])
+        Ok(h_text + &data[..])
     }
 
     fn divide_text(&self, text: &String) -> Result<TextTpl, ParserError> {

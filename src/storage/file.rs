@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 
-use super::parser::{FileHeaderParser, FileDataParser, Parser, ParserError};
+use super::parser::{FileHeaderParser, Parser, ParserError};
 
 #[derive(Debug)]
 pub enum FileHeaderSpec {
@@ -28,11 +28,6 @@ pub enum FileHeaderData {
     Key { name: String, value: Box<FileHeaderData> },
     Map { keys: Vec<FileHeaderData> },
     Array { values: Box<Vec<FileHeaderData>> },
-}
-
-pub trait FileData : Sized {
-    fn get_fulltext(&self) -> String;
-    fn get_abbrev(&self) -> String;
 }
 
 impl Display for FileHeaderSpec {
@@ -169,24 +164,23 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
 
 pub type FileID = String;
 
-pub struct File<D: FileData> {
+pub struct File {
     header  : FileHeaderData,
-    data    : D,
+    data    : String,
     id      : String
 }
 
-impl<'a, D: FileData> File<D> {
+impl<'a> File {
 
-    fn new<HP, DP>(prs: &Parser<HP, DP>, path: &String) -> Result<File<D>, ParserError>
-        where HP: FileHeaderParser<'a>,
-              DP: FileDataParser<D>,
+    fn new<HP>(prs: &Parser<HP>, path: &String) -> Result<File, ParserError>
+        where HP: FileHeaderParser<'a>
     {
-        File::<D>::read_file(path).and_then(|p| prs.read(p))
+        File::read_file(path).and_then(|p| prs.read(p))
                              .and_then(|(h, d)|
             Ok(File {
                 header: h,
                 data: d,
-                id: File::<D>::get_id_from_path(path),
+                id: File::get_id_from_path(path),
             }))
     }
 
