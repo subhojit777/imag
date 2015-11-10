@@ -6,11 +6,11 @@ pub fn get_spec() -> FHS {
 }
 
 fn url_key() -> FHS {
-    FHS::Key { name: "URL", value_type: Box::new(FHS::Text) }
+    FHS::Key { name: String::from("URL"), value_type: Box::new(FHS::Text) }
 }
 
 fn tags_key() -> FHS {
-    FHS::Key { name: "TAGS", value_type: Box::new(text_array()) }
+    FHS::Key { name: String::from("TAGS"), value_type: Box::new(text_array()) }
 }
 
 fn text_array() -> FHS {
@@ -22,11 +22,11 @@ pub fn build_header(url: &String, tags: &Vec<String>) -> FHD {
     FHD::Map {
         keys: vec![
             FHD::Key {
-                name: "URL",
+                name: String::from("URL"),
                 value: Box::new(FHD::Text(url.clone()))
             },
             FHD::Key {
-                name: "TAGS",
+                name: String::from("TAGS"),
                 value: Box::new(FHD::Text(tags.connect(",")))
             }
         ]

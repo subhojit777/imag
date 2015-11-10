@@ -16,7 +16,7 @@ pub enum FileHeaderSpec {
     UInteger,
     Float,
     Text,
-    Key { name: &'static str, value_type: Box<FileHeaderSpec> },
+    Key { name: String, value_type: Box<FileHeaderSpec> },
     Map { keys: Vec<FileHeaderSpec> },
     Array { allowed_types: Vec<FileHeaderSpec> },
 }
@@ -30,7 +30,7 @@ pub enum FileHeaderData {
     UInteger(u64),
     Float(f64),
     Text(String),
-    Key { name: &'static str, value: Box<FileHeaderData> },
+    Key { name: String, value: Box<FileHeaderData> },
     Map { keys: Vec<FileHeaderData> },
     Array { values: Box<Vec<FileHeaderData>> },
 }
