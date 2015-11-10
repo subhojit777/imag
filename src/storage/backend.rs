@@ -16,7 +16,11 @@ pub struct StorageBackend<'a> {
 
 impl<'a> StorageBackend<'a> {
 
-    fn new() -> StorageBackend<'a> {
+    fn new(bashpath: String, module: &'a Module) -> StorageBackend<'a> {
+        StorageBackend {
+            basepath: basepath,
+            module: module,
+        }
     }
 
     fn getFileList() -> Vec<(String, FileID)> {
