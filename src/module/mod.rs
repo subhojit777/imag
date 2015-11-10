@@ -6,9 +6,7 @@ use std::fmt::Display;
 use std::path::Path;
 use std::result::Result;
 
-use module::todo::TodoModule;
-
-mod todo;
+use storage::backend::*;
 
 #[derive(Debug)]
 pub struct ModuleError {
