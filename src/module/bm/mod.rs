@@ -9,6 +9,10 @@ use regex::Regex;
 
 mod header;
 
+use self::header::build_header;
+use storage::json::parser::JsonHeaderParser;
+use storage::parser::FileHeaderParser;
+
 pub struct BMModule {
     path: Option<String>,
 }
@@ -62,6 +66,10 @@ fn add<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> ModuleResult {
     let url = sub.value_of("url").unwrap();
     let tags = get_tags(rt, sub);
     info!("Adding url '{}' with tags '{:?}'", url, tags);
+
+    let header = build_header(&String::from(url), &tags);
+    let jheader = JsonHeaderParser::new(None).write(&header);
+    println!("JSON: {:?}", jheader);
 
     Ok(())
 }
