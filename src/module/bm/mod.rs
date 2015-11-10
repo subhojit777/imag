@@ -61,7 +61,7 @@ impl Module for BMModule {
 fn add<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> ModuleResult {
     let url = sub.value_of("url").unwrap();
     let tags = get_tags(rt, sub);
-    info!("Adding url '{}' with tags '{:?}'", url, tags.unwrap_or(vec!()));
+    info!("Adding url '{}' with tags '{:?}'", url, tags);
 
     Ok(())
 }
@@ -74,10 +74,10 @@ fn list<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> ModuleResult {
         Some(reg) => {
             info!("Listing urls with matcher '{}' and with tags {:?}",
                      reg.as_str(),
-                     tags.unwrap_or(vec!()));
+                     tags);
         }
         None => {
-            info!("Listing urls with tags {:?}", tags.unwrap_or(vec!()));
+            info!("Listing urls with tags {:?}", tags);
         }
     }
 
@@ -97,11 +97,10 @@ fn remove<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> ModuleResult {
             match matcher {
                 Some(reg) => {
                     info!("Removing urls with matcher '{}' and with tags {:?}",
-                             reg.as_str(),
-                             tags.unwrap_or(vec!()));
+                             reg.as_str(), tags);
                 }
                 None => {
-                    info!("Listing urls with tags {:?}", tags.unwrap_or(vec!()));
+                    info!("Listing urls with tags {:?}", tags);
                 }
             }
         }
@@ -110,23 +109,21 @@ fn remove<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> ModuleResult {
     Ok(())
 }
 
-fn get_tags<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Option<Vec<String>> {
+fn get_tags<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Vec<String> {
     debug!("Fetching tags from commandline");
     sub.value_of("tags").and_then(|tags|
                                   Some(tags.split(",")
-                                       .collect::<Vec<_>>()
-                                       .iter()
+                                       .into_iter()
+                                       .map(|s| s.to_string())
                                        .filter(|e|
                                             if e.contains(" ") {
                                                 warn!("Tag contains spaces: '{}'", e);
                                                 true
                                             } else {
                                                 false
-                                            })
-                                       .map(|s| s.to_string())
-                                       .collect()
+                                            }).collect()
                                       )
-                                 )
+                                 ).or(Some(vec![])).unwrap()
 
 }
 
