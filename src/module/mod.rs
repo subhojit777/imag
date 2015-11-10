@@ -6,7 +6,8 @@ use std::fmt::Display;
 use std::path::Path;
 use std::result::Result;
 
-use storage::backend::*;
+use storage::backend::{StorageBackend, StorageBackendError};
+mod command;
 
 #[derive(Debug)]
 pub struct ModuleError {
