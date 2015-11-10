@@ -51,5 +51,9 @@ pub trait Module {
     fn execute(&self, rt : &Runtime) -> ModuleResult;
     fn shutdown(&self, rt : &Runtime) -> ModuleResult;
 
+    fn getCommandBuilder<T>() -> F
+        where F: FnOnce(StorageBackend) -> T,
+              T: ExecutableCommand;
+
 }
 
