@@ -7,6 +7,7 @@ use std::path::Path;
 use std::result::Result;
 
 use storage::backend::{StorageBackend, StorageBackendError};
+use self::command::ExecutableCommand;
 mod command;
 
 #[derive(Debug)]
@@ -51,7 +52,7 @@ pub trait Module {
     fn execute(&self, rt : &Runtime) -> ModuleResult;
     fn shutdown(&self, rt : &Runtime) -> ModuleResult;
 
-    fn getCommandBuilder<T>() -> F
+    fn getCommandBuilder<T, F>() -> F
         where F: FnOnce(StorageBackend) -> T,
               T: ExecutableCommand;
 
