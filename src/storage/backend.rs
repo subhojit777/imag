@@ -2,6 +2,9 @@ use std::error::Error;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Result as FMTResult;
+use std::path::Path;
+
+use glob::glob;
 
 use super::file::FileID;
 use super::file::File;
@@ -23,7 +26,9 @@ impl<'a> StorageBackend<'a> {
         }
     }
 
-    fn getFileList() -> Vec<(String, FileID)> {
+    fn getFileList(&self) -> Option<Vec<(Path, FileID)>> {
+        let files: Vec<&Path> = glob(&self.basepath[..]);
+        files.map(|path| (path, file_id_from_path(path))).unwrap_or(None)
     }
 
     fn createEmpty() -> FileID {
