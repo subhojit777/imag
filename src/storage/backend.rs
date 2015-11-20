@@ -45,6 +45,10 @@ impl<'a> StorageBackend<'a> {
 
 }
 
+fn file_id_from_path(p: &Path) -> String {
+    String::from("")
+}
+
 #[derive(Debug)]
 pub struct StorageBackendError {
     pub action: String,             // The file system action in words
