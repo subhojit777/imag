@@ -38,10 +38,6 @@ impl Error for ParserError {
         &self.summary[..]
     }
 
-    fn cause(&self) -> Option<&Error> {
-        None
-    }
-
 }
 
 impl Debug for ParserError {
