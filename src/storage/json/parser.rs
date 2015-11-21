@@ -6,6 +6,7 @@ use serde::ser::Serializer as Ser;
 
 use std::collections::HashMap;
 use std::io::stdout;
+use std::error::Error;
 
 use super::super::parser::{FileHeaderParser, ParserError};
 use super::super::file::{FileHeaderSpec, FileHeaderData};
@@ -34,11 +35,13 @@ impl FileHeaderParser for JsonHeaderParser {
             let s = string.unwrap();
             debug!("Deserializing: {}", s);
             let fromstr : R<Value> = from_str(&s[..]);
-            if let Ok(content) = fromstr {
-                Ok(visit_json(&content))
-            } else {
-                Err(ParserError::short("Unknown JSON parser error", s.clone(), 0))
+            if let Ok(ref content) = fromstr {
+                return Ok(visit_json(&content))
             }
+            let oe = fromstr.err().unwrap();
+            let s = format!("JSON parser error: {}", oe.description());
+            let e = ParserError::short(&s[..], s.clone(), 0);
+            Err(e)
         } else {
             Ok(FileHeaderData::Null)
         }
@@ -118,6 +121,59 @@ impl Serialize for FileHeaderData {
             },
             &FileHeaderData::Key{name: ref n, value: ref v} => unreachable!(),
 
+        }
+    }
+
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::JsonHeaderParser;
+    use storage::parser::{FileHeaderParser, ParserError};
+    use storage::file::{FileHeaderSpec, FileHeaderData};
+
+    #[test]
+    fn test_deserialization() {
+        use storage::file::FileHeaderData as FHD;
+        use storage::file::FileHeaderSpec as FHS;
+
+        let text = String::from("{\"a\": 1, \"b\": -2}");
+        let spec = FHS::Map {
+            keys: vec![
+                FHS::Key {
+                    name: String::from("a"),
+                    value_type: Box::new(FHS::UInteger)
+                },
+                FHS::Key {
+                    name: String::from("b"),
+                    value_type: Box::new(FHS::Integer)
+                }
+            ]
+        };
+
+        let parser = JsonHeaderParser::new(Some(spec));
+        let parsed = parser.read(Some(text));
+        assert!(parsed.is_ok(), "Parsed is not ok: {:?}", parsed);
+
+        match parsed.ok() {
+            Some(FHD::Map{keys: keys}) => {
+                for k in keys {
+                    match k {
+                        FHD::Key{name: name, value: box value} => {
+                            assert!(name == "a" || name == "b", "Key unknown");
+                            match &value {
+                                &FHD::UInteger(u) => assert_eq!(u, 1),
+                                &FHD::Integer(i) => assert_eq!(i, -2),
+                                _ => assert!(false, "Integers are not here"),
+                            }
+                        },
+                        _ => assert!(false, "Key is not a Key"),
+                    }
+                }
+            },
+
+            _ => assert!(false, "Parsed is not a map"),
         }
     }
 
