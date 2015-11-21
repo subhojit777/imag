@@ -22,7 +22,7 @@ impl ParserError {
         }
     }
 
-    pub fn short(sum: &'static str, text: String, idx: i32) -> ParserError {
+    pub fn short(sum: &str, text: String, idx: i32) -> ParserError {
         ParserError {
             summary: String::from(sum),
             parsertext: text,
