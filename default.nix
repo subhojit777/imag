@@ -1,7 +1,7 @@
 { pkgs ? (import <nixpkgs> {}) }:
 
 let
-  env = with pkgs.rustPlatform; [
+  env = with pkgs.rustUnstable; [
     rustc
     cargo
   ];
