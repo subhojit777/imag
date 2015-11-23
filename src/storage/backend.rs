@@ -11,21 +11,18 @@ use glob::Paths;
 
 use storage::file::File;
 use storage::file_id::*;
-use module::Module;
 
 type BackendOperationResult = Result<(), StorageBackendError>;
 
-pub struct StorageBackend<'a> {
+pub struct StorageBackend {
     basepath: String,
-    module: &'a Module,
 }
 
-impl<'a> StorageBackend<'a> {
+impl StorageBackend {
 
-    fn new(basepath: String, module: &'a Module) -> StorageBackend<'a> {
+    fn new(basepath: String) -> StorageBackend {
         StorageBackend {
             basepath: basepath,
-            module: module,
         }
     }
 
