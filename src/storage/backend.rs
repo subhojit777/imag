@@ -51,7 +51,8 @@ impl StorageBackend {
         self.new_file_handle().and_then(|(id, _)| Some(id))
     }
 
-    fn createFile() -> File {
+    fn createFile(&self) -> Option<File> {
+        self.new_file_handle().and_then(|(id, h)| Some(File::from_handle(id, h)))
     }
 
     fn writeFile(f: File) -> BackendOperationResult {
