@@ -57,6 +57,10 @@ impl Configuration {
         format!("{}{}", self.rtp, self.store_sub)
     }
 
+    pub fn get_rtp(&self) -> String {
+        self.rtp.clone()
+    }
+
 }
 
 fn rtp_path(config: &CliConfig) -> String {

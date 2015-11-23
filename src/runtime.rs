@@ -72,4 +72,12 @@ impl<'a> Runtime<'a> {
         self.config.is_debugging() || self.configuration.is_verbose()
     }
 
+    pub fn get_rtp(&self) -> String {
+        if let Some(rtp) = self.config.get_rtp() {
+            rtp
+        } else {
+            self.configuration.get_rtp()
+        }
+    }
+
 }
