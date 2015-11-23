@@ -185,6 +185,30 @@ impl File {
         }
     }
 
+    pub fn new_with_header(h: FileHeaderData) -> File {
+        File {
+            header: h,
+            data: String::from(""),
+            id: File::get_new_file_id(),
+        }
+    }
+
+    pub fn new_with_data(d: String) -> File {
+        File {
+            header: FileHeaderData::Null,
+            data: d,
+            id: File::get_new_file_id(),
+        }
+    }
+
+    pub fn new_with_content(h: FileHeaderData, d: String) -> File {
+        File {
+            header: h,
+            data: d,
+            id: File::get_new_file_id(),
+        }
+    }
+
     fn get_new_file_id() -> FileID {
         use uuid::Uuid;
         Uuid::new_v4().to_hyphenated_string()
