@@ -3,6 +3,7 @@
 #[macro_use] extern crate serde;
 #[macro_use] extern crate serde_json;
 #[macro_use] extern crate glob;
+#[macro_use] extern crate uuid;
 extern crate config;
 extern crate regex;
 

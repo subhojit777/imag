@@ -45,7 +45,18 @@ impl StorageBackend {
         }
     }
 
-    fn createEmpty() -> FileID {
+    fn createEmpty(&self) -> Option<FileID> {
+        use std::fs::File;
+        use uuid::Uuid;
+        let uuid = Uuid::new_v4().to_hyphenated_string();
+        let pathstr = self.basepath + uuid.as_str();
+        let path = Path::new(&pathstr);
+
+        if let Ok(f) = File::create(path) {
+            Some(uuid)
+        } else {
+            None
+        }
     }
 
     fn createFile() -> File {
