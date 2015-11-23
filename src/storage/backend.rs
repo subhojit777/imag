@@ -5,6 +5,8 @@ use std::fmt::Result as FMTResult;
 use std::path::Path;
 use std::path::PathBuf;
 use std::vec::Vec;
+use std::fs::File as FSFile;
+use std::io::Read;
 
 use glob::glob;
 use glob::Paths;
@@ -46,17 +48,7 @@ impl StorageBackend {
     }
 
     fn createEmpty(&self) -> Option<FileID> {
-        use std::fs::File;
-        use uuid::Uuid;
-        let uuid = Uuid::new_v4().to_hyphenated_string();
-        let pathstr = self.basepath + uuid.as_str();
-        let path = Path::new(&pathstr);
-
-        if let Ok(f) = File::create(path) {
-            Some(uuid)
-        } else {
-            None
-        }
+        self.new_file_handle().and_then(|(id, _)| Some(id))
     }
 
     fn createFile() -> File {
@@ -72,6 +64,19 @@ impl StorageBackend {
     }
 
     // TODO: Meta files are not covered yet
+
+    fn new_file_handle(&self) -> Option<(FileID, FSFile)> {
+        use uuid::Uuid;
+        let uuid = Uuid::new_v4().to_hyphenated_string();
+        let pathstr = self.basepath + uuid.as_str();
+        let path = Path::new(&pathstr);
+
+        if let Ok(f) = FSFile::create(path) {
+            Some((uuid, f))
+        } else {
+            None
+        }
+    }
 
 }
 
