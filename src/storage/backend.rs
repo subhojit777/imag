@@ -28,7 +28,7 @@ impl StorageBackend {
         }
     }
 
-    fn getFileList(&self) -> Option<Vec<FileID>> {
+    fn get_file_ids(&self) -> Option<Vec<FileID>> {
         let list = glob(&self.basepath[..]);
 
         if let Ok(globlist) = list {
