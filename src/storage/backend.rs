@@ -14,6 +14,9 @@ use glob::Paths;
 use storage::file::File;
 use storage::file_id::*;
 
+use module::Module;
+use runtime::Runtime;
+
 pub type BackendOperationResult = Result<(), StorageBackendError>;
 
 pub struct StorageBackend {
@@ -22,10 +25,15 @@ pub struct StorageBackend {
 
 impl StorageBackend {
 
-    fn new(basepath: String) -> StorageBackend {
+    pub fn new(basepath: String) -> StorageBackend {
         StorageBackend {
             basepath: basepath,
         }
+    }
+
+    fn build<M: Module>(rt: &Runtime, m: &M) -> StorageBackend {
+        let path = rt.get_rtp() + m.name() + "/store";
+        StorageBackend::new(path)
     }
 
     fn get_file_ids(&self) -> Option<Vec<FileID>> {
