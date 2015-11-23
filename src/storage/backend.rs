@@ -3,11 +3,13 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Result as FMTResult;
 use std::path::Path;
+use std::path::PathBuf;
+use std::vec::Vec;
 
 use glob::glob;
+use glob::Paths;
 
-use super::file::FileID;
-use super::file::File;
+use storage::file::{File, FileID};
 use module::Module;
 
 type BackendOperationResult = Result<(), StorageBackendError>;
@@ -26,9 +28,23 @@ impl<'a> StorageBackend<'a> {
         }
     }
 
-    fn getFileList(&self) -> Option<Vec<(Path, FileID)>> {
-        let files: Vec<&Path> = glob(&self.basepath[..]);
-        files.map(|path| (path, file_id_from_path(path))).unwrap_or(None)
+    fn getFileList(&self) -> Option<Vec<FileID>> {
+        let list = glob(&self.basepath[..]);
+
+        if let Ok(globlist) = list {
+            let mut v = vec![];
+            for entry in globlist {
+                if let Ok(path) = entry {
+                    v.push(file_id_from_path(path.as_path()));
+                } else {
+                    // Entry is not a path
+                }
+            }
+
+            Some(v)
+        } else {
+            None
+        }
     }
 
     fn createEmpty() -> FileID {
