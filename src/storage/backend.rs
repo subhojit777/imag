@@ -9,7 +9,8 @@ use std::vec::Vec;
 use glob::glob;
 use glob::Paths;
 
-use storage::file::{File, FileID};
+use storage::file::File;
+use storage::file_id::*;
 use module::Module;
 
 type BackendOperationResult = Result<(), StorageBackendError>;
@@ -35,7 +36,7 @@ impl<'a> StorageBackend<'a> {
             let mut v = vec![];
             for entry in globlist {
                 if let Ok(path) = entry {
-                    v.push(file_id_from_path(path.as_path()));
+                    v.push(from_pathbuf(&path));
                 } else {
                     // Entry is not a path
                 }
@@ -64,10 +65,6 @@ impl<'a> StorageBackend<'a> {
 
     // TODO: Meta files are not covered yet
 
-}
-
-fn file_id_from_path(p: &Path) -> String {
-    String::from("")
 }
 
 #[derive(Debug)]

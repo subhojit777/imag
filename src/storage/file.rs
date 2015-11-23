@@ -3,6 +3,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 
 use super::parser::{FileHeaderParser, Parser, ParserError};
+use storage::file_id::*;
 
 #[derive(Debug)]
 pub enum FileHeaderSpec {
@@ -162,8 +163,6 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
     None
 }
 
-pub type FileID = String;
-
 pub struct File {
     header  : FileHeaderData,
     data    : String,
@@ -180,16 +179,12 @@ impl<'a> File {
             Ok(File {
                 header: h,
                 data: d,
-                id: File::get_id_from_path(path),
+                id: from_path_string(path),
             }))
     }
 
     fn getID(&self) -> FileID {
         self.id.clone()
-    }
-
-    fn get_id_from_path(p: &String) -> FileID {
-        String::from("")
     }
 
     fn read_file(p: &String) -> Result<String, ParserError> {
