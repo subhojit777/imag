@@ -5,6 +5,8 @@ use std::fmt;
 use super::parser::{FileHeaderParser, Parser, ParserError};
 use storage::file_id::*;
 
+use std::fs::File as FSFile;
+
 #[derive(Debug)]
 pub enum FileHeaderSpec {
     Null,
@@ -167,6 +169,7 @@ pub struct File {
     header  : FileHeaderData,
     data    : String,
     id      : FileID,
+    handle  : Option<FSFile>,
 }
 
 impl<'a> File {
@@ -180,7 +183,22 @@ impl<'a> File {
                 header: h,
                 data: d,
                 id: from_path_string(path),
+                handle: None,
             }))
+    }
+
+    pub fn from_handle(id: FileID, f: FSFile) -> File {
+        use std::io::Read;
+
+        let mut contents = String::new();
+        f.read_to_string(&mut contents);
+
+        File {
+            header: FileHeaderData::Null,
+            data: contents,
+            id: id,
+            handle: Some(f)
+        }
     }
 
     fn getID(&self) -> FileID {
