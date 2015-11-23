@@ -14,7 +14,7 @@ use glob::Paths;
 use storage::file::File;
 use storage::file_id::*;
 
-type BackendOperationResult = Result<(), StorageBackendError>;
+pub type BackendOperationResult = Result<(), StorageBackendError>;
 
 pub struct StorageBackend {
     basepath: String,
@@ -47,36 +47,29 @@ impl StorageBackend {
         }
     }
 
-    fn createEmpty(&self) -> Option<FileID> {
-        self.new_file_handle().and_then(|(id, _)| Some(id))
+    /*
+     * Write a file to disk.
+     *
+     * The file is moved to this function as the file won't be edited afterwards
+     */
+    pub fn put_file(f: File) -> BackendOperationResult {
     }
 
-    fn createFile(&self) -> Option<File> {
-        self.new_file_handle().and_then(|(id, h)| Some(File::from_handle(id, h)))
+    /*
+     * Update a file. We have the UUID and can find the file on FS with it and
+     * then replace its contents with the contents of the passed file object
+     */
+    pub fn update_file(f: File) -> BackendOperationResult {
     }
 
-    fn writeFile(f: File) -> BackendOperationResult {
-    }
-
-    fn createFileWithContent(content: String) -> BackendOperationResult {
-    }
-
-    fn readFile(id: FileID) -> String {
-    }
-
-    // TODO: Meta files are not covered yet
-
-    fn new_file_handle(&self) -> Option<(FileID, FSFile)> {
-        use uuid::Uuid;
-        let uuid = Uuid::new_v4().to_hyphenated_string();
-        let pathstr = self.basepath + uuid.as_str();
-        let path = Path::new(&pathstr);
-
-        if let Ok(f) = FSFile::create(path) {
-            Some((uuid, f))
-        } else {
-            None
-        }
+    /*
+     * Find a file by its ID and return it if found. Return nothing if not
+     * found, of course.
+     *
+     * TODO: Needs refactoring, as there might be an error when reading from
+     * disk OR the id just does not exist.
+     */
+    pub fn get_file_by_id(id: FileID) -> Option<File> {
     }
 
 }

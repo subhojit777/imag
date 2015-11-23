@@ -165,49 +165,29 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
     None
 }
 
+/*
+ * Internal abstract view on a file. Does not exist on the FS and is just kept
+ * internally until it is written to disk.
+ */
 pub struct File {
     header  : FileHeaderData,
     data    : String,
     id      : FileID,
-    handle  : Option<FSFile>,
 }
 
-impl<'a> File {
+impl File {
 
-    fn new<HP>(prs: &Parser<HP>, path: &String) -> Result<File, ParserError>
-        where HP: FileHeaderParser<'a>
-    {
-        File::read_file(path).and_then(|p| prs.read(p))
-                             .and_then(|(h, d)|
-            Ok(File {
-                header: h,
-                data: d,
-                id: from_path_string(path),
-                handle: None,
-            }))
-    }
-
-    pub fn from_handle(id: FileID, f: FSFile) -> File {
-        use std::io::Read;
-
-        let mut contents = String::new();
-        f.read_to_string(&mut contents);
-
+    pub fn new() -> File {
         File {
             header: FileHeaderData::Null,
-            data: contents,
-            id: id,
-            handle: Some(f)
+            data: String::from(""),
+            id: File::get_new_file_id(),
         }
     }
 
-    fn getID(&self) -> FileID {
-        self.id.clone()
+    fn get_new_file_id() -> FileID {
+        use uuid::Uuid;
+        Uuid::new_v4().to_hyphenated_string()
     }
-
-    fn read_file(p: &String) -> Result<String, ParserError> {
-        Ok(String::from(""))
-    }
-
 }
 
