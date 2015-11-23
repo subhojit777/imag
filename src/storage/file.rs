@@ -166,7 +166,7 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
 pub struct File {
     header  : FileHeaderData,
     data    : String,
-    id      : String
+    id      : FileID,
 }
 
 impl<'a> File {
