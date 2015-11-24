@@ -3,8 +3,8 @@ use std::result::Result;
 use super::ModuleError;
 use storage::backend::{StorageBackend, StorageBackendError};
 
-type CommandError = Result<ModuleError, StorageBackendError>;
-type CommandResult = Result<(), Result<ModuleError, CommandError>>;
+pub type CommandError = Result<ModuleError, StorageBackendError>;
+pub type CommandResult = Result<(), Result<ModuleError, CommandError>>;
 
 pub trait ExecutableCommand {
     fn get_callname() -> &'static str;
