@@ -112,7 +112,7 @@ impl<'a, HP> Parser<HP> where
         Ok((h_parseres, data.unwrap_or(String::new())))
     }
 
-    fn write(&self, tpl : (FileHeaderData, String)) -> Result<String, ParserError>
+    pub fn write(&self, tpl : (FileHeaderData, String)) -> Result<String, ParserError>
     {
         let (header, data) = tpl;
         let h_text = try!(self.headerp.write(&header));
