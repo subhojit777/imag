@@ -93,7 +93,7 @@ impl StorageBackend {
         let content = contents.unwrap();
 
         let path = self.build_filepath(&f);
-        if let Err(_) = FSFile::open(path) {
+        if let Err(_) = FSFile::open(&path) {
             return Ok(Err(StorageBackendError::new(
                 String::from("File::open()"),
                 format!("Tried to open '{}'", path),
@@ -101,8 +101,8 @@ impl StorageBackend {
                 None)))
         }
 
-        if let Ok(mut file) = FSFile::create(path) {
-            if let Err(writeerr) = file.write_all(&content.into_bytes()) {
+        if let Ok(mut file) = FSFile::create(&path) {
+            if let Err(writeerr) = file.write_all(&content.clone().into_bytes()) {
                 return Ok(Err(StorageBackendError::new(
                     String::from("File::write()"),
                     format!("Tried to write '{}'", path),
@@ -124,7 +124,7 @@ impl StorageBackend {
     pub fn get_file_by_id<'a, HP>(&self, id: FileID, p: &Parser<HP>) -> Option<File>
         where HP: FileHeaderParser<'a>
     {
-        if let Ok(fs) = FSFile::open(self.build_filepath_with_id(id)) {
+        if let Ok(mut fs) = FSFile::open(self.build_filepath_with_id(id.clone())) {
             let mut s = String::new();
             fs.read_to_string(&mut s);
             p.read(s).and_then(|(h, d)| Ok(File::from_parser_result(id, h, d))).ok()
@@ -138,7 +138,7 @@ impl StorageBackend {
     }
 
     fn build_filepath_with_id(&self, id: FileID) -> String {
-        self.basepath + &id[..]
+        self.basepath.clone() + &id[..]
     }
 
 }
