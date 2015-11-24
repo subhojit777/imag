@@ -5,6 +5,7 @@ dependencies = [
  "chrono 0.2.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 1.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "config 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glob 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustty 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -70,6 +71,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "nom 0.3.11 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "glob"
+version = "0.2.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "kernel32-sys"

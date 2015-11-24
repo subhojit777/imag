@@ -6,9 +6,9 @@ use std::fmt::Display;
 use std::path::Path;
 use std::result::Result;
 
-use module::todo::TodoModule;
-
-mod todo;
+use storage::backend::{StorageBackend, StorageBackendError};
+use self::command::ExecutableCommand;
+mod command;
 
 #[derive(Debug)]
 pub struct ModuleError {
@@ -51,6 +51,10 @@ pub trait Module {
 
     fn execute(&self, rt : &Runtime) -> ModuleResult;
     fn shutdown(&self, rt : &Runtime) -> ModuleResult;
+
+    fn getCommandBuilder<T, F>() -> F
+        where F: FnOnce(StorageBackend) -> T,
+              T: ExecutableCommand;
 
 }
 

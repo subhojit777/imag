@@ -5,7 +5,9 @@ pub use std::error::Error;
 pub use runtime::Runtime;
 
 pub mod file;
+pub mod file_id;
 pub mod parser;
+pub mod backend;
 
 pub mod json;
 

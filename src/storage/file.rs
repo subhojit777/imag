@@ -3,6 +3,9 @@ use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 
 use super::parser::{FileHeaderParser, Parser, ParserError};
+use storage::file_id::*;
+
+use std::fs::File as FSFile;
 
 #[derive(Debug)]
 pub enum FileHeaderSpec {
@@ -18,6 +21,7 @@ pub enum FileHeaderSpec {
 }
 
 #[derive(Debug)]
+#[derive(Clone)]
 pub enum FileHeaderData {
     Null,
     Bool(bool),
@@ -162,39 +166,69 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
     None
 }
 
-pub type FileID = String;
-
+/*
+ * Internal abstract view on a file. Does not exist on the FS and is just kept
+ * internally until it is written to disk.
+ */
 pub struct File {
     header  : FileHeaderData,
     data    : String,
-    id      : String
+    id      : FileID,
 }
 
-impl<'a> File {
+impl File {
 
-    fn new<HP>(prs: &Parser<HP>, path: &String) -> Result<File, ParserError>
-        where HP: FileHeaderParser<'a>
-    {
-        File::read_file(path).and_then(|p| prs.read(p))
-                             .and_then(|(h, d)|
-            Ok(File {
-                header: h,
-                data: d,
-                id: File::get_id_from_path(path),
-            }))
+    pub fn new() -> File {
+        File {
+            header: FileHeaderData::Null,
+            data: String::from(""),
+            id: File::get_new_file_id(),
+        }
     }
 
-    fn getID(&self) -> FileID {
+    pub fn from_parser_result(id: FileID, header: FileHeaderData, data: String) -> File {
+        File {
+            header: header,
+            data: data,
+            id: id,
+        }
+    }
+
+    pub fn new_with_header(h: FileHeaderData) -> File {
+        File {
+            header: h,
+            data: String::from(""),
+            id: File::get_new_file_id(),
+        }
+    }
+
+    pub fn new_with_data(d: String) -> File {
+        File {
+            header: FileHeaderData::Null,
+            data: d,
+            id: File::get_new_file_id(),
+        }
+    }
+
+    pub fn new_with_content(h: FileHeaderData, d: String) -> File {
+        File {
+            header: h,
+            data: d,
+            id: File::get_new_file_id(),
+        }
+    }
+
+    pub fn contents(&self) -> (FileHeaderData, String) {
+        (self.header.clone(), self.data.clone())
+    }
+
+    pub fn id(&self) -> FileID {
         self.id.clone()
     }
 
-    fn get_id_from_path(p: &String) -> FileID {
-        String::from("")
+    fn get_new_file_id() -> FileID {
+        use uuid::Uuid;
+        Uuid::new_v4().to_hyphenated_string()
     }
-
-    fn read_file(p: &String) -> Result<String, ParserError> {
-        Ok(String::from(""))
-    }
-
 }
 

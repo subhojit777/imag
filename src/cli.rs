@@ -33,5 +33,9 @@ impl<'a> CliConfig<'a> {
     pub fn is_debugging(&self) -> bool {
         self.cli_matches.is_present("debug")
     }
+
+    pub fn get_rtp(&self) -> Option<String> {
+        self.cli_matches.value_of("rtp").and_then(|s| Some(String::from(s)))
+    }
 }
 
