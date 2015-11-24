@@ -219,11 +219,11 @@ impl File {
     }
 
     pub fn contents(&self) -> (FileHeaderData, String) {
-        (self.header, self.data)
+        (self.header.clone(), self.data.clone())
     }
 
     pub fn id(&self) -> FileID {
-        self.id
+        self.id.clone()
     }
 
     fn get_new_file_id() -> FileID {
