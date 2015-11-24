@@ -124,18 +124,10 @@ impl StorageBackend {
     pub fn get_file_by_id<'a, HP>(&self, id: FileID, p: &Parser<HP>) -> Option<File>
         where HP: FileHeaderParser<'a>
     {
-        let path = self.build_filepath_with_id(id);
-        if let Ok(file) = FSFile::open(path) {
+        if let Ok(fs) = FSFile::open(self.build_filepath_with_id(id)) {
             let mut s = String::new();
-            file.read_to_string(&mut s);
-            let parser_out = p.read(s);
-            if let Ok((header, data)) = parser_out {
-                Some(File::from_parser_result(id, header, data))
-            } else {
-                info!("Cannot build File from ID '{}'. Parser Error:\n{}",
-                      id, parser_out.err().unwrap());
-                None
-            }
+            fs.read_to_string(&mut s);
+            p.read(s).and_then(|(h, d)| Ok(File::from_parser_result(id, h, d))).ok()
         } else {
             None
         }
