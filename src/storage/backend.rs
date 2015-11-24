@@ -95,18 +95,18 @@ impl StorageBackend {
         let path = self.build_filepath(&f);
         if let Err(_) = FSFile::open(path) {
             return Ok(Err(StorageBackendError::new(
-                "File::open()",
-                &format!("Tried to open '{}'", path)[..],
-                "Tried to update contents of this file, though file doesn't exist",
+                String::from("File::open()"),
+                format!("Tried to open '{}'", path),
+                String::from("Tried to update contents of this file, though file doesn't exist"),
                 None)))
         }
 
         if let Ok(mut file) = FSFile::create(path) {
             if let Err(writeerr) = file.write_all(&content.into_bytes()) {
                 return Ok(Err(StorageBackendError::new(
-                    "File::write()",
-                    &format!("Tried to write '{}'", path)[..],
-                    "Tried to write contents of this file, though operation did not succeed",
+                    String::from("File::write()"),
+                    format!("Tried to write '{}'", path),
+                    String::from("Tried to write contents of this file, though operation did not succeed"),
                     Some(content))))
             }
         }
@@ -152,15 +152,15 @@ pub struct StorageBackendError {
 }
 
 impl StorageBackendError {
-    fn new(action: &'static str,
-           desc  : &'static str,
-           explan: &'static str,
+    fn new(action: String,
+           desc  : String,
+           explan: String,
            data  : Option<String>) -> StorageBackendError
     {
         StorageBackendError {
-            action:         String::from(action),
-            desc:           String::from(desc),
-            explanation:    String::from(explan),
+            action:         action,
+            desc:           desc,
+            explanation:    explan,
             dataDump:       data,
         }
     }
