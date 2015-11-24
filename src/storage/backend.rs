@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use std::vec::Vec;
 use std::fs::File as FSFile;
 use std::io::Read;
+use std::io::Write;
 
 use glob::glob;
 use glob::Paths;
@@ -79,7 +80,38 @@ impl StorageBackend {
      * Update a file. We have the UUID and can find the file on FS with it and
      * then replace its contents with the contents of the passed file object
      */
-    pub fn update_file(f: File) -> BackendOperationResult {
+    pub fn update_file<'a, HP>(&self, f: File, p: &Parser<HP>)
+        -> Result<BackendOperationResult, ParserError>
+        where HP: FileHeaderParser<'a>
+    {
+        let contents = p.write(f.contents());
+
+        if contents.is_err() {
+            return Err(contents.err().unwrap());
+        }
+
+        let content = contents.unwrap();
+
+        let path = self.build_filepath(&f);
+        if let Err(_) = FSFile::open(path) {
+            return Ok(Err(StorageBackendError::new(
+                "File::open()",
+                &format!("Tried to open '{}'", path)[..],
+                "Tried to update contents of this file, though file doesn't exist",
+                None)))
+        }
+
+        if let Ok(mut file) = FSFile::create(path) {
+            if let Err(writeerr) = file.write_all(&content.into_bytes()) {
+                return Ok(Err(StorageBackendError::new(
+                    "File::write()",
+                    &format!("Tried to write '{}'", path)[..],
+                    "Tried to write contents of this file, though operation did not succeed",
+                    Some(content))))
+            }
+        }
+
+        Ok(Ok(()))
     }
 
     /*
