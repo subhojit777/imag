@@ -7,5 +7,6 @@ type CommandError = Result<ModuleError, StorageBackendError>;
 type CommandResult = Result<(), Result<ModuleError, CommandError>>;
 
 pub trait ExecutableCommand {
-    fn exec(StorageBackend) -> CommandResult;
+    fn get_callname() -> &'static str;
+    fn exec(&self, rt: &Runtime, s: StorageBackend) -> CommandResult;
 }

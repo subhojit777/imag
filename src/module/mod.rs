@@ -49,13 +49,9 @@ pub trait Module {
     fn new(rt : &Runtime) -> Self;
     fn callnames() -> &'static [&'static str];
     fn name(&self) -> &'static str;
-
-    fn execute(&self, rt : &Runtime) -> ModuleResult;
     fn shutdown(&self, rt : &Runtime) -> ModuleResult;
 
-    fn getCommandBuilder<T, F>() -> F
-        where F: FnOnce(StorageBackend) -> T,
-              T: ExecutableCommand;
+    fn get_commands<C: ExecutableCommand>(&self, rt: &Runtime) -> Vec<C>;
 
 }
 
