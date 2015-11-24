@@ -13,6 +13,7 @@ use glob::Paths;
 
 use storage::file::File;
 use storage::file_id::*;
+use storage::parser::{FileHeaderParser, Parser, ParserError};
 
 use module::Module;
 use runtime::Runtime;
@@ -60,7 +61,18 @@ impl StorageBackend {
      *
      * The file is moved to this function as the file won't be edited afterwards
      */
-    pub fn put_file(f: File) -> BackendOperationResult {
+    pub fn put_file<'a, HP>(&self, f: File, p: &Parser<HP>) ->
+        Result<BackendOperationResult, ParserError>
+        where HP: FileHeaderParser<'a>
+    {
+        let written = p.write(f.contents());
+        if let Ok(string) = written {
+            let path = self.basepath + &f.id()[..];
+            debug!("Writing file: {}", path);
+            Ok(Ok(()))
+        } else {
+            Err(written.err().unwrap())
+        }
     }
 
     /*
