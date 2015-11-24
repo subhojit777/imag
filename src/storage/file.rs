@@ -21,6 +21,7 @@ pub enum FileHeaderSpec {
 }
 
 #[derive(Debug)]
+#[derive(Clone)]
 pub enum FileHeaderData {
     Null,
     Bool(bool),
