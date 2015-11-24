@@ -41,28 +41,6 @@ impl Module for BMModule {
         "Bookmark"
     }
 
-    fn execute(&self, rt : &Runtime) -> ModuleResult {
-        let cmd = rt.config.cli_matches.subcommand_matches("bm").unwrap();
-        match cmd.subcommand_name() {
-            Some("add")     => {
-                debug!("Calling 'add'...");
-                add(rt, cmd.subcommand_matches("add").unwrap())
-            }
-            Some("list")    => {
-                debug!("Calling 'list'...");
-                list(rt, cmd.subcommand_matches("list").unwrap())
-            }
-            Some("remove")  => {
-                debug!("Calling 'remove'...");
-                list(rt, cmd.subcommand_matches("remove").unwrap())
-            }
-            _ => {
-                info!("Not calling any of add, list, remove");
-                Ok(())
-            }
-        }
-    }
-
     fn shutdown(&self, rt : &Runtime) -> ModuleResult {
         Ok(())
     }
