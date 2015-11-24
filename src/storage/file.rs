@@ -185,6 +185,18 @@ impl File {
         }
     }
 
+    pub fn from_parser_result(id: FileID, r: Result<(FileHeaderData, String), ParserError>) -> Option<File> {
+        if let Ok((header, data)) = r {
+            Some(File {
+                header: header,
+                data: data,
+                id: id,
+            })
+        } else {
+            None
+        }
+    }
+
     pub fn new_with_header(h: FileHeaderData) -> File {
         File {
             header: h,
