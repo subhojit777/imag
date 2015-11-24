@@ -121,7 +121,17 @@ impl StorageBackend {
      * TODO: Needs refactoring, as there might be an error when reading from
      * disk OR the id just does not exist.
      */
-    pub fn get_file_by_id(id: FileID) -> Option<File> {
+    pub fn get_file_by_id<'a, HP>(&self, id: FileID, p: &Parser<HP>) -> Option<File>
+        where HP: FileHeaderParser<'a>
+    {
+        let path = self.build_filepath_with_id(id);
+        if let Ok(file) = FSFile::open(path) {
+            let mut s = String::new();
+            file.read_to_string(&mut s);
+            File::from_parser_result(id, p.read(s))
+        } else {
+            None
+        }
     }
 
     fn build_filepath(&self, f: &File) -> String {
