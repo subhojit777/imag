@@ -128,7 +128,14 @@ impl StorageBackend {
         if let Ok(file) = FSFile::open(path) {
             let mut s = String::new();
             file.read_to_string(&mut s);
-            File::from_parser_result(id, p.read(s))
+            let parser_out = p.read(s);
+            if let Ok((header, data)) = parser_out {
+                Some(File::from_parser_result(id, header, data))
+            } else {
+                info!("Cannot build File from ID '{}'. Parser Error:\n{}",
+                      id, parser_out.err().unwrap());
+                None
+            }
         } else {
             None
         }
