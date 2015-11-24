@@ -8,10 +8,16 @@ use clap::ArgMatches;
 use regex::Regex;
 
 mod header;
+mod commands;
 
 use self::header::build_header;
 use storage::json::parser::JsonHeaderParser;
 use storage::parser::FileHeaderParser;
+use module::command::ExecutableCommand;
+
+use self::commands::add::*;
+use self::commands::list::*;
+use self::commands::remove::*;
 
 pub struct BMModule {
     path: Option<String>,
@@ -59,6 +65,14 @@ impl Module for BMModule {
 
     fn shutdown(&self, rt : &Runtime) -> ModuleResult {
         Ok(())
+    }
+
+    fn get_commands<EC: ExecutableCommand>(&self, rt: &Runtime) -> Vec<EC> {
+        vec![
+            AddCommand::new(),
+            ListCommand::new(),
+            RemoveCommand::new(),
+        ]
     }
 }
 
