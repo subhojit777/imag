@@ -125,7 +125,11 @@ impl StorageBackend {
     }
 
     fn build_filepath(&self, f: &File) -> String {
-        self.basepath + &f.id()[..]
+        self.build_filepath_with_id(f.id())
+    }
+
+    fn build_filepath_with_id(&self, id: FileID) -> String {
+        self.basepath + &id[..]
     }
 
 }
