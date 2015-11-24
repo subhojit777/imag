@@ -7,10 +7,8 @@ use std::result::Result;
 
 use storage::backend::StorageBackend;
 use self::command::ExecutableCommand;
-use module::todo::TodoModule;
 
 mod command;
-pub mod todo;
 pub mod bm;
 
 #[derive(Debug)]

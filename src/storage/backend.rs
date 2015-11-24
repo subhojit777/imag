@@ -189,7 +189,7 @@ impl StorageBackend {
      * TODO: Needs refactoring, as there might be an error when reading from
      * disk OR the id just does not exist.
      */
-    pub fn get_file_by_id<'a, HP>(&self, m: &'a Module, id: &FileID, p: &Parser<HP>) -> Option<File<'a>>
+    pub fn get_file_by_id<HP>(&self, id: FileID, p: &Parser<HP>) -> Option<File>
         where HP: FileHeaderParser
     {
         debug!("Searching for file with id '{}'", id);
