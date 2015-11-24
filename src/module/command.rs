@@ -9,10 +9,13 @@ use storage::backend::{StorageBackend, StorageBackendError};
 pub type CommandError = Result<ModuleError, StorageBackendError>;
 pub type CommandResult = Result<(), Result<ModuleError, CommandError>>;
 
+pub struct CommandEnv<'a> {
+    pub rt: &'a Runtime<'a>,
+    pub matches: &'a ArgMatches<'a, 'a>,
+    pub backend: StorageBackend
+}
+
 pub trait ExecutableCommand {
     fn get_callname() -> &'static str;
-    fn exec(&self,
-            rt: &Runtime,
-            matches: &ArgMatches<'a, 'a>,
-            s: StorageBackend) -> CommandResult;
+    fn exec(&self, env: CommandEnv) -> CommandResult;
 }
