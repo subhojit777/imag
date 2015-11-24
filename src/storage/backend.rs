@@ -67,7 +67,7 @@ impl StorageBackend {
     {
         let written = p.write(f.contents());
         if let Ok(string) = written {
-            let path = self.basepath + &f.id()[..];
+            let path = self.build_filepath(&f);
             debug!("Writing file: {}", path);
             Ok(Ok(()))
         } else {
@@ -90,6 +90,10 @@ impl StorageBackend {
      * disk OR the id just does not exist.
      */
     pub fn get_file_by_id(id: FileID) -> Option<File> {
+    }
+
+    fn build_filepath(&self, f: &File) -> String {
+        self.basepath + &f.id()[..]
     }
 
 }
