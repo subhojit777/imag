@@ -8,7 +8,7 @@ use std::result::Result;
 use storage::backend::StorageBackend;
 use self::command::ExecutableCommand;
 
-mod command;
+pub mod command;
 pub mod bm;
 
 #[derive(Debug)]
