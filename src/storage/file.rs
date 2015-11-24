@@ -209,6 +209,14 @@ impl File {
         }
     }
 
+    pub fn contents(&self) -> (FileHeaderData, String) {
+        (self.header, self.data)
+    }
+
+    pub fn id(&self) -> FileID {
+        self.id
+    }
+
     fn get_new_file_id() -> FileID {
         use uuid::Uuid;
         Uuid::new_v4().to_hyphenated_string()
