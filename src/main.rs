@@ -21,7 +21,7 @@ mod storage;
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
     let app = App::from_yaml(yaml);
-    let mut config = CliConfig::new(app);
+    let config = CliConfig::new(app);
     let configuration = Configuration::new(&config);
 
     let logger = ImagLogger::init(&configuration, &config);

@@ -148,7 +148,7 @@ pub struct StorageBackendError {
     pub action: String,             // The file system action in words
     pub desc: String,               // A short description
     pub explanation: String,        // A long, user friendly description
-    pub dataDump: Option<String>    // Data dump, if any
+    pub data_dump: Option<String>   // Data dump, if any
 }
 
 impl StorageBackendError {
@@ -161,7 +161,7 @@ impl StorageBackendError {
             action:         action,
             desc:           desc,
             explanation:    explan,
-            dataDump:       data,
+            data_dump:      data,
         }
     }
 }
