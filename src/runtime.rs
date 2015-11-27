@@ -3,8 +3,6 @@ extern crate log;
 pub use cli::CliConfig;
 pub use configuration::Configuration as Cfg;
 
-use std::io::stderr;
-use std::io::Write;
 use log::{LogRecord, LogLevel, LogLevelFilter, LogMetadata, SetLoggerError};
 
 pub struct ImagLogger {
