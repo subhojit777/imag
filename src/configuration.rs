@@ -5,7 +5,6 @@ use cli::CliConfig;
 use std::path::Path;
 use config::reader::from_file;
 use config::types::Config as Cfg;
-use config::types::Value as V;
 use config::types::ScalarValue as S;
 
 pub struct Configuration {
