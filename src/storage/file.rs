@@ -185,43 +185,53 @@ pub struct File {
 impl File {
 
     pub fn new() -> File {
-        File {
+        let f = File {
             header: FileHeaderData::Null,
             data: String::from(""),
             id: File::get_new_file_id(),
-        }
+        };
+        debug!("Create new File object: {:?}", f);
+        f
     }
 
     pub fn from_parser_result(id: FileID, header: FileHeaderData, data: String) -> File {
-        File {
+        let f = File {
             header: header,
             data: data,
             id: id,
-        }
+        };
+        debug!("Create new File object from parser result: {:?}", f);
+        f
     }
 
     pub fn new_with_header(h: FileHeaderData) -> File {
-        File {
+        let f = File {
             header: h,
             data: String::from(""),
             id: File::get_new_file_id(),
-        }
+        };
+        debug!("Create new File object with header: {:?}", f);
+        f
     }
 
     pub fn new_with_data(d: String) -> File {
-        File {
+        let f = File {
             header: FileHeaderData::Null,
             data: d,
             id: File::get_new_file_id(),
-        }
+        };
+        debug!("Create new File object with data: {:?}", f);
+        f
     }
 
     pub fn new_with_content(h: FileHeaderData, d: String) -> File {
-        File {
+        let f = File {
             header: h,
             data: d,
             id: File::get_new_file_id(),
-        }
+        };
+        debug!("Create new File object with content: {:?}", f);
+        f
     }
 
     pub fn contents(&self) -> (FileHeaderData, String) {
