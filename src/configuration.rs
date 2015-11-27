@@ -3,7 +3,6 @@ extern crate clap;
 use cli::CliConfig;
 
 use std::path::Path;
-use clap::{App, ArgMatches};
 use config::reader::from_file;
 use config::types::Config as Cfg;
 use config::types::Value as V;
