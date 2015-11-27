@@ -238,3 +238,11 @@ impl File {
     }
 }
 
+impl Debug for File {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "File[{:?}] header: '{:?}', data: '{:?}')",
+            self.id, self.header, self.data)
+    }
+}
+
