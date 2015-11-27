@@ -3,6 +3,10 @@ extern crate log;
 pub use cli::CliConfig;
 pub use configuration::Configuration as Cfg;
 
+use std::fmt::Debug;
+use std::fmt::Formatter;
+use std::fmt::Error;
+
 use log::{LogRecord, LogLevel, LogLevelFilter, LogMetadata, SetLoggerError};
 
 pub struct ImagLogger {
@@ -79,3 +83,15 @@ impl<'a> Runtime<'a> {
     }
 
 }
+
+impl<'a> Debug for Runtime<'a> {
+
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "Runtime (verbose: {}, debugging: {}, rtp: {})",
+            self.is_verbose(),
+            self.is_debugging(),
+            self.get_rtp())
+    }
+
+}
+
