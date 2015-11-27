@@ -40,7 +40,7 @@ fn main() {
 
     if let Some(matches) = rt.config.cli_matches.subcommand_matches("bm") {
         let module : BMModule = Module::new(&rt);
-        module.execute(&rt);
+        //module.execute(&rt);
         module.shutdown(&rt);
     } else {
         // Err(ModuleError::mk("No commandline call"))
