@@ -5,8 +5,6 @@ use std::fmt;
 use super::parser::FileHeaderParser;
 use storage::file_id::*;
 
-use std::fs::File as FSFile;
-
 #[derive(Debug)]
 pub enum FileHeaderSpec {
     Null,
