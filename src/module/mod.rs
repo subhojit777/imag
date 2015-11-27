@@ -3,7 +3,6 @@ use std::error::Error;
 use std::fmt::Formatter;
 use std::fmt::Result as FMTResult;
 use std::fmt::Display;
-use std::path::Path;
 use std::result::Result;
 
 use storage::backend::{StorageBackend, StorageBackendError};
