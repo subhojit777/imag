@@ -113,6 +113,7 @@ impl<'a> Display for MatchError<'a> {
 pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
     -> Option<MatchError<'a>>
 {
+    debug!("Start matching:\n'{:?}'\non\n{:?}", spec, data);
     match (spec, data) {
         (&FileHeaderSpec::Null,     &FileHeaderData::Null)           => { }
         (&FileHeaderSpec::Bool,     &FileHeaderData::Bool(_))        => { }
@@ -125,7 +126,11 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
             &FileHeaderSpec::Key{name: ref kname, value_type: ref vtype},
             &FileHeaderData::Key{name: ref n, value: ref val}
         ) => {
+            debug!("Matching Key: '{:?}' == '{:?}', Value: '{:?}' == '{:?}'",
+                    kname, n,
+                    vtype, val);
             if kname != n {
+                debug!("Keys not matching");
                 unimplemented!();
             }
             return match_header_spec(&*vtype, &*val);
@@ -135,6 +140,8 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
             &FileHeaderSpec::Map{keys: ref sks},
             &FileHeaderData::Map{keys: ref dks}
         ) => {
+            debug!("Matching Map: '{:?}' == '{:?}'", sks, dks);
+
             for (s, d) in sks.iter().zip(dks.iter()) {
                 let res = match_header_spec(s, d);
                 if res.is_some() {
@@ -147,6 +154,7 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
             &FileHeaderSpec::Array{allowed_types: ref vtypes},
             &FileHeaderData::Array{values: ref vs}
         ) => {
+            debug!("Matching Array: '{:?}' == '{:?}'", vtypes, vs);
             for (t, v) in vtypes.iter().zip(vs.iter()) {
                 let res = match_header_spec(t, v);
                 if res.is_some() {
