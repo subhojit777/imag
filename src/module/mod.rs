@@ -5,7 +5,7 @@ use std::fmt::Result as FMTResult;
 use std::fmt::Display;
 use std::result::Result;
 
-use storage::backend::{StorageBackend, StorageBackendError};
+use storage::backend::StorageBackend;
 use self::command::ExecutableCommand;
 mod command;
 
