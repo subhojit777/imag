@@ -59,7 +59,7 @@ fn visit_json(v: &Value) -> FileHeaderData {
         &Value::String(ref s)        => FileHeaderData::Text(s.clone()),
         &Value::Array(ref vec)       => {
             FileHeaderData::Array {
-                values: Box::new(vec.clone().into_iter().map(|i| visit_json(v)).collect())
+                values: Box::new(vec.clone().into_iter().map(|i| visit_json(&i)).collect())
             }
         },
         &Value::Object(ref btree)    => {
