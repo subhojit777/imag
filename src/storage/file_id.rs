@@ -3,11 +3,11 @@ use std::path::{Path, PathBuf};
 pub type FileID = String;
 
 pub fn from_path_string(s: &String) -> FileID {
-    String::from("")
+    unimplemented!()
 }
 
 pub fn from_path(p: &Path) -> FileID {
-    String::from("")
+    unimplemented!()
 }
 
 pub fn from_pathbuf(p: &PathBuf) -> FileID {
