@@ -6,6 +6,10 @@ use std::path::Path;
 use config::reader::from_file;
 use config::types::Config as Cfg;
 
+use std::fmt::Debug;
+use std::fmt::Formatter;
+use std::fmt::Error;
+
 pub struct Configuration {
     pub rtp         : String,
     pub store_sub   : String,
@@ -66,5 +70,18 @@ fn rtp_path(config: &CliConfig) -> String {
 
 fn fetch_config(rtp: &String) -> Option<Cfg> {
     from_file(Path::new(&(rtp.clone() + "/config"))).ok()
+}
+
+impl Debug for Configuration {
+
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "Configuration (verbose: {}, debugging: {}, rtp: {}, store path: {})",
+            self.is_verbose(),
+            self.is_debugging(),
+            self.get_rtp(),
+            self.store_path_str()
+            )
+    }
+
 }
 
