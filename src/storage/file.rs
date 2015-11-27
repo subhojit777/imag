@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 
-use super::parser::{FileHeaderParser, Parser, ParserError};
+use super::parser::FileHeaderParser;
 use storage::file_id::*;
 
 use std::fs::File as FSFile;
