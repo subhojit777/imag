@@ -26,7 +26,7 @@ impl<'a> FileHeaderParser<'a> for JsonHeaderParser<'a> {
     fn read(&self, string: Option<String>)
         -> Result<FileHeaderData, ParserError>
     {
-        if (string.is_some()) {
+        if string.is_some() {
             let s = string.unwrap();
             debug!("Deserializing: {}", s);
             let fromstr : R<Value> = from_str(&s[..]);
