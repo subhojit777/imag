@@ -35,16 +35,20 @@ impl StorageBackend {
 
     fn build<M: Module>(rt: &Runtime, m: &M) -> StorageBackend {
         let path = rt.get_rtp() + m.name() + "/store";
+        // TODO: Don't use "/store" but value from configuration
+        debug!("Building StorageBackend for {}", path);
         StorageBackend::new(path)
     }
 
     fn get_file_ids(&self) -> Option<Vec<FileID>> {
+        debug!("Getting files from {}", self.basepath);
         let list = glob(&self.basepath[..]);
 
         if let Ok(globlist) = list {
             let mut v = vec![];
             for entry in globlist {
                 if let Ok(path) = entry {
+                    debug!(" - File: {:?}", path);
                     v.push(from_pathbuf(&path));
                 } else {
                     // Entry is not a path
@@ -70,8 +74,10 @@ impl StorageBackend {
         if let Ok(string) = written {
             let path = self.build_filepath(&f);
             debug!("Writing file: {}", path);
+            debug!("    contents: {}", string);
             Ok(Ok(()))
         } else {
+            debug!("Error parsing : {:?}", f.contents());
             Err(written.err().unwrap())
         }
     }
@@ -87,13 +93,17 @@ impl StorageBackend {
         let contents = p.write(f.contents());
 
         if contents.is_err() {
+            debug!("Error parsing contents: {:?}", f.contents());
             return Err(contents.err().unwrap());
         }
 
         let content = contents.unwrap();
+        debug!("Success parsing content : {}", content);
 
         let path = self.build_filepath(&f);
+        debug!("Trying to write to file at {}", path);
         if let Err(_) = FSFile::open(&path) {
+            debug!("Error opening {}", path);
             return Ok(Err(StorageBackendError::new(
                 String::from("File::open()"),
                 format!("Tried to open '{}'", path),
@@ -103,6 +113,7 @@ impl StorageBackend {
 
         if let Ok(mut file) = FSFile::create(&path) {
             if let Err(writeerr) = file.write_all(&content.clone().into_bytes()) {
+                debug!("Error writing to {}", path);
                 return Ok(Err(StorageBackendError::new(
                     String::from("File::write()"),
                     format!("Tried to write '{}'", path),
@@ -111,6 +122,7 @@ impl StorageBackend {
             }
         }
 
+        debug!("Successfully written to file.");
         Ok(Ok(()))
     }
 
@@ -124,11 +136,15 @@ impl StorageBackend {
     pub fn get_file_by_id<'a, HP>(&self, id: FileID, p: &Parser<HP>) -> Option<File>
         where HP: FileHeaderParser<'a>
     {
+        debug!("Searching for file with id '{}'", id);
         if let Ok(mut fs) = FSFile::open(self.build_filepath_with_id(id.clone())) {
             let mut s = String::new();
             fs.read_to_string(&mut s);
+            debug!("Success reading file with id '{}'", id);
+            debug!("Parsing to internal structure now");
             p.read(s).and_then(|(h, d)| Ok(File::from_parser_result(id, h, d))).ok()
         } else {
+            debug!("No file with id '{}'", id);
             None
         }
     }
@@ -138,6 +154,7 @@ impl StorageBackend {
     }
 
     fn build_filepath_with_id(&self, id: FileID) -> String {
+        debug!("Building filepath for id '{}'", id);
         self.basepath.clone() + &id[..]
     }
 
