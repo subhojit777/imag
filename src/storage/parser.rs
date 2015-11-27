@@ -99,28 +99,36 @@ impl<'a, HP> Parser<HP> where
 
     pub fn read(&self, s: String) -> Result<(FileHeaderData, String), ParserError>
     {
+        debug!("Reading into internal datastructure: '{}'", s);
         let divided = self.divide_text(&s);
 
         if divided.is_err() {
+            debug!("Error reading into internal datastructure");
             return Err(divided.err().unwrap());
         }
 
         let (header, data) = divided.ok().unwrap();
+        debug!("Header = '{:?}'", header);
+        debug!("Data   = '{:?}'", data);
 
         let h_parseres = try!(self.headerp.read(header));
+        debug!("Success parsing header");
 
         Ok((h_parseres, data.unwrap_or(String::new())))
     }
 
     pub fn write(&self, tpl : (FileHeaderData, String)) -> Result<String, ParserError>
     {
+        debug!("Parsing internal datastructure to String");
         let (header, data) = tpl;
         let h_text = try!(self.headerp.write(&header));
+        debug!("Success translating header");
 
         Ok(h_text + &data[..])
     }
 
     fn divide_text(&self, text: &String) -> Result<TextTpl, ParserError> {
+        debug!("Splitting: '{}'", text);
         let re = Regex::new(r"(?m)^\-\-\-$\n(.*)^\-\-\-$\n(.*)").unwrap();
 
         let captures = re.captures(&text[..]).unwrap_or(
@@ -137,6 +145,9 @@ impl<'a, HP> Parser<HP> where
 
         let header  = captures.at(0).map(|s| String::from(s));
         let content = captures.at(1).map(|s| String::from(s));
+
+        debug!("Splitted, Header = '{:?}'", header);
+        debug!("Splitted, Data   = '{:?}'", content);
         Ok((header, content))
     }
 

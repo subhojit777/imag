@@ -1,6 +1,10 @@
 extern crate clap;
 use clap::{App, ArgMatches};
 
+use std::fmt::Debug;
+use std::fmt::Formatter;
+use std::fmt::Error;
+
 pub struct ModuleConfig {
     pub load : bool,
 }
@@ -39,3 +43,13 @@ impl<'a> CliConfig<'a> {
     }
 }
 
+impl<'a> Debug for CliConfig<'a> {
+
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "CliConfig (verbose: {}, debugging: {}, rtp: {})",
+            self.is_verbose(),
+            self.is_debugging(),
+            self.get_rtp().or(Some(String::from("NONE"))).unwrap())
+    }
+
+}

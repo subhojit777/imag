@@ -27,8 +27,12 @@ fn main() {
     let logger = ImagLogger::init(&configuration, &config);
     debug!("Logger created!");
 
+    debug!("CliConfig    : {:?}", &config);
+    debug!("Configuration: {:?}", &configuration);
+
     let rt = Runtime::new(configuration, config);
-    debug!("Runtime created!");
+
+    debug!("Runtime      : {:?}", &rt);
 
     info!("Hello, world!");
 }

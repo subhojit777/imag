@@ -113,6 +113,7 @@ impl<'a> Display for MatchError<'a> {
 pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
     -> Option<MatchError<'a>>
 {
+    debug!("Start matching:\n'{:?}'\non\n{:?}", spec, data);
     match (spec, data) {
         (&FileHeaderSpec::Null,     &FileHeaderData::Null)           => { }
         (&FileHeaderSpec::Bool,     &FileHeaderData::Bool(_))        => { }
@@ -125,7 +126,11 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
             &FileHeaderSpec::Key{name: ref kname, value_type: ref vtype},
             &FileHeaderData::Key{name: ref n, value: ref val}
         ) => {
+            debug!("Matching Key: '{:?}' == '{:?}', Value: '{:?}' == '{:?}'",
+                    kname, n,
+                    vtype, val);
             if kname != n {
+                debug!("Keys not matching");
                 unimplemented!();
             }
             return match_header_spec(&*vtype, &*val);
@@ -135,6 +140,8 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
             &FileHeaderSpec::Map{keys: ref sks},
             &FileHeaderData::Map{keys: ref dks}
         ) => {
+            debug!("Matching Map: '{:?}' == '{:?}'", sks, dks);
+
             for (s, d) in sks.iter().zip(dks.iter()) {
                 let res = match_header_spec(s, d);
                 if res.is_some() {
@@ -147,6 +154,7 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
             &FileHeaderSpec::Array{allowed_types: ref vtypes},
             &FileHeaderData::Array{values: ref vs}
         ) => {
+            debug!("Matching Array: '{:?}' == '{:?}'", vtypes, vs);
             for (t, v) in vtypes.iter().zip(vs.iter()) {
                 let res = match_header_spec(t, v);
                 if res.is_some() {
@@ -177,43 +185,53 @@ pub struct File {
 impl File {
 
     pub fn new() -> File {
-        File {
+        let f = File {
             header: FileHeaderData::Null,
             data: String::from(""),
             id: File::get_new_file_id(),
-        }
+        };
+        debug!("Create new File object: {:?}", f);
+        f
     }
 
     pub fn from_parser_result(id: FileID, header: FileHeaderData, data: String) -> File {
-        File {
+        let f = File {
             header: header,
             data: data,
             id: id,
-        }
+        };
+        debug!("Create new File object from parser result: {:?}", f);
+        f
     }
 
     pub fn new_with_header(h: FileHeaderData) -> File {
-        File {
+        let f = File {
             header: h,
             data: String::from(""),
             id: File::get_new_file_id(),
-        }
+        };
+        debug!("Create new File object with header: {:?}", f);
+        f
     }
 
     pub fn new_with_data(d: String) -> File {
-        File {
+        let f = File {
             header: FileHeaderData::Null,
             data: d,
             id: File::get_new_file_id(),
-        }
+        };
+        debug!("Create new File object with data: {:?}", f);
+        f
     }
 
     pub fn new_with_content(h: FileHeaderData, d: String) -> File {
-        File {
+        let f = File {
             header: h,
             data: d,
             id: File::get_new_file_id(),
-        }
+        };
+        debug!("Create new File object with content: {:?}", f);
+        f
     }
 
     pub fn contents(&self) -> (FileHeaderData, String) {
@@ -227,6 +245,14 @@ impl File {
     fn get_new_file_id() -> FileID {
         use uuid::Uuid;
         Uuid::new_v4().to_hyphenated_string()
+    }
+}
+
+impl Debug for File {
+
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "File[{:?}] header: '{:?}', data: '{:?}')",
+            self.id, self.header, self.data)
     }
 }
 
