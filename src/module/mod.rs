@@ -42,7 +42,7 @@ impl Display for ModuleError {
 }
 
 pub type ModuleResult = Result<(), ModuleError>;
-pub type CommandMap<'a> = HashMap<&'a str, fn(&Runtime)>;
+pub type CommandMap<'a> = HashMap<&'a str, fn(&Runtime, &StorageBackend)>;
 
 pub trait Module {
 

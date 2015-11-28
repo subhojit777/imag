@@ -14,6 +14,7 @@ use clap::App;
 use module::Module;
 use module::ModuleError;
 use module::bm::BMModule;
+use storage::backend::StorageBackend;
 
 mod cli;
 mod configuration;
@@ -43,8 +44,11 @@ fn main() {
         let commands          = module.get_commands(&rt);
         if let Some(command)  = matches.subcommand_name() {
             debug!("Subcommand: {}", command);
+
+            let backend = StorageBackend::new(rt.get_rtp());
+
             match commands.get(command) {
-                Some(f) => f(&rt),
+                Some(f) => f(&rt, &backend),
                 None    => debug!("No command '{}' found", command),
             }
         } else {
