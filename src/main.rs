@@ -51,7 +51,7 @@ fn main() {
             let cmdenv = CommandEnv {
                 rt: &rt,
                 bk: &backend,
-                matches: matches,
+                matches: matches.subcommand_matches(command).unwrap(),
             };
 
             let result = match commands.get(command) {
