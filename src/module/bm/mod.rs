@@ -23,15 +23,19 @@ pub struct BMModule {
 
 const CALLNAMES : &'static [&'static str] = &[ "bm", "bookmark" ];
 
-impl Module for BMModule {
+impl BMModule {
 
-    fn new(rt : &Runtime) -> BMModule {
+    pub fn new(rt : &Runtime) -> BMModule {
         BMModule {
             path: None
         }
     }
 
-    fn callnames() -> &'static [&'static str] {
+}
+
+impl Module for BMModule {
+
+    fn callnames(&self) -> &'static [&'static str] {
         CALLNAMES
     }
 

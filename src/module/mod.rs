@@ -51,12 +51,11 @@ pub struct CommandEnv<'a> {
 
 pub type ModuleResult = Result<(), ModuleError>;
 pub type CommandResult  = ModuleResult;
-pub type CommandMap<'a> = HashMap<&'a str, fn(CommandEnv) -> CommandResult>;
+pub type CommandMap<'a> = HashMap<&'a str, fn(&Module, CommandEnv) -> CommandResult>;
 
 pub trait Module {
 
-    fn new(rt : &Runtime) -> Self;
-    fn callnames() -> &'static [&'static str];
+    fn callnames(&self) -> &'static [&'static str];
     fn name(&self) -> &'static str;
     fn shutdown(&self, rt : &Runtime) -> ModuleResult;
 

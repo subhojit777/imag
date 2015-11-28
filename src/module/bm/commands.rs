@@ -1,6 +1,7 @@
 use runtime::Runtime;
 use storage::backend::StorageBackend;
 
+use module::Module;
 use module::CommandResult;
 use module::CommandEnv;
 
@@ -11,7 +12,7 @@ use storage::parser::FileHeaderParser;
 use clap::ArgMatches;
 use regex::Regex;
 
-pub fn add_command(env: CommandEnv) -> CommandResult {
+pub fn add_command(module: &Module, env: CommandEnv) -> CommandResult {
     let url = env.matches.value_of("url").unwrap();
     let tags = get_tags(env.rt, env.matches);
     info!("Adding url '{}' with tags '{:?}'", url, tags);
@@ -23,7 +24,7 @@ pub fn add_command(env: CommandEnv) -> CommandResult {
     Ok(())
 }
 
-pub fn list_command(env: CommandEnv) -> CommandResult {
+pub fn list_command(module: &Module, env: CommandEnv) -> CommandResult {
     let tags    = get_tags(env.rt, env.matches);
     let matcher = get_matcher(env.rt, env.matches);
 
@@ -41,7 +42,7 @@ pub fn list_command(env: CommandEnv) -> CommandResult {
     Ok(())
 }
 
-pub fn remove_command(env: CommandEnv) -> CommandResult {
+pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
     let tags    = get_tags(env.rt, env.matches);
     let matcher = get_matcher(env.rt, env.matches);
     let id      = get_id(env.rt, env.matches);

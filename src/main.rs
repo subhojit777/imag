@@ -41,7 +41,7 @@ fn main() {
     debug!("Runtime      : {:?}", &rt);
 
     if let Some(matches) = rt.config.cli_matches.subcommand_matches("bm") {
-        let module : BMModule = Module::new(&rt);
+        let module            = BMModule::new(&rt);
         let commands          = module.get_commands(&rt);
         if let Some(command)  = matches.subcommand_name() {
             debug!("Subcommand: {}", command);
@@ -55,7 +55,7 @@ fn main() {
             };
 
             let result = match commands.get(command) {
-                Some(f) => f(cmdenv),
+                Some(f) => f(&module, cmdenv),
                 None    => Err(ModuleError::new("No subcommand found")),
             };
 
