@@ -27,9 +27,14 @@ pub fn build_header(url: &String, tags: &Vec<String>) -> FHD {
             },
             FHD::Key {
                 name: String::from("TAGS"),
-                value: Box::new(FHD::Text(tags.connect(",")))
+                value: Box::new(build_tag_array(tags))
             }
         ]
     }
+}
+
+fn build_tag_array(tags: &Vec<String>) -> FHD {
+    let texttags = tags.into_iter().map(|t| FHD::Text(t.clone())).collect();
+    FHD::Array { values: Box::new(texttags) }
 }
 
