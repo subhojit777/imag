@@ -117,7 +117,7 @@ impl StorageBackend {
         debug!("Writing file: {}", path);
         debug!("      string: {}", string);
 
-        FSFile::create(&path).map(|file| {
+        FSFile::create(&path).map(|mut file| {
             debug!("Created file at '{}'", path);
             file.write_all(&string.clone().into_bytes())
                 .map_err(|ioerr| {
@@ -127,7 +127,7 @@ impl StorageBackend {
                             "Could not write out File contents",
                             "", None
                         );
-                    err.caused_by = Some(&ioerr);
+                    err.caused_by = Some(Box::new(ioerr));
                     err
                 })
         }).map_err(|writeerr| {
@@ -157,7 +157,7 @@ impl StorageBackend {
         debug!("Writing file: {}", path);
         debug!("      string: {}", string);
 
-        FSFile::open(&path).map(|file| {
+        FSFile::open(&path).map(|mut file| {
             debug!("Open file at '{}'", path);
             file.write_all(&string.clone().into_bytes())
                 .map_err(|ioerr| {
@@ -168,7 +168,7 @@ impl StorageBackend {
                             "Tried to write contents of this file, though operation did not succeed",
                             Some(string)
                         );
-                    err.caused_by = Some(&ioerr);
+                    err.caused_by = Some(Box::new(ioerr));
                     err
                 })
         }).map_err(|writeerr| {
@@ -179,7 +179,7 @@ impl StorageBackend {
                 "Tried to update contents of this file, though file doesn't exist",
                 None
             );
-            err.caused_by = Some(&writeerr);
+            err.caused_by = Some(Box::new(writeerr));
             err
         }).and(Ok(()))
     }
@@ -243,14 +243,14 @@ impl StorageBackend {
 }
 
 #[derive(Debug)]
-pub struct StorageBackendError<'a> {
+pub struct StorageBackendError {
     pub action: String,             // The file system action in words
     pub desc: String,               // A short description
     pub data_dump: Option<String>,  // Data dump, if any
     pub caused_by: Option<Box<Error>>,  // caused from this error
 }
 
-impl<'a> StorageBackendError<'a> {
+impl StorageBackendError {
     fn new(action: String,
            desc  : String,
            data  : Option<String>) -> StorageBackendError<'a>
@@ -265,7 +265,7 @@ impl<'a> StorageBackendError<'a> {
 
     fn build(action: &'static str,
              desc:   &'static str,
-           data  : Option<String>) -> StorageBackendError<'a>
+             data  : Option<String>) -> StorageBackendError<'a>
     {
         StorageBackendError {
             action:         String::from(action),
@@ -277,7 +277,7 @@ impl<'a> StorageBackendError<'a> {
 
 }
 
-impl<'a> Error for StorageBackendError<'a> {
+impl Error for StorageBackendError {
 
     fn description(&self) -> &str {
         &self.desc[..]
@@ -289,7 +289,7 @@ impl<'a> Error for StorageBackendError<'a> {
 
 }
 
-impl<'a> Display for StorageBackendError<'a> {
+impl<'a> Display for StorageBackendError {
     fn fmt(&self, f: &mut Formatter) -> FMTResult {
         write!(f, "StorageBackendError[{}]: {}",
                self.action, self.desc)
@@ -297,7 +297,9 @@ impl<'a> Display for StorageBackendError<'a> {
 }
 
 
-fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, StorageBackendError<'a>> {
+fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, StorageBackendError>
+    where HP: FileHeaderParser
+{
     p.write(f.contents())
         .or_else(|err| {
             let mut serr = StorageBackendError::build(
@@ -306,7 +308,7 @@ fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, Storage
                 "Cannot translate internal representation of file contents into on-disk representation",
                 None
             );
-            serr.caused_by = Some(&err);
+            serr.caused_by = Some(Box::new(err));
             Err(serr)
         })
 }
