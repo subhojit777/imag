@@ -46,7 +46,7 @@ fn main() {
         if let Some(command)  = matches.subcommand_name() {
             debug!("Subcommand: {}", command);
 
-            let backend = StorageBackend::new(rt.get_rtp());
+            let backend = StorageBackend::new(&rt);
 
             let cmdenv = CommandEnv {
                 rt: &rt,
