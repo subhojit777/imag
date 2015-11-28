@@ -238,8 +238,11 @@ impl StorageBackend {
         self.prefix_of_files_for_module(owner) + "-" + &id[..] + ".imag"
     }
 
-    fn prefix_of_files_for_module(&self, m: &Module) -> String {
-        self.storepath.clone() + m.name()
+    fn build_filepath_with_id(&self, id: FileID) -> String {
+        debug!("Building filepath with id");
+        debug!("  basepath: '{}'", self.basepath);
+        debug!("  id      : '{}'", id);
+        self.basepath.clone() + &id[..]
     }
 
 }
