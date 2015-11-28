@@ -109,7 +109,18 @@ impl StorageBackend {
     pub fn put_file<HP>(&self, f: File, p: &Parser<HP>) -> BackendOperationResult
         where HP: FileHeaderParser
     {
-        let written = write_with_parser(&f, p);
+        let written = p.write(f.contents())
+            .or_else(|err| {
+                let mut serr = StorageBackendError::build(
+                    "Parser::write()",
+                    "Cannot parse file contents",
+                    "Cannot translate internal representation of file contents into on-disk representation",
+                    None
+                );
+                serr.caused_by = Some(&err);
+                Err(serr)
+            });
+
         if written.is_err() { return Err(written.err().unwrap()); }
         let string = written.unwrap();
 
@@ -117,7 +128,7 @@ impl StorageBackend {
         debug!("Writing file: {}", path);
         debug!("      string: {}", string);
 
-        FSFile::create(&path).map(|mut file| {
+        FSFile::create(&path).map(|file| {
             debug!("Created file at '{}'", path);
             file.write_all(&string.clone().into_bytes())
                 .map_err(|ioerr| {
@@ -125,9 +136,9 @@ impl StorageBackend {
                     let mut err = StorageBackendError::build(
                             "File::write_all()",
                             "Could not write out File contents",
-                            None
+                            "", None
                         );
-                    err.caused_by = Some(Box::new(ioerr));
+                    err.caused_by = Some(&ioerr);
                     err
                 })
         }).map_err(|writeerr| {
@@ -135,7 +146,7 @@ impl StorageBackend {
             let mut err = StorageBackendError::build(
                 "File::create()",
                 "Creating file on disk failed",
-                None
+                "", None
             );
             err.caused_by = Some(Box::new(writeerr));
             err
@@ -263,7 +274,7 @@ impl<'a> StorageBackendError<'a> {
 
     fn build(action: &'static str,
              desc:   &'static str,
-           data  : Option<String>) -> StorageBackendError
+           data  : Option<String>) -> StorageBackendError<'a>
     {
         StorageBackendError {
             action:         String::from(action),
