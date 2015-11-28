@@ -2,6 +2,7 @@ use runtime::Runtime;
 use storage::backend::StorageBackend;
 
 use module::Module;
+use module::ModuleError;
 use module::CommandResult;
 use module::CommandEnv;
 
@@ -23,7 +24,11 @@ pub fn add_command(module: &Module, env: CommandEnv) -> CommandResult {
     let parser  = Parser::new(JsonHeaderParser::new(None));
     let putres  = env.bk.put_file(file, &parser);
 
-    Ok(())
+    putres.map_err(|sberr| {
+        let mut err = ModuleError::new("Storage Backend Error");
+        err.caused_by = Some(Box::new(sberr));
+        err
+    })
 }
 
 pub fn list_command(module: &Module, env: CommandEnv) -> CommandResult {
