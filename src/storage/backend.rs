@@ -157,27 +157,29 @@ impl StorageBackend {
         debug!("Writing file: {}", path);
         debug!("      string: {}", string);
 
-        FSFile::open(&path).map(|mut file| {
+        FSFile::open(&path).map(|file| {
             debug!("Open file at '{}'", path);
             file.write_all(&string.clone().into_bytes())
                 .map_err(|ioerr| {
                     debug!("Could not write file");
                     let mut err = StorageBackendError::build(
                             "File::write()",
+                            "",
                             "Tried to write contents of this file, though operation did not succeed",
                             Some(string)
                         );
-                    err.caused_by = Some(Box::new(ioerr));
+                    err.caused_by = Some(&ioerr);
                     err
                 })
         }).map_err(|writeerr| {
             debug!("Could not write file at '{}'", path);
             let mut err = StorageBackendError::build(
                 "File::open()",
+                "",
                 "Tried to update contents of this file, though file doesn't exist",
                 None
             );
-            err.caused_by = Some(Box::new(writeerr));
+            err.caused_by = Some(&writeerr);
             err
         }).and(Ok(()))
     }
