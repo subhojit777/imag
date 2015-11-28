@@ -1,15 +1,18 @@
 use runtime::Runtime;
 use storage::backend::StorageBackend;
 
-pub fn add_command(rt: &Runtime, backend: &StorageBackend) {
+use module::CommandResult;
+use module::CommandEnv;
+
+pub fn add_command(env: CommandEnv) -> CommandResult {
     unimplemented!()
 }
 
-pub fn list_command(rt: &Runtime, backend: &StorageBackend) {
+pub fn list_command(env: CommandEnv) -> CommandResult {
     unimplemented!()
 }
 
-pub fn remove_command(rt: &Runtime, backend: &StorageBackend) {
+pub fn remove_command(env: CommandEnv) -> CommandResult {
     unimplemented!()
 }
 

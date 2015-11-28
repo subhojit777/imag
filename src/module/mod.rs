@@ -6,6 +6,8 @@ use std::fmt::Display;
 use std::result::Result;
 use std::collections::HashMap;
 
+use clap::{App, ArgMatches};
+
 use storage::backend::{StorageBackend, StorageBackendError};
 
 pub mod bm;
@@ -41,8 +43,15 @@ impl Display for ModuleError {
     }
 }
 
+pub struct CommandEnv<'a> {
+    pub rt:         &'a Runtime<'a>,
+    pub bk:         &'a StorageBackend,
+    pub matches:    &'a ArgMatches<'a, 'a>,
+}
+
 pub type ModuleResult = Result<(), ModuleError>;
-pub type CommandMap<'a> = HashMap<&'a str, fn(&Runtime, &StorageBackend)>;
+pub type CommandResult  = ModuleResult;
+pub type CommandMap<'a> = HashMap<&'a str, fn(CommandEnv) -> CommandResult>;
 
 pub trait Module {
 
