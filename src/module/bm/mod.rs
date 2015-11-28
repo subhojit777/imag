@@ -1,5 +1,6 @@
 use runtime::Runtime;
 use module::Module;
+use module::CommandMap;
 use module::ModuleResult;
 use module::ModuleError;
 use std::path::Path;
@@ -14,9 +15,7 @@ use self::header::build_header;
 use storage::json::parser::JsonHeaderParser;
 use storage::parser::FileHeaderParser;
 
-use self::commands::add::*;
-use self::commands::list::*;
-use self::commands::remove::*;
+use self::commands::*;
 
 pub struct BMModule {
     path: Option<String>,
@@ -44,12 +43,12 @@ impl Module for BMModule {
         Ok(())
     }
 
-    fn get_commands<EC: ExecutableCommand>(&self, rt: &Runtime) -> Vec<EC> {
-        vec![
-            AddCommand::new(),
-            ListCommand::new(),
-            RemoveCommand::new(),
-        ]
+    fn get_commands(&self, rt: &Runtime) -> CommandMap {
+        let mut hm = CommandMap::new();
+        hm.insert("add", add_command);
+        hm.insert("list", list_command);
+        hm.insert("remove", remove_command);
+        hm
     }
 }
 
