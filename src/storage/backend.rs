@@ -109,18 +109,7 @@ impl StorageBackend {
     pub fn put_file<HP>(&self, f: File, p: &Parser<HP>) -> BackendOperationResult
         where HP: FileHeaderParser
     {
-        let written = p.write(f.contents())
-            .or_else(|err| {
-                let mut serr = StorageBackendError::build(
-                    "Parser::write()",
-                    "Cannot parse file contents",
-                    "Cannot translate internal representation of file contents into on-disk representation",
-                    None
-                );
-                serr.caused_by = Some(&err);
-                Err(serr)
-            });
-
+        let written = write_with_parser(&f, p);
         if written.is_err() { return Err(written.err().unwrap()); }
         let string = written.unwrap();
 
@@ -306,17 +295,16 @@ impl<'a> Display for StorageBackendError<'a> {
 }
 
 
-fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, StorageBackendError>
-    where HP: FileHeaderParser
-{
+fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, StorageBackendError<'a>> {
     p.write(f.contents())
         .or_else(|err| {
             let mut serr = StorageBackendError::build(
                 "Parser::write()",
+                "Cannot parse file contents",
                 "Cannot translate internal representation of file contents into on-disk representation",
                 None
             );
-            serr.caused_by = Some(Box::new(err));
+            serr.caused_by = Some(&err);
             Err(serr)
         })
 }
