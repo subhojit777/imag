@@ -40,7 +40,7 @@ impl Module for BMModule {
     }
 
     fn name(&self) -> &'static str{
-        "Bookmark"
+        "bookmark"
     }
 
     fn shutdown(&self, rt : &Runtime) -> ModuleResult {
