@@ -6,10 +6,8 @@ use std::fmt::Display;
 use std::result::Result;
 use std::collections::HashMap;
 
-use storage::backend::StorageBackend;
-use self::command::ExecutableCommand;
+use storage::backend::{StorageBackend, StorageBackendError};
 
-pub mod command;
 pub mod bm;
 
 #[derive(Debug)]

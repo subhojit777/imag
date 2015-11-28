@@ -13,7 +13,6 @@ mod commands;
 use self::header::build_header;
 use storage::json::parser::JsonHeaderParser;
 use storage::parser::FileHeaderParser;
-use module::command::ExecutableCommand;
 
 use self::commands::add::*;
 use self::commands::list::*;
