@@ -125,7 +125,7 @@ impl StorageBackend {
                     let mut err = StorageBackendError::build(
                             "File::write_all()",
                             "Could not write out File contents",
-                            "", None
+                            None
                         );
                     err.caused_by = Some(Box::new(ioerr));
                     err
@@ -135,7 +135,7 @@ impl StorageBackend {
             let mut err = StorageBackendError::build(
                 "File::create()",
                 "Creating file on disk failed",
-                "", None
+                None
             );
             err.caused_by = Some(Box::new(writeerr));
             err
@@ -164,7 +164,6 @@ impl StorageBackend {
                     debug!("Could not write file");
                     let mut err = StorageBackendError::build(
                             "File::write()",
-                            "",
                             "Tried to write contents of this file, though operation did not succeed",
                             Some(string)
                         );
@@ -175,7 +174,6 @@ impl StorageBackend {
             debug!("Could not write file at '{}'", path);
             let mut err = StorageBackendError::build(
                 "File::open()",
-                "",
                 "Tried to update contents of this file, though file doesn't exist",
                 None
             );
@@ -253,7 +251,7 @@ pub struct StorageBackendError {
 impl StorageBackendError {
     fn new(action: String,
            desc  : String,
-           data  : Option<String>) -> StorageBackendError<'a>
+           data  : Option<String>) -> StorageBackendError
     {
         StorageBackendError {
             action:         action,
@@ -265,7 +263,7 @@ impl StorageBackendError {
 
     fn build(action: &'static str,
              desc:   &'static str,
-             data  : Option<String>) -> StorageBackendError<'a>
+             data  : Option<String>) -> StorageBackendError
     {
         StorageBackendError {
             action:         String::from(action),
@@ -304,7 +302,6 @@ fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, Storage
         .or_else(|err| {
             let mut serr = StorageBackendError::build(
                 "Parser::write()",
-                "Cannot parse file contents",
                 "Cannot translate internal representation of file contents into on-disk representation",
                 None
             );
