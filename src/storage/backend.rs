@@ -235,7 +235,11 @@ impl StorageBackend {
         debug!("  basepath: '{}'", self.basepath);
         debug!(" storepath: '{}'", self.storepath);
         debug!("  id      : '{}'", id);
-        self.storepath.clone() + owner.name() + "-" + &id[..] + ".imag"
+        self.prefix_of_files_for_module(owner) + "-" + &id[..] + ".imag"
+    }
+
+    fn prefix_of_files_for_module(&self, m: &Module) -> String {
+        self.storepath.clone() + m.name()
     }
 
 }
