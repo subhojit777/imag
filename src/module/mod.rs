@@ -34,7 +34,7 @@ impl Error for ModuleError {
     }
 
     fn cause(&self) -> Option<&Error> {
-        unimplemented!()
+        self.caused_by.as_ref().map(|e| &**e)
     }
 
 }
