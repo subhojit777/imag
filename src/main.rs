@@ -13,6 +13,7 @@ use runtime::{ImagLogger, Runtime};
 use clap::App;
 use module::Module;
 use module::ModuleError;
+use module::CommandEnv;
 use module::bm::BMModule;
 use storage::backend::StorageBackend;
 
@@ -47,10 +48,18 @@ fn main() {
 
             let backend = StorageBackend::new(rt.get_rtp());
 
-            match commands.get(command) {
-                Some(f) => f(&rt, &backend),
-                None    => debug!("No command '{}' found", command),
-            }
+            let cmdenv = CommandEnv {
+                rt: &rt,
+                bk: &backend,
+                matches: matches,
+            };
+
+            let result = match commands.get(command) {
+                Some(f) => f(cmdenv),
+                None    => Err(ModuleError::new("No subcommand found")),
+            };
+
+            debug!("Result of command: {:?}", result);
         } else {
             debug!("No subcommand");
         }
