@@ -7,7 +7,8 @@ use module::CommandEnv;
 
 use module::bm::header::build_header;
 use storage::json::parser::JsonHeaderParser;
-use storage::parser::FileHeaderParser;
+use storage::parser::{Parser, FileHeaderParser};
+use storage::file::File;
 
 use clap::ArgMatches;
 use regex::Regex;
@@ -17,9 +18,10 @@ pub fn add_command(module: &Module, env: CommandEnv) -> CommandResult {
     let tags = get_tags(env.rt, env.matches);
     info!("Adding url '{}' with tags '{:?}'", url, tags);
 
-    let header = build_header(&String::from(url), &tags);
-    let jheader = JsonHeaderParser::new(None).write(&header);
-    println!("JSON: {:?}", jheader);
+    let header  = build_header(&String::from(url), &tags);
+    let file    = File::new_with_header(module, header);
+    let parser  = Parser::new(JsonHeaderParser::new(None));
+    let putres  = env.bk.put_file(file, &parser);
 
     Ok(())
 }
