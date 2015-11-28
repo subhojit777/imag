@@ -15,12 +15,14 @@ pub mod bm;
 #[derive(Debug)]
 pub struct ModuleError {
     desc: String,
+    caused_by: Option<Box<Error>>,
 }
 
 impl ModuleError {
     pub fn new(desc: &'static str) -> ModuleError {
         ModuleError {
             desc: desc.to_owned().to_string(),
+            caused_by: None,
         }
     }
 }
@@ -32,7 +34,7 @@ impl Error for ModuleError {
     }
 
     fn cause(&self) -> Option<&Error> {
-        None
+        unimplemented!()
     }
 
 }
