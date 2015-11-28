@@ -40,7 +40,17 @@ fn main() {
 
     if let Some(matches) = rt.config.cli_matches.subcommand_matches("bm") {
         let module : BMModule = Module::new(&rt);
-        //module.execute(&rt);
+        let commands          = module.get_commands(&rt);
+        if let Some(command)  = matches.subcommand_name() {
+            debug!("Subcommand: {}", command);
+            match commands.get(command) {
+                Some(f) => f(&rt),
+                None    => debug!("No command '{}' found", command),
+            }
+        } else {
+            debug!("No subcommand");
+        }
+
         module.shutdown(&rt);
     } else {
         // Err(ModuleError::mk("No commandline call"))
