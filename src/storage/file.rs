@@ -285,10 +285,6 @@ impl<'a> File<'a> {
         self.owning_module
     }
 
-    pub fn matches_with(&self, r: &Regex) -> bool {
-        r.is_match(&self.data[..]) || self.header.matches_with(r)
-    }
-
     fn get_new_file_id() -> FileID {
         use uuid::Uuid;
         Uuid::new_v4().to_hyphenated_string()
