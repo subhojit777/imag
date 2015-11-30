@@ -66,6 +66,54 @@ it contains Kiwi, and you have notes about Kiwi, how to cook them properly. You
 saw this on some website, so you linked to the website from your wiki entry, of
 course.
 
+### Header
+
+So each file in the store has a certain format:
+
+    ---
+    <header>
+    ---
+    <content>
+
+The header contains some structured data (either JSON or YAML), the module uses
+to store data closely related to the content.
+
+For example, the bookmark-module will use the header only and store URL and tags
+in some JSON format. The Wiki module might use the Header for storing some meta
+information about the wiki article (tags, category, maybe even links to other
+store entries) and the content is the wiki article content written down by the
+user.
+
+The content is just text entered from the user. In the best case, the module
+should't touch the content at all.
+
+Here is a short overview what are the modules like:
+
+| Module            | Indexer | Header  | Hdr-Format | Content |
+| :---------------- | ------- | ------- | ---------- | ------- |
+| Bookmarks         |         | X       | JSON       |         |
+| Contacts          | X       | X       | JSON       |         |
+| Calendar          | X       | X       | JSON       |         |
+| Notes             |         | X       | YAML       | X       |
+| Mail              | X       | X       | JSON       |         |
+| Wiki              |         | X       | YAML       | X       |
+| Todo              |         | X       | YAML       |         |
+| Shoppinglist      |         | X       | YAML       |         |
+| Bibliography      | X       | X       | JSON       |         |
+| News              | X       | X       | JSON       |         |
+| Image             | X       | X       | JSON       |         |
+| Movie             | X       | X       | JSON       |         |
+| Music             | X       | X       | JSON       |         |
+
+Explanation:
+
+- An "Indexer" Module does only index some data and store the indexed meta
+  information in the store
+- "Header" means that the header part of a store entry is used
+- "Hdr-Format" Which format is chosen for the header. Basically: YAML if the
+  user might want to edit the header, otherwise JSON (pretty).
+- "Content" means that the content part of a store entry is used
+
 ### Bookmarks
 
 Bookmarks should be stored in a simple format:
@@ -74,21 +122,19 @@ Bookmarks should be stored in a simple format:
 { "URL": "https://github.com", "tags": ["ducks", "r", "great"]}
 ```
 
-Each file is one bookmark and the filename is a SHA512.
-
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| JSON File backend                     | Data format   |
-| Git backend                           | Data sync     |
+| Required core feature                 | Purpose          |
+| :------------------------------------ | :------------    |
+| XDG-open (Browser)                    | External program |
 
 ### Contacts
 
 Contacts are just read and indexed by `imag`, to create an internal index of
 them and to be able to refer to.
 
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| vcard file format parsing             | Data access   |
+| Required core feature                 | Purpose          |
+| :------------------------------------ | :------------    |
+| vcard file format parsing             | Data access      |
+| XDG-open (Mail program)               | External Program |
 
 ### Calendar
 
@@ -103,9 +149,10 @@ them and to be able to refer to.
 
 Just plain text notes.
 
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| Linking to other store entries        | Data Link     |
+| Required core feature                 | Purpose          |
+| :------------------------------------ | :------------    |
+| Linking to other store entries        | Data Link        |
+| XDG-open (Editor)                     | External Program |
 
 ### Mail
 
@@ -116,14 +163,12 @@ notes, etc etc. to your mail.
 Some of these things (like linking contacts, calendar entries) should be
 linked automatically.
 
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| Maildir file format parsing           | Data access   |
-| mbox file format parsing (later)      | Data access   |
-| Internal storage database             | Data indexing |
-| JSON File backend                     | Database      |
-| Editor calling                        | Editing       |
-| Mail-Client calling                   | Editing       |
+| Required core feature                 | Purpose          |
+| :------------------------------------ | :------------    |
+| Parser: Maildir                       | Data access      |
+| Parser: mbox                          | Data access      |
+| XDG-open (Mail program)               | External Program |
+| XDG-open (Editor)                     | External Program |
 
 ### Personal Wiki
 
@@ -131,12 +176,12 @@ linked automatically.
 simple markdown files which have a YAML header, nothing too special for the
 first step.
 
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| YAML parsing                          | Data parsing  |
-| Markdown parsing                      | Data parsing  |
-| Git backend                           | Data sync     |
-| Editor calling                        | Editing       |
+| Required core feature                 | Purpose          |
+| :------------------------------------ | :------------    |
+| Parser: Markdown                      | Data parsing     |
+| XDG-open (Editor)                     | External Program |
+| XDG-open (Mail program)               | External Program |
+| XDG-open (Browser)                    | External Program |
 
 Some more ideas:
 
@@ -147,24 +192,21 @@ Some more ideas:
 `imag` should also contain a full todo-tool. I'm thinking about integrating
 taskwarrior through a wrapper here.
 
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| Taskwarrior backend                   | Data parsing  |
-| Git backend                           | Data sync     |
-| Editor calling                        | Editing       |
+| Required core feature                 | Purpose          |
+| :------------------------------------ | :------------    |
+| Library: taskwarrior                  | Implementation   |
+| XDG-open (Editor)                     | External Program |
 
 ### Shoppinglist
 
 Simply dot-and-tick lists.
 
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| YAML parsing                          | Data parsing  |
-| Markdown parsing                      | Data parsing  |
-| Git backend                           | Data sync     |
-| Editor calling                        | Editing       |
+| Required core feature                 | Purpose          |
+| :------------------------------------ | :------------    |
+| Module: Todo-List                     | Implementation   |
+| XDG-open (Editor)                     | External Program |
 
-- Maybe as sub-form of the Todo-List module
+- Sub-form of the Todo-List module
 
 ### Bibliography management
 
@@ -172,12 +214,13 @@ BibTex would be the first step, maybe we should be able to add the actual PDFs
 here as well... didn't waste too much thoughts on this by now. If we have the
 PDF data, we need git-annex.
 
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| BibTex parsing                        | Data parsing  |
-| Git backend                           | Data sync     |
-| Git-annex backend                     | Data sync     |
-| Editor calling                        | Editing       |
+| Required core feature                 | Purpose          |
+| :------------------------------------ | :------------    |
+| BibTex parsing                        | Data parsing     |
+| Backend: git-annex                    | Data parsing     |
+| XDG-open (Editor)                     | External Program |
+| XDG-open (PDF viewer)                 | External Program |
+| XDG-open (Office suite)               | External Program |
 
 ### News (RSS)
 
@@ -185,38 +228,38 @@ Just indexing, reading news is not task of `imag` and so isn't syncing.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| RSS parsing                           | Data parsing  |
-| Git backend                           | Data sync     |
+| Parser: RSS                           | Data parsing  |
+| Parser: Atom                          | Data parsing  |
 
 ### Image
 
 Just indexing photos.
 
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| Git-annex backend                     | Data sync     |
-| Image metadata reading                | Data parsing  |
-| Linking to other store entries        | Data Link     |
+| Required core feature                 | Purpose          |
+| :------------------------------------ | :------------    |
+| Backend: git-annex                    | Data parsing     |
+| Image metadata reading                | Data parsing     |
+| XDG-open (Image viewer)               | External Program |
 
 ### Video
 
 Just indexing movies.
 
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| Git-annex backend                     | Data sync     |
-| Movie metadata reading                | Data parsing  |
-| Linking to other store entries        | Data Link     |
+| Required core feature                 | Purpose          |
+| :------------------------------------ | :------------    |
+| Backend: git-annex                    | Data parsing     |
+| Movie metadata reading                | Data parsing     |
+| XDG-open (Movie viewer)               | External Program |
 
 ### Music
 
 Just indexing music.
 
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| Git-annex backend                     | Data sync     |
-| Music metadata reading                | Data parsing  |
-| Linking to other store entries        | Data Link     |
+| Required core feature                 | Purpose          |
+| :------------------------------------ | :------------    |
+| Backend: git-annex                    | Data parsing     |
+| Music metadata reading                | Data parsing     |
+| XDG-open (Music player)               | External Program |
 
 # License
 
