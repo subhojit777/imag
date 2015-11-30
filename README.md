@@ -163,6 +163,8 @@ Simply dot-and-tick lists.
 | Git backend                           | Data sync     |
 | Editor calling                        | Editing       |
 
+- Maybe as sub-form of the Todo-List module
+
 ### Bibliography management
 
 BibTex would be the first step, maybe we should be able to add the actual PDFs
@@ -186,6 +188,39 @@ Just indexing, reading news is not task of `imag` and so isn't syncing.
 | Filesystem access (RO)                | Data access   |
 | RSS parsing                           | Data parsing  |
 | Git backend                           | Data sync     |
+
+### Image
+
+Just indexing photos.
+
+| Required core feature                 | Purpose       |
+| :------------------------------------ | :------------ |
+| Filesystem access (RO)                | Data access   |
+| Git-annex backend                     | Data sync     |
+| Image metadata reading                | Data parsing  |
+| Linking to other store entries        | Data Link     |
+
+### Video
+
+Just indexing movies.
+
+| Required core feature                 | Purpose       |
+| :------------------------------------ | :------------ |
+| Filesystem access (RO)                | Data access   |
+| Git-annex backend                     | Data sync     |
+| Movie metadata reading                | Data parsing  |
+| Linking to other store entries        | Data Link     |
+
+### Music
+
+Just indexing music.
+
+| Required core feature                 | Purpose       |
+| :------------------------------------ | :------------ |
+| Filesystem access (RO)                | Data access   |
+| Git-annex backend                     | Data sync     |
+| Music metadata reading                | Data parsing  |
+| Linking to other store entries        | Data Link     |
 
 # License
 
