@@ -5,6 +5,9 @@ use module::ModuleResult;
 use module::ModuleError;
 use std::path::Path;
 use std::result::Result;
+use std::fmt::Result as FMTResult;
+use std::fmt::Formatter;
+use std::fmt::Debug;
 use clap::ArgMatches;
 use regex::Regex;
 
@@ -56,3 +59,11 @@ impl Module for BMModule {
     }
 }
 
+impl Debug for BMModule {
+
+    fn fmt(&self, fmt: &mut Formatter) -> FMTResult {
+        write!(fmt, "[Module][BM]");
+        Ok(())
+    }
+
+}
