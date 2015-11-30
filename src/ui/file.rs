@@ -69,3 +69,47 @@ impl FilePrinter for SimplePrinter {
 
 }
 
+struct TablePrinter {
+    verbose:    bool,
+    debug:      bool,
+    sp:         SimplePrinter,
+}
+
+impl FilePrinter for TablePrinter {
+
+    fn new(verbose: bool, debug: bool) -> TablePrinter {
+        TablePrinter {
+            debug:      debug,
+            verbose:    verbose,
+            sp:         SimplePrinter::new(verbose, debug),
+        }
+    }
+
+    fn print_file(&self, f: &File) {
+        self.sp.print_file(f);
+    }
+
+    fn print_files<'a, I: Iterator<Item = File<'a>>>(&self, files: I) {
+        use prettytable::Table;
+        use prettytable::row::Row;
+        use prettytable::cell::Cell;
+
+        let titles = row!["File#", "Owner", "ID"];
+
+        let mut tab = Table::new();
+        tab.set_titles(titles);
+
+        let mut i = 0;
+        for file in files {
+            i += 1;
+            let cell_i  = Cell::new(&format!("{}", i)[..]);
+            let cell_o  = Cell::new(&format!("{}", file.owner().name())[..]);
+            let cell_id = Cell::new(&file.id()[..]);
+            let row = Row::new(vec![cell_i, cell_o, cell_id]);
+            tab.add_row(row);
+        }
+
+        tab.printstd();
+    }
+
+}
