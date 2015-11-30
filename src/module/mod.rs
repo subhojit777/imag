@@ -3,6 +3,8 @@ use std::error::Error;
 use std::fmt::Formatter;
 use std::fmt::Result as FMTResult;
 use std::fmt::Display;
+use std::fmt::Debug;
+use std::path::Path;
 use std::result::Result;
 use std::collections::HashMap;
 
@@ -55,7 +57,7 @@ pub type ModuleResult = Result<(), ModuleError>;
 pub type CommandResult  = ModuleResult;
 pub type CommandMap<'a> = HashMap<&'a str, fn(&Module, CommandEnv) -> CommandResult>;
 
-pub trait Module {
+pub trait Module : Debug {
 
     fn callnames(&self) -> &'static [&'static str];
     fn name(&self) -> &'static str;
