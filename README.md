@@ -98,6 +98,10 @@ first step.
 | Git backend                           | Data sync     |
 | Editor calling                        | Editing       |
 
+Some more ideas:
+
+- Extract URLs and put them into store as Bookmarks
+
 ### Todo-List
 
 `imag` should also contain a full todo-tool. I'm thinking about integrating
