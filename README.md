@@ -99,6 +99,14 @@ them and to be able to refer to.
 | :------------------------------------ | :------------ |
 | ical file format parsing              | Data access   |
 
+### Notes
+
+Just plain text notes.
+
+| Required core feature                 | Purpose       |
+| :------------------------------------ | :------------ |
+| Linking to other store entries        | Data Link     |
+
 ### Mail
 
 `imag` should be able to index all your mail and make them accessible through
