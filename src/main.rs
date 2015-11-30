@@ -17,6 +17,7 @@ mod configuration;
 mod runtime;
 mod module;
 mod storage;
+mod ui;
 
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
