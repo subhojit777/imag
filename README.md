@@ -78,7 +78,6 @@ Each file is one bookmark and the filename is a SHA512.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| Filesystem access (RW)                | Data storage  |
 | JSON File backend                     | Data format   |
 | Git backend                           | Data sync     |
 
@@ -89,7 +88,6 @@ them and to be able to refer to.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| Filesystem access (RW)                | Data access   |
 | vcard file format parsing             | Data access   |
 
 ### Calendar
@@ -99,7 +97,6 @@ them and to be able to refer to.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| Filesystem access (RW)                | Data access   |
 | ical file format parsing              | Data access   |
 
 ### Mail
@@ -113,7 +110,6 @@ linked automatically.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| Filesystem access (RO)                | Data access   |
 | Maildir file format parsing           | Data access   |
 | mbox file format parsing (later)      | Data access   |
 | Internal storage database             | Data indexing |
@@ -129,7 +125,6 @@ first step.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| Filesystem access (RW)                | Data access   |
 | YAML parsing                          | Data parsing  |
 | Markdown parsing                      | Data parsing  |
 | Git backend                           | Data sync     |
@@ -146,7 +141,6 @@ taskwarrior through a wrapper here.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| Filesystem access (RO)                | Data access   |
 | Taskwarrior backend                   | Data parsing  |
 | Git backend                           | Data sync     |
 | Editor calling                        | Editing       |
@@ -157,7 +151,6 @@ Simply dot-and-tick lists.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| Filesystem access (RW)                | Data access   |
 | YAML parsing                          | Data parsing  |
 | Markdown parsing                      | Data parsing  |
 | Git backend                           | Data sync     |
@@ -173,7 +166,6 @@ PDF data, we need git-annex.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| Filesystem access (RW)                | Data access   |
 | BibTex parsing                        | Data parsing  |
 | Git backend                           | Data sync     |
 | Git-annex backend                     | Data sync     |
@@ -185,7 +177,6 @@ Just indexing, reading news is not task of `imag` and so isn't syncing.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| Filesystem access (RO)                | Data access   |
 | RSS parsing                           | Data parsing  |
 | Git backend                           | Data sync     |
 
@@ -195,7 +186,6 @@ Just indexing photos.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| Filesystem access (RO)                | Data access   |
 | Git-annex backend                     | Data sync     |
 | Image metadata reading                | Data parsing  |
 | Linking to other store entries        | Data Link     |
@@ -206,7 +196,6 @@ Just indexing movies.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| Filesystem access (RO)                | Data access   |
 | Git-annex backend                     | Data sync     |
 | Movie metadata reading                | Data parsing  |
 | Linking to other store entries        | Data Link     |
@@ -217,7 +206,6 @@ Just indexing music.
 
 | Required core feature                 | Purpose       |
 | :------------------------------------ | :------------ |
-| Filesystem access (RO)                | Data access   |
 | Git-annex backend                     | Data sync     |
 | Music metadata reading                | Data parsing  |
 | Linking to other store entries        | Data Link     |
