@@ -45,6 +45,8 @@ pub fn list_command(module: &Module, env: CommandEnv) -> CommandResult {
 }
 
 pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
+    let checked : bool = run_removal_checking(&env);
+    debug!("Checked mode: {}", checked);
     if let Some(id) = get_id(env.rt, env.matches) {
         debug!("Remove by id: {}", id);
 
@@ -52,7 +54,7 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
         let file   = env.bk.get_file_by_id(module, &id, &parser).unwrap();
         debug!("Remove file  : {:?}", file);
 
-        if let Err(e) = env.bk.remove_file(module, file) {
+        if let Err(e) = env.bk.remove_file(module, file, checked) {
             debug!("Remove failed");
             let mut err = ModuleError::new("Removing file failed");
             err.caused_by = Some(Box::new(e));
@@ -70,7 +72,7 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
 
         let errs = files.map(|file| {
                 debug!("Remove file: {:?}", file);
-                env.bk.remove_file(module, file)
+                env.bk.remove_file(module, file, checked)
             })
             .filter(|e| e.is_err())
             .map(|e| {
@@ -162,3 +164,10 @@ fn get_id<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Option<String> {
     sub.value_of("id").and_then(|s| Some(String::from(s)))
 }
 
+/*
+ * Checks whether the commandline call was set to run the removal "checked",
+ * so if another entry from the store refers to this ID, do not remove the file.
+ */
+fn run_removal_checking(env: &CommandEnv) -> bool {
+    env.matches.is_present("check")
+}
