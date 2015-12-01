@@ -41,6 +41,14 @@ impl<'a> CliConfig<'a> {
     pub fn get_rtp(&self) -> Option<String> {
         self.cli_matches.value_of("rtp").and_then(|s| Some(String::from(s)))
     }
+
+    pub fn store_path(&self) -> Option<String> {
+        self.get_rtp().and_then(|rtp| {
+            self.cli_matches
+                .value_of("storepath")
+                .and_then(|s| Some(rtp + s))
+        })
+    }
 }
 
 impl<'a> Debug for CliConfig<'a> {
