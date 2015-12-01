@@ -20,13 +20,15 @@ pub struct Configuration {
 impl Configuration {
 
     pub fn new(config: &CliConfig) -> Configuration {
-        let rtp = rtp_path(config);
+        use std::env::home_dir;
+
+        let rtp = rtp_path(config).or(default_path());
 
         let mut verbose     = false;
         let mut debugging   = false;
         let mut store_sub   = String::from("/store");
 
-        if let Some(cfg) = fetch_config(&rtp) {
+        if let Some(cfg) = fetch_config(rtp.clone()) {
             if let Some(v) = cfg.lookup_boolean("verbose") {
                 verbose = v;
             }
@@ -42,7 +44,7 @@ impl Configuration {
             verbose: verbose,
             debugging: debugging,
             store_sub: store_sub,
-            rtp: rtp,
+            rtp: rtp.unwrap_or(String::from("/tmp/")),
         }
     }
 
@@ -64,12 +66,23 @@ impl Configuration {
 
 }
 
-fn rtp_path(config: &CliConfig) -> String {
-    String::from(config.cli_matches.value_of("rtp").unwrap_or("~/.imag/store/"))
+fn rtp_path(config: &CliConfig) -> Option<String> {
+    config.cli_matches.value_of("rtp")
+                      .and_then(|s| Some(String::from(s)))
 }
 
-fn fetch_config(rtp: &String) -> Option<Cfg> {
-    from_file(Path::new(&(rtp.clone() + "/config"))).ok()
+fn fetch_config(rtp: Option<String>) -> Option<Cfg> {
+    rtp.and_then(|r| from_file(Path::new(&(r.clone() + "/config"))).ok())
+}
+
+fn default_path() -> Option<String> {
+    use std::env::home_dir;
+
+    home_dir().and_then(|mut buf| {
+        buf.push("/.imag");
+        buf.to_str().map(|s| String::from(s))
+    })
+
 }
 
 impl Debug for Configuration {
