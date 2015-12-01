@@ -177,6 +177,12 @@ subcommands:
                         required: false
                         takes_value: true
 
+                    - check:
+                        short: c
+                        long: check
+                        help: Ensure there are no references to this link
+                        required: false
+                        takes_value: false
 
     - todo:
         about: Todo module
