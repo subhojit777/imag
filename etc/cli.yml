@@ -21,6 +21,12 @@ args:
         help: Set the runtime path
         required: false
 
+    - storename:
+        short: s
+        long: storename
+        help: Name of the store in the runtimepath. Defaults to "store"
+        required: false
+
 subcommands:
     - cal:
         about: Calendar module
