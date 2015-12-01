@@ -12,6 +12,7 @@ use storage::json::parser::JsonHeaderParser;
 use storage::parser::{Parser, FileHeaderParser};
 use storage::file::File;
 use ui::file::{FilePrinter, TablePrinter};
+use std::vec::IntoIter;
 
 use clap::ArgMatches;
 use regex::Regex;
@@ -34,27 +35,8 @@ pub fn add_command(module: &Module, env: CommandEnv) -> CommandResult {
 }
 
 pub fn list_command(module: &Module, env: CommandEnv) -> CommandResult {
-    let tags    = get_tags(env.rt, env.matches);
-    debug!("Tags: {:?}", tags);
-    let parser  = Parser::new(JsonHeaderParser::new(None));
     let printer = TablePrinter::new(env.rt.is_verbose(), env.rt.is_debugging());
-    let files   = env.bk.iter_files(module, &parser).and_then(|files| {
-        let f = files.filter(|file| {
-            if tags.len() != 0 {
-                debug!("Checking tags of: {:?}", file.id());
-                get_tags_from_header(&file.header()).iter()
-                    .any(|t| tags.contains(t))
-            } else {
-                true
-            }
-        }).filter(|file| {
-            debug!("Checking matches of: {:?}", file.id());
-            get_matcher(env.rt, env.matches)
-                .and_then(|r| Some(file.matches_with(&r)))
-                .unwrap_or(true)
-        }).collect::<Vec<File>>();
-        Some(f)
-    }).unwrap_or(Vec::<File>::new()).into_iter();
+    let files   = get_filtered_files_from_backend(module, &env);
 
     debug!("Printing files now");
     printer.print_files(files);
@@ -92,6 +74,31 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
  * Private helpers
  *
  */
+
+fn get_filtered_files_from_backend<'a>(module: &'a Module,
+                                       env: &CommandEnv) -> IntoIter<File<'a>>
+{
+    let parser = Parser::new(JsonHeaderParser::new(None));
+    let tags = get_tags(env.rt, env.matches);
+    debug!("Tags: {:?}", tags);
+    env.bk.iter_files(module, &parser).and_then(|files| {
+        let f = files.filter(|file| {
+            if tags.len() != 0 {
+                debug!("Checking tags of: {:?}", file.id());
+                get_tags_from_header(&file.header()).iter()
+                    .any(|t| tags.contains(t))
+            } else {
+                true
+            }
+        }).filter(|file| {
+            debug!("Checking matches of: {:?}", file.id());
+            get_matcher(env.rt, env.matches)
+                .and_then(|r| Some(file.matches_with(&r)))
+                .unwrap_or(true)
+        }).collect::<Vec<File>>();
+        Some(f)
+    }).unwrap_or(Vec::<File>::new()).into_iter()
+}
 
 fn get_tags<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Vec<String> {
     debug!("Fetching tags from commandline");
