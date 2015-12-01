@@ -6,6 +6,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::vec::Vec;
 use std::fs::File as FSFile;
+use std::fs::create_dir_all;
 use std::fs::remove_file;
 use std::io::Read;
 use std::io::Write;

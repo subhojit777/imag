@@ -25,6 +25,8 @@ mod module;
 mod storage;
 mod ui;
 
+use std::process::exit;
+
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
     let app = App::from_yaml(yaml);
@@ -41,13 +43,16 @@ fn main() {
 
     debug!("Runtime      : {:?}", &rt);
 
+    let backend = StorageBackend::new(&rt).unwrap_or_else(|e| {
+        error!("Error: {}", e);
+        exit(1);
+    });
+
     if let Some(matches) = rt.config.cli_matches.subcommand_matches("bm") {
         let module            = BMModule::new(&rt);
         let commands          = module.get_commands(&rt);
         if let Some(command)  = matches.subcommand_name() {
             debug!("Subcommand: {}", command);
-
-            let backend = StorageBackend::new(&rt);
 
             let cmdenv = CommandEnv {
                 rt: &rt,
