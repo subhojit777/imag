@@ -1,5 +1,5 @@
 use runtime::Runtime;
-use storage::backend::StorageBackend;
+use storage::backend::{StorageBackendError, StorageBackend};
 
 use module::Module;
 use module::ModuleError;
@@ -45,28 +45,54 @@ pub fn list_command(module: &Module, env: CommandEnv) -> CommandResult {
 }
 
 pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
-    let tags    = get_tags(env.rt, env.matches);
-    let matcher = get_matcher(env.rt, env.matches);
-    let id      = get_id(env.rt, env.matches);
+    if let Some(id) = get_id(env.rt, env.matches) {
+        debug!("Remove by id: {}", id);
 
-    match id {
-        Some(idstr) => {
-            info!("Removing urls with id '{}'", idstr);
+        let parser = Parser::new(JsonHeaderParser::new(None));
+        let file   = env.bk.get_file_by_id(module, &id, &parser).unwrap();
+        debug!("Remove file  : {:?}", file);
+
+        if let Err(e) = env.bk.remove_file(module, file) {
+            debug!("Remove failed");
+            let mut err = ModuleError::new("Removing file failed");
+            err.caused_by = Some(Box::new(e));
+            Err(err)
+        } else {
+            debug!("Remove worked");
+            Ok(())
         }
-        None => {
-            match matcher {
-                Some(reg) => {
-                    info!("Removing urls with matcher '{}' and with tags {:?}",
-                             reg.as_str(), tags);
-                }
-                None => {
-                    info!("Listing urls with tags {:?}", tags);
-                }
-            }
+    } else {
+        debug!("Remove more than one file");
+
+        let files = get_filtered_files_from_backend(module, &env);
+        let nfiles = files.len();
+        info!("Removing {} Files", nfiles);
+
+        let errs = files.map(|file| {
+                debug!("Remove file: {:?}", file);
+                env.bk.remove_file(module, file)
+            })
+            .filter(|e| e.is_err())
+            .map(|e| {
+                let err = e.err().unwrap();
+                warn!("Error occured in Filesystem operation: {}", err);
+                err
+            })
+            .collect::<Vec<StorageBackendError>>();
+
+        let nerrs = errs.len();
+
+        if nerrs != 0 {
+            warn!("{} Errors occured while removing {} files", nerrs, nfiles);
+            let moderr = ModuleError::new("File removal failed");
+
+            // TODO : Collect StorageBackendErrors
+
+            Err(moderr)
+        } else {
+            Ok(())
         }
     }
-
-    Ok(())
 }
 
 /*
