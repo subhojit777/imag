@@ -40,11 +40,19 @@ impl Configuration {
             }
         }
 
+        let runtimepath = rtp.unwrap_or(String::from("/tmp/"));
+
+        debug!("Building configuration");
+        debug!("  - verbose    : {}", verbose);
+        debug!("  - debugging  : {}", debugging);
+        debug!("  - store sub  : {}", store_sub);
+        debug!("  - runtimepath: {}", runtimepath);
+
         Configuration {
             verbose: verbose,
             debugging: debugging,
             store_sub: store_sub,
-            rtp: rtp.unwrap_or(String::from("/tmp/")),
+            rtp: runtimepath,
         }
     }
 
