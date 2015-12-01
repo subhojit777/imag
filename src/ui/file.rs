@@ -69,7 +69,7 @@ impl FilePrinter for SimplePrinter {
 
 }
 
-struct TablePrinter {
+pub struct TablePrinter {
     verbose:    bool,
     debug:      bool,
     sp:         SimplePrinter,
