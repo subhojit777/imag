@@ -64,7 +64,7 @@ impl Configuration {
         self.debugging
     }
 
-    pub fn store_path_str(&self) -> String {
+    pub fn store_path(&self) -> String {
         format!("{}{}", self.rtp, self.store_sub)
     }
 
@@ -100,7 +100,7 @@ impl Debug for Configuration {
             self.is_verbose(),
             self.is_debugging(),
             self.get_rtp(),
-            self.store_path_str()
+            self.store_path()
             )
     }
 
