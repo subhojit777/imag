@@ -303,3 +303,20 @@ impl Debug for File {
     }
 }
 
+impl<'a> Display for File<'a> {
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt,
+"[File] Owner : '{:?}'
+        FileID: '{:?}'
+        Header: '{:?}'
+        Data  : '{:?}'",
+               self.owning_module,
+               self.header,
+               self.data,
+               self.id);
+        Ok(())
+    }
+
+}
+
