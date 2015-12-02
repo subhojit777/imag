@@ -52,13 +52,6 @@ impl StorageBackend {
         })
     }
 
-    fn build<M: Module>(rt: &Runtime, m: &M) -> StorageBackend {
-        let path = rt.get_rtp() + m.name() + "/store";
-        // TODO: Don't use "/store" but value from configuration
-        debug!("Building StorageBackend for {}", path);
-        StorageBackend::new(path)
-    }
-
     fn get_file_ids(&self, m: &Module) -> Option<Vec<FileID>> {
         let list = glob(&self.prefix_of_files_for_module(m)[..]);
 
@@ -267,12 +260,12 @@ impl StorageBackendError {
 
     fn build(action: &'static str,
              desc:   &'static str,
-           data  : Option<String>) -> StorageBackendError
+             data  : Option<String>) -> StorageBackendError
     {
         StorageBackendError {
             action:         String::from(action),
             desc:           String::from(desc),
-            dataDump:       data,
+            data_dump:      data,
             caused_by:      None,
         }
     }
@@ -291,7 +284,7 @@ impl Error for StorageBackendError {
 
 }
 
-impl Display for StorageBackendError {
+impl<'a> Display for StorageBackendError {
     fn fmt(&self, f: &mut Formatter) -> FMTResult {
         write!(f, "StorageBackendError[{}]: {}",
                self.action, self.desc)

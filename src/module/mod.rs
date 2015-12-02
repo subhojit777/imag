@@ -3,21 +3,28 @@ use std::error::Error;
 use std::fmt::Formatter;
 use std::fmt::Result as FMTResult;
 use std::fmt::Display;
+use std::fmt::Debug;
+use std::path::Path;
 use std::result::Result;
+use std::collections::HashMap;
 
-use storage::backend::StorageBackend;
-use self::command::ExecutableCommand;
-mod command;
+use clap::{App, ArgMatches};
+
+use storage::backend::{StorageBackend, StorageBackendError};
+
+pub mod bm;
 
 #[derive(Debug)]
 pub struct ModuleError {
     desc: String,
+    caused_by: Option<Box<Error>>,
 }
 
 impl ModuleError {
-    fn mk(desc: &'static str) -> ModuleError {
+    pub fn new(desc: &'static str) -> ModuleError {
         ModuleError {
             desc: desc.to_owned().to_string(),
+            caused_by: None,
         }
     }
 }
@@ -29,7 +36,7 @@ impl Error for ModuleError {
     }
 
     fn cause(&self) -> Option<&Error> {
-        None
+        self.caused_by.as_ref().map(|e| &**e)
     }
 
 }
@@ -40,20 +47,23 @@ impl Display for ModuleError {
     }
 }
 
+pub struct CommandEnv<'a> {
+    pub rt:         &'a Runtime<'a>,
+    pub bk:         &'a StorageBackend,
+    pub matches:    &'a ArgMatches<'a, 'a>,
+}
+
 pub type ModuleResult = Result<(), ModuleError>;
+pub type CommandResult  = ModuleResult;
+pub type CommandMap<'a> = HashMap<&'a str, fn(&Module, CommandEnv) -> CommandResult>;
 
-pub trait Module {
+pub trait Module : Debug {
 
-    fn new(rt : &Runtime) -> Self;
-    fn callnames() -> &'static [&'static str];
+    fn callnames(&self) -> &'static [&'static str];
     fn name(&self) -> &'static str;
-
-    fn execute(&self, rt : &Runtime) -> ModuleResult;
     fn shutdown(&self, rt : &Runtime) -> ModuleResult;
 
-    fn getCommandBuilder<T, F>() -> F
-        where F: FnOnce(StorageBackend) -> T,
-              T: ExecutableCommand;
+    fn get_commands(&self, rt: &Runtime) -> CommandMap;
 
 }
 
