@@ -164,20 +164,17 @@ impl StorageBackend {
 pub struct StorageBackendError {
     pub action: String,             // The file system action in words
     pub desc: String,               // A short description
-    pub explanation: String,        // A long, user friendly description
     pub data_dump: Option<String>   // Data dump, if any
 }
 
 impl StorageBackendError {
     fn new(action: String,
            desc  : String,
-           explan: String,
            data  : Option<String>) -> StorageBackendError
     {
         StorageBackendError {
             action:         action,
             desc:           desc,
-            explanation:    explan,
             data_dump:      data,
         }
     }
@@ -197,8 +194,8 @@ impl Error for StorageBackendError {
 
 impl Display for StorageBackendError {
     fn fmt(&self, f: &mut Formatter) -> FMTResult {
-        write!(f, "StorageBackendError[{}]: {}\n\n{}",
-               self.action, self.desc, self.explanation)
+        write!(f, "StorageBackendError[{}]: {}",
+               self.action, self.desc)
     }
 }
 
