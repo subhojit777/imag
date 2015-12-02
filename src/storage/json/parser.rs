@@ -103,12 +103,21 @@ impl Serialize for FileHeaderData {
             &FileHeaderData::Float(ref f)           => f.serialize(ser),
             &FileHeaderData::Text(ref s)            => (&s[..]).serialize(ser),
             &FileHeaderData::Array{values: ref vs}  => vs.serialize(ser),
-            &FileHeaderData::Map{keys: ref ks}      => ks.serialize(ser),
-            &FileHeaderData::Key{name: ref n, value: ref v}   => {
+            &FileHeaderData::Map{keys: ref ks}      => {
                 let mut hm = HashMap::new();
-                hm.insert(n, v);
+
+                for key in ks {
+                    if let &FileHeaderData::Key{name: ref n, value: ref v} = key {
+                        hm.insert(n, v);
+                    } else {
+                        panic!("Not a key: {:?}", key);
+                    }
+                }
+
                 hm.serialize(ser)
-            }
+            },
+            &FileHeaderData::Key{name: ref n, value: ref v} => unreachable!(),
+
         }
     }
 
