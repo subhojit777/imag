@@ -295,14 +295,6 @@ impl<'a> File<'a> {
     }
 }
 
-impl Debug for File {
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        write!(f, "File[{:?}] header: '{:?}', data: '{:?}')",
-            self.id, self.header, self.data)
-    }
-}
-
 impl<'a> Display for File<'a> {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
@@ -320,3 +312,19 @@ impl<'a> Display for File<'a> {
 
 }
 
+impl<'a> Debug for File<'a> {
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt,
+"[File] Owner : '{:?}'
+        FileID: '{:?}'
+        Header: '{:?}'
+        Data  : '{:?}'",
+               self.owning_module,
+               self.header,
+               self.data,
+               self.id);
+        Ok(())
+    }
+
+}
