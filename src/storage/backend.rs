@@ -20,7 +20,7 @@ use storage::parser::{FileHeaderParser, Parser, ParserError};
 use module::Module;
 use runtime::Runtime;
 
-pub type BackendOperationResult = Result<(), StorageBackendError>;
+pub type BackendOperationResult<T = ()> = Result<T, StorageBackendError>;
 
 pub struct StorageBackend {
     basepath: String,
