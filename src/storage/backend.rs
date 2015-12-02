@@ -188,6 +188,27 @@ impl StorageBackend {
         }
     }
 
+    pub fn remove_file(&self, m: &Module, file: File, checked: bool) -> BackendOperationResult {
+        if checked {
+            error!("Checked remove not implemented yet. I will crash now");
+            unimplemented!()
+        }
+
+        debug!("Doing unchecked remove");
+        info!("Going to remove file: {}", file);
+
+        let fp = self.build_filepath(&file);
+        remove_file(fp).map_err(|e| {
+            let mut serr = StorageBackendError::build(
+                "remove_file()",
+                "File removal failed",
+                Some(format!("{}", file))
+            );
+            serr.caused_by = Some(Box::new(e));
+            serr
+        })
+    }
+
     fn build_filepath(&self, f: &File) -> String {
         self.build_filepath_with_id(f.id())
     }
