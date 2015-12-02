@@ -8,6 +8,7 @@ use std::vec::Vec;
 use std::fs::File as FSFile;
 use std::io::Read;
 use std::io::Write;
+use std::vec::IntoIter;
 
 use glob::glob;
 use glob::Paths;
@@ -59,6 +60,17 @@ impl StorageBackend {
         } else {
             None
         }
+    }
+
+    pub fn iter_ids(&self, m: &Module) -> Option<IntoIter<FileID>>
+    {
+        glob(&self.prefix_of_files_for_module(m)[..]).and_then(|globlist| {
+            let v = globlist.filter_map(Result::ok)
+                            .map(|pbuf| from_pathbuf(&pbuf))
+                            .collect::<Vec<FileID>>()
+                            .into_iter();
+            Ok(v)
+        }).ok()
     }
 
     /*
