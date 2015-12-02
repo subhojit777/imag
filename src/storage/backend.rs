@@ -6,6 +6,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::vec::Vec;
 use std::fs::File as FSFile;
+use std::fs::create_dir_all;
 use std::fs::remove_file;
 use std::io::Read;
 use std::io::Write;
@@ -25,14 +26,30 @@ pub type BackendOperationResult<T = ()> = Result<T, StorageBackendError>;
 
 pub struct StorageBackend {
     basepath: String,
+    storepath: String,
 }
 
 impl StorageBackend {
 
-    pub fn new(basepath: String) -> StorageBackend {
-        StorageBackend {
-            basepath: basepath,
-        }
+    pub fn new(rt: &Runtime) -> BackendOperationResult<StorageBackend> {
+        let storepath = rt.get_rtp() + "/store/";
+        debug!("Trying to create {}", storepath);
+        create_dir_all(&storepath).and_then(|_| {
+            debug!("Creating succeeded, constructing backend instance");
+            Ok(StorageBackend {
+                basepath: rt.get_rtp(),
+                storepath: storepath.clone(),
+            })
+        }).or_else(|e| {
+            debug!("Creating failed, constructing error instance");
+            let mut serr = StorageBackendError::build(
+                "create_dir_all()",
+                "Could not create store directories",
+                Some(storepath)
+            );
+            serr.caused_by = Some(Box::new(e));
+            Err(serr)
+        })
     }
 
     fn build<M: Module>(rt: &Runtime, m: &M) -> StorageBackend {
