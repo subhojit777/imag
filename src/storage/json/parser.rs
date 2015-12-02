@@ -74,11 +74,12 @@ fn visit_json(v: &Value) -> FileHeaderData {
             }
         },
         &Value::Object(ref btree)    => {
+            let btree = btree.clone();
             FileHeaderData::Map{
-                keys: btree.clone().iter().map(|(k, v)|
+                keys: btree.into_iter().map(|(k, v)|
                     FileHeaderData::Key {
-                        name: k.clone(),
-                        value: Box::new(visit_json(v)),
+                        name: k,
+                        value: Box::new(visit_json(&v)),
                     }
                 ).collect()
             }
