@@ -15,13 +15,17 @@ struct JsonHeaderParser<'a> {
     spec: &'a FileHeaderSpec,
 }
 
-impl<'a> FileHeaderParser<'a> for JsonHeaderParser<'a> {
+impl JsonHeaderParser {
 
     fn new(spec: &'a FileHeaderSpec) -> JsonHeaderParser<'a> {
         JsonHeaderParser {
             spec: spec
         }
     }
+
+}
+
+impl FileHeaderParser for JsonHeaderParser {
 
     fn read(&self, string: Option<String>)
         -> Result<FileHeaderData, ParserError>
