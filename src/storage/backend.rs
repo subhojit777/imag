@@ -180,6 +180,19 @@ impl StorageBackendError {
             caused_by:      None,
         }
     }
+
+    fn build(action: &'static str,
+             desc:   &'static str,
+           data  : Option<String>) -> StorageBackendError
+    {
+        StorageBackendError {
+            action:         String::from(action),
+            desc:           String::from(desc),
+            dataDump:       data,
+            caused_by:      None,
+        }
+    }
+
 }
 
 impl Error for StorageBackendError {
