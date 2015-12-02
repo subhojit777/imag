@@ -89,20 +89,40 @@ impl StorageBackend {
      *
      * The file is moved to this function as the file won't be edited afterwards
      */
-    pub fn put_file<'a, HP>(&self, f: File, p: &Parser<HP>) ->
-        Result<BackendOperationResult, ParserError>
-        where HP: FileHeaderParser<'a>
+    pub fn put_file<HP>(&self, f: File, p: &Parser<HP>) -> BackendOperationResult
+        where HP: FileHeaderParser
     {
-        let written = p.write(f.contents());
-        if let Ok(string) = written {
-            let path = self.build_filepath(&f);
-            debug!("Writing file: {}", path);
-            debug!("    contents: {}", string);
-            Ok(Ok(()))
-        } else {
-            debug!("Error parsing : {:?}", f.contents());
-            Err(written.err().unwrap())
-        }
+        let written = write_with_parser(&f, p);
+        if written.is_err() { return Err(written.err().unwrap()); }
+        let string = written.unwrap();
+
+        let path = self.build_filepath(&f);
+        debug!("Writing file: {}", path);
+        debug!("      string: {}", string);
+
+        FSFile::create(&path).map(|mut file| {
+            debug!("Created file at '{}'", path);
+            file.write_all(&string.clone().into_bytes())
+                .map_err(|ioerr| {
+                    debug!("Could not write file");
+                    let mut err = StorageBackendError::build(
+                            "File::write_all()",
+                            "Could not write out File contents",
+                            None
+                        );
+                    err.caused_by = Some(Box::new(ioerr));
+                    err
+                })
+        }).map_err(|writeerr| {
+            debug!("Could not create file at '{}'", path);
+            let mut err = StorageBackendError::build(
+                "File::create()",
+                "Creating file on disk failed",
+                None
+            );
+            err.caused_by = Some(Box::new(writeerr));
+            err
+        }).and(Ok(()))
     }
 
     /*
