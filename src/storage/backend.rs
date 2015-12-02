@@ -73,6 +73,17 @@ impl StorageBackend {
         }).ok()
     }
 
+    pub fn iter_files<'a, HP>(&self, m: &'a Module, p: &Parser<HP>)
+        -> Option<IntoIter<File<'a>>>
+        where HP: FileHeaderParser
+    {
+        self.iter_ids(m).and_then(|ids| {
+            Some(ids.filter_map(|id| self.get_file_by_id(m, &id, p))
+                    .collect::<Vec<File>>()
+                    .into_iter())
+        })
+    }
+
     /*
      * Write a file to disk.
      *
