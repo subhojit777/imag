@@ -274,7 +274,7 @@ impl<'a> File<'a> {
     }
 
     pub fn contents(&self) -> (FileHeaderData, String) {
-        (self.header.clone(), self.data.clone())
+        (self.header(), self.data())
     }
 
     pub fn id(&self) -> FileID {
