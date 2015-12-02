@@ -51,7 +51,7 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
         debug!("Remove by id: {}", id);
 
         let parser = Parser::new(JsonHeaderParser::new(None));
-        let file   = env.bk.get_file_by_id(module, &id, &parser).unwrap();
+        let file   = env.bk.get_file_by_id(module, &id.into(), &parser).unwrap();
         debug!("Remove file  : {:?}", file);
 
         if let Err(e) = env.bk.remove_file(module, file, checked) {
