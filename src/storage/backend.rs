@@ -52,13 +52,6 @@ impl StorageBackend {
         })
     }
 
-    fn build<M: Module>(rt: &Runtime, m: &M) -> StorageBackend {
-        let path = rt.get_rtp() + m.name() + "/store";
-        // TODO: Don't use "/store" but value from configuration
-        debug!("Building StorageBackend for {}", path);
-        StorageBackend::new(path)
-    }
-
     fn get_file_ids(&self, m: &Module) -> Option<Vec<FileID>> {
         let list = glob(&self.prefix_of_files_for_module(m)[..]);
 
