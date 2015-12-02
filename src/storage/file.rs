@@ -258,6 +258,14 @@ impl File {
         f
     }
 
+    pub fn header(&self) -> FileHeaderData {
+        self.header.clone()
+    }
+
+    pub fn data(&self) -> String {
+        self.data.clone()
+    }
+
     pub fn contents(&self) -> (FileHeaderData, String) {
         (self.header.clone(), self.data.clone())
     }
