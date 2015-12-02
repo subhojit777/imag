@@ -210,12 +210,19 @@ impl StorageBackend {
     }
 
     fn build_filepath(&self, f: &File) -> String {
-        self.build_filepath_with_id(f.id())
+        self.build_filepath_with_id(f.owner(), f.id())
     }
 
-    fn build_filepath_with_id(&self, id: FileID) -> String {
-        debug!("Building filepath for id '{}'", id);
-        self.basepath.clone() + &id[..]
+    fn build_filepath_with_id(&self, owner: &Module, id: FileID) -> String {
+        debug!("Building filepath with id");
+        debug!("  basepath: '{}'", self.basepath);
+        debug!(" storepath: '{}'", self.storepath);
+        debug!("  id      : '{}'", id);
+        self.prefix_of_files_for_module(owner) + "-" + &id[..] + ".imag"
+    }
+
+    fn prefix_of_files_for_module(&self, m: &Module) -> String {
+        self.storepath.clone() + m.name()
     }
 
 }
