@@ -60,11 +60,7 @@ impl StorageBackend {
             for entry in globlist {
                 if let Ok(path) = entry {
                     debug!(" - File: {:?}", path);
-                    if let Ok(id) = from_pathbuf(&path) {
-                        v.push(id);
-                    } else {
-                        error!("Cannot parse ID from path: {:?}", path);
-                    }
+                    v.push(FileID::from(&path));
                 } else {
                     // Entry is not a path
                 }
@@ -80,8 +76,7 @@ impl StorageBackend {
     {
         glob(&self.prefix_of_files_for_module(m)[..]).and_then(|globlist| {
             let v = globlist.filter_map(Result::ok)
-                            .map(|pbuf| from_pathbuf(&pbuf))
-                            .filter_map(Result::ok)
+                            .map(|pbuf| FileID::from(&pbuf))
                             .collect::<Vec<FileID>>()
                             .into_iter();
             Ok(v)
@@ -233,7 +228,8 @@ impl StorageBackend {
         debug!("  basepath: '{}'", self.basepath);
         debug!(" storepath: '{}'", self.storepath);
         debug!("  id      : '{}'", id);
-        self.prefix_of_files_for_module(owner) + "-" + &id[..] + ".imag"
+        let idstr : String = id.into();
+        self.prefix_of_files_for_module(owner) + "-" + &idstr[..] + ".imag"
     }
 
     fn prefix_of_files_for_module(&self, m: &Module) -> String {
