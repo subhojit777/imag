@@ -164,7 +164,8 @@ impl StorageBackend {
 pub struct StorageBackendError {
     pub action: String,             // The file system action in words
     pub desc: String,               // A short description
-    pub data_dump: Option<String>   // Data dump, if any
+    pub data_dump: Option<String>,  // Data dump, if any
+    pub caused_by: Option<Box<Error>>,  // caused from this error
 }
 
 impl StorageBackendError {
@@ -176,6 +177,7 @@ impl StorageBackendError {
             action:         action,
             desc:           desc,
             data_dump:      data,
+            caused_by:      None,
         }
     }
 }
@@ -187,7 +189,7 @@ impl Error for StorageBackendError {
     }
 
     fn cause(&self) -> Option<&Error> {
-        None
+        self.caused_by.as_ref().map(|e| &**e)
     }
 
 }
