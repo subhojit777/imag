@@ -27,7 +27,7 @@ pub enum FileHeaderData {
     UInteger(u64),
     Float(f64),
     Text(String),
-    Key { name: String, value: Box<FileHeaderData> },
+    Key { name: &'static str, value: Box<FileHeaderData> },
     Map { keys: Vec<FileHeaderData> },
     Array { values: Box<Vec<FileHeaderData>> },
 }
