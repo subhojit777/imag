@@ -129,44 +129,40 @@ impl StorageBackend {
      * Update a file. We have the UUID and can find the file on FS with it and
      * then replace its contents with the contents of the passed file object
      */
-    pub fn update_file<'a, HP>(&self, f: File, p: &Parser<HP>)
-        -> Result<BackendOperationResult, ParserError>
-        where HP: FileHeaderParser<'a>
+    pub fn update_file<HP>(&self, f: File, p: &Parser<HP>) -> BackendOperationResult
+        where HP: FileHeaderParser
     {
-        let contents = p.write(f.contents());
-
-        if contents.is_err() {
-            debug!("Error parsing contents: {:?}", f.contents());
-            return Err(contents.err().unwrap());
-        }
-
-        let content = contents.unwrap();
-        debug!("Success parsing content : {}", content);
+        let contents = write_with_parser(&f, p);
+        if contents.is_err() { return Err(contents.err().unwrap()); }
+        let string = contents.unwrap();
 
         let path = self.build_filepath(&f);
-        debug!("Trying to write to file at {}", path);
-        if let Err(_) = FSFile::open(&path) {
-            debug!("Error opening {}", path);
-            return Ok(Err(StorageBackendError::new(
-                String::from("File::open()"),
-                format!("Tried to open '{}'", path),
-                String::from("Tried to update contents of this file, though file doesn't exist"),
-                None)))
-        }
+        debug!("Writing file: {}", path);
+        debug!("      string: {}", string);
 
-        if let Ok(mut file) = FSFile::create(&path) {
-            if let Err(writeerr) = file.write_all(&content.clone().into_bytes()) {
-                debug!("Error writing to {}", path);
-                return Ok(Err(StorageBackendError::new(
-                    String::from("File::write()"),
-                    format!("Tried to write '{}'", path),
-                    String::from("Tried to write contents of this file, though operation did not succeed"),
-                    Some(content))))
-            }
-        }
-
-        debug!("Successfully written to file.");
-        Ok(Ok(()))
+        FSFile::open(&path).map(|mut file| {
+            debug!("Open file at '{}'", path);
+            file.write_all(&string.clone().into_bytes())
+                .map_err(|ioerr| {
+                    debug!("Could not write file");
+                    let mut err = StorageBackendError::build(
+                            "File::write()",
+                            "Tried to write contents of this file, though operation did not succeed",
+                            Some(string)
+                        );
+                    err.caused_by = Some(Box::new(ioerr));
+                    err
+                })
+        }).map_err(|writeerr| {
+            debug!("Could not write file at '{}'", path);
+            let mut err = StorageBackendError::build(
+                "File::open()",
+                "Tried to update contents of this file, though file doesn't exist",
+                None
+            );
+            err.caused_by = Some(Box::new(writeerr));
+            err
+        }).and(Ok(()))
     }
 
     /*
