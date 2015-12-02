@@ -59,9 +59,8 @@ impl StorageBackend {
         StorageBackend::new(path)
     }
 
-    fn get_file_ids(&self) -> Option<Vec<FileID>> {
-        debug!("Getting files from {}", self.basepath);
-        let list = glob(&self.basepath[..]);
+    fn get_file_ids(&self, m: &Module) -> Option<Vec<FileID>> {
+        let list = glob(&self.prefix_of_files_for_module(m)[..]);
 
         if let Ok(globlist) = list {
             let mut v = vec![];
