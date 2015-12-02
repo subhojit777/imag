@@ -45,9 +45,16 @@ impl FileHeaderParser for JsonHeaderParser {
     }
 
     fn write(&self, data: &FileHeaderData) -> Result<String, ParserError> {
-        let mut ser = Serializer::pretty(stdout());
-        data.serialize(&mut ser);
-        Ok(String::from(""))
+        let mut s = Vec::<u8>::new();
+        {
+            let mut ser = Serializer::pretty(&mut s);
+            data.serialize(&mut ser);
+        }
+
+        String::from_utf8(s).or(
+            Err(ParserError::short("Cannot parse utf8 bytes",
+                                   String::from("<not printable>"),
+                                   0)))
     }
 
 }
