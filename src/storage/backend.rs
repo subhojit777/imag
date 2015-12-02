@@ -265,7 +265,7 @@ impl StorageBackendError {
         StorageBackendError {
             action:         String::from(action),
             desc:           String::from(desc),
-            dataDump:       data,
+            data_dump:      data,
             caused_by:      None,
         }
     }
