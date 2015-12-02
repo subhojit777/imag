@@ -11,13 +11,13 @@ use super::super::parser::{FileHeaderParser, ParserError};
 use super::super::file::{FileHeaderSpec, FileHeaderData};
 
 
-struct JsonHeaderParser<'a> {
-    spec: &'a FileHeaderSpec,
+pub struct JsonHeaderParser {
+    spec: Option<FileHeaderSpec>,
 }
 
 impl JsonHeaderParser {
 
-    fn new(spec: &'a FileHeaderSpec) -> JsonHeaderParser<'a> {
+    pub fn new(spec: Option<FileHeaderSpec>) -> JsonHeaderParser {
         JsonHeaderParser {
             spec: spec
         }
