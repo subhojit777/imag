@@ -11,17 +11,21 @@ use super::super::parser::{FileHeaderParser, ParserError};
 use super::super::file::{FileHeaderSpec, FileHeaderData};
 
 
-struct JsonHeaderParser<'a> {
-    spec: &'a FileHeaderSpec,
+pub struct JsonHeaderParser {
+    spec: Option<FileHeaderSpec>,
 }
 
-impl<'a> FileHeaderParser<'a> for JsonHeaderParser<'a> {
+impl JsonHeaderParser {
 
-    fn new(spec: &'a FileHeaderSpec) -> JsonHeaderParser<'a> {
+    pub fn new(spec: Option<FileHeaderSpec>) -> JsonHeaderParser {
         JsonHeaderParser {
             spec: spec
         }
     }
+
+}
+
+impl FileHeaderParser for JsonHeaderParser {
 
     fn read(&self, string: Option<String>)
         -> Result<FileHeaderData, ParserError>
@@ -41,9 +45,16 @@ impl<'a> FileHeaderParser<'a> for JsonHeaderParser<'a> {
     }
 
     fn write(&self, data: &FileHeaderData) -> Result<String, ParserError> {
-        let mut ser = Serializer::pretty(stdout());
-        data.serialize(&mut ser);
-        Ok(String::from(""))
+        let mut s = Vec::<u8>::new();
+        {
+            let mut ser = Serializer::pretty(&mut s);
+            data.serialize(&mut ser);
+        }
+
+        String::from_utf8(s).or(
+            Err(ParserError::short("Cannot parse utf8 bytes",
+                                   String::from("<not printable>"),
+                                   0)))
     }
 
 }
@@ -63,11 +74,12 @@ fn visit_json(v: &Value) -> FileHeaderData {
             }
         },
         &Value::Object(ref btree)    => {
+            let btree = btree.clone();
             FileHeaderData::Map{
-                keys: btree.clone().iter().map(|(k, v)|
+                keys: btree.into_iter().map(|(k, v)|
                     FileHeaderData::Key {
-                        name: k.clone(),
-                        value: Box::new(visit_json(v)),
+                        name: k,
+                        value: Box::new(visit_json(&v)),
                     }
                 ).collect()
             }
@@ -91,12 +103,21 @@ impl Serialize for FileHeaderData {
             &FileHeaderData::Float(ref f)           => f.serialize(ser),
             &FileHeaderData::Text(ref s)            => (&s[..]).serialize(ser),
             &FileHeaderData::Array{values: ref vs}  => vs.serialize(ser),
-            &FileHeaderData::Map{keys: ref ks}      => ks.serialize(ser),
-            &FileHeaderData::Key{name: ref n, value: ref v}   => {
+            &FileHeaderData::Map{keys: ref ks}      => {
                 let mut hm = HashMap::new();
-                hm.insert(n, v);
+
+                for key in ks {
+                    if let &FileHeaderData::Key{name: ref n, value: ref v} = key {
+                        hm.insert(n, v);
+                    } else {
+                        panic!("Not a key: {:?}", key);
+                    }
+                }
+
                 hm.serialize(ser)
-            }
+            },
+            &FileHeaderData::Key{name: ref n, value: ref v} => unreachable!(),
+
         }
     }
 
