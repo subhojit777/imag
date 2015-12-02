@@ -5,6 +5,8 @@ use std::fmt;
 use super::parser::FileHeaderParser;
 use storage::file_id::*;
 
+use regex::Regex;
+
 #[derive(Debug)]
 pub enum FileHeaderSpec {
     Null,
@@ -54,6 +56,28 @@ impl Display for FileHeaderSpec {
         }
     }
 
+}
+
+impl FileHeaderData {
+
+    pub fn matches_with(&self, r: &Regex) -> bool {
+        match self {
+            &FileHeaderData::Text(ref t) => r.is_match(&t[..]),
+            &FileHeaderData::Key{name: ref n, value: ref val} => {
+                r.is_match(n) || val.matches_with(r)
+            },
+
+            &FileHeaderData::Map{keys: ref dks} => {
+                dks.iter().any(|x| x.matches_with(r))
+            },
+
+            &FileHeaderData::Array{values: ref vs} => {
+                vs.iter().any(|x| x.matches_with(r))
+            }
+
+            _ => false,
+        }
+    }
 }
 
 pub struct MatchError<'a> {
