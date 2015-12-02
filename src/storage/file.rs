@@ -2,7 +2,8 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 
-use super::parser::FileHeaderParser;
+use module::Module;
+use super::parser::{FileHeaderParser, Parser, ParserError};
 use storage::file_id::*;
 
 use regex::Regex;
@@ -200,16 +201,18 @@ pub fn match_header_spec<'a>(spec: &'a FileHeaderSpec, data: &'a FileHeaderData)
  * Internal abstract view on a file. Does not exist on the FS and is just kept
  * internally until it is written to disk.
  */
-pub struct File {
-    header  : FileHeaderData,
-    data    : String,
-    id      : FileID,
+pub struct File<'a> {
+    owning_module   : &'a Module,
+    header          : FileHeaderData,
+    data            : String,
+    id              : FileID,
 }
 
-impl File {
+impl<'a> File<'a> {
 
-    pub fn new() -> File {
+    pub fn new(module: &'a Module) -> File<'a> {
         let f = File {
+            owning_module: module,
             header: FileHeaderData::Null,
             data: String::from(""),
             id: File::get_new_file_id(),
@@ -218,8 +221,9 @@ impl File {
         f
     }
 
-    pub fn from_parser_result(id: FileID, header: FileHeaderData, data: String) -> File {
+    pub fn from_parser_result(module: &Module, id: FileID, header: FileHeaderData, data: String) -> File {
         let f = File {
+            owning_module: module,
             header: header,
             data: data,
             id: id,
@@ -228,8 +232,9 @@ impl File {
         f
     }
 
-    pub fn new_with_header(h: FileHeaderData) -> File {
+    pub fn new_with_header(module: &Module, h: FileHeaderData) -> File {
         let f = File {
+            owning_module: module,
             header: h,
             data: String::from(""),
             id: File::get_new_file_id(),
@@ -238,8 +243,9 @@ impl File {
         f
     }
 
-    pub fn new_with_data(d: String) -> File {
+    pub fn new_with_data(module: &Module, d: String) -> File {
         let f = File {
+            owning_module: module,
             header: FileHeaderData::Null,
             data: d,
             id: File::get_new_file_id(),
@@ -248,8 +254,9 @@ impl File {
         f
     }
 
-    pub fn new_with_content(h: FileHeaderData, d: String) -> File {
+    pub fn new_with_content(module: &Module, h: FileHeaderData, d: String) -> File {
         let f = File {
+            owning_module: module,
             header: h,
             data: d,
             id: File::get_new_file_id(),
@@ -272,6 +279,10 @@ impl File {
 
     pub fn id(&self) -> FileID {
         self.id.clone()
+    }
+
+    pub fn owner(&self) -> &Module {
+        self.owning_module
     }
 
     pub fn matches_with(&self, r: &Regex) -> bool {
