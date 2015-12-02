@@ -4,6 +4,7 @@
 #[macro_use] extern crate serde_json;
 #[macro_use] extern crate glob;
 #[macro_use] extern crate uuid;
+#[macro_use] extern crate prettytable;
 extern crate config;
 extern crate regex;
 
@@ -17,6 +18,7 @@ mod configuration;
 mod runtime;
 mod module;
 mod storage;
+mod ui;
 
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
