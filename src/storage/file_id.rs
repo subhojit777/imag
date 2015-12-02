@@ -3,8 +3,102 @@ use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 use std::result::Result;
 use std::path::{Path, PathBuf};
+use std::convert::From;
+use std::convert::Into;
 
-pub type FileID = String;
+#[derive(Debug)]
+#[derive(Clone)]
+// #[derive(Display)]
+pub enum FileIDType {
+    UUID,
+}
+
+#[derive(Clone)]
+pub struct FileID {
+    id: Option<String>,
+    id_type: FileIDType,
+}
+
+impl FileID {
+
+    pub fn new(id_type: FileIDType, id: String) -> FileID {
+        FileID {
+            id: Some(id),
+            id_type: id_type,
+        }
+    }
+
+    pub fn is_valid(&self) -> bool {
+        self.id.is_some()
+    }
+
+}
+
+impl Debug for FileID {
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "FileID[{:?}]: {:?}",
+               self.id_type,
+               self.id);
+        Ok(())
+    }
+
+}
+
+impl Display for FileID {
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "FileID[{:?}]: {:?}",
+               self.id_type,
+               self.id);
+        Ok(())
+    }
+
+}
+
+impl Into<String> for FileID {
+
+    fn into(self) -> String {
+        if let Some(id) = self.id {
+            id.clone()
+        } else {
+            String::from("INVALID")
+        }
+    }
+
+}
+
+impl From<String> for FileID {
+
+    fn from(s: String) -> FileID {
+        unimplemented!()
+    }
+
+}
+
+impl<'a> From<&'a String> for FileID {
+
+    fn from(s: &'a String) -> FileID {
+        unimplemented!()
+    }
+
+}
+
+impl From<PathBuf> for FileID {
+
+    fn from(s: PathBuf) -> FileID {
+        unimplemented!()
+    }
+
+}
+
+impl<'a> From<&'a PathBuf> for FileID {
+
+    fn from(s: &'a PathBuf) -> FileID {
+        unimplemented!()
+    }
+
+}
 
 pub struct FileIDError {
     summary: String,
@@ -53,16 +147,4 @@ impl<'a> Display for FileIDError {
 }
 
 pub type FileIDResult = Result<FileID, FileIDError>;
-
-pub fn from_path_string(s: &String) -> FileIDResult {
-    unimplemented!()
-}
-
-pub fn from_path(p: &Path) -> FileIDResult {
-    unimplemented!()
-}
-
-pub fn from_pathbuf(p: &PathBuf) -> FileIDResult {
-    from_path(p.as_path())
-}
 
