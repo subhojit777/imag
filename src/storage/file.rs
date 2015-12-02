@@ -291,7 +291,7 @@ impl<'a> File<'a> {
 
     fn get_new_file_id() -> FileID {
         use uuid::Uuid;
-        Uuid::new_v4().to_hyphenated_string()
+        FileID::new(FileIDType::UUID, Uuid::new_v4().to_hyphenated_string())
     }
 }
 
