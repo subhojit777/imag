@@ -181,7 +181,7 @@ impl StorageBackend {
             fs.read_to_string(&mut s);
             debug!("Success reading file with id '{}'", id);
             debug!("Parsing to internal structure now");
-            p.read(s).and_then(|(h, d)| Ok(File::from_parser_result(id, h, d))).ok()
+            p.read(s).and_then(|(h, d)| Ok(File::from_parser_result(m, id.clone(), h, d))).ok()
         } else {
             debug!("No file with id '{}'", id);
             None
