@@ -253,3 +253,18 @@ impl Display for StorageBackendError {
     }
 }
 
+
+fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, StorageBackendError>
+    where HP: FileHeaderParser
+{
+    p.write(f.contents())
+        .or_else(|err| {
+            let mut serr = StorageBackendError::build(
+                "Parser::write()",
+                "Cannot translate internal representation of file contents into on-disk representation",
+                None
+            );
+            serr.caused_by = Some(Box::new(err));
+            Err(serr)
+        })
+}
