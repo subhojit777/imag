@@ -131,13 +131,11 @@ mod test {
 
     use super::JsonHeaderParser;
     use storage::parser::{FileHeaderParser, ParserError};
-    use storage::file::{FileHeaderSpec, FileHeaderData};
+    use storage::file::FileHeaderData as FHD;
+    use storage::file::FileHeaderSpec as FHS;
 
     #[test]
     fn test_deserialization() {
-        use storage::file::FileHeaderData as FHD;
-        use storage::file::FileHeaderSpec as FHS;
-
         let text = String::from("{\"a\": 1, \"b\": -2}");
         let spec = FHS::Map {
             keys: vec![
@@ -174,6 +172,64 @@ mod test {
             },
 
             _ => assert!(false, "Parsed is not a map"),
+        }
+    }
+
+    #[test]
+    fn test_deserialization_without_spec() {
+        let text    = String::from("{\"a\": [1], \"b\": {\"c\": -2}}");
+        let parser  = JsonHeaderParser::new(None);
+        let parsed  = parser.read(Some(text));
+
+        assert!(parsed.is_ok(), "Parsed is not ok: {:?}", parsed);
+
+        match parsed.ok() {
+            Some(FHD::Map{keys: keys}) => {
+                for k in keys {
+                    match_key(&k);
+                }
+            },
+
+            _ => assert!(false, "Parsed is not a map"),
+        }
+    }
+
+    fn match_key(k: &FHD) {
+        use std::ops::Deref;
+
+        match k {
+            &FHD::Key{name: ref name, value: ref value} => {
+                assert!(name == "a" || name == "b", "Key unknown");
+                match value.deref() {
+                    &FHD::Array{values: ref vs} => {
+                        for value in vs.iter() {
+                            match value {
+                                &FHD::UInteger(u) => assert_eq!(u, 1),
+                                _ => assert!(false, "UInt is not an UInt"),
+                            }
+                        }
+                    }
+
+                    &FHD::Map{keys: ref ks} => {
+                        for key in ks.iter() {
+                            match key {
+                                &FHD::Key{name: ref name, value: ref value} => {
+                                    match value.deref() {
+                                        &FHD::Integer(i) => {
+                                            assert_eq!(i, -2);
+                                            assert_eq!(name, "c");
+                                        },
+                                        _ => assert!(false, "Int is not an Int"),
+                                    };
+                                },
+                                _ => assert!(false, "Key is not a Key"),
+                            }
+                        }
+                    }
+                    _ => assert!(false, "Integers are not here"),
+                }
+            },
+            _ => assert!(false, "Key in main Map is not a Key"),
         }
     }
 
