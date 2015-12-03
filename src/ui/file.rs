@@ -101,6 +101,7 @@ impl FilePrinter for TablePrinter {
 
         let mut i = 0;
         for file in files {
+            debug!("Printing file: {:?}", file);
             i += 1;
             let cell_i  = Cell::new(&format!("{}", i)[..]);
             let cell_o  = Cell::new(&format!("{}", file.owner().name())[..]);
