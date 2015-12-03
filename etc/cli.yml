@@ -20,6 +20,8 @@ args:
         long: runtimepath
         help: Set the runtime path
         required: false
+        takes_value: true
+
 
     - storename:
         short: s
