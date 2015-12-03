@@ -185,7 +185,7 @@ impl StorageBackend {
         if let Ok(mut fs) = FSFile::open(self.build_filepath_with_id(m, id.clone())) {
             let mut s = String::new();
             fs.read_to_string(&mut s);
-            debug!("Success reading file with id '{}'", id);
+            debug!("Success opening file with id '{}'", id);
             debug!("Parsing to internal structure now");
             p.read(s).and_then(|(h, d)| Ok(File::from_parser_result(m, id.clone(), h, d))).ok()
         } else {
