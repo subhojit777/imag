@@ -31,13 +31,21 @@ impl Into<String> for FileIDType {
 
 }
 
-impl From<String> for FileIDType {
+impl<'a> From<&'a str> for FileIDType {
 
-    fn from(s: String) -> FileIDType {
-        match &s[..] {
+    fn from(s: &'a str) -> FileIDType {
+        match s {
             "UUID"  => FileIDType::UUID,
             _       => FileIDType::NONE,
         }
+    }
+
+}
+
+impl From<String> for FileIDType {
+
+    fn from(s: String) -> FileIDType {
+        FileIDType::from(&s[..])
     }
 
 }
