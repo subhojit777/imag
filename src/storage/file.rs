@@ -9,6 +9,7 @@ use storage::file_id::*;
 use regex::Regex;
 
 #[derive(Debug)]
+#[derive(Clone)]
 pub enum FileHeaderSpec {
     Null,
     Bool,
