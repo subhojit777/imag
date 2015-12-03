@@ -151,7 +151,7 @@ impl<'a> From<&'a String> for FileID {
             debug!("                 Hash Name: {:?}", hashname);
             debug!("                      Hash: {:?}", hash);
 
-            let idtype = select_id_type_from_str(hashname);
+            let idtype = FileIDType::from(hashname);
             match idtype {
                 FileIDType::NONE => hash = "INVALID",
                 _ => {},
@@ -229,13 +229,6 @@ impl<'a> Display for FileIDError {
         Ok(())
     }
 
-}
-
-fn select_id_type_from_str(s: &str) -> FileIDType {
-    match s {
-        "UUID"  => FileIDType::UUID,
-        _       => FileIDType::NONE,
-    }
 }
 
 pub type FileIDResult = Result<FileID, FileIDError>;
