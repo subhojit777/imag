@@ -179,8 +179,9 @@ impl From<PathBuf> for FileID {
 
 impl<'a> From<&'a PathBuf> for FileID {
 
-    fn from(s: &'a PathBuf) -> FileID {
-        unimplemented!()
+    fn from(pb: &'a PathBuf) -> FileID {
+        let s = pb.to_str().unwrap_or("");
+        FileID::from(String::from(s))
     }
 
 }
