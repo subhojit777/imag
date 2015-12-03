@@ -52,26 +52,6 @@ impl StorageBackend {
         })
     }
 
-    fn get_file_ids(&self, m: &Module) -> Option<Vec<FileID>> {
-        let list = glob(&self.prefix_of_files_for_module(m)[..]);
-
-        if let Ok(globlist) = list {
-            let mut v = vec![];
-            for entry in globlist {
-                if let Ok(path) = entry {
-                    debug!(" - File: {:?}", path);
-                    v.push(FileID::from(&path));
-                } else {
-                    // Entry is not a path
-                }
-            }
-
-            Some(v)
-        } else {
-            None
-        }
-    }
-
     pub fn iter_ids(&self, m: &Module) -> Result<IntoIter<FileID>, StorageBackendError>
     {
         glob(&self.prefix_of_files_for_module(m)[..])
