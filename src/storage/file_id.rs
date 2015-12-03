@@ -31,6 +31,17 @@ impl Into<String> for FileIDType {
 
 }
 
+impl From<String> for FileIDType {
+
+    fn from(s: String) -> FileIDType {
+        match &s[..] {
+            "UUID"  => FileIDType::UUID,
+            _       => FileIDType::NONE,
+        }
+    }
+
+}
+
 #[derive(Clone)]
 pub struct FileID {
     id: Option<String>,
