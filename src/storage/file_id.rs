@@ -18,6 +18,19 @@ pub enum FileIDType {
     UUID,
 }
 
+impl Into<String> for FileIDType {
+
+    fn into(self) -> String {
+        let s = match self {
+            FileIDType::UUID => "UUID",
+            FileIDType::NONE => "",
+        };
+
+        String::from(s)
+    }
+
+}
+
 #[derive(Clone)]
 pub struct FileID {
     id: Option<String>,
