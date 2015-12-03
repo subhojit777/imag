@@ -224,12 +224,20 @@ impl StorageBackend {
     }
 
     fn build_filepath_with_id(&self, owner: &Module, id: FileID) -> String {
+        let idstr   : String        = id.clone().into();
+        let idtype  : FileIDType    = id.into();
+        let typestr : String        = idtype.into();
+
         debug!("Building filepath with id");
         debug!("  basepath: '{}'", self.basepath);
         debug!(" storepath: '{}'", self.storepath);
-        debug!("  id      : '{}'", id);
-        let idstr : String = id.into();
-        self.prefix_of_files_for_module(owner) + "-" + &idstr[..] + ".imag"
+        debug!("        id: '{}'", idstr);
+        debug!("      type: '{}'", typestr);
+
+        self.prefix_of_files_for_module(owner) +
+            "-" + &typestr[..] +
+            "-" + &idstr[..] +
+            ".imag"
     }
 
     fn prefix_of_files_for_module(&self, m: &Module) -> String {

@@ -18,6 +18,38 @@ pub enum FileIDType {
     UUID,
 }
 
+impl Into<String> for FileIDType {
+
+    fn into(self) -> String {
+        let s = match self {
+            FileIDType::UUID => "UUID",
+            FileIDType::NONE => "",
+        };
+
+        String::from(s)
+    }
+
+}
+
+impl<'a> From<&'a str> for FileIDType {
+
+    fn from(s: &'a str) -> FileIDType {
+        match s {
+            "UUID"  => FileIDType::UUID,
+            _       => FileIDType::NONE,
+        }
+    }
+
+}
+
+impl From<String> for FileIDType {
+
+    fn from(s: String) -> FileIDType {
+        FileIDType::from(&s[..])
+    }
+
+}
+
 #[derive(Clone)]
 pub struct FileID {
     id: Option<String>,
@@ -77,6 +109,13 @@ impl Into<String> for FileID {
 
 }
 
+impl Into<FileIDType> for FileID {
+
+    fn into(self) -> FileIDType {
+        self.id_type.clone()
+    }
+}
+
 impl From<String> for FileID {
 
     fn from(s: String) -> FileID {
@@ -112,7 +151,7 @@ impl<'a> From<&'a String> for FileID {
             debug!("                 Hash Name: {:?}", hashname);
             debug!("                      Hash: {:?}", hash);
 
-            let idtype = select_id_type_from_str(hashname);
+            let idtype = FileIDType::from(hashname);
             match idtype {
                 FileIDType::NONE => hash = "INVALID",
                 _ => {},
@@ -190,13 +229,6 @@ impl<'a> Display for FileIDError {
         Ok(())
     }
 
-}
-
-fn select_id_type_from_str(s: &str) -> FileIDType {
-    match s {
-        "UUID"  => FileIDType::UUID,
-        _       => FileIDType::NONE,
-    }
 }
 
 pub type FileIDResult = Result<FileID, FileIDError>;
