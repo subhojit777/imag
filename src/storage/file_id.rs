@@ -101,6 +101,13 @@ impl Into<String> for FileID {
 
 }
 
+impl Into<FileIDType> for FileID {
+
+    fn into(self) -> FileIDType {
+        self.id_type.clone()
+    }
+}
+
 impl From<String> for FileID {
 
     fn from(s: String) -> FileID {
