@@ -118,7 +118,8 @@ impl<HP> Parser<HP> where
         let h_text = try!(self.headerp.write(&header));
         debug!("Success translating header");
 
-        Ok(h_text + &data[..])
+        let text = format!("---\n{}\n---\n{}", h_text, data);
+        Ok(text)
     }
 
     fn divide_text(&self, text: &String) -> Result<TextTpl, ParserError> {
