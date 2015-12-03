@@ -233,4 +233,26 @@ mod test {
         }
     }
 
+    #[test]
+    fn test_desser() {
+        use serde_json::error::Result as R;
+        use serde_json::{Value, from_str};
+
+        let text    = String::from("{\"a\": [1], \"b\": {\"c\": -2}}");
+        let parser  = JsonHeaderParser::new(None);
+
+        let des = parser.read(Some(text.clone()));
+        assert!(des.is_ok(), "Deserializing failed");
+
+        let ser = parser.write(&des.unwrap());
+        assert!(ser.is_ok(), "Parser error when serializing deserialized text");
+
+        let json_text : R<Value> = from_str(&text[..]);
+        let json_ser  : R<Value> = from_str(&ser.unwrap()[..]);
+
+        assert!(json_text.is_ok(), "Could not use serde to serialize text for comparison");
+        assert!(json_ser.is_ok(),  "Could not use serde to serialize serialized-deserialized text for comparison");
+        assert_eq!(json_text.unwrap(), json_ser.unwrap());
+    }
+
 }
