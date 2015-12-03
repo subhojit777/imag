@@ -123,16 +123,20 @@ impl<HP> Parser<HP> where
     }
 
     fn divide_text(&self, text: &String) -> Result<TextTpl, ParserError> {
-        debug!("Splitting: '{}'", text);
-        let re = Regex::new(r"(?m)^\-\-\-$\n(.*)^\-\-\-$\n(.*)").unwrap();
+        let re = Regex::new(r"(?sm)^---$\n(.*)^---$\n(.*)").unwrap();
 
-        let captures = re.captures(&text[..]).unwrap_or(
+        debug!("Splitting: '{}'", text);
+        debug!("   regex = {:?}", re);
+
+        let captures = re.captures(&text[..]).unwrap_or({
+            debug!("Cannot capture from text");
             return Err(ParserError::new("Cannot run regex on text",
                                         text.clone(), 0,
                                         "Cannot run regex on text to divide it into header and content."))
-        );
+        });
 
         if captures.len() != 2 {
+            debug!("Unexpected amount of captures");
             return Err(ParserError::new("Unexpected Regex output",
                                         text.clone(), 0,
                                         "The regex to divide text into header and content had an unexpected output."))
