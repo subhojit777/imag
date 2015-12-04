@@ -189,16 +189,35 @@ impl StorageBackend {
     pub fn get_file_by_id<'a, HP>(&self, m: &'a Module, id: &FileID, p: &Parser<HP>) -> Option<File<'a>>
         where HP: FileHeaderParser
     {
+        use std::ops::Index;
+
         debug!("Searching for file with id '{}'", id);
-        if let Ok(mut fs) = FSFile::open(self.build_filepath_with_id(m, id.clone())) {
-            let mut s = String::new();
-            fs.read_to_string(&mut s);
-            debug!("Success opening file with id '{}'", id);
-            debug!("Parsing to internal structure now");
-            p.read(s).and_then(|(h, d)| Ok(File::from_parser_result(m, id.clone(), h, d))).ok()
+
+        if id.get_type() == FileIDType::NONE {
+            // We don't know the hash type, so we glob() around a bit.
+
+            let globstr = self.prefix_of_files_for_module(m) + "*" + ".imag";
+            glob(&globstr[..]).map(|globlist| {
+                let mut vec = globlist.filter_map(Result::ok)
+                                      .map(|pbuf| FileID::from(&pbuf))
+                                      .filter_map(|id| self.get_file_by_id(m, &id, p))
+                                      .collect::<Vec<File>>();
+                vec.reverse();
+                vec.pop()
+            }).map_err(|e| e).unwrap()
         } else {
-            debug!("No file with id '{}'", id);
-            None
+            // The (hash)type is already in the FileID object, so we can just
+            // build a path from the information we already have
+            if let Ok(mut fs) = FSFile::open(self.build_filepath_with_id(m, id.clone())) {
+                let mut s = String::new();
+                fs.read_to_string(&mut s);
+                debug!("Success opening file with id '{}'", id);
+                debug!("Parsing to internal structure now");
+                p.read(s).and_then(|(h, d)| Ok(File::from_parser_result(m, id.clone(), h, d))).ok()
+            } else {
+                debug!("No file with id '{}'", id);
+                None
+            }
         }
     }
 
