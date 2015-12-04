@@ -56,12 +56,14 @@ impl StorageBackend {
     {
         glob(&self.prefix_of_files_for_module(m)[..])
             .and_then(|globlist| {
+                debug!("Iterating over globlist");
                 Ok(globlist.filter_map(Result::ok)
                            .map(|pbuf| FileID::from(&pbuf))
                            .collect::<Vec<FileID>>()
                            .into_iter())
             })
             .map_err(|e| {
+                debug!("glob() returned error: {:?}", e);
                 let serr = StorageBackendError::new(
                         "iter_ids()",
                         "Cannot iter on file ids",
@@ -78,6 +80,8 @@ impl StorageBackend {
     {
         self.iter_ids(m)
             .and_then(|ids| {
+                debug!("Iterating ids and building files from them");
+                debug!("  number of ids = {}", ids.len());
                 Ok(ids.filter_map(|id| self.get_file_by_id(m, &id, p))
                         .collect::<Vec<File>>()
                         .into_iter())
