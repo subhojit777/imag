@@ -56,17 +56,18 @@ impl StorageBackend {
     {
         glob(&self.prefix_of_files_for_module(m)[..])
             .and_then(|globlist| {
-                let v = globlist.filter_map(Result::ok)
-                                .map(|pbuf| FileID::from(&pbuf))
-                                .collect::<Vec<FileID>>()
-                                .into_iter();
-                Ok(v)
+                Ok(globlist.filter_map(Result::ok)
+                           .map(|pbuf| FileID::from(&pbuf))
+                           .collect::<Vec<FileID>>()
+                           .into_iter())
             })
             .map_err(|e| {
                 let serr = StorageBackendError::new(
                         "iter_ids()",
                         "Cannot iter on file ids",
                         None);
+                // Why the hack is Error not implemented for glob::PatternError
+                // serr.caused_by = Some(Box::new(e));
                 serr
             })
     }
