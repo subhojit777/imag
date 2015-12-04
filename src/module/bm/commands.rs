@@ -39,7 +39,7 @@ pub fn list_command(module: &Module, env: CommandEnv) -> CommandResult {
     let files   = get_filtered_files_from_backend(module, &env);
 
     debug!("Printing files now");
-    printer.print_files(files);
+    files.map(|f| printer.print_files(f));
 
     Ok(())
 }
@@ -66,34 +66,35 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
     } else {
         debug!("Remove more than one file");
 
-        let files = get_filtered_files_from_backend(module, &env);
-        let nfiles = files.len();
-        info!("Removing {} Files", nfiles);
+        get_filtered_files_from_backend(module, &env).and_then(|files| {
+            let nfiles = files.len();
+            info!("Removing {} Files", nfiles);
 
-        let errs = files.map(|file| {
-                debug!("Remove file: {:?}", file);
-                env.bk.remove_file(module, file, checked)
-            })
-            .filter(|e| e.is_err())
-            .map(|e| {
-                let err = e.err().unwrap();
-                warn!("Error occured in Filesystem operation: {}", err);
-                err
-            })
-            .collect::<Vec<StorageBackendError>>();
+            let errs = files.map(|file| {
+                    debug!("Remove file: {:?}", file);
+                    env.bk.remove_file(module, file, checked)
+                })
+                .filter(|e| e.is_err())
+                .map(|e| {
+                    let err = e.err().unwrap();
+                    warn!("Error occured in Filesystem operation: {}", err);
+                    err
+                })
+                .collect::<Vec<StorageBackendError>>();
 
-        let nerrs = errs.len();
+            let nerrs = errs.len();
 
-        if nerrs != 0 {
-            warn!("{} Errors occured while removing {} files", nerrs, nfiles);
-            let moderr = ModuleError::new("File removal failed");
+            if nerrs != 0 {
+                warn!("{} Errors occured while removing {} files", nerrs, nfiles);
+                let moderr = ModuleError::new("File removal failed");
 
-            // TODO : Collect StorageBackendErrors
+                // TODO : Collect StorageBackendErrors
 
-            Err(moderr)
-        } else {
-            Ok(())
-        }
+                Err(moderr)
+            } else {
+                Ok(())
+            }
+        })
     }
 }
 
@@ -104,28 +105,34 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
  */
 
 fn get_filtered_files_from_backend<'a>(module: &'a Module,
-                                       env: &CommandEnv) -> IntoIter<File<'a>>
+                                       env: &CommandEnv)
+    -> Result<IntoIter<File<'a>>, ModuleError>
 {
     let parser = Parser::new(JsonHeaderParser::new(None));
     let tags = get_tags(env.rt, env.matches);
     debug!("Tags: {:?}", tags);
-    env.bk.iter_files(module, &parser).and_then(|files| {
-        let f = files.filter(|file| {
-            if tags.len() != 0 {
-                debug!("Checking tags of: {:?}", file.id());
-                get_tags_from_header(&file.header()).iter()
-                    .any(|t| tags.contains(t))
-            } else {
-                true
-            }
-        }).filter(|file| {
-            debug!("Checking matches of: {:?}", file.id());
-            get_matcher(env.rt, env.matches)
-                .and_then(|r| Some(file.matches_with(&r)))
-                .unwrap_or(true)
-        }).collect::<Vec<File>>();
-        Some(f)
-    }).unwrap_or(Vec::<File>::new()).into_iter()
+    env.bk.iter_files(module, &parser)
+        .map(|files| {
+            let f = files.filter(|file| {
+                if tags.len() != 0 {
+                    debug!("Checking tags of: {:?}", file.id());
+                    get_tags_from_header(&file.header()).iter()
+                        .any(|t| tags.contains(t))
+                } else {
+                    true
+                }
+            }).filter(|file| {
+                debug!("Checking matches of: {:?}", file.id());
+                get_matcher(env.rt, env.matches)
+                    .and_then(|r| Some(file.matches_with(&r)))
+                    .unwrap_or(true)
+            }).collect::<Vec<File>>();
+            f.into_iter()
+        }).map_err(|e| {
+            let mut merr = ModuleError::new("Could not filter files");
+            merr.caused_by = Some(Box::new(e));
+            merr
+        })
 }
 
 fn get_tags<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Vec<String> {
