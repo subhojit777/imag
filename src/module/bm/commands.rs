@@ -60,22 +60,24 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
         debug!("Remove by id: {}", id);
 
         let parser = Parser::new(JsonHeaderParser::new(None));
-        env.bk.get_file_by_id(module, &id.into(), &parser).map(|file| {
-            debug!("Remove file  : {:?}", file);
+        let file = env.bk
+            .get_file_by_id(module, &id.into(), &parser)
+            .unwrap_or({
+                info!("No files found");
+                return Ok(())
+            });
 
-            if let Err(e) = env.bk.remove_file(module, file, checked) {
-                debug!("Remove failed");
-                let mut err = ModuleError::new("Removing file failed");
-                err.caused_by = Some(Box::new(e));
-                Err(err)
-            } else {
-                info!("Remove worked");
-                Ok(())
-            }
-        }).unwrap_or({
-            info!("No files found");
+        debug!("Remove file: {:?}", file);
+
+        if let Err(e) = env.bk.remove_file(module, file, checked) {
+            debug!("Remove failed");
+            let mut err = ModuleError::new("Removing file failed");
+            err.caused_by = Some(Box::new(e));
+            Err(err)
+        } else {
+            info!("Remove worked");
             Ok(())
-        })
+        }
     } else {
         debug!("Remove more than one file");
 
