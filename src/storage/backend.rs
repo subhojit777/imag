@@ -59,10 +59,7 @@ impl StorageBackend {
         glob(&globstr[..])
             .and_then(|globlist| {
                 debug!("Iterating over globlist");
-                Ok(globlist.filter_map(Result::ok)
-                           .map(|pbuf| FileID::from(&pbuf))
-                           .collect::<Vec<FileID>>()
-                           .into_iter())
+                Ok(globlist_to_file_id_vec(globlist).into_iter())
             })
             .map_err(|e| {
                 debug!("glob() returned error: {:?}", e);
@@ -198,10 +195,9 @@ impl StorageBackend {
 
             let globstr = self.prefix_of_files_for_module(m) + "*" + ".imag";
             glob(&globstr[..]).map(|globlist| {
-                let mut vec = globlist.filter_map(Result::ok)
-                                      .map(|pbuf| FileID::from(&pbuf))
-                                      .filter_map(|id| self.get_file_by_id(m, &id, p))
-                                      .collect::<Vec<File>>();
+                let mut vec = globlist_to_file_id_vec(globlist).into_iter()
+                                .filter_map(|id| self.get_file_by_id(m, &id, p))
+                                .collect::<Vec<File>>();
                 vec.reverse();
                 vec.pop()
             }).map_err(|e| e).unwrap()
@@ -325,4 +321,10 @@ fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, Storage
             serr.caused_by = Some(Box::new(err));
             Err(serr)
         })
+}
+
+fn globlist_to_file_id_vec(globlist: Paths) -> Vec<FileID> {
+    globlist.filter_map(Result::ok)
+            .map(|pbuf| FileID::from(&pbuf))
+            .collect::<Vec<FileID>>()
 }
