@@ -6,6 +6,7 @@ use serde::ser::Serializer as Ser;
 
 use std::collections::HashMap;
 use std::io::stdout;
+use std::error::Error;
 
 use super::super::parser::{FileHeaderParser, ParserError};
 use super::super::file::{FileHeaderSpec, FileHeaderData};
@@ -34,11 +35,13 @@ impl FileHeaderParser for JsonHeaderParser {
             let s = string.unwrap();
             debug!("Deserializing: {}", s);
             let fromstr : R<Value> = from_str(&s[..]);
-            if let Ok(content) = fromstr {
-                Ok(visit_json(&content))
-            } else {
-                Err(ParserError::short("Unknown JSON parser error", s.clone(), 0))
+            if let Ok(ref content) = fromstr {
+                return Ok(visit_json(&content))
             }
+            let oe = fromstr.err().unwrap();
+            let s = format!("JSON parser error: {}", oe.description());
+            let e = ParserError::short(&s[..], s.clone(), 0);
+            Err(e)
         } else {
             Ok(FileHeaderData::Null)
         }
@@ -119,6 +122,137 @@ impl Serialize for FileHeaderData {
             &FileHeaderData::Key{name: ref n, value: ref v} => unreachable!(),
 
         }
+    }
+
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::JsonHeaderParser;
+    use storage::parser::{FileHeaderParser, ParserError};
+    use storage::file::FileHeaderData as FHD;
+    use storage::file::FileHeaderSpec as FHS;
+
+    #[test]
+    fn test_deserialization() {
+        let text = String::from("{\"a\": 1, \"b\": -2}");
+        let spec = FHS::Map {
+            keys: vec![
+                FHS::Key {
+                    name: String::from("a"),
+                    value_type: Box::new(FHS::UInteger)
+                },
+                FHS::Key {
+                    name: String::from("b"),
+                    value_type: Box::new(FHS::Integer)
+                }
+            ]
+        };
+
+        let parser = JsonHeaderParser::new(Some(spec));
+        let parsed = parser.read(Some(text));
+        assert!(parsed.is_ok(), "Parsed is not ok: {:?}", parsed);
+
+        match parsed.ok() {
+            Some(FHD::Map{keys: keys}) => {
+                for k in keys {
+                    match k {
+                        FHD::Key{name: name, value: box value} => {
+                            assert!(name == "a" || name == "b", "Key unknown");
+                            match &value {
+                                &FHD::UInteger(u) => assert_eq!(u, 1),
+                                &FHD::Integer(i) => assert_eq!(i, -2),
+                                _ => assert!(false, "Integers are not here"),
+                            }
+                        },
+                        _ => assert!(false, "Key is not a Key"),
+                    }
+                }
+            },
+
+            _ => assert!(false, "Parsed is not a map"),
+        }
+    }
+
+    #[test]
+    fn test_deserialization_without_spec() {
+        let text    = String::from("{\"a\": [1], \"b\": {\"c\": -2}}");
+        let parser  = JsonHeaderParser::new(None);
+        let parsed  = parser.read(Some(text));
+
+        assert!(parsed.is_ok(), "Parsed is not ok: {:?}", parsed);
+
+        match parsed.ok() {
+            Some(FHD::Map{keys: keys}) => {
+                for k in keys {
+                    match_key(&k);
+                }
+            },
+
+            _ => assert!(false, "Parsed is not a map"),
+        }
+    }
+
+    fn match_key(k: &FHD) {
+        use std::ops::Deref;
+
+        match k {
+            &FHD::Key{name: ref name, value: ref value} => {
+                assert!(name == "a" || name == "b", "Key unknown");
+                match value.deref() {
+                    &FHD::Array{values: ref vs} => {
+                        for value in vs.iter() {
+                            match value {
+                                &FHD::UInteger(u) => assert_eq!(u, 1),
+                                _ => assert!(false, "UInt is not an UInt"),
+                            }
+                        }
+                    }
+
+                    &FHD::Map{keys: ref ks} => {
+                        for key in ks.iter() {
+                            match key {
+                                &FHD::Key{name: ref name, value: ref value} => {
+                                    match value.deref() {
+                                        &FHD::Integer(i) => {
+                                            assert_eq!(i, -2);
+                                            assert_eq!(name, "c");
+                                        },
+                                        _ => assert!(false, "Int is not an Int"),
+                                    };
+                                },
+                                _ => assert!(false, "Key is not a Key"),
+                            }
+                        }
+                    }
+                    _ => assert!(false, "Integers are not here"),
+                }
+            },
+            _ => assert!(false, "Key in main Map is not a Key"),
+        }
+    }
+
+    #[test]
+    fn test_desser() {
+        use serde_json::error::Result as R;
+        use serde_json::{Value, from_str};
+
+        let text    = String::from("{\"a\": [1], \"b\": {\"c\": -2}}");
+        let parser  = JsonHeaderParser::new(None);
+
+        let des = parser.read(Some(text.clone()));
+        assert!(des.is_ok(), "Deserializing failed");
+
+        let ser = parser.write(&des.unwrap());
+        assert!(ser.is_ok(), "Parser error when serializing deserialized text");
+
+        let json_text : R<Value> = from_str(&text[..]);
+        let json_ser  : R<Value> = from_str(&ser.unwrap()[..]);
+
+        assert!(json_text.is_ok(), "Could not use serde to serialize text for comparison");
+        assert!(json_ser.is_ok(),  "Could not use serde to serialize serialized-deserialized text for comparison");
+        assert_eq!(json_text.unwrap(), json_ser.unwrap());
     }
 
 }

@@ -9,6 +9,7 @@ use storage::file_id::*;
 use regex::Regex;
 
 #[derive(Debug)]
+#[derive(Clone)]
 pub enum FileHeaderSpec {
     Null,
     Bool,
@@ -328,3 +329,39 @@ impl<'a> Debug for File<'a> {
     }
 
 }
+
+#[cfg(test)]
+mod test {
+    // we use the JSON parser here, so we can generate FileHeaderData
+    use storage::json::parser::JsonHeaderParser;
+    use super::match_header_spec;
+    use storage::parser::{FileHeaderParser, ParserError};
+    use storage::file::FileHeaderData as FHD;
+    use storage::file::FileHeaderSpec as FHS;
+
+    #[test]
+    fn test_spec_matching() {
+        let text = String::from("{\"a\": 1, \"b\": -2}");
+        let spec = FHS::Map {
+            keys: vec![
+                FHS::Key {
+                    name: String::from("a"),
+                    value_type: Box::new(FHS::UInteger)
+                },
+                FHS::Key {
+                    name: String::from("b"),
+                    value_type: Box::new(FHS::Integer)
+                }
+            ]
+        };
+
+        let parser  = JsonHeaderParser::new(Some(spec.clone()));
+        let datares = parser.read(Some(text.clone()));
+        assert!(datares.is_ok(), "Text could not be parsed: '{}'", text);
+        let data = datares.unwrap();
+
+        let matchres = match_header_spec(&spec, &data);
+        assert!(matchres.is_none(), "Matching returns error: {:?}", matchres);
+    }
+}
+
