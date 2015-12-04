@@ -208,12 +208,16 @@ impl StorageBackend {
             // The (hash)type is already in the FileID object, so we can just
             // build a path from the information we already have
             debug!("We know FileIDType, so we build the path directly now");
-            if let Ok(mut fs) = FSFile::open(self.build_filepath_with_id(m, id.clone())) {
+            let filepath = self.build_filepath_with_id(m, id.clone());
+            if let Ok(mut fs) = FSFile::open(filepath) {
                 let mut s = String::new();
                 fs.read_to_string(&mut s);
+
                 debug!("Success opening file with id '{}'", id);
                 debug!("Parsing to internal structure now");
-                p.read(s).and_then(|(h, d)| Ok(File::from_parser_result(m, id.clone(), h, d))).ok()
+                p.read(s).and_then(|(h, d)| {
+                    Ok(File::from_parser_result(m, id.clone(), h, d))
+                }).ok()
             } else {
                 debug!("No file with id '{}'", id);
                 None
