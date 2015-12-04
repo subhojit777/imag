@@ -10,6 +10,7 @@ pub struct ParserError {
     parsertext: String,
     index: i32,
     explanation: Option<String>,
+    caused_by: Option<Box<Error>>,
 }
 
 impl ParserError {
@@ -19,6 +20,7 @@ impl ParserError {
             parsertext: text,
             index: idx,
             explanation: Some(String::from(expl)),
+            caused_by: None,
         }
     }
 
@@ -27,15 +29,26 @@ impl ParserError {
             summary: String::from(sum),
             parsertext: text,
             index: idx,
-            explanation: None
+            explanation: None,
+            caused_by: None,
         }
     }
+
+    pub fn with_cause(mut self, e: Box<Error>) -> ParserError {
+        self.caused_by = Some(e);
+        self
+    }
+
 }
 
 impl Error for ParserError {
 
     fn description(&self) -> &str {
         &self.summary[..]
+    }
+
+    fn cause(&self) -> Option<&Error> {
+        self.caused_by.as_ref().map(|e| &**e)
     }
 
 }
