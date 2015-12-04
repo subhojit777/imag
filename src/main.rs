@@ -6,6 +6,7 @@
 #[macro_use] extern crate uuid;
 #[macro_use] extern crate regex;
 #[macro_use] extern crate prettytable;
+extern crate url;
 extern crate config;
 
 use cli::CliConfig;

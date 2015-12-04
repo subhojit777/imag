@@ -18,7 +18,16 @@ use clap::ArgMatches;
 use regex::Regex;
 
 pub fn add_command(module: &Module, env: CommandEnv) -> CommandResult {
+    use url::Url;
+
     let url = env.matches.value_of("url").unwrap();
+
+    if let Err(e) = Url::parse(url) {
+        info!("Not an URL: '{}'", url);
+        info!("  this will turn into an hard error before 0.1.0");
+        debug!("URL parsing error: {:?}", e);
+    }
+
     let tags = get_tags(env.rt, env.matches);
     info!("Adding url '{}' with tags '{:?}'", url, tags);
 
