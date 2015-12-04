@@ -52,41 +52,26 @@ impl StorageBackend {
         })
     }
 
-    fn get_file_ids(&self, m: &Module) -> Option<Vec<FileID>> {
-        let list = glob(&self.prefix_of_files_for_module(m)[..]);
-
-        if let Ok(globlist) = list {
-            let mut v = vec![];
-            for entry in globlist {
-                if let Ok(path) = entry {
-                    debug!(" - File: {:?}", path);
-                    v.push(FileID::from(&path));
-                } else {
-                    // Entry is not a path
-                }
-            }
-
-            Some(v)
-        } else {
-            None
-        }
-    }
-
     pub fn iter_ids(&self, m: &Module) -> Result<IntoIter<FileID>, StorageBackendError>
     {
-        glob(&self.prefix_of_files_for_module(m)[..])
+        let globstr = self.prefix_of_files_for_module(m) + "*.imag";
+        debug!("Globstring = {}", globstr);
+        glob(&globstr[..])
             .and_then(|globlist| {
-                let v = globlist.filter_map(Result::ok)
-                                .map(|pbuf| FileID::from(&pbuf))
-                                .collect::<Vec<FileID>>()
-                                .into_iter();
-                Ok(v)
+                debug!("Iterating over globlist");
+                Ok(globlist.filter_map(Result::ok)
+                           .map(|pbuf| FileID::from(&pbuf))
+                           .collect::<Vec<FileID>>()
+                           .into_iter())
             })
             .map_err(|e| {
+                debug!("glob() returned error: {:?}", e);
                 let serr = StorageBackendError::new(
                         "iter_ids()",
                         "Cannot iter on file ids",
                         None);
+                // Why the hack is Error not implemented for glob::PatternError
+                // serr.caused_by = Some(Box::new(e));
                 serr
             })
     }
@@ -97,15 +82,18 @@ impl StorageBackend {
     {
         self.iter_ids(m)
             .and_then(|ids| {
+                debug!("Iterating ids and building files from them");
+                debug!("  number of ids = {}", ids.len());
                 Ok(ids.filter_map(|id| self.get_file_by_id(m, &id, p))
                         .collect::<Vec<File>>()
                         .into_iter())
             })
             .map_err(|e| {
-                let serr = StorageBackendError::new(
-                        "iter_files()",
-                        "Cannot iter on files",
-                        None);
+                debug!("StorageBackend::iter_ids() returned error = {:?}", e);
+                let mut serr = StorageBackendError::new("iter_files()",
+                                           "Cannot iter on files",
+                                           None);
+                serr.caused_by = Some(Box::new(e));
                 serr
             })
     }
@@ -205,7 +193,7 @@ impl StorageBackend {
         if let Ok(mut fs) = FSFile::open(self.build_filepath_with_id(m, id.clone())) {
             let mut s = String::new();
             fs.read_to_string(&mut s);
-            debug!("Success reading file with id '{}'", id);
+            debug!("Success opening file with id '{}'", id);
             debug!("Parsing to internal structure now");
             p.read(s).and_then(|(h, d)| Ok(File::from_parser_result(m, id.clone(), h, d))).ok()
         } else {

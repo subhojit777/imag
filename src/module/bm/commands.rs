@@ -123,6 +123,7 @@ fn get_filtered_files_from_backend<'a>(module: &'a Module,
     env.bk.iter_files(module, &parser)
         .map(|files| {
             let f = files.filter(|file| {
+                debug!("Backend returns file: {:?}", file);
                 if tags.len() != 0 {
                     debug!("Checking tags of: {:?}", file.id());
                     get_tags_from_header(&file.header()).iter()
@@ -138,6 +139,7 @@ fn get_filtered_files_from_backend<'a>(module: &'a Module,
             }).collect::<Vec<File>>();
             f.into_iter()
         }).map_err(|e| {
+            debug!("Error from Backend: {:?}", e);
             let mut merr = ModuleError::new("Could not filter files");
             merr.caused_by = Some(Box::new(e));
             merr

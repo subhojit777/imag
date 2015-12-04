@@ -10,6 +10,7 @@ pub struct ParserError {
     parsertext: String,
     index: i32,
     explanation: Option<String>,
+    caused_by: Option<Box<Error>>,
 }
 
 impl ParserError {
@@ -19,6 +20,7 @@ impl ParserError {
             parsertext: text,
             index: idx,
             explanation: Some(String::from(expl)),
+            caused_by: None,
         }
     }
 
@@ -27,15 +29,26 @@ impl ParserError {
             summary: String::from(sum),
             parsertext: text,
             index: idx,
-            explanation: None
+            explanation: None,
+            caused_by: None,
         }
     }
+
+    pub fn with_cause(mut self, e: Box<Error>) -> ParserError {
+        self.caused_by = Some(e);
+        self
+    }
+
 }
 
 impl Error for ParserError {
 
     fn description(&self) -> &str {
         &self.summary[..]
+    }
+
+    fn cause(&self) -> Option<&Error> {
+        self.caused_by.as_ref().map(|e| &**e)
     }
 
 }
@@ -98,7 +111,10 @@ impl<HP> Parser<HP> where
 
         if divided.is_err() {
             debug!("Error reading into internal datastructure");
-            return Err(divided.err().unwrap());
+            let mut p = ParserError::new("Dividing text failed",
+                                         s, 0,
+                    "Dividing text with divide_text() failed");
+            return Err(p.with_cause(Box::new(divided.err().unwrap())));
         }
 
         let (header, data) = divided.ok().unwrap();
@@ -118,31 +134,38 @@ impl<HP> Parser<HP> where
         let h_text = try!(self.headerp.write(&header));
         debug!("Success translating header");
 
-        Ok(h_text + &data[..])
+        let text = format!("---\n{}\n---\n{}", h_text, data);
+        Ok(text)
     }
 
     fn divide_text(&self, text: &String) -> Result<TextTpl, ParserError> {
+        let re = Regex::new(r"(?sm)^---$(.*)^---$(.*)").unwrap();
+
         debug!("Splitting: '{}'", text);
-        let re = Regex::new(r"(?m)^\-\-\-$\n(.*)^\-\-\-$\n(.*)").unwrap();
+        debug!("   regex = {:?}", re);
 
-        let captures = re.captures(&text[..]).unwrap_or(
-            return Err(ParserError::new("Cannot run regex on text",
-                                        text.clone(), 0,
-                                        "Cannot run regex on text to divide it into header and content."))
-        );
+        re.captures(text).map(|captures| {
 
-        if captures.len() != 2 {
-            return Err(ParserError::new("Unexpected Regex output",
-                                        text.clone(), 0,
-                                        "The regex to divide text into header and content had an unexpected output."))
-        }
+            if captures.len() != 3 {
+                debug!("Unexpected amount of captures");
+                return Err(ParserError::new("Unexpected Regex output",
+                                            text.clone(), 0,
+                                            "The regex to divide text into header and content had an unexpected output."))
+            }
 
-        let header  = captures.at(0).map(|s| String::from(s));
-        let content = captures.at(1).map(|s| String::from(s));
+            let header  = captures.at(1).map(|s| String::from(s));
+            let content = captures.at(2).map(|s| String::from(s));
 
-        debug!("Splitted, Header = '{:?}'", header);
-        debug!("Splitted, Data   = '{:?}'", content);
-        Ok((header, content))
+            debug!("Splitted, Header = '{:?}'", header.clone().unwrap_or("NONE".into()));
+            debug!("Splitted, Data   = '{:?}'", content.clone().unwrap_or("NONE".into()));
+            Ok((header, content))
+        }).or_else(|| {
+            debug!("Cannot capture from text");
+            let e = ParserError::new("Cannot run regex on text",
+                                     text.clone(), 0,
+                                     "Cannot run regex on text to divide it into header and content.");
+            Some(Err(e))
+        }).unwrap()
     }
 
 }
