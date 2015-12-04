@@ -83,10 +83,11 @@ impl StorageBackend {
                         .into_iter())
             })
             .map_err(|e| {
-                let serr = StorageBackendError::new(
-                        "iter_files()",
-                        "Cannot iter on files",
-                        None);
+                debug!("StorageBackend::iter_ids() returned error = {:?}", e);
+                let mut serr = StorageBackendError::new("iter_files()",
+                                           "Cannot iter on files",
+                                           None);
+                serr.caused_by = Some(Box::new(e));
                 serr
             })
     }
