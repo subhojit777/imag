@@ -112,7 +112,12 @@ impl FilePrinter for TablePrinter {
             tab.add_row(row);
         }
 
-        tab.printstd();
+        if i != 0 {
+            debug!("Printing {} table entries", i);
+            tab.printstd();
+        } else {
+            debug!("Not printing table because there are zero entries");
+        }
     }
 
 }
