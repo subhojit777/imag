@@ -39,7 +39,7 @@ pub fn list_command(module: &Module, env: CommandEnv) -> CommandResult {
     let files   = get_filtered_files_from_backend(module, &env);
 
     debug!("Printing files now");
-    printer.print_files(files);
+    files.map(|f| printer.print_files(f));
 
     Ok(())
 }
