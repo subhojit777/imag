@@ -194,7 +194,9 @@ impl StorageBackend {
             // We don't know the hash type, so we glob() around a bit.
             debug!("Having FileIDType::NONE, so we glob() for the raw ID");
 
-            let globstr = self.prefix_of_files_for_module(m) + "*" + ".imag";
+            let id_str = id.get_id().unwrap_or(String::from("INVALID"));
+            let globstr = self.prefix_of_files_for_module(m) + "*" + &id_str[..] + ".imag";
+            debug!("Globbing with globstr = '{}'", globstr);
             glob(&globstr[..]).map(|globlist| {
                 let mut vec = globlist_to_file_id_vec(globlist).into_iter()
                                 .filter_map(|id| self.get_file_by_id(m, &id, p))
