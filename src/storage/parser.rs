@@ -139,31 +139,33 @@ impl<HP> Parser<HP> where
     }
 
     fn divide_text(&self, text: &String) -> Result<TextTpl, ParserError> {
-        let re = Regex::new(r"(?sm)^---$\n(.*)^---$\n(.*)").unwrap();
+        let re = Regex::new(r"(?sm)^---$(.*)^---$(.*)").unwrap();
 
         debug!("Splitting: '{}'", text);
         debug!("   regex = {:?}", re);
 
-        let captures = re.captures(&text[..]).unwrap_or({
+        re.captures(text).map(|captures| {
+
+            if captures.len() != 3 {
+                debug!("Unexpected amount of captures");
+                return Err(ParserError::new("Unexpected Regex output",
+                                            text.clone(), 0,
+                                            "The regex to divide text into header and content had an unexpected output."))
+            }
+
+            let header  = captures.at(1).map(|s| String::from(s));
+            let content = captures.at(2).map(|s| String::from(s));
+
+            debug!("Splitted, Header = '{:?}'", header.clone().unwrap_or("NONE".into()));
+            debug!("Splitted, Data   = '{:?}'", content.clone().unwrap_or("NONE".into()));
+            Ok((header, content))
+        }).or_else(|| {
             debug!("Cannot capture from text");
-            return Err(ParserError::new("Cannot run regex on text",
-                                        text.clone(), 0,
-                                        "Cannot run regex on text to divide it into header and content."))
-        });
-
-        if captures.len() != 2 {
-            debug!("Unexpected amount of captures");
-            return Err(ParserError::new("Unexpected Regex output",
-                                        text.clone(), 0,
-                                        "The regex to divide text into header and content had an unexpected output."))
-        }
-
-        let header  = captures.at(0).map(|s| String::from(s));
-        let content = captures.at(1).map(|s| String::from(s));
-
-        debug!("Splitted, Header = '{:?}'", header);
-        debug!("Splitted, Data   = '{:?}'", content);
-        Ok((header, content))
+            let e = ParserError::new("Cannot run regex on text",
+                                     text.clone(), 0,
+                                     "Cannot run regex on text to divide it into header and content.");
+            Some(Err(e))
+        }).unwrap()
     }
 
 }
