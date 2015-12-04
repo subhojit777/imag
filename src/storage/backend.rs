@@ -72,15 +72,23 @@ impl StorageBackend {
         }
     }
 
-    pub fn iter_ids(&self, m: &Module) -> Option<IntoIter<FileID>>
+    pub fn iter_ids(&self, m: &Module) -> Result<IntoIter<FileID>, StorageBackendError>
     {
-        glob(&self.prefix_of_files_for_module(m)[..]).and_then(|globlist| {
-            let v = globlist.filter_map(Result::ok)
-                            .map(|pbuf| FileID::from(&pbuf))
-                            .collect::<Vec<FileID>>()
-                            .into_iter();
-            Ok(v)
-        }).ok()
+        glob(&self.prefix_of_files_for_module(m)[..])
+            .and_then(|globlist| {
+                let v = globlist.filter_map(Result::ok)
+                                .map(|pbuf| FileID::from(&pbuf))
+                                .collect::<Vec<FileID>>()
+                                .into_iter();
+                Ok(v)
+            })
+            .map_err(|e| {
+                let serr = StorageBackendError::build(
+                        "iter_ids()",
+                        "Cannot iter on file ids",
+                        None);
+                serr
+            })
     }
 
     pub fn iter_files<'a, HP>(&self, m: &'a Module, p: &Parser<HP>)
