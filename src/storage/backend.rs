@@ -81,9 +81,7 @@ impl StorageBackend {
             .and_then(|ids| {
                 debug!("Iterating ids and building files from them");
                 debug!("  number of ids = {}", ids.len());
-                Ok(ids.filter_map(|id| self.get_file_by_id(m, &id, p))
-                        .collect::<Vec<File>>()
-                        .into_iter())
+                Ok(self.filter_map_ids_to_files(m, p, ids).into_iter())
             })
             .map_err(|e| {
                 debug!("StorageBackend::iter_ids() returned error = {:?}", e);
@@ -198,9 +196,8 @@ impl StorageBackend {
             let globstr = self.prefix_of_files_for_module(m) + "*" + &id_str[..] + ".imag";
             debug!("Globbing with globstr = '{}'", globstr);
             glob(&globstr[..]).map(|globlist| {
-                let mut vec = globlist_to_file_id_vec(globlist).into_iter()
-                                .filter_map(|id| self.get_file_by_id(m, &id, p))
-                                .collect::<Vec<File>>();
+                let idvec = globlist_to_file_id_vec(globlist).into_iter();
+                let mut vec = self.filter_map_ids_to_files(m, p, idvec);
                 vec.reverse();
                 vec.pop()
             }).unwrap_or({
@@ -270,6 +267,17 @@ impl StorageBackend {
         self.storepath.clone() + m.name()
     }
 
+    fn filter_map_ids_to_files<'a, HP>(&self,
+                                        m: &'a Module,
+                                        p: &Parser<HP>,
+                                        ids: IntoIter<FileID>)
+        -> Vec<File<'a>>
+        where HP: FileHeaderParser
+    {
+        ids.filter_map(|id| self.get_file_by_id(m, &id, p))
+           .collect::<Vec<File>>()
+    }
+
 }
 
 #[derive(Debug)]
@@ -335,3 +343,4 @@ fn globlist_to_file_id_vec(globlist: Paths) -> Vec<FileID> {
             .map(|pbuf| FileID::from(&pbuf))
             .collect::<Vec<FileID>>()
 }
+
