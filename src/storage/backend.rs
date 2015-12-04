@@ -54,7 +54,9 @@ impl StorageBackend {
 
     pub fn iter_ids(&self, m: &Module) -> Result<IntoIter<FileID>, StorageBackendError>
     {
-        glob(&self.prefix_of_files_for_module(m)[..])
+        let globstr = self.prefix_of_files_for_module(m) + "*.imag";
+        debug!("Globstring = {}", globstr);
+        glob(&globstr[..])
             .and_then(|globlist| {
                 debug!("Iterating over globlist");
                 Ok(globlist.filter_map(Result::ok)
