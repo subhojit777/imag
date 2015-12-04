@@ -73,6 +73,10 @@ impl FileID {
         self.id_type.clone()
     }
 
+    pub fn get_id(&self) -> Option<String> {
+        self.id.clone()
+    }
+
 }
 
 impl Debug for FileID {
