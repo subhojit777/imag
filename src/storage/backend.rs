@@ -192,6 +192,7 @@ impl StorageBackend {
 
         if id.get_type() == FileIDType::NONE {
             // We don't know the hash type, so we glob() around a bit.
+            debug!("Having FileIDType::NONE, so we glob() for the raw ID");
 
             let globstr = self.prefix_of_files_for_module(m) + "*" + ".imag";
             glob(&globstr[..]).map(|globlist| {
@@ -200,10 +201,14 @@ impl StorageBackend {
                                 .collect::<Vec<File>>();
                 vec.reverse();
                 vec.pop()
-            }).map_err(|e| e).unwrap()
+            }).unwrap_or({
+                debug!("No glob matches, actually. We can't do anything at this point");
+                None
+            })
         } else {
             // The (hash)type is already in the FileID object, so we can just
             // build a path from the information we already have
+            debug!("We know FileIDType, so we build the path directly now");
             if let Ok(mut fs) = FSFile::open(self.build_filepath_with_id(m, id.clone())) {
                 let mut s = String::new();
                 fs.read_to_string(&mut s);
