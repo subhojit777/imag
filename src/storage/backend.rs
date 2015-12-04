@@ -92,14 +92,22 @@ impl StorageBackend {
     }
 
     pub fn iter_files<'a, HP>(&self, m: &'a Module, p: &Parser<HP>)
-        -> Option<IntoIter<File<'a>>>
+        -> Result<IntoIter<File<'a>>, StorageBackendError>
         where HP: FileHeaderParser
     {
-        self.iter_ids(m).and_then(|ids| {
-            Some(ids.filter_map(|id| self.get_file_by_id(m, &id, p))
-                    .collect::<Vec<File>>()
-                    .into_iter())
-        })
+        self.iter_ids(m)
+            .and_then(|ids| {
+                Ok(ids.filter_map(|id| self.get_file_by_id(m, &id, p))
+                        .collect::<Vec<File>>()
+                        .into_iter())
+            })
+            .map_err(|e| {
+                let serr = StorageBackendError::build(
+                        "iter_files()",
+                        "Cannot iter on files",
+                        None);
+                serr
+            })
     }
 
     /*
