@@ -73,6 +73,10 @@ impl FileID {
         self.id_type.clone()
     }
 
+    pub fn get_id(&self) -> Option<String> {
+        self.id.clone()
+    }
+
 }
 
 impl Debug for FileID {
@@ -127,7 +131,7 @@ impl From<String> for FileID {
 impl<'a> From<&'a String> for FileID {
 
     fn from(string: &'a String) -> FileID {
-
+        // we assume that it is an path
         let regex = Regex::new(r"([:alnum:]*)-([:upper:]*)-([A-Za-z0-9-_]*)\.(.*)").unwrap();
         let s = string.split("/").last().unwrap_or("");
 
@@ -160,9 +164,10 @@ impl<'a> From<&'a String> for FileID {
             Some(FileID::new(idtype, String::from(hash)))
         }).unwrap_or({
             debug!("Did not match");
+            debug!("It is no path, actually. So we assume it is an ID already");
             FileID {
                 id_type: FileIDType::NONE,
-                id: None,
+                id: Some(string.clone()),
             }
         })
     }

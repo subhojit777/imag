@@ -59,10 +59,7 @@ impl StorageBackend {
         glob(&globstr[..])
             .and_then(|globlist| {
                 debug!("Iterating over globlist");
-                Ok(globlist.filter_map(Result::ok)
-                           .map(|pbuf| FileID::from(&pbuf))
-                           .collect::<Vec<FileID>>()
-                           .into_iter())
+                Ok(globlist_to_file_id_vec(globlist).into_iter())
             })
             .map_err(|e| {
                 debug!("glob() returned error: {:?}", e);
@@ -189,16 +186,41 @@ impl StorageBackend {
     pub fn get_file_by_id<'a, HP>(&self, m: &'a Module, id: &FileID, p: &Parser<HP>) -> Option<File<'a>>
         where HP: FileHeaderParser
     {
+        use std::ops::Index;
+
         debug!("Searching for file with id '{}'", id);
-        if let Ok(mut fs) = FSFile::open(self.build_filepath_with_id(m, id.clone())) {
-            let mut s = String::new();
-            fs.read_to_string(&mut s);
-            debug!("Success opening file with id '{}'", id);
-            debug!("Parsing to internal structure now");
-            p.read(s).and_then(|(h, d)| Ok(File::from_parser_result(m, id.clone(), h, d))).ok()
+
+        if id.get_type() == FileIDType::NONE {
+            // We don't know the hash type, so we glob() around a bit.
+            debug!("Having FileIDType::NONE, so we glob() for the raw ID");
+
+            let id_str = id.get_id().unwrap_or(String::from("INVALID"));
+            let globstr = self.prefix_of_files_for_module(m) + "*" + &id_str[..] + ".imag";
+            debug!("Globbing with globstr = '{}'", globstr);
+            glob(&globstr[..]).map(|globlist| {
+                let mut vec = globlist_to_file_id_vec(globlist).into_iter()
+                                .filter_map(|id| self.get_file_by_id(m, &id, p))
+                                .collect::<Vec<File>>();
+                vec.reverse();
+                vec.pop()
+            }).unwrap_or({
+                debug!("No glob matches, actually. We can't do anything at this point");
+                None
+            })
         } else {
-            debug!("No file with id '{}'", id);
-            None
+            // The (hash)type is already in the FileID object, so we can just
+            // build a path from the information we already have
+            debug!("We know FileIDType, so we build the path directly now");
+            if let Ok(mut fs) = FSFile::open(self.build_filepath_with_id(m, id.clone())) {
+                let mut s = String::new();
+                fs.read_to_string(&mut s);
+                debug!("Success opening file with id '{}'", id);
+                debug!("Parsing to internal structure now");
+                p.read(s).and_then(|(h, d)| Ok(File::from_parser_result(m, id.clone(), h, d))).ok()
+            } else {
+                debug!("No file with id '{}'", id);
+                None
+            }
         }
     }
 
@@ -306,4 +328,10 @@ fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, Storage
             serr.caused_by = Some(Box::new(err));
             Err(serr)
         })
+}
+
+fn globlist_to_file_id_vec(globlist: Paths) -> Vec<FileID> {
+    globlist.filter_map(Result::ok)
+            .map(|pbuf| FileID::from(&pbuf))
+            .collect::<Vec<FileID>>()
 }

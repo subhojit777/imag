@@ -60,8 +60,14 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
         debug!("Remove by id: {}", id);
 
         let parser = Parser::new(JsonHeaderParser::new(None));
-        let file   = env.bk.get_file_by_id(module, &id.into(), &parser).unwrap();
-        debug!("Remove file  : {:?}", file);
+        let file = env.bk
+            .get_file_by_id(module, &id.into(), &parser)
+            .unwrap_or({
+                info!("No files found");
+                return Ok(())
+            });
+
+        debug!("Remove file: {:?}", file);
 
         if let Err(e) = env.bk.remove_file(module, file, checked) {
             debug!("Remove failed");
@@ -69,7 +75,7 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
             err.caused_by = Some(Box::new(e));
             Err(err)
         } else {
-            debug!("Remove worked");
+            info!("Remove worked");
             Ok(())
         }
     } else {
