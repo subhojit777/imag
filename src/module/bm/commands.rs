@@ -49,11 +49,7 @@ pub fn list_command(module: &Module, env: CommandEnv) -> CommandResult {
 }
 
 pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
-    let checked : bool = run_removal_checking(&env);
-    debug!("Checked mode: {}", checked);
-    if let Some(id) = get_id(env.rt, env.matches) {
-        debug!("Remove by id: {}", id);
-
+    fn remove_by_id(module: &Module, env: CommandEnv, id: String, checked: bool) -> CommandResult {
         let parser = Parser::new(JsonHeaderParser::new(None));
         let file = env.bk
             .get_file_by_id(module, &id.into(), &parser)
@@ -73,9 +69,9 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
             info!("Remove worked");
             Ok(())
         }
-    } else {
-        debug!("Remove more than one file");
+    }
 
+    fn remove_by_filtering(module: &Module, env: CommandEnv, checked: bool) -> CommandResult {
         get_filtered_files_from_backend(module, &env).and_then(|files| {
             let nfiles = files.len();
             info!("Removing {} Files", nfiles);
@@ -105,6 +101,17 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
                 Ok(())
             }
         })
+    }
+
+    let checked : bool = run_removal_checking(&env);
+    debug!("Checked mode: {}", checked);
+
+    if let Some(id) = get_id(env.rt, env.matches) {
+        debug!("Remove by id: {}", id);
+        remove_by_id(module, env, id, checked)
+    } else {
+        debug!("Remove more than one file");
+        remove_by_filtering(module, env, checked)
     }
 }
 
