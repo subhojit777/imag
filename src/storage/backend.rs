@@ -25,6 +25,8 @@ pub struct StorageBackend {
 impl StorageBackend {
 
     pub fn new(rt: &Runtime) -> BackendOperationResult<StorageBackend> {
+        use self::StorageBackendError as SBE;
+
         let storepath = rt.get_rtp() + "/store/";
         debug!("Trying to create {}", storepath);
         create_dir_all(&storepath).and_then(|_| {
@@ -35,13 +37,15 @@ impl StorageBackend {
             })
         }).or_else(|e| {
             debug!("Creating failed, constructing error instance");
-            Err(serr_build("create_dir_all()", "Could not create store directories",
+            Err(SBE::new("create_dir_all()", "Could not create store directories",
                            Some(storepath), Some(Box::new(e))))
         })
     }
 
     pub fn iter_ids(&self, m: &Module) -> Result<IntoIter<FileID>, StorageBackendError>
     {
+        use self::StorageBackendError as SBE;
+
         let globstr = self.prefix_of_files_for_module(m) + "*.imag";
         debug!("Globstring = {}", globstr);
         glob(&globstr[..])
@@ -51,8 +55,7 @@ impl StorageBackend {
             })
             .map_err(|e| {
                 debug!("glob() returned error: {:?}", e);
-                serr_build("iter_ids()", "Cannot iter on file ids",
-                        None, None)
+                SBE::new("iter_ids()", "Cannot iter on file ids", None, None)
             })
     }
 
@@ -60,6 +63,8 @@ impl StorageBackend {
         -> Result<IntoIter<File<'a>>, StorageBackendError>
         where HP: FileHeaderParser
     {
+        use self::StorageBackendError as SBE;
+
         self.iter_ids(m)
             .and_then(|ids| {
                 debug!("Iterating ids and building files from them");
@@ -68,8 +73,8 @@ impl StorageBackend {
             })
             .map_err(|e| {
                 debug!("StorageBackend::iter_ids() returned error = {:?}", e);
-                serr_build("iter_files()", "Cannot iter on files",
-                            None, Some(Box::new(e)))
+                SBE::new("iter_files()", "Cannot iter on files", None,
+                         Some(Box::new(e)))
             })
     }
 
@@ -81,6 +86,8 @@ impl StorageBackend {
     pub fn put_file<HP>(&self, f: File, p: &Parser<HP>) -> BackendOperationResult
         where HP: FileHeaderParser
     {
+        use self::StorageBackendError as SBE;
+
         let written = write_with_parser(&f, p);
         if written.is_err() { return Err(written.err().unwrap()); }
         let string = written.unwrap();
@@ -94,14 +101,14 @@ impl StorageBackend {
             file.write_all(&string.clone().into_bytes())
                 .map_err(|ioerr| {
                     debug!("Could not write file");
-                    serr_build("File::write_all()",
-                               "Could not write out File contents",
-                               None, Some(Box::new(ioerr)))
+                    SBE::new("File::write_all()",
+                             "Could not write out File contents",
+                             None, Some(Box::new(ioerr)))
                 })
         }).map_err(|writeerr| {
             debug!("Could not create file at '{}'", path);
-            serr_build("File::create()", "Creating file on disk failed",
-                       None, Some(Box::new(writeerr)))
+            SBE::new("File::create()", "Creating file on disk failed", None,
+                     Some(Box::new(writeerr)))
         }).and(Ok(()))
     }
 
@@ -112,6 +119,8 @@ impl StorageBackend {
     pub fn update_file<HP>(&self, f: File, p: &Parser<HP>) -> BackendOperationResult
         where HP: FileHeaderParser
     {
+        use self::StorageBackendError as SBE;
+
         let contents = write_with_parser(&f, p);
         if contents.is_err() { return Err(contents.err().unwrap()); }
         let string = contents.unwrap();
@@ -125,15 +134,15 @@ impl StorageBackend {
             file.write_all(&string.clone().into_bytes())
                 .map_err(|ioerr| {
                     debug!("Could not write file");
-                    serr_build("File::write()",
-                               "Tried to write contents of this file, though operation did not succeed",
-                                Some(string), Some(Box::new(ioerr)))
+                    SBE::new("File::write()",
+                             "Tried to write contents of this file, though operation did not succeed",
+                             Some(string), Some(Box::new(ioerr)))
                 })
         }).map_err(|writeerr| {
             debug!("Could not write file at '{}'", path);
-            serr_build("File::open()",
-                       "Tried to update contents of this file, though file doesn't exist",
-                       None, Some(Box::new(writeerr)))
+            SBE::new("File::open()",
+                     "Tried to update contents of this file, though file doesn't exist",
+                     None, Some(Box::new(writeerr)))
         }).and(Ok(()))
     }
 
@@ -187,6 +196,8 @@ impl StorageBackend {
     }
 
     pub fn remove_file(&self, m: &Module, file: File, checked: bool) -> BackendOperationResult {
+        use self::StorageBackendError as SBE;
+
         if checked {
             error!("Checked remove not implemented yet. I will crash now");
             unimplemented!()
@@ -197,8 +208,8 @@ impl StorageBackend {
 
         let fp = self.build_filepath(&file);
         remove_file(fp).map_err(|e| {
-            serr_build("remove_file()", "File removal failed",
-                       Some(format!("{}", file)), Some(Box::new(e)))
+            SBE::new("remove_file()", "File removal failed",
+                     Some(format!("{}", file)), Some(Box::new(e)))
         })
     }
 
@@ -250,7 +261,11 @@ pub struct StorageBackendError {
 
 impl StorageBackendError {
 
-    fn new<S>(action: S, desc: S, data: Option<String>) -> StorageBackendError
+    fn new<S>(action: S,
+              desc: S,
+              data: Option<String>,
+              cause: Option<Box<Error>>)
+        -> StorageBackendError
         where S: Into<String>
     {
         StorageBackendError {
@@ -286,11 +301,13 @@ impl<'a> Display for StorageBackendError {
 fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, StorageBackendError>
     where HP: FileHeaderParser
 {
+    use self::StorageBackendError as SBE;
+
     p.write(f.contents())
         .or_else(|err| {
-            Err(serr_build("Parser::write()",
-                           "Cannot translate internal representation of file contents into on-disk representation",
-                           None, Some(Box::new(err))))
+            Err(SBE::new("Parser::write()",
+                         "Cannot translate internal representation of file contents into on-disk representation",
+                         None, Some(Box::new(err))))
         })
 }
 
@@ -298,18 +315,5 @@ fn globlist_to_file_id_vec(globlist: Paths) -> Vec<FileID> {
     globlist.filter_map(Result::ok)
             .map(|pbuf| FileID::from(&pbuf))
             .collect::<Vec<FileID>>()
-}
-
-/*
- * Helper to build a StorageBackendError object with cause, because one line is
- * less than three lines
- */
-fn serr_build(action: &'static str, desc: &'static str,
-              data: Option<String>, caused_by: Option<Box<Error>>)
-    -> StorageBackendError
-{
-    let mut err = StorageBackendError::new(action, desc, data);
-    err.caused_by = caused_by;
-    err
 }
 
