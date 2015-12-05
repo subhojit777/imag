@@ -1,7 +1,8 @@
-use regex::Regex;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
+
+use regex::Regex;
 
 use super::file::{FileHeaderSpec, FileHeaderData};
 

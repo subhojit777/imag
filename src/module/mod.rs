@@ -1,15 +1,13 @@
-use runtime::Runtime;
+use std::collections::HashMap;
 use std::error::Error;
-use std::fmt::Formatter;
+use std::fmt::{Debug, Display, Formatter};
 use std::fmt::Result as FMTResult;
-use std::fmt::Display;
-use std::fmt::Debug;
 use std::path::Path;
 use std::result::Result;
-use std::collections::HashMap;
 
 use clap::{App, ArgMatches};
 
+use runtime::Runtime;
 use storage::backend::{StorageBackend, StorageBackendError};
 
 pub mod bm;

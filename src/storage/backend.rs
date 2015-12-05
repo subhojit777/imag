@@ -1,26 +1,20 @@
 use std::error::Error;
-use std::fmt::Display;
-use std::fmt::Formatter;
+use std::fmt::{Display, Formatter};
 use std::fmt::Result as FMTResult;
-use std::path::Path;
-use std::path::PathBuf;
-use std::vec::Vec;
 use std::fs::File as FSFile;
-use std::fs::create_dir_all;
-use std::fs::remove_file;
-use std::io::Read;
-use std::io::Write;
-use std::vec::IntoIter;
+use std::fs::{create_dir_all, remove_file};
+use std::io::{Read, Write};
+use std::path::{Path, PathBuf};
+use std::vec::{Vec, IntoIter};
 
 use glob::glob;
 use glob::Paths;
 
+use module::Module;
+use runtime::Runtime;
 use storage::file::File;
 use storage::file_id::*;
 use storage::parser::{FileHeaderParser, Parser, ParserError};
-
-use module::Module;
-use runtime::Runtime;
 
 pub type BackendOperationResult<T = ()> = Result<T, StorageBackendError>;
 

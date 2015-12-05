@@ -1,13 +1,10 @@
+use std::fmt::{Debug, Formatter, Error};
+
 extern crate log;
+use log::{LogRecord, LogLevel, LogLevelFilter, LogMetadata, SetLoggerError};
 
 pub use cli::CliConfig;
 pub use configuration::Configuration as Cfg;
-
-use std::fmt::Debug;
-use std::fmt::Formatter;
-use std::fmt::Error;
-
-use log::{LogRecord, LogLevel, LogLevelFilter, LogMetadata, SetLoggerError};
 
 pub struct ImagLogger {
     lvl: LogLevel,

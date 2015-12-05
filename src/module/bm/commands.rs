@@ -1,21 +1,16 @@
-use runtime::Runtime;
-use storage::backend::{StorageBackendError, StorageBackend};
-
-use module::Module;
-use module::ModuleError;
-use module::CommandResult;
-use module::CommandEnv;
-
-use module::bm::header::build_header;
-use module::bm::header::get_tags_from_header;
-use storage::json::parser::JsonHeaderParser;
-use storage::parser::{Parser, FileHeaderParser};
-use storage::file::File;
-use ui::file::{FilePrinter, TablePrinter};
 use std::vec::IntoIter;
 
 use clap::ArgMatches;
 use regex::Regex;
+
+use module::{CommandEnv, CommandResult, Module, ModuleError};
+use module::bm::header::{build_header, get_tags_from_header};
+use runtime::Runtime;
+use storage::backend::{StorageBackendError, StorageBackend};
+use storage::file::File;
+use storage::json::parser::JsonHeaderParser;
+use storage::parser::{Parser, FileHeaderParser};
+use ui::file::{FilePrinter, TablePrinter};
 
 pub fn add_command(module: &Module, env: CommandEnv) -> CommandResult {
     use url::Url;

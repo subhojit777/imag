@@ -1,16 +1,15 @@
+use std::collections::HashMap;
+use std::io::stdout;
+use std::error::Error;
+
 use serde_json::{Value, from_str};
 use serde_json::error::Result as R;
 use serde_json::Serializer;
 use serde::ser::Serialize;
 use serde::ser::Serializer as Ser;
 
-use std::collections::HashMap;
-use std::io::stdout;
-use std::error::Error;
-
-use super::super::parser::{FileHeaderParser, ParserError};
-use super::super::file::{FileHeaderSpec, FileHeaderData};
-
+use storage::parser::{FileHeaderParser, ParserError};
+use storage::file::{FileHeaderSpec, FileHeaderData};
 
 pub struct JsonHeaderParser {
     spec: Option<FileHeaderSpec>,

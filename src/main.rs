@@ -11,6 +11,8 @@
 extern crate url;
 extern crate config;
 
+use std::process::exit;
+
 use cli::CliConfig;
 use configuration::Configuration;
 use runtime::{ImagLogger, Runtime};
@@ -27,8 +29,6 @@ mod runtime;
 mod module;
 mod storage;
 mod ui;
-
-use std::process::exit;
 
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
