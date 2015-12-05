@@ -137,7 +137,8 @@ fn get_filtered_files_from_backend<'a>(module: &'a Module,
     let parser = Parser::new(JsonHeaderParser::new(None));
     let tags = get_tags(env.rt, env.matches);
     debug!("Tags: {:?}", tags);
-    env.bk.iter_files(module, &parser)
+    env.bk
+        .iter_files(module, &parser)
         .map(|files| {
             files.filter(|file| {
                 debug!("Backend returns file: {:?}", file);
@@ -145,9 +146,11 @@ fn get_filtered_files_from_backend<'a>(module: &'a Module,
             }).filter(|file| {
                 debug!("Checking matches of: {:?}", file.id());
                 get_matcher(env.rt, env.matches)
-                    .and_then(|r| Some(file.matches_with(&r)))
+                    .map(|r| file.matches_with(&r))
                     .unwrap_or(true)
-            }).collect::<Vec<File>>().into_iter()
+            })
+            .collect::<Vec<File>>()
+            .into_iter()
         }).map_err(|e| {
             debug!("Error from Backend: {:?}", e);
             let mut merr = ModuleError::new("Could not filter files");
