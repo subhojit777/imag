@@ -1,10 +1,9 @@
+use std::convert::{From, Into};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
+use std::path::PathBuf;
 use std::result::Result;
-use std::path::{Path, PathBuf};
-use std::convert::From;
-use std::convert::Into;
 
 use regex::Regex;
 

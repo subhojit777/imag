@@ -1,14 +1,9 @@
-extern crate clap;
-
-use cli::CliConfig;
-
+use std::fmt::{Debug, Formatter, Error};
 use std::path::Path;
+
 use config::reader::from_file;
 use config::types::Config as Cfg;
-
-use std::fmt::Debug;
-use std::fmt::Formatter;
-use std::fmt::Error;
+use cli::CliConfig;
 
 pub struct Configuration {
     pub rtp         : String,
@@ -20,8 +15,6 @@ pub struct Configuration {
 impl Configuration {
 
     pub fn new(config: &CliConfig) -> Configuration {
-        use std::env::home_dir;
-
         let rtp = rtp_path(config).or(default_path());
 
         let mut verbose     = false;

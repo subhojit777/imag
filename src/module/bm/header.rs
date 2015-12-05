@@ -1,6 +1,7 @@
-use storage::file::FileHeaderSpec as FHS;
-use storage::file::FileHeaderData as FHD;
 use std::ops::Deref;
+
+use storage::file::FileHeaderData as FHD;
+use storage::file::FileHeaderSpec as FHS;
 
 pub fn get_spec() -> FHS {
     FHS::Map { keys: vec![ url_key(), tags_key() ] }

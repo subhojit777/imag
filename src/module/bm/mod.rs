@@ -1,23 +1,11 @@
-use runtime::Runtime;
-use module::Module;
-use module::CommandMap;
-use module::ModuleResult;
-use module::ModuleError;
-use std::path::Path;
-use std::result::Result;
-use std::fmt::Result as FMTResult;
-use std::fmt::Formatter;
-use std::fmt::Debug;
-use clap::ArgMatches;
-use regex::Regex;
-
 mod header;
 mod commands;
 
-use self::header::build_header;
-use storage::json::parser::JsonHeaderParser;
-use storage::parser::FileHeaderParser;
+use std::fmt::{Debug, Formatter};
+use std::fmt::Result as FMTResult;
 
+use module::{CommandMap, Module, ModuleResult};
+use runtime::Runtime;
 use self::commands::*;
 
 pub struct BMModule {

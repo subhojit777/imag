@@ -1,21 +1,16 @@
-use runtime::Runtime;
-use storage::backend::{StorageBackendError, StorageBackend};
-
-use module::Module;
-use module::ModuleError;
-use module::CommandResult;
-use module::CommandEnv;
-
-use module::bm::header::build_header;
-use module::bm::header::get_tags_from_header;
-use storage::json::parser::JsonHeaderParser;
-use storage::parser::{Parser, FileHeaderParser};
-use storage::file::File;
-use ui::file::{FilePrinter, TablePrinter};
 use std::vec::IntoIter;
 
 use clap::ArgMatches;
 use regex::Regex;
+
+use module::{CommandEnv, CommandResult, Module, ModuleError};
+use module::bm::header::{build_header, get_tags_from_header};
+use runtime::Runtime;
+use storage::backend::StorageBackendError;
+use storage::file::File;
+use storage::json::parser::JsonHeaderParser;
+use storage::parser::Parser;
+use ui::file::{FilePrinter, TablePrinter};
 
 pub fn add_command(module: &Module, env: CommandEnv) -> CommandResult {
     use url::Url;
@@ -54,11 +49,7 @@ pub fn list_command(module: &Module, env: CommandEnv) -> CommandResult {
 }
 
 pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
-    let checked : bool = run_removal_checking(&env);
-    debug!("Checked mode: {}", checked);
-    if let Some(id) = get_id(env.rt, env.matches) {
-        debug!("Remove by id: {}", id);
-
+    fn remove_by_id(module: &Module, env: CommandEnv, id: String, checked: bool) -> CommandResult {
         let parser = Parser::new(JsonHeaderParser::new(None));
         let file = env.bk
             .get_file_by_id(module, &id.into(), &parser)
@@ -78,9 +69,9 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
             info!("Remove worked");
             Ok(())
         }
-    } else {
-        debug!("Remove more than one file");
+    }
 
+    fn remove_by_filtering(module: &Module, env: CommandEnv, checked: bool) -> CommandResult {
         get_filtered_files_from_backend(module, &env).and_then(|files| {
             let nfiles = files.len();
             info!("Removing {} Files", nfiles);
@@ -97,10 +88,8 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
                 })
                 .collect::<Vec<StorageBackendError>>();
 
-            let nerrs = errs.len();
-
-            if nerrs != 0 {
-                warn!("{} Errors occured while removing {} files", nerrs, nfiles);
+            if errs.len() != 0 {
+                warn!("{} Errors occured while removing {} files", errs.len(), nfiles);
                 let moderr = ModuleError::new("File removal failed");
 
                 // TODO : Collect StorageBackendErrors
@@ -110,6 +99,17 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
                 Ok(())
             }
         })
+    }
+
+    let checked : bool = run_removal_checking(&env);
+    debug!("Checked mode: {}", checked);
+
+    if let Some(id) = get_id(env.rt, env.matches) {
+        debug!("Remove by id: {}", id);
+        remove_by_id(module, env, id, checked)
+    } else {
+        debug!("Remove more than one file");
+        remove_by_filtering(module, env, checked)
     }
 }
 
@@ -123,27 +123,34 @@ fn get_filtered_files_from_backend<'a>(module: &'a Module,
                                        env: &CommandEnv)
     -> Result<IntoIter<File<'a>>, ModuleError>
 {
+    fn check_tags(tags: &Vec<String>, file: &File) -> bool {
+        if tags.len() != 0 {
+            debug!("Checking tags of: {:?}", file.id());
+            get_tags_from_header(&file.header())
+                .iter()
+                .any(|t| tags.contains(t))
+        } else {
+            true
+        }
+    }
+
     let parser = Parser::new(JsonHeaderParser::new(None));
     let tags = get_tags(env.rt, env.matches);
     debug!("Tags: {:?}", tags);
-    env.bk.iter_files(module, &parser)
+    env.bk
+        .iter_files(module, &parser)
         .map(|files| {
-            let f = files.filter(|file| {
+            files.filter(|file| {
                 debug!("Backend returns file: {:?}", file);
-                if tags.len() != 0 {
-                    debug!("Checking tags of: {:?}", file.id());
-                    get_tags_from_header(&file.header()).iter()
-                        .any(|t| tags.contains(t))
-                } else {
-                    true
-                }
+                check_tags(&tags, file)
             }).filter(|file| {
                 debug!("Checking matches of: {:?}", file.id());
                 get_matcher(env.rt, env.matches)
-                    .and_then(|r| Some(file.matches_with(&r)))
+                    .map(|r| file.matches_with(&r))
                     .unwrap_or(true)
-            }).collect::<Vec<File>>();
-            f.into_iter()
+            })
+            .collect::<Vec<File>>()
+            .into_iter()
         }).map_err(|e| {
             debug!("Error from Backend: {:?}", e);
             let mut merr = ModuleError::new("Could not filter files");
@@ -153,21 +160,25 @@ fn get_filtered_files_from_backend<'a>(module: &'a Module,
 }
 
 fn get_tags<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Vec<String> {
-    debug!("Fetching tags from commandline");
-    sub.value_of("tags").and_then(|tags|
-                                  Some(tags.split(",")
-                                       .into_iter()
-                                       .map(|s| s.to_string())
-                                       .filter(|e|
-                                            if e.contains(" ") {
-                                                warn!("Tag contains spaces: '{}'", e);
-                                                false
-                                            } else {
-                                                true
-                                            }).collect()
-                                      )
-                                 ).or(Some(vec![])).unwrap()
 
+    fn reject_if_with_spaces(e: &String) -> bool {
+        if e.contains(" ") {
+            warn!("Tag contains spaces: '{}'", e);
+            false
+        } else {
+            true
+        }
+    }
+
+    debug!("Fetching tags from commandline");
+    sub.value_of("tags").and_then(|tags| {
+        Some(tags.split(",")
+                 .into_iter()
+                 .map(|s| s.to_string())
+                 .filter(|e| reject_if_with_spaces(e))
+                 .collect()
+          )
+    }).or(Some(vec![])).unwrap()
 }
 
 fn get_matcher<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Option<Regex> {

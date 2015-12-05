@@ -1,9 +1,10 @@
-use regex::Regex;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 
-use super::file::{FileHeaderSpec, FileHeaderData};
+use regex::Regex;
+
+use super::file::FileHeaderData;
 
 pub struct ParserError {
     summary: String,

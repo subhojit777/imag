@@ -1,9 +1,7 @@
+use std::fmt::{Debug, Formatter, Error};
+
 extern crate clap;
 use clap::{App, ArgMatches};
-
-use std::fmt::Debug;
-use std::fmt::Formatter;
-use std::fmt::Error;
 
 pub struct ModuleConfig {
     pub load : bool,

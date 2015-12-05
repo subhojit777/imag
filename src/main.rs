@@ -1,5 +1,3 @@
-#![feature(box_patterns)]
-
 #[macro_use] extern crate clap;
 #[macro_use] extern crate log;
 #[macro_use] extern crate serde;
@@ -10,6 +8,8 @@
 #[macro_use] extern crate prettytable;
 extern crate url;
 extern crate config;
+
+use std::process::exit;
 
 use cli::CliConfig;
 use configuration::Configuration;
@@ -27,8 +27,6 @@ mod runtime;
 mod module;
 mod storage;
 mod ui;
-
-use std::process::exit;
 
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");

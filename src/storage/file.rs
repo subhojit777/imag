@@ -2,11 +2,11 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 
-use module::Module;
-use super::parser::{FileHeaderParser, Parser, ParserError};
-use storage::file_id::*;
-
 use regex::Regex;
+
+use module::Module;
+use storage::file_id::*;
+use super::parser::{FileHeaderParser, Parser, ParserError};
 
 #[derive(Debug)]
 #[derive(Clone)]
