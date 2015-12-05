@@ -35,13 +35,8 @@ impl StorageBackend {
             })
         }).or_else(|e| {
             debug!("Creating failed, constructing error instance");
-            let mut serr = StorageBackendError::new(
-                "create_dir_all()",
-                "Could not create store directories",
-                Some(storepath)
-            );
-            serr.caused_by = Some(Box::new(e));
-            Err(serr)
+            Err(serr_build("create_dir_all()", "Could not create store directories",
+                           Some(storepath), Some(Box::new(e))))
         })
     }
 
@@ -56,13 +51,8 @@ impl StorageBackend {
             })
             .map_err(|e| {
                 debug!("glob() returned error: {:?}", e);
-                let serr = StorageBackendError::new(
-                        "iter_ids()",
-                        "Cannot iter on file ids",
-                        None);
-                // Why the hack is Error not implemented for glob::PatternError
-                // serr.caused_by = Some(Box::new(e));
-                serr
+                serr_build("iter_ids()", "Cannot iter on file ids",
+                        None, None)
             })
     }
 
@@ -78,11 +68,8 @@ impl StorageBackend {
             })
             .map_err(|e| {
                 debug!("StorageBackend::iter_ids() returned error = {:?}", e);
-                let mut serr = StorageBackendError::new("iter_files()",
-                                           "Cannot iter on files",
-                                           None);
-                serr.caused_by = Some(Box::new(e));
-                serr
+                serr_build("iter_files()", "Cannot iter on files",
+                            None, Some(Box::new(e)))
             })
     }
 
@@ -107,23 +94,14 @@ impl StorageBackend {
             file.write_all(&string.clone().into_bytes())
                 .map_err(|ioerr| {
                     debug!("Could not write file");
-                    let mut err = StorageBackendError::new(
-                            "File::write_all()",
-                            "Could not write out File contents",
-                            None
-                        );
-                    err.caused_by = Some(Box::new(ioerr));
-                    err
+                    serr_build("File::write_all()",
+                               "Could not write out File contents",
+                               None, Some(Box::new(ioerr)))
                 })
         }).map_err(|writeerr| {
             debug!("Could not create file at '{}'", path);
-            let mut err = StorageBackendError::new(
-                "File::create()",
-                "Creating file on disk failed",
-                None
-            );
-            err.caused_by = Some(Box::new(writeerr));
-            err
+            serr_build("File::create()", "Creating file on disk failed",
+                       None, Some(Box::new(writeerr)))
         }).and(Ok(()))
     }
 
@@ -147,23 +125,15 @@ impl StorageBackend {
             file.write_all(&string.clone().into_bytes())
                 .map_err(|ioerr| {
                     debug!("Could not write file");
-                    let mut err = StorageBackendError::new(
-                            "File::write()",
-                            "Tried to write contents of this file, though operation did not succeed",
-                            Some(string)
-                        );
-                    err.caused_by = Some(Box::new(ioerr));
-                    err
+                    serr_build("File::write()",
+                               "Tried to write contents of this file, though operation did not succeed",
+                                Some(string), Some(Box::new(ioerr)))
                 })
         }).map_err(|writeerr| {
             debug!("Could not write file at '{}'", path);
-            let mut err = StorageBackendError::new(
-                "File::open()",
-                "Tried to update contents of this file, though file doesn't exist",
-                None
-            );
-            err.caused_by = Some(Box::new(writeerr));
-            err
+            serr_build("File::open()",
+                       "Tried to update contents of this file, though file doesn't exist",
+                       None, Some(Box::new(writeerr)))
         }).and(Ok(()))
     }
 
@@ -227,13 +197,8 @@ impl StorageBackend {
 
         let fp = self.build_filepath(&file);
         remove_file(fp).map_err(|e| {
-            let mut serr = StorageBackendError::new(
-                "remove_file()",
-                "File removal failed",
-                Some(format!("{}", file))
-            );
-            serr.caused_by = Some(Box::new(e));
-            serr
+            serr_build("remove_file()", "File removal failed",
+                       Some(format!("{}", file)), Some(Box::new(e)))
         })
     }
 
@@ -323,13 +288,9 @@ fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, Storage
 {
     p.write(f.contents())
         .or_else(|err| {
-            let mut serr = StorageBackendError::new(
-                "Parser::write()",
-                "Cannot translate internal representation of file contents into on-disk representation",
-                None
-            );
-            serr.caused_by = Some(Box::new(err));
-            Err(serr)
+            Err(serr_build("Parser::write()",
+                           "Cannot translate internal representation of file contents into on-disk representation",
+                           None, Some(Box::new(err))))
         })
 }
 
@@ -337,5 +298,18 @@ fn globlist_to_file_id_vec(globlist: Paths) -> Vec<FileID> {
     globlist.filter_map(Result::ok)
             .map(|pbuf| FileID::from(&pbuf))
             .collect::<Vec<FileID>>()
+}
+
+/*
+ * Helper to build a StorageBackendError object with cause, because one line is
+ * less than three lines
+ */
+fn serr_build(action: &'static str, desc: &'static str,
+              data: Option<String>, caused_by: Option<Box<Error>>)
+    -> StorageBackendError
+{
+    let mut err = StorageBackendError::new(action, desc, data);
+    err.caused_by = caused_by;
+    err
 }
 
