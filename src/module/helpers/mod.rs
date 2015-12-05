@@ -5,6 +5,7 @@
 pub mod cli;
 pub mod header;
 pub mod utils;
+pub mod content;
 
 /**
  * Helpers for header specs
@@ -40,3 +41,4 @@ pub mod spec {
     }
 
 }
+
