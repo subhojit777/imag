@@ -29,7 +29,7 @@ struct DebugPrinter {
 
 impl FilePrinter for DebugPrinter {
 
-    fn new(verbose: bool, debug: bool) -> DebugPrinter {
+    fn new(_: bool, debug: bool) -> DebugPrinter {
         DebugPrinter {
             debug: debug,
         }
