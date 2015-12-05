@@ -139,7 +139,7 @@ fn get_filtered_files_from_backend<'a>(module: &'a Module,
     debug!("Tags: {:?}", tags);
     env.bk.iter_files(module, &parser)
         .map(|files| {
-            let f = files.filter(|file| {
+            files.filter(|file| {
                 debug!("Backend returns file: {:?}", file);
                 check_tags(&tags, file)
             }).filter(|file| {
@@ -147,8 +147,7 @@ fn get_filtered_files_from_backend<'a>(module: &'a Module,
                 get_matcher(env.rt, env.matches)
                     .and_then(|r| Some(file.matches_with(&r)))
                     .unwrap_or(true)
-            }).collect::<Vec<File>>();
-            f.into_iter()
+            }).collect::<Vec<File>>().into_iter()
         }).map_err(|e| {
             debug!("Error from Backend: {:?}", e);
             let mut merr = ModuleError::new("Could not filter files");
