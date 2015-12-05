@@ -10,6 +10,7 @@ use runtime::Runtime;
 use storage::backend::StorageBackend;
 
 pub mod bm;
+pub mod header;
 
 #[derive(Debug)]
 pub struct ModuleError {
