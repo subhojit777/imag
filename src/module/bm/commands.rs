@@ -88,10 +88,8 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
                 })
                 .collect::<Vec<StorageBackendError>>();
 
-            let nerrs = errs.len();
-
-            if nerrs != 0 {
-                warn!("{} Errors occured while removing {} files", nerrs, nfiles);
+            if errs.len() != 0 {
+                warn!("{} Errors occured while removing {} files", errs.len(), nfiles);
                 let moderr = ModuleError::new("File removal failed");
 
                 // TODO : Collect StorageBackendErrors
