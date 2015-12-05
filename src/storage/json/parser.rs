@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::io::stdout;
 use std::error::Error;
 
 use serde_json::{Value, from_str};

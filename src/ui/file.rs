@@ -1,6 +1,5 @@
 use std::iter::Iterator;
 
-use runtime::Runtime;
 use storage::file::File;
 
 pub trait FilePrinter {

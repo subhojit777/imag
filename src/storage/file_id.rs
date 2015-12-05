@@ -2,7 +2,7 @@ use std::convert::{From, Into};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::result::Result;
 
 use regex::Regex;

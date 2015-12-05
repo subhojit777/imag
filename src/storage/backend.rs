@@ -4,7 +4,6 @@ use std::fmt::Result as FMTResult;
 use std::fs::File as FSFile;
 use std::fs::{create_dir_all, remove_file};
 use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
 use std::vec::{Vec, IntoIter};
 
 use glob::glob;
@@ -14,7 +13,7 @@ use module::Module;
 use runtime::Runtime;
 use storage::file::File;
 use storage::file_id::*;
-use storage::parser::{FileHeaderParser, Parser, ParserError};
+use storage::parser::{FileHeaderParser, Parser};
 
 pub type BackendOperationResult<T = ()> = Result<T, StorageBackendError>;
 
@@ -178,8 +177,6 @@ impl StorageBackend {
     pub fn get_file_by_id<'a, HP>(&self, m: &'a Module, id: &FileID, p: &Parser<HP>) -> Option<File<'a>>
         where HP: FileHeaderParser
     {
-        use std::ops::Index;
-
         debug!("Searching for file with id '{}'", id);
 
         if id.get_type() == FileIDType::NONE {

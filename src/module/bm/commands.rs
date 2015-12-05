@@ -6,10 +6,10 @@ use regex::Regex;
 use module::{CommandEnv, CommandResult, Module, ModuleError};
 use module::bm::header::{build_header, get_tags_from_header};
 use runtime::Runtime;
-use storage::backend::{StorageBackendError, StorageBackend};
+use storage::backend::StorageBackendError;
 use storage::file::File;
 use storage::json::parser::JsonHeaderParser;
-use storage::parser::{Parser, FileHeaderParser};
+use storage::parser::Parser;
 use ui::file::{FilePrinter, TablePrinter};
 
 pub fn add_command(module: &Module, env: CommandEnv) -> CommandResult {

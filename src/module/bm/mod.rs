@@ -3,18 +3,10 @@ mod commands;
 
 use std::fmt::{Debug, Formatter};
 use std::fmt::Result as FMTResult;
-use std::path::Path;
-use std::result::Result;
 
-use clap::ArgMatches;
-use regex::Regex;
-
-use module::{CommandMap, Module, ModuleError, ModuleResult};
+use module::{CommandMap, Module, ModuleResult};
 use runtime::Runtime;
 use self::commands::*;
-use self::header::build_header;
-use storage::json::parser::JsonHeaderParser;
-use storage::parser::FileHeaderParser;
 
 pub struct BMModule {
     path: Option<String>,

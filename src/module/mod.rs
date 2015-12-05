@@ -2,13 +2,12 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt::Result as FMTResult;
-use std::path::Path;
 use std::result::Result;
 
-use clap::{App, ArgMatches};
+use clap::ArgMatches;
 
 use runtime::Runtime;
-use storage::backend::{StorageBackend, StorageBackendError};
+use storage::backend::StorageBackend;
 
 pub mod bm;
 

@@ -15,8 +15,6 @@ pub struct Configuration {
 impl Configuration {
 
     pub fn new(config: &CliConfig) -> Configuration {
-        use std::env::home_dir;
-
         let rtp = rtp_path(config).or(default_path());
 
         let mut verbose     = false;
