@@ -123,6 +123,17 @@ fn get_filtered_files_from_backend<'a>(module: &'a Module,
                                        env: &CommandEnv)
     -> Result<IntoIter<File<'a>>, ModuleError>
 {
+    fn check_tags(tags: &Vec<String>, file: &File) -> bool {
+        if tags.len() != 0 {
+            debug!("Checking tags of: {:?}", file.id());
+            get_tags_from_header(&file.header())
+                .iter()
+                .any(|t| tags.contains(t))
+        } else {
+            true
+        }
+    }
+
     let parser = Parser::new(JsonHeaderParser::new(None));
     let tags = get_tags(env.rt, env.matches);
     debug!("Tags: {:?}", tags);
@@ -130,13 +141,7 @@ fn get_filtered_files_from_backend<'a>(module: &'a Module,
         .map(|files| {
             let f = files.filter(|file| {
                 debug!("Backend returns file: {:?}", file);
-                if tags.len() != 0 {
-                    debug!("Checking tags of: {:?}", file.id());
-                    get_tags_from_header(&file.header()).iter()
-                        .any(|t| tags.contains(t))
-                } else {
-                    true
-                }
+                check_tags(&tags, file)
             }).filter(|file| {
                 debug!("Checking matches of: {:?}", file.id());
                 get_matcher(env.rt, env.matches)
