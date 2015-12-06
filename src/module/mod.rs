@@ -7,7 +7,7 @@ use std::result::Result;
 use clap::ArgMatches;
 
 use runtime::Runtime;
-use storage::backend::StorageBackend;
+use storage::Storage;
 
 pub mod bm;
 pub mod helpers;
@@ -47,7 +47,7 @@ impl Display for ModuleError {
 
 pub struct CommandEnv<'a> {
     pub rt:         &'a Runtime<'a>,
-    pub bk:         &'a StorageBackend,
+    pub bk:         &'a Storage,
     pub matches:    &'a ArgMatches<'a, 'a>,
 }
 

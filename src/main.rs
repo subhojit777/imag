@@ -19,7 +19,7 @@ use module::Module;
 use module::ModuleError;
 use module::CommandEnv;
 use module::bm::BMModule;
-use storage::backend::StorageBackend;
+use storage::Storage;
 
 mod cli;
 mod configuration;
@@ -44,7 +44,7 @@ fn main() {
 
     debug!("Runtime      : {:?}", &rt);
 
-    let backend = StorageBackend::new(&rt).unwrap_or_else(|e| {
+    let backend = Storage::new(&rt).unwrap_or_else(|e| {
         error!("Error: {}", e);
         exit(1);
     });
