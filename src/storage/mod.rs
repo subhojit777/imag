@@ -22,23 +22,23 @@ use storage::file::File;
 use storage::file_id::*;
 use storage::parser::{FileHeaderParser, Parser};
 
-pub type BackendOperationResult<T = ()> = Result<T, StorageBackendError>;
+pub type BackendOperationResult<T = ()> = Result<T, StorageError>;
 
-pub struct StorageBackend {
+pub struct Storage {
     basepath: String,
     storepath: String,
 }
 
-impl StorageBackend {
+impl Storage {
 
-    pub fn new(rt: &Runtime) -> BackendOperationResult<StorageBackend> {
-        use self::StorageBackendError as SBE;
+    pub fn new(rt: &Runtime) -> BackendOperationResult<Storage> {
+        use self::StorageError as SBE;
 
         let storepath = rt.get_rtp() + "/store/";
         debug!("Trying to create {}", storepath);
         create_dir_all(&storepath).and_then(|_| {
             debug!("Creating succeeded, constructing backend instance");
-            Ok(StorageBackend {
+            Ok(Storage {
                 basepath: rt.get_rtp(),
                 storepath: storepath.clone(),
             })
@@ -49,9 +49,9 @@ impl StorageBackend {
         })
     }
 
-    pub fn iter_ids(&self, m: &Module) -> Result<IntoIter<FileID>, StorageBackendError>
+    pub fn iter_ids(&self, m: &Module) -> Result<IntoIter<FileID>, StorageError>
     {
-        use self::StorageBackendError as SBE;
+        use self::StorageError as SBE;
 
         let globstr = self.prefix_of_files_for_module(m) + "*.imag";
         debug!("Globstring = {}", globstr);
@@ -67,10 +67,10 @@ impl StorageBackend {
     }
 
     pub fn iter_files<'a, HP>(&self, m: &'a Module, p: &Parser<HP>)
-        -> Result<IntoIter<File<'a>>, StorageBackendError>
+        -> Result<IntoIter<File<'a>>, StorageError>
         where HP: FileHeaderParser
     {
-        use self::StorageBackendError as SBE;
+        use self::StorageError as SBE;
 
         self.iter_ids(m)
             .and_then(|ids| {
@@ -79,7 +79,7 @@ impl StorageBackend {
                 Ok(self.filter_map_ids_to_files(m, p, ids).into_iter())
             })
             .map_err(|e| {
-                debug!("StorageBackend::iter_ids() returned error = {:?}", e);
+                debug!("Storage::iter_ids() returned error = {:?}", e);
                 SBE::new("iter_files()", "Cannot iter on files", None,
                          Some(Box::new(e)))
             })
@@ -93,7 +93,7 @@ impl StorageBackend {
     pub fn put_file<HP>(&self, f: File, p: &Parser<HP>) -> BackendOperationResult
         where HP: FileHeaderParser
     {
-        use self::StorageBackendError as SBE;
+        use self::StorageError as SBE;
 
         let written = write_with_parser(&f, p);
         if written.is_err() { return Err(written.err().unwrap()); }
@@ -126,7 +126,7 @@ impl StorageBackend {
     pub fn update_file<HP>(&self, f: File, p: &Parser<HP>) -> BackendOperationResult
         where HP: FileHeaderParser
     {
-        use self::StorageBackendError as SBE;
+        use self::StorageError as SBE;
 
         let contents = write_with_parser(&f, p);
         if contents.is_err() { return Err(contents.err().unwrap()); }
@@ -203,7 +203,7 @@ impl StorageBackend {
     }
 
     pub fn remove_file(&self, m: &Module, file: File, checked: bool) -> BackendOperationResult {
-        use self::StorageBackendError as SBE;
+        use self::StorageError as SBE;
 
         if checked {
             error!("Checked remove not implemented yet. I will crash now");
@@ -259,23 +259,23 @@ impl StorageBackend {
 }
 
 #[derive(Debug)]
-pub struct StorageBackendError {
+pub struct StorageError {
     pub action: String,             // The file system action in words
     pub desc: String,               // A short description
     pub data_dump: Option<String>,  // Data dump, if any
     pub caused_by: Option<Box<Error>>,  // caused from this error
 }
 
-impl StorageBackendError {
+impl StorageError {
 
     fn new<S>(action: S,
               desc: S,
               data: Option<String>,
               cause: Option<Box<Error>>)
-        -> StorageBackendError
+        -> StorageError
         where S: Into<String>
     {
-        StorageBackendError {
+        StorageError {
             action:         action.into(),
             desc:           desc.into(),
             data_dump:      data,
@@ -285,7 +285,7 @@ impl StorageBackendError {
 
 }
 
-impl Error for StorageBackendError {
+impl Error for StorageError {
 
     fn description(&self) -> &str {
         &self.desc[..]
@@ -297,18 +297,18 @@ impl Error for StorageBackendError {
 
 }
 
-impl<'a> Display for StorageBackendError {
+impl<'a> Display for StorageError {
     fn fmt(&self, f: &mut Formatter) -> FMTResult {
-        write!(f, "StorageBackendError[{}]: {}",
+        write!(f, "StorageError[{}]: {}",
                self.action, self.desc)
     }
 }
 
 
-fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, StorageBackendError>
+fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, StorageError>
     where HP: FileHeaderParser
 {
-    use self::StorageBackendError as SBE;
+    use self::StorageError as SBE;
 
     p.write(f.contents())
         .or_else(|err| {

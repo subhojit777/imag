@@ -6,7 +6,7 @@ use regex::Regex;
 use module::{CommandEnv, CommandResult, Module, ModuleError};
 use module::bm::header::{build_header, get_tags_from_header};
 use runtime::Runtime;
-use storage::StorageBackendError;
+use storage::StorageError;
 use storage::file::File;
 use storage::json::parser::JsonHeaderParser;
 use storage::parser::Parser;
@@ -86,13 +86,13 @@ pub fn remove_command(module: &Module, env: CommandEnv) -> CommandResult {
                     warn!("Error occured in Filesystem operation: {}", err);
                     err
                 })
-                .collect::<Vec<StorageBackendError>>();
+                .collect::<Vec<StorageError>>();
 
             if errs.len() != 0 {
                 warn!("{} Errors occured while removing {} files", errs.len(), nfiles);
                 let moderr = ModuleError::new("File removal failed");
 
-                // TODO : Collect StorageBackendErrors
+                // TODO : Collect StorageErrors
 
                 Err(moderr)
             } else {
