@@ -14,6 +14,7 @@ use ui::file::{FilePrinter, TablePrinter};
 
 pub fn add_command(module: &Module, env: CommandEnv) -> CommandResult {
     use url::Url;
+    use module::helpers::utils::cli::get_tags;
 
     let url = env.matches.value_of("url").unwrap();
 
@@ -123,6 +124,8 @@ fn get_filtered_files_from_backend<'a>(module: &'a Module,
                                        env: &CommandEnv)
     -> Result<IntoIter<File<'a>>, ModuleError>
 {
+    use module::helpers::utils::cli::get_tags;
+
     fn check_tags(tags: &Vec<String>, file: &File) -> bool {
         if tags.len() != 0 {
             debug!("Checking tags of: {:?}", file.id());
@@ -157,28 +160,6 @@ fn get_filtered_files_from_backend<'a>(module: &'a Module,
             merr.caused_by = Some(Box::new(e));
             merr
         })
-}
-
-fn get_tags<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Vec<String> {
-
-    fn reject_if_with_spaces(e: &String) -> bool {
-        if e.contains(" ") {
-            warn!("Tag contains spaces: '{}'", e);
-            false
-        } else {
-            true
-        }
-    }
-
-    debug!("Fetching tags from commandline");
-    sub.value_of("tags").and_then(|tags| {
-        Some(tags.split(",")
-                 .into_iter()
-                 .map(|s| s.to_string())
-                 .filter(|e| reject_if_with_spaces(e))
-                 .collect()
-          )
-    }).or(Some(vec![])).unwrap()
 }
 
 fn get_matcher<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Option<Regex> {

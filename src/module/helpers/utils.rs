@@ -1,0 +1,29 @@
+pub mod cli {
+    use clap::ArgMatches;
+    use regex::Regex;
+
+    use runtime::Runtime;
+
+    pub fn get_tags<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Vec<String> {
+
+        fn reject_if_with_spaces(e: &String) -> bool {
+            if e.contains(" ") {
+                warn!("Tag contains spaces: '{}'", e);
+                false
+            } else {
+                true
+            }
+        }
+
+        debug!("Fetching tags from commandline");
+        sub.value_of("tags").and_then(|tags| {
+            Some(tags.split(",")
+                     .into_iter()
+                     .map(|s| s.to_string())
+                     .filter(|e| reject_if_with_spaces(e))
+                     .collect()
+              )
+        }).or(Some(vec![])).unwrap()
+    }
+
+}

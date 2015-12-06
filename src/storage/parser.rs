@@ -4,7 +4,7 @@ use std::fmt;
 
 use regex::Regex;
 
-use super::file::FileHeaderData;
+use super::file::header::data::FileHeaderData;
 
 pub struct ParserError {
     summary: String,

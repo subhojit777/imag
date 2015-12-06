@@ -8,9 +8,7 @@ use std::path::Path;
 use std::vec::{Vec, IntoIter};
 
 pub mod file;
-pub mod file_id;
 pub mod parser;
-pub mod backend;
 pub mod json;
 
 use glob::glob;
@@ -19,7 +17,7 @@ use glob::Paths;
 use module::Module;
 use runtime::Runtime;
 use storage::file::File;
-use storage::file_id::*;
+use storage::file::id::*;
 use storage::parser::{FileHeaderParser, Parser};
 
 pub type BackendOperationResult<T = ()> = Result<T, StorageError>;
