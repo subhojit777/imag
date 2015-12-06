@@ -4,8 +4,10 @@ use std::fmt;
 
 use regex::Regex;
 
+pub mod id;
+
 use module::Module;
-use storage::file_id::*;
+use storage::file::id::*;
 use super::parser::{FileHeaderParser, Parser, ParserError};
 
 #[derive(Debug)]
