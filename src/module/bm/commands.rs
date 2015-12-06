@@ -6,7 +6,7 @@ use regex::Regex;
 use module::{CommandEnv, CommandResult, Module, ModuleError};
 use module::bm::header::{build_header, get_tags_from_header};
 use runtime::Runtime;
-use storage::backend::StorageBackendError;
+use storage::StorageBackendError;
 use storage::file::File;
 use storage::json::parser::JsonHeaderParser;
 use storage::parser::Parser;

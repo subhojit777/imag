@@ -7,7 +7,7 @@ use std::result::Result;
 use clap::ArgMatches;
 
 use runtime::Runtime;
-use storage::backend::StorageBackend;
+use storage::StorageBackend;
 
 pub mod bm;
 pub mod helpers;

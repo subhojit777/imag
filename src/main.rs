@@ -19,7 +19,7 @@ use module::Module;
 use module::ModuleError;
 use module::CommandEnv;
 use module::bm::BMModule;
-use storage::backend::StorageBackend;
+use storage::StorageBackend;
 
 mod cli;
 mod configuration;
