@@ -3,7 +3,7 @@
  */
 
 pub mod spec {
-    use storage::file::FileHeaderSpec as FHS;
+    use storage::file::header::spec::FileHeaderSpec as FHS;
     use module::helpers::spec::{named_text, named_text_array};
 
     pub fn url_key() -> FHS {
@@ -18,7 +18,7 @@ pub mod spec {
 
 pub mod data {
     use std::ops::Deref;
-    use storage::file::FileHeaderData as FHD;
+    use storage::file::header::data::FileHeaderData as FHD;
 
     pub fn build_tag_array(tags: &Vec<String>) -> FHD {
         let texttags = tags.into_iter().map(|t| FHD::Text(t.clone())).collect();

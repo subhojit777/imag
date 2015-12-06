@@ -1,6 +1,6 @@
 use module::helpers::header as headerhelpers;
-use storage::file::FileHeaderData as FHD;
-use storage::file::FileHeaderSpec as FHS;
+use storage::file::header::data::FileHeaderData as FHD;
+use storage::file::header::spec::FileHeaderSpec as FHS;
 
 pub fn get_spec() -> FHS {
     FHS::Map {

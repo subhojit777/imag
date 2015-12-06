@@ -2,7 +2,7 @@ pub mod header;
 pub mod utils;
 
 pub mod spec {
-    use storage::file::FileHeaderSpec as FHS;
+    use storage::file::header::spec::FileHeaderSpec as FHS;
 
     pub fn named_text(name: &str) -> FHS {
         FHS::Key { name: String::from(name), value_type: Box::new(FHS::Text) }

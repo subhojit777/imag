@@ -8,7 +8,8 @@ use serde::ser::Serialize;
 use serde::ser::Serializer as Ser;
 
 use storage::parser::{FileHeaderParser, ParserError};
-use storage::file::{FileHeaderSpec, FileHeaderData};
+use storage::file::header::spec::FileHeaderSpec;
+use storage::file::header::data::FileHeaderData;
 
 pub struct JsonHeaderParser {
     spec: Option<FileHeaderSpec>,
