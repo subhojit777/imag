@@ -7,6 +7,8 @@ use std::result::Result;
 
 use regex::Regex;
 
+use storage::file::hash::FileHash;
+
 #[derive(Debug)]
 #[derive(Clone)]
 #[derive(PartialEq)]
@@ -51,13 +53,13 @@ impl From<String> for FileIDType {
 
 #[derive(Clone)]
 pub struct FileID {
-    id: Option<String>,
+    id: Option<FileHash>,
     id_type: FileIDType,
 }
 
 impl FileID {
 
-    pub fn new(id_type: FileIDType, id: String) -> FileID {
+    pub fn new(id_type: FileIDType, id: FileHash) -> FileID {
         FileID {
             id: Some(id),
             id_type: id_type,
@@ -68,7 +70,7 @@ impl FileID {
         self.id_type.clone()
     }
 
-    pub fn get_id(&self) -> Option<String> {
+    pub fn get_id(&self) -> Option<FileHash> {
         self.id.clone()
     }
 
@@ -96,13 +98,13 @@ impl Display for FileID {
 
 }
 
-impl Into<String> for FileID {
+impl Into<FileHash> for FileID {
 
-    fn into(self) -> String {
+    fn into(self) -> FileHash {
         if let Some(id) = self.id {
             id.clone()
         } else {
-            String::from("INVALID")
+            FileHash::invalid()
         }
     }
 
@@ -156,13 +158,13 @@ impl<'a> From<&'a String> for FileID {
                 _ => {},
             }
 
-            Some(FileID::new(idtype, String::from(hash)))
+            Some(FileID::new(idtype, FileHash::from(hash)))
         }).unwrap_or({
             debug!("Did not match");
             debug!("It is no path, actually. So we assume it is an ID already");
             FileID {
                 id_type: FileIDType::NONE,
-                id: Some(string.clone()),
+                id: Some(FileHash::from(string)),
             }
         })
     }
