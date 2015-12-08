@@ -9,48 +9,6 @@ use regex::Regex;
 
 use storage::file::hash::FileHash;
 
-#[derive(Debug)]
-#[derive(Clone)]
-#[derive(PartialEq)]
-#[derive(Eq)]
-// #[derive(Display)]
-pub enum FileIDType {
-    NONE,
-    UUID,
-}
-
-impl Into<String> for FileIDType {
-
-    fn into(self) -> String {
-        let s = match self {
-            FileIDType::UUID => "UUID",
-            FileIDType::NONE => "",
-        };
-
-        String::from(s)
-    }
-
-}
-
-impl<'a> From<&'a str> for FileIDType {
-
-    fn from(s: &'a str) -> FileIDType {
-        match s {
-            "UUID"  => FileIDType::UUID,
-            _       => FileIDType::NONE,
-        }
-    }
-
-}
-
-impl From<String> for FileIDType {
-
-    fn from(s: String) -> FileIDType {
-        FileIDType::from(&s[..])
-    }
-
-}
-
 #[derive(Clone)]
 pub struct FileID {
     id: Option<FileHash>,
