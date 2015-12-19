@@ -83,7 +83,7 @@ impl Display for ParserError {
 
 }
 
-pub trait FileHeaderParser : Sized {
+pub trait FileHeaderParser : Sized + Debug + Display {
     fn read(&self, string: Option<String>) -> Result<FileHeaderData, ParserError>;
     fn write(&self, data: &FileHeaderData) -> Result<String, ParserError>;
 }
