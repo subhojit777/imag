@@ -171,3 +171,14 @@ impl<HP> Parser<HP> where
 
 }
 
+impl<HP> Debug for Parser<HP>
+    where HP: FileHeaderParser
+{
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "Parser<{:?}>", self.headerp);
+
+        Ok(())
+    }
+
+}
