@@ -7,6 +7,7 @@ use glob::PatternError;
 use storage::file::id::FileID;
 use storage::file::id_type::FileIDType;
 use storage::file::hash::FileHash;
+use module::Module;
 
 /*
  * A path represents either a GLOB ("/tmp/store/module-*-*.imag" for example) or a full path

@@ -7,6 +7,7 @@ use std::result::Result;
 
 use regex::Regex;
 
+use storage::file::id_type::FileIDType;
 use storage::file::hash::FileHash;
 
 #[derive(Clone)]

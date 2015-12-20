@@ -24,6 +24,8 @@ mod module;
 mod storage;
 mod ui;
 
+use module::bm::BM;
+
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
     let app = App::from_yaml(yaml);

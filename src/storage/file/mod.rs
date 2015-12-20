@@ -11,6 +11,7 @@ pub mod hash;
 
 use module::Module;
 use storage::file::id::*;
+use storage::file::id_type::FileIDType;
 use super::parser::{FileHeaderParser, Parser, ParserError};
 
 use self::header::spec::*;
