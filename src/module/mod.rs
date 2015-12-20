@@ -11,8 +11,8 @@ use runtime::Runtime;
 pub mod bm;
 pub mod helpers;
 
-pub trait Module : Debug {
-    fn new(rt: &Runtime) -> Self;
+pub trait Module<'a> : Debug {
     fn exec(&self, matches: &ArgMatches) -> bool;
+    fn name(&self) -> &'static str;
 }
 

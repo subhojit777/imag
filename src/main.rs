@@ -41,7 +41,7 @@ fn main() {
     debug!("Runtime      : {:?}", &rt);
 
     if let Some(matches) = rt.config.cli_matches.subcommand_matches("bm") {
-        let res = BM::new(&rt).exec(matches.subcommand_matches("bm"));
+        let res = BM::new(&rt).exec(matches.subcommand_matches("bm").unwrap());
         info!("BM exited with {}", res);
     } else {
         info!("No commandline call...")
