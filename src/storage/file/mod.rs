@@ -5,6 +5,7 @@ use std::fmt;
 use regex::Regex;
 
 pub mod id;
+pub mod id_type;
 pub mod header;
 pub mod hash;
 
