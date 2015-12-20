@@ -6,6 +6,7 @@ use regex::Regex;
 
 pub mod id;
 pub mod header;
+pub mod hash;
 
 use module::Module;
 use storage::file::id::*;

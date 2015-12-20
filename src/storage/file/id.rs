@@ -64,10 +64,6 @@ impl FileID {
         }
     }
 
-    pub fn is_valid(&self) -> bool {
-        self.id.is_some()
-    }
-
     pub fn get_type(&self) -> FileIDType {
         self.id_type.clone()
     }
