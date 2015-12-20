@@ -11,15 +11,15 @@ use storage::file::hash::FileHash;
 
 #[derive(Clone)]
 pub struct FileID {
-    id: Option<FileHash>,
-    id_type: FileIDType,
+    id:         FileHash,
+    id_type:    FileIDType,
 }
 
 impl FileID {
 
     pub fn new(id_type: FileIDType, id: FileHash) -> FileID {
         FileID {
-            id: Some(id),
+            id: id,
             id_type: id_type,
         }
     }
@@ -28,8 +28,46 @@ impl FileID {
         self.id_type.clone()
     }
 
-    pub fn get_id(&self) -> Option<FileHash> {
+    pub fn get_id(&self) -> FileHash {
         self.id.clone()
+    }
+
+    pub fn parse(string: &String) -> Option<FileID> {
+        // we assume that it is an path
+        let regex = Regex::new(r"([:alnum:]*)-([:upper:]*)-([A-Za-z0-9-_]*)\.(.*)").unwrap();
+        let s = string.split("/").last().unwrap_or("");
+
+        debug!("Regex build: {:?}", regex);
+        debug!("Matching string: '{}'", s);
+        regex.captures(s).and_then(|capts| {
+            // first one is the whole string, index 1-N are the matches.
+            if capts.len() != 5 {
+                debug!("Matches, but not expected number of groups");
+                return None;
+            }
+            debug!("Matches: {}", capts.len());
+
+            let modname     = capts.at(1).unwrap();
+            let hashname    = capts.at(2).unwrap();
+            let mut hash    = capts.at(3).unwrap();
+
+            debug!("Destructure FilePath to ID:");
+            debug!("                  FilePath: {:?}", s);
+            debug!("               Module Name: {:?}", modname);
+            debug!("                 Hash Name: {:?}", hashname);
+            debug!("                      Hash: {:?}", hash);
+
+            FileIDType::parse(hashname).map(|idtype| {
+                Some(FileID {
+                    id: FileHash::from(hash),
+                    id_type: idtype,
+                })
+            })
+        }).unwrap_or({
+            debug!("Did not match");
+            debug!("It is no path, actually. So we assume it is an ID already");
+            None
+        })
     }
 
 }
@@ -55,144 +93,6 @@ impl Display for FileID {
     }
 
 }
-
-impl Into<FileHash> for FileID {
-
-    fn into(self) -> FileHash {
-        if let Some(id) = self.id {
-            id.clone()
-        } else {
-            FileHash::invalid()
-        }
-    }
-
-}
-
-impl Into<FileIDType> for FileID {
-
-    fn into(self) -> FileIDType {
-        self.id_type.clone()
-    }
-}
-
-impl From<String> for FileID {
-
-    fn from(s: String) -> FileID {
-        FileID::from(&s)
-    }
-
-}
-
-impl<'a> From<&'a String> for FileID {
-
-    fn from(string: &'a String) -> FileID {
-        // we assume that it is an path
-        let regex = Regex::new(r"([:alnum:]*)-([:upper:]*)-([A-Za-z0-9-_]*)\.(.*)").unwrap();
-        let s = string.split("/").last().unwrap_or("");
-
-        debug!("Regex build: {:?}", regex);
-        debug!("Matching string: '{}'", s);
-        regex.captures(s).and_then(|capts| {
-            // first one is the whole string, index 1-N are the matches.
-            if capts.len() != 5 {
-                debug!("Matches, but not expected number of groups");
-                return None;
-            }
-            debug!("Matches: {}", capts.len());
-
-            let modname     = capts.at(1).unwrap();
-            let hashname    = capts.at(2).unwrap();
-            let mut hash    = capts.at(3).unwrap();
-
-            debug!("Destructure FilePath to ID:");
-            debug!("                  FilePath: {:?}", s);
-            debug!("               Module Name: {:?}", modname);
-            debug!("                 Hash Name: {:?}", hashname);
-            debug!("                      Hash: {:?}", hash);
-
-            let idtype = FileIDType::from(hashname);
-            match idtype {
-                FileIDType::NONE => hash = "INVALID",
-                _ => {},
-            }
-
-            Some(FileID::new(idtype, FileHash::from(hash)))
-        }).unwrap_or({
-            debug!("Did not match");
-            debug!("It is no path, actually. So we assume it is an ID already");
-            FileID {
-                id_type: FileIDType::NONE,
-                id: Some(FileHash::from(string)),
-            }
-        })
-    }
-
-}
-
-impl From<PathBuf> for FileID {
-
-    fn from(s: PathBuf) -> FileID {
-        unimplemented!()
-    }
-
-}
-
-impl<'a> From<&'a PathBuf> for FileID {
-
-    fn from(pb: &'a PathBuf) -> FileID {
-        let s = pb.to_str().unwrap_or("");
-        FileID::from(String::from(s))
-    }
-
-}
-
-pub struct FileIDError {
-    summary: String,
-    descrip: String,
-}
-
-impl FileIDError {
-
-    pub fn new(s: String, d: String) -> FileIDError {
-        FileIDError {
-            summary: s,
-            descrip: d,
-        }
-    }
-
-}
-
-impl<'a> Error for FileIDError {
-
-    fn description(&self) -> &str {
-        &self.summary[..]
-    }
-
-    fn cause(&self) -> Option<&Error> {
-        None
-    }
-
-}
-
-impl<'a> Debug for FileIDError {
-
-    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "FileIDError: '{}'\n{}", self.summary, self.descrip);
-        Ok(())
-    }
-
-}
-
-impl<'a> Display for FileIDError {
-
-    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "FileIDError: '{}'", self.summary);
-        Ok(())
-    }
-
-}
-
-pub type FileIDResult = Result<FileID, FileIDError>;
 
 #[cfg(test)]
 mod test {

@@ -12,13 +12,6 @@ pub struct FileHash {
     hash: String,
 }
 
-impl FileHash {
-
-    pub fn invalid() -> FileHash {
-        FileHash { hash: String::from("") }
-    }
-}
-
 impl From<String> for FileHash {
 
     fn from(s: String) -> FileHash {
