@@ -22,7 +22,7 @@ use self::header::data::*;
  * internally until it is written to disk.
  */
 pub struct File<'a> {
-    owning_module   : &'a Module,
+    owning_module   : &'a Module<'a>,
     header          : FileHeaderData,
     data            : String,
     id              : FileID,
@@ -30,7 +30,7 @@ pub struct File<'a> {
 
 impl<'a> File<'a> {
 
-    pub fn new(module: &'a Module) -> File<'a> {
+    pub fn new(module: &'a Module<'a>) -> File<'a> {
         let f = File {
             owning_module: module,
             header: FileHeaderData::Null,
@@ -41,7 +41,7 @@ impl<'a> File<'a> {
         f
     }
 
-    pub fn from_parser_result(module: &Module, id: FileID, header: FileHeaderData, data: String) -> File {
+    pub fn from_parser_result(module: &'a Module<'a>, id: FileID, header: FileHeaderData, data: String) -> File<'a> {
         let f = File {
             owning_module: module,
             header: header,
@@ -52,7 +52,7 @@ impl<'a> File<'a> {
         f
     }
 
-    pub fn new_with_header(module: &Module, h: FileHeaderData) -> File {
+    pub fn new_with_header(module: &'a Module<'a>, h: FileHeaderData) -> File<'a> {
         let f = File {
             owning_module: module,
             header: h,
@@ -63,7 +63,7 @@ impl<'a> File<'a> {
         f
     }
 
-    pub fn new_with_data(module: &Module, d: String) -> File {
+    pub fn new_with_data(module: &'a Module<'a>, d: String) -> File<'a> {
         let f = File {
             owning_module: module,
             header: FileHeaderData::Null,
@@ -74,7 +74,7 @@ impl<'a> File<'a> {
         f
     }
 
-    pub fn new_with_content(module: &Module, h: FileHeaderData, d: String) -> File {
+    pub fn new_with_content(module: &'a Module<'a>, h: FileHeaderData, d: String) -> File<'a> {
         let f = File {
             owning_module: module,
             header: h,
@@ -101,7 +101,7 @@ impl<'a> File<'a> {
         self.id.clone()
     }
 
-    pub fn owner(&self) -> &Module {
+    pub fn owner(&self) -> &'a Module<'a> {
         self.owning_module
     }
 

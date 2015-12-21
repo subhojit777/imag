@@ -24,7 +24,7 @@ impl<'a> BM<'a> {
 
 }
 
-impl<'a> Module for BM<'a> {
+impl<'a> Module<'a> for BM<'a> {
 
     fn exec(&self, matches: &ArgMatches) -> bool {
         unimplemented!()
