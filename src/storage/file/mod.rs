@@ -9,9 +9,11 @@ pub mod id_type;
 pub mod header;
 pub mod hash;
 
+
 use module::Module;
 use storage::file::id::*;
 use storage::file::id_type::FileIDType;
+use storage::file::hash::FileHash;
 use super::parser::{FileHeaderParser, Parser, ParserError};
 
 use self::header::spec::*;
@@ -111,7 +113,8 @@ impl<'a> File<'a> {
 
     fn get_new_file_id() -> FileID {
         use uuid::Uuid;
-        FileID::new(FileIDType::UUID, Uuid::new_v4().to_hyphenated_string())
+        let hash = FileHash::from(Uuid::new_v4().to_hyphenated_string());
+        FileID::new(FileIDType::UUID, hash);
     }
 }
 
