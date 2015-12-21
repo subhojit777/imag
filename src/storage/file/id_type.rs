@@ -18,3 +18,12 @@ impl FileIDType {
 
 }
 
+impl Into<String> for FileIDType {
+
+    fn into(self) -> String {
+        match self {
+            FileIDType::UUID    => String::from("UUID"),
+        }
+    }
+}
+
