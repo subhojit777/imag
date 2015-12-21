@@ -95,6 +95,15 @@ impl Display for FileID {
 
 }
 
+impl Into<String> for FileID {
+
+    fn into(self) -> String {
+        let typestr : String = self.id_type.into();
+        let idstr   : String = self.id.into();
+        typestr + &idstr[..]
+    }
+}
+
 #[cfg(test)]
 mod test {
 
