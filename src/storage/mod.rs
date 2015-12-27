@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 
@@ -14,7 +15,7 @@ use storage::file::hash::FileHash;
 use storage::parser::{FileHeaderParser, Parser, ParserError};
 use storage::file::header::data::FileHeaderData;
 
-type Cache = HashMap<FileID, RefCell<File>>;
+type Cache = HashMap<FileID, Rc<RefCell<File>>>;
 
 pub struct Store {
     cache : RefCell<Cache>,
@@ -30,7 +31,7 @@ impl Store {
 
     fn put_in_cache(&self, f: File) -> FileID {
         let res = f.id().clone();
-        self.cache.borrow_mut().insert(f.id().clone(), RefCell::new(f));
+        self.cache.borrow_mut().insert(f.id().clone(), Rc::new(RefCell::new(f)));
         res
     }
 
@@ -113,8 +114,9 @@ impl Store {
         unimplemented!()
     }
 
-    pub fn load(&self, id: FileID) -> File {
-        unimplemented!()
+    pub fn load(&self, id: &FileID) -> Option<Rc<RefCell<File>>> {
+        debug!("Loading '{:?}'", id);
+        self.cache.borrow().get(id).cloned()
     }
 
     fn get_new_file_id(&self) -> FileID {
