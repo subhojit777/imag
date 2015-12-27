@@ -22,13 +22,15 @@ use storage::file::header::data::FileHeaderData;
 type Cache = HashMap<FileID, Rc<RefCell<File>>>;
 
 pub struct Store {
+    storepath: String,
     cache : RefCell<Cache>,
 }
 
 impl Store {
 
-    pub fn new() -> Store {
+    pub fn new(storepath: String) -> Store {
         Store {
+            storepath: storepath,
             cache: RefCell::new(HashMap::new()),
         }
     }
@@ -115,7 +117,6 @@ impl Store {
     }
 
     pub fn persist<HP>(&self,
-                       storepath: String,
                        p: &Parser<HP>,
                        f: Rc<RefCell<File>>) -> bool
         where HP: FileHeaderParser
@@ -129,7 +130,7 @@ impl Store {
 
         let path = {
             let ids : String = file.id().clone().into();
-            format!("{}/{}-{}.imag", storepath, file.owning_module_name, ids)
+            format!("{}/{}-{}.imag", self.storepath, file.owning_module_name, ids)
         };
 
         FSFile::create(&path).map(|mut fsfile| {

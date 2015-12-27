@@ -6,6 +6,8 @@ use log::{LogRecord, LogLevel, LogLevelFilter, LogMetadata, SetLoggerError};
 pub use cli::CliConfig;
 pub use configuration::Configuration as Cfg;
 
+use storage::Store;
+
 pub struct ImagLogger {
     lvl: LogLevel,
 }
@@ -52,14 +54,17 @@ impl log::Log for ImagLogger {
 pub struct Runtime<'a> {
     pub config : CliConfig<'a>,
     pub configuration : Cfg,
+    pub store : Store,
 }
 
 impl<'a> Runtime<'a> {
 
     pub fn new(cfg: Cfg, config : CliConfig<'a>) -> Runtime<'a> {
+        let sp = config.store_path().unwrap_or(cfg.store_path());
         Runtime {
             config: config,
             configuration: cfg,
+            store: Store::new(sp),
         }
     }
 
@@ -73,6 +78,10 @@ impl<'a> Runtime<'a> {
 
     pub fn store_path(&self) -> String {
         self.config.store_path().unwrap_or(self.configuration.store_path())
+    }
+
+    pub fn store(&self) -> &Store {
+        &self.store
     }
 
     pub fn get_rtp(&self) -> String {
