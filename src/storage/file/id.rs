@@ -14,6 +14,8 @@ use storage::file::hash::FileHash;
 
 #[derive(Clone)]
 #[derive(Hash)]
+#[derive(Eq)]
+#[derive(PartialEq)]
 pub struct FileID {
     id:         FileHash,
     id_type:    FileIDType,
