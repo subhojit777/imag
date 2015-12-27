@@ -96,6 +96,14 @@ impl<'a> File<'a> {
         unimplemented!()
     }
 
+    /**
+     * Call editor on the file contents, but don't include the header inside the editor call.
+     *
+     * Return true if exit code from editor was good (and content was changed), false otherwise.
+     */
+    pub fn edit_contents(rt: &Runtime) -> bool {
+    }
+
     pub fn header(&self) -> FileHeaderData {
         self.header.clone()
     }
