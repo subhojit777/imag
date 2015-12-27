@@ -1,6 +1,9 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fs::File as FSFile;
+use std::ops::Deref;
+use std::io::Write;
 
 pub mod path;
 pub mod file;
@@ -8,6 +11,7 @@ pub mod parser;
 pub mod json;
 
 use module::Module;
+use runtime::Runtime;
 use storage::file::File;
 use storage::file::id::FileID;
 use storage::file::id_type::FileIDType;
@@ -110,8 +114,29 @@ impl Store {
         self.put_in_cache(f)
     }
 
-    pub fn persist(&self, file: &File) -> bool {
-        unimplemented!()
+    pub fn persist<HP>(&self,
+                       storepath: String,
+                       p: &Parser<HP>,
+                       f: Rc<RefCell<File>>) -> bool
+        where HP: FileHeaderParser
+    {
+        let file = f.deref().borrow();
+        let text = p.write(file.contents());
+        if text.is_err() {
+            error!("Error: {}", text.err().unwrap());
+            return false;
+        }
+
+        let path = {
+            let ids : String = file.id().clone().into();
+            format!("{}/{}-{}.imag", storepath, file.owning_module_name, ids)
+        };
+
+        FSFile::create(&path).map(|mut fsfile| {
+            fsfile.write_all(&text.unwrap().clone().into_bytes()[..])
+        }).map_err(|writeerr|  {
+            debug!("Could not create file at '{}'", path);
+        }).and(Ok(true)).unwrap()
     }
 
     pub fn load(&self, id: &FileID) -> Option<Rc<RefCell<File>>> {
