@@ -2,6 +2,7 @@ use std::convert::{From, Into};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
+use std::hash::Hash;
 use std::path::PathBuf;
 use std::result::Result;
 use std::str::FromStr;
@@ -12,6 +13,7 @@ use storage::file::id_type::FileIDType;
 use storage::file::hash::FileHash;
 
 #[derive(Clone)]
+#[derive(Hash)]
 pub struct FileID {
     id:         FileHash,
     id_type:    FileIDType,
