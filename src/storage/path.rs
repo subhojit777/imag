@@ -81,9 +81,9 @@ impl<'a> Path<'a> {
 /*
  * Transform Path into str, so we can call glob() on it
  */
-impl<'a> Into<&'a str> for Path<'a> {
+impl<'a> Into<String> for Path<'a> {
 
-    fn into(self) -> &'a str {
+    fn into(self) -> String {
         let mut s = self.base.clone();
         s.push(self.store.clone());
         s.push(self.module.name());
@@ -94,15 +94,15 @@ impl<'a> Into<&'a str> for Path<'a> {
             s.push("*");
         }
         s.set_extension("imag");
-        s.to_str().unwrap_or("")
+        s.to_str().unwrap_or("").into()
     }
 }
 
 impl<'a> Into<Result<Paths, PatternError>> for Path<'a> {
 
     fn into(self) -> Result<Paths, PatternError> {
-        let s : &str = self.into();
-        glob(s)
+        let s : String = self.into();
+        glob(&s[..])
     }
 
 }
