@@ -105,7 +105,7 @@ impl FilePrinter for TablePrinter {
             let cell_i  = Cell::new(&format!("{}", i)[..]);
             let cell_o  = Cell::new(&format!("{}", file.owner().name())[..]);
 
-            let id : String = file.id().into();
+            let id : String = file.id().clone().into();
             let cell_id = Cell::new(&id[..]);
             let row = Row::new(vec![cell_i, cell_o, cell_id]);
             tab.add_row(row);

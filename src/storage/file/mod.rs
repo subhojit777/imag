@@ -32,20 +32,20 @@ pub struct File<'a> {
 
 impl<'a> File<'a> {
 
-    pub fn header(&self) -> FileHeaderData {
-        self.header.clone()
+    pub fn header(&self) -> &FileHeaderData {
+        &self.header
     }
 
-    pub fn data(&self) -> String {
-        self.data.clone()
+    pub fn data(&self) -> &String {
+        &self.data
     }
 
-    pub fn contents(&self) -> (FileHeaderData, String) {
+    pub fn contents(&self) -> (&FileHeaderData, &String) {
         (self.header(), self.data())
     }
 
-    pub fn id(&self) -> FileID {
-        self.id.clone()
+    pub fn id(&self) -> &FileID {
+        &self.id
     }
 
     pub fn owner(&self) -> &'a Module<'a> {
