@@ -87,7 +87,12 @@ impl<'a> Into<&'a str> for Path<'a> {
         let s = self.base.clone();
         s.push(self.store.clone());
         s.push(self.module.name());
-        s.push(self.id.into());
+        if self.id.is_some() {
+            let idstr : String = self.id.unwrap().into();
+            s.push(idstr);
+        } else {
+            s.push("*");
+        }
         s.set_extension("imag");
         s.to_str().unwrap_or("")
     }
