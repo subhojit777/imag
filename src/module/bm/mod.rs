@@ -22,12 +22,33 @@ impl<'a> BM<'a> {
         &self.rt
     }
 
+    fn command_add(&self) -> bool {
+        unimplemented!()
+    }
+
+    fn command_list(&self) -> bool {
+        unimplemented!()
+    }
+
+    fn command_remove(&self) -> bool {
+        unimplemented!()
+    }
+
+
 }
 
 impl<'a> Module<'a> for BM<'a> {
 
     fn exec(&self, matches: &ArgMatches) -> bool {
-        unimplemented!()
+        match matches.subcommand_name() {
+            Some("add")     => self.command_add(),
+            Some("list")    => self.command_list(),
+            Some("remove")  => self.command_remove(),
+            Some(_) | None  => {
+                info!("No command given, doing nothing");
+                false
+            },
+        }
     }
 
     fn name(&self) -> &'static str {
@@ -43,3 +64,4 @@ impl<'a> Debug for BM<'a> {
     }
 
 }
+
