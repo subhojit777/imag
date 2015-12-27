@@ -22,15 +22,15 @@ impl<'a> BM<'a> {
         &self.rt
     }
 
-    fn command_add(&self) -> bool {
+    fn command_add(&self, matches: &ArgMatches) -> bool {
         unimplemented!()
     }
 
-    fn command_list(&self) -> bool {
+    fn command_list(&self, matches: &ArgMatches) -> bool {
         unimplemented!()
     }
 
-    fn command_remove(&self) -> bool {
+    fn command_remove(&self, matches: &ArgMatches) -> bool {
         unimplemented!()
     }
 
@@ -41,10 +41,19 @@ impl<'a> Module<'a> for BM<'a> {
 
     fn exec(&self, matches: &ArgMatches) -> bool {
         match matches.subcommand_name() {
-            Some("add")     => self.command_add(),
-            Some("list")    => self.command_list(),
-            Some("remove")  => self.command_remove(),
-            Some(_) | None  => {
+            Some("add") => {
+                self.command_add(matches.subcommand_matches("add").unwrap())
+            },
+
+            Some("list") => {
+                self.command_list(matches.subcommand_matches("list").unwrap())
+            },
+
+            Some("remove") => {
+                self.command_remove(matches.subcommand_matches("remove").unwrap())
+            },
+
+            Some(_) | None => {
                 info!("No command given, doing nothing");
                 false
             },
