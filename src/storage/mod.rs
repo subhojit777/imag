@@ -87,6 +87,10 @@ impl<'a> Store<'a> {
         unimplemented!()
     }
 
+    pub fn load(&self, id: FileID) -> File {
+        unimplemented!()
+    }
+
     fn get_new_file_id(&self) -> FileID {
         use uuid::Uuid;
         let hash = FileHash::from(Uuid::new_v4().to_hyphenated_string());
