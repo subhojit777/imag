@@ -24,10 +24,10 @@ use self::header::data::*;
  * internally until it is written to disk.
  */
 pub struct File<'a> {
-    owning_module   : &'a Module<'a>,
-    header          : FileHeaderData,
-    data            : String,
-    id              : FileID,
+    pub owning_module   : &'a Module<'a>,
+    pub header          : FileHeaderData,
+    pub data            : String,
+    pub id              : FileID,
 }
 
 impl<'a> File<'a> {
