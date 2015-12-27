@@ -122,7 +122,7 @@ impl<HP: FileHeaderParser> Parser<HP> {
         Ok((h_parseres, data.unwrap_or(String::new())))
     }
 
-    pub fn write(&self, tpl : (FileHeaderData, String)) -> Result<String, ParserError> {
+    pub fn write(&self, tpl : (&FileHeaderData, &String)) -> Result<String, ParserError> {
         debug!("Parsing internal datastructure to String");
         let (header, data) = tpl;
         let h_text = try!(self.headerp.write(&header));
