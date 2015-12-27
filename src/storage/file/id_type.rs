@@ -1,5 +1,6 @@
 use std::convert::{From, Into};
 use std::error::Error;
+use std::str::FromStr;
 
 #[derive(Debug)]
 #[derive(Clone)]
@@ -10,12 +11,18 @@ pub enum FileIDType {
     UUID,
 }
 
-impl FileIDType {
+pub enum FileIDTypeParseError {
+    UnknownType
+}
 
-    pub fn parse(s: &str) -> Option<FileIDType> {
-        unimplemented!()
+impl FromStr for FileIDType {
+    type Err = FileIDTypeParseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "UUID" => Ok(FileIDType::UUID),
+            _ => Err(FileIDTypeParseError::UnknownType)
+        }
     }
-
 }
 
 impl Into<String> for FileIDType {

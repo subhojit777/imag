@@ -4,6 +4,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 use std::path::PathBuf;
 use std::result::Result;
+use std::str::FromStr;
 
 use regex::Regex;
 
@@ -58,12 +59,12 @@ impl FileID {
             debug!("                 Hash Name: {:?}", hashname);
             debug!("                      Hash: {:?}", hash);
 
-            FileIDType::parse(hashname).map(|idtype| {
+            FileIDType::from_str(hashname).map(|idtype| {
                 Some(FileID {
                     id: FileHash::from(hash),
                     id_type: idtype,
                 })
-            })
+            }).ok()
         }).unwrap_or({
             debug!("Did not match");
             debug!("It is no path, actually. So we assume it is an ID already");
