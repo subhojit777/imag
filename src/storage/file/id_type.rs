@@ -12,7 +12,7 @@ pub enum FileIDType {
 
 impl FileIDType {
 
-    fn parse(s: &str) -> Option<FileIDType> {
+    pub fn parse(s: &str) -> Option<FileIDType> {
         unimplemented!()
     }
 
