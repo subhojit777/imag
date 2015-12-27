@@ -87,6 +87,15 @@ impl<'a> File<'a> {
         f
     }
 
+    /**
+     * Call editor on the file
+     *
+     * Return true if exit code from editor was good (and content was changed), false otherwise.
+     */
+    pub fn edit(rt: &Runtime) {
+        unimplemented!()
+    }
+
     pub fn header(&self) -> FileHeaderData {
         self.header.clone()
     }
