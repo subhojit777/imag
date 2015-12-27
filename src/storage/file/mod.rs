@@ -104,6 +104,17 @@ impl<'a> File<'a> {
     pub fn edit_contents(rt: &Runtime) -> bool {
     }
 
+    /**
+     * Make file persistent.
+     *
+     * Retreive store path from the runtime, file id is already available in self.
+     *
+     * Return true if action succeeded, false otherwise.
+     */
+    pub fn persist(rt: &Runtime) -> bool {
+        unimplemented!()
+    }
+
     pub fn header(&self) -> FileHeaderData {
         self.header.clone()
     }
