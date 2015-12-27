@@ -14,7 +14,7 @@ pub trait FilePrinter {
     /*
      * Print a list of files
      */
-    fn print_files<'a, I: Iterator<Item = File<'a>>>(&self, files: I) {
+    fn print_files<I: Iterator<Item = File>>(&self, files: I) {
         for file in files {
             self.print_file(&file);
         }
@@ -88,7 +88,7 @@ impl FilePrinter for TablePrinter {
         self.sp.print_file(f);
     }
 
-    fn print_files<'a, I: Iterator<Item = File<'a>>>(&self, files: I) {
+    fn print_files<I: Iterator<Item = File>>(&self, files: I) {
         use prettytable::Table;
         use prettytable::row::Row;
         use prettytable::cell::Cell;
@@ -103,9 +103,9 @@ impl FilePrinter for TablePrinter {
             debug!("Printing file: {:?}", file);
             i += 1;
             let cell_i  = Cell::new(&format!("{}", i)[..]);
-            let cell_o  = Cell::new(&format!("{}", file.owner().name())[..]);
+            let cell_o  = Cell::new(&format!("{}", file.owner_name())[..]);
 
-            let id : String = file.id().into();
+            let id : String = file.id().clone().into();
             let cell_id = Cell::new(&id[..]);
             let row = Row::new(vec![cell_i, cell_o, cell_id]);
             tab.add_row(row);

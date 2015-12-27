@@ -23,130 +23,42 @@ use self::header::data::*;
  * Internal abstract view on a file. Does not exist on the FS and is just kept
  * internally until it is written to disk.
  */
-pub struct File<'a> {
-    owning_module   : &'a Module<'a>,
-    header          : FileHeaderData,
-    data            : String,
-    id              : FileID,
+pub struct File {
+    pub owning_module_name  : &'static str,
+    pub header              : FileHeaderData,
+    pub data                : String,
+    pub id                  : FileID,
 }
 
-impl<'a> File<'a> {
+impl File {
 
-    pub fn new(module: &'a Module<'a>) -> File<'a> {
-        let f = File {
-            owning_module: module,
-            header: FileHeaderData::Null,
-            data: String::from(""),
-            id: File::get_new_file_id(),
-        };
-        debug!("Create new File object: {:?}", f);
-        f
+    pub fn owner_name(&self) -> &'static str {
+        self.owning_module_name
     }
 
-    pub fn from_parser_result(module: &'a Module<'a>, id: FileID, header: FileHeaderData, data: String) -> File<'a> {
-        let f = File {
-            owning_module: module,
-            header: header,
-            data: data,
-            id: id,
-        };
-        debug!("Create new File object from parser result: {:?}", f);
-        f
+    pub fn header(&self) -> &FileHeaderData {
+        &self.header
     }
 
-    pub fn new_with_header(module: &'a Module<'a>, h: FileHeaderData) -> File<'a> {
-        let f = File {
-            owning_module: module,
-            header: h,
-            data: String::from(""),
-            id: File::get_new_file_id(),
-        };
-        debug!("Create new File object with header: {:?}", f);
-        f
+    pub fn data(&self) -> &String {
+        &self.data
     }
 
-    pub fn new_with_data(module: &'a Module<'a>, d: String) -> File<'a> {
-        let f = File {
-            owning_module: module,
-            header: FileHeaderData::Null,
-            data: d,
-            id: File::get_new_file_id(),
-        };
-        debug!("Create new File object with data: {:?}", f);
-        f
-    }
-
-    pub fn new_with_content(module: &'a Module<'a>, h: FileHeaderData, d: String) -> File<'a> {
-        let f = File {
-            owning_module: module,
-            header: h,
-            data: d,
-            id: File::get_new_file_id(),
-        };
-        debug!("Create new File object with content: {:?}", f);
-        f
-    }
-
-    /**
-     * Call editor on the file
-     *
-     * Return true if exit code from editor was good (and content was changed), false otherwise.
-     */
-    pub fn edit(rt: &Runtime) {
-        unimplemented!()
-    }
-
-    /**
-     * Call editor on the file contents, but don't include the header inside the editor call.
-     *
-     * Return true if exit code from editor was good (and content was changed), false otherwise.
-     */
-    pub fn edit_contents(rt: &Runtime) -> bool {
-    }
-
-    /**
-     * Make file persistent.
-     *
-     * Retreive store path from the runtime, file id is already available in self.
-     *
-     * Return true if action succeeded, false otherwise.
-     */
-    pub fn persist(rt: &Runtime) -> bool {
-        unimplemented!()
-    }
-
-    pub fn header(&self) -> FileHeaderData {
-        self.header.clone()
-    }
-
-    pub fn data(&self) -> String {
-        self.data.clone()
-    }
-
-    pub fn contents(&self) -> (FileHeaderData, String) {
+    pub fn contents(&self) -> (&FileHeaderData, &String) {
         (self.header(), self.data())
     }
 
-    pub fn id(&self) -> FileID {
-        self.id.clone()
-    }
-
-    pub fn owner(&self) -> &'a Module<'a> {
-        self.owning_module
+    pub fn id(&self) -> &FileID {
+        &self.id
     }
 
     pub fn matches_with(&self, r: &Regex) -> bool {
         r.is_match(&self.data[..]) || self.header.matches_with(r)
     }
 
-    fn get_new_file_id() -> FileID {
-        use uuid::Uuid;
-        let hash = FileHash::from(Uuid::new_v4().to_hyphenated_string());
-        FileID::new(FileIDType::UUID, hash)
-    }
 }
 
-impl<'a> Display for File<'a> {
+impl Display for File {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
         write!(fmt,
@@ -154,7 +66,7 @@ impl<'a> Display for File<'a> {
         FileID: '{:?}'
         Header: '{:?}'
         Data  : '{:?}'",
-               self.owning_module,
+               self.owning_module_name,
                self.header,
                self.data,
                self.id);
@@ -163,7 +75,7 @@ impl<'a> Display for File<'a> {
 
 }
 
-impl<'a> Debug for File<'a> {
+impl Debug for File {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
         write!(fmt,
@@ -171,7 +83,7 @@ impl<'a> Debug for File<'a> {
         FileID: '{:?}'
         Header: '{:?}'
         Data  : '{:?}'",
-               self.owning_module,
+               self.owning_module_name,
                self.header,
                self.data,
                self.id);
