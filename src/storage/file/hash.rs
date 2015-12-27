@@ -2,12 +2,14 @@ use std::convert::{From, Into};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
+use std::hash::Hash;
 use uuid::Uuid;
 
 #[derive(Clone)]
 #[derive(Debug)]
 #[derive(PartialEq)]
 #[derive(Eq)]
+#[derive(Hash)]
 pub struct FileHash {
     hash: String,
 }
