@@ -14,23 +14,25 @@ use storage::file::hash::FileHash;
 use storage::parser::{FileHeaderParser, Parser, ParserError};
 use storage::file::header::data::FileHeaderData;
 
-type Cache<'a> = HashMap<FileID, RefCell<File<'a>>>;
+type Cache = HashMap<FileID, RefCell<File>>;
 
-pub struct Store<'a> {
-    cache : RefCell<Cache<'a>>,
+pub struct Store {
+    cache : RefCell<Cache>,
 }
 
-impl<'a> Store<'a> {
+impl Store {
 
-    pub fn new() -> Store<'a> {
+    pub fn new() -> Store {
         Store {
             cache: RefCell::new(HashMap::new()),
         }
     }
 
-    pub fn new_file(&self, module: &'a Module<'a>) -> File<'a> {
+    pub fn new_file(&self, module: &Module)
+        -> &RefCell<File>
+    {
         let f = File {
-            owning_module: module,
+            owning_module_name: module.name(),
             header: FileHeaderData::Null,
             data: String::from(""),
             id: self.get_new_file_id(),
@@ -39,9 +41,14 @@ impl<'a> Store<'a> {
         f
     }
 
-    pub fn new_file_from_parser_result(&self, module: &'a Module<'a>, id: FileID, header: FileHeaderData, data: String) -> File<'a> {
+    pub fn new_file_from_parser_result(&self,
+                                       module: &Module,
+                                       id: FileID,
+                                       header: FileHeaderData,
+                                       data: String) -> File
+    {
         let f = File {
-            owning_module: module,
+            owning_module_name: module.name(),
             header: header,
             data: data,
             id: id,
@@ -50,9 +57,9 @@ impl<'a> Store<'a> {
         f
     }
 
-    pub fn new_file_with_header(&self, module: &'a Module<'a>, h: FileHeaderData) -> File<'a> {
+    pub fn new_file_with_header(&self, module: &Module, h: FileHeaderData) -> File {
         let f = File {
-            owning_module: module,
+            owning_module_name: module.name(),
             header: h,
             data: String::from(""),
             id: self.get_new_file_id(),
@@ -61,9 +68,9 @@ impl<'a> Store<'a> {
         f
     }
 
-    pub fn new_file_with_data(&self, module: &'a Module<'a>, d: String) -> File<'a> {
+    pub fn new_file_with_data(&self, module: &Module, d: String) -> File {
         let f = File {
-            owning_module: module,
+            owning_module_name: module.name(),
             header: FileHeaderData::Null,
             data: d,
             id: self.get_new_file_id(),
@@ -72,9 +79,9 @@ impl<'a> Store<'a> {
         f
     }
 
-    pub fn new_file_with_content(&self, module: &'a Module<'a>, h: FileHeaderData, d: String) -> File<'a> {
+    pub fn new_file_with_content(&self, module: &Module, h: FileHeaderData, d: String) -> File {
         let f = File {
-            owning_module: module,
+            owning_module_name: module.name(),
             header: h,
             data: d,
             id: self.get_new_file_id(),

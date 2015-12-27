@@ -23,14 +23,18 @@ use self::header::data::*;
  * Internal abstract view on a file. Does not exist on the FS and is just kept
  * internally until it is written to disk.
  */
-pub struct File<'a> {
-    pub owning_module   : &'a Module<'a>,
-    pub header          : FileHeaderData,
-    pub data            : String,
-    pub id              : FileID,
+pub struct File {
+    pub owning_module_name  : &'static str,
+    pub header              : FileHeaderData,
+    pub data                : String,
+    pub id                  : FileID,
 }
 
-impl<'a> File<'a> {
+impl File {
+
+    pub fn owner_name(&self) -> &'static str {
+        self.owning_module_name
+    }
 
     pub fn header(&self) -> &FileHeaderData {
         &self.header
@@ -48,17 +52,13 @@ impl<'a> File<'a> {
         &self.id
     }
 
-    pub fn owner(&self) -> &'a Module<'a> {
-        self.owning_module
-    }
-
     pub fn matches_with(&self, r: &Regex) -> bool {
         r.is_match(&self.data[..]) || self.header.matches_with(r)
     }
 
 }
 
-impl<'a> Display for File<'a> {
+impl Display for File {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
         write!(fmt,
@@ -66,7 +66,7 @@ impl<'a> Display for File<'a> {
         FileID: '{:?}'
         Header: '{:?}'
         Data  : '{:?}'",
-               self.owning_module,
+               self.owning_module_name,
                self.header,
                self.data,
                self.id);
@@ -75,7 +75,7 @@ impl<'a> Display for File<'a> {
 
 }
 
-impl<'a> Debug for File<'a> {
+impl Debug for File {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
         write!(fmt,
@@ -83,7 +83,7 @@ impl<'a> Debug for File<'a> {
         FileID: '{:?}'
         Header: '{:?}'
         Data  : '{:?}'",
-               self.owning_module,
+               self.owning_module_name,
                self.header,
                self.data,
                self.id);
