@@ -84,7 +84,7 @@ impl<'a> Path<'a> {
 impl<'a> Into<&'a str> for Path<'a> {
 
     fn into(self) -> &'a str {
-        let s = self.base.clone();
+        let mut s = self.base.clone();
         s.push(self.store.clone());
         s.push(self.module.name());
         if self.id.is_some() {
