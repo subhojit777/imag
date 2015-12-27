@@ -114,7 +114,7 @@ impl<'a> File<'a> {
     fn get_new_file_id() -> FileID {
         use uuid::Uuid;
         let hash = FileHash::from(Uuid::new_v4().to_hyphenated_string());
-        FileID::new(FileIDType::UUID, hash);
+        FileID::new(FileIDType::UUID, hash)
     }
 }
 
