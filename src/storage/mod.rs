@@ -28,8 +28,14 @@ impl Store {
         }
     }
 
+    fn put_in_cache(&self, f: File) -> FileID {
+        let res = f.id().clone();
+        self.cache.borrow_mut().insert(f.id().clone(), RefCell::new(f));
+        res
+    }
+
     pub fn new_file(&self, module: &Module)
-        -> &RefCell<File>
+        -> FileID
     {
         let f = File {
             owning_module_name: module.name(),
@@ -37,15 +43,17 @@ impl Store {
             data: String::from(""),
             id: self.get_new_file_id(),
         };
-        debug!("Create new File object: {:?}", f);
-        f
+
+        debug!("Create new File object: {:?}", &f);
+        self.put_in_cache(f)
     }
 
     pub fn new_file_from_parser_result(&self,
                                        module: &Module,
                                        id: FileID,
                                        header: FileHeaderData,
-                                       data: String) -> File
+                                       data: String)
+        -> FileID
     {
         let f = File {
             owning_module_name: module.name(),
@@ -54,10 +62,14 @@ impl Store {
             id: id,
         };
         debug!("Create new File object from parser result: {:?}", f);
-        f
+        self.put_in_cache(f)
     }
 
-    pub fn new_file_with_header(&self, module: &Module, h: FileHeaderData) -> File {
+    pub fn new_file_with_header(&self,
+                                module: &Module,
+                                h: FileHeaderData)
+        -> FileID
+    {
         let f = File {
             owning_module_name: module.name(),
             header: h,
@@ -65,10 +77,12 @@ impl Store {
             id: self.get_new_file_id(),
         };
         debug!("Create new File object with header: {:?}", f);
-        f
+        self.put_in_cache(f)
     }
 
-    pub fn new_file_with_data(&self, module: &Module, d: String) -> File {
+    pub fn new_file_with_data(&self, module: &Module, d: String)
+        -> FileID
+    {
         let f = File {
             owning_module_name: module.name(),
             header: FileHeaderData::Null,
@@ -76,10 +90,15 @@ impl Store {
             id: self.get_new_file_id(),
         };
         debug!("Create new File object with data: {:?}", f);
-        f
+        self.put_in_cache(f)
     }
 
-    pub fn new_file_with_content(&self, module: &Module, h: FileHeaderData, d: String) -> File {
+    pub fn new_file_with_content(&self,
+                                 module: &Module,
+                                 h: FileHeaderData,
+                                 d: String)
+        -> FileID
+    {
         let f = File {
             owning_module_name: module.name(),
             header: h,
@@ -87,7 +106,7 @@ impl Store {
             id: self.get_new_file_id(),
         };
         debug!("Create new File object with content: {:?}", f);
-        f
+        self.put_in_cache(f)
     }
 
     pub fn persist(&self, file: &File) -> bool {
