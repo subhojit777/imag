@@ -10,6 +10,8 @@ use storage::parser::FileHeaderParser;
 use storage::parser::Parser;
 use storage::json::parser::JsonHeaderParser;
 
+mod header;
+
 pub struct BM<'a> {
     rt: &'a Runtime<'a>,
 }
