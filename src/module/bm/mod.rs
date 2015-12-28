@@ -83,7 +83,7 @@ impl<'a> Module<'a> for BM<'a> {
     }
 
     fn name(&self) -> &'static str {
-        "bm"
+        "bookmark"
     }
 }
 
