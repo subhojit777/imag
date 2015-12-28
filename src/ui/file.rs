@@ -1,4 +1,7 @@
+use std::cell::RefCell;
 use std::iter::Iterator;
+use std::rc::Rc;
+use std::ops::Deref;
 
 use storage::file::File;
 
@@ -9,14 +12,14 @@ pub trait FilePrinter {
     /*
      * Print a single file
      */
-    fn print_file(&self, &File);
+    fn print_file(&self, Rc<RefCell<File>>);
 
     /*
      * Print a list of files
      */
-    fn print_files<I: Iterator<Item = File>>(&self, files: I) {
+    fn print_files<I: Iterator<Item = Rc<RefCell<File>>>>(&self, files: I) {
         for file in files {
-            self.print_file(&file);
+            self.print_file(file);
         }
     }
 
@@ -34,7 +37,7 @@ impl FilePrinter for DebugPrinter {
         }
     }
 
-    fn print_file(&self, f: &File) {
+    fn print_file(&self, f: Rc<RefCell<File>>) {
         if self.debug {
             debug!("[DebugPrinter] ->\n{:?}", f);
         }
@@ -56,13 +59,13 @@ impl FilePrinter for SimplePrinter {
         }
     }
 
-    fn print_file(&self, f: &File) {
+    fn print_file(&self, f: Rc<RefCell<File>>) {
         if self.debug {
             debug!("{:?}", f);
         } else if self.verbose {
-            info!("{}", f);
+            info!("{}", &*f.deref().borrow());
         } else {
-            info!("[File]: {}", f.id());
+            info!("[File]: {}", f.deref().borrow().id());
         }
     }
 
@@ -84,11 +87,11 @@ impl FilePrinter for TablePrinter {
         }
     }
 
-    fn print_file(&self, f: &File) {
+    fn print_file(&self, f: Rc<RefCell<File>>) {
         self.sp.print_file(f);
     }
 
-    fn print_files<I: Iterator<Item = File>>(&self, files: I) {
+    fn print_files<I: Iterator<Item = Rc<RefCell<File>>>>(&self, files: I) {
         use prettytable::Table;
         use prettytable::row::Row;
         use prettytable::cell::Cell;
@@ -103,9 +106,9 @@ impl FilePrinter for TablePrinter {
             debug!("Printing file: {:?}", file);
             i += 1;
             let cell_i  = Cell::new(&format!("{}", i)[..]);
-            let cell_o  = Cell::new(&format!("{}", file.owner_name())[..]);
+            let cell_o  = Cell::new(&format!("{}", file.deref().borrow().owner_name())[..]);
 
-            let id : String = file.id().clone().into();
+            let id : String = file.deref().borrow().id().clone().into();
             let cell_id = Cell::new(&id[..]);
             let row = Row::new(vec![cell_i, cell_o, cell_id]);
             tab.add_row(row);
