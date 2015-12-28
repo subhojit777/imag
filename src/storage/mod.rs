@@ -133,11 +133,25 @@ impl Store {
             format!("{}/{}-{}.imag", self.storepath, file.owning_module_name, ids)
         };
 
+        self.ensure_store_path_exists();
+
         FSFile::create(&path).map(|mut fsfile| {
             fsfile.write_all(&text.unwrap().clone().into_bytes()[..])
         }).map_err(|writeerr|  {
             debug!("Could not create file at '{}'", path);
         }).and(Ok(true)).unwrap()
+    }
+
+    fn ensure_store_path_exists(&self) {
+        use std::fs::create_dir_all;
+        use std::process::exit;
+
+        create_dir_all(&self.storepath).unwrap_or_else(|e| {
+            error!("Could not create store: '{}'", self.storepath);
+            error!("Error                 : '{}'", e);
+            error!("Killing myself now");
+            exit(1);
+        })
     }
 
     pub fn load(&self, id: &FileID) -> Option<Rc<RefCell<File>>> {
