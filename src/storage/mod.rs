@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fs::File as FSFile;
 use std::ops::Deref;
 use std::io::Write;
+use std::io::Read;
 
 pub mod path;
 pub mod file;
@@ -39,6 +40,26 @@ impl Store {
         let res = f.id().clone();
         self.cache.borrow_mut().insert(f.id().clone(), Rc::new(RefCell::new(f)));
         res
+    }
+
+    pub fn load_in_cache<HP>(&self, m: &Module, parser: &Parser<HP>, id: FileID)
+        -> Option<Rc<RefCell<File>>>
+        where HP: FileHeaderParser
+    {
+        let idstr : String = id.clone().into();
+        let path = format!("{}/{}-{}.imag", self.storepath, m.name(), idstr);
+        let mut string = String::new();
+
+        FSFile::open(&path).map(|mut file| {
+            file.read_to_string(&mut string)
+                .map_err(|e| error!("Failed reading file: '{}'", path));
+        });
+
+        parser.read(string).map(|(header, data)| {
+            self.new_file_from_parser_result(m, id.clone(), header, data);
+        });
+
+        self.load(&id)
     }
 
     pub fn new_file(&self, module: &Module)
