@@ -180,6 +180,37 @@ subcommands:
                         required: true
                         takes_value: true
 
+            - set_tags:
+                about: Set tags in bookmark(s)
+                version: 0.1
+                author: Matthias Beyer <mail@beyermatthias.de>
+                args:
+                    - to_id:
+                        long: to-id
+                        help: Set tags in bookmark with this id
+                        required: false
+                        takes_value: true
+
+                    - to_match:
+                        short: m
+                        long: to-match
+                        help: Set tags in bookmark(s) which match this regex
+                        required: false
+                        takes_value: true
+
+                    - to_tags:
+                        long: to-tags
+                        help: Set tags in bookmark(s) which have these tag(s)
+                        required: false
+                        takes_value: true
+
+                    - tags:
+                        short: t
+                        long: tags
+                        help: Set these tags
+                        required: true
+                        takes_value: true
+
     - todo:
         about: Todo module
         version: 0.1

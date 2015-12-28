@@ -169,6 +169,12 @@ impl<'a> BM<'a> {
         })
     }
 
+    fn command_set_tags(&self, matches: &ArgMatches) -> bool {
+        self.alter_tags_in_files(matches, |old_tags, cli_tags| {
+            cli_tags.clone()
+        })
+    }
+
     fn alter_tags_in_files<F>(&self, matches: &ArgMatches, generate_new_tags: F) -> bool
         where F: Fn(Vec<String>, &Vec<String>) -> Vec<String>
     {
@@ -222,6 +228,7 @@ impl<'a> BM<'a> {
             })
             .all(|x| x)
     }
+
 
     fn get_files(&self,
                  matches: &ArgMatches,
@@ -324,6 +331,10 @@ impl<'a> Module<'a> for BM<'a> {
 
             Some("rm_tags") => {
                 self.command_rm_tags(matches.subcommand_matches("rm_tags").unwrap())
+            },
+
+            Some("set_tags") => {
+                self.command_set_tags(matches.subcommand_matches("set_tags").unwrap())
             },
 
             Some(_) | None => {
