@@ -88,16 +88,11 @@ pub trait FileHeaderParser : Sized {
     fn write(&self, data: &FileHeaderData) -> Result<String, ParserError>;
 }
 
-type TextTpl = (Option<String>, Option<String>);
-
-pub struct Parser<HP>
-{
+pub struct Parser<HP> {
     headerp : HP,
 }
 
-impl<HP> Parser<HP> where
-    HP: FileHeaderParser,
-{
+impl<HP: FileHeaderParser> Parser<HP> {
 
     pub fn new(headerp: HP) -> Parser<HP> {
         Parser {
@@ -105,8 +100,7 @@ impl<HP> Parser<HP> where
         }
     }
 
-    pub fn read(&self, s: String) -> Result<(FileHeaderData, String), ParserError>
-    {
+    pub fn read(&self, s: String) -> Result<(FileHeaderData, String), ParserError> {
         debug!("Reading into internal datastructure: '{}'", s);
         let divided = self.divide_text(&s);
 
@@ -128,8 +122,7 @@ impl<HP> Parser<HP> where
         Ok((h_parseres, data.unwrap_or(String::new())))
     }
 
-    pub fn write(&self, tpl : (FileHeaderData, String)) -> Result<String, ParserError>
-    {
+    pub fn write(&self, tpl : (&FileHeaderData, &String)) -> Result<String, ParserError> {
         debug!("Parsing internal datastructure to String");
         let (header, data) = tpl;
         let h_text = try!(self.headerp.write(&header));
@@ -139,7 +132,7 @@ impl<HP> Parser<HP> where
         Ok(text)
     }
 
-    fn divide_text(&self, text: &String) -> Result<TextTpl, ParserError> {
+    fn divide_text(&self, text: &String) -> Result<(Option<String>, Option<String>), ParserError> {
         let re = Regex::new(r"(?sm)^---$(.*)^---$(.*)").unwrap();
 
         debug!("Splitting: '{}'", text);

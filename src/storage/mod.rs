@@ -1,324 +1,285 @@
-use std::error::Error;
-use std::fmt::Result as FMTResult;
-use std::fmt::{Display, Formatter};
+use std::rc::Rc;
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::fs::File as FSFile;
-use std::fs::{create_dir_all, remove_file};
-use std::io::{Read, Write};
-use std::path::Path;
-use std::vec::{Vec, IntoIter};
+use std::ops::Deref;
+use std::io::Write;
+use std::io::Read;
 
+pub mod path;
 pub mod file;
 pub mod parser;
 pub mod json;
 
-use glob::glob;
-use glob::Paths;
-
 use module::Module;
 use runtime::Runtime;
 use storage::file::File;
-use storage::file::id::*;
-use storage::parser::{FileHeaderParser, Parser};
+use storage::file::id::FileID;
+use storage::file::id_type::FileIDType;
+use storage::file::hash::FileHash;
+use storage::parser::{FileHeaderParser, Parser, ParserError};
+use storage::file::header::data::FileHeaderData;
 
-pub type BackendOperationResult<T = ()> = Result<T, StorageError>;
+type Cache = HashMap<FileID, Rc<RefCell<File>>>;
 
-pub struct Storage {
-    basepath: String,
+pub struct Store {
     storepath: String,
+    cache : RefCell<Cache>,
 }
 
-impl Storage {
+impl Store {
 
-    pub fn new(rt: &Runtime) -> BackendOperationResult<Storage> {
-        use self::StorageError as SBE;
-
-        let storepath = rt.get_rtp() + "/store/";
-        debug!("Trying to create {}", storepath);
-        create_dir_all(&storepath).and_then(|_| {
-            debug!("Creating succeeded, constructing backend instance");
-            Ok(Storage {
-                basepath: rt.get_rtp(),
-                storepath: storepath.clone(),
-            })
-        }).or_else(|e| {
-            debug!("Creating failed, constructing error instance");
-            Err(SBE::new("create_dir_all()", "Could not create store directories",
-                           Some(storepath), Some(Box::new(e))))
-        })
+    pub fn new(storepath: String) -> Store {
+        Store {
+            storepath: storepath,
+            cache: RefCell::new(HashMap::new()),
+        }
     }
 
-    pub fn iter_ids(&self, m: &Module) -> Result<IntoIter<FileID>, StorageError>
-    {
-        use self::StorageError as SBE;
-
-        let globstr = self.prefix_of_files_for_module(m) + "*.imag";
-        debug!("Globstring = {}", globstr);
-        glob(&globstr[..])
-            .and_then(|globlist| {
-                debug!("Iterating over globlist");
-                Ok(globlist_to_file_id_vec(globlist).into_iter())
-            })
-            .map_err(|e| {
-                debug!("glob() returned error: {:?}", e);
-                SBE::new("iter_ids()", "Cannot iter on file ids", None, None)
-            })
+    fn put_in_cache(&self, f: File) -> FileID {
+        let res = f.id().clone();
+        self.cache.borrow_mut().insert(f.id().clone(), Rc::new(RefCell::new(f)));
+        res
     }
 
-    pub fn iter_files<'a, HP>(&self, m: &'a Module, p: &Parser<HP>)
-        -> Result<IntoIter<File<'a>>, StorageError>
+    pub fn load_in_cache<HP>(&self, m: &Module, parser: &Parser<HP>, id: FileID)
+        -> Option<Rc<RefCell<File>>>
         where HP: FileHeaderParser
     {
-        use self::StorageError as SBE;
-
-        self.iter_ids(m)
-            .and_then(|ids| {
-                debug!("Iterating ids and building files from them");
-                debug!("  number of ids = {}", ids.len());
-                Ok(self.filter_map_ids_to_files(m, p, ids).into_iter())
-            })
-            .map_err(|e| {
-                debug!("Storage::iter_ids() returned error = {:?}", e);
-                SBE::new("iter_files()", "Cannot iter on files", None,
-                         Some(Box::new(e)))
-            })
-    }
-
-    /*
-     * Write a file to disk.
-     *
-     * The file is moved to this function as the file won't be edited afterwards
-     */
-    pub fn put_file<HP>(&self, f: File, p: &Parser<HP>) -> BackendOperationResult
-        where HP: FileHeaderParser
-    {
-        use self::StorageError as SBE;
-
-        let written = write_with_parser(&f, p);
-        if written.is_err() { return Err(written.err().unwrap()); }
-        let string = written.unwrap();
-
-        let path = self.build_filepath(&f);
-        debug!("Writing file: {}", path);
-        debug!("      string: {}", string);
-
-        FSFile::create(&path).map(|mut file| {
-            debug!("Created file at '{}'", path);
-            file.write_all(&string.clone().into_bytes())
-                .map_err(|ioerr| {
-                    debug!("Could not write file");
-                    SBE::new("File::write_all()",
-                             "Could not write out File contents",
-                             None, Some(Box::new(ioerr)))
-                })
-        }).map_err(|writeerr| {
-            debug!("Could not create file at '{}'", path);
-            SBE::new("File::create()", "Creating file on disk failed", None,
-                     Some(Box::new(writeerr)))
-        }).and(Ok(()))
-    }
-
-    /*
-     * Update a file. We have the UUID and can find the file on FS with it and
-     * then replace its contents with the contents of the passed file object
-     */
-    pub fn update_file<HP>(&self, f: File, p: &Parser<HP>) -> BackendOperationResult
-        where HP: FileHeaderParser
-    {
-        use self::StorageError as SBE;
-
-        let contents = write_with_parser(&f, p);
-        if contents.is_err() { return Err(contents.err().unwrap()); }
-        let string = contents.unwrap();
-
-        let path = self.build_filepath(&f);
-        debug!("Writing file: {}", path);
-        debug!("      string: {}", string);
+        let idstr : String = id.clone().into();
+        let path = format!("{}/{}-{}.imag", self.storepath, m.name(), idstr);
+        debug!("Loading path = '{}'", path);
+        let mut string = String::new();
 
         FSFile::open(&path).map(|mut file| {
-            debug!("Open file at '{}'", path);
-            file.write_all(&string.clone().into_bytes())
-                .map_err(|ioerr| {
-                    debug!("Could not write file");
-                    SBE::new("File::write()",
-                             "Tried to write contents of this file, though operation did not succeed",
-                             Some(string), Some(Box::new(ioerr)))
-                })
-        }).map_err(|writeerr| {
-            debug!("Could not write file at '{}'", path);
-            SBE::new("File::open()",
-                     "Tried to update contents of this file, though file doesn't exist",
-                     None, Some(Box::new(writeerr)))
-        }).and(Ok(()))
+            file.read_to_string(&mut string)
+                .map_err(|e| error!("Failed reading file: '{}'", path));
+        });
+
+        parser.read(string).map(|(header, data)| {
+            self.new_file_from_parser_result(m, id.clone(), header, data);
+        });
+
+        self.load(&id)
     }
 
-    /*
-     * Find a file by its ID and return it if found. Return nothing if not
-     * found, of course.
-     *
-     * TODO: Needs refactoring, as there might be an error when reading from
-     * disk OR the id just does not exist.
-     */
-    pub fn get_file_by_id<'a, HP>(&self, m: &'a Module, id: &FileID, p: &Parser<HP>) -> Option<File<'a>>
+    pub fn new_file(&self, module: &Module)
+        -> FileID
+    {
+        let f = File {
+            owning_module_name: module.name(),
+            header: FileHeaderData::Null,
+            data: String::from(""),
+            id: self.get_new_file_id(),
+        };
+
+        debug!("Create new File object: {:?}", &f);
+        self.put_in_cache(f)
+    }
+
+    pub fn new_file_from_parser_result(&self,
+                                       module: &Module,
+                                       id: FileID,
+                                       header: FileHeaderData,
+                                       data: String)
+        -> FileID
+    {
+        let f = File {
+            owning_module_name: module.name(),
+            header: header,
+            data: data,
+            id: id,
+        };
+        debug!("Create new File object from parser result: {:?}", f);
+        self.put_in_cache(f)
+    }
+
+    pub fn new_file_with_header(&self,
+                                module: &Module,
+                                h: FileHeaderData)
+        -> FileID
+    {
+        let f = File {
+            owning_module_name: module.name(),
+            header: h,
+            data: String::from(""),
+            id: self.get_new_file_id(),
+        };
+        debug!("Create new File object with header: {:?}", f);
+        self.put_in_cache(f)
+    }
+
+    pub fn new_file_with_data(&self, module: &Module, d: String)
+        -> FileID
+    {
+        let f = File {
+            owning_module_name: module.name(),
+            header: FileHeaderData::Null,
+            data: d,
+            id: self.get_new_file_id(),
+        };
+        debug!("Create new File object with data: {:?}", f);
+        self.put_in_cache(f)
+    }
+
+    pub fn new_file_with_content(&self,
+                                 module: &Module,
+                                 h: FileHeaderData,
+                                 d: String)
+        -> FileID
+    {
+        let f = File {
+            owning_module_name: module.name(),
+            header: h,
+            data: d,
+            id: self.get_new_file_id(),
+        };
+        debug!("Create new File object with content: {:?}", f);
+        self.put_in_cache(f)
+    }
+
+    pub fn persist<HP>(&self,
+                       p: &Parser<HP>,
+                       f: Rc<RefCell<File>>) -> bool
         where HP: FileHeaderParser
     {
-        debug!("Searching for file with id '{}'", id);
+        let file = f.deref().borrow();
+        let text = p.write(file.contents());
+        if text.is_err() {
+            error!("Error: {}", text.err().unwrap());
+            return false;
+        }
 
-        if id.get_type() == FileIDType::NONE {
-            // We don't know the hash type, so we glob() around a bit.
-            debug!("Having FileIDType::NONE, so we glob() for the raw ID");
+        let path = {
+            let ids : String = file.id().clone().into();
+            format!("{}/{}-{}.imag", self.storepath, file.owning_module_name, ids)
+        };
 
-            let id_str = id.get_id().unwrap_or(String::from("INVALID"));
-            let globstr = self.prefix_of_files_for_module(m) + "*" + &id_str[..] + ".imag";
-            debug!("Globbing with globstr = '{}'", globstr);
-            glob(&globstr[..]).map(|globlist| {
-                let idvec = globlist_to_file_id_vec(globlist).into_iter();
-                let mut vec = self.filter_map_ids_to_files(m, p, idvec);
-                vec.reverse();
-                vec.pop()
-            }).unwrap_or({
-                debug!("No glob matches, actually. We can't do anything at this point");
-                None
+        self.ensure_store_path_exists();
+
+        FSFile::create(&path).map(|mut fsfile| {
+            fsfile.write_all(&text.unwrap().clone().into_bytes()[..])
+        }).map_err(|writeerr|  {
+            debug!("Could not create file at '{}'", path);
+        }).and(Ok(true)).unwrap()
+    }
+
+    fn ensure_store_path_exists(&self) {
+        use std::fs::create_dir_all;
+        use std::process::exit;
+
+        create_dir_all(&self.storepath).unwrap_or_else(|e| {
+            error!("Could not create store: '{}'", self.storepath);
+            error!("Error                 : '{}'", e);
+            error!("Killing myself now");
+            exit(1);
+        })
+    }
+
+    pub fn load(&self, id: &FileID) -> Option<Rc<RefCell<File>>> {
+        debug!("Loading '{:?}'", id);
+        self.cache.borrow().get(id).cloned()
+    }
+
+    pub fn load_by_hash<HP>(&self,
+                            m: &Module,
+                            parser: &Parser<HP>,
+                            hash: FileHash)
+        -> Option<Rc<RefCell<File>>>
+        where HP: FileHeaderParser
+    {
+        macro_rules! try_some {
+            ($expr:expr) => (match $expr {
+                ::std::option::Option::Some(val) => val,
+                ::std::option::Option::None => return ::std::option::Option::None,
+            });
+
+            ($expr:expr => return) => (match $expr {
+                ::std::option::Option::Some(val) => val,
+                ::std::option::Option::None => return,
             })
-        } else {
-            // The (hash)type is already in the FileID object, so we can just
-            // build a path from the information we already have
-            debug!("We know FileIDType, so we build the path directly now");
-            let filepath = self.build_filepath_with_id(m, id.clone());
-            if let Ok(mut fs) = FSFile::open(filepath) {
-                let mut s = String::new();
-                fs.read_to_string(&mut s);
-
-                debug!("Success opening file with id '{}'", id);
-                debug!("Parsing to internal structure now");
-                p.read(s).and_then(|(h, d)| {
-                    Ok(File::from_parser_result(m, id.clone(), h, d))
-                }).ok()
-            } else {
-                debug!("No file with id '{}'", id);
-                None
-            }
-        }
-    }
-
-    pub fn remove_file(&self, m: &Module, file: File, checked: bool) -> BackendOperationResult {
-        use self::StorageError as SBE;
-
-        if checked {
-            error!("Checked remove not implemented yet. I will crash now");
-            unimplemented!()
         }
 
-        debug!("Doing unchecked remove");
-        info!("Going to remove file: {}", file);
+        use glob::{glob, Paths, PatternError};
 
-        let fp = self.build_filepath(&file);
-        remove_file(fp).map_err(|e| {
-            SBE::new("remove_file()", "File removal failed",
-                     Some(format!("{}", file)), Some(Box::new(e)))
-        })
+        let hashstr : String = hash.into();
+        let globstr = format!("{}/*-{}.imag", self.storepath, hashstr);
+        debug!("glob({})", globstr);
+
+        let globs = glob(&globstr[..]);
+        if globs.is_err() {
+            return None;
+        }
+
+        let path = globs.unwrap().last();
+        debug!("path = {:?}", path);
+
+        let pathbuf = try_some!(path);
+        if pathbuf.is_err() { return None; }
+
+        let pathbuf_un  = pathbuf.unwrap();
+        let filename    = pathbuf_un.file_name();
+        let s           = try_some!(filename).to_str();
+        let string      = String::from(try_some!(s));
+        let id          = try_some!(FileID::parse(&string));
+
+        debug!("Loaded ID = '{:?}'", id);
+
+        self.load_in_cache(m, parser, id)
+            .map(|file| {
+                debug!("Loaded File = '{:?}'", file);
+                Some(file)
+            }).unwrap_or(None)
     }
 
-    fn build_filepath(&self, f: &File) -> String {
-        self.build_filepath_with_id(f.owner(), f.id())
+    pub fn remove(&self, id: FileID) -> bool {
+        use std::fs::remove_file;
+
+        self.cache
+            .borrow_mut()
+            .remove(&id)
+            .map(|file| {
+                let idstr : String = id.into();
+                let path = format!("{}/{}-{}.imag",
+                                   self.storepath,
+                                   file.deref().borrow().owner_name(),
+                                   idstr);
+                debug!("Removing file NOW: '{}'", path);
+                remove_file(path).is_ok()
+            })
+            .unwrap_or(false)
     }
 
-    fn build_filepath_with_id(&self, owner: &Module, id: FileID) -> String {
-        let idstr   : String        = id.clone().into();
-        let idtype  : FileIDType    = id.into();
-        let typestr : String        = idtype.into();
-
-        debug!("Building filepath with id");
-        debug!("  basepath: '{}'", self.basepath);
-        debug!(" storepath: '{}'", self.storepath);
-        debug!("        id: '{}'", idstr);
-        debug!("      type: '{}'", typestr);
-
-        self.prefix_of_files_for_module(owner) +
-            "-" + &typestr[..] +
-            "-" + &idstr[..] +
-            ".imag"
-    }
-
-    fn prefix_of_files_for_module(&self, m: &Module) -> String {
-        self.storepath.clone() + m.name()
-    }
-
-    fn filter_map_ids_to_files<'a, HP>(&self,
-                                        m: &'a Module,
-                                        p: &Parser<HP>,
-                                        ids: IntoIter<FileID>)
-        -> Vec<File<'a>>
+    pub fn load_for_module<HP>(&self, m: &Module, parser: &Parser<HP>)
+        -> Vec<Rc<RefCell<File>>>
         where HP: FileHeaderParser
     {
-        ids.filter_map(|id| self.get_file_by_id(m, &id, p))
-           .collect::<Vec<File>>()
+        use glob::{glob, Paths, PatternError};
+
+        let globstr = format!("{}/{}-*.imag", self.storepath, m.name());
+        let mut res = vec![];
+
+        glob(&globstr[..]).map(|paths| {
+            for path in paths {
+                if let Ok(pathbuf) = path {
+                    let fname = pathbuf.file_name().and_then(|s| s.to_str());
+                    fname.map(|s| {
+                        FileID::parse(&String::from(s)).map(|id| {
+                            self.load_in_cache(m, parser, id).map(|file| {
+                                res.push(file);
+                            })
+                        });
+                    });
+                }
+            }
+        });
+        res
+    }
+
+    fn get_new_file_id(&self) -> FileID {
+        use uuid::Uuid;
+        let hash = FileHash::from(Uuid::new_v4().to_hyphenated_string());
+        FileID::new(FileIDType::UUID, hash)
     }
 
 }
-
-#[derive(Debug)]
-pub struct StorageError {
-    pub action: String,             // The file system action in words
-    pub desc: String,               // A short description
-    pub data_dump: Option<String>,  // Data dump, if any
-    pub caused_by: Option<Box<Error>>,  // caused from this error
-}
-
-impl StorageError {
-
-    fn new<S>(action: S,
-              desc: S,
-              data: Option<String>,
-              cause: Option<Box<Error>>)
-        -> StorageError
-        where S: Into<String>
-    {
-        StorageError {
-            action:         action.into(),
-            desc:           desc.into(),
-            data_dump:      data,
-            caused_by:      None,
-        }
-    }
-
-}
-
-impl Error for StorageError {
-
-    fn description(&self) -> &str {
-        &self.desc[..]
-    }
-
-    fn cause(&self) -> Option<&Error> {
-        self.caused_by.as_ref().map(|e| &**e)
-    }
-
-}
-
-impl<'a> Display for StorageError {
-    fn fmt(&self, f: &mut Formatter) -> FMTResult {
-        write!(f, "StorageError[{}]: {}",
-               self.action, self.desc)
-    }
-}
-
-
-fn write_with_parser<'a, HP>(f: &File, p: &Parser<HP>) -> Result<String, StorageError>
-    where HP: FileHeaderParser
-{
-    use self::StorageError as SBE;
-
-    p.write(f.contents())
-        .or_else(|err| {
-            Err(SBE::new("Parser::write()",
-                         "Cannot translate internal representation of file contents into on-disk representation",
-                         None, Some(Box::new(err))))
-        })
-}
-
-fn globlist_to_file_id_vec(globlist: Paths) -> Vec<FileID> {
-    globlist.filter_map(Result::ok)
-            .map(|pbuf| FileID::from(&pbuf))
-            .collect::<Vec<FileID>>()
-}
-

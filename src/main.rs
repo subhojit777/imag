@@ -16,10 +16,6 @@ use configuration::Configuration;
 use runtime::{ImagLogger, Runtime};
 use clap::App;
 use module::Module;
-use module::ModuleError;
-use module::CommandEnv;
-use module::bm::BMModule;
-use storage::Storage;
 
 mod cli;
 mod configuration;
@@ -27,6 +23,8 @@ mod runtime;
 mod module;
 mod storage;
 mod ui;
+
+use module::bm::BM;
 
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
@@ -44,39 +42,12 @@ fn main() {
 
     debug!("Runtime      : {:?}", &rt);
 
-    let backend = Storage::new(&rt).unwrap_or_else(|e| {
-        error!("Error: {}", e);
-        exit(1);
-    });
-
     if let Some(matches) = rt.config.cli_matches.subcommand_matches("bm") {
-        let module            = BMModule::new(&rt);
-        let commands          = module.get_commands(&rt);
-        if let Some(command)  = matches.subcommand_name() {
-            debug!("Subcommand: {}", command);
-
-            let cmdenv = CommandEnv {
-                rt: &rt,
-                bk: &backend,
-                matches: matches.subcommand_matches(command).unwrap(),
-            };
-
-            let result = match commands.get(command) {
-                Some(f) => f(&module, cmdenv),
-                None    => Err(ModuleError::new("No subcommand found")),
-            };
-
-            debug!("Result of command: {:?}", result);
-        } else {
-            debug!("No subcommand");
-        }
-
-        module.shutdown(&rt);
+        let res = BM::new(&rt).exec(matches);
+        info!("BM exited with {}", res);
     } else {
-        // Err(ModuleError::mk("No commandline call"))
         info!("No commandline call...")
     }
-
 
     info!("Hello, world!");
 }
