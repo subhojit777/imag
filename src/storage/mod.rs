@@ -48,6 +48,7 @@ impl Store {
     {
         let idstr : String = id.clone().into();
         let path = format!("{}/{}-{}.imag", self.storepath, m.name(), idstr);
+        debug!("Loading path = '{}'", path);
         let mut string = String::new();
 
         FSFile::open(&path).map(|mut file| {
