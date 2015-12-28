@@ -180,6 +180,57 @@ impl Store {
         self.cache.borrow().get(id).cloned()
     }
 
+    pub fn load_by_hash<HP>(&self,
+                            m: &Module,
+                            parser: &Parser<HP>,
+                            hash: FileHash)
+        -> Option<Rc<RefCell<File>>>
+        where HP: FileHeaderParser
+    {
+        macro_rules! try_some {
+            ($expr:expr) => (match $expr {
+                ::std::option::Option::Some(val) => val,
+                ::std::option::Option::None => return ::std::option::Option::None,
+            });
+
+            ($expr:expr => return) => (match $expr {
+                ::std::option::Option::Some(val) => val,
+                ::std::option::Option::None => return,
+            })
+        }
+
+        use glob::{glob, Paths, PatternError};
+
+        let hashstr : String = hash.into();
+        let globstr = format!("{}/*-{}.imag", self.storepath, hashstr);
+        debug!("glob({})", globstr);
+
+        let globs = glob(&globstr[..]);
+        if globs.is_err() {
+            return None;
+        }
+
+        let path = globs.unwrap().last();
+        debug!("path = {:?}", path);
+
+        let pathbuf = try_some!(path);
+        if pathbuf.is_err() { return None; }
+
+        let pathbuf_un  = pathbuf.unwrap();
+        let filename    = pathbuf_un.file_name();
+        let s           = try_some!(filename).to_str();
+        let string      = String::from(try_some!(s));
+        let id          = try_some!(FileID::parse(&string));
+
+        debug!("Loaded ID = '{:?}'", id);
+
+        self.load_in_cache(m, parser, id)
+            .map(|file| {
+                debug!("Loaded File = '{:?}'", file);
+                Some(file)
+            }).unwrap_or(None)
+    }
+
     pub fn remove(&self, id: FileID) -> bool {
         use std::fs::remove_file;
 
