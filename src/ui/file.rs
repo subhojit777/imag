@@ -23,6 +23,21 @@ pub trait FilePrinter {
         }
     }
 
+    fn print_file_custom<F>(&self, file: Rc<RefCell<File>>, f: &F)
+        where F: Fn(Rc<RefCell<File>>) -> String
+    {
+        info!("{}", f(file));
+    }
+
+    fn print_files_custom<F, I>(&self, files: I, f: &F)
+        where I: Iterator<Item = Rc<RefCell<File>>>,
+              F: Fn(Rc<RefCell<File>>) -> String
+    {
+        for file in files {
+            self.print_file_custom(file, f);
+        }
+    }
+
 }
 
 struct DebugPrinter {
