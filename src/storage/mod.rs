@@ -187,27 +187,48 @@ impl Store {
         -> Option<Rc<RefCell<File>>>
         where HP: FileHeaderParser
     {
+        macro_rules! try_some {
+            ($expr:expr) => (match $expr {
+                ::std::option::Option::Some(val) => val,
+                ::std::option::Option::None => return ::std::option::Option::None,
+            });
+
+            ($expr:expr => return) => (match $expr {
+                ::std::option::Option::Some(val) => val,
+                ::std::option::Option::None => return,
+            })
+        }
+
         use glob::{glob, Paths, PatternError};
 
         let hashstr : String = hash.into();
         let globstr = format!("{}/*-{}.imag", self.storepath, hashstr);
+        debug!("glob({})", globstr);
 
-        glob(&globstr[..]).map(|paths| {
-            // We assume there is only one ... TODO: Check whether there is actually just one
-            paths.last().map(|path| {
-                if let Ok(pathbuf) = path {
-                    let fname = pathbuf.file_name().and_then(|s| s.to_str());
-                    fname.map(|s| {
-                        FileID::parse(&String::from(s)).map(|id| {
-                            self.load_in_cache(m, parser, id).map(|file| {
-                                return Some(file)
-                            })
-                        });
-                    });
-                }
-            })
-        });
-        None
+        let globs = glob(&globstr[..]);
+        if globs.is_err() {
+            return None;
+        }
+
+        let path = globs.unwrap().last();
+        debug!("path = {:?}", path);
+
+        let pathbuf = try_some!(path);
+        if pathbuf.is_err() { return None; }
+
+        let pathbuf_un  = pathbuf.unwrap();
+        let filename    = pathbuf_un.file_name();
+        let s           = try_some!(filename).to_str();
+        let string      = String::from(try_some!(s));
+        let id          = try_some!(FileID::parse(&string));
+
+        debug!("Loaded ID = '{:?}'", id);
+
+        self.load_in_cache(m, parser, id)
+            .map(|file| {
+                debug!("Loaded File = '{:?}'", file);
+                Some(file)
+            }).unwrap_or(None)
     }
 
     pub fn remove(&self, id: FileID) -> bool {
