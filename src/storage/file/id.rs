@@ -64,6 +64,7 @@ impl FileID {
             debug!("                      Hash: {:?}", hash);
 
             FileIDType::from_str(hashname).map(|idtype| {
+                debug!("ID type = {:?}", idtype);
                 Some(FileID {
                     id: FileHash::from(hash),
                     id_type: idtype,
