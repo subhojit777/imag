@@ -160,6 +160,15 @@ impl<'a> BM<'a> {
         })
     }
 
+    fn command_rm_tags(&self, matches: &ArgMatches) -> bool {
+        self.alter_tags_in_files(matches, |old_tags, cli_tags| {
+            old_tags.clone()
+                .into_iter()
+                .filter(|tag| !cli_tags.contains(tag))
+                .collect()
+        })
+    }
+
     fn alter_tags_in_files<F>(&self, matches: &ArgMatches, generate_new_tags: F) -> bool
         where F: Fn(Vec<String>, &Vec<String>) -> Vec<String>
     {
@@ -311,6 +320,10 @@ impl<'a> Module<'a> for BM<'a> {
 
             Some("add_tags") => {
                 self.command_add_tags(matches.subcommand_matches("add_tags").unwrap())
+            },
+
+            Some("rm_tags") => {
+                self.command_rm_tags(matches.subcommand_matches("rm_tags").unwrap())
             },
 
             Some(_) | None => {
