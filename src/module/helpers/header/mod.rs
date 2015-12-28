@@ -19,7 +19,15 @@ pub mod data {
                     }
                 }).and_then(|urlkey| {
                     match urlkey.deref().clone() {
-                        FHD::Text(s) => Some(s),
+                        FHD::Key{name: _, value: ref v} => {
+                            match v.deref().clone() {
+                                FHD::Text(s) => Some(s),
+                                _ => {
+                                    warn!("Malformed Header Data: Expected Text, found non-Text");
+                                    None
+                                },
+                            }
+                        }
                         _ => {
                             warn!("Malformed Header Data: Expected Text, found non-Text");
                             None

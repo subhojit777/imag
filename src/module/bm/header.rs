@@ -30,3 +30,7 @@ pub fn get_tags_from_header(header: &FHD) -> Vec<String> {
     headerhelpers::tags::data::get_tags_from_header(header)
 }
 
+pub fn get_url_from_header(header: &FHD) -> Option<String> {
+    headerhelpers::data::get_url_from_header(header)
+}
+
