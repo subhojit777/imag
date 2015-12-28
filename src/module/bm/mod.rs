@@ -6,6 +6,7 @@ use clap::ArgMatches;
 use runtime::Runtime;
 use module::Module;
 
+use storage::Store;
 use storage::file::hash::FileHash;
 use storage::file::id::FileID;
 use storage::parser::FileHeaderParser;
@@ -31,11 +32,20 @@ impl<'a> BM<'a> {
     }
 
     fn command_add(&self, matches: &ArgMatches) -> bool {
+        use std::process::exit;
         use self::header::build_header;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
 
         let url    = matches.value_of("url").map(String::from).unwrap(); // clap ensures this is present
+
+        if !self.validate_url(&url, &parser) {
+            error!("URL validation failed, exiting.");
+            exit(1);
+        } else {
+            debug!("Verification succeeded");
+        }
+
         let tags   = matches.value_of("tags").and_then(|s| {
             Some(s.split(",").map(String::from).collect())
         }).unwrap_or(vec![]);
@@ -50,6 +60,37 @@ impl<'a> BM<'a> {
             info!("Created file in memory: {}", fileid);
             Some(self.rt.store().persist(&parser, file))
         }).unwrap_or(false)
+    }
+
+    fn validate_url<HP>(&self, url: &String, parser: &Parser<HP>) -> bool
+        where HP: FileHeaderParser
+    {
+        use self::header::get_url_from_header;
+        use std::ops::Deref;
+        use util::is_url;
+
+        if !is_url(url) {
+            error!("Url '{}' is not a valid URL. Will not store.", url);
+            return false;
+        }
+
+        let is_in_store = self.rt
+            .store()
+            .load_for_module(self, parser)
+            .iter()
+            .any(|file| {
+                let f = file.deref().borrow();
+                get_url_from_header(f.header()).map(|url_in_store| {
+                    &url_in_store == url
+                }).unwrap_or(false)
+            });
+
+        if is_in_store {
+            error!("URL '{}' seems to be in the store already", url);
+            return false;
+        }
+
+        return true;
     }
 
     fn command_list(&self, matches: &ArgMatches) -> bool {
