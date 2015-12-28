@@ -1,7 +1,12 @@
 use std::fmt::{Debug, Display, Formatter};
+use std::rc::Rc;
+use std::cell::RefCell;
 use std::fmt;
+use std::ops::Deref;
+use std::process::exit;
 
 use clap::ArgMatches;
+use regex::Regex;
 
 use runtime::Runtime;
 use module::Module;
@@ -9,11 +14,15 @@ use module::Module;
 use storage::Store;
 use storage::file::hash::FileHash;
 use storage::file::id::FileID;
+use storage::file::File;
 use storage::parser::FileHeaderParser;
 use storage::parser::Parser;
 use storage::json::parser::JsonHeaderParser;
 
 mod header;
+
+use self::header::get_url_from_header;
+use self::header::get_tags_from_header;
 
 pub struct BM<'a> {
     rt: &'a Runtime<'a>,
@@ -65,8 +74,6 @@ impl<'a> BM<'a> {
     fn validate_url<HP>(&self, url: &String, parser: &Parser<HP>) -> bool
         where HP: FileHeaderParser
     {
-        use self::header::get_url_from_header;
-        use std::ops::Deref;
         use util::is_url;
 
         if !is_url(url) {
@@ -95,8 +102,6 @@ impl<'a> BM<'a> {
 
     fn command_list(&self, matches: &ArgMatches) -> bool {
         use ui::file::{FilePrinter, TablePrinter};
-        use self::header::get_url_from_header;
-        use self::header::get_tags_from_header;
         use std::ops::Deref;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
@@ -154,48 +159,79 @@ impl<'a> BM<'a> {
     }
 
     fn remove_by_hash(&self, hash: FileHash) -> bool {
-        use std::ops::Deref;
-
         debug!("Removing for hash = '{:?}'", hash);
-        let parser = Parser::new(JsonHeaderParser::new(None));
 
-        let file = self.rt.store().load_by_hash(self, &parser, hash);
-        debug!("file = {:?}", file);
-        file.map(|file| {
-            debug!("File loaded, can remove now: {:?}", file);
-            let f = file.deref().borrow();
-            self.rt.store().remove(f.id().clone())
-        }).unwrap_or(false)
+        self.get_files_by_id(hash)
+            .iter()
+            .map(|file| {
+                debug!("File loaded, can remove now: {:?}", file);
+                let f = file.deref().borrow();
+                self.rt.store().remove(f.id().clone())
+            })
+            .all(|x| x)
     }
 
     fn remove_by_tags(&self, tags: Vec<String>) -> bool {
         use std::fs::remove_file;
-        use std::ops::Deref;
-        use self::header::get_tags_from_header;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
-        self.rt
-            .store()
-            .load_for_module(self, &parser)
+        self.get_files_by_tags(tags)
             .iter()
-            .filter(|file| {
-                let f = file.deref().borrow();
-                get_tags_from_header(f.header()).iter().any(|tag| {
-                    tags.iter().any(|remtag| remtag == tag)
-                })
-            }).map(|file| {
+            .map(|file| {
                 let f = file.deref().borrow();
                 self.rt.store().remove(f.id().clone())
             }).all(|x| x)
     }
 
     fn remove_by_match(&self, matcher: String) -> bool {
-        use self::header::get_url_from_header;
         use std::fs::remove_file;
-        use std::ops::Deref;
-        use std::process::exit;
-        use regex::Regex;
 
+        self.get_files_by_match(matcher)
+            .iter()
+            .map(|file| {
+                let f = file.deref().borrow();
+                self.rt.store().remove(f.id().clone())
+            }).all(|x| x)
+    }
+
+    fn get_files(&self,
+                 matches: &ArgMatches,
+                 id_key: &'static str,
+                 match_key: &'static str,
+                 tag_key:   &'static str)
+        -> Vec<Rc<RefCell<File>>>
+    {
+        if matches.is_present(id_key) {
+            let hash = FileHash::from(matches.value_of(id_key).unwrap());
+            self.get_files_by_id(hash)
+        } else if matches.is_present(match_key) {
+            let matcher = String::from(matches.value_of(match_key).unwrap());
+            self.get_files_by_match(matcher)
+        } else if matches.is_present(tag_key) {
+            let tags = matches.value_of(tag_key)
+                              .unwrap()
+                              .split(",")
+                              .map(String::from)
+                              .collect::<Vec<String>>();
+            self.get_files_by_tags(tags)
+        } else {
+            // get all files
+            let parser = Parser::new(JsonHeaderParser::new(None));
+            self.rt.store().load_for_module(self, &parser)
+        }
+    }
+
+    fn get_files_by_id(&self, hash: FileHash) -> Vec<Rc<RefCell<File>>> {
+        let parser = Parser::new(JsonHeaderParser::new(None));
+        self.rt
+            .store()
+            .load_by_hash(self, &parser, hash)
+            .map(|f| vec![f])
+            .unwrap_or(vec![])
+    }
+
+    fn get_files_by_match(&self, matcher: String) -> Vec<Rc<RefCell<File>>> {
+        let parser = Parser::new(JsonHeaderParser::new(None));
         let re = Regex::new(&matcher[..]).unwrap_or_else(|e| {
             error!("Cannot build regex out of '{}'", matcher);
             error!("{}", e);
@@ -204,11 +240,10 @@ impl<'a> BM<'a> {
 
         debug!("Compiled '{}' to regex: '{:?}'", matcher, re);
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
         self.rt
             .store()
             .load_for_module(self, &parser)
-            .iter()
+            .into_iter()
             .filter(|file| {
                 let f   = file.deref().borrow();
                 let url = get_url_from_header(f.header());
@@ -217,10 +252,23 @@ impl<'a> BM<'a> {
                     debug!("Matching '{}' ~= '{}'", re.as_str(), u);
                     re.is_match(&u[..])
                 }).unwrap_or(false)
-            }).map(|file| {
+            })
+            .collect()
+    }
+
+    fn get_files_by_tags(&self, tags: Vec<String>) -> Vec<Rc<RefCell<File>>> {
+        let parser = Parser::new(JsonHeaderParser::new(None));
+        self.rt
+            .store()
+            .load_for_module(self, &parser)
+            .into_iter()
+            .filter(|file| {
                 let f = file.deref().borrow();
-                self.rt.store().remove(f.id().clone())
-            }).all(|x| x)
+                get_tags_from_header(f.header()).iter().any(|tag| {
+                    tags.iter().any(|remtag| remtag == tag)
+                })
+            })
+            .collect()
     }
 
 }
