@@ -58,6 +58,14 @@ impl FilePrinter for DebugPrinter {
         }
     }
 
+    fn print_file_custom<F>(&self, file: Rc<RefCell<File>>, f: &F)
+        where F: Fn(Rc<RefCell<File>>) -> String
+    {
+        if self.debug {
+            debug!("[DebugPrinter] ->\n{:?}", f(file));
+        }
+    }
+
 }
 
 struct SimplePrinter {
