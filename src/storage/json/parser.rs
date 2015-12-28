@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use std::error::Error;
+use std::fmt::{Debug, Display, Formatter};
+use std::fmt;
 
 use serde_json::{Value, from_str};
 use serde_json::error::Result as R;
@@ -21,6 +23,24 @@ impl JsonHeaderParser {
         JsonHeaderParser {
             spec: spec
         }
+    }
+
+}
+
+impl Display for JsonHeaderParser {
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "JsonHeaderParser");
+        Ok(())
+    }
+
+}
+
+impl Debug for JsonHeaderParser {
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "JsonHeaderParser, Spec: {:?}", self.spec);
+        Ok(())
     }
 
 }

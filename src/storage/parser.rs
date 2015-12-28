@@ -83,7 +83,7 @@ impl Display for ParserError {
 
 }
 
-pub trait FileHeaderParser : Sized {
+pub trait FileHeaderParser : Sized + Debug + Display {
     fn read(&self, string: Option<String>) -> Result<FileHeaderData, ParserError>;
     fn write(&self, data: &FileHeaderData) -> Result<String, ParserError>;
 }
@@ -164,3 +164,14 @@ impl<HP: FileHeaderParser> Parser<HP> {
 
 }
 
+impl<HP> Debug for Parser<HP>
+    where HP: FileHeaderParser
+{
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        write!(fmt, "Parser<{:?}>", self.headerp);
+
+        Ok(())
+    }
+
+}
