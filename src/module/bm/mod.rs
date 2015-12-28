@@ -127,27 +127,21 @@ impl<'a> BM<'a> {
     fn command_remove(&self, matches: &ArgMatches) -> bool {
         use std::process::exit;
 
-        let result =
-            if matches.is_present("id") {
-                debug!("Removing by ID (Hash)");
-                let hash = FileHash::from(matches.value_of("id").unwrap());
-                self.remove_by_hash(hash)
-            } else if matches.is_present("tags") {
-                debug!("Removing by tags");
-                let tags = matches.value_of("tags")
-                                  .unwrap()
-                                  .split(",")
-                                  .map(String::from)
-                                  .collect::<Vec<String>>();
-                self.remove_by_tags(tags)
-            } else if matches.is_present("match") {
-                debug!("Removing by match");
-                self.remove_by_match(String::from(matches.value_of("match").unwrap()))
-            } else {
-                error!("Unexpected error. Exiting");
-                exit(1);
-                false
-            };
+        let (filtered, files) = self.get_files(matches, "id", "match", "tags");
+
+        if !filtered {
+            error!("Unexpected error. Exiting");
+            exit(1);
+        }
+
+        let result = files
+            .iter()
+            .map(|file| {
+                debug!("File loaded, can remove now: {:?}", file);
+                let f = file.deref().borrow();
+                self.rt.store().remove(f.id().clone())
+            })
+            .all(|x| x);
 
         if result {
             info!("Removing succeeded");
@@ -158,66 +152,31 @@ impl<'a> BM<'a> {
         return result;
     }
 
-    fn remove_by_hash(&self, hash: FileHash) -> bool {
-        debug!("Removing for hash = '{:?}'", hash);
-
-        self.get_files_by_id(hash)
-            .iter()
-            .map(|file| {
-                debug!("File loaded, can remove now: {:?}", file);
-                let f = file.deref().borrow();
-                self.rt.store().remove(f.id().clone())
-            })
-            .all(|x| x)
-    }
-
-    fn remove_by_tags(&self, tags: Vec<String>) -> bool {
-        use std::fs::remove_file;
-
-        let parser = Parser::new(JsonHeaderParser::new(None));
-        self.get_files_by_tags(tags)
-            .iter()
-            .map(|file| {
-                let f = file.deref().borrow();
-                self.rt.store().remove(f.id().clone())
-            }).all(|x| x)
-    }
-
-    fn remove_by_match(&self, matcher: String) -> bool {
-        use std::fs::remove_file;
-
-        self.get_files_by_match(matcher)
-            .iter()
-            .map(|file| {
-                let f = file.deref().borrow();
-                self.rt.store().remove(f.id().clone())
-            }).all(|x| x)
-    }
 
     fn get_files(&self,
                  matches: &ArgMatches,
                  id_key: &'static str,
                  match_key: &'static str,
                  tag_key:   &'static str)
-        -> Vec<Rc<RefCell<File>>>
+        -> (bool, Vec<Rc<RefCell<File>>>)
     {
         if matches.is_present(id_key) {
             let hash = FileHash::from(matches.value_of(id_key).unwrap());
-            self.get_files_by_id(hash)
+            (true, self.get_files_by_id(hash))
         } else if matches.is_present(match_key) {
             let matcher = String::from(matches.value_of(match_key).unwrap());
-            self.get_files_by_match(matcher)
+            (true, self.get_files_by_match(matcher))
         } else if matches.is_present(tag_key) {
             let tags = matches.value_of(tag_key)
                               .unwrap()
                               .split(",")
                               .map(String::from)
                               .collect::<Vec<String>>();
-            self.get_files_by_tags(tags)
+            (true, self.get_files_by_tags(tags))
         } else {
             // get all files
             let parser = Parser::new(JsonHeaderParser::new(None));
-            self.rt.store().load_for_module(self, &parser)
+            (false, self.rt.store().load_for_module(self, &parser))
         }
     }
 
