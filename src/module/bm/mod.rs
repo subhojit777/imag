@@ -152,6 +152,49 @@ impl<'a> BM<'a> {
         return result;
     }
 
+    fn command_add_tags(&self, matches: &ArgMatches) -> bool {
+        use self::header::set_tags_in_header;
+
+        let tags = matches.value_of("tags")
+                          .map(|ts| {
+                            ts.split(",")
+                              .map(String::from)
+                              .collect::<Vec<String>>()
+                          })
+                          .unwrap_or(vec![]);
+        let (filter, files) = self.get_files(matches, "with_id", "with_match", "with_tags");
+
+        if tags.len() == 0 {
+            error!("No tags to add, exiting.");
+            exit(1);
+        }
+
+        if !filter {
+            warn!("There were no filter applied when loading the files");
+        }
+
+        let result = files
+            .iter()
+            .map(|file| {
+                debug!("Adding tags to file: {:?}", file);
+                let f = file.deref().borrow();
+                let hdr = f.header();
+                let mut ts = get_tags_from_header(hdr);
+                let mut append_tags = tags.clone();
+                ts.append(&mut append_tags);
+                set_tags_in_header(hdr, ts);
+                true
+            })
+            .all(|x| x);
+
+        if result {
+            info!("Adding tags to links succeeded");
+        } else {
+            error!("Adding tags to links failed");
+        }
+
+        return result;
+    }
 
     fn get_files(&self,
                  matches: &ArgMatches,
@@ -246,6 +289,10 @@ impl<'a> Module<'a> for BM<'a> {
 
             Some("remove") => {
                 self.command_remove(matches.subcommand_matches("remove").unwrap())
+            },
+
+            Some("add_tags") => {
+                self.command_add_tags(matches.subcommand_matches("add_tags").unwrap())
             },
 
             Some(_) | None => {
