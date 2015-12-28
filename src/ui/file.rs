@@ -24,14 +24,14 @@ pub trait FilePrinter {
     }
 
     fn print_file_custom<F>(&self, file: Rc<RefCell<File>>, f: &F)
-        where F: Fn(Rc<RefCell<File>>) -> String
+        where F: Fn(Rc<RefCell<File>>) -> Vec<String>
     {
-        info!("{}", f(file));
+        info!("{}", f(file).join(" "));
     }
 
     fn print_files_custom<F, I>(&self, files: I, f: &F)
         where I: Iterator<Item = Rc<RefCell<File>>>,
-              F: Fn(Rc<RefCell<File>>) -> String
+              F: Fn(Rc<RefCell<File>>) -> Vec<String>
     {
         for file in files {
             self.print_file_custom(file, f);
@@ -59,10 +59,10 @@ impl FilePrinter for DebugPrinter {
     }
 
     fn print_file_custom<F>(&self, file: Rc<RefCell<File>>, f: &F)
-        where F: Fn(Rc<RefCell<File>>) -> String
+        where F: Fn(Rc<RefCell<File>>) -> Vec<String>
     {
         if self.debug {
-            debug!("[DebugPrinter] ->\n{:?}", f(file));
+            debug!("[DebugPrinter] ->\n{:?}", f(file).join(" "));
         }
     }
 
@@ -93,9 +93,9 @@ impl FilePrinter for SimplePrinter {
     }
 
     fn print_file_custom<F>(&self, file: Rc<RefCell<File>>, f: &F)
-        where F: Fn(Rc<RefCell<File>>) -> String
+        where F: Fn(Rc<RefCell<File>>) -> Vec<String>
     {
-        let s = f(file);
+        let s = f(file).join(" ");
         if self.debug {
             debug!("{:?}", s);
         } else if self.verbose {
@@ -160,7 +160,7 @@ impl FilePrinter for TablePrinter {
 
     fn print_files_custom<F, I>(&self, files: I, f: &F)
         where I: Iterator<Item = Rc<RefCell<File>>>,
-              F: Fn(Rc<RefCell<File>>) -> String
+              F: Fn(Rc<RefCell<File>>) -> Vec<String>
     {
         use prettytable::Table;
         use prettytable::row::Row;
@@ -181,9 +181,13 @@ impl FilePrinter for TablePrinter {
             let id : String = file.deref().borrow().id().clone().into();
             let cell_id = Cell::new(&id[..]);
 
-            let cell_extra = Cell::new(&f(file)[..]);
+            let mut row = Row::new(vec![cell_i, cell_o, cell_id]);
 
-            let row = Row::new(vec![cell_i, cell_o, cell_id, cell_extra]);
+            for cell in f(file).iter() {
+                debug!("Adding custom cell: {:?}", cell);
+                row.add_cell(Cell::new(&cell[..]))
+            }
+
             tab.add_row(row);
         }
 
