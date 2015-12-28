@@ -23,6 +23,7 @@ mod runtime;
 mod module;
 mod storage;
 mod ui;
+mod util;
 
 use module::bm::BM;
 
