@@ -84,9 +84,9 @@ impl Debug for File {
         Header: '{:?}'
         Data  : '{:?}'",
                self.owning_module_name,
+               self.id,
                self.header,
-               self.data,
-               self.id);
+               self.data);
         Ok(())
     }
 
