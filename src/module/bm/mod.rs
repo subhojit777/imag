@@ -153,47 +153,65 @@ impl<'a> BM<'a> {
     }
 
     fn command_add_tags(&self, matches: &ArgMatches) -> bool {
-        use self::header::set_tags_in_header;
+        self.alter_tags_in_files(matches, |old_tags, cli_tags| {
+            let mut new_tags = old_tags.clone();
+            new_tags.append(&mut cli_tags.clone());
+            new_tags
+        })
+    }
 
-        let tags = matches.value_of("tags")
+    fn alter_tags_in_files<F>(&self, matches: &ArgMatches, generate_new_tags: F) -> bool
+        where F: Fn(Vec<String>, &Vec<String>) -> Vec<String>
+    {
+        use self::header::rebuild_header_with_tags;
+
+        let cli_tags = matches.value_of("tags")
                           .map(|ts| {
                             ts.split(",")
                               .map(String::from)
                               .collect::<Vec<String>>()
                           })
                           .unwrap_or(vec![]);
-        let (filter, files) = self.get_files(matches, "with_id", "with_match", "with_tags");
 
-        if tags.len() == 0 {
-            error!("No tags to add, exiting.");
-            exit(1);
-        }
+        let (filter, files) = self.get_files(matches, "with_id", "with_match", "with_tags");
 
         if !filter {
             warn!("There were no filter applied when loading the files");
         }
 
-        let result = files
-            .iter()
+        let parser = Parser::new(JsonHeaderParser::new(None));
+        files
+            .into_iter()
             .map(|file| {
-                debug!("Adding tags to file: {:?}", file);
-                let f = file.deref().borrow();
-                let hdr = f.header();
-                let mut ts = get_tags_from_header(hdr);
-                let mut append_tags = tags.clone();
-                ts.append(&mut append_tags);
-                set_tags_in_header(hdr, ts);
+                debug!("Remove tags from file: {:?}", file);
+
+                let hdr = {
+                    let f = file.deref().borrow();
+                    f.header().clone()
+                };
+
+                debug!("Tags:...");
+                let old_tags = get_tags_from_header(&hdr);
+                debug!("    old_tags = {:?}", &old_tags);
+                debug!("    cli_tags = {:?}", &cli_tags);
+
+                let new_tags = generate_new_tags(old_tags, &cli_tags);
+                debug!("    new_tags = {:?}", &new_tags);
+
+                let new_header = rebuild_header_with_tags(&hdr, new_tags)
+                    .unwrap_or_else(|| {
+                        error!("Could not rebuild header for file");
+                        exit(1);
+                    });
+                {
+                    let mut f_mut = file.deref().borrow_mut();
+                    f_mut.set_header(new_header);
+                }
+
+                self.rt.store().persist(&parser, file);
                 true
             })
-            .all(|x| x);
-
-        if result {
-            info!("Adding tags to links succeeded");
-        } else {
-            error!("Adding tags to links failed");
-        }
-
-        return result;
+            .all(|x| x)
     }
 
     fn get_files(&self,
