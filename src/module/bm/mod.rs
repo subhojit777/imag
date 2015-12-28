@@ -51,13 +51,34 @@ impl<'a> BM<'a> {
     }
 
     fn command_list(&self, matches: &ArgMatches) -> bool {
-        unimplemented!()
+        use ui::file::{FilePrinter, TablePrinter};
+        use self::header::get_url_from_header;
+        use self::header::get_tags_from_header;
+        use std::ops::Deref;
+
+        let parser = Parser::new(JsonHeaderParser::new(None));
+        let files  = self.rt.store().load_for_module(self, &parser);
+        let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging());
+
+        printer.print_files_custom(files.into_iter(),
+            &|file| {
+                let fl = file.deref().borrow();
+                let hdr = fl.header();
+                let url = get_url_from_header(hdr).unwrap_or(String::from("Parser error"));
+                let tags = get_tags_from_header(hdr);
+
+                debug!("Custom printer field: url  = '{:?}'", url);
+                debug!("Custom printer field: tags = '{:?}'", tags);
+
+                vec![url, tags.join(", ")]
+            }
+        );
+        true
     }
 
     fn command_remove(&self, matches: &ArgMatches) -> bool {
         unimplemented!()
     }
-
 
 }
 
