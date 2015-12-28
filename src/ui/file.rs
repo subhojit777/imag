@@ -166,7 +166,7 @@ impl FilePrinter for TablePrinter {
         use prettytable::row::Row;
         use prettytable::cell::Cell;
 
-        let titles = row!["File#", "Owner", "ID", "..."];
+        let titles = row!["#", "Module", "ID", "..."];
 
         let mut tab = Table::new();
         tab.set_titles(titles);
