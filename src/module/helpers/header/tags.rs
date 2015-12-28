@@ -20,7 +20,7 @@ pub mod data {
     use std::ops::Deref;
     use storage::file::header::data::FileHeaderData as FHD;
 
-    pub fn build_tag_array(tags: &Vec<String>) -> FHD {
+    pub fn build_tag_array(tags: Vec<String>) -> FHD {
         let texttags = tags.into_iter().map(|t| FHD::Text(t.clone())).collect();
         FHD::Array { values: Box::new(texttags) }
     }
