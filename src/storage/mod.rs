@@ -145,6 +145,23 @@ impl Store {
         self.cache.borrow().get(id).cloned()
     }
 
+    pub fn remove(&self, id: FileID) -> bool {
+        use std::fs::remove_file;
+
+        self.cache
+            .borrow_mut()
+            .remove(&id)
+            .map(|file| {
+                let idstr : String = id.into();
+                let path = format!("{}/{}-{}.imag",
+                                   self.storepath,
+                                   file.deref().borrow().owner_name(),
+                                   idstr);
+                remove_file(path).is_ok()
+            })
+            .unwrap_or(false)
+    }
+
     fn get_new_file_id(&self) -> FileID {
         use uuid::Uuid;
         let hash = FileHash::from(Uuid::new_v4().to_hyphenated_string());
