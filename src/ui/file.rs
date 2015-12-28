@@ -23,6 +23,21 @@ pub trait FilePrinter {
         }
     }
 
+    fn print_file_custom<F>(&self, file: Rc<RefCell<File>>, f: &F)
+        where F: Fn(Rc<RefCell<File>>) -> String
+    {
+        info!("{}", f(file));
+    }
+
+    fn print_files_custom<F, I>(&self, files: I, f: &F)
+        where I: Iterator<Item = Rc<RefCell<File>>>,
+              F: Fn(Rc<RefCell<File>>) -> String
+    {
+        for file in files {
+            self.print_file_custom(file, f);
+        }
+    }
+
 }
 
 struct DebugPrinter {
@@ -40,6 +55,14 @@ impl FilePrinter for DebugPrinter {
     fn print_file(&self, f: Rc<RefCell<File>>) {
         if self.debug {
             debug!("[DebugPrinter] ->\n{:?}", f);
+        }
+    }
+
+    fn print_file_custom<F>(&self, file: Rc<RefCell<File>>, f: &F)
+        where F: Fn(Rc<RefCell<File>>) -> String
+    {
+        if self.debug {
+            debug!("[DebugPrinter] ->\n{:?}", f(file));
         }
     }
 
@@ -66,6 +89,19 @@ impl FilePrinter for SimplePrinter {
             info!("{}", &*f.deref().borrow());
         } else {
             info!("[File]: {}", f.deref().borrow().id());
+        }
+    }
+
+    fn print_file_custom<F>(&self, file: Rc<RefCell<File>>, f: &F)
+        where F: Fn(Rc<RefCell<File>>) -> String
+    {
+        let s = f(file);
+        if self.debug {
+            debug!("{:?}", s);
+        } else if self.verbose {
+            info!("{}", s);
+        } else {
+            info!("[File]: {}", s);
         }
     }
 
@@ -111,6 +147,43 @@ impl FilePrinter for TablePrinter {
             let id : String = file.deref().borrow().id().clone().into();
             let cell_id = Cell::new(&id[..]);
             let row = Row::new(vec![cell_i, cell_o, cell_id]);
+            tab.add_row(row);
+        }
+
+        if i != 0 {
+            debug!("Printing {} table entries", i);
+            tab.printstd();
+        } else {
+            debug!("Not printing table because there are zero entries");
+        }
+    }
+
+    fn print_files_custom<F, I>(&self, files: I, f: &F)
+        where I: Iterator<Item = Rc<RefCell<File>>>,
+              F: Fn(Rc<RefCell<File>>) -> String
+    {
+        use prettytable::Table;
+        use prettytable::row::Row;
+        use prettytable::cell::Cell;
+
+        let titles = row!["File#", "Owner", "ID", "..."];
+
+        let mut tab = Table::new();
+        tab.set_titles(titles);
+
+        let mut i = 0;
+        for file in files {
+            debug!("Printing file: {:?}", file);
+            i += 1;
+            let cell_i  = Cell::new(&format!("{}", i)[..]);
+            let cell_o  = Cell::new(&format!("{}", file.deref().borrow().owner_name())[..]);
+
+            let id : String = file.deref().borrow().id().clone().into();
+            let cell_id = Cell::new(&id[..]);
+
+            let cell_extra = Cell::new(&f(file)[..]);
+
+            let row = Row::new(vec![cell_i, cell_o, cell_id, cell_extra]);
             tab.add_row(row);
         }
 
