@@ -197,6 +197,32 @@ impl Store {
             .unwrap_or(false)
     }
 
+    pub fn load_for_module<HP>(&self, m: &Module, parser: &Parser<HP>)
+        -> Vec<Rc<RefCell<File>>>
+        where HP: FileHeaderParser
+    {
+        use glob::{glob, Paths, PatternError};
+
+        let globstr = format!("{}/{}-*.imag", self.storepath, m.name());
+        let mut res = vec![];
+
+        glob(&globstr[..]).map(|paths| {
+            for path in paths {
+                if let Ok(pathbuf) = path {
+                    let fname = pathbuf.file_name().and_then(|s| s.to_str());
+                    fname.map(|s| {
+                        FileID::parse(&String::from(s)).map(|id| {
+                            self.load_in_cache(m, parser, id).map(|file| {
+                                res.push(file);
+                            })
+                        });
+                    });
+                }
+            }
+        });
+        res
+    }
+
     fn get_new_file_id(&self) -> FileID {
         use uuid::Uuid;
         let hash = FileHash::from(Uuid::new_v4().to_hyphenated_string());
