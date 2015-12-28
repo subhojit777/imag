@@ -92,6 +92,19 @@ impl FilePrinter for SimplePrinter {
         }
     }
 
+    fn print_file_custom<F>(&self, file: Rc<RefCell<File>>, f: &F)
+        where F: Fn(Rc<RefCell<File>>) -> String
+    {
+        let s = f(file);
+        if self.debug {
+            debug!("{:?}", s);
+        } else if self.verbose {
+            info!("{}", s);
+        } else {
+            info!("[File]: {}", s);
+        }
+    }
+
 }
 
 pub struct TablePrinter {
