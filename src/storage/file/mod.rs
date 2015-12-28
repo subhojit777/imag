@@ -40,6 +40,10 @@ impl File {
         &self.header
     }
 
+    pub fn set_header(&mut self, new_header: FileHeaderData) {
+        self.header = new_header;
+    }
+
     pub fn data(&self) -> &String {
         &self.data
     }

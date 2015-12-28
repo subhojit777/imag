@@ -34,3 +34,7 @@ pub fn get_url_from_header(header: &FHD) -> Option<String> {
     headerhelpers::data::get_url_from_header(header)
 }
 
+pub fn rebuild_header_with_tags(header: &FHD, tags: Vec<String>) -> Option<FHD> {
+    get_url_from_header(header).map(|url| build_header(url, tags))
+}
+
