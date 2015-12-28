@@ -244,6 +244,7 @@ impl Store {
                                    self.storepath,
                                    file.deref().borrow().owner_name(),
                                    idstr);
+                debug!("Removing file NOW: '{}'", path);
                 remove_file(path).is_ok()
             })
             .unwrap_or(false)
