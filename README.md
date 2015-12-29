@@ -21,22 +21,10 @@ see [Linking](#Linking))
 
 Some modules might not want to store content there, for example you don't want
 to put your icalendar files in there. So the calendar module just crawls through
-your ical files and puts the scanned meta-information into the store. Of course,
-if the content of the ical file changes, the store entry does not. It still
-points (via its JSON content for example) to the same file. So changes are not
-tracked (We can argue here whether we want to copy the contents to the store for
-ical and vcard files, but we cannot argue on for example music files).
-
+your ical files and puts only a link and some hashsums (for refinding on content
+move) to the store. Changes are not tracked via this model.  
 If a (for example ical-)file gets removed, the store entry gets invalid and has
 to be garbage-collected.
-
->   The current model is not fixed yet. I'm thinking about copying .ical and
->   .vcard, basically all text files, to the store.
->   This is not possible for media files like music or movies, though. Also this
->   is not feasible for documents like .pdf or similar.
-
-Each of the following modules has a short description including a table what
-core features are required to get it working.
 
 ### Linking
 
@@ -89,40 +77,75 @@ should't touch the content at all.
 
 Here is a short overview what are the modules like:
 
-| Module            | Indexer | Header  | Hdr-Format | Content |
-| :---------------- | ------- | ------- | ---------- | ------- |
-| Bookmarks         |         | X       | JSON       |         |
-| Contacts          | X       | X       | JSON       |         |
-| Calendar          | X       | X       | JSON       |         |
-| Notes             |         | X       | YAML       | X       |
-| Mail              | X       | X       | JSON       |         |
-| Wiki              |         | X       | YAML       | X       |
-| Todo              |         | X       | YAML       |         |
-| Shoppinglist      |         | X       | YAML       |         |
-| Bibliography      | X       | X       | JSON       |         |
-| News              | X       | X       | JSON       |         |
-| Image             | X       | X       | JSON       |         |
-| Movie             | X       | X       | JSON       |         |
-| Music             | X       | X       | JSON       |         |
+| Module       | Indexer | Header-Format | Content | Expl    | Dep         |
+| :----------- | ------- | ------------- | ------- | ------- | ----------- |
+| Bibliography | X       | JSON          | X       | .bib    | Notes       |
+| Bookmarks    |         | JSON          |         |         |             |
+| Calendar     | X       | JSON          |         |         |             |
+| Contacts     | X       | JSON          |         |         |             |
+| Image        | X       | JSON          |         |         | Notes       |
+| Mail         | X       | JSON          |         |         |             |
+| Movie        | X       | JSON          |         |         | Notes       |
+| Music        | X       | JSON          |         |         | Notes       |
+| News         | X       | JSON          |         |         |             |
+| Notes        |         | YAML          | X       | Content |             |
+| Shoppinglist |         | YAML          |         |         | Notes, Todo |
+| Todo         |         | YAML          |         |         | Notes       |
+| Wiki         |         | YAML          | X       | Content |             |
 
 Explanation:
 
-- An "Indexer" Module does only index some data and store the indexed meta
-  information in the store
-- "Header" means that the header part of a store entry is used
-- "Hdr-Format" Which format is chosen for the header. Basically: YAML if the
+- An "Indexer" Module does only index some data and stores only some information
+  on how to content
+- "Header-Format": Which format is chosen for the header. Basically: YAML if the
   user might want to edit the header, otherwise JSON (pretty).
 - "Content" means that the content part of a store entry is used
+- "Expl": What the content part of a file is used for. "Content" means simply
+  user content.
+- "Dep" means that the module uses this other module as a dependency for
+  extending its own functionality
+
+### External Dependencies
+
+| Library        | Optional | Module        |
+| :------------  | :------: | :-------      |
+| vcard          |          | Contacts      |
+| icalendar      |          | Calendar      |
+| XDG            | X        | Contacts      |
+|                | X        | Calendar      |
+|                | X        | Notes         |
+|                | X        | Mail          |
+|                | X        | Wiki          |
+|                | X        | Todo          |
+|                | X        | Shopping List |
+|                | X        | BibMan        |
+|                | X        | Music         |
+|                | X        | Movie         |
+|                | X        | Image         |
+| Markdown       |          | Notes         |
+|                |          | Wiki          |
+| Maildir        |          | Mail          |
+| BibTex parsing | X        | BibMan        |
+| git-annex      | X        | BibMan        |
+|                | X        | Music         |
+|                | X        | Movie         |
+|                | X        | Image         |
+| Exif           | X        | Image         |
+| id3            | X        | Music         |
+| RSS/Atom       |          | News          |
+
+(Optional means that these things are optional for the main functionality, but
+should be implemented at some point to offer powerful functionality)
 
 ### Bookmarks
 
 Bookmarks should be stored in a simple format:
 
 ```json
-{ "URL": "https://github.com", "tags": ["ducks", "r", "great"]}
+{ "URL": "https://github.com", "TAGS": ["ducks", "r", "great"]}
 ```
 
-| Required core feature                 | Purpose          |
+| Required util feature                 | Purpose          |
 | :------------------------------------ | :------------    |
 | XDG-open (Browser)                    | External program |
 
@@ -131,28 +154,14 @@ Bookmarks should be stored in a simple format:
 Contacts are just read and indexed by `imag`, to create an internal index of
 them and to be able to refer to.
 
-| Required core feature                 | Purpose          |
-| :------------------------------------ | :------------    |
-| vcard file format parsing             | Data access      |
-| XDG-open (Mail program)               | External Program |
-
 ### Calendar
 
 Calendar are just read and indexed by `imag`, to create an internal index of
 them and to be able to refer to.
 
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| ical file format parsing              | Data access   |
-
 ### Notes
 
 Just plain text notes.
-
-| Required core feature                 | Purpose          |
-| :------------------------------------ | :------------    |
-| Linking to other store entries        | Data Link        |
-| XDG-open (Editor)                     | External Program |
 
 ### Mail
 
@@ -163,25 +172,11 @@ notes, etc etc. to your mail.
 Some of these things (like linking contacts, calendar entries) should be
 linked automatically.
 
-| Required core feature                 | Purpose          |
-| :------------------------------------ | :------------    |
-| Parser: Maildir                       | Data access      |
-| Parser: mbox                          | Data access      |
-| XDG-open (Mail program)               | External Program |
-| XDG-open (Editor)                     | External Program |
-
 ### Personal Wiki
 
 `imag` should contain a complete personal wiki software. It should contain of
 simple markdown files which have a YAML header, nothing too special for the
 first step.
-
-| Required core feature                 | Purpose          |
-| :------------------------------------ | :------------    |
-| Parser: Markdown                      | Data parsing     |
-| XDG-open (Editor)                     | External Program |
-| XDG-open (Mail program)               | External Program |
-| XDG-open (Browser)                    | External Program |
 
 Some more ideas:
 
@@ -192,21 +187,9 @@ Some more ideas:
 `imag` should also contain a full todo-tool. I'm thinking about integrating
 taskwarrior through a wrapper here.
 
-| Required core feature                 | Purpose          |
-| :------------------------------------ | :------------    |
-| Library: taskwarrior                  | Implementation   |
-| XDG-open (Editor)                     | External Program |
-
 ### Shoppinglist
 
-Simply dot-and-tick lists.
-
-| Required core feature                 | Purpose          |
-| :------------------------------------ | :------------    |
-| Module: Todo-List                     | Implementation   |
-| XDG-open (Editor)                     | External Program |
-
-- Sub-form of the Todo-List module
+Simply dot-and-tick lists, uses Todo and Notes in combination.
 
 ### Bibliography management
 
@@ -214,52 +197,21 @@ BibTex would be the first step, maybe we should be able to add the actual PDFs
 here as well... didn't waste too much thoughts on this by now. If we have the
 PDF data, we need git-annex.
 
-| Required core feature                 | Purpose          |
-| :------------------------------------ | :------------    |
-| BibTex parsing                        | Data parsing     |
-| Backend: git-annex                    | Data parsing     |
-| XDG-open (Editor)                     | External Program |
-| XDG-open (PDF viewer)                 | External Program |
-| XDG-open (Office suite)               | External Program |
-
 ### News (RSS)
 
 Just indexing, reading news is not task of `imag` and so isn't syncing.
-
-| Required core feature                 | Purpose       |
-| :------------------------------------ | :------------ |
-| Parser: RSS                           | Data parsing  |
-| Parser: Atom                          | Data parsing  |
 
 ### Image
 
 Just indexing photos.
 
-| Required core feature                 | Purpose          |
-| :------------------------------------ | :------------    |
-| Backend: git-annex                    | Data parsing     |
-| Image metadata reading                | Data parsing     |
-| XDG-open (Image viewer)               | External Program |
-
 ### Video
 
 Just indexing movies.
 
-| Required core feature                 | Purpose          |
-| :------------------------------------ | :------------    |
-| Backend: git-annex                    | Data parsing     |
-| Movie metadata reading                | Data parsing     |
-| XDG-open (Movie viewer)               | External Program |
-
 ### Music
 
 Just indexing music.
-
-| Required core feature                 | Purpose          |
-| :------------------------------------ | :------------    |
-| Backend: git-annex                    | Data parsing     |
-| Music metadata reading                | Data parsing     |
-| XDG-open (Music player)               | External Program |
 
 # License
 
