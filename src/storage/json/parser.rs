@@ -148,6 +148,8 @@ impl Serialize for FileHeaderData {
 #[cfg(test)]
 mod test {
 
+    use std::ops::Deref;
+
     use super::JsonHeaderParser;
     use storage::parser::{FileHeaderParser, ParserError};
     use storage::file::header::data::FileHeaderData as FHD;
@@ -177,9 +179,9 @@ mod test {
             Some(FHD::Map{keys: keys}) => {
                 for k in keys {
                     match k {
-                        FHD::Key{name: name, value: box value} => {
+                        FHD::Key{name: name, value: value} => {
                             assert!(name == "a" || name == "b", "Key unknown");
-                            match &value {
+                            match value.deref() {
                                 &FHD::UInteger(u) => assert_eq!(u, 1),
                                 &FHD::Integer(i) => assert_eq!(i, -2),
                                 _ => assert!(false, "Integers are not here"),
