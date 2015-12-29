@@ -40,6 +40,9 @@ impl<'a> BM<'a> {
         &self.rt
     }
 
+    /**
+     * Subcommand: add
+     */
     fn command_add(&self, matches: &ArgMatches) -> bool {
         use std::process::exit;
         use self::header::build_header;
@@ -100,6 +103,9 @@ impl<'a> BM<'a> {
         return true;
     }
 
+    /**
+     * Subcommand: list
+     */
     fn command_list(&self, matches: &ArgMatches) -> bool {
         use ui::file::{FilePrinter, TablePrinter};
         use std::ops::Deref;
@@ -124,6 +130,9 @@ impl<'a> BM<'a> {
         true
     }
 
+    /**
+     * Subcommand: remove
+     */
     fn command_remove(&self, matches: &ArgMatches) -> bool {
         use std::process::exit;
 
@@ -152,6 +161,9 @@ impl<'a> BM<'a> {
         return result;
     }
 
+    /**
+     * Subcommand: add_tags
+     */
     fn command_add_tags(&self, matches: &ArgMatches) -> bool {
         self.alter_tags_in_files(matches, |old_tags, cli_tags| {
             let mut new_tags = old_tags.clone();
@@ -160,6 +172,9 @@ impl<'a> BM<'a> {
         })
     }
 
+    /**
+     * Subcommand: rm_tags
+     */
     fn command_rm_tags(&self, matches: &ArgMatches) -> bool {
         self.alter_tags_in_files(matches, |old_tags, cli_tags| {
             old_tags.clone()
@@ -169,12 +184,18 @@ impl<'a> BM<'a> {
         })
     }
 
+    /**
+     * Subcommand: set_tags
+     */
     fn command_set_tags(&self, matches: &ArgMatches) -> bool {
         self.alter_tags_in_files(matches, |old_tags, cli_tags| {
             cli_tags.clone()
         })
     }
 
+    /**
+     * Helper function to alter the tags in a file
+     */
     fn alter_tags_in_files<F>(&self, matches: &ArgMatches, generate_new_tags: F) -> bool
         where F: Fn(Vec<String>, &Vec<String>) -> Vec<String>
     {
@@ -229,7 +250,10 @@ impl<'a> BM<'a> {
             .all(|x| x)
     }
 
-
+    /**
+     * Helper function to get files from the store filtered by the constraints passed via the
+     * CLI
+     */
     fn get_files(&self,
                  matches: &ArgMatches,
                  id_key: &'static str,
@@ -257,6 +281,9 @@ impl<'a> BM<'a> {
         }
     }
 
+    /**
+     * Get files from the store, filtere by ID
+     */
     fn get_files_by_id(&self, hash: FileHash) -> Vec<Rc<RefCell<File>>> {
         let parser = Parser::new(JsonHeaderParser::new(None));
         self.rt
@@ -266,6 +293,9 @@ impl<'a> BM<'a> {
             .unwrap_or(vec![])
     }
 
+    /**
+     * Get files from the store, filtere by Regex
+     */
     fn get_files_by_match(&self, matcher: String) -> Vec<Rc<RefCell<File>>> {
         let parser = Parser::new(JsonHeaderParser::new(None));
         let re = Regex::new(&matcher[..]).unwrap_or_else(|e| {
@@ -292,6 +322,9 @@ impl<'a> BM<'a> {
             .collect()
     }
 
+    /**
+     * Get files from the store, filtere by tags
+     */
     fn get_files_by_tags(&self, tags: Vec<String>) -> Vec<Rc<RefCell<File>>> {
         let parser = Parser::new(JsonHeaderParser::new(None));
         self.rt
@@ -309,6 +342,9 @@ impl<'a> BM<'a> {
 
 }
 
+/**
+ * Trait implementation for BM module
+ */
 impl<'a> Module<'a> for BM<'a> {
 
     fn exec(&self, matches: &ArgMatches) -> bool {
