@@ -150,8 +150,8 @@ mod test {
 
     use super::JsonHeaderParser;
     use storage::parser::{FileHeaderParser, ParserError};
-    use storage::file::FileHeaderData as FHD;
-    use storage::file::FileHeaderSpec as FHS;
+    use storage::file::header::data::FileHeaderData as FHD;
+    use storage::file::header::spec::FileHeaderSpec as FHS;
 
     #[test]
     fn test_deserialization() {

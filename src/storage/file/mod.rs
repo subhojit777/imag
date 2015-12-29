@@ -100,10 +100,10 @@ impl Debug for File {
 mod test {
     // we use the JSON parser here, so we can generate FileHeaderData
     use storage::json::parser::JsonHeaderParser;
-    use super::match_header_spec;
+    use storage::file::header::match_header_spec;
     use storage::parser::{FileHeaderParser, ParserError};
-    use storage::file::FileHeaderData as FHD;
-    use storage::file::FileHeaderSpec as FHS;
+    use storage::file::header::data::FileHeaderData as FHD;
+    use storage::file::header::spec::FileHeaderSpec as FHS;
 
     #[test]
     fn test_spec_matching() {

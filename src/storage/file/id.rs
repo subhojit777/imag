@@ -113,7 +113,8 @@ impl Into<String> for FileID {
 #[cfg(test)]
 mod test {
 
-    use super::{FileID, FileIDType};
+    use storage::file::id::FileID;
+    use storage::file::id_type::FileIDType;
 
     #[test]
     fn file_id_from_string() {
