@@ -9,6 +9,11 @@ use std::hash::Hash;
 #[derive(Eq)]
 // #[derive(Display)]
 #[derive(Hash)]
+/**
+ * File ID type
+ *
+ * Currently only UUID is available. Maybe this will be the only type available at all.
+ */
 pub enum FileIDType {
     UUID,
 }
