@@ -1,13 +1,23 @@
-/*
+/*!
  * Helpers for headers
  */
 
 pub mod tags;
 
+/**
+ * Utility helpers for header data
+ */
 pub mod data {
     use std::ops::Deref;
     use storage::file::header::data::FileHeaderData as FHD;
 
+    /**
+     * Get an URL from a header, whereas the header has to have the following format:
+     *
+     *   { ..., "URL": "<URL>", ... }
+     *
+     * Does no spec verification.
+     */
     pub fn get_url_from_header(header: &FHD) -> Option<String> {
         match header {
             &FHD::Map{keys: ref ks} => {

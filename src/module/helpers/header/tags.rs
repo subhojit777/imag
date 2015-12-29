@@ -1,30 +1,61 @@
-/*
+/*!
  * Helpers for headers - Tags
  */
 
+/**
+ * Spec helpers for header-tags
+ */
 pub mod spec {
     use storage::file::header::spec::FileHeaderSpec as FHS;
     use module::helpers::spec::{named_text, named_text_array};
 
+    /**
+     * helper for a Header spec for
+     *
+     *  { "URL": "<Text>" }
+     */
     pub fn url_key() -> FHS {
         named_text("URL")
     }
 
+    /**
+     * helper for a Header spec for
+     *
+     *  { "TAGS": [ "<Text>", ... ] }
+     */
     pub fn tags_key() -> FHS {
         named_text_array("TAGS")
     }
 
 }
 
+/**
+ * Data helpers for header-tags
+ */
 pub mod data {
     use std::ops::Deref;
     use storage::file::header::data::FileHeaderData as FHD;
 
+    /**
+     * Use a Vec<String> to build a Tag-Array:
+     *
+     *  [ "<Text>", ... ]
+     */
     pub fn build_tag_array(tags: Vec<String>) -> FHD {
         let texttags = tags.into_iter().map(|t| FHD::Text(t.clone())).collect();
         FHD::Array { values: Box::new(texttags) }
     }
 
+    /**
+     * Fetch tags from a header, whereas the header looks like this:
+     *
+     *   { ...,
+     *     "TAGS": [ "<Text>", ... ],
+     *     ...
+     *   }
+     *
+     * Does no spec verification.
+     */
     pub fn get_tags_from_header(header: &FHD) -> Vec<String> {
         let mut tags : Vec<String> = vec![];
 
