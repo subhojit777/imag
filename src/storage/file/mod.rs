@@ -19,43 +19,71 @@ use super::parser::{FileHeaderParser, Parser, ParserError};
 use self::header::spec::*;
 use self::header::data::*;
 
-/*
- * Internal abstract view on a file. Does not exist on the FS and is just kept
+/**
+ * Internal abstract view on a file. Does not neccessarily exist on the FS and is just kept
  * internally until it is written to disk.
  */
 pub struct File {
+    /// The name of the module which owns this file
     pub owning_module_name  : &'static str,
+
+    /// The header of the file
     pub header              : FileHeaderData,
+
+    /// The content part of the file
     pub data                : String,
+
+    /// The ID of the file
     pub id                  : FileID,
 }
 
 impl File {
 
+    /**
+     * Get the owner module name of the file
+     */
     pub fn owner_name(&self) -> &'static str {
         self.owning_module_name
     }
 
+    /**
+     * Get the header of the file
+     */
     pub fn header(&self) -> &FileHeaderData {
         &self.header
     }
 
+    /**
+     * Set the header of the file
+     */
     pub fn set_header(&mut self, new_header: FileHeaderData) {
         self.header = new_header;
     }
 
+    /**
+     * Set the data of the file
+     */
     pub fn data(&self) -> &String {
         &self.data
     }
 
+    /**
+     * Set the (header, data) of the file
+     */
     pub fn contents(&self) -> (&FileHeaderData, &String) {
         (self.header(), self.data())
     }
 
+    /**
+     * Set the id of the file
+     */
     pub fn id(&self) -> &FileID {
         &self.id
     }
 
+    /**
+     * Check whether the header or the data of the file match some regex
+     */
     pub fn matches_with(&self, r: &Regex) -> bool {
         r.is_match(&self.data[..]) || self.header.matches_with(r)
     }
