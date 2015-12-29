@@ -83,11 +83,26 @@ impl Display for ParserError {
 
 }
 
+/**
+ * Trait for a header parser.
+ *
+ * This parser type has to provide two functions:
+ *  - read(), which reads an String into a FileHeaderData structure
+ *  - write(), which parses a FileHeaderData structure into a String
+ *
+ * TODO: Use Write/Read traits?
+ */
 pub trait FileHeaderParser : Sized + Debug + Display {
     fn read(&self, string: Option<String>) -> Result<FileHeaderData, ParserError>;
     fn write(&self, data: &FileHeaderData) -> Result<String, ParserError>;
 }
 
+/**
+ * Parser
+ *
+ * This Parser object is an abstraction which uses the FileHeaderParser to parse the whole contents
+ * of a file into a header (FileHeaderData) structure and the content (String).
+ */
 pub struct Parser<HP> {
     headerp : HP,
 }
@@ -100,6 +115,10 @@ impl<HP: FileHeaderParser> Parser<HP> {
         }
     }
 
+    /**
+     * Read the String which is the contents of a file into a (FileHeaderData, String) tuple, which
+     * is the header and the content of the file.
+     */
     pub fn read(&self, s: String) -> Result<(FileHeaderData, String), ParserError> {
         debug!("Reading into internal datastructure: '{}'", s);
         let divided = self.divide_text(&s);
@@ -122,6 +141,10 @@ impl<HP: FileHeaderParser> Parser<HP> {
         Ok((h_parseres, data.unwrap_or(String::new())))
     }
 
+    /**
+     * Write the FileHeaderData and String (header and content) of the tuple into a String, which
+     * can then simply be written into the store as a file.
+     */
     pub fn write(&self, tpl : (&FileHeaderData, &String)) -> Result<String, ParserError> {
         debug!("Parsing internal datastructure to String");
         let (header, data) = tpl;
@@ -132,6 +155,10 @@ impl<HP: FileHeaderParser> Parser<HP> {
         Ok(text)
     }
 
+    /**
+     * Helper to parse the full-text of a file into a header part (String) and a content part
+     * (String)
+     */
     fn divide_text(&self, text: &String) -> Result<(Option<String>, Option<String>), ParserError> {
         let re = Regex::new(r"(?sm)^---$(.*)^---$(.*)").unwrap();
 
