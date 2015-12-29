@@ -124,25 +124,27 @@ mod test {
         let s2 = String::from("/home/user/testmodule-UUID-some-id.extension.imag");
         let s3 = String::from("/home/user/testmodule-NOHASH-some-id.imag");
 
-        let id1 = FileID::from(s1);
-        let id2 = FileID::from(s2);
-        let id3 = FileID::from(s3);
+        let id1 = FileID::parse(&s1).unwrap();
+        let id2 = FileID::parse(&s2).unwrap();
+        assert!(FileID::parse(&s3).is_none());
 
         println!("Id 1 : {:?}", id1);
         println!("Id 2 : {:?}", id2);
-        println!("Id 3 : {:?}", id3);
 
         assert_eq!(FileIDType::UUID, id1.get_type());
         assert_eq!(FileIDType::UUID, id2.get_type());
-        assert_eq!(FileIDType::NONE, id3.get_type());
+
+        let h1 : String = id1.get_id().into();
+        let h2 : String = id2.get_id().into();
+
+        assert_eq!(String::from("some-id"), h1);
+        assert_eq!(String::from("some-id"), h2);
 
         let f1 : String = id1.into();
         let f2 : String = id2.into();
-        let f3 : String = id3.into();
 
-        assert_eq!(String::from("some-id"), f1);
-        assert_eq!(String::from("some-id"), f2);
-        assert_eq!(String::from("INVALID"), f3);
+        assert_eq!(String::from("UUID-some-id"), f1);
+        assert_eq!(String::from("UUID-some-id"), f2);
     }
 
     fn setup_logger() {
