@@ -16,6 +16,15 @@ use storage::file::hash::FileHash;
 #[derive(Hash)]
 #[derive(Eq)]
 #[derive(PartialEq)]
+/**
+ * FileID
+ *
+ * A FileID contains of two parts: The ID type and the Hash. For example the FileID
+ *
+ *  UUID-235-1215-1212
+ *
+ * has a type ("UUID") and a Hash ("235-1215-1212").
+ */
 pub struct FileID {
     id:         FileHash,
     id_type:    FileIDType,
@@ -30,14 +39,23 @@ impl FileID {
         }
     }
 
+    /**
+     * Get the type of the FileID
+     */
     pub fn get_type(&self) -> FileIDType {
         self.id_type.clone()
     }
 
+    /**
+     * Get the Hash of the FileID
+     */
     pub fn get_id(&self) -> FileHash {
         self.id.clone()
     }
 
+    /**
+     * Parse a String into a FileID, if possible
+     */
     pub fn parse(string: &String) -> Option<FileID> {
         // we assume that it is an path
         let regex = Regex::new(r"([:alnum:]*)-([:upper:]*)-([A-Za-z0-9-_]*)\.(.*)").unwrap();
