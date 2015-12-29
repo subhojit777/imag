@@ -5,6 +5,9 @@ use std::ops::Deref;
 
 use storage::file::File;
 
+/**
+ * Trait for a printer which can be used to print data from files
+ */
 pub trait FilePrinter {
 
     fn new(verbose: bool, debug: bool) -> Self;
@@ -40,6 +43,9 @@ pub trait FilePrinter {
 
 }
 
+/**
+ * Printer which prints in debug mode if enabled
+ */
 struct DebugPrinter {
     debug: bool,
 }
@@ -68,6 +74,9 @@ impl FilePrinter for DebugPrinter {
 
 }
 
+/**
+ * Simple printer, which just uses the info!() macro or debug!() macro if in debug mode.
+ */
 struct SimplePrinter {
     verbose:    bool,
     debug:      bool,
@@ -107,6 +116,9 @@ impl FilePrinter for SimplePrinter {
 
 }
 
+/**
+ * Table printer to print file information in a nice ASCII-table
+ */
 pub struct TablePrinter {
     verbose:    bool,
     debug:      bool,
