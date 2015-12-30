@@ -2,6 +2,7 @@
  * Utility helpers for modules
  */
 
+pub mod cli;
 pub mod header;
 pub mod utils;
 
