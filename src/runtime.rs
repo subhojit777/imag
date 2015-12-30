@@ -96,16 +96,15 @@ impl<'a> Runtime<'a> {
         use std::env::var;
 
         if let Some(editor) = self.config.editor() {
-            editor
+            editor + &self.config.editor_opts()[..]
         } else if let Some(editor) = self.configuration.editor() {
-            editor
+            editor + &self.configuration.editor_opts()[..]
         } else if let Ok(editor) = var("EDITOR") {
             editor
         } else {
             String::from("vim")
         }
     }
-
 
 }
 
