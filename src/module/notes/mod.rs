@@ -1,10 +1,14 @@
 use std::fmt::{Debug, Formatter};
 use std::fmt::Result as FMTResult;
 
+use clap::ArgMatches;
+
 mod header;
 
 use module::Module;
 use runtime::Runtime;
+use storage::parser::Parser;
+use storage::json::parser::JsonHeaderParser;
 
 pub struct Notes<'a> {
     rt: &'a Runtime<'a>,
@@ -19,7 +23,31 @@ impl<'a> Notes<'a> {
     }
 
     fn command_add(&self, matches: &ArgMatches) -> bool {
-        unimplemented!()
+        use std::process::exit;
+        use self::header::build_header;
+
+        let parser = Parser::new(JsonHeaderParser::new(None));
+        let name   = matches.value_of("name")
+                            .map(String::from)
+                            .unwrap_or(String::from(""));
+        let tags   = matches.value_of("tags")
+                            .and_then(|s| Some(s.split(",").map(String::from).collect()))
+                            .unwrap_or(vec![]);
+
+        debug!("Building header with");
+        debug!("    name = '{:?}'", name);
+        debug!("    tags = '{:?}'", tags);
+        let header = build_header(name, tags);
+
+        let fileid = self.rt.store().new_file_with_header(self, header);
+        self.rt
+            .store()
+            .load(self, &parser, &fileid)
+            .and_then(|file| {
+                info!("Created file in memory: {}", fileid);
+                Some(self.rt.store().persist(&parser, file))
+            })
+            .unwrap_or(false)
     }
 
     fn command_list(&self, matches: &ArgMatches) -> bool {
