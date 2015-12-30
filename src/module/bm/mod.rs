@@ -113,10 +113,16 @@ impl<'a> BM<'a> {
         use std::ops::Deref;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
-        let files  = self.rt.store().load_for_module(self, &parser);
+        let filter : Box<CliFileFilter> = get_file_filter_by_cli(&parser, matches, "id", "match", "tags", Some("URL"));
+
+        let files  = self.rt
+            .store()
+            .load_for_module(self, &parser)
+            .into_iter()
+            .filter(|file| filter.filter_file(file));
         let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging());
 
-        printer.print_files_custom(files.into_iter(),
+        printer.print_files_custom(files,
             &|file| {
                 let fl = file.deref().borrow();
                 let hdr = fl.header();
