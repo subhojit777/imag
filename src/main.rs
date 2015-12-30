@@ -30,7 +30,7 @@ fn main() {
     let app           = App::from_yaml(yaml);
     let config        = CliConfig::new(app);
     let configuration = Configuration::new(&config);
-    let logger        = ImagLogger::init(&configuration, &config);
+    ImagLogger::init(&configuration, &config);
 
     debug!("Logger created!");
     debug!("CliConfig    : {:?}", &config);

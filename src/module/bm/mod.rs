@@ -31,10 +31,6 @@ impl<'a> BM<'a> {
         }
     }
 
-    fn runtime(&self) -> &Runtime {
-        &self.rt
-    }
-
     /**
      * Subcommand: add
      */
