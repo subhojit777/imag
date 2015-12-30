@@ -27,6 +27,12 @@ pub struct Store {
     cache : RefCell<Cache>,
 }
 
+/**
+ * Store object
+ *
+ * This object is an abstraction layer over FS and an interface to the object store of this
+ * software.
+ */
 impl Store {
 
     pub fn new(storepath: String) -> Store {
@@ -36,12 +42,20 @@ impl Store {
         }
     }
 
+    /**
+     * Put a file into the cache
+     */
     fn put_in_cache(&self, f: File) -> FileID {
         let res = f.id().clone();
         self.cache.borrow_mut().insert(f.id().clone(), Rc::new(RefCell::new(f)));
         res
     }
 
+    /**
+     * Load a file by ID into the cache and return it afterwards
+     *
+     * Returns None if the file could be loaded from the Filesystem
+     */
     pub fn load_in_cache<HP>(&self, m: &Module, parser: &Parser<HP>, id: FileID)
         -> Option<Rc<RefCell<File>>>
         where HP: FileHeaderParser
@@ -63,6 +77,11 @@ impl Store {
         self.load(&id)
     }
 
+    /**
+     * Generate a new file for a module.
+     *
+     * Returns the new FileID object then
+     */
     pub fn new_file(&self, module: &Module)
         -> FileID
     {
@@ -77,6 +96,11 @@ impl Store {
         self.put_in_cache(f)
     }
 
+    /**
+     * Generate a new file from a parser result.
+     *
+     * @deprecated This function shouldn't be needed anymore
+     */
     pub fn new_file_from_parser_result(&self,
                                        module: &Module,
                                        id: FileID,
@@ -94,6 +118,11 @@ impl Store {
         self.put_in_cache(f)
     }
 
+    /**
+     * Generate a new file for a module, providing some header data
+     *
+     * Returns the new FileID object then
+     */
     pub fn new_file_with_header(&self,
                                 module: &Module,
                                 h: FileHeaderData)
@@ -109,6 +138,11 @@ impl Store {
         self.put_in_cache(f)
     }
 
+    /**
+     * Generate a new file for a module, providing some initial data
+     *
+     * Returns the new FileID object then
+     */
     pub fn new_file_with_data(&self, module: &Module, d: String)
         -> FileID
     {
@@ -122,6 +156,12 @@ impl Store {
         self.put_in_cache(f)
     }
 
+
+    /**
+     * Generate a new file for a module, providing some initial data and some header
+     *
+     * Returns the new FileID object then
+     */
     pub fn new_file_with_content(&self,
                                  module: &Module,
                                  h: FileHeaderData,
@@ -138,6 +178,11 @@ impl Store {
         self.put_in_cache(f)
     }
 
+    /**
+     * Persist a File on the filesystem
+     *
+     * Returns true if this worked
+     */
     pub fn persist<HP>(&self,
                        p: &Parser<HP>,
                        f: Rc<RefCell<File>>) -> bool
@@ -162,8 +207,15 @@ impl Store {
         }).map_err(|writeerr|  {
             debug!("Could not create file at '{}'", path);
         }).and(Ok(true)).unwrap()
+
+        // TODO: Is this unwrap() save?
     }
 
+    /**
+     * Helper to generate the store path
+     *
+     * Kills the program if it fails
+     */
     fn ensure_store_path_exists(&self) {
         use std::fs::create_dir_all;
         use std::process::exit;
@@ -176,11 +228,20 @@ impl Store {
         })
     }
 
+    /**
+     * Load a file from the cache by FileID
+     *
+     * TODO: Semantics: This function should load from FS if the file is not in the cache yet or
+     * fail if the file is not available.
+     */
     pub fn load(&self, id: &FileID) -> Option<Rc<RefCell<File>>> {
         debug!("Loading '{:?}'", id);
         self.cache.borrow().get(id).cloned()
     }
 
+    /**
+     * Load a file from the filesystem/cache by a FileHash
+     */
     pub fn load_by_hash<HP>(&self,
                             m: &Module,
                             parser: &Parser<HP>,
@@ -232,6 +293,11 @@ impl Store {
             }).unwrap_or(None)
     }
 
+    /**
+     * Remove a file from the filesystem by FileID
+     *
+     * Returns true if this works.
+     */
     pub fn remove(&self, id: FileID) -> bool {
         use std::fs::remove_file;
 
@@ -250,6 +316,9 @@ impl Store {
             .unwrap_or(false)
     }
 
+    /**
+     * Load all files for a module
+     */
     pub fn load_for_module<HP>(&self, m: &Module, parser: &Parser<HP>)
         -> Vec<Rc<RefCell<File>>>
         where HP: FileHeaderParser
@@ -276,6 +345,9 @@ impl Store {
         res
     }
 
+    /**
+     * Helper to generate a new FileID object
+     */
     fn get_new_file_id(&self) -> FileID {
         use uuid::Uuid;
         let hash = FileHash::from(Uuid::new_v4().to_hyphenated_string());

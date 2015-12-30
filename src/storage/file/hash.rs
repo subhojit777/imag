@@ -10,6 +10,11 @@ use uuid::Uuid;
 #[derive(PartialEq)]
 #[derive(Eq)]
 #[derive(Hash)]
+/**
+ * FileHash type
+ *
+ * Simple abstraction over String by now.
+ */
 pub struct FileHash {
     hash: String,
 }

@@ -28,18 +28,32 @@ impl<'a> CliConfig<'a> {
         }
     }
 
+    /**
+     * Check whether the CLI says we should run verbose
+     */
     pub fn is_verbose(&self) -> bool {
         self.cli_matches.is_present("verbose") || self.is_debugging()
     }
 
+    /**
+     * Check whether the CLI says we should run in debugging
+     */
     pub fn is_debugging(&self) -> bool {
         self.cli_matches.is_present("debug")
     }
 
+    /**
+     * Get the runtime path the CLI configured
+     */
     pub fn get_rtp(&self) -> Option<String> {
         self.cli_matches.value_of("rtp").and_then(|s| Some(String::from(s)))
     }
 
+    /**
+     * Get the store path the CLI configured
+     *
+     * TODO: Implement properly. Not working by now.
+     */
     pub fn store_path(&self) -> Option<String> {
         self.get_rtp().and_then(|rtp| {
             self.cli_matches

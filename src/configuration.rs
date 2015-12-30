@@ -5,6 +5,15 @@ use config::reader::from_file;
 use config::types::Config as Cfg;
 use cli::CliConfig;
 
+/**
+ * Configuration object which represents the configuration file.
+ *
+ * It gets passed a CliConfig object on ::new(), retreives some data from this one which is then
+ * provided as default value to the callee if there is no value for it in the configuration.
+ *
+ * TODO: Setup is kinda ugly, as we re-use data from the CLI, which is the job of the Runtime
+ * object later.
+ */
 pub struct Configuration {
     pub rtp         : String,
     pub store_sub   : String,
@@ -63,18 +72,30 @@ impl Configuration {
         }
     }
 
+    /**
+     * Check whether the configuration says we should run verbose
+     */
     pub fn is_verbose(&self) -> bool {
         self.verbose
     }
 
+    /**
+     * Check whether the configuration says we should run in debugging
+     */
     pub fn is_debugging(&self) -> bool {
         self.debugging
     }
 
+    /**
+     * Get the store path the configuration configured
+     */
     pub fn store_path(&self) -> String {
         format!("{}{}", self.rtp, self.store_sub)
     }
 
+    /**
+     * Get the runtime path the configuration configured
+     */
     pub fn get_rtp(&self) -> String {
         self.rtp.clone()
     }
@@ -89,6 +110,9 @@ impl Configuration {
 
 }
 
+/**
+ * Helper to get the runtimepath from the CLI
+ */
 fn rtp_path(config: &CliConfig) -> Option<String> {
     config.cli_matches.value_of("rtp")
                       .and_then(|s| Some(String::from(s)))
@@ -98,6 +122,9 @@ fn fetch_config(rtp: Option<String>) -> Option<Cfg> {
     rtp.and_then(|r| from_file(Path::new(&(r.clone() + "/config"))).ok())
 }
 
+/**
+ * Default runtime path, if available.
+ */
 fn default_path() -> Option<String> {
     use std::env::home_dir;
 

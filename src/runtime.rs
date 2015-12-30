@@ -51,6 +51,11 @@ impl log::Log for ImagLogger {
     }
 }
 
+/**
+ * Runtime object, represents a single interface to both the CLI configuration and the
+ * configuration file. Also carries the store object around and is basically an object which
+ * contains everything which is required to run a command/module.
+ */
 pub struct Runtime<'a> {
     pub config : CliConfig<'a>,
     pub configuration : Cfg,
@@ -68,22 +73,37 @@ impl<'a> Runtime<'a> {
         }
     }
 
+    /**
+     * Check whether we run verbose
+     */
     pub fn is_verbose(&self) -> bool {
         self.config.is_verbose() || self.configuration.is_verbose()
     }
 
+    /**
+     * Check whether we run in debugging
+     */
     pub fn is_debugging(&self) -> bool {
         self.config.is_debugging() || self.configuration.is_verbose()
     }
 
+    /**
+     * Get the store path we are currently using
+     */
     pub fn store_path(&self) -> String {
         self.config.store_path().unwrap_or(self.configuration.store_path())
     }
 
+    /**
+     * Get the store object
+     */
     pub fn store(&self) -> &Store {
         &self.store
     }
 
+    /**
+     * Get the runtime path we are currently using
+     */
     pub fn get_rtp(&self) -> String {
         if let Some(rtp) = self.config.get_rtp() {
             rtp

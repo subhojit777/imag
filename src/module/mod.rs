@@ -11,6 +11,9 @@ use runtime::Runtime;
 pub mod bm;
 pub mod helpers;
 
+/**
+ * Module interface, each module has to implement this.
+ */
 pub trait Module<'a> : Debug {
     fn exec(&self, matches: &ArgMatches) -> bool;
     fn name(&self) -> &'static str;
