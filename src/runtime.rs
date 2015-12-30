@@ -92,6 +92,21 @@ impl<'a> Runtime<'a> {
         }
     }
 
+    pub fn editor(&self) -> String {
+        use std::env::var;
+
+        if let Some(editor) = self.config.editor() {
+            editor
+        } else if let Some(editor) = self.configuration.editor() {
+            editor
+        } else if let Ok(editor) = var("EDITOR") {
+            editor
+        } else {
+            String::from("vim")
+        }
+    }
+
+
 }
 
 impl<'a> Debug for Runtime<'a> {
