@@ -29,6 +29,12 @@ args:
         required: false
         takes_value: true
 
+    - editor_opts:
+        long: editor-opts
+        help: Set editor options
+        required: false
+        takes_value: true
+
     - storename:
         short: s
         long: storename
