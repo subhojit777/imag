@@ -4,6 +4,7 @@ use clap::ArgMatches;
 
 pub mod bm;
 pub mod helpers;
+pub mod notes;
 
 /**
  * Module interface, each module has to implement this.
