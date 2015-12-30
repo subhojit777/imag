@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 
@@ -9,14 +8,7 @@ pub mod id_type;
 pub mod header;
 pub mod hash;
 
-
-use module::Module;
 use storage::file::id::*;
-use storage::file::id_type::FileIDType;
-use storage::file::hash::FileHash;
-use super::parser::{FileHeaderParser, Parser, ParserError};
-
-use self::header::spec::*;
 use self::header::data::*;
 
 /**

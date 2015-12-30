@@ -9,8 +9,6 @@
 extern crate url;
 extern crate config;
 
-use std::process::exit;
-
 pub use cli::CliConfig;
 pub use configuration::Configuration;
 pub use runtime::{ImagLogger, Runtime};

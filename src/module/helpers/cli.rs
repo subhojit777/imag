@@ -8,8 +8,6 @@ use regex::Regex;
 
 use storage::file::File;
 use storage::file::hash::FileHash;
-use storage::file::header::data::FileHeaderData;
-use storage::file::id::FileID;
 use storage::json::parser::JsonHeaderParser;
 use storage::parser::FileHeaderParser;
 use storage::parser::Parser;

@@ -1,12 +1,3 @@
-use std::ops::Drop;
-
-use std::path::PathBuf;
-use std::fs::File;
-use std::error::Error;
-
-use std::fmt::{Debug, Display, Formatter};
-use std::fmt;
-
 use runtime::Runtime;
 
 /**
@@ -17,7 +8,6 @@ pub fn let_user_provide_content(rt: &Runtime) -> Option<String> {
     use std::io::Read;
     use std::fs::File;
     use std::process::Command;
-    use std::process::Child;
 
     let filepath        = "/tmp/imag-tmp.md";
     let file_created    = File::create(filepath)

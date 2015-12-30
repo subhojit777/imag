@@ -1,6 +1,5 @@
 use std::convert::{From, Into};
-use std::error::Error;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Display, Formatter};
 use std::fmt;
 use std::hash::Hash;
 use uuid::Uuid;

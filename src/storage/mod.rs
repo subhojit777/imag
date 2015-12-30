@@ -12,12 +12,11 @@ pub mod parser;
 pub mod json;
 
 use module::Module;
-use runtime::Runtime;
 use storage::file::File;
 use storage::file::id::FileID;
 use storage::file::id_type::FileIDType;
 use storage::file::hash::FileHash;
-use storage::parser::{FileHeaderParser, Parser, ParserError};
+use storage::parser::{FileHeaderParser, Parser};
 use storage::file::header::data::FileHeaderData;
 
 type Cache = HashMap<FileID, Rc<RefCell<File>>>;
@@ -261,7 +260,7 @@ impl Store {
             })
         }
 
-        use glob::{glob, Paths, PatternError};
+        use glob::glob;
 
         let hashstr : String = hash.into();
         let globstr = format!("{}/*-{}.imag", self.storepath, hashstr);
@@ -323,7 +322,7 @@ impl Store {
         -> Vec<Rc<RefCell<File>>>
         where HP: FileHeaderParser
     {
-        use glob::{glob, Paths, PatternError};
+        use glob::glob;
 
         let globstr = format!("{}/{}-*.imag", self.storepath, m.name());
         let mut res = vec![];
