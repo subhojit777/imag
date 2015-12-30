@@ -11,21 +11,21 @@ extern crate config;
 
 use std::process::exit;
 
-use cli::CliConfig;
-use configuration::Configuration;
-use runtime::{ImagLogger, Runtime};
-use clap::App;
-use module::Module;
+pub use cli::CliConfig;
+pub use configuration::Configuration;
+pub use runtime::{ImagLogger, Runtime};
+pub use clap::App;
+pub use module::Module;
 
-mod cli;
-mod configuration;
-mod runtime;
-mod module;
-mod storage;
-mod ui;
-mod util;
+pub mod cli;
+pub mod configuration;
+pub mod runtime;
+pub mod module;
+pub mod storage;
+pub mod ui;
+pub mod util;
 
-use module::bm::BM;
+pub use module::bm::BM;
 
 fn main() {
     let yaml = load_yaml!("../etc/cli.yml");
