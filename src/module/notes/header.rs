@@ -48,3 +48,12 @@ pub fn get_tags_from_header(header: &FHD) -> Vec<String> {
     headerhelpers::tags::data::get_tags_from_header(header)
 }
 
+/**
+ * Get the name from the Header
+ *
+ * Returns empty string if there is no NAME field
+ */
+pub fn get_name_from_header(header: &FHD) -> String {
+    headerhelpers::data::get_name_from_header(header).unwrap_or(String::from(""))
+}
+
