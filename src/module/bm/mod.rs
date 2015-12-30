@@ -18,6 +18,8 @@ use storage::file::File;
 use storage::parser::FileHeaderParser;
 use storage::parser::Parser;
 use storage::json::parser::JsonHeaderParser;
+use module::helpers::cli::get_file_filter_by_cli;
+use module::helpers::cli::CliFileFilter;
 
 mod header;
 
@@ -136,15 +138,13 @@ impl<'a> BM<'a> {
     fn command_remove(&self, matches: &ArgMatches) -> bool {
         use std::process::exit;
 
-        let (filtered, files) = self.get_files(matches, "id", "match", "tags");
-
-        if !filtered {
-            error!("Unexpected error. Exiting");
-            exit(1);
-        }
-
-        let result = files
+        let parser = Parser::new(JsonHeaderParser::new(None));
+        let filter : Box<CliFileFilter> = get_file_filter_by_cli(&parser, matches, "id", "match", "tags", None);
+        let result = self.rt
+            .store()
+            .load_for_module(self, &parser)
             .iter()
+            .filter(|file| filter.filter_file(file))
             .map(|file| {
                 debug!("File loaded, can remove now: {:?}", file);
                 let f = file.deref().borrow();
@@ -209,15 +209,18 @@ impl<'a> BM<'a> {
                           })
                           .unwrap_or(vec![]);
 
-        let (filter, files) = self.get_files(matches, "with_id", "with_match", "with_tags");
-
-        if !filter {
-            warn!("There were no filter applied when loading the files");
-        }
-
         let parser = Parser::new(JsonHeaderParser::new(None));
-        files
+        let filter : Box<CliFileFilter> = get_file_filter_by_cli(&parser,
+                                                                 matches,
+                                                                 "with_id",
+                                                                 "with_match",
+                                                                 "with_tags",
+                                                                 None);
+        self.rt
+            .store()
+            .load_for_module(self, &parser)
             .into_iter()
+            .filter(|file| filter.filter_file(file))
             .map(|file| {
                 debug!("Remove tags from file: {:?}", file);
 
@@ -248,96 +251,6 @@ impl<'a> BM<'a> {
                 true
             })
             .all(|x| x)
-    }
-
-    /**
-     * Helper function to get files from the store filtered by the constraints passed via the
-     * CLI
-     */
-    fn get_files(&self,
-                 matches: &ArgMatches,
-                 id_key: &'static str,
-                 match_key: &'static str,
-                 tag_key:   &'static str)
-        -> (bool, Vec<Rc<RefCell<File>>>)
-    {
-        if matches.is_present(id_key) {
-            let hash = FileHash::from(matches.value_of(id_key).unwrap());
-            (true, self.get_files_by_id(hash))
-        } else if matches.is_present(match_key) {
-            let matcher = String::from(matches.value_of(match_key).unwrap());
-            (true, self.get_files_by_match(matcher))
-        } else if matches.is_present(tag_key) {
-            let tags = matches.value_of(tag_key)
-                              .unwrap()
-                              .split(",")
-                              .map(String::from)
-                              .collect::<Vec<String>>();
-            (true, self.get_files_by_tags(tags))
-        } else {
-            // get all files
-            let parser = Parser::new(JsonHeaderParser::new(None));
-            (false, self.rt.store().load_for_module(self, &parser))
-        }
-    }
-
-    /**
-     * Get files from the store, filtere by ID
-     */
-    fn get_files_by_id(&self, hash: FileHash) -> Vec<Rc<RefCell<File>>> {
-        let parser = Parser::new(JsonHeaderParser::new(None));
-        self.rt
-            .store()
-            .load_by_hash(self, &parser, hash)
-            .map(|f| vec![f])
-            .unwrap_or(vec![])
-    }
-
-    /**
-     * Get files from the store, filtere by Regex
-     */
-    fn get_files_by_match(&self, matcher: String) -> Vec<Rc<RefCell<File>>> {
-        let parser = Parser::new(JsonHeaderParser::new(None));
-        let re = Regex::new(&matcher[..]).unwrap_or_else(|e| {
-            error!("Cannot build regex out of '{}'", matcher);
-            error!("{}", e);
-            exit(1);
-        });
-
-        debug!("Compiled '{}' to regex: '{:?}'", matcher, re);
-
-        self.rt
-            .store()
-            .load_for_module(self, &parser)
-            .into_iter()
-            .filter(|file| {
-                let f   = file.deref().borrow();
-                let url = get_url_from_header(f.header());
-                debug!("url = {:?}", url);
-                url.map(|u| {
-                    debug!("Matching '{}' ~= '{}'", re.as_str(), u);
-                    re.is_match(&u[..])
-                }).unwrap_or(false)
-            })
-            .collect()
-    }
-
-    /**
-     * Get files from the store, filtere by tags
-     */
-    fn get_files_by_tags(&self, tags: Vec<String>) -> Vec<Rc<RefCell<File>>> {
-        let parser = Parser::new(JsonHeaderParser::new(None));
-        self.rt
-            .store()
-            .load_for_module(self, &parser)
-            .into_iter()
-            .filter(|file| {
-                let f = file.deref().borrow();
-                get_tags_from_header(f.header()).iter().any(|tag| {
-                    tags.iter().any(|remtag| remtag == tag)
-                })
-            })
-            .collect()
     }
 
 }
