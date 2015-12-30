@@ -22,6 +22,12 @@ args:
         required: false
         takes_value: true
 
+    - editor:
+        short: e
+        long: editor
+        help: Set editor, if not set $EDITOR of the system will be asked, else vim
+        required: false
+        takes_value: true
 
     - storename:
         short: s

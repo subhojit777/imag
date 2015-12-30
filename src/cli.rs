@@ -47,6 +47,10 @@ impl<'a> CliConfig<'a> {
                 .and_then(|s| Some(rtp + s))
         })
     }
+
+    pub fn editor(&self) -> Option<String> {
+        self.cli_matches.value_of("editor").and_then(|s| Some(String::from(s)))
+    }
 }
 
 impl<'a> Debug for CliConfig<'a> {
