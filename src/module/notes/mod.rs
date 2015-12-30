@@ -1,14 +1,23 @@
 use std::fmt::{Debug, Formatter};
 use std::fmt::Result as FMTResult;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 use clap::ArgMatches;
+use regex::Regex;
 
 mod header;
 
 use module::Module;
 use runtime::Runtime;
+use storage::file::File;
 use storage::parser::Parser;
 use storage::json::parser::JsonHeaderParser;
+use module::helpers::cli::create_tag_filter;
+use module::helpers::cli::create_hash_filter;
+use module::helpers::cli::create_text_header_field_grep_filter;
+use module::helpers::cli::create_content_grep_filter;
+use module::helpers::cli::CliFileFilter;
 
 pub struct Notes<'a> {
     rt: &'a Runtime<'a>,
@@ -51,7 +60,43 @@ impl<'a> Notes<'a> {
     }
 
     fn command_list(&self, matches: &ArgMatches) -> bool {
-        unimplemented!()
+        use ui::file::{FilePrinter, TablePrinter};
+        use std::ops::Deref;
+        use self::header::get_name_from_header;
+        use self::header::get_tags_from_header;
+        use std::process::exit;
+        use module::helpers::cli::CliFileFilter;
+
+        let parser  = Parser::new(JsonHeaderParser::new(None));
+
+        let filter = {
+            let hash_filter = create_hash_filter(matches, "id", true);
+            let head_filter = create_text_header_field_grep_filter(matches, "match", "NAME", true);
+            let text_filter = create_content_grep_filter(matches, "match", true);
+            let tags_filter = create_tag_filter(matches, "tags", true);
+            hash_filter.or(Box::new(head_filter)).and(Box::new(text_filter)).and(Box::new(tags_filter))
+        };
+
+        let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging());
+
+        printer.print_files_custom(
+            self.rt.store()
+                    .load_for_module(self, &parser)
+                    .into_iter()
+                    .filter(|f| filter.filter_file(f)),
+            &|file| {
+                let fl      = file.deref().borrow();
+                let hdr     = fl.header();
+                let name    = get_name_from_header(hdr);
+                let tags    = get_tags_from_header(hdr);
+
+                debug!("Custom printer field: name = '{:?}'", name);
+                debug!("Custom printer field: tags = '{:?}'", tags);
+
+                vec![name, tags.join(", ")]
+            }
+        );
+        true
     }
 
     fn command_remove(&self, matches: &ArgMatches) -> bool {
