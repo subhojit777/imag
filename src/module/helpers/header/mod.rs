@@ -52,11 +52,12 @@ pub mod data {
                     }
                 }).and_then(|urlkey| {
                     match urlkey.deref().clone() {
-                        FHD::Key{name: _, value: ref v} => {
+                        FHD::Key{name: ref n, value: ref v} => {
                             match v.deref().clone() {
                                 FHD::Text(s) => Some(s),
                                 _ => {
                                     warn!("Malformed Header Data: Expected Text, found non-Text");
+                                    debug!("    in {}", n);
                                     None
                                 },
                             }
