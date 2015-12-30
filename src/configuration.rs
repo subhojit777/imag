@@ -10,6 +10,7 @@ pub struct Configuration {
     pub store_sub   : String,
     pub verbose     : bool,
     pub debugging   : bool,
+    pub editor      : Option<String>,
 }
 
 impl Configuration {
@@ -20,6 +21,7 @@ impl Configuration {
         let mut verbose     = false;
         let mut debugging   = false;
         let mut store_sub   = String::from("/store");
+        let mut editor      = None;
 
         if let Some(cfg) = fetch_config(rtp.clone()) {
             if let Some(v) = cfg.lookup_boolean("verbose") {
@@ -31,6 +33,9 @@ impl Configuration {
             if let Some(s) = cfg.lookup_str("store") {
                 store_sub = String::from(s);
             }
+            if let Some(s) = cfg.lookup_str("editor") {
+                editor = Some(String::from(s));
+            }
         }
 
         let runtimepath = rtp.unwrap_or(String::from("/tmp/"));
@@ -40,12 +45,14 @@ impl Configuration {
         debug!("  - debugging  : {}", debugging);
         debug!("  - store sub  : {}", store_sub);
         debug!("  - runtimepath: {}", runtimepath);
+        debug!("  - editor     : {}", editor.unwrap_or(String::from("")));
 
         Configuration {
             verbose: verbose,
             debugging: debugging,
             store_sub: store_sub,
             rtp: runtimepath,
+            editor: editor,
         }
     }
 
@@ -63,6 +70,10 @@ impl Configuration {
 
     pub fn get_rtp(&self) -> String {
         self.rtp.clone()
+    }
+
+    pub fn editor(&self) -> Option<String> {
+        self.editor
     }
 
 }
