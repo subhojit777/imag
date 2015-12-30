@@ -49,6 +49,4 @@ fn main() {
     } else {
         info!("No commandline call...")
     }
-
-    info!("Hello, world!");
 }
