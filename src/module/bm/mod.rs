@@ -11,7 +11,10 @@ use module::Module;
 use storage::parser::FileHeaderParser;
 use storage::parser::Parser;
 use storage::json::parser::JsonHeaderParser;
-use module::helpers::cli::get_file_filter_by_cli;
+use module::helpers::cli::create_tag_filter;
+use module::helpers::cli::create_hash_filter;
+use module::helpers::cli::create_text_header_field_grep_filter;
+use module::helpers::cli::create_content_grep_filter;
 use module::helpers::cli::CliFileFilter;
 
 mod header;
@@ -119,7 +122,12 @@ impl<'a> BM<'a> {
         use std::ops::Deref;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
-        let filter : Box<CliFileFilter> = get_file_filter_by_cli(&parser, matches, "id", "match", "tags", Some("URL"));
+        let filter = {
+            let hash_filter = create_hash_filter(matches, "id", true);
+            let text_filter = create_text_header_field_grep_filter(matches, "match", "URL", true);
+            let tags_filter = create_tag_filter(matches, "tags", true);
+            hash_filter.and(Box::new(text_filter)).and(Box::new(tags_filter))
+        };
 
         let files  = self.rt
             .store()
@@ -151,7 +159,12 @@ impl<'a> BM<'a> {
         use open;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
-        let filter : Box<CliFileFilter> = get_file_filter_by_cli(&parser, matches, "id", "match", "tags", None);
+        let filter : Box<CliFileFilter> = {
+            let hash_filter = create_hash_filter(matches, "id", true);
+            let text_filter = create_text_header_field_grep_filter(matches, "match", "URL", true);
+            let tags_filter = create_tag_filter(matches, "tags", true);
+            Box::new(hash_filter.and(Box::new(text_filter)).and(Box::new(tags_filter)))
+        };
         let result = self.rt
             .store()
             .load_for_module(self, &parser)
@@ -191,7 +204,14 @@ impl<'a> BM<'a> {
      */
     fn command_remove(&self, matches: &ArgMatches) -> bool {
         let parser = Parser::new(JsonHeaderParser::new(None));
-        let filter : Box<CliFileFilter> = get_file_filter_by_cli(&parser, matches, "id", "match", "tags", None);
+
+        let filter = {
+            let hash_filter = create_hash_filter(matches, "id", false);
+            let text_filter = create_text_header_field_grep_filter(matches, "match", "URL", false);
+            let tags_filter = create_tag_filter(matches, "tags", false);
+            hash_filter.or(Box::new(text_filter)).or(Box::new(tags_filter))
+        };
+
         let result = self.rt
             .store()
             .load_for_module(self, &parser)
@@ -268,12 +288,14 @@ impl<'a> BM<'a> {
                           .unwrap_or(vec![]);
 
         let parser = Parser::new(JsonHeaderParser::new(None));
-        let filter : Box<CliFileFilter> = get_file_filter_by_cli(&parser,
-                                                                 matches,
-                                                                 "with_id",
-                                                                 "with_match",
-                                                                 "with_tags",
-                                                                 None);
+
+        let filter = {
+            let hash_filter = create_hash_filter(matches, "with:id", false);
+            let text_filter = create_text_header_field_grep_filter(matches, "with_match", "URL", false);
+            let tags_filter = create_tag_filter(matches, "with_tags", false);
+            hash_filter.or(Box::new(text_filter)).or(Box::new(tags_filter))
+        };
+
         self.rt
             .store()
             .load_for_module(self, &parser)
