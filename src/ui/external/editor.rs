@@ -9,101 +9,53 @@ use std::fmt;
 
 use runtime::Runtime;
 
-/*
- * A Temporary file in /tmp where the editor is launched on, so we can grap the contents and put
- * into the store
+/**
+ * A function which lets the user provide content by editing a temp files which gets removed after
+ * the function got the content from it.
  */
-pub struct TempFile {
-    path: Option<PathBuf>,
-    file: Option<File>,
+pub fn let_user_provide_content(rt: &Runtime) -> Option<String> {
+    use std::io::Read;
+    use std::fs::File;
+    use std::process::Command;
+    use std::process::Child;
+
+    let filepath        = "/tmp/imag-tmp.md";
+    let file_created    = File::create(filepath)
+                                .map(|_| true)
+                                .unwrap_or(false);
+
+    if !file_created {
+        warn!("Could not create temporary file for user input!");
+        return None;
+    }
+
+    let output = {
+        let mut cmd = Command::new(rt.editor());
+        cmd.arg(filepath);
+        debug!("cmd = {:?}", cmd);
+        cmd.spawn()
+           .and_then(|child| {
+               child.wait_with_output()
+            })
+    };
+
+    let process_out = output.map_err(|e| {
+        error!("Editor call failed");
+        debug!("Editor call failed: {:?}", e);
+        return None as Option<String>;
+    }).unwrap();
+
+    if !process_out.status.success() {
+        error!("Editor call failed");
+        debug!("status = {:?}", process_out.status);
+        debug!("stdout = {:?}", String::from_utf8(process_out.stdout));
+        debug!("stderr = {:?}", String::from_utf8(process_out.stderr));
+        return None;
+    }
+
+    let mut contents = String::new();
+    File::open(filepath).map(|mut file| {
+        file.read_to_string(&mut contents);
+        Some(contents)
+    }).unwrap_or(None)
 }
-
-impl TempFile {
-
-    pub fn new(rt: &Runtime) -> TempFile {
-        debug!("Building new TempFile");
-        unimplemented!()
-    }
-
-    pub fn edit(&mut self, editor: Option<String>) -> TempFile {
-        debug!("Editing TempFile");
-        unimplemented!()
-    }
-
-    pub fn content(&self) -> Result<String, TempFileError> {
-        debug!("Fetching content of TempFile");
-        unimplemented!()
-    }
-
-}
-
-/*
- * Implement Drop, so we ensure to remove the tempfile
- *
- * (is this neccessary if we use a real tempfile)
- */
-impl Drop for TempFile {
-
-    fn drop(&mut self) {
-        unimplemented!()
-    }
-
-}
-
-
-pub struct TempFileError {
-    desc: &'static str,
-    caused_by: Option<Box<Error>>,
-}
-
-impl TempFileError {
-
-    pub fn new(s: &'static str) -> TempFileError {
-        TempFileError {
-            desc: s,
-            caused_by: None,
-        }
-    }
-
-    pub fn with_cause(s: &'static str, c: Box<Error>) -> TempFileError {
-        TempFileError {
-            desc: s,
-            caused_by: Some(c),
-        }
-    }
-
-}
-
-impl Display for TempFileError {
-
-    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "TempFileError: '{}'", self.desc);
-        Ok(())
-    }
-}
-
-impl Debug for TempFileError {
-
-    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "TempFileError: '{}'", self.desc);
-
-        if let Some(ref e) = self.caused_by {
-            write!(fmt, "  cause: {:?}\n\n", e);
-        }
-
-        Ok(())
-    }
-}
-
-impl Error for TempFileError {
-
-    fn description(&self) -> &str {
-        self.desc
-    }
-
-    fn cause(&self) -> Option<&Error> {
-        self.caused_by.as_ref().map(|e| &**e)
-    }
-
-}
-
