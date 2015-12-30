@@ -85,7 +85,7 @@ impl File {
 impl Display for File {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt,
+        try!(write!(fmt,
 "[File] Owner : '{:?}'
         FileID: '{:?}'
         Header: '{:?}'
@@ -93,7 +93,7 @@ impl Display for File {
                self.owning_module_name,
                self.header,
                self.data,
-               self.id);
+               self.id));
         Ok(())
     }
 
@@ -102,7 +102,7 @@ impl Display for File {
 impl Debug for File {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt,
+        try!(write!(fmt,
 "[File] Owner : '{:?}'
         FileID: '{:?}'
         Header: '{:?}'
@@ -110,7 +110,7 @@ impl Debug for File {
                self.owning_module_name,
                self.id,
                self.header,
-               self.data);
+               self.data));
         Ok(())
     }
 

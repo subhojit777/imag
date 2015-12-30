@@ -57,13 +57,13 @@ impl Error for ParserError {
 impl Debug for ParserError {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "ParserError: {}\n\n", self.summary);
+        try!(write!(fmt, "ParserError: {}\n\n", self.summary));
 
         if let Some(ref e) = self.explanation {
-            write!(fmt, "{}\n\n", e);
+            try!(write!(fmt, "{}\n\n", e));
         }
 
-        write!(fmt, "On position {}\nin\n{}", self.index, self.parsertext);
+        try!(write!(fmt, "On position {}\nin\n{}", self.index, self.parsertext));
         Ok(())
     }
 
@@ -72,10 +72,10 @@ impl Debug for ParserError {
 impl Display for ParserError {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "ParserError: {}", self.summary);
+        try!(write!(fmt, "ParserError: {}", self.summary));
 
         if let Some(ref e) = self.explanation {
-            write!(fmt, "\n\n{}", e);
+            try!(write!(fmt, "\n\n{}", e));
         }
 
         Ok(())
@@ -196,8 +196,7 @@ impl<HP> Debug for Parser<HP>
 {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "Parser<{:?}>", self.headerp);
-
+        try!(write!(fmt, "Parser<{:?}>", self.headerp));
         Ok(())
     }
 

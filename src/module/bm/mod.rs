@@ -294,7 +294,7 @@ impl<'a> Module<'a> for BM<'a> {
 impl<'a> Debug for BM<'a> {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "BM");
+        try!(write!(fmt, "BM"));
         Ok(())
     }
 

@@ -97,9 +97,9 @@ impl FileID {
 impl Debug for FileID {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "FileID[{:?}]: {:?}",
+        try!(write!(fmt, "FileID[{:?}]: {:?}",
                self.id_type,
-               self.id);
+               self.id));
         Ok(())
     }
 
@@ -108,9 +108,9 @@ impl Debug for FileID {
 impl Display for FileID {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "FileID[{:?}]: {:?}",
+        try!(write!(fmt, "FileID[{:?}]: {:?}",
                self.id_type,
-               self.id);
+               self.id));
         Ok(())
     }
 
