@@ -50,7 +50,7 @@ impl Configuration {
         debug!("  - debugging  : {}", debugging);
         debug!("  - store sub  : {}", store_sub);
         debug!("  - runtimepath: {}", runtimepath);
-        debug!("  - editor     : {}", editor.unwrap_or(String::from("")));
+        debug!("  - editor     : {:?}", editor);
         debug!("  - editor-opts: {}", editor_opts);
 
         Configuration {
@@ -80,7 +80,7 @@ impl Configuration {
     }
 
     pub fn editor(&self) -> Option<String> {
-        self.editor
+        self.editor.clone()
     }
 
     pub fn editor_opts(&self) -> &String {
