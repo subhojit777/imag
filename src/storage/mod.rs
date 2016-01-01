@@ -52,33 +52,6 @@ impl Store {
     }
 
     /**
-     * Load a file by ID into the cache and return it afterwards
-     *
-     * Returns None if the file could be loaded from the Filesystem
-     */
-    pub fn load_in_cache<HP>(&self, m: &Module, parser: &Parser<HP>, id: FileID)
-        -> Option<Rc<RefCell<File>>>
-        where HP: FileHeaderParser
-    {
-        self.load(&id).or({
-            let idstr : String = id.clone().into();
-            let path = format!("{}/{}-{}.imag", self.storepath, m.name(), idstr);
-            debug!("Loading path = '{}'", path);
-            let mut string = String::new();
-
-            FSFile::open(&path).map(|mut file| {
-                file.read_to_string(&mut string)
-                    .map_err(|e| error!("Failed reading file: '{}'", path));
-            });
-
-            parser.read(string).map(|(header, data)| {
-                self.new_file_from_parser_result(m, id.clone(), header, data);
-                self.load(&id)
-            }).unwrap_or(None)
-        })
-    }
-
-    /**
      * Generate a new file for a module.
      *
      * Returns the new FileID object then
@@ -230,12 +203,43 @@ impl Store {
     }
 
     /**
+     * Load a file by ID into the cache and return it afterwards
+     *
+     * Returns None if the file could be loaded from the Filesystem
+     */
+    fn load_into_cache<HP>(&self, m: &Module, parser: &Parser<HP>, id: &FileID)
+        -> bool
+        where HP: FileHeaderParser
+    {
+        let idstr : String = id.clone().into();
+        let path = format!("{}/{}-{}.imag", self.storepath, m.name(), idstr);
+        debug!("Loading path = '{}'", path);
+        let mut string = String::new();
+
+        FSFile::open(&path).map(|mut file| {
+            file.read_to_string(&mut string)
+                .map_err(|e| error!("Failed reading file: '{}'", path));
+        });
+
+        parser.read(string).map(|(header, data)| {
+            self.new_file_from_parser_result(m, id.clone(), header, data);
+            true
+        }).unwrap_or(false)
+    }
+
+    /**
      * Load a file from the cache by FileID
      *
      * TODO: Semantics: This function should load from FS if the file is not in the cache yet or
      * fail if the file is not available.
      */
-    pub fn load(&self, id: &FileID) -> Option<Rc<RefCell<File>>> {
+    pub fn load<HP>(&self, m: &Module, parser: &Parser<HP>, id: &FileID)
+        -> Option<Rc<RefCell<File>>>
+        where HP: FileHeaderParser
+    {
+        if !self.cache.borrow().contains_key(id) {
+            self.load_into_cache(m, parser, id);
+        }
         debug!("Loading '{:?}'", id);
         self.cache.borrow().get(id).cloned()
     }
@@ -287,11 +291,7 @@ impl Store {
 
         debug!("Loaded ID = '{:?}'", id);
 
-        self.load_in_cache(m, parser, id)
-            .map(|file| {
-                debug!("Loaded File = '{:?}'", file);
-                Some(file)
-            }).unwrap_or(None)
+        self.load(m, parser, &id)
     }
 
     /**
@@ -335,7 +335,7 @@ impl Store {
                     let fname = pathbuf.file_name().and_then(|s| s.to_str());
                     fname.map(|s| {
                         FileID::parse(&String::from(s)).map(|id| {
-                            self.load_in_cache(m, parser, id).map(|file| {
+                            self.load(m, parser, &id).map(|file| {
                                 res.push(file);
                             })
                         });
