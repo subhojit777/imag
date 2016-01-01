@@ -60,21 +60,22 @@ impl Store {
         -> Option<Rc<RefCell<File>>>
         where HP: FileHeaderParser
     {
-        let idstr : String = id.clone().into();
-        let path = format!("{}/{}-{}.imag", self.storepath, m.name(), idstr);
-        debug!("Loading path = '{}'", path);
-        let mut string = String::new();
+        self.load(&id).or({
+            let idstr : String = id.clone().into();
+            let path = format!("{}/{}-{}.imag", self.storepath, m.name(), idstr);
+            debug!("Loading path = '{}'", path);
+            let mut string = String::new();
 
-        FSFile::open(&path).map(|mut file| {
-            file.read_to_string(&mut string)
-                .map_err(|e| error!("Failed reading file: '{}'", path));
-        });
+            FSFile::open(&path).map(|mut file| {
+                file.read_to_string(&mut string)
+                    .map_err(|e| error!("Failed reading file: '{}'", path));
+            });
 
-        parser.read(string).map(|(header, data)| {
-            self.new_file_from_parser_result(m, id.clone(), header, data);
-        });
-
-        self.load(&id)
+            parser.read(string).map(|(header, data)| {
+                self.new_file_from_parser_result(m, id.clone(), header, data);
+                self.load(&id)
+            }).unwrap_or(None)
+        })
     }
 
     /**
