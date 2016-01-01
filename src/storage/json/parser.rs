@@ -30,7 +30,7 @@ impl JsonHeaderParser {
 impl Display for JsonHeaderParser {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "JsonHeaderParser");
+        try!(write!(fmt, "JsonHeaderParser"));
         Ok(())
     }
 
@@ -39,7 +39,7 @@ impl Display for JsonHeaderParser {
 impl Debug for JsonHeaderParser {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "JsonHeaderParser, Spec: {:?}", self.spec);
+        try!(write!(fmt, "JsonHeaderParser, Spec: {:?}", self.spec));
         Ok(())
     }
 

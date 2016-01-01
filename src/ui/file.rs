@@ -120,8 +120,6 @@ impl FilePrinter for SimplePrinter {
  * Table printer to print file information in a nice ASCII-table
  */
 pub struct TablePrinter {
-    verbose:    bool,
-    debug:      bool,
     sp:         SimplePrinter,
 }
 
@@ -129,8 +127,6 @@ impl FilePrinter for TablePrinter {
 
     fn new(verbose: bool, debug: bool) -> TablePrinter {
         TablePrinter {
-            debug:      debug,
-            verbose:    verbose,
             sp:         SimplePrinter::new(verbose, debug),
         }
     }

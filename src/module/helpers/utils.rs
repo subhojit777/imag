@@ -3,7 +3,6 @@
  */
 pub mod cli {
     use clap::ArgMatches;
-    use regex::Regex;
 
     use runtime::Runtime;
 

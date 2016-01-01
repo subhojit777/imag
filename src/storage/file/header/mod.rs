@@ -47,7 +47,7 @@ impl<'a> Error for MatchError<'a> {
 impl<'a> Debug for MatchError<'a> {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "{}", self.format());
+        try!(write!(fmt, "{}", self.format()));
         Ok(())
     }
 
@@ -56,7 +56,7 @@ impl<'a> Debug for MatchError<'a> {
 impl<'a> Display for MatchError<'a> {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "{}", self.format());
+        try!(write!(fmt, "{}", self.format()));
         Ok(())
     }
 

@@ -1,7 +1,5 @@
 use std::convert::{From, Into};
-use std::error::Error;
 use std::str::FromStr;
-use std::hash::Hash;
 
 #[derive(Debug)]
 #[derive(Clone)]

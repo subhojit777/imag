@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 
@@ -9,14 +8,7 @@ pub mod id_type;
 pub mod header;
 pub mod hash;
 
-
-use module::Module;
 use storage::file::id::*;
-use storage::file::id_type::FileIDType;
-use storage::file::hash::FileHash;
-use super::parser::{FileHeaderParser, Parser, ParserError};
-
-use self::header::spec::*;
 use self::header::data::*;
 
 /**
@@ -93,7 +85,7 @@ impl File {
 impl Display for File {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt,
+        try!(write!(fmt,
 "[File] Owner : '{:?}'
         FileID: '{:?}'
         Header: '{:?}'
@@ -101,7 +93,7 @@ impl Display for File {
                self.owning_module_name,
                self.header,
                self.data,
-               self.id);
+               self.id));
         Ok(())
     }
 
@@ -110,7 +102,7 @@ impl Display for File {
 impl Debug for File {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt,
+        try!(write!(fmt,
 "[File] Owner : '{:?}'
         FileID: '{:?}'
         Header: '{:?}'
@@ -118,7 +110,7 @@ impl Debug for File {
                self.owning_module_name,
                self.id,
                self.header,
-               self.data);
+               self.data));
         Ok(())
     }
 

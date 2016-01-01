@@ -1,12 +1,6 @@
-use std::collections::HashMap;
-use std::error::Error;
-use std::fmt::{Debug, Display, Formatter};
-use std::fmt::Result as FMTResult;
-use std::result::Result;
+use std::fmt::Debug;
 
 use clap::ArgMatches;
-
-use runtime::Runtime;
 
 pub mod bm;
 pub mod helpers;

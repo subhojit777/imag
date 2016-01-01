@@ -9,8 +9,6 @@
 extern crate url;
 extern crate config;
 
-use std::process::exit;
-
 pub use cli::CliConfig;
 pub use configuration::Configuration;
 pub use runtime::{ImagLogger, Runtime};
@@ -28,14 +26,13 @@ pub mod util;
 pub use module::bm::BM;
 
 fn main() {
-    let yaml = load_yaml!("../etc/cli.yml");
-    let app = App::from_yaml(yaml);
-    let config = CliConfig::new(app);
+    let yaml          = load_yaml!("../etc/cli.yml");
+    let app           = App::from_yaml(yaml);
+    let config        = CliConfig::new(app);
     let configuration = Configuration::new(&config);
+    ImagLogger::init(&configuration, &config);
 
-    let logger = ImagLogger::init(&configuration, &config);
     debug!("Logger created!");
-
     debug!("CliConfig    : {:?}", &config);
     debug!("Configuration: {:?}", &configuration);
 
@@ -49,6 +46,4 @@ fn main() {
     } else {
         info!("No commandline call...")
     }
-
-    info!("Hello, world!");
 }

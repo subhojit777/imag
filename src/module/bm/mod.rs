@@ -1,20 +1,13 @@
-use std::fmt::{Debug, Display, Formatter};
-use std::rc::Rc;
-use std::cell::RefCell;
+use std::fmt::{Debug, Formatter};
 use std::fmt;
 use std::ops::Deref;
 use std::process::exit;
 
 use clap::ArgMatches;
-use regex::Regex;
 
 use runtime::Runtime;
 use module::Module;
 
-use storage::Store;
-use storage::file::hash::FileHash;
-use storage::file::id::FileID;
-use storage::file::File;
 use storage::parser::FileHeaderParser;
 use storage::parser::Parser;
 use storage::json::parser::JsonHeaderParser;
@@ -36,10 +29,6 @@ impl<'a> BM<'a> {
         BM {
             rt: rt,
         }
-    }
-
-    fn runtime(&self) -> &Runtime {
-        &self.rt
     }
 
     /**
@@ -142,8 +131,6 @@ impl<'a> BM<'a> {
      * Subcommand: remove
      */
     fn command_remove(&self, matches: &ArgMatches) -> bool {
-        use std::process::exit;
-
         let parser = Parser::new(JsonHeaderParser::new(None));
         let filter : Box<CliFileFilter> = get_file_filter_by_cli(&parser, matches, "id", "match", "tags", None);
         let result = self.rt
@@ -307,7 +294,7 @@ impl<'a> Module<'a> for BM<'a> {
 impl<'a> Debug for BM<'a> {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "BM");
+        try!(write!(fmt, "BM"));
         Ok(())
     }
 
