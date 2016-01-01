@@ -70,7 +70,7 @@ impl<'a> BM<'a> {
         let header = build_header(url, tags);
 
         let fileid = self.rt.store().new_file_with_header(self, header);
-        self.rt.store().load(&fileid).and_then(|file| {
+        self.rt.store().load(self, &parser, &fileid).and_then(|file| {
             info!("Created file in memory: {}", fileid);
             Some(self.rt.store().persist(&parser, file))
         }).unwrap_or(false)
