@@ -295,29 +295,6 @@ impl Store {
     }
 
     /**
-     * Remove a file from the filesystem by FileID
-     *
-     * Returns true if this works.
-     */
-    pub fn remove(&self, id: FileID) -> bool {
-        use std::fs::remove_file;
-
-        self.cache
-            .borrow_mut()
-            .remove(&id)
-            .map(|file| {
-                let idstr : String = id.into();
-                let path = format!("{}/{}-{}.imag",
-                                   self.storepath,
-                                   file.deref().borrow().owner_name(),
-                                   idstr);
-                debug!("Removing file NOW: '{}'", path);
-                remove_file(path).is_ok()
-            })
-            .unwrap_or(false)
-    }
-
-    /**
      * Load all files for a module
      */
     pub fn load_for_module<HP>(&self, m: &Module, parser: &Parser<HP>)
@@ -344,6 +321,29 @@ impl Store {
             }
         });
         res
+    }
+
+    /**
+     * Remove a file from the filesystem by FileID
+     *
+     * Returns true if this works.
+     */
+    pub fn remove(&self, id: FileID) -> bool {
+        use std::fs::remove_file;
+
+        self.cache
+            .borrow_mut()
+            .remove(&id)
+            .map(|file| {
+                let idstr : String = id.into();
+                let path = format!("{}/{}-{}.imag",
+                                   self.storepath,
+                                   file.deref().borrow().owner_name(),
+                                   idstr);
+                debug!("Removing file NOW: '{}'", path);
+                remove_file(path).is_ok()
+            })
+            .unwrap_or(false)
     }
 
     /**
