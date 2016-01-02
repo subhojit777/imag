@@ -189,6 +189,10 @@ impl<'a> Module<'a> for Notes<'a> {
         "notes"
     }
 
+    fn runtime(&self) -> &Runtime {
+        self.rt
+    }
+
 }
 
 impl<'a> Debug for Notes<'a> {

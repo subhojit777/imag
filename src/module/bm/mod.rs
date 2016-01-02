@@ -380,6 +380,10 @@ impl<'a> Module<'a> for BM<'a> {
     fn name(&self) -> &'static str {
         "bookmark"
     }
+
+    fn runtime(&self) -> &Runtime {
+        self.rt
+    }
 }
 
 impl<'a> Debug for BM<'a> {
