@@ -20,7 +20,7 @@ pub fn let_user_provide_content(rt: &Runtime) -> Option<String> {
     }
 
     let output = {
-        let mut cmd = Command::new(rt.editor());
+        let mut cmd = rt.editor();
         cmd.arg(filepath);
         debug!("cmd = {:?}", cmd);
         cmd.spawn()
