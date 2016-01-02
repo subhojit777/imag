@@ -105,6 +105,31 @@ subcommands:
                         required: false
                         takes_value: true
 
+            - open:
+                about: Open bookmarks
+                version: 0.1
+                author: Matthias Beyer <mail@beyermatthias.de>
+                args:
+                    - id:
+                        long: id
+                        help: Open Bookmark with ID
+                        required: false
+                        takes_value: true
+
+                    - match:
+                        short: m
+                        long: match
+                        help: Open links matching regex
+                        required: false
+                        takes_value: true
+
+                    - tags:
+                        short: t
+                        long: tags
+                        help: Open links with these tags
+                        required: false
+                        takes_value: true
+
             - remove:
                 about: Remove bookmark(s)
                 version: 0.1

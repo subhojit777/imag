@@ -8,6 +8,7 @@
 #[macro_use] extern crate prettytable;
 extern crate url;
 extern crate config;
+extern crate open;
 
 pub use cli::CliConfig;
 pub use configuration::Configuration;
