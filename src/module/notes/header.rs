@@ -57,3 +57,8 @@ pub fn get_name_from_header(header: &FHD) -> String {
     headerhelpers::data::get_name_from_header(header).unwrap_or(String::from(""))
 }
 
+pub fn rebuild_header_with_tags(header: &FHD, tags: Vec<String>) -> Option<FHD> {
+    let name = get_name_from_header(header);
+    Some(build_header(name, tags))
+}
+
