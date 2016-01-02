@@ -162,7 +162,13 @@ impl<'a> Notes<'a> {
     }
 
     fn command_set_tags(&self, matches: &ArgMatches) -> bool {
-        unimplemented!()
+        use module::helpers::header::tags::data::alter_tags_in_files;
+        use self::header::rebuild_header_with_tags;
+
+        let parser = Parser::new(JsonHeaderParser::new(None));
+        alter_tags_in_files(self, matches, &parser, |old_tags, cli_tags| {
+            cli_tags.clone()
+        }, rebuild_header_with_tags)
     }
 
 }
