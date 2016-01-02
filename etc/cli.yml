@@ -258,3 +258,110 @@ subcommands:
         version: 0.1
         author: Matthias Beyer <mail@beyermatthias.de>
 
+    - notes:
+        about: Notes module
+        version: 0.1
+        author: Matthias Beyer <mail@beyermatthias.de>
+        subcommands:
+            - add:
+                about: Add Note
+                version: 0.1
+                author: Matthias Beyer <mail@beyermatthias.de>
+                args:
+                    - name:
+                        short: n
+                        long: name
+                        help: Add a name to the note
+                        required: false
+                        takes_value: true
+
+                    - tags:
+                        short: t
+                        long: tags
+                        help: Add these tags to the note
+                        required: false
+                        takes_value: true
+
+            - edit:
+                about: Edit Note
+                version: 0.1
+                author: Matthias Beyer <mail@beyermatthias.de>
+                args:
+                    - id:
+                        long: id
+                        help: Edit Note with this ID
+                        required: false
+                        takes_value: true
+
+                    - namegrep:
+                        short: n
+                        long: name
+                        help: Edit notes where the name matches this regex
+                        required: false
+                        takes_value: true
+
+                    - grep:
+                        short: g
+                        long: grep
+                        help: Edit notes where the content matches this regex
+                        required: false
+                        takes_value: true
+
+                    - tags:
+                        short: t
+                        long: tags
+                        help: Edit notes with these tags
+                        required: false
+                        takes_value: true
+
+            - list:
+                about: List notes
+                version: 0.1
+                author: Matthias Beyer <mail@beyermatthias.de>
+                args:
+                    - namegrep:
+                        short: n
+                        long: name
+                        help: Filter for name which matches this regex
+                        required: false
+                        takes_value: true
+
+                    - grep:
+                        short: g
+                        long: grep
+                        help: grep with regex
+                        required: false
+                        takes_value: true
+
+                    - tags:
+                        short: t
+                        long: tags
+                        help: Filter for these tags
+                        required: false
+                        takes_value: true
+
+            - remove:
+                about: Remove note(s)
+                version: 0.1
+                author: Matthias Beyer <mail@beyermatthias.de>
+                args:
+                    - id:
+                        long: id
+                        help: Delete Note by ID
+                        required: false
+                        takes_value: true
+
+                    - match:
+                        short: m
+                        long: match
+                        help: Match for regex
+                        required: false
+                        takes_value: true
+
+                    - tags:
+                        short: t
+                        long: tags
+                        help: Filter for these tags
+                        required: false
+                        takes_value: true
+

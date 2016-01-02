@@ -243,94 +243,44 @@ impl<'a> BM<'a> {
      * Subcommand: add_tags
      */
     fn command_add_tags(&self, matches: &ArgMatches) -> bool {
-        self.alter_tags_in_files(matches, |old_tags, cli_tags| {
+        use module::helpers::header::tags::data::alter_tags_in_files;
+        use self::header::rebuild_header_with_tags;
+
+        let parser = Parser::new(JsonHeaderParser::new(None));
+        alter_tags_in_files(self, matches, &parser, |old_tags, cli_tags| {
             let mut new_tags = old_tags.clone();
             new_tags.append(&mut cli_tags.clone());
             new_tags
-        })
+        }, rebuild_header_with_tags)
     }
 
     /**
      * Subcommand: rm_tags
      */
     fn command_rm_tags(&self, matches: &ArgMatches) -> bool {
-        self.alter_tags_in_files(matches, |old_tags, cli_tags| {
+        use module::helpers::header::tags::data::alter_tags_in_files;
+        use self::header::rebuild_header_with_tags;
+
+        let parser = Parser::new(JsonHeaderParser::new(None));
+        alter_tags_in_files(self, matches, &parser, |old_tags, cli_tags| {
             old_tags.clone()
                 .into_iter()
                 .filter(|tag| !cli_tags.contains(tag))
                 .collect()
-        })
+        }, rebuild_header_with_tags)
     }
 
     /**
      * Subcommand: set_tags
      */
     fn command_set_tags(&self, matches: &ArgMatches) -> bool {
-        self.alter_tags_in_files(matches, |old_tags, cli_tags| {
-            cli_tags.clone()
-        })
-    }
-
-    /**
-     * Helper function to alter the tags in a file
-     */
-    fn alter_tags_in_files<F>(&self, matches: &ArgMatches, generate_new_tags: F) -> bool
-        where F: Fn(Vec<String>, &Vec<String>) -> Vec<String>
-    {
+        use module::helpers::header::tags::data::alter_tags_in_files;
         use self::header::rebuild_header_with_tags;
 
-        let cli_tags = matches.value_of("tags")
-                          .map(|ts| {
-                            ts.split(",")
-                              .map(String::from)
-                              .collect::<Vec<String>>()
-                          })
-                          .unwrap_or(vec![]);
-
         let parser = Parser::new(JsonHeaderParser::new(None));
-
-        let filter = {
-            let hash_filter = create_hash_filter(matches, "with:id", false);
-            let text_filter = create_text_header_field_grep_filter(matches, "with_match", "URL", false);
-            let tags_filter = create_tag_filter(matches, "with_tags", false);
-            hash_filter.or(Box::new(text_filter)).or(Box::new(tags_filter))
-        };
-
-        self.rt
-            .store()
-            .load_for_module(self, &parser)
-            .into_iter()
-            .filter(|file| filter.filter_file(file))
-            .map(|file| {
-                debug!("Remove tags from file: {:?}", file);
-
-                let hdr = {
-                    let f = file.deref().borrow();
-                    f.header().clone()
-                };
-
-                debug!("Tags:...");
-                let old_tags = get_tags_from_header(&hdr);
-                debug!("    old_tags = {:?}", &old_tags);
-                debug!("    cli_tags = {:?}", &cli_tags);
-
-                let new_tags = generate_new_tags(old_tags, &cli_tags);
-                debug!("    new_tags = {:?}", &new_tags);
-
-                let new_header = rebuild_header_with_tags(&hdr, new_tags)
-                    .unwrap_or_else(|| {
-                        error!("Could not rebuild header for file");
-                        exit(1);
-                    });
-                {
-                    let mut f_mut = file.deref().borrow_mut();
-                    f_mut.set_header(new_header);
-                }
-
-                self.rt.store().persist(&parser, file);
-                true
-            })
-            .all(|x| x)
+        alter_tags_in_files(self, matches, &parser, |old_tags, cli_tags| {
+            cli_tags.clone()
+        }, rebuild_header_with_tags)
     }
 
 }
@@ -379,6 +329,10 @@ impl<'a> Module<'a> for BM<'a> {
 
     fn name(&self) -> &'static str {
         "bookmark"
+    }
+
+    fn runtime(&self) -> &Runtime {
+        self.rt
     }
 }
 

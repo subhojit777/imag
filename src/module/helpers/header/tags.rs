@@ -35,6 +35,10 @@ pub mod spec {
 pub mod data {
     use std::ops::Deref;
     use storage::file::header::data::FileHeaderData as FHD;
+    use module::Module;
+    use clap::ArgMatches;
+    use storage::parser::Parser;
+    use storage::parser::FileHeaderParser;
 
     /**
      * Use a Vec<String> to build a Tag-Array:
@@ -93,6 +97,78 @@ pub mod data {
 
         tags
     }
+
+    /**
+     * Helper function to alter the tags in a file
+     */
+    pub fn alter_tags_in_files<HP, F, R>(m: &Module,
+                                     matches: &ArgMatches,
+                                     parser: &Parser<HP>,
+                                     generate_new_tags: F,
+                                     rebuild_header: R) -> bool
+        where HP: FileHeaderParser,
+              F:  Fn(Vec<String>, &Vec<String>) -> Vec<String>,
+              R:  Fn(&FHD, Vec<String>) -> Option<FHD>
+    {
+        use std::process::exit;
+        use module::helpers::cli::create_tag_filter;
+        use module::helpers::cli::create_hash_filter;
+        use module::helpers::cli::create_text_header_field_grep_filter;
+        use module::helpers::cli::create_content_grep_filter;
+        use module::helpers::cli::CliFileFilter;
+
+        let cli_tags = matches.value_of("tags")
+                          .map(|ts| {
+                            ts.split(",")
+                              .map(String::from)
+                              .collect::<Vec<String>>()
+                          })
+                          .unwrap_or(vec![]);
+
+        let filter = {
+            let hash_filter = create_hash_filter(matches, "with:id", false);
+            let text_filter = create_text_header_field_grep_filter(matches, "with_match", "URL", false);
+            let tags_filter = create_tag_filter(matches, "with_tags", false);
+            hash_filter.or(Box::new(text_filter)).or(Box::new(tags_filter))
+        };
+
+        m.runtime()
+            .store()
+            .load_for_module(m, &parser)
+            .into_iter()
+            .filter(|file| filter.filter_file(file))
+            .map(|file| {
+                debug!("Alter tags in file: {:?}", file);
+
+                let hdr = {
+                    let f = file.deref().borrow();
+                    f.header().clone()
+                };
+
+                debug!("Tags:...");
+                let old_tags = get_tags_from_header(&hdr);
+                debug!("    old_tags = {:?}", &old_tags);
+                debug!("    cli_tags = {:?}", &cli_tags);
+
+                let new_tags = generate_new_tags(old_tags, &cli_tags);
+                debug!("    new_tags = {:?}", &new_tags);
+
+                let new_header = rebuild_header(&hdr, new_tags)
+                    .unwrap_or_else(|| {
+                        error!("Could not rebuild header for file");
+                        exit(1);
+                    });
+                {
+                    let mut f_mut = file.deref().borrow_mut();
+                    f_mut.set_header(new_header);
+                }
+
+                m.runtime().store().persist(&parser, file);
+                true
+            })
+            .all(|x| x)
+    }
+
 
 }
 

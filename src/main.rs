@@ -25,6 +25,7 @@ pub mod ui;
 pub mod util;
 
 pub use module::bm::BM;
+pub use module::notes::Notes;
 
 fn main() {
     let yaml          = load_yaml!("../etc/cli.yml");
@@ -43,10 +44,11 @@ fn main() {
 
     debug!("Runtime      : {:?}", &rt);
 
-    if let Some(matches) = rt.config.cli_matches.subcommand_matches("bm") {
-        let res = BM::new(&rt).exec(matches);
-        info!("BM exited with {}", res);
-    } else {
-        info!("No commandline call...")
-    }
+    let res = match rt.config.cli_matches.subcommand_name() {
+        Some("bm")    => BM::new(&rt).exec(rt.config.cli_matches.subcommand_matches("bm").unwrap()),
+        Some("notes") => Notes::new(&rt).exec(rt.config.cli_matches.subcommand_matches("notes").unwrap()),
+        _             => false,
+    };
+
+    info!("Module execution ended with {}", res);
 }

@@ -60,6 +60,13 @@ impl File {
     }
 
     /**
+     * Set the data
+     */
+    pub fn set_data(&mut self, new_data: String) {
+        self.data = new_data;
+    }
+
+    /**
      * Set the (header, data) of the file
      */
     pub fn contents(&self) -> (&FileHeaderData, &String) {
