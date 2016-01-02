@@ -282,6 +282,38 @@ subcommands:
                         required: false
                         takes_value: true
 
+            - edit:
+                about: Edit Note
+                version: 0.1
+                author: Matthias Beyer <mail@beyermatthias.de>
+                args:
+                    - id:
+                        long: id
+                        help: Edit Note with this ID
+                        required: false
+                        takes_value: true
+
+                    - namegrep:
+                        short: n
+                        long: name
+                        help: Edit notes where the name matches this regex
+                        required: false
+                        takes_value: true
+
+                    - grep:
+                        short: g
+                        long: grep
+                        help: Edit notes where the content matches this regex
+                        required: false
+                        takes_value: true
+
+                    - tags:
+                        short: t
+                        long: tags
+                        help: Edit notes with these tags
+                        required: false
+                        takes_value: true
+
             - list:
                 about: List notes
                 version: 0.1

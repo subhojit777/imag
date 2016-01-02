@@ -63,6 +63,65 @@ impl<'a> Notes<'a> {
             .unwrap_or(false)
     }
 
+    fn command_edit(&self, matches: &ArgMatches) -> bool {
+        use ui::external::editor::edit_content;
+
+        let parser  = Parser::new(JsonHeaderParser::new(None));
+
+        let filter = {
+            let hash_filter = create_hash_filter(matches, "id", false);
+            let head_filter = create_text_header_field_grep_filter(matches, "namematch", "NAME", false);
+            let text_filter = create_content_grep_filter(matches, "match", false);
+            let tags_filter = create_tag_filter(matches, "tags", false);
+            hash_filter.or(Box::new(head_filter)).or(Box::new(text_filter)).or(Box::new(tags_filter))
+        };
+
+        let result = self.rt
+            .store()
+            .load_for_module(self, &parser)
+            .into_iter()
+            .filter(|f| filter.filter_file(f))
+            .map(|file| {
+                debug!("File loaded, can edit now: {:?}", file);
+
+                let old_content = {
+                    let f = file.deref().borrow();
+                    f.data().clone()
+                };
+
+                debug!("Editing content now...");
+                let (new_content, editing_worked) = edit_content(self.runtime(), old_content);
+                debug!("... ready with editing");
+
+                if editing_worked {
+                    debug!("Editing worked");
+                    {
+                        let mut f = file.deref().borrow_mut();
+                        f.set_data(new_content);
+                    }
+                    self.runtime().store().persist(&parser, file)
+                } else {
+                    debug!("Editing didn't work");
+                    false
+                }
+            })
+            .fold((0, 0), |acc, succeeded| {
+                let (worked, failed) = acc;
+                if succeeded {
+                    (worked + 1, failed)
+                } else {
+                    (worked, failed + 1)
+                }
+            });
+
+        let (worked, failed) = result;
+
+        info!("Editing succeeded for {} files", worked);
+        info!("Editing failed for {} files", failed);
+
+        return failed == 0;
+    }
+
     fn command_list(&self, matches: &ArgMatches) -> bool {
         use ui::file::{FilePrinter, TablePrinter};
         use self::header::get_name_from_header;
@@ -182,6 +241,10 @@ impl<'a> Module<'a> for Notes<'a> {
         match matches.subcommand_name() {
             Some("add") => {
                 self.command_add(matches.subcommand_matches("add").unwrap())
+            },
+
+            Some("edit") => {
+                self.command_edit(matches.subcommand_matches("edit").unwrap())
             },
 
             Some("list") => {
