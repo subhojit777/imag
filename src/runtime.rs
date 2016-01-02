@@ -77,14 +77,14 @@ impl<'a> Runtime<'a> {
      * Check whether we run verbose
      */
     pub fn is_verbose(&self) -> bool {
-        self.config.is_verbose() || self.configuration.is_verbose()
+        self.config.is_verbose()
     }
 
     /**
      * Check whether we run in debugging
      */
     pub fn is_debugging(&self) -> bool {
-        self.config.is_debugging() || self.configuration.is_verbose()
+        self.config.is_debugging()
     }
 
     /**
