@@ -16,52 +16,112 @@ pub trait CliFileFilter {
 
     fn filter_file(&self, &Rc<RefCell<File>>) -> bool;
 
-}
+    fn not(self) -> CliFileFilterNot
+        where Self: Sized + 'static
+    {
+        CliFileFilterNot {
+            a: Box::new(self),
+        }
+    }
 
-struct CliFileFilterDefault {
-    default: bool,
-}
+    fn or(self, other: Box<CliFileFilter>) -> CliFileFilterOr
+        where Self: Sized + 'static
+    {
+        CliFileFilterOr {
+            a: Box::new(self),
+            b: other
+        }
+    }
 
-impl CliFileFilter for CliFileFilterDefault {
-
-    fn filter_file(&self, _: &Rc<RefCell<File>>) -> bool {
-        debug!("Filtering file with default value = {}", self.default);
-        return self.default
+    fn and(self, other: Box<CliFileFilter>) -> CliFileFilterAnd
+        where Self: Sized + 'static
+    {
+        CliFileFilterAnd {
+            a: Box::new(self),
+            b: other
+        }
     }
 
 }
 
-struct CliFileFilterByHash {
-    hash: FileHash,
+pub struct CliFileFilterNot {
+    a: Box<CliFileFilter>,
+}
+
+impl CliFileFilter for CliFileFilterNot {
+
+    fn filter_file(&self, f: &Rc<RefCell<File>>) -> bool {
+        !self.a.filter_file(f)
+    }
+
+}
+
+pub struct CliFileFilterOr {
+    a: Box<CliFileFilter>,
+    b: Box<CliFileFilter>
+}
+
+impl CliFileFilter for CliFileFilterOr {
+
+    fn filter_file(&self, f: &Rc<RefCell<File>>) -> bool {
+        self.a.filter_file(f) || self.b.filter_file(f)
+    }
+
+}
+
+pub struct CliFileFilterAnd {
+    a: Box<CliFileFilter>,
+    b: Box<CliFileFilter>
+}
+
+impl CliFileFilter for CliFileFilterAnd {
+
+    fn filter_file(&self, f: &Rc<RefCell<File>>) -> bool {
+        self.a.filter_file(f) && self.b.filter_file(f)
+    }
+
+}
+
+pub struct CliFileFilterByHash {
+    default: bool,
+    hash: Option<FileHash>,
 }
 
 impl CliFileFilter for CliFileFilterByHash {
 
     fn filter_file(&self, file: &Rc<RefCell<File>>) -> bool {
-        debug!("Filtering file with hash = {}", self.hash);
-        let f = file.deref().borrow();
-        f.id().get_id() == self.hash
+        self.hash.clone().map(|h| {
+            debug!("Filtering file with hash = {}", h);
+            let f = file.deref().borrow();
+            f.id().get_id() == h
+        })
+        .unwrap_or(self.default)
     }
 
 }
 
-struct CliFileFilterByDataRegex {
-    regex: Regex,
+pub struct CliFileFilterByDataRegex {
+    default: bool,
+    regex: Option<Regex>,
 }
 
 impl CliFileFilter for CliFileFilterByDataRegex {
 
     fn filter_file(&self, file: &Rc<RefCell<File>>) -> bool {
-        debug!("Filtering file with regex = {:?}", self.regex);
-        let f = file.deref().borrow();
-        self.regex.is_match(&f.data()[..])
+        self.regex.clone().map(|r| {
+            debug!("Filtering file with regex = {:?}", r);
+            let f = file.deref().borrow();
+            r.is_match(&f.data()[..])
+        })
+        .unwrap_or(self.default)
     }
 
 }
 
-struct CliFileFilterByHeaderRegex {
+pub struct CliFileFilterByHeaderRegex {
+    default: bool,
     header_field_name: &'static str,
-    regex: Regex,
+    regex: Option<Regex>,
 }
 
 impl CliFileFilter for CliFileFilterByHeaderRegex {
@@ -69,20 +129,22 @@ impl CliFileFilter for CliFileFilterByHeaderRegex {
     fn filter_file(&self, file: &Rc<RefCell<File>>) -> bool {
         use module::helpers::header::data::get_named_text_from_header;
 
-        debug!("Filtering file (header field = {}) with regex = {:?}",
-               self.header_field_name,
-               self.regex);
+        self.regex.clone().map(|r| {
+            debug!("Filtering file (header field = {}) with regex = {:?}", self.header_field_name, r);
 
-        let f = file.deref().borrow();
-        get_named_text_from_header(self.header_field_name, f.header())
-            .map(|headerfield| self.regex.is_match(&headerfield[..]))
-            .unwrap_or(false)
+            let f = file.deref().borrow();
+            get_named_text_from_header(self.header_field_name, f.header())
+                .map(|headerfield| r.is_match(&headerfield[..]))
+                .unwrap_or(self.default)
+        })
+        .unwrap_or(self.default)
     }
 
 }
 
-struct CliFileFilterByTags {
-    tags: Vec<String>,
+pub struct CliFileFilterByTags {
+    default: bool,
+    tags: Option<Vec<String>>,
 }
 
 impl CliFileFilter for CliFileFilterByTags {
@@ -90,98 +152,76 @@ impl CliFileFilter for CliFileFilterByTags {
     fn filter_file(&self, file: &Rc<RefCell<File>>) -> bool {
         use module::helpers::header::tags::data::get_tags_from_header;
 
-        debug!("Filtering file with tags = {:?}", self.tags);
+        self.tags.clone().map(|ts| {
+            debug!("Filtering file with tags = {:?}", ts);
 
-        let f = file.deref().borrow();
-        get_tags_from_header(f.header())
-            .iter()
-            .any(|tag| self.tags.iter().any(|remtag| remtag == tag))
+            let f = file.deref().borrow();
+            get_tags_from_header(f.header())
+                .iter()
+                .any(|tag| ts.iter().any(|remtag| remtag == tag))
+        })
+        .unwrap_or(self.default)
     }
 
 }
 
-/**
- * Helper function to get files from the store filtered by the constraints passed via the
- * CLI
+/*
+ *
+ *
+ * Functions to generate filters
+ *
+ *
  */
-pub fn get_file_filter_by_cli<HP>(parser: &Parser<HP>,
-                                  matches: &ArgMatches,
-                                  id_key:    &'static str,
-                                  match_key: &'static str,
-                                  tag_key:   &'static str,
-                                  header_field_name: Option<&'static str>)
-    -> Box<CliFileFilter>
-    where HP: FileHeaderParser,
-{
-    if matches.is_present(id_key) {
-        Box::new(CliFileFilterByHash { hash: FileHash::from(matches.value_of(id_key).unwrap()) })
-    } else if matches.is_present(match_key) {
-        let matcher = String::from(matches.value_of(match_key).unwrap());
-        header_field_name
-            .and_then(|header_field_name| {
-                Some(get_files_by_header_field_match_filter(parser,
-                                                     &matcher,
-                                                     header_field_name))
+
+pub fn create_hash_filter(matches: &ArgMatches, id_key: &'static str, default: bool) -> CliFileFilterByHash {
+    CliFileFilterByHash {
+        hash: matches.value_of(id_key).map(FileHash::from),
+        default: default
+    }
+}
+
+pub fn create_content_grep_filter(matches: &ArgMatches, match_key: &'static str, default: bool) -> CliFileFilterByDataRegex {
+    use std::process::exit;
+
+     CliFileFilterByDataRegex {
+        regex: matches.value_of(match_key).map(|m| {
+            Regex::new(&m[..]).unwrap_or_else(|e| {
+                error!("Regex compiler error: {}", e);
+                exit(1);
             })
-            .unwrap_or(get_file_by_match_filter(parser, &matcher))
-    } else if matches.is_present(tag_key) {
-        let tags = matches.value_of(tag_key)
-                          .unwrap()
-                          .split(",")
-                          .map(String::from)
-                          .collect::<Vec<String>>();
-        get_file_by_tags_filter(tags)
-    } else {
-        Box::new(CliFileFilterDefault { default: true })
+        }),
+        default: default,
+     }
+}
+
+pub fn create_text_header_field_grep_filter(matches: &ArgMatches,
+                                            match_key: &'static str,
+                                            header_field_name: &'static str,
+                                            default: bool)
+    -> CliFileFilterByHeaderRegex
+{
+    CliFileFilterByHeaderRegex {
+        default: default,
+        header_field_name: header_field_name,
+        regex: matches.value_of(match_key)
+                      .map(|m| {
+                        Regex::new(&m[..]).unwrap_or_else(|e| {
+                            error!("Regex compiler error: {}", e);
+                            exit(1);
+                        })
+                      }),
     }
 }
 
-/**
- * Get files from the store, filtere by Regex
- */
-fn get_file_by_match_filter<HP>(parser: &Parser<HP>, matcher: &String)
-    -> Box<CliFileFilter>
-    where HP: FileHeaderParser
-{
-    let parser = Parser::new(JsonHeaderParser::new(None));
-    let re = Regex::new(&matcher[..]).unwrap_or_else(|e| {
-        error!("Cannot build regex out of '{}'", matcher);
-        error!("{}", e);
-        exit(1);
-    });
+pub fn create_tag_filter(matches: &ArgMatches, tag_key: &'static str, default: bool) -> CliFileFilterByTags {
 
-    debug!("Compiled '{}' to regex: '{:?}'", matcher, re);
-
-    Box::new(CliFileFilterByDataRegex { regex: re })
-}
-
-fn get_files_by_header_field_match_filter<HP>(parser: &Parser<HP>,
-                                       matcher: &String,
-                                       header_field_name: &'static str)
-    -> Box<CliFileFilter>
-    where HP: FileHeaderParser,
-{
-    let parser = Parser::new(JsonHeaderParser::new(None));
-    let re = Regex::new(&matcher[..]).unwrap_or_else(|e| {
-        error!("Cannot build regex out of '{}'", matcher);
-        error!("{}", e);
-        exit(1);
-    });
-
-    debug!("Compiled '{}' to regex: '{:?}'", matcher, re);
-
-    Box::new(CliFileFilterByHeaderRegex {
-        header_field_name: header_field_name,
-        regex: re
-    })
-}
-
-/**
- * Get files from the store, filtere by tags
- */
-fn get_file_by_tags_filter(tags: Vec<String>)
-    -> Box<CliFileFilter>
-{
-    Box::new(CliFileFilterByTags { tags: tags })
+    CliFileFilterByTags {
+        default: default,
+        tags: matches.value_of(tag_key)
+                     .map(|m| m.split(",")
+                               .map(String::from)
+                               .collect::<Vec<String>>()
+                     ),
+    }
 }
 
