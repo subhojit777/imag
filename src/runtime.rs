@@ -20,10 +20,10 @@ impl ImagLogger {
         }
     }
 
-    pub fn init(cfg: &Cfg, config: &CliConfig) -> Result<(), SetLoggerError> {
-        let lvl = if config.is_debugging() || cfg.is_debugging() {
+    pub fn init(config: &CliConfig) -> Result<(), SetLoggerError> {
+        let lvl = if config.is_debugging() {
             LogLevelFilter::Debug
-        } else if config.is_verbose() || cfg.is_debugging() {
+        } else if config.is_verbose() {
             LogLevelFilter::Info
         } else {
             LogLevelFilter::Error

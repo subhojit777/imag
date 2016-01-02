@@ -29,8 +29,10 @@ fn main() {
     let yaml          = load_yaml!("../etc/cli.yml");
     let app           = App::from_yaml(yaml);
     let config        = CliConfig::new(app);
+
+    ImagLogger::init(&config);
+
     let configuration = Configuration::new(&config);
-    ImagLogger::init(&configuration, &config);
 
     debug!("Logger created!");
     debug!("CliConfig    : {:?}", &config);
