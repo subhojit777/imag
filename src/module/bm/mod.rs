@@ -58,11 +58,28 @@ impl<'a> BM<'a> {
         debug!("    tags = '{:?}'", tags);
         let header = build_header(url, tags);
 
-        let fileid = self.rt.store().new_file_with_header(self, header);
-        self.rt.store().load(self, &parser, &fileid).and_then(|file| {
-            info!("Created file in memory: {}", fileid);
-            Some(self.rt.store().persist(&parser, file))
-        }).unwrap_or(false)
+        let fileid = self.rt
+                         .store()
+                         .new_file_with_header(self, header);
+
+        let result = self.rt
+            .store()
+            .load(self, &parser, &fileid)
+            .map(|file| {
+                info!("Created file in memory: {}", fileid);
+                self.rt
+                    .store()
+                    .persist(&parser, file)
+            })
+            .unwrap_or(false);
+
+        if result {
+            info!("Adding worked");
+        } else {
+            info!("Adding failed");
+        }
+
+        result
     }
 
     fn validate_url<HP>(&self, url: &String, parser: &Parser<HP>) -> bool
