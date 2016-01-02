@@ -128,6 +128,48 @@ impl<'a> BM<'a> {
     }
 
     /**
+     * Subcommand: open
+     */
+    fn command_open(&self, matches: &ArgMatches) -> bool {
+        use open;
+
+        let parser = Parser::new(JsonHeaderParser::new(None));
+        let filter : Box<CliFileFilter> = get_file_filter_by_cli(&parser, matches, "id", "match", "tags", None);
+        let result = self.rt
+            .store()
+            .load_for_module(self, &parser)
+            .iter()
+            .filter(|file| filter.filter_file(file))
+            .map(|file| {
+                debug!("File loaded, can open now: {:?}", file);
+                let f = file.deref().borrow();
+                get_url_from_header(f.header()).map(|url| {
+                    if open::that(&url[..]).is_ok() {
+                        info!("open({})", url);
+                        true
+                    } else {
+                        info!("could not open({})", url);
+                        false
+                    }
+                })
+                .unwrap_or(false)
+            })
+            .fold((0, 0), |acc, succeeded| {
+                let (worked, failed) = acc;
+                if succeeded {
+                    (worked + 1, failed)
+                } else {
+                    (worked, failed + 1)
+                }
+            });
+
+        let (succ, fail) = result;
+        info!("open() succeeded for {} files", succ);
+        info!("open() failed    for {} files", fail);
+        return fail == 0;
+    }
+
+    /**
      * Subcommand: remove
      */
     fn command_remove(&self, matches: &ArgMatches) -> bool {
@@ -261,6 +303,10 @@ impl<'a> Module<'a> for BM<'a> {
 
             Some("list") => {
                 self.command_list(matches.subcommand_matches("list").unwrap())
+            },
+
+            Some("open") => {
+                self.command_open(matches.subcommand_matches("open").unwrap())
             },
 
             Some("remove") => {
