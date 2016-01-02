@@ -26,39 +26,22 @@ pub struct Configuration {
 impl Configuration {
 
     pub fn new(config: &CliConfig) -> Configuration {
-        let rtp = rtp_path(config).or(default_path());
+        let rtp = rtp_path(config).or(default_path()).unwrap_or(String::from("/tmp/"));
 
-        let mut verbose     = false;
-        let mut debugging   = false;
-        let mut store_sub   = String::from("/store");
-        let mut editor      = None;
-        let mut editor_opts = String::from("");
 
-        if let Some(cfg) = fetch_config(rtp.clone()) {
-            if let Some(v) = cfg.lookup_boolean("verbose") {
-                verbose = v;
-            }
-            if let Some(d) = cfg.lookup_boolean("debug") {
-                debugging = d;
-            }
-            if let Some(s) = cfg.lookup_str("store") {
-                store_sub = String::from(s);
-            }
-            if let Some(s) = cfg.lookup_str("editor") {
-                editor = Some(String::from(s));
-            }
-            if let Some(s) = cfg.lookup_str("editor-opts") {
-                editor_opts = String::from(s);
-            }
-        }
+        let cfg = fetch_config(&rtp);
 
-        let runtimepath = rtp.unwrap_or(String::from("/tmp/"));
+        let verbose     = cfg.lookup_boolean("verbose").unwrap_or(false);
+        let debugging   = cfg.lookup_boolean("debug").unwrap_or(false);
+        let store_sub   = String::from(cfg.lookup_str("store").unwrap_or("/store"));
+        let editor      = cfg.lookup_str("editor").map(String::from);
+        let editor_opts = String::from(cfg.lookup_str("editor-opts").unwrap_or(""));
 
         debug!("Building configuration");
         debug!("  - verbose    : {}", verbose);
         debug!("  - debugging  : {}", debugging);
         debug!("  - store sub  : {}", store_sub);
-        debug!("  - runtimepath: {}", runtimepath);
+        debug!("  - runtimepath: {}", rtp);
         debug!("  - editor     : {:?}", editor);
         debug!("  - editor-opts: {}", editor_opts);
 
@@ -66,7 +49,7 @@ impl Configuration {
             verbose: verbose,
             debugging: debugging,
             store_sub: store_sub,
-            rtp: runtimepath,
+            rtp: rtp,
             editor: editor,
             editor_opts: editor_opts,
         }
@@ -118,8 +101,15 @@ fn rtp_path(config: &CliConfig) -> Option<String> {
                       .and_then(|s| Some(String::from(s)))
 }
 
-fn fetch_config(rtp: Option<String>) -> Option<Cfg> {
-    rtp.and_then(|r| from_file(Path::new(&(r.clone() + "/config"))).ok())
+fn fetch_config(rtp: &String) -> Cfg {
+    use std::process::exit;
+
+    let configpath = format!("{}{}", rtp, "/config");
+    from_file(Path::new(&configpath)).map_err(|e| {
+        println!("Error loading config at '{}' -> {:?}", configpath, e);
+        println!("Exiting now.");
+        exit(1)
+    }).unwrap()
 }
 
 /**
