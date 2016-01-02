@@ -2,6 +2,7 @@ use std::fmt::{Debug, Formatter};
 use std::fmt::Result as FMTResult;
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::ops::Deref;
 
 use clap::ArgMatches;
 use regex::Regex;
@@ -61,7 +62,6 @@ impl<'a> Notes<'a> {
 
     fn command_list(&self, matches: &ArgMatches) -> bool {
         use ui::file::{FilePrinter, TablePrinter};
-        use std::ops::Deref;
         use self::header::get_name_from_header;
         use self::header::get_tags_from_header;
         use std::process::exit;
@@ -100,7 +100,40 @@ impl<'a> Notes<'a> {
     }
 
     fn command_remove(&self, matches: &ArgMatches) -> bool {
-        unimplemented!()
+        let parser = Parser::new(JsonHeaderParser::new(None));
+
+        let filter = {
+            let hash_filter = create_hash_filter(matches, "id", false);
+            let text_filter = create_text_header_field_grep_filter(matches, "match", "URL", false);
+            let tags_filter = create_tag_filter(matches, "tags", false);
+            hash_filter.or(Box::new(text_filter)).or(Box::new(tags_filter))
+        };
+
+        let result = self.rt
+            .store()
+            .load_for_module(self, &parser)
+            .iter()
+            .filter(|file| filter.filter_file(file))
+            .map(|file| {
+                debug!("File loaded, can remove now: {:?}", file);
+                let f = file.deref().borrow();
+                self.rt.store().remove(f.id().clone())
+            })
+            .fold((0, 0), |acc, succeeded| {
+                let (worked, failed) = acc;
+                if succeeded {
+                    (worked + 1, failed)
+                } else {
+                    (worked, failed + 1)
+                }
+            });
+
+        let (worked, failed) = result;
+
+        info!("Removing succeeded for {} files", worked);
+        info!("Removing failed for {} files", failed);
+
+        return failed == 0;
     }
 
     fn command_add_tags(&self, matches: &ArgMatches) -> bool {
