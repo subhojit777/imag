@@ -35,6 +35,7 @@ impl<'a> Notes<'a> {
     fn command_add(&self, matches: &ArgMatches) -> bool {
         use std::process::exit;
         use self::header::build_header;
+        use ui::external::editor::let_user_provide_content;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
         let name   = matches.value_of("name")
@@ -49,7 +50,9 @@ impl<'a> Notes<'a> {
         debug!("    tags = '{:?}'", tags);
         let header = build_header(name, tags);
 
-        let fileid = self.rt.store().new_file_with_header(self, header);
+        let content = let_user_provide_content(self.runtime()).unwrap_or(String::from(""));
+
+        let fileid = self.rt.store().new_file_with_content(self, header, content);
         self.rt
             .store()
             .load(self, &parser, &fileid)
