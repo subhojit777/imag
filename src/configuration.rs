@@ -65,8 +65,8 @@ impl Configuration {
         self.editor.clone()
     }
 
-    pub fn editor_opts(&self) -> &String {
-        &self.editor_opts
+    pub fn editor_opts(&self) -> String {
+        self.editor_opts.clone()
     }
 
 }
