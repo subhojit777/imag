@@ -143,15 +143,21 @@ impl<'a> BM<'a> {
                 let f = file.deref().borrow();
                 self.rt.store().remove(f.id().clone())
             })
-            .all(|x| x);
+            .fold((0, 0), |acc, succeeded| {
+                let (worked, failed) = acc;
+                if succeeded {
+                    (worked + 1, failed)
+                } else {
+                    (worked, failed + 1)
+                }
+            });
 
-        if result {
-            info!("Removing succeeded");
-        } else {
-            info!("Removing failed");
-        }
+        let (worked, failed) = result;
 
-        return result;
+        info!("Removing succeeded for {} files", worked);
+        info!("Removing failed for {} files", failed);
+
+        return failed == 0;
     }
 
     /**
