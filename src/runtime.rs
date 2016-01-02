@@ -1,4 +1,5 @@
 use std::fmt::{Debug, Formatter, Error};
+use std::process::Command;
 
 extern crate log;
 use log::{LogRecord, LogLevel, LogLevelFilter, LogMetadata, SetLoggerError};
@@ -112,18 +113,26 @@ impl<'a> Runtime<'a> {
         }
     }
 
-    pub fn editor(&self) -> String {
+    pub fn editor(&self) -> Command {
         use std::env::var;
 
-        if let Some(editor) = self.config.editor() {
-            editor + &self.config.editor_opts()[..]
-        } else if let Some(editor) = self.configuration.editor() {
-            editor + &self.configuration.editor_opts()[..]
-        } else if let Ok(editor) = var("EDITOR") {
-            editor
-        } else {
-            String::from("vim")
+        let (editor, args) : (String, String) = {
+            if let Some(editor) = self.config.editor() {
+                (editor, self.config.editor_opts())
+            } else if let Some(editor) = self.configuration.editor() {
+                (editor, self.configuration.editor_opts())
+            } else if let Ok(editor) = var("EDITOR") {
+                (editor, String::from(""))
+            } else {
+                (String::from("vim"), String::from(""))
+            }
+        };
+
+        let mut e = Command::new(editor);
+        for arg in args.split(" ") {
+            e.arg(arg);
         }
+        e
     }
 
 }
