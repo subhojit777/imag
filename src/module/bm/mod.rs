@@ -58,11 +58,28 @@ impl<'a> BM<'a> {
         debug!("    tags = '{:?}'", tags);
         let header = build_header(url, tags);
 
-        let fileid = self.rt.store().new_file_with_header(self, header);
-        self.rt.store().load(self, &parser, &fileid).and_then(|file| {
-            info!("Created file in memory: {}", fileid);
-            Some(self.rt.store().persist(&parser, file))
-        }).unwrap_or(false)
+        let fileid = self.rt
+                         .store()
+                         .new_file_with_header(self, header);
+
+        let result = self.rt
+            .store()
+            .load(self, &parser, &fileid)
+            .map(|file| {
+                info!("Created file in memory: {}", fileid);
+                self.rt
+                    .store()
+                    .persist(&parser, file)
+            })
+            .unwrap_or(false);
+
+        if result {
+            info!("Adding worked");
+        } else {
+            info!("Adding failed");
+        }
+
+        result
     }
 
     fn validate_url<HP>(&self, url: &String, parser: &Parser<HP>) -> bool
@@ -185,15 +202,21 @@ impl<'a> BM<'a> {
                 let f = file.deref().borrow();
                 self.rt.store().remove(f.id().clone())
             })
-            .all(|x| x);
+            .fold((0, 0), |acc, succeeded| {
+                let (worked, failed) = acc;
+                if succeeded {
+                    (worked + 1, failed)
+                } else {
+                    (worked, failed + 1)
+                }
+            });
 
-        if result {
-            info!("Removing succeeded");
-        } else {
-            info!("Removing failed");
-        }
+        let (worked, failed) = result;
 
-        return result;
+        info!("Removing succeeded for {} files", worked);
+        info!("Removing failed for {} files", failed);
+
+        return failed == 0;
     }
 
     /**
