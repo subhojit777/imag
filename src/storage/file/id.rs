@@ -108,9 +108,7 @@ impl Debug for FileID {
 impl Display for FileID {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        try!(write!(fmt, "FileID[{:?}]: {:?}",
-               self.id_type,
-               self.id));
+        try!(write!(fmt, "{}-{}", self.id_type, self.id));
         Ok(())
     }
 
