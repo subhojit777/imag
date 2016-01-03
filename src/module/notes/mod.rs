@@ -124,6 +124,10 @@ impl<'a> Notes<'a> {
         return failed == 0;
     }
 
+    fn command_open(&self, matches: &ArgMatches) -> bool {
+        unimplemented!()
+    }
+
     fn command_list(&self, matches: &ArgMatches) -> bool {
         use ansi_term::Colour::{Red, Green};
         use ui::file::{FilePrinter, TablePrinter};
@@ -359,6 +363,10 @@ impl<'a> Module<'a> for Notes<'a> {
 
             Some("edit") => {
                 self.command_edit(matches.subcommand_matches("edit").unwrap())
+            },
+
+            Some("open") => {
+                self.command_open(matches.subcommand_matches("open").unwrap())
             },
 
             Some("list") => {
