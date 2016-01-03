@@ -10,6 +10,7 @@ pub mod path;
 pub mod file;
 pub mod parser;
 pub mod json;
+pub mod yaml;
 
 use module::Module;
 use storage::file::File;
