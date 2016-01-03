@@ -1,50 +1,71 @@
 pub mod markdown {
-    use pulldown_cmark::Parser;
-    use pulldown_cmark::Event;
-    use pulldown_cmark::Tag;
+    use hoedown::renderer::Render;
+    use hoedown::Buffer;
+    use hoedown::Markdown;
 
-    pub struct MarkdownParser<'a> {
-        text: &'a String
+    pub type LinkTitle  = String;
+    pub type LinkURL    = String;
+
+    pub struct Link {
+        pub title: LinkTitle,
+        pub url: LinkURL,
     }
 
-    impl<'a> MarkdownParser<'a> {
+    struct LinkExtractRenderer {
+        links : Vec<Link>
+    }
 
-        pub fn new(s: &'a String) -> MarkdownParser {
-            MarkdownParser {
-                text: s
+    impl LinkExtractRenderer {
+
+        fn new() -> LinkExtractRenderer {
+            LinkExtractRenderer {
+                links: vec![],
             }
         }
 
-        pub fn links(&self) -> Vec<String> {
-            self.extract_tag(|tag| {
-                match tag {
-                    Tag::Link(url, _)   => Some(url.into_owned()),
-                    _                   => None
-                }
-            })
+        fn extract(self) -> Vec<Link> {
+            self.links
         }
 
-        pub fn codeblocks(&self) -> Vec<String> {
-            self.extract_tag(|tag| {
-                match tag {
-                    Tag::CodeBlock(text)    => Some(text.into_owned()),
-                    _                       => None
-                }
-            })
+    }
+
+    impl Render for LinkExtractRenderer {
+
+        fn link(&mut self,
+                output: &mut Buffer,
+                content: &Buffer,
+                link: &Buffer,
+                title: &Buffer) -> bool {
+
+            let l = String::from(link.to_str().unwrap_or("<<UTF8 Error>>"));
+            let t = String::from(title.to_str().unwrap_or("<<UTF8 Error>>"));
+
+            debug!("[Markdown] Push link: '{}' -> '{}'", t, l);
+            self.links.push(Link {
+                title:  t,
+                url:    l,
+            });
+            true
         }
 
-        fn extract_tag<F>(&self, f: F) -> Vec<String>
-            where F: FnMut(Tag) -> Option<String>
-        {
-            Parser::new(&self.text[..])
-                .filter_map(|e| {
-                    match e {
-                        Event::Start(t) | Event::End(t) => Some(t),
-                        _                               => None
-                    }
-                })
-                .filter_map(f)
-                .collect::<Vec<String>>()
+    }
+
+    pub struct MarkdownParser {
+        text: Markdown,
+    }
+
+    impl MarkdownParser {
+
+        pub fn new(s: &String) -> MarkdownParser {
+            MarkdownParser {
+                text: Markdown::new(&s[..])
+            }
+        }
+
+        pub fn links(&self) -> Vec<Link> {
+            let mut renderer = LinkExtractRenderer::new();
+            renderer.render(&self.text);
+            renderer.extract()
         }
 
     }
