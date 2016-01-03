@@ -92,25 +92,29 @@ impl FilePrinter for SimplePrinter {
     }
 
     fn print_file(&self, f: Rc<RefCell<File>>) {
+        use ansi_term::Colour::Cyan;
+
         if self.debug {
             debug!("{:?}", f);
         } else if self.verbose {
             info!("{}", &*f.deref().borrow());
         } else {
-            info!("[File]: {}", f.deref().borrow().id());
+            info!("{}: {}", Cyan.paint("[File]"), f.deref().borrow().id());
         }
     }
 
     fn print_file_custom<F>(&self, file: Rc<RefCell<File>>, f: &F)
         where F: Fn(Rc<RefCell<File>>) -> Vec<String>
     {
+        use ansi_term::Colour::Cyan;
+
         let s = f(file).join(" ");
         if self.debug {
             debug!("{:?}", s);
         } else if self.verbose {
             info!("{}", s);
         } else {
-            info!("[File]: {}", s);
+            info!("{}: {}", Cyan.paint("[File]"), s);
         }
     }
 
