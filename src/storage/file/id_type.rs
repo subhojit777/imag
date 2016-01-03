@@ -1,3 +1,5 @@
+use std::fmt::{Debug, Display, Formatter};
+use std::fmt;
 use std::convert::{From, Into};
 use std::str::FromStr;
 
@@ -5,7 +7,6 @@ use std::str::FromStr;
 #[derive(Clone)]
 #[derive(PartialEq)]
 #[derive(Eq)]
-// #[derive(Display)]
 #[derive(Hash)]
 /**
  * File ID type
@@ -36,6 +37,16 @@ impl Into<String> for FileIDType {
         match self {
             FileIDType::UUID    => String::from("UUID"),
         }
+    }
+}
+
+impl Display for FileIDType {
+
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        match self {
+            &FileIDType::UUID => try!(write!(fmt, "UUID")),
+        }
+        Ok(())
     }
 }
 
