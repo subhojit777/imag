@@ -22,7 +22,6 @@ serde = "0.6.1"
 serde_json = "0.6.0"
 
 clap = { version = "1.4.5", features = ["yaml"] }
-term = "0.2.12"
 term_grid = "0.1.2"
 prettytable-rs = "0.4.0"
 open = "1.1.0"
