@@ -87,7 +87,11 @@ pub mod data {
                 let keys : Vec<FHD> = ks.clone();
                 for key in keys {
                     match key {
-                        FHD::Key{name: _, value: ref v} => return match_array(v),
+                        FHD::Key{name: ref name, value: ref v} => {
+                            if name == "TAGS" {
+                                return match_array(v)
+                            }
+                        },
                         _ => warn!("Malformed Header Data: Expected Key, found non-Key"),
                     }
                 }
