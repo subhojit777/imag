@@ -2,6 +2,7 @@
 name = "imag"
 version = "0.1.0"
 dependencies = [
+ "ansi_term 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.2.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 1.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "config 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -39,6 +40,11 @@ dependencies = [
 [[package]]
 name = "ansi_term"
 version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "ansi_term"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]

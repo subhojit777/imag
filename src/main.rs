@@ -11,6 +11,7 @@ extern crate url;
 extern crate config;
 extern crate open;
 extern crate itertools;
+extern crate ansi_term;
 
 pub use cli::CliConfig;
 pub use configuration::Configuration;
