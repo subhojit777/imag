@@ -161,6 +161,10 @@ impl<'a> Notes<'a> {
         true
     }
 
+    fn command_links(&self, matches: &ArgMatches) -> bool {
+        unimplemented!()
+    }
+
     fn command_remove(&self, matches: &ArgMatches) -> bool {
         let parser = Parser::new(JsonHeaderParser::new(None));
 
@@ -249,6 +253,10 @@ impl<'a> Module<'a> for Notes<'a> {
 
             Some("list") => {
                 self.command_list(matches.subcommand_matches("list").unwrap())
+            },
+
+            Some("links") => {
+                self.command_links(matches.subcommand_matches("links").unwrap())
             },
 
             Some("remove") => {
