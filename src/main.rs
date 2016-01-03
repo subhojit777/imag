@@ -31,6 +31,8 @@ pub use module::bm::BM;
 pub use module::notes::Notes;
 
 fn main() {
+    use ansi_term::Colour::Yellow;
+
     let yaml          = load_yaml!("../etc/cli.yml");
     let app           = App::from_yaml(yaml);
     let config        = CliConfig::new(app);
@@ -53,5 +55,5 @@ fn main() {
         _             => false,
     };
 
-    info!("Module execution ended with {}", res);
+    info!("{}", Yellow.paint(format!("Module execution ended with {}", res)));
 }

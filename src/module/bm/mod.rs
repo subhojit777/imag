@@ -38,6 +38,7 @@ impl<'a> BM<'a> {
      * Subcommand: add
      */
     fn command_add(&self, matches: &ArgMatches) -> bool {
+        use ansi_term::Colour::{Green, Yellow, Red};
         use std::process::exit;
         use self::header::build_header;
 
@@ -69,7 +70,7 @@ impl<'a> BM<'a> {
             .store()
             .load(self, &parser, &fileid)
             .map(|file| {
-                info!("Created file in memory: {}", fileid);
+                info!("{}", Yellow.paint(format!("Created file in memory: {}", fileid)));
                 self.rt
                     .store()
                     .persist(&parser, file)
@@ -77,9 +78,9 @@ impl<'a> BM<'a> {
             .unwrap_or(false);
 
         if result {
-            info!("Adding worked");
+            info!("{}", Red.paint("Adding worked"));
         } else {
-            info!("Adding failed");
+            info!("{}", Green.paint("Adding failed"));
         }
 
         result
@@ -156,6 +157,7 @@ impl<'a> BM<'a> {
      * Subcommand: open
      */
     fn command_open(&self, matches: &ArgMatches) -> bool {
+        use ansi_term::Colour::{Green, Yellow, Red};
         use open;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
@@ -175,10 +177,10 @@ impl<'a> BM<'a> {
                 let f = file.deref().borrow();
                 get_url_from_header(f.header()).map(|url| {
                     if open::that(&url[..]).is_ok() {
-                        info!("open({})", url);
+                        info!("{}", Green.paint(format!("open({})", url)));
                         true
                     } else {
-                        info!("could not open({})", url);
+                        info!("{}", Red.paint(format!("could not open({})", url)));
                         false
                     }
                 })
@@ -194,8 +196,8 @@ impl<'a> BM<'a> {
             });
 
         let (succ, fail) = result;
-        info!("open() succeeded for {} files", succ);
-        info!("open() failed    for {} files", fail);
+        info!("{}", Green.paint(format!("open() succeeded for {} files", succ)));
+        info!("{}", Red.paint(format!(  "open() failed    for {} files", fail)));
         return fail == 0;
     }
 
@@ -203,6 +205,8 @@ impl<'a> BM<'a> {
      * Subcommand: remove
      */
     fn command_remove(&self, matches: &ArgMatches) -> bool {
+        use ansi_term::Colour::{Green, Yellow, Red};
+
         let parser = Parser::new(JsonHeaderParser::new(None));
 
         let filter = {
@@ -233,8 +237,8 @@ impl<'a> BM<'a> {
 
         let (worked, failed) = result;
 
-        info!("Removing succeeded for {} files", worked);
-        info!("Removing failed for {} files", failed);
+        info!("{}", Green.paint(format!("Removing succeeded for {} files", worked)));
+        info!("{}", Red.paint(format!(  "Removing failed for {} files", failed)));
 
         return failed == 0;
     }
@@ -291,6 +295,8 @@ impl<'a> BM<'a> {
 impl<'a> Module<'a> for BM<'a> {
 
     fn exec(&self, matches: &ArgMatches) -> bool {
+        use ansi_term::Colour::{Green, Yellow, Red};
+
         match matches.subcommand_name() {
             Some("add") => {
                 self.command_add(matches.subcommand_matches("add").unwrap())
@@ -321,7 +327,7 @@ impl<'a> Module<'a> for BM<'a> {
             },
 
             Some(_) | None => {
-                info!("No command given, doing nothing");
+                info!("{}", Red.bold().paint("No command given, doing nothing"));
                 false
             },
         }

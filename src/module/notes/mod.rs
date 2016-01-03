@@ -34,6 +34,7 @@ impl<'a> Notes<'a> {
 
     fn command_add(&self, matches: &ArgMatches) -> bool {
         use std::process::exit;
+        use ansi_term::Colour::Yellow;
         use self::header::build_header;
         use ui::external::editor::let_user_provide_content;
 
@@ -57,13 +58,14 @@ impl<'a> Notes<'a> {
             .store()
             .load(self, &parser, &fileid)
             .and_then(|file| {
-                info!("Created file in memory: {}", fileid);
+                info!("{}", Yellow.paint(format!("Created file in memory: {}", fileid)));
                 Some(self.rt.store().persist(&parser, file))
             })
             .unwrap_or(false)
     }
 
     fn command_edit(&self, matches: &ArgMatches) -> bool {
+        use ansi_term::Colour::{Red, Green};
         use ui::external::editor::edit_content;
 
         let parser  = Parser::new(JsonHeaderParser::new(None));
@@ -116,13 +118,14 @@ impl<'a> Notes<'a> {
 
         let (worked, failed) = result;
 
-        info!("Editing succeeded for {} files", worked);
-        info!("Editing failed for {} files", failed);
+        info!("{}", Green.paint(format!("Editing succeeded for {} files", worked)));
+        info!("{}", Red.paint(format!(  "Editing failed for {} files", failed)));
 
         return failed == 0;
     }
 
     fn command_list(&self, matches: &ArgMatches) -> bool {
+        use ansi_term::Colour::{Red, Green};
         use ui::file::{FilePrinter, TablePrinter};
         use self::header::get_name_from_header;
         use self::header::get_tags_from_header;
@@ -162,6 +165,7 @@ impl<'a> Notes<'a> {
     }
 
     fn command_links(&self, matches: &ArgMatches) -> bool {
+        use ansi_term::Colour::{Red, Green};
         use module::helpers::content::markdown::MarkdownParser;
         use ui::file::{FilePrinter, TablePrinter};
         use util::is_url;
@@ -260,13 +264,15 @@ impl<'a> Notes<'a> {
             debug!("Not printing table as there wouldn't be any entries in it");
         }
 
-        info!("Listing links succeeded for {} files", worked);
-        info!("Listing links failed for {} files", failed);
+        info!("{}", Green.paint(format!("Listing links succeeded for {} files", worked)));
+        info!("{}", Red.paint(  format!("Listing links failed for {} files", failed)));
 
         return failed == 0;
     }
 
     fn command_remove(&self, matches: &ArgMatches) -> bool {
+        use ansi_term::Colour::{Red, Green};
+
         let parser = Parser::new(JsonHeaderParser::new(None));
 
         let filter = {
@@ -297,8 +303,9 @@ impl<'a> Notes<'a> {
 
         let (worked, failed) = result;
 
-        info!("Removing succeeded for {} files", worked);
-        info!("Removing failed for {} files", failed);
+
+        info!("{}", Green.paint(format!("Removing succeeded for {} files", worked)));
+        info!("{}", Red.paint(  format!("Removing failed for {} files", failed)));
 
         return failed == 0;
     }
@@ -343,6 +350,8 @@ impl<'a> Notes<'a> {
 impl<'a> Module<'a> for Notes<'a> {
 
     fn exec(&self, matches: &ArgMatches) -> bool {
+        use ansi_term::Colour::Red;
+
         match matches.subcommand_name() {
             Some("add") => {
                 self.command_add(matches.subcommand_matches("add").unwrap())
@@ -377,7 +386,7 @@ impl<'a> Module<'a> for Notes<'a> {
             },
 
             Some(_) | None => {
-                info!("No command given, doing nothing");
+                info!("{}", Red.bold().paint("No command given, doing nothing"));
                 false
             },
         }
