@@ -1,4 +1,4 @@
-mod markdown {
+pub mod markdown {
     use pulldown_cmark::Parser;
     use pulldown_cmark::Event;
     use pulldown_cmark::Tag;
