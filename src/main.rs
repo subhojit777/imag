@@ -12,6 +12,7 @@ extern crate config;
 extern crate open;
 extern crate itertools;
 extern crate ansi_term;
+extern crate rand;
 
 pub use cli::CliConfig;
 pub use configuration::Configuration;
