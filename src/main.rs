@@ -10,6 +10,7 @@ extern crate pulldown_cmark;
 extern crate url;
 extern crate config;
 extern crate open;
+extern crate itertools;
 
 pub use cli::CliConfig;
 pub use configuration::Configuration;

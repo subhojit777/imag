@@ -6,6 +6,7 @@ dependencies = [
  "clap 1.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "config 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "glob 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
+ "itertools 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "open 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "prettytable-rs 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -83,6 +84,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "glob"
 version = "0.2.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "itertools"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]

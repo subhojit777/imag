@@ -28,4 +28,5 @@ term_grid = "0.1.2"
 prettytable-rs = "0.4.0"
 open = "1.1.0"
 pulldown-cmark = "0.0.3"
+itertools = "0.4.5"
 
