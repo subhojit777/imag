@@ -161,6 +161,111 @@ impl<'a> Notes<'a> {
         true
     }
 
+    fn command_links(&self, matches: &ArgMatches) -> bool {
+        use module::helpers::content::markdown::MarkdownParser;
+        use ui::file::{FilePrinter, TablePrinter};
+        use util::is_url;
+        use prettytable::Table;
+        use prettytable::row::Row;
+        use prettytable::cell::Cell;
+        use itertools::Itertools;
+
+        debug!("Going to list links in files...");
+
+        let list_intern = matches.is_present("internal");
+        let list_extern = matches.is_present("external");
+        debug!("list internal links = {}", list_intern);
+        debug!("list external links = {}", list_extern);
+
+        let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging());
+        let titles = row!["#", "Text", "Link", "Direction"];
+        let mut table = Table::new();
+        table.set_titles(titles);
+        debug!("Table setup finished");
+
+        let parser = Parser::new(JsonHeaderParser::new(None));
+        let filter = {
+            let hash_filter = create_hash_filter(matches, "id", false);
+            let text_filter = create_text_header_field_grep_filter(matches, "match", "URL", false);
+            let tags_filter = create_tag_filter(matches, "tags", false);
+            hash_filter.or(Box::new(text_filter)).or(Box::new(tags_filter))
+        };
+
+        let result = self.rt
+            .store()
+            .load_for_module(self, &parser)
+            .iter()
+            .filter(|file| {
+                let res = filter.filter_file(file);
+                debug!("Filter: {} -> {}", file.deref().borrow().id(), res);
+                res
+            })
+            .map(|file| {
+                debug!("File loaded, can parse for links now: {}", file.deref().borrow().id());
+                let data = {
+                    let f = file.deref().borrow();
+                    debug!("Parsing markdown in file = {:?}", f);
+                    f.data().clone()
+                };
+                let links = MarkdownParser::new(&data).links();
+                debug!("Retreived {} links from {}", links.len(), file.deref().borrow().id());
+                links
+            })
+            .flatten()
+            .filter(|link| {
+                let title       = &link.title;
+                let url         = &link.url;
+                let is_extern   = is_url(&url);
+                debug!("Is external URL {} -> {}", url, is_extern);
+                debug!("List external URLs -> {}", list_extern);
+                debug!("List internal URLs -> {}", list_intern);
+                ((!list_intern && !list_extern) ||
+                 (is_extern && list_extern)     ||
+                 (!is_extern && list_intern))
+            })
+            .enumerate()
+            .map(|(i_link, link)| {
+                let title   = &link.title;
+                let url     = &link.url;
+                let is_url  = is_url(&url);
+                debug!("Listing: {} -> {}", title, url);
+
+                let linkno_cell = Cell::new(&format!("{}", i_link)[..]);
+                let title_cell  = Cell::new(&format!("{}", title)[..]);
+                let url_cell    = Cell::new(&format!("{}", url)[..]);
+                let dir_cell    = Cell::new(if is_url { "extern" } else { "intern" });
+
+                let r = Row::new(vec![linkno_cell,
+                                      title_cell,
+                                      url_cell,
+                                      dir_cell]);
+                table.add_row(r);
+                true
+            })
+            .fold((0, 0), |acc, succeeded| {
+                let (worked, failed) = acc;
+                if succeeded {
+                    (worked + 1, failed)
+                } else {
+                    (worked, failed + 1)
+                }
+            });
+
+        let (worked, failed) = result;
+
+        if worked != 0 {
+            debug!("Printing table entries");
+            table.printstd();
+        } else {
+            debug!("Not printing table as there wouldn't be any entries in it");
+        }
+
+        info!("Listing links succeeded for {} files", worked);
+        info!("Listing links failed for {} files", failed);
+
+        return failed == 0;
+    }
+
     fn command_remove(&self, matches: &ArgMatches) -> bool {
         let parser = Parser::new(JsonHeaderParser::new(None));
 
@@ -249,6 +354,10 @@ impl<'a> Module<'a> for Notes<'a> {
 
             Some("list") => {
                 self.command_list(matches.subcommand_matches("list").unwrap())
+            },
+
+            Some("links") => {
+                self.command_links(matches.subcommand_matches("links").unwrap())
             },
 
             Some("remove") => {

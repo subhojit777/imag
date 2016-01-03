@@ -340,6 +340,52 @@ subcommands:
                         required: false
                         takes_value: true
 
+            - links:
+                about: List links in notes
+                version: 0.1
+                author: Matthias Beyer <mail@beyermatthias.de>
+                args:
+                    - internal:
+                        short: i
+                        long: intern
+                        help: List only links to imag content
+                        required: false
+                        takes_value: false
+
+                    - external:
+                        short: e
+                        long: extern
+                        help: List only links to outside of imag
+                        required: false
+                        takes_value: false
+
+                    - id:
+                        long: id
+                        help: Delete Note by ID
+                        required: false
+                        takes_value: true
+
+                    - namegrep:
+                        short: n
+                        long: name
+                        help: Filter for name which matches this regex
+                        required: false
+                        takes_value: true
+
+                    - grep:
+                        short: g
+                        long: grep
+                        help: grep with regex
+                        required: false
+                        takes_value: true
+
+                    - tags:
+                        short: t
+                        long: tags
+                        help: Filter for these tags
+                        required: false
+                        takes_value: true
+
             - remove:
                 about: Remove note(s)
                 version: 0.1

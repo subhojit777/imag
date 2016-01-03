@@ -6,9 +6,11 @@
 #[macro_use] extern crate uuid;
 #[macro_use] extern crate regex;
 #[macro_use] extern crate prettytable;
+extern crate hoedown;
 extern crate url;
 extern crate config;
 extern crate open;
+extern crate itertools;
 
 pub use cli::CliConfig;
 pub use configuration::Configuration;
