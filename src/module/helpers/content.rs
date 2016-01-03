@@ -68,6 +68,17 @@ pub mod markdown {
             renderer.extract()
         }
 
+        pub fn to_html(self) -> String {
+            use hoedown::renderer::html::Html;
+            use hoedown::renderer::html;
+
+            String::from(
+                Html::new(html::Flags::empty(), 0)
+                    .render(&self.text)
+                    .to_str()
+                    .unwrap_or("UTF8Error"))
+        }
+
     }
 
 }
