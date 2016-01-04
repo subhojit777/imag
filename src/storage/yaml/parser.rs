@@ -180,3 +180,55 @@ fn visit_header(h: &FileHeaderData) -> Yaml {
         },
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::ops::Deref;
+
+    use super::YamlHeaderParser;
+    use storage::parser::FileHeaderParser;
+    use storage::file::header::data::FileHeaderData as FHD;
+    use storage::file::header::spec::FileHeaderSpec as FHS;
+
+    #[test]
+    fn test_deserialization() {
+        let text = String::from("a: 1\nb: 2");
+        let spec = FHS::Array { allowed_types: vec![
+                FHS::Map {
+                    keys: vec![
+                        FHS::Key {
+                            name: String::from("a"),
+                            value_type: Box::new(FHS::UInteger)
+                        },
+                    ]
+                }
+            ]
+        };
+
+        let parser = YamlHeaderParser::new(Some(spec));
+        let parsed = parser.read(Some(text));
+        assert!(parsed.is_ok(), "Parsed is not ok: {:?}", parsed);
+        debug!("Parsed: {:?}", parsed);
+
+        match parsed.ok() {
+            Some(FHD::Map{ref keys}) => {
+                keys.into_iter().map(|k| {
+                    match k {
+                        &FHD::Key{ref name, ref value} => {
+                            assert!(name == "a" || name == "b", "Key unknown");
+                            match value.deref() {
+                                &FHD::UInteger(u) => assert!(u == 1 || u == 2),
+                                &FHD::Integer(_) => assert!(false, "Found Integer, expected UInteger"),
+                                _ => assert!(false, "Integers are not here"),
+                            };
+                        },
+                        _ => assert!(false, "Key is not a Key"),
+                    };
+                })
+                .all(|x| x == ());
+            },
+            _ => assert!(false, "Map is not a Map"),
+        }
+    }
+}
+
