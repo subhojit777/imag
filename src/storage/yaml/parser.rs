@@ -230,5 +230,27 @@ mod test {
             _ => assert!(false, "Map is not a Map"),
         }
     }
+
+    #[test]
+    fn test_desser() {
+        use yaml_rust::YamlLoader;
+
+        let text    = String::from("a: [1, 32, 42]\nb: -2");
+        let parser  = YamlHeaderParser::new(None);
+
+        let des = parser.read(Some(text.clone()));
+        assert!(des.is_ok(), "Deserializing failed");
+
+        let ser = parser.write(&des.unwrap());
+        assert!(ser.is_ok(), "Parser error when serializing deserialized text");
+
+        let yaml_text = YamlLoader::load_from_str(&text[..]);
+        let yaml_ser  = YamlLoader::load_from_str(&ser.unwrap()[..]);
+
+        assert!(yaml_text.is_ok(), "Could not use yaml_rust to serialize text for comparison");
+        assert!(yaml_ser.is_ok(),  "Could not use yaml_rust to serialize serialized-deserialized text for comparison");
+        assert_eq!(yaml_text.unwrap(), yaml_ser.unwrap());
+    }
+
 }
 
