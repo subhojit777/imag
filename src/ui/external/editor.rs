@@ -65,7 +65,6 @@ pub fn edit_content(rt: &Runtime, old_content: String) -> (String, bool) {
     use std::io::Read;
     use std::io::Write;
     use std::fs::File;
-    use std::process::Command;
     use std::process::exit;
 
     let filepath = "/tmp/imag-tmp.md";
