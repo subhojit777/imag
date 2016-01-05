@@ -9,7 +9,6 @@ mod header;
 
 use module::Module;
 use runtime::Runtime;
-use storage::file::File;
 use storage::parser::Parser;
 use storage::json::parser::JsonHeaderParser;
 use module::helpers::cli::create_tag_filter;
