@@ -153,7 +153,7 @@ mod test {
     use std::ops::Deref;
 
     use super::JsonHeaderParser;
-    use storage::parser::{FileHeaderParser, ParserError};
+    use storage::parser::FileHeaderParser;
     use storage::file::header::data::FileHeaderData as FHD;
     use storage::file::header::spec::FileHeaderSpec as FHS;
 
