@@ -37,13 +37,17 @@ pub use module::bm::BM;
 pub use module::notes::Notes;
 
 fn main() {
+    use std::process::exit;
     use ansi_term::Colour::Yellow;
 
     let yaml          = load_yaml!("../etc/cli.yml");
     let app           = App::from_yaml(yaml);
     let config        = CliConfig::new(app);
 
-    ImagLogger::init(&config);
+    ImagLogger::init(&config).map_err(|e| {
+        error!("Could not initialize logger");
+        exit(1);
+    }).ok();
 
     let configuration = Configuration::new(&config);
 
