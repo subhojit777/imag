@@ -1,7 +1,6 @@
 use std::fmt::{Debug, Formatter};
 use std::fmt;
 use std::ops::Deref;
-use std::process::exit;
 
 use clap::ArgMatches;
 
