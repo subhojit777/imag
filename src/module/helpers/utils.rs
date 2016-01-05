@@ -4,8 +4,6 @@
 pub mod cli {
     use clap::ArgMatches;
 
-    use runtime::Runtime;
-
     /**
      * Get a commandline option "tags" and split the argument by "," to be able to provide a
      * Vec<String> with the argument as array.
