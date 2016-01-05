@@ -125,9 +125,8 @@ impl<HP: FileHeaderParser> Parser<HP> {
 
         if divided.is_err() {
             debug!("Error reading into internal datastructure");
-            let mut p = ParserError::new("Dividing text failed",
-                                         s, 0,
-                    "Dividing text with divide_text() failed");
+            let p = ParserError::new("Dividing text failed", s, 0,
+                                     "Dividing text with divide_text() failed");
             return Err(p.with_cause(Box::new(divided.err().unwrap())));
         }
 
