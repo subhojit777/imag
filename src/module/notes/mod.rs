@@ -131,6 +131,7 @@ impl<'a> Notes<'a> {
         use open;
 
         use self::header::get_name_from_header;
+        use self::header::get_tags_from_header;
         use ui::external::get_tempfile;
 
         use module::helpers::content::markdown::MarkdownParser;
@@ -159,10 +160,19 @@ impl<'a> Notes<'a> {
             let tmpcontent = files.fold(String::new(), |acc, file| {
                 let heading = {
                     let name = get_name_from_header(file.deref().borrow().header());
+                    let tagsstr = {
+                        let tags = get_tags_from_header(file.deref().borrow().header());
+                        if tags.len() != 0 {
+                            format!(" <small>(<i>{}</i>)</small>", tags.join(", "))
+                        } else {
+                            format!(" <small>(No Tags)</small>")
+                        }
+                    };
                     if name.len() == 0 {
-                        format!("# {}", file.deref().borrow().id)
+                        format!("<h1>{}</h1>{}", file.deref().borrow().id, tagsstr)
                     } else {
-                        format!("# {} <small>({})</small>", name, file.deref().borrow().id())
+                        format!("<h1>{}</h1> <small>({})</small>{}",
+                                name, file.deref().borrow().id(), tagsstr)
                     }
                 };
 
@@ -191,8 +201,18 @@ impl<'a> Notes<'a> {
                     }
                 };
 
-                let content = format!("# {}\n\n{}",
+                let tagsstr = {
+                    let tags = get_tags_from_header(file.deref().borrow().header());
+                    if tags.len() != 0 {
+                        format!(" <small>(<i>{}</i>)</small>", tags.join(", "))
+                    } else {
+                        format!(" <small>(No Tags)</small>")
+                    }
+                };
+
+                let content = format!("<h1>{}</h1>{}\n\n{}",
                                       get_name_from_header(file.deref().borrow().header()),
+                                      tagsstr,
                                       file.deref().borrow().data());
 
                 let html = MarkdownParser::new(&content).to_html_page();
