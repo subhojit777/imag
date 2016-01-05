@@ -68,9 +68,9 @@ impl FileID {
             }
             debug!("Matches: {}", capts.len());
 
-            let modname     = capts.at(1).unwrap();
-            let hashname    = capts.at(2).unwrap();
-            let mut hash    = capts.at(3).unwrap();
+            let modname  = capts.at(1).unwrap();
+            let hashname = capts.at(2).unwrap();
+            let hash     = capts.at(3).unwrap();
 
             debug!("Destructure FilePath to ID:");
             debug!("                  FilePath: {:?}", s);
