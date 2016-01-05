@@ -276,7 +276,6 @@ impl<'a> Notes<'a> {
         debug!("list internal links = {}", list_intern);
         debug!("list external links = {}", list_extern);
 
-        let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging());
         let titles = row!["#", "Text", "Link", "Direction"];
         let mut table = Table::new();
         table.set_titles(titles);
