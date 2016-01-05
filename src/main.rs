@@ -2,6 +2,7 @@
 #![deny(unused_variables)]
 #![deny(unused_must_use)]
 #![deny(unused_mut)]
+#![deny(non_shorthand_field_patterns)]
 
 #[macro_use] extern crate clap;
 #[macro_use] extern crate log;
