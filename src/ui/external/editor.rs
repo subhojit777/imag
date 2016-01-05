@@ -101,7 +101,11 @@ pub fn edit_content(rt: &Runtime, old_content: String) -> (String, bool) {
 
     let mut contents = String::new();
     File::open(filepath).map(|mut file| {
-        file.read_to_string(&mut contents);
+        file.read_to_string(&mut contents).map_err(|e| {
+            error!("Error reading content: {}", e);
+            debug!("Error reading content: {:?}", e);
+            exit(1);
+        }).is_ok();
         (contents, true)
     }).unwrap_or((old_content, false))
 }
