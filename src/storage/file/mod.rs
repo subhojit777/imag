@@ -129,7 +129,6 @@ mod test {
     use storage::json::parser::JsonHeaderParser;
     use storage::file::header::match_header_spec;
     use storage::parser::FileHeaderParser;
-    use storage::file::header::data::FileHeaderData as FHD;
     use storage::file::header::spec::FileHeaderSpec as FHS;
 
     #[test]
