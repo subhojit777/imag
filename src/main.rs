@@ -46,6 +46,7 @@ fn main() {
 
     ImagLogger::init(&config).map_err(|e| {
         error!("Could not initialize logger");
+        debug!("Could not initialize logger: {:?}", e);
         exit(1);
     }).ok();
 
