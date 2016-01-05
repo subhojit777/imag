@@ -280,7 +280,7 @@ impl<'a> BM<'a> {
         use self::header::rebuild_header_with_tags;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
-        alter_tags_in_files(self, matches, &parser, |old_tags, cli_tags| {
+        alter_tags_in_files(self, matches, &parser, |_, cli_tags| {
             cli_tags.clone()
         }, rebuild_header_with_tags)
     }
