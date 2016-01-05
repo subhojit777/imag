@@ -1,3 +1,8 @@
+#![deny(unused_imports)]
+#![deny(unused_variables)]
+#![deny(unused_must_use)]
+#![deny(unused_mut)]
+
 #[macro_use] extern crate clap;
 #[macro_use] extern crate log;
 #[macro_use] extern crate serde;
