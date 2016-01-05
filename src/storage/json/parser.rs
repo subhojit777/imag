@@ -181,7 +181,7 @@ mod test {
             Some(FHD::Map{keys}) => {
                 for k in keys {
                     match k {
-                        FHD::Key{name: name, value: value} => {
+                        FHD::Key{name, value} => {
                             assert!(name == "a" || name == "b", "Key unknown");
                             match value.deref() {
                                 &FHD::UInteger(u) => assert_eq!(u, 1),
