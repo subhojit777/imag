@@ -219,7 +219,6 @@ impl<'a> Notes<'a> {
         use ui::file::{FilePrinter, TablePrinter};
         use self::header::get_name_from_header;
         use self::header::get_tags_from_header;
-        use std::process::exit;
         use module::helpers::cli::CliFileFilter;
 
         let parser  = Parser::new(JsonHeaderParser::new(None));
