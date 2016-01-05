@@ -223,7 +223,11 @@ impl Store {
                     debug!("    error {}", e);
                 })
                 .is_ok();
-        });
+        })
+        .map_err(|e| {
+            error!("Error opening file: {}", path);
+            debug!("Error opening file: {:?}", e);
+        }).ok();
 
         parser.read(string).map(|(header, data)| {
             self.new_file_from_parser_result(m, id.clone(), header, data);
