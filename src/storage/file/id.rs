@@ -169,7 +169,12 @@ mod test {
             let lvl = LogLevelFilter::Debug;
             max_log_lvl.set(lvl);
             Box::new(ImagLogger::new(lvl.to_log_level().unwrap()))
-        });
+        })
+        .map_err(|e| {
+            println!("Error setting logger: {:?}", e);
+            assert!(false);
+        })
+        .ok();
         debug!("Init logger for test");
     }
 
