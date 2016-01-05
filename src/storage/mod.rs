@@ -327,7 +327,12 @@ impl Store {
                     });
                 }
             }
-        });
+        })
+        .map_err(|e| {
+            error!("Could not glob: '{}'", globstr);
+            debug!("Could not glob(): {:?}", e);
+        })
+        .ok();
         res
     }
 
