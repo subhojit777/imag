@@ -179,6 +179,7 @@ impl Store {
             fsfile.write_all(&text.unwrap().clone().into_bytes()[..])
         }).map_err(|writeerr|  {
             debug!("Could not create file at '{}'", path);
+            debug!("    error: {:?}", writeerr);
         }).and(Ok(true)).unwrap()
 
         // TODO: Is this unwrap() save?
