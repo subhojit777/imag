@@ -236,7 +236,7 @@ mod test {
                     &FHD::Map{keys: ref ks} => {
                         for key in ks.iter() {
                             match key {
-                                &FHD::Key{name: ref name, value: ref value} => {
+                                &FHD::Key{ref name, ref value} => {
                                     match value.deref() {
                                         &FHD::Integer(i) => {
                                             assert_eq!(i, -2);
