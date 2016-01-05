@@ -138,7 +138,7 @@ impl Serialize for FileHeaderData {
 
                 hm.serialize(ser)
             },
-            &FileHeaderData::Key{name: ref n, value: ref v} => unreachable!(),
+            &FileHeaderData::Key{name: _, value: _} => unreachable!(),
 
         }
     }
