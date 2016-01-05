@@ -216,7 +216,6 @@ impl<'a> Notes<'a> {
     }
 
     fn command_list(&self, matches: &ArgMatches) -> bool {
-        use ansi_term::Colour::{Red, Green};
         use ui::file::{FilePrinter, TablePrinter};
         use self::header::get_name_from_header;
         use self::header::get_tags_from_header;
