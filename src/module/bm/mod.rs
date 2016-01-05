@@ -7,7 +7,6 @@ use clap::ArgMatches;
 use runtime::Runtime;
 use module::Module;
 
-use storage::parser::FileHeaderParser;
 use storage::parser::Parser;
 use storage::json::parser::JsonHeaderParser;
 use module::helpers::cli::create_tag_filter;
@@ -22,6 +21,7 @@ use self::header::get_tags_from_header;
 
 pub struct BM<'a> {
     rt: &'a Runtime<'a>,
+    parser: Parser<JsonHeaderParser>,
 }
 
 impl<'a> BM<'a> {
@@ -29,6 +29,7 @@ impl<'a> BM<'a> {
     pub fn new(rt: &'a Runtime<'a>) -> BM<'a> {
         BM {
             rt: rt,
+            parser: Parser::new(JsonHeaderParser::new(None)),
         }
     }
 
@@ -40,11 +41,9 @@ impl<'a> BM<'a> {
         use std::process::exit;
         use self::header::build_header;
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
-
         let url    = matches.value_of("url").map(String::from).unwrap(); // clap ensures this is present
 
-        if !self.validate_url(&url, &parser) {
+        if !self.validate_url(&url) {
             error!("URL validation failed, exiting.");
             exit(1);
         } else {
@@ -66,12 +65,12 @@ impl<'a> BM<'a> {
 
         let result = self.rt
             .store()
-            .load(self, &parser, &fileid)
+            .load(self, &self.parser, &fileid)
             .map(|file| {
                 info!("{}", Yellow.paint(format!("Created file in memory: {}", fileid)));
                 self.rt
                     .store()
-                    .persist(&parser, file)
+                    .persist(&self.parser, file)
             })
             .unwrap_or(false);
 
@@ -84,8 +83,7 @@ impl<'a> BM<'a> {
         result
     }
 
-    fn validate_url<HP>(&self, url: &String, parser: &Parser<HP>) -> bool
-        where HP: FileHeaderParser
+    fn validate_url(&self, url: &String) -> bool
     {
         use util::is_url;
 
@@ -96,7 +94,7 @@ impl<'a> BM<'a> {
 
         let is_in_store = self.rt
             .store()
-            .load_for_module(self, parser)
+            .load_for_module(self, &self.parser)
             .iter()
             .any(|file| {
                 let f = file.deref().borrow();
@@ -120,7 +118,6 @@ impl<'a> BM<'a> {
         use ui::file::{FilePrinter, TablePrinter};
         use std::ops::Deref;
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
         let filter = {
             let hash_filter = create_hash_filter(matches, "id", true);
             let text_filter = create_text_header_field_grep_filter(matches, "match", "URL", true);
@@ -130,7 +127,7 @@ impl<'a> BM<'a> {
 
         let files  = self.rt
             .store()
-            .load_for_module(self, &parser)
+            .load_for_module(self, &self.parser)
             .into_iter()
             .filter(|file| filter.filter_file(file));
         let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging());
@@ -158,7 +155,6 @@ impl<'a> BM<'a> {
         use ansi_term::Colour::{Green, Red};
         use open;
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
         let filter : Box<CliFileFilter> = {
             let hash_filter = create_hash_filter(matches, "id", true);
             let text_filter = create_text_header_field_grep_filter(matches, "match", "URL", true);
@@ -167,7 +163,7 @@ impl<'a> BM<'a> {
         };
         let result = self.rt
             .store()
-            .load_for_module(self, &parser)
+            .load_for_module(self, &self.parser)
             .iter()
             .filter(|file| filter.filter_file(file))
             .map(|file| {
@@ -205,8 +201,6 @@ impl<'a> BM<'a> {
     fn command_remove(&self, matches: &ArgMatches) -> bool {
         use ansi_term::Colour::{Green, Red};
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
-
         let filter = {
             let hash_filter = create_hash_filter(matches, "id", false);
             let text_filter = create_text_header_field_grep_filter(matches, "match", "URL", false);
@@ -216,7 +210,7 @@ impl<'a> BM<'a> {
 
         let result = self.rt
             .store()
-            .load_for_module(self, &parser)
+            .load_for_module(self, &self.parser)
             .iter()
             .filter(|file| filter.filter_file(file))
             .map(|file| {
@@ -248,8 +242,7 @@ impl<'a> BM<'a> {
         use module::helpers::header::tags::data::alter_tags_in_files;
         use self::header::rebuild_header_with_tags;
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
-        alter_tags_in_files(self, matches, &parser, |old_tags, cli_tags| {
+        alter_tags_in_files(self, matches, &self.parser, |old_tags, cli_tags| {
             let mut new_tags = old_tags.clone();
             new_tags.append(&mut cli_tags.clone());
             new_tags
@@ -263,8 +256,7 @@ impl<'a> BM<'a> {
         use module::helpers::header::tags::data::alter_tags_in_files;
         use self::header::rebuild_header_with_tags;
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
-        alter_tags_in_files(self, matches, &parser, |old_tags, cli_tags| {
+        alter_tags_in_files(self, matches, &self.parser, |old_tags, cli_tags| {
             old_tags.clone()
                 .into_iter()
                 .filter(|tag| !cli_tags.contains(tag))
@@ -279,8 +271,7 @@ impl<'a> BM<'a> {
         use module::helpers::header::tags::data::alter_tags_in_files;
         use self::header::rebuild_header_with_tags;
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
-        alter_tags_in_files(self, matches, &parser, |_, cli_tags| {
+        alter_tags_in_files(self, matches, &self.parser, |_, cli_tags| {
             cli_tags.clone()
         }, rebuild_header_with_tags)
     }
