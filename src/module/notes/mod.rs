@@ -256,7 +256,7 @@ impl<'a> Notes<'a> {
     fn command_links(&self, matches: &ArgMatches) -> bool {
         use ansi_term::Colour::{Red, Green};
         use module::helpers::content::markdown::MarkdownParser;
-        use ui::file::{FilePrinter, TablePrinter};
+        use ui::file::FilePrinter;
         use util::is_url;
         use prettytable::Table;
         use prettytable::row::Row;
