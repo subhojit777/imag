@@ -7,6 +7,7 @@ use runtime::Runtime;
 pub fn let_user_provide_content(rt: &Runtime) -> Option<String> {
     use std::io::Read;
     use std::fs::File;
+    use std::process::exit;
 
     let filepath        = "/tmp/imag-tmp.md";
     let file_created    = File::create(filepath)
@@ -44,7 +45,13 @@ pub fn let_user_provide_content(rt: &Runtime) -> Option<String> {
 
     let mut contents = String::new();
     File::open(filepath).map(|mut file| {
-        file.read_to_string(&mut contents);
+        file.read_to_string(&mut contents)
+            .map_err(|e| {
+                error!("Error reading content: {}", e);
+                debug!("Error reading content: {:?}", e);
+                exit(1);
+            })
+            .is_ok();
         Some(contents)
     }).unwrap_or(None)
 }
