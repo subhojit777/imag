@@ -1,6 +1,8 @@
 use std::fmt::{Debug, Formatter};
 use std::fmt::Result as FMTResult;
 use std::ops::Deref;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 use clap::ArgMatches;
 
@@ -8,6 +10,7 @@ mod header;
 
 use module::Module;
 use runtime::Runtime;
+use storage::file::File;
 use storage::parser::Parser;
 use storage::json::parser::JsonHeaderParser;
 use module::helpers::cli::create_tag_filter;
