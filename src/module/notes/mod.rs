@@ -311,7 +311,6 @@ impl<'a> Notes<'a> {
             })
             .flatten()
             .filter(|link| {
-                let title       = &link.title;
                 let url         = &link.url;
                 let is_extern   = is_url(&url);
                 debug!("Is external URL {} -> {}", url, is_extern);
