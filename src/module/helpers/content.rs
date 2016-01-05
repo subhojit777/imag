@@ -79,6 +79,19 @@ pub mod markdown {
                     .unwrap_or("UTF8Error"))
         }
 
+        pub fn to_html_page(self) -> String {
+            let header = "
+            <html>
+                <head>
+                    <meta http-equiv='content-type' content='text/html; charset=utf-8'>
+                </head>
+                <body>
+            ";
+            let content = self.to_html();
+            let footer = "</body></html>";
+            format!("{}{}{}", header, content, footer)
+        }
+
     }
 
 }
