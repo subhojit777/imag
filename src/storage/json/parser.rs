@@ -178,7 +178,7 @@ mod test {
         assert!(parsed.is_ok(), "Parsed is not ok: {:?}", parsed);
 
         match parsed.ok() {
-            Some(FHD::Map{keys: keys}) => {
+            Some(FHD::Map{keys}) => {
                 for k in keys {
                     match k {
                         FHD::Key{name: name, value: value} => {
