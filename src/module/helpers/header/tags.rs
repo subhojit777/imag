@@ -118,7 +118,6 @@ pub mod data {
         use module::helpers::cli::create_tag_filter;
         use module::helpers::cli::create_hash_filter;
         use module::helpers::cli::create_text_header_field_grep_filter;
-        use module::helpers::cli::create_content_grep_filter;
         use module::helpers::cli::CliFileFilter;
 
         let cli_tags = matches.value_of("tags")
