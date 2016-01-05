@@ -293,7 +293,7 @@ impl<'a> BM<'a> {
 impl<'a> Module<'a> for BM<'a> {
 
     fn exec(&self, matches: &ArgMatches) -> bool {
-        use ansi_term::Colour::{Green, Yellow, Red};
+        use ansi_term::Colour::{Yellow, Red};
 
         match matches.subcommand_name() {
             Some("add") => {
