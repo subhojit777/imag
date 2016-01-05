@@ -224,8 +224,8 @@ mod test {
             &FHD::Key{ref name, ref value} => {
                 assert!(name == "a" || name == "b", "Key unknown");
                 match value.deref() {
-                    &FHD::Array{values: ref vs} => {
-                        for value in vs.iter() {
+                    &FHD::Array{ref values} => {
+                        for value in values.iter() {
                             match value {
                                 &FHD::UInteger(u) => assert_eq!(u, 1),
                                 _ => assert!(false, "UInt is not an UInt"),
@@ -233,8 +233,8 @@ mod test {
                         }
                     }
 
-                    &FHD::Map{keys: ref ks} => {
-                        for key in ks.iter() {
+                    &FHD::Map{ref keys} => {
+                        for key in keys.iter() {
                             match key {
                                 &FHD::Key{ref name, ref value} => {
                                     match value.deref() {
