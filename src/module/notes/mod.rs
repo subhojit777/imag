@@ -211,7 +211,12 @@ impl<'a> Notes<'a> {
             }
         };
 
-        tempfile.write_all(MarkdownParser::new(&s).to_html_page().as_ref());
+        tempfile.write_all(MarkdownParser::new(&s).to_html_page().as_ref())
+                .map_err(|e| {
+                    error!("Could not write HTML to file: {}", temppath);
+                    debug!("Could not write HTML to file: {:?}", e);
+                })
+                .ok();
         open::that(&temppath[..]).is_ok()
     }
 
