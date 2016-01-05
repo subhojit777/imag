@@ -221,7 +221,7 @@ mod test {
         use std::ops::Deref;
 
         match k {
-            &FHD::Key{name: ref name, value: ref value} => {
+            &FHD::Key{ref name, ref value} => {
                 assert!(name == "a" || name == "b", "Key unknown");
                 match value.deref() {
                     &FHD::Array{values: ref vs} => {
