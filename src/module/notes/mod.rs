@@ -125,17 +125,6 @@ impl<'a> Notes<'a> {
     }
 
     fn command_open(&self, matches: &ArgMatches) -> bool {
-        use std::io::Write;
-        use std::process::exit;
-
-        use open;
-
-        use self::header::get_name_from_header;
-        use self::header::get_tags_from_header;
-        use ui::external::get_tempfile;
-
-        use module::helpers::content::markdown::MarkdownParser;
-
         let parser  = Parser::new(JsonHeaderParser::new(None));
 
         let filter = {
@@ -158,67 +147,13 @@ impl<'a> Notes<'a> {
 
         if matches.is_present("onepage") {
             let tmpcontent = files.fold(String::new(), |acc, file| {
-                let heading = {
-                    let name = get_name_from_header(file.deref().borrow().header());
-                    let tagsstr = {
-                        let tags = get_tags_from_header(file.deref().borrow().header());
-                        if tags.len() != 0 {
-                            format!(" <small>(<i>{}</i>)</small>", tags.join(", "))
-                        } else {
-                            format!(" <small>(No Tags)</small>")
-                        }
-                    };
-                    if name.len() == 0 {
-                        format!("<h1>{}</h1>{}", file.deref().borrow().id, tagsstr)
-                    } else {
-                        format!("<h1>{}</h1> <small>({})</small>{}",
-                                name, file.deref().borrow().id(), tagsstr)
-                    }
-                };
-
-                format!("{}\n\n{}\n\n{}", acc, heading, file.deref().borrow().data())
+                let content = self.preprocess_file_for_markdown(file);
+                format!("{}\n\n{}", acc, content)
             });
-
-            let (temppath, mut tempfile) = match get_tempfile("html") {
-                Some(tpl)   => tpl,
-                None        => {
-                    error!("Could not create tempfile");
-                    exit(1);
-                }
-            };
-
-            let html = MarkdownParser::new(&tmpcontent).to_html_page();
-
-            tempfile.write_all(html.as_ref());
-            open::that(&temppath[..]).is_ok()
+            self.open_tmpcontent(tmpcontent)
         } else {
             let result = files.map(|file| {
-                let (temppath, mut tempfile) = match get_tempfile("html") {
-                    Some(tpl)   => tpl,
-                    None        => {
-                        error!("Could not create tempfile");
-                        exit(1);
-                    }
-                };
-
-                let tagsstr = {
-                    let tags = get_tags_from_header(file.deref().borrow().header());
-                    if tags.len() != 0 {
-                        format!(" <small>(<i>{}</i>)</small>", tags.join(", "))
-                    } else {
-                        format!(" <small>(No Tags)</small>")
-                    }
-                };
-
-                let content = format!("<h1>{}</h1>{}\n\n{}",
-                                      get_name_from_header(file.deref().borrow().header()),
-                                      tagsstr,
-                                      file.deref().borrow().data());
-
-                let html = MarkdownParser::new(&content).to_html_page();
-
-                tempfile.write_all(html.as_ref());
-                open::that(&temppath[..]).is_ok()
+                self.open_tmpcontent(self.preprocess_file_for_markdown(file))
             })
             .fold((0, 0), |acc, succeeded| {
                 let (worked, failed) = acc;
@@ -237,6 +172,51 @@ impl<'a> Notes<'a> {
             failed == 0
         }
 
+    }
+
+    fn preprocess_file_for_markdown(&self, file: Rc<RefCell<File>>) -> String {
+        use self::header::get_name_from_header;
+        use self::header::get_tags_from_header;
+
+        let tagsstr = {
+            let tags = get_tags_from_header(file.deref().borrow().header());
+            if tags.len() != 0 {
+                format!(" <small>(<i>{}</i>)</small>", tags.join(", "))
+            } else {
+                format!(" <small>(No Tags)</small>")
+            }
+        };
+
+        let (name, id) = {
+            let notename = get_name_from_header(file.deref().borrow().header());
+            if notename.len() == 0 {
+                (format!("{}", file.deref().borrow().id()), String::new())
+            } else {
+                (notename, format!("{}", file.deref().borrow().id()))
+            }
+        };
+
+        format!("<h1>{}</h1><small>{}</small>{}\n\n{}", name, id, tagsstr,
+                file.deref().borrow().data())
+    }
+
+    fn open_tmpcontent(&self, s: String) -> bool {
+        use std::process::exit;
+        use std::io::Write;
+        use open;
+        use ui::external::get_tempfile;
+        use module::helpers::content::markdown::MarkdownParser;
+
+        let (temppath, mut tempfile) = match get_tempfile("html") {
+            Some(tpl)   => tpl,
+            None        => {
+                error!("Could not create tempfile");
+                exit(1);
+            }
+        };
+
+        tempfile.write_all(MarkdownParser::new(&s).to_html_page().as_ref());
+        open::that(&temppath[..]).is_ok()
     }
 
     fn command_list(&self, matches: &ArgMatches) -> bool {
