@@ -155,7 +155,7 @@ impl<'a> BM<'a> {
      * Subcommand: open
      */
     fn command_open(&self, matches: &ArgMatches) -> bool {
-        use ansi_term::Colour::{Green, Yellow, Red};
+        use ansi_term::Colour::{Green, Red};
         use open;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
