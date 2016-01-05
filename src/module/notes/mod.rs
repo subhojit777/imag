@@ -4,7 +4,6 @@ use std::rc::Rc;
 use std::ops::Deref;
 
 use clap::ArgMatches;
-use regex::Regex;
 
 mod header;
 
