@@ -47,7 +47,7 @@ pub mod data {
                 let mut keys : Vec<FHD> = ks.clone();
                 keys.iter().find(|k| {
                     match k.deref() {
-                        &FHD::Key{name: ref n, value: ref v} => n == name,
+                        &FHD::Key{name: ref n, value: _} => n == name,
                         _ => false
                     }
                 }).and_then(|urlkey| {
