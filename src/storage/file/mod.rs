@@ -128,7 +128,7 @@ mod test {
     // we use the JSON parser here, so we can generate FileHeaderData
     use storage::json::parser::JsonHeaderParser;
     use storage::file::header::match_header_spec;
-    use storage::parser::{FileHeaderParser, ParserError};
+    use storage::parser::FileHeaderParser;
     use storage::file::header::data::FileHeaderData as FHD;
     use storage::file::header::spec::FileHeaderSpec as FHS;
 
