@@ -21,6 +21,7 @@ use module::helpers::cli::CliFileFilter;
 
 pub struct Notes<'a> {
     rt: &'a Runtime<'a>,
+    parser: Parser<JsonHeaderParser>,
 }
 
 impl<'a> Notes<'a> {
@@ -28,6 +29,7 @@ impl<'a> Notes<'a> {
     pub fn new(rt: &'a Runtime<'a>) -> Notes<'a> {
         Notes {
             rt: rt,
+            parser: Parser::new(JsonHeaderParser::new(None)),
         }
     }
 
@@ -36,7 +38,6 @@ impl<'a> Notes<'a> {
         use self::header::build_header;
         use ui::external::editor::let_user_provide_content;
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
         let name   = matches.value_of("name")
                             .map(String::from)
                             .unwrap_or(String::from(""));
@@ -54,10 +55,10 @@ impl<'a> Notes<'a> {
         let fileid = self.rt.store().new_file_with_content(self, header, content);
         self.rt
             .store()
-            .load(self, &parser, &fileid)
+            .load(self, &self.parser, &fileid)
             .and_then(|file| {
                 info!("{}", Yellow.paint(format!("Created file in memory: {}", fileid)));
-                Some(self.rt.store().persist(&parser, file))
+                Some(self.rt.store().persist(&self.parser, file))
             })
             .unwrap_or(false)
     }
@@ -65,8 +66,6 @@ impl<'a> Notes<'a> {
     fn command_edit(&self, matches: &ArgMatches) -> bool {
         use ansi_term::Colour::{Red, Green};
         use ui::external::editor::edit_content;
-
-        let parser  = Parser::new(JsonHeaderParser::new(None));
 
         let filter = {
             let hash_filter = create_hash_filter(matches, "id", false);
@@ -78,7 +77,7 @@ impl<'a> Notes<'a> {
 
         let result = self.rt
             .store()
-            .load_for_module(self, &parser)
+            .load_for_module(self, &self.parser)
             .into_iter()
             .filter(|f| filter.filter_file(f))
             .map(|file| {
@@ -99,7 +98,7 @@ impl<'a> Notes<'a> {
                         let mut f = file.deref().borrow_mut();
                         f.set_data(new_content);
                     }
-                    self.runtime().store().persist(&parser, file)
+                    self.runtime().store().persist(&self.parser, file)
                 } else {
                     debug!("Editing didn't work");
                     false
@@ -123,8 +122,6 @@ impl<'a> Notes<'a> {
     }
 
     fn command_open(&self, matches: &ArgMatches) -> bool {
-        let parser  = Parser::new(JsonHeaderParser::new(None));
-
         let filter = {
             let hash_filter = create_hash_filter(matches, "id", true);
             let head_filter = create_text_header_field_grep_filter(matches, "match", "NAME", true);
@@ -135,7 +132,7 @@ impl<'a> Notes<'a> {
 
         let files = self.rt
             .store()
-            .load_for_module(self, &parser)
+            .load_for_module(self, &self.parser)
             .into_iter()
             .filter(|file| {
                 let res = filter.filter_file(file);
@@ -228,8 +225,6 @@ impl<'a> Notes<'a> {
         use self::header::get_tags_from_header;
         use module::helpers::cli::CliFileFilter;
 
-        let parser  = Parser::new(JsonHeaderParser::new(None));
-
         let filter = {
             let hash_filter = create_hash_filter(matches, "id", true);
             let head_filter = create_text_header_field_grep_filter(matches, "match", "NAME", true);
@@ -242,7 +237,7 @@ impl<'a> Notes<'a> {
 
         printer.print_files_custom(
             self.rt.store()
-                    .load_for_module(self, &parser)
+                    .load_for_module(self, &self.parser)
                     .into_iter()
                     .filter(|f| filter.filter_file(f)),
             &|file| {
@@ -282,7 +277,6 @@ impl<'a> Notes<'a> {
         table.set_titles(titles);
         debug!("Table setup finished");
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
         let filter = {
             let hash_filter = create_hash_filter(matches, "id", false);
             let text_filter = create_text_header_field_grep_filter(matches, "match", "URL", false);
@@ -292,7 +286,7 @@ impl<'a> Notes<'a> {
 
         let result = self.rt
             .store()
-            .load_for_module(self, &parser)
+            .load_for_module(self, &self.parser)
             .iter()
             .filter(|file| {
                 let res = filter.filter_file(file);
@@ -367,8 +361,6 @@ impl<'a> Notes<'a> {
     fn command_remove(&self, matches: &ArgMatches) -> bool {
         use ansi_term::Colour::{Red, Green};
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
-
         let filter = {
             let hash_filter = create_hash_filter(matches, "id", false);
             let text_filter = create_text_header_field_grep_filter(matches, "match", "URL", false);
@@ -378,7 +370,7 @@ impl<'a> Notes<'a> {
 
         let result = self.rt
             .store()
-            .load_for_module(self, &parser)
+            .load_for_module(self, &self.parser)
             .iter()
             .filter(|file| filter.filter_file(file))
             .map(|file| {
@@ -408,8 +400,7 @@ impl<'a> Notes<'a> {
         use module::helpers::header::tags::data::alter_tags_in_files;
         use self::header::rebuild_header_with_tags;
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
-        alter_tags_in_files(self, matches, &parser, |old_tags, cli_tags| {
+        alter_tags_in_files(self, matches, &self.parser, |old_tags, cli_tags| {
             let mut new_tags = old_tags.clone();
             new_tags.append(&mut cli_tags.clone());
             new_tags
@@ -420,8 +411,7 @@ impl<'a> Notes<'a> {
         use module::helpers::header::tags::data::alter_tags_in_files;
         use self::header::rebuild_header_with_tags;
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
-        alter_tags_in_files(self, matches, &parser, |old_tags, cli_tags| {
+        alter_tags_in_files(self, matches, &self.parser, |old_tags, cli_tags| {
             old_tags.clone()
                 .into_iter()
                 .filter(|tag| !cli_tags.contains(tag))
@@ -433,8 +423,7 @@ impl<'a> Notes<'a> {
         use module::helpers::header::tags::data::alter_tags_in_files;
         use self::header::rebuild_header_with_tags;
 
-        let parser = Parser::new(JsonHeaderParser::new(None));
-        alter_tags_in_files(self, matches, &parser, |_, cli_tags| {
+        alter_tags_in_files(self, matches, &self.parser, |_, cli_tags| {
             cli_tags.clone()
         }, rebuild_header_with_tags)
     }
