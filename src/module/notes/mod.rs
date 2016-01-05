@@ -30,7 +30,6 @@ impl<'a> Notes<'a> {
     }
 
     fn command_add(&self, matches: &ArgMatches) -> bool {
-        use std::process::exit;
         use ansi_term::Colour::Yellow;
         use self::header::build_header;
         use ui::external::editor::let_user_provide_content;
