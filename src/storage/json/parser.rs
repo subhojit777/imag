@@ -70,7 +70,9 @@ impl FileHeaderParser for JsonHeaderParser {
         let mut s = Vec::<u8>::new();
         {
             let mut ser = Serializer::pretty(&mut s);
-            data.serialize(&mut ser);
+            data.serialize(&mut ser).map_err(|e| {
+                debug!("Serializer error: {:?}", e);
+            }).ok();
         }
 
         String::from_utf8(s).or(
