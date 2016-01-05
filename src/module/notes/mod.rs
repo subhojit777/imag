@@ -1,6 +1,5 @@
 use std::fmt::{Debug, Formatter};
 use std::fmt::Result as FMTResult;
-use std::rc::Rc;
 use std::ops::Deref;
 
 use clap::ArgMatches;
