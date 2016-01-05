@@ -496,7 +496,7 @@ impl<'a> Module<'a> for Notes<'a> {
 impl<'a> Debug for Notes<'a> {
 
     fn fmt(&self, fmt: &mut Formatter) -> FMTResult {
-        write!(fmt, "[Module][Notes]");
+        try!(write!(fmt, "[Module][Notes]"));
         Ok(())
     }
 
