@@ -203,7 +203,7 @@ impl<'a> BM<'a> {
      * Subcommand: remove
      */
     fn command_remove(&self, matches: &ArgMatches) -> bool {
-        use ansi_term::Colour::{Green, Yellow, Red};
+        use ansi_term::Colour::{Green, Red};
 
         let parser = Parser::new(JsonHeaderParser::new(None));
 
