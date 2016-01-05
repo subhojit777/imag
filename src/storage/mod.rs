@@ -217,7 +217,8 @@ impl Store {
 
         FSFile::open(&path).map(|mut file| {
             file.read_to_string(&mut string)
-                .map_err(|e| error!("Failed reading file: '{}'", path));
+                .map_err(|e| error!("Failed reading file: '{}'", path))
+                .is_ok();
         });
 
         parser.read(string).map(|(header, data)| {
