@@ -61,7 +61,7 @@ pub mod data {
      * Does no spec verification.
      */
     pub fn get_tags_from_header(header: &FHD) -> Vec<String> {
-        let mut tags : Vec<String> = vec![];
+        let tags : Vec<String> = vec![];
 
         fn match_array(a: &Box<FHD>) -> Vec<String> {
             let mut tags : Vec<String> = vec![];
