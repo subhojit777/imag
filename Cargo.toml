@@ -28,4 +28,5 @@ open = "1.1.0"
 itertools = "0.4.5"
 hoedown = "3.0.3"
 ansi_term = "0.7.1"
+rand = "0.3"
 

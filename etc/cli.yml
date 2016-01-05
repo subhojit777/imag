@@ -314,6 +314,45 @@ subcommands:
                         required: false
                         takes_value: true
 
+            - open:
+                about: Open notes as HTML page in browser (via XDG-open)
+                version: 0.1
+                author: Matthias Beyer <mail@beyermatthias.de>
+                args:
+                    - onepage:
+                        long: onepage
+                        short: o
+                        help: Open notes as one page
+                        required: false
+                        takes_value: false
+
+                    - id:
+                        long: id
+                        help: Open note with this ID
+                        required: false
+                        takes_value: true
+
+                    - namegrep:
+                        short: n
+                        long: name
+                        help: Open where name matches this regex
+                        required: false
+                        takes_value: true
+
+                    - grep:
+                        short: g
+                        long: grep
+                        help: Open where grep with regex finds something
+                        required: false
+                        takes_value: true
+
+                    - tags:
+                        short: t
+                        long: tags
+                        help: Open all notes with these tags
+                        required: false
+                        takes_value: true
+
             - list:
                 about: List notes
                 version: 0.1

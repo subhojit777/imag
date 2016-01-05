@@ -124,6 +124,101 @@ impl<'a> Notes<'a> {
         return failed == 0;
     }
 
+    fn command_open(&self, matches: &ArgMatches) -> bool {
+        use std::io::Write;
+        use std::process::exit;
+
+        use open;
+
+        use self::header::get_name_from_header;
+        use ui::external::get_tempfile;
+
+        use module::helpers::content::markdown::MarkdownParser;
+
+        let parser  = Parser::new(JsonHeaderParser::new(None));
+
+        let filter = {
+            let hash_filter = create_hash_filter(matches, "id", true);
+            let head_filter = create_text_header_field_grep_filter(matches, "match", "NAME", true);
+            let text_filter = create_content_grep_filter(matches, "match", true);
+            let tags_filter = create_tag_filter(matches, "tags", true);
+            hash_filter.and(Box::new(head_filter)).and(Box::new(text_filter)).and(Box::new(tags_filter))
+        };
+
+        let files = self.rt
+            .store()
+            .load_for_module(self, &parser)
+            .into_iter()
+            .filter(|file| {
+                let res = filter.filter_file(file);
+                debug!("Filter: {} -> {}", file.deref().borrow().id(), res);
+                res
+            });
+
+        if matches.is_present("onepage") {
+            let tmpcontent = files.fold(String::new(), |acc, file| {
+                let heading = {
+                    let name = get_name_from_header(file.deref().borrow().header());
+                    if name.len() == 0 {
+                        format!("# {}", file.deref().borrow().id)
+                    } else {
+                        format!("# {} <small>({})</small>", name, file.deref().borrow().id())
+                    }
+                };
+
+                format!("{}\n\n{}\n\n{}", acc, heading, file.deref().borrow().data())
+            });
+
+            let (temppath, mut tempfile) = match get_tempfile("html") {
+                Some(tpl)   => tpl,
+                None        => {
+                    error!("Could not create tempfile");
+                    exit(1);
+                }
+            };
+
+            let html = MarkdownParser::new(&tmpcontent).to_html_page();
+
+            tempfile.write_all(html.as_ref());
+            open::that(&temppath[..]).is_ok()
+        } else {
+            let result = files.map(|file| {
+                let (temppath, mut tempfile) = match get_tempfile("html") {
+                    Some(tpl)   => tpl,
+                    None        => {
+                        error!("Could not create tempfile");
+                        exit(1);
+                    }
+                };
+
+                let content = format!("# {}\n\n{}",
+                                      get_name_from_header(file.deref().borrow().header()),
+                                      file.deref().borrow().data());
+
+                let html = MarkdownParser::new(&content).to_html_page();
+
+                tempfile.write_all(html.as_ref());
+                open::that(&temppath[..]).is_ok()
+            })
+            .fold((0, 0), |acc, succeeded| {
+                let (worked, failed) = acc;
+                if succeeded {
+                    (worked + 1, failed)
+                } else {
+                    (worked, failed + 1)
+                }
+            });
+
+            let (worked, failed) = result;
+
+            info!("Opening as HTML page succeeded for {} files", worked);
+            info!("Opening as HTML page failed for {} files", failed);
+
+            failed == 0
+        }
+
+    }
+
     fn command_list(&self, matches: &ArgMatches) -> bool {
         use ansi_term::Colour::{Red, Green};
         use ui::file::{FilePrinter, TablePrinter};
@@ -359,6 +454,10 @@ impl<'a> Module<'a> for Notes<'a> {
 
             Some("edit") => {
                 self.command_edit(matches.subcommand_matches("edit").unwrap())
+            },
+
+            Some("open") => {
+                self.command_open(matches.subcommand_matches("open").unwrap())
             },
 
             Some("list") => {
