@@ -70,7 +70,9 @@ impl FileHeaderParser for JsonHeaderParser {
         let mut s = Vec::<u8>::new();
         {
             let mut ser = Serializer::pretty(&mut s);
-            data.serialize(&mut ser);
+            data.serialize(&mut ser).map_err(|e| {
+                debug!("Serializer error: {:?}", e);
+            }).ok();
         }
 
         String::from_utf8(s).or(
@@ -138,7 +140,7 @@ impl Serialize for FileHeaderData {
 
                 hm.serialize(ser)
             },
-            &FileHeaderData::Key{name: ref n, value: ref v} => unreachable!(),
+            &FileHeaderData::Key{name: _, value: _} => unreachable!(),
 
         }
     }
@@ -151,7 +153,7 @@ mod test {
     use std::ops::Deref;
 
     use super::JsonHeaderParser;
-    use storage::parser::{FileHeaderParser, ParserError};
+    use storage::parser::FileHeaderParser;
     use storage::file::header::data::FileHeaderData as FHD;
     use storage::file::header::spec::FileHeaderSpec as FHS;
 
@@ -176,10 +178,10 @@ mod test {
         assert!(parsed.is_ok(), "Parsed is not ok: {:?}", parsed);
 
         match parsed.ok() {
-            Some(FHD::Map{keys: keys}) => {
+            Some(FHD::Map{keys}) => {
                 for k in keys {
                     match k {
-                        FHD::Key{name: name, value: value} => {
+                        FHD::Key{name, value} => {
                             assert!(name == "a" || name == "b", "Key unknown");
                             match value.deref() {
                                 &FHD::UInteger(u) => assert_eq!(u, 1),
@@ -205,7 +207,7 @@ mod test {
         assert!(parsed.is_ok(), "Parsed is not ok: {:?}", parsed);
 
         match parsed.ok() {
-            Some(FHD::Map{keys: keys}) => {
+            Some(FHD::Map{keys}) => {
                 for k in keys {
                     match_key(&k);
                 }
@@ -219,11 +221,11 @@ mod test {
         use std::ops::Deref;
 
         match k {
-            &FHD::Key{name: ref name, value: ref value} => {
+            &FHD::Key{ref name, ref value} => {
                 assert!(name == "a" || name == "b", "Key unknown");
                 match value.deref() {
-                    &FHD::Array{values: ref vs} => {
-                        for value in vs.iter() {
+                    &FHD::Array{ref values} => {
+                        for value in values.iter() {
                             match value {
                                 &FHD::UInteger(u) => assert_eq!(u, 1),
                                 _ => assert!(false, "UInt is not an UInt"),
@@ -231,10 +233,10 @@ mod test {
                         }
                     }
 
-                    &FHD::Map{keys: ref ks} => {
-                        for key in ks.iter() {
+                    &FHD::Map{ref keys} => {
+                        for key in keys.iter() {
                             match key {
-                                &FHD::Key{name: ref name, value: ref value} => {
+                                &FHD::Key{ref name, ref value} => {
                                     match value.deref() {
                                         &FHD::Integer(i) => {
                                             assert_eq!(i, -2);

@@ -4,13 +4,11 @@
 pub mod cli {
     use clap::ArgMatches;
 
-    use runtime::Runtime;
-
     /**
      * Get a commandline option "tags" and split the argument by "," to be able to provide a
      * Vec<String> with the argument as array.
      */
-    pub fn get_tags<'a>(rt: &Runtime, sub: &ArgMatches<'a, 'a>) -> Vec<String> {
+    pub fn get_tags<'a>(sub: &ArgMatches<'a, 'a>) -> Vec<String> {
 
         fn reject_if_with_spaces(e: &String) -> bool {
             if e.contains(" ") {

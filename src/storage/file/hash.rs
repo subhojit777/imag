@@ -60,7 +60,7 @@ impl Into<String> for FileHash {
 impl Display for FileHash {
 
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
-        write!(fmt, "{}", self.hash);
+        try!(write!(fmt, "{}", self.hash));
         Ok(())
     }
 

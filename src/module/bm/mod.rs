@@ -1,7 +1,6 @@
 use std::fmt::{Debug, Formatter};
 use std::fmt;
 use std::ops::Deref;
-use std::process::exit;
 
 use clap::ArgMatches;
 
@@ -14,7 +13,6 @@ use storage::json::parser::JsonHeaderParser;
 use module::helpers::cli::create_tag_filter;
 use module::helpers::cli::create_hash_filter;
 use module::helpers::cli::create_text_header_field_grep_filter;
-use module::helpers::cli::create_content_grep_filter;
 use module::helpers::cli::CliFileFilter;
 
 mod header;
@@ -157,7 +155,7 @@ impl<'a> BM<'a> {
      * Subcommand: open
      */
     fn command_open(&self, matches: &ArgMatches) -> bool {
-        use ansi_term::Colour::{Green, Yellow, Red};
+        use ansi_term::Colour::{Green, Red};
         use open;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
@@ -205,7 +203,7 @@ impl<'a> BM<'a> {
      * Subcommand: remove
      */
     fn command_remove(&self, matches: &ArgMatches) -> bool {
-        use ansi_term::Colour::{Green, Yellow, Red};
+        use ansi_term::Colour::{Green, Red};
 
         let parser = Parser::new(JsonHeaderParser::new(None));
 
@@ -282,7 +280,7 @@ impl<'a> BM<'a> {
         use self::header::rebuild_header_with_tags;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
-        alter_tags_in_files(self, matches, &parser, |old_tags, cli_tags| {
+        alter_tags_in_files(self, matches, &parser, |_, cli_tags| {
             cli_tags.clone()
         }, rebuild_header_with_tags)
     }
@@ -295,7 +293,7 @@ impl<'a> BM<'a> {
 impl<'a> Module<'a> for BM<'a> {
 
     fn exec(&self, matches: &ArgMatches) -> bool {
-        use ansi_term::Colour::{Green, Yellow, Red};
+        use ansi_term::Colour::Red;
 
         match matches.subcommand_name() {
             Some("add") => {

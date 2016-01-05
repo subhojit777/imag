@@ -179,6 +179,7 @@ impl Store {
             fsfile.write_all(&text.unwrap().clone().into_bytes()[..])
         }).map_err(|writeerr|  {
             debug!("Could not create file at '{}'", path);
+            debug!("    error: {:?}", writeerr);
         }).and(Ok(true)).unwrap()
 
         // TODO: Is this unwrap() save?
@@ -217,8 +218,16 @@ impl Store {
 
         FSFile::open(&path).map(|mut file| {
             file.read_to_string(&mut string)
-                .map_err(|e| error!("Failed reading file: '{}'", path));
-        });
+                .map_err(|e| {
+                    error!("Failed reading file: '{}'", path);
+                    debug!("    error {}", e);
+                })
+                .is_ok();
+        })
+        .map_err(|e| {
+            error!("Error opening file: {}", path);
+            debug!("Error opening file: {:?}", e);
+        }).ok();
 
         parser.read(string).map(|(header, data)| {
             self.new_file_from_parser_result(m, id.clone(), header, data);
@@ -318,7 +327,12 @@ impl Store {
                     });
                 }
             }
-        });
+        })
+        .map_err(|e| {
+            error!("Could not glob: '{}'", globstr);
+            debug!("Could not glob(): {:?}", e);
+        })
+        .ok();
         res
     }
 

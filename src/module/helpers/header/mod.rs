@@ -44,12 +44,13 @@ pub mod data {
     pub fn get_named_text_from_header(name: &'static str, header: &FHD) -> Option<String> {
         match header {
             &FHD::Map{keys: ref ks} => {
-                let mut keys : Vec<FHD> = ks.clone();
-                keys.iter().find(|k| {
-                    match k.deref() {
-                        &FHD::Key{name: ref n, value: ref v} => n == name,
-                        _ => false
-                    }
+                ks.clone()
+                    .iter()
+                    .find(|k| {
+                        match k.deref() {
+                            &FHD::Key{name: ref n, value: _} => n == name,
+                            _ => false
+                        }
                 }).and_then(|urlkey| {
                     match urlkey.deref().clone() {
                         FHD::Key{name: ref n, value: ref v} => {

@@ -7,7 +7,7 @@ use runtime::Runtime;
 pub fn let_user_provide_content(rt: &Runtime) -> Option<String> {
     use std::io::Read;
     use std::fs::File;
-    use std::process::Command;
+    use std::process::exit;
 
     let filepath        = "/tmp/imag-tmp.md";
     let file_created    = File::create(filepath)
@@ -45,7 +45,13 @@ pub fn let_user_provide_content(rt: &Runtime) -> Option<String> {
 
     let mut contents = String::new();
     File::open(filepath).map(|mut file| {
-        file.read_to_string(&mut contents);
+        file.read_to_string(&mut contents)
+            .map_err(|e| {
+                error!("Error reading content: {}", e);
+                debug!("Error reading content: {:?}", e);
+                exit(1);
+            })
+            .is_ok();
         Some(contents)
     }).unwrap_or(None)
 }
@@ -59,7 +65,6 @@ pub fn edit_content(rt: &Runtime, old_content: String) -> (String, bool) {
     use std::io::Read;
     use std::io::Write;
     use std::fs::File;
-    use std::process::Command;
     use std::process::exit;
 
     let filepath = "/tmp/imag-tmp.md";
@@ -73,7 +78,12 @@ pub fn edit_content(rt: &Runtime, old_content: String) -> (String, bool) {
             }
         };
 
-        file.write(old_content.as_ref());
+        file.write(old_content.as_ref())
+            .map_err(|e| {
+                error!("Error writing content: {}", e);
+                debug!("Error writing content: {:?}", e);
+                exit(1);
+            }).is_ok();
     }
     debug!("Ready with putting old content into the file");
 
@@ -101,7 +111,11 @@ pub fn edit_content(rt: &Runtime, old_content: String) -> (String, bool) {
 
     let mut contents = String::new();
     File::open(filepath).map(|mut file| {
-        file.read_to_string(&mut contents);
+        file.read_to_string(&mut contents).map_err(|e| {
+            error!("Error reading content: {}", e);
+            debug!("Error reading content: {:?}", e);
+            exit(1);
+        }).is_ok();
         (contents, true)
     }).unwrap_or((old_content, false))
 }

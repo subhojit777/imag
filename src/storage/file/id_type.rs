@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Display, Formatter};
 use std::fmt;
 use std::convert::{From, Into};
 use std::str::FromStr;

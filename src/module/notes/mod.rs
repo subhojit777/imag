@@ -1,11 +1,10 @@
 use std::fmt::{Debug, Formatter};
 use std::fmt::Result as FMTResult;
+use std::ops::Deref;
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::ops::Deref;
 
 use clap::ArgMatches;
-use regex::Regex;
 
 mod header;
 
@@ -33,7 +32,6 @@ impl<'a> Notes<'a> {
     }
 
     fn command_add(&self, matches: &ArgMatches) -> bool {
-        use std::process::exit;
         use ansi_term::Colour::Yellow;
         use self::header::build_header;
         use ui::external::editor::let_user_provide_content;
@@ -215,16 +213,19 @@ impl<'a> Notes<'a> {
             }
         };
 
-        tempfile.write_all(MarkdownParser::new(&s).to_html_page().as_ref());
+        tempfile.write_all(MarkdownParser::new(&s).to_html_page().as_ref())
+                .map_err(|e| {
+                    error!("Could not write HTML to file: {}", temppath);
+                    debug!("Could not write HTML to file: {:?}", e);
+                })
+                .ok();
         open::that(&temppath[..]).is_ok()
     }
 
     fn command_list(&self, matches: &ArgMatches) -> bool {
-        use ansi_term::Colour::{Red, Green};
         use ui::file::{FilePrinter, TablePrinter};
         use self::header::get_name_from_header;
         use self::header::get_tags_from_header;
-        use std::process::exit;
         use module::helpers::cli::CliFileFilter;
 
         let parser  = Parser::new(JsonHeaderParser::new(None));
@@ -262,7 +263,7 @@ impl<'a> Notes<'a> {
     fn command_links(&self, matches: &ArgMatches) -> bool {
         use ansi_term::Colour::{Red, Green};
         use module::helpers::content::markdown::MarkdownParser;
-        use ui::file::{FilePrinter, TablePrinter};
+        use ui::file::FilePrinter;
         use util::is_url;
         use prettytable::Table;
         use prettytable::row::Row;
@@ -276,7 +277,6 @@ impl<'a> Notes<'a> {
         debug!("list internal links = {}", list_intern);
         debug!("list external links = {}", list_extern);
 
-        let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging());
         let titles = row!["#", "Text", "Link", "Direction"];
         let mut table = Table::new();
         table.set_titles(titles);
@@ -312,7 +312,6 @@ impl<'a> Notes<'a> {
             })
             .flatten()
             .filter(|link| {
-                let title       = &link.title;
                 let url         = &link.url;
                 let is_extern   = is_url(&url);
                 debug!("Is external URL {} -> {}", url, is_extern);
@@ -435,7 +434,7 @@ impl<'a> Notes<'a> {
         use self::header::rebuild_header_with_tags;
 
         let parser = Parser::new(JsonHeaderParser::new(None));
-        alter_tags_in_files(self, matches, &parser, |old_tags, cli_tags| {
+        alter_tags_in_files(self, matches, &parser, |_, cli_tags| {
             cli_tags.clone()
         }, rebuild_header_with_tags)
     }
@@ -504,7 +503,7 @@ impl<'a> Module<'a> for Notes<'a> {
 impl<'a> Debug for Notes<'a> {
 
     fn fmt(&self, fmt: &mut Formatter) -> FMTResult {
-        write!(fmt, "[Module][Notes]");
+        try!(write!(fmt, "[Module][Notes]"));
         Ok(())
     }
 

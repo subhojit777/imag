@@ -8,9 +8,6 @@ use regex::Regex;
 
 use storage::file::File;
 use storage::file::hash::FileHash;
-use storage::json::parser::JsonHeaderParser;
-use storage::parser::FileHeaderParser;
-use storage::parser::Parser;
 
 pub trait CliFileFilter {
 

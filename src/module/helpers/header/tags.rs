@@ -61,7 +61,7 @@ pub mod data {
      * Does no spec verification.
      */
     pub fn get_tags_from_header(header: &FHD) -> Vec<String> {
-        let mut tags : Vec<String> = vec![];
+        let tags : Vec<String> = vec![];
 
         fn match_array(a: &Box<FHD>) -> Vec<String> {
             let mut tags : Vec<String> = vec![];
@@ -87,7 +87,7 @@ pub mod data {
                 let keys : Vec<FHD> = ks.clone();
                 for key in keys {
                     match key {
-                        FHD::Key{name: ref name, value: ref v} => {
+                        FHD::Key{ref name, value: ref v} => {
                             if name == "TAGS" {
                                 return match_array(v)
                             }
@@ -118,7 +118,6 @@ pub mod data {
         use module::helpers::cli::create_tag_filter;
         use module::helpers::cli::create_hash_filter;
         use module::helpers::cli::create_text_header_field_grep_filter;
-        use module::helpers::cli::create_content_grep_filter;
         use module::helpers::cli::CliFileFilter;
 
         let cli_tags = matches.value_of("tags")

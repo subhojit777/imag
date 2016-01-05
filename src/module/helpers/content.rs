@@ -32,8 +32,8 @@ pub mod markdown {
     impl Render for LinkExtractRenderer {
 
         fn link(&mut self,
-                output: &mut Buffer,
-                content: &Buffer,
+                _: &mut Buffer,
+                _: &Buffer,
                 link: &Buffer,
                 title: &Buffer) -> bool {
 
