@@ -122,6 +122,49 @@ impl<'a> Notes<'a> {
         return failed == 0;
     }
 
+    fn command_show(&self, matches: &ArgMatches) -> bool {
+        use self::header::get_name_from_header;
+        use self::header::get_tags_from_header;
+
+        let parser  = Parser::new(JsonHeaderParser::new(None));
+
+        let filter = {
+            let hash_filter = create_hash_filter(matches, "id", true);
+            let head_filter = create_text_header_field_grep_filter(matches, "match", "NAME", true);
+            let text_filter = create_content_grep_filter(matches, "match", true);
+            let tags_filter = create_tag_filter(matches, "tags", true);
+            hash_filter.and(Box::new(head_filter)).and(Box::new(text_filter)).and(Box::new(tags_filter))
+        };
+
+        self.rt
+            .store()
+            .load_for_module(self, &parser)
+            .into_iter()
+            .filter(|file| {
+                let res = filter.filter_file(file);
+                debug!("Filter: {} -> {}", file.deref().borrow().id(), res);
+                res
+            })
+            .map(|file| {
+                let content = file.deref().borrow().data().clone();
+
+                let text = if matches.is_present("plain") {
+                    parser.write((file.deref().borrow().header(), &content))
+                          .unwrap_or(format!("Parser error for file: {}", file.deref().borrow().id()))
+                } else {
+                    let tags = get_tags_from_header(file.deref().borrow().header());
+                    let name = get_name_from_header(file.deref().borrow().header());
+                    format!("Name = '{}'\nTags = '{}'\n\n{}\n\n",
+                            name, tags.join(", "), content)
+                };
+
+                println!("{:-<79}", "-");
+                println!("{}", text);
+                true
+            })
+            .all(|x| x)
+    }
+
     fn command_open(&self, matches: &ArgMatches) -> bool {
         let parser  = Parser::new(JsonHeaderParser::new(None));
 
@@ -453,6 +496,10 @@ impl<'a> Module<'a> for Notes<'a> {
 
             Some("edit") => {
                 self.command_edit(matches.subcommand_matches("edit").unwrap())
+            },
+
+            Some("show") => {
+                self.command_show(matches.subcommand_matches("show").unwrap())
             },
 
             Some("open") => {
