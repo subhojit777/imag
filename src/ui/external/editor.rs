@@ -73,7 +73,12 @@ pub fn edit_content(rt: &Runtime, old_content: String) -> (String, bool) {
             }
         };
 
-        file.write(old_content.as_ref());
+        file.write(old_content.as_ref())
+            .map_err(|e| {
+                error!("Error writing content: {}", e);
+                debug!("Error writing content: {:?}", e);
+                exit(1);
+            }).is_ok();
     }
     debug!("Ready with putting old content into the file");
 
