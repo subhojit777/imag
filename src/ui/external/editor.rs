@@ -7,7 +7,6 @@ use runtime::Runtime;
 pub fn let_user_provide_content(rt: &Runtime) -> Option<String> {
     use std::io::Read;
     use std::fs::File;
-    use std::process::Command;
 
     let filepath        = "/tmp/imag-tmp.md";
     let file_created    = File::create(filepath)
