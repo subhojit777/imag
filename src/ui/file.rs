@@ -10,8 +10,6 @@ use storage::file::File;
  */
 pub trait FilePrinter {
 
-    fn new(verbose: bool, debug: bool) -> Self;
-
     /*
      * Print a single file
      */
@@ -50,13 +48,17 @@ struct DebugPrinter {
     debug: bool,
 }
 
-impl FilePrinter for DebugPrinter {
+impl DebugPrinter {
 
-    fn new(_: bool, debug: bool) -> DebugPrinter {
+    pub fn new(debug: bool) -> DebugPrinter {
         DebugPrinter {
             debug: debug,
         }
     }
+
+}
+
+impl FilePrinter for DebugPrinter {
 
     fn print_file(&self, f: Rc<RefCell<File>>) {
         if self.debug {
@@ -82,14 +84,18 @@ struct SimplePrinter {
     debug:      bool,
 }
 
-impl FilePrinter for SimplePrinter {
+impl SimplePrinter {
 
-    fn new(verbose: bool, debug: bool) -> SimplePrinter {
+    pub fn new(verbose: bool, debug: bool) -> SimplePrinter {
         SimplePrinter {
             debug:      debug,
             verbose:    verbose,
         }
     }
+
+}
+
+impl FilePrinter for SimplePrinter {
 
     fn print_file(&self, f: Rc<RefCell<File>>) {
         use ansi_term::Colour::Cyan;
@@ -127,13 +133,17 @@ pub struct TablePrinter {
     sp:         SimplePrinter,
 }
 
-impl FilePrinter for TablePrinter {
+impl TablePrinter {
 
-    fn new(verbose: bool, debug: bool) -> TablePrinter {
+    pub fn new(verbose: bool, debug: bool) -> TablePrinter {
         TablePrinter {
-            sp:         SimplePrinter::new(verbose, debug),
+            sp: SimplePrinter::new(verbose, debug),
         }
     }
+
+}
+
+impl FilePrinter for TablePrinter {
 
     fn print_file(&self, f: Rc<RefCell<File>>) {
         self.sp.print_file(f);
