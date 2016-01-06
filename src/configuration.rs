@@ -19,6 +19,7 @@ pub struct Configuration {
     pub store_sub   : String,
     pub editor      : Option<String>,
     pub editor_opts : String,
+    pub report_exit : bool,
 }
 
 impl Configuration {
@@ -32,18 +33,21 @@ impl Configuration {
         let store_sub   = String::from(cfg.lookup_str("store").unwrap_or("/store"));
         let editor      = cfg.lookup_str("editor").map(String::from);
         let editor_opts = String::from(cfg.lookup_str("editor-opts").unwrap_or(""));
+        let report_exit = cfg.lookup_boolean("report-exit").unwrap_or(false);
 
         debug!("Building configuration");
         debug!("  - store sub  : {}", store_sub);
         debug!("  - runtimepath: {}", rtp);
         debug!("  - editor     : {:?}", editor);
         debug!("  - editor-opts: {}", editor_opts);
+        debug!("  - report exit: {}", report_exit);
 
         Configuration {
             store_sub: store_sub,
             rtp: rtp,
             editor: editor,
             editor_opts: editor_opts,
+            report_exit: report_exit,
         }
     }
 
@@ -67,6 +71,10 @@ impl Configuration {
 
     pub fn editor_opts(&self) -> String {
         self.editor_opts.clone()
+    }
+
+    pub fn report_exit(&self) -> bool {
+        self.report_exit
     }
 
 }

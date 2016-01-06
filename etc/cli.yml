@@ -15,6 +15,11 @@ args:
         help: Sets the level of debugging information
         required: false
 
+    - report:
+        long: report
+        help: Print "Ok" on success, "Error" on failure (except hard errors) before exiting, regardless of verbosity
+        required: false
+
     - rtp:
         short: r
         long: runtimepath

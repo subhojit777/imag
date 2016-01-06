@@ -135,6 +135,10 @@ impl<'a> Runtime<'a> {
         e
     }
 
+    pub fn report_exit(&self) -> bool {
+        self.config.report_exit() || self.configuration.report_exit()
+    }
+
 }
 
 impl<'a> Debug for Runtime<'a> {
