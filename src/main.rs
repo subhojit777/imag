@@ -68,4 +68,12 @@ fn main() {
     };
 
     info!("{}", Yellow.paint(format!("Module execution ended with {}", res)));
+
+    if rt.report_exit() {
+        if res {
+            println!("Ok");
+        } else {
+            println!("Error");
+        }
+    }
 }
