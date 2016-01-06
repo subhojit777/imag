@@ -43,6 +43,13 @@ impl<'a> CliConfig<'a> {
     }
 
     /**
+     * Check whether the CLI says we should run with reporting
+     */
+    pub fn report_exit(&self) -> bool {
+        self.cli_matches.is_present("report")
+    }
+
+    /**
      * Get the runtime path the CLI configured
      */
     pub fn get_rtp(&self) -> Option<String> {
