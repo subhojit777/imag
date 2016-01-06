@@ -274,7 +274,9 @@ impl<'a> Notes<'a> {
             hash_filter.or(Box::new(head_filter)).and(Box::new(text_filter)).and(Box::new(tags_filter))
         };
 
-        let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging(), true);
+        let pretty = matches.is_present("pretty");
+        debug!("Printing pretty table = {}", pretty);
+        let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging(), pretty);
 
         printer.print_files_custom(
             self.rt.store()
