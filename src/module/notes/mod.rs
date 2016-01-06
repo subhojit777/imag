@@ -274,7 +274,9 @@ impl<'a> Notes<'a> {
             hash_filter.or(Box::new(head_filter)).and(Box::new(text_filter)).and(Box::new(tags_filter))
         };
 
-        let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging());
+        let pretty = matches.is_present("pretty");
+        debug!("Printing pretty table = {}", pretty);
+        let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging(), pretty);
 
         printer.print_files_custom(
             self.rt.store()
@@ -299,7 +301,6 @@ impl<'a> Notes<'a> {
     fn command_links(&self, matches: &ArgMatches) -> bool {
         use ansi_term::Colour::{Red, Green};
         use module::helpers::content::markdown::MarkdownParser;
-        use ui::file::FilePrinter;
         use util::is_url;
         use prettytable::Table;
         use prettytable::row::Row;

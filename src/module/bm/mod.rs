@@ -130,7 +130,8 @@ impl<'a> BM<'a> {
             .load_for_module(self, &self.parser)
             .into_iter()
             .filter(|file| filter.filter_file(file));
-        let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging());
+        let pretty = matches.is_present("pretty");
+        let printer = TablePrinter::new(self.rt.is_verbose(), self.rt.is_debugging(), pretty);
 
         printer.print_files_custom(files,
             &|file| {

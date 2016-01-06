@@ -10,8 +10,6 @@ use storage::file::File;
  */
 pub trait FilePrinter {
 
-    fn new(verbose: bool, debug: bool) -> Self;
-
     /*
      * Print a single file
      */
@@ -50,13 +48,17 @@ struct DebugPrinter {
     debug: bool,
 }
 
-impl FilePrinter for DebugPrinter {
+impl DebugPrinter {
 
-    fn new(_: bool, debug: bool) -> DebugPrinter {
+    pub fn new(debug: bool) -> DebugPrinter {
         DebugPrinter {
             debug: debug,
         }
     }
+
+}
+
+impl FilePrinter for DebugPrinter {
 
     fn print_file(&self, f: Rc<RefCell<File>>) {
         if self.debug {
@@ -82,14 +84,18 @@ struct SimplePrinter {
     debug:      bool,
 }
 
-impl FilePrinter for SimplePrinter {
+impl SimplePrinter {
 
-    fn new(verbose: bool, debug: bool) -> SimplePrinter {
+    pub fn new(verbose: bool, debug: bool) -> SimplePrinter {
         SimplePrinter {
             debug:      debug,
             verbose:    verbose,
         }
     }
+
+}
+
+impl FilePrinter for SimplePrinter {
 
     fn print_file(&self, f: Rc<RefCell<File>>) {
         use ansi_term::Colour::Cyan;
@@ -124,16 +130,22 @@ impl FilePrinter for SimplePrinter {
  * Table printer to print file information in a nice ASCII-table
  */
 pub struct TablePrinter {
-    sp:         SimplePrinter,
+    sp: SimplePrinter,
+    pretty: bool,
+}
+
+impl TablePrinter {
+
+    pub fn new(verbose: bool, debug: bool, pretty: bool) -> TablePrinter {
+        TablePrinter {
+            sp: SimplePrinter::new(verbose, debug),
+            pretty: pretty,
+        }
+    }
+
 }
 
 impl FilePrinter for TablePrinter {
-
-    fn new(verbose: bool, debug: bool) -> TablePrinter {
-        TablePrinter {
-            sp:         SimplePrinter::new(verbose, debug),
-        }
-    }
 
     fn print_file(&self, f: Rc<RefCell<File>>) {
         self.sp.print_file(f);
@@ -141,12 +153,20 @@ impl FilePrinter for TablePrinter {
 
     fn print_files<I: Iterator<Item = Rc<RefCell<File>>>>(&self, files: I) {
         use prettytable::Table;
+        use prettytable::format::TableFormat;
         use prettytable::row::Row;
         use prettytable::cell::Cell;
 
         let titles = row!["File#", "Owner", "ID"];
 
         let mut tab = Table::new();
+
+        if !self.pretty {
+            let plain_format = TableFormat::new(' ', None, None);
+            debug!("Setting plain format for table");
+            tab.set_format(plain_format);
+        }
+
         tab.set_titles(titles);
 
         let mut i = 0;
@@ -175,12 +195,20 @@ impl FilePrinter for TablePrinter {
               F: Fn(Rc<RefCell<File>>) -> Vec<String>
     {
         use prettytable::Table;
+        use prettytable::format::TableFormat;
         use prettytable::row::Row;
         use prettytable::cell::Cell;
 
         let titles = row!["#", "Module", "ID", "..."];
 
         let mut tab = Table::new();
+
+        if !self.pretty {
+            let plain_format = TableFormat::new(' ', None, None);
+            debug!("Setting plain format for table");
+            tab.set_format(plain_format);
+        }
+
         tab.set_titles(titles);
 
         let mut i = 0;
