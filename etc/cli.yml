@@ -91,6 +91,12 @@ subcommands:
                 version: 0.1
                 author: Matthias Beyer <mail@beyermatthias.de>
                 args:
+                    - pretty:
+                        long: pretty
+                        help: Print table with ASCII-border
+                        required: false
+                        takes_value: false
+
                     - match:
                         short: m
                         long: match
