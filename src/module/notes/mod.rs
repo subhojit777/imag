@@ -12,7 +12,7 @@ use module::Module;
 use runtime::Runtime;
 use storage::file::File;
 use storage::parser::Parser;
-use storage::json::parser::JsonHeaderParser;
+use storage::yaml::parser::YamlHeaderParser;
 use module::helpers::cli::create_tag_filter;
 use module::helpers::cli::create_hash_filter;
 use module::helpers::cli::create_text_header_field_grep_filter;
@@ -21,7 +21,7 @@ use module::helpers::cli::CliFileFilter;
 
 pub struct Notes<'a> {
     rt: &'a Runtime<'a>,
-    parser: Parser<JsonHeaderParser>,
+    parser: Parser<YamlHeaderParser>,
 }
 
 impl<'a> Notes<'a> {
@@ -29,7 +29,7 @@ impl<'a> Notes<'a> {
     pub fn new(rt: &'a Runtime<'a>) -> Notes<'a> {
         Notes {
             rt: rt,
-            parser: Parser::new(JsonHeaderParser::new(None)),
+            parser: Parser::new(YamlHeaderParser::new(None)),
         }
     }
 

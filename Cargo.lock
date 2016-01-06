@@ -19,6 +19,7 @@ dependencies = [
  "term_grid 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 0.2.37 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yaml-rust 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -288,5 +289,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "yaml-rust"
 version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "yaml-rust"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
