@@ -2,10 +2,13 @@
 name = "imag"
 version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
-repository = ""
-license = "GPLv2"
+repository = "https://github.com/matthiasbeyer/imag"
+homepage = "https://github.com/matthiasbeyer/imag"
+license = "LGPLv2"
+license-file = "LICENSE"
 readme = "README.md"
 description = "CLI PIM suite with nice API, so you can use an MUA, Editor, etc.  of your choice"
+keywords = ["PIM", "personal", "information", "management", "cli", "vcard", "ical", "wiki", "bookmark", "todo", "rss"  ]
 
 [dependencies]
 log = "0.3.2"
