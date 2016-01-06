@@ -125,8 +125,6 @@ impl<'a> Notes<'a> {
         use self::header::get_name_from_header;
         use self::header::get_tags_from_header;
 
-        let parser  = Parser::new(JsonHeaderParser::new(None));
-
         let filter = {
             let hash_filter = create_hash_filter(matches, "id", true);
             let head_filter = create_text_header_field_grep_filter(matches, "match", "NAME", true);
@@ -137,7 +135,7 @@ impl<'a> Notes<'a> {
 
         self.rt
             .store()
-            .load_for_module(self, &parser)
+            .load_for_module(self, &self.parser)
             .into_iter()
             .filter(|file| {
                 let res = filter.filter_file(file);
@@ -148,7 +146,7 @@ impl<'a> Notes<'a> {
                 let content = file.deref().borrow().data().clone();
 
                 let text = if matches.is_present("plain") {
-                    parser.write((file.deref().borrow().header(), &content))
+                    self.parser.write((file.deref().borrow().header(), &content))
                           .unwrap_or(format!("Parser error for file: {}", file.deref().borrow().id()))
                 } else {
                     let tags = get_tags_from_header(file.deref().borrow().header());
