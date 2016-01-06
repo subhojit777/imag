@@ -162,7 +162,7 @@ impl FilePrinter for TablePrinter {
         let mut tab = Table::new();
 
         if !self.pretty {
-            let plain_format = TableFormat::new(' ', None, None);
+            let plain_format = TableFormat::new(None, None, None);
             debug!("Setting plain format for table");
             tab.set_format(plain_format);
         }
@@ -204,7 +204,7 @@ impl FilePrinter for TablePrinter {
         let mut tab = Table::new();
 
         if !self.pretty {
-            let plain_format = TableFormat::new(' ', None, None);
+            let plain_format = TableFormat::new(None, None, None);
             debug!("Setting plain format for table");
             tab.set_format(plain_format);
         }
