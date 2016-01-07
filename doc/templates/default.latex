@@ -1,0 +1,56 @@
+\documentclass[$if(fontsize)$$fontsize$,$endif$$if(lang)$$babel-lang$,$endif$$if(papersize)$$papersize$,$endif$$for(classoption)$$classoption$$sep$,$endfor$]{$documentclass$}
+
+\usepackage[sort]{natbib}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{listings}  % source code listings
+\usepackage{longtable} % tables
+\usepackage{booktabs}  % tables
+\usepackage{mathtools}
+\usepackage{enumitem}
+
+\providecommand{\tightlist}{ % pandoc wants this
+      \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+}
+
+\oddsidemargin 0.2cm
+\topmargin -1.0cm
+\textheight 24.0cm
+\textwidth 15.25cm
+\parindent=0pt
+\parskip 1ex
+\renewcommand{\baselinestretch}{1.1}
+\pagestyle{fancy}
+
+$if(title)$
+    \lhead{\normalsize \textrm{$title$}}
+$endif$
+
+\chead{}
+
+$if(version)$
+    \lfoot{\normalsize \textrm{$version$}}
+$endif$
+\cfoot{}
+
+$if(date)$
+    \rfoot{$date$}
+$endif$
+
+$for(header-includes)$
+    $header-includes$
+$endfor$
+
+\setlength{\fboxrule}{4pt}\setlength{\fboxsep}{2ex}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\begin{document}
+
+    \begin{center}
+        {\bf $title$}
+    \end{center}
+
+    $body$
+
+\end{document}
