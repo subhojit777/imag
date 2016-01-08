@@ -74,7 +74,8 @@ export RM
 
 PANDOC=$(shell which pandoc)
 
-PANDOC_PARAMS=-r markdown+simple_tables+table_captions+yaml_metadata_block+definition_lists+raw_html+markdown_in_html_blocks
+PANDOC_PARAMS=-r markdown+simple_tables+table_captions+yaml_metadata_block+definition_lists+raw_html+markdown_in_html_blocks \
+			  --filter pandoc-crossref
 
 PANDOC_CC=$(PANDOC) $(PANDOC_PARAMS)
 
