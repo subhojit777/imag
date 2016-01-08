@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html$if(lang)$ lang="$lang$"$endif$>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+$if(date)$
+  <meta name="dcterms.date" content="$date$">
+$endif$
+
+  <title>$if(title-prefix)$$title-prefix$ - $endif$$pagetitle$</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+$if(highlighting-css)$
+  <style type="text/css">
+    $highlighting-css$
+  </style>
+$endif$
+
+$for(css)$
+  <link rel="stylesheet" href="$css$">
+$endfor$
+
+</head>
+    <body style="margin-left: 20%; margin-right: 20%;">
+        $if(title)$
+            <header>
+                <h1 class="title">$title$</h1>
+                $if(date)$
+                    <small class="date">$date$</small>
+                $endif$
+
+                $if(version)$
+                    <small class="date">Version: $version$</small>
+                $endif$
+            </header>
+            <hr />
+        $endif$
+
+        $body$
+
+    </body>
+</html>

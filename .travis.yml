@@ -16,10 +16,14 @@ before_script:
 
 script:
     - |
-        travis-cargo build &&
-        travis-cargo test &&
-        travis-cargo bench &&
-        travis-cargo --only stable doc
+        if [[ "doc" == $(git diff --name-only $TRAVIS_BRANCH..$TRAVIS_COMMIT | cut -d "/" -f 1 | uniq) ]]; then
+            echo "There are only changes in the ./doc directory... not doing anything"
+        else
+            travis-cargo build &&
+            travis-cargo test &&
+            travis-cargo bench &&
+            travis-cargo --only stable doc
+        fi
 
 addons:
     apt:
