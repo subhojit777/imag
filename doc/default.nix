@@ -7,20 +7,43 @@ let
 
     (pkgs.texlive.combine {
       inherit (pkgs.texlive)
-        scheme-small
-        algorithms
-        cm-super
-        collection-basic
-        collection-fontsextra
-        collection-fontutils
-        collection-langenglish
-        collection-latex
-        collection-latexextra
-        collection-latexrecommended
-        collection-mathextra
-        collection-pictures
-        collection-plainextra
-        collection-science
+        scheme-basic
+
+        amsfonts
+        amsmath
+        lm
+        ifxetex
+        ifluatex
+        eurosym
+        listings
+        fancyvrb
+        # longtable
+        booktabs
+
+        # no graphics...
+        # graphicx
+        # grffile
+
+        hyperref
+        ulem
+        geometry
+        setspace
+        babel
+
+        # optionals
+        upquote
+        microtype
+        csquotes
+
+        # We have no citation support
+        # natbib
+        # biblatex
+        # bibtex
+        # biber
+
+        # some more, not listed in the pandoc docs
+        mathtools
+        enumitem
       ;
     })
 
