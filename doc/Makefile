@@ -117,12 +117,15 @@ clean:
 	@$(ECHO) "\t[RM    ] $@"
 	@$(RM) $(OUT)
 
+pdf: $(TARGET_PDF)
+
 $(TARGET_PDF): $(OUT_PDF)
 	@$(ECHO) "\t[PANDOC] pdf"
 	@$(PANDOC_CC_PDF)                         \
 		--template $(TEMPLATES)/default.latex \
 		$(SRC) -o $@
 
+html: $(TARGET_HTML)
 
 $(TARGET_HTML): $(OUT_HTML)
 	@$(ECHO) "\t[PANDOC] html"
