@@ -7,8 +7,6 @@ use log::{LogRecord, LogLevel, LogLevelFilter, LogMetadata, SetLoggerError};
 pub use cli::CliConfig;
 pub use configuration::Configuration as Cfg;
 
-use storage::Store;
-
 pub struct ImagLogger {
     lvl: LogLevel,
 }
@@ -32,7 +30,7 @@ impl ImagLogger {
 
         log::set_logger(|max_log_lvl| {
             max_log_lvl.set(lvl);
-            debug!("Init logger with: {}", lvl);
+            // debug!("Init logger with: {}", lvl);
             Box::new(ImagLogger::new(lvl.to_log_level().unwrap()))
         })
     }
@@ -54,13 +52,11 @@ impl log::Log for ImagLogger {
 
 /**
  * Runtime object, represents a single interface to both the CLI configuration and the
- * configuration file. Also carries the store object around and is basically an object which
- * contains everything which is required to run a command/module.
+ * configuration file.
  */
 pub struct Runtime<'a> {
     pub config : CliConfig<'a>,
     pub configuration : Cfg,
-    pub store : Store,
 }
 
 impl<'a> Runtime<'a> {
@@ -70,7 +66,6 @@ impl<'a> Runtime<'a> {
         Runtime {
             config: config,
             configuration: cfg,
-            store: Store::new(sp),
         }
     }
 
@@ -93,13 +88,6 @@ impl<'a> Runtime<'a> {
      */
     pub fn store_path(&self) -> String {
         self.config.store_path().unwrap_or(self.configuration.store_path())
-    }
-
-    /**
-     * Get the store object
-     */
-    pub fn store(&self) -> &Store {
-        &self.store
     }
 
     /**
