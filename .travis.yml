@@ -32,23 +32,8 @@ script:
             cd -
         }
 
-        if_changed_then_build_or_exit() {
-            if [[ $(changes_in "$1") ]]; then
-                echo "Changes in $1, building..."
-                travis_cargo_run_in "$1" || exit 1
-            else
-                echo "No changes in $1"
-            fi
-        }
-
         [[ $(changes_in "doc") ]] && echo "Changes in ./doc are not build by CI"
-
-        if_changed_then_build_or_exit "libimagmodule"
-        if_changed_then_build_or_exit "libimagrt"
-        if_changed_then_build_or_exit "libimagstore"
-        if_changed_then_build_or_exit "libimagutil"
-
-        (changes_in "src" && travis_cargo_run_in ".") || true
+        travis_cargo_run_in "."
 
 addons:
     apt:

@@ -1,4 +1,26 @@
 [root]
 name = "imag"
 version = "0.1.0"
+dependencies = [
+ "libimagmodule 0.1.0",
+ "libimagrt 0.1.0",
+ "libimagstore 0.1.0",
+ "libimagutil 0.1.0",
+]
+
+[[package]]
+name = "libimagmodule"
+version = "0.1.0"
+
+[[package]]
+name = "libimagrt"
+version = "0.1.0"
+
+[[package]]
+name = "libimagstore"
+version = "0.1.0"
+
+[[package]]
+name = "libimagutil"
+version = "0.1.0"
 

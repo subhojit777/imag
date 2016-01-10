@@ -10,5 +10,15 @@ readme = "README.md"
 description = "CLI PIM suite with nice API, so you can use an MUA, Editor, etc.  of your choice"
 keywords = ["PIM", "personal", "information", "management", "cli", "vcard", "ical", "wiki", "bookmark", "todo", "rss"  ]
 
-[dependencies]
+[dependencies.libimagmodule]
+path = "./libimagmodule"
+
+[dependencies.libimagrt]
+path = "./libimagstore"
+
+[dependencies.libimagstore]
+path = "./libimagstore"
+
+[dependencies.libimagutil]
+path = "./libimagutil"
 
