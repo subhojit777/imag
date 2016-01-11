@@ -18,14 +18,16 @@ SETTING_FONTSIZE=11pt
 ## Source directory
 SRC_DIR=$(shell pwd)/src
 
+## Templates
+TEMPLATES=$(shell pwd)/templates
+
 ## CSS directory
-CSS_DIR=$(SRC_DIR)/css
+CSS_DIR=$(TEMPLATES)/css
+CSS_SRC=$(shell find $(CSS_DIR) -type f -name "*.css")
+CSS_INCLUDES=$(foreach x, $(CSS_SRC), --variable css=$(x))
 
 ## All markdown files in the working directory
 export SRC=$(shell find $(SRC_DIR) -name "*.md" | sort)
-
-## Templates
-TEMPLATES=$(shell pwd)/templates
 
 DOCUMENT_SETTINGS_PDF=                           \
 	--listings                                   \
@@ -41,6 +43,7 @@ DOCUMENT_SETTINGS_PDF=                           \
 	--variable geometry=portrait
 
 DOCUMENT_SETTINGS_HTML=			\
+	$(CSS_INCLUDES)				\
 	--variable lang=de 			\
 	--variable lof=true			\
 	--variable lol=true			\
