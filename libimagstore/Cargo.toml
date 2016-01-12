@@ -2,3 +2,8 @@
 name = "libimagstore"
 version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+
+toml = "0.1.25"
+
