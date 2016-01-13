@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 use std::result::Result as RResult;
+use std::sync::Arc;
+use std::sync::RWLock;
 
 pub use entry::Entry;
 pub use error::StoreError;
@@ -16,11 +18,11 @@ impl Store {
         unimplemented!()
     }
 
-    pub fn read(path: PathBuf) -> Result<Entry> {
+    pub fn read(path: PathBuf) -> Result<Arc<RWLock<Entry>>> {
         unimplemented!()
     }
 
-    pub fn update(entry: Entry) -> Result<()> {
+    pub fn update(entry: Arc<RWLock<Entry>>) -> Result<()> {
         unimplemented!()
     }
 
