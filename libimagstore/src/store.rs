@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fs::File;
+use std::ops::Drop;
 use std::path::PathBuf;
 use std::result::Result as RResult;
 use std::sync::Arc;
@@ -39,6 +40,19 @@ impl Store {
 
     pub fn delete(path: PathBuf) -> Result<()> {
         unimplemented!()
+    }
+
+}
+
+impl Drop for Store {
+
+    /**
+     * Unlock all files on drop
+     *
+     * TODO: Error message when file cannot be unlocked?
+     */
+    fn drop(&mut self) {
+        self.cache.iter().map(|f| f.unlock());
     }
 
 }
