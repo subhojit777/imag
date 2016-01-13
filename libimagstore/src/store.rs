@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use std::fs::File;
 use std::path::PathBuf;
 use std::result::Result as RResult;
 use std::sync::Arc;
@@ -10,6 +12,15 @@ pub type Result<T> = RResult<T, StoreError>;
 
 pub struct Store {
     location: PathBuf,
+
+    /**
+     * Internal Path->File cache map
+     *
+     * Caches the files, so they remain flock()ed
+     *
+     * Could be optimized for a threadsafe HashMap
+     */
+    cache: Arc<RWLock<HashMap<PathBuf, File>>>,
 }
 
 impl Store {
