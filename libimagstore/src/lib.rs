@@ -1,3 +1,4 @@
+extern crate fs2;
 extern crate toml;
 
 pub mod content;
