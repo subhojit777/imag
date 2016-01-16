@@ -4,11 +4,60 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Error as FmtError;
 use std::clone::Clone;
+use std::convert::From;
 
 use std::io::Error as IOError;
 
+#[derive(Clone)]
+pub enum StoreErrorType {
+    Unknown,
+    IdNotFound,
+    OutOfMemory,
+    // maybe more
+}
+
+impl From<StoreErrorType> for String {
+
+    fn from(e: StoreErrorType) -> String {
+        String::from(&e)
+    }
+
+}
+
+impl<'a> From<&'a StoreErrorType> for String {
+
+    fn from(e: &'a StoreErrorType) -> String {
+        match e {
+            &StoreErrorType::Unknown     => String::from("<Unknown>"),
+            &StoreErrorType::IdNotFound  => String::from("ID not found"),
+            &StoreErrorType::OutOfMemory => String::from("Out of Memory"),
+        }
+    }
+
+}
+
+impl Debug for StoreErrorType {
+
+    fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
+        let s : String = self.into();
+        try!(write!(fmt, "{:?}", s));
+        Ok(())
+    }
+
+}
+
+impl Display for StoreErrorType {
+
+    fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
+        let s : String = self.into();
+        try!(write!(fmt, "{}", s));
+        Ok(())
+    }
+
+}
+
 pub struct StoreError {
-    name: Option<&'static str>,
+    err_type: StoreErrorType,
     expl: Option<&'static str>,
     cause: Option<Box<Error>>,
 }
@@ -17,14 +66,18 @@ impl StoreError {
 
     pub fn new() -> StoreError {
         StoreError {
-            name: None,
+            err_type: StoreErrorType::Unknown,
             expl:  None,
             cause: None,
         }
     }
 
-    pub fn with_name(mut self, n: &'static str) -> StoreError {
-        self.name = Some(n);
+    pub fn err_type(&self) -> StoreErrorType {
+        self.err_type.clone()
+    }
+
+    pub fn with_type(mut self, t: StoreErrorType) -> StoreError {
+        self.err_type = t;
         self
     }
 
@@ -43,7 +96,8 @@ impl StoreError {
 impl Debug for StoreError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "[{:?}]: {:?}, caused: {:?}", self.name, self.expl, self.cause));
+        try!(write!(fmt, "[{:?}]: {:?}, caused: {:?}",
+                    self.err_type, self.expl, self.cause));
         Ok(())
     }
 
@@ -52,8 +106,9 @@ impl Debug for StoreError {
 impl Display for StoreError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
+        let e : String = self.err_type.clone().into();
         try!(write!(fmt, "[{}]: {}",
-                    self.name.unwrap_or("StoreError"),
+                    e,
                     self.expl.unwrap_or("")));
         Ok(())
     }
