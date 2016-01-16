@@ -12,7 +12,7 @@ pub trait Store {
     fn create(&self, entry : Entry) -> Result<()>;
     fn retrieve(&self, id : String) -> Result<LockedEntry>;
     fn retrieve_copy(&self, id : String) -> Result<Entry>;
-    fn update(&self, LockedEntry) -> Result<()>;
+    fn update(&self, &LockedEntry) -> Result<()>;
     fn delete(&self, id : String) -> Result<()>;
 }
 
