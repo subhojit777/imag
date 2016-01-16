@@ -48,6 +48,10 @@ impl Store for FSStore {
         unimplemented!()
     }
 
+    fn retrieve_copy(&self, id : String) -> Result<Entry> {
+        unimplemented!()
+    }
+
     fn update(&self, entry: Arc<RwLock<Entry>>) -> Result<()> {
         unimplemented!()
     }
