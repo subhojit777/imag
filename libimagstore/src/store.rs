@@ -37,7 +37,7 @@ impl Store {
     fn update<'a>(&'a self, entry: FileLockEntry<'a>) -> Result<()> {
         unimplemented!();
     }
-    fn retrieve_copy(&self, id : String) -> Result<Entry> {
+    fn retrieve_copy(&self, path: PathBuf) -> Result<Entry> {
         unimplemented!();
     }
     fn delete(&self, path: PathBuf) -> Result<()> {
