@@ -42,18 +42,16 @@ impl Display for StoreErrorType {
 
 pub struct StoreError {
     err_type: StoreErrorType,
-    expl: &'static str,
     cause: Option<Box<Error>>,
 }
 
 impl StoreError {
 
-    pub fn new(errtype: StoreErrorType, expl: &'static str, cause: Option<Box<Error>>)
+    pub fn new(errtype: StoreErrorType, cause: Option<Box<Error>>)
         -> StoreError
     {
         StoreError {
             err_type: errtype,
-            expl:  expl,
             cause: cause,
         }
     }
@@ -67,8 +65,8 @@ impl StoreError {
 impl Debug for StoreError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "[{:?}]: {:?}, caused: {:?}",
-                    self.err_type, self.expl, self.cause));
+        try!(write!(fmt, "[{:?}]: caused by: {:?}",
+                    self.err_type, self.cause));
         Ok(())
     }
 
@@ -77,9 +75,7 @@ impl Debug for StoreError {
 impl Display for StoreError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "[{}]: {}",
-                    store_error_type_as_str(&self.err_type.clone()),
-                    self.expl));
+        try!(write!(fmt, "[{}]", store_error_type_as_str(&self.err_type.clone())));
         Ok(())
     }
 
@@ -88,7 +84,7 @@ impl Display for StoreError {
 impl Error for StoreError {
 
     fn description(&self) -> &str {
-        self.expl
+        store_error_type_as_str(&self.err_type.clone())
     }
 
     fn cause(&self) -> Option<&Error> {
