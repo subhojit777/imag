@@ -8,8 +8,8 @@ use std::sync::{RwLock, Mutex};
 
 use fs2::FileExt;
 
-pub use entry::Entry;
-pub use error::StoreError;
+use entry::Entry;
+use error::StoreError;
 
 pub type Result<T> = RResult<T, StoreError>;
 
