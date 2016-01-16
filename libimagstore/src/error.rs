@@ -9,20 +9,20 @@ use std::convert::From;
 use std::io::Error as IOError;
 
 #[derive(Clone)]
-pub enum StoreErrorType {
+pub enum StoreErrorKind {
     IdNotFound,
     OutOfMemory,
     // maybe more
 }
 
-fn store_error_type_as_str(e: &StoreErrorType) -> &'static str {
+fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
     match e {
-        &StoreErrorType::IdNotFound  => "ID not found",
-        &StoreErrorType::OutOfMemory => "Out of Memory",
+        &StoreErrorKind::IdNotFound  => "ID not found",
+        &StoreErrorKind::OutOfMemory => "Out of Memory",
     }
 }
 
-impl Debug for StoreErrorType {
+impl Debug for StoreErrorKind {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
         try!(write!(fmt, "{:?}", store_error_type_as_str(self)));
@@ -31,7 +31,7 @@ impl Debug for StoreErrorType {
 
 }
 
-impl Display for StoreErrorType {
+impl Display for StoreErrorKind {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
         try!(write!(fmt, "{}", store_error_type_as_str(self)));
@@ -41,13 +41,13 @@ impl Display for StoreErrorType {
 }
 
 pub struct StoreError {
-    err_type: StoreErrorType,
+    err_type: StoreErrorKind,
     cause: Option<Box<Error>>,
 }
 
 impl StoreError {
 
-    pub fn new(errtype: StoreErrorType, cause: Option<Box<Error>>)
+    pub fn new(errtype: StoreErrorKind, cause: Option<Box<Error>>)
         -> StoreError
     {
         StoreError {
@@ -56,7 +56,7 @@ impl StoreError {
         }
     }
 
-    pub fn err_type(&self) -> StoreErrorType {
+    pub fn err_type(&self) -> StoreErrorKind {
         self.err_type.clone()
     }
 
