@@ -8,7 +8,7 @@ use std::convert::From;
 
 use std::io::Error as IOError;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub enum StoreErrorKind {
     IdNotFound,
     OutOfMemory,
