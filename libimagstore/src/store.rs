@@ -73,19 +73,22 @@ pub struct Store {
 }
 
 impl Store {
-
     fn create(&self, entry: Entry) -> Result<()> {
         unimplemented!();
     }
+
     fn retrieve<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
         unimplemented!();
     }
+
     fn update<'a>(&'a self, entry: FileLockEntry<'a>) -> Result<()> {
         unimplemented!();
     }
+
     fn retrieve_copy(&self, id: StoreId) -> Result<Entry> {
         unimplemented!();
     }
+
     fn delete(&self, id: StoreId) -> Result<()> {
         unimplemented!();
     }
