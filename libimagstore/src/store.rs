@@ -23,3 +23,31 @@ pub trait Store {
 
 }
 
+pub struct FileLockEntry<'a, S: Store + 'a> {
+    store: &'a S,
+    entry: Entry
+}
+
+impl<'a, S: Store + 'a> FileLockEntry<'a, S > {
+    fn new(store: &'a S, entry: Entry) -> FileLockEntry<'a, S> {
+        FileLockEntry {
+            store: store,
+            entry: entry,
+        }
+    }
+}
+
+impl<'a, S: Store + 'a> ::std::ops::Deref for FileLockEntry<'a, S> {
+    type Target = Entry;
+
+    fn deref(&self) -> &Self::Target {
+        &self.entry
+    }
+}
+
+impl<'a, S: Store + 'a> ::std::ops::DerefMut for FileLockEntry<'a, S> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.entry
+    }
+}
+
