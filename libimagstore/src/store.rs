@@ -11,25 +11,58 @@ pub use error::StoreError;
 
 pub type Result<T> = RResult<T, StoreError>;
 
-pub trait Store : Sized {
+pub struct Store {
+    location: PathBuf,
 
-    fn location(&self) -> &PathBuf;
+    /**
+     * Internal Path->File cache map
+     *
+     * Caches the files, so they remain flock()ed
+     *
+     * Could be optimized for a threadsafe HashMap
+     */
+    cache: Arc<RwLock<HashMap<PathBuf, RwLock<File>>>>,
+}
 
-    fn create(&self, entry: Entry) -> Result<()>;
-    fn retrieve<'a>(&'a self, path: PathBuf) -> Result<FileLockEntry<'a, Self>>;
-    fn update<'a>(&'a self, entry: FileLockEntry<'a, Self>) -> Result<()>;
-    fn retrieve_copy(&self, id : String) -> Result<Entry>;
-    fn delete(&self, path: PathBuf) -> Result<()>;
+impl Store {
+
+    fn create(&self, entry: Entry) -> Result<()> {
+        unimplemented!();
+    }
+    fn retrieve<'a>(&'a self, path: PathBuf) -> Result<FileLockEntry<'a>> {
+        unimplemented!();
+    }
+    fn update<'a>(&'a self, entry: FileLockEntry<'a>) -> Result<()> {
+        unimplemented!();
+    }
+    fn retrieve_copy(&self, id : String) -> Result<Entry> {
+        unimplemented!();
+    }
+    fn delete(&self, path: PathBuf) -> Result<()> {
+        unimplemented!();
+    }
+}
+
+impl Drop for Store {
+
+    /**
+     * Unlock all files on drop
+     *
+     * TODO: Error message when file cannot be unlocked?
+     */
+    fn drop(&mut self) {
+        self.cache.iter().map(|f| f.unlock());
+    }
 
 }
 
-pub struct FileLockEntry<'a, S: Store + 'a> {
-    store: &'a S,
+pub struct FileLockEntry<'a> {
+    store: &'a Store,
     entry: Entry
 }
 
-impl<'a, S: Store + 'a> FileLockEntry<'a, S > {
-    fn new(store: &'a S, entry: Entry) -> FileLockEntry<'a, S> {
+impl<'a> FileLockEntry<'a, > {
+    fn new(store: &'a Store, entry: Entry) -> FileLockEntry<'a> {
         FileLockEntry {
             store: store,
             entry: entry,
@@ -37,7 +70,7 @@ impl<'a, S: Store + 'a> FileLockEntry<'a, S > {
     }
 }
 
-impl<'a, S: Store + 'a> ::std::ops::Deref for FileLockEntry<'a, S> {
+impl<'a> ::std::ops::Deref for FileLockEntry<'a> {
     type Target = Entry;
 
     fn deref(&self) -> &Self::Target {
@@ -45,7 +78,7 @@ impl<'a, S: Store + 'a> ::std::ops::Deref for FileLockEntry<'a, S> {
     }
 }
 
-impl<'a, S: Store + 'a> ::std::ops::DerefMut for FileLockEntry<'a, S> {
+impl<'a> ::std::ops::DerefMut for FileLockEntry<'a> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.entry
     }
