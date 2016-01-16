@@ -4,7 +4,9 @@ use std::ops::Drop;
 use std::path::PathBuf;
 use std::result::Result as RResult;
 use std::sync::Arc;
-use std::sync::RwLock;
+use std::sync::{RwLock, Mutex};
+
+use fs2::FileExt;
 
 pub use entry::Entry;
 pub use error::StoreError;
@@ -21,7 +23,7 @@ pub struct Store {
      *
      * Could be optimized for a threadsafe HashMap
      */
-    cache: Arc<RwLock<HashMap<PathBuf, RwLock<File>>>>,
+    entries: Arc<RwLock<HashMap<PathBuf, (File, Option<Entry>)>>>,
 }
 
 impl Store {
@@ -51,21 +53,24 @@ impl Drop for Store {
      * TODO: Error message when file cannot be unlocked?
      */
     fn drop(&mut self) {
-        self.cache.iter().map(|f| f.unlock());
+        self.entries.write().unwrap()
+            .iter().map(|f| (f.1).0.unlock());
     }
 
 }
 
 pub struct FileLockEntry<'a> {
     store: &'a Store,
-    entry: Entry
+    entry: Entry,
+    key: PathBuf,
 }
 
 impl<'a> FileLockEntry<'a, > {
-    fn new(store: &'a Store, entry: Entry) -> FileLockEntry<'a> {
+    fn new(store: &'a Store, entry: Entry, key: PathBuf) -> FileLockEntry<'a> {
         FileLockEntry {
             store: store,
             entry: entry,
+            key: key,
         }
     }
 }
@@ -84,3 +89,10 @@ impl<'a> ::std::ops::DerefMut for FileLockEntry<'a> {
     }
 }
 
+impl<'a> Drop for FileLockEntry<'a> {
+    fn drop(&mut self) {
+        let mut map = self.store.entries.write().unwrap();
+        let (_, ref mut en) = *map.get_mut(&self.key).unwrap();
+        *en = Some(self.entry.clone());
+    }
+}
