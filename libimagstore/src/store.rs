@@ -11,10 +11,14 @@ use fs2::FileExt;
 use entry::Entry;
 use error::StoreError;
 
+/// The Result Type returned by any interaction with the store that could fail
 pub type Result<T> = RResult<T, StoreError>;
 
+/// The Index into the Store
 pub type StoreId = PathBuf;
 
+/// This Trait allows you to convert various representations to a single one
+/// suitable for usage in the Store
 trait IntoStoreId {
     fn into_storeid(self) -> StoreId;
 }
@@ -58,26 +62,35 @@ impl<ISI: IntoStoreId> IntoStoreId for (ISI, ISI) {
     }
 }
 
+/// A store entry, depending on the option type it is either borrowed currently
+/// or not.
 struct StoreEntry {
     file: File,
     entry: Option<Entry>,
 }
 
+
 impl StoreEntry {
+    /// The entry is currently borrowed, meaning that some thread is currently
+    /// mutating it
     fn is_borrowed(&self) -> bool {
         self.entry.is_none()
     }
 
+    /// Set the entry to the given one. This will also overwrite the entry
+    /// and flush it to disk
     fn set_entry(&mut self, entry: Entry) -> Result<()> {
         self.entry = Some(entry);
         unimplemented!()
     }
 
+    /// We borrow the entry
     fn get_entry(&mut self) -> Result<Entry> {
         unimplemented!()
     }
 }
 
+/// The Store itself, through this object one can interact with IMAG's entries
 pub struct Store {
     location: PathBuf,
 
@@ -92,22 +105,29 @@ pub struct Store {
 }
 
 impl Store {
+    /// Creates the Entry at the given location (inside the entry)
     pub fn create(&self, entry: Entry) -> Result<()> {
         unimplemented!();
     }
 
+    /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
+    /// dropped, the new Entry is written to disk
     pub fn retrieve<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
         unimplemented!();
     }
 
+    /// Return the `FileLockEntry` and write to disk
     pub fn update<'a>(&'a self, entry: FileLockEntry<'a>) -> Result<()> {
         unimplemented!();
     }
 
+    /// Retrieve a copy of a given entry, this cannot be used to mutate
+    /// the one on disk
     pub fn retrieve_copy(&self, id: StoreId) -> Result<Entry> {
         unimplemented!();
     }
 
+    /// Delete an entry
     pub fn delete(&self, id: StoreId) -> Result<()> {
         unimplemented!();
     }
@@ -127,6 +147,7 @@ impl Drop for Store {
 
 }
 
+/// A struct that allows you to borrow an Entry
 pub struct FileLockEntry<'a> {
     store: &'a Store,
     entry: Entry,
