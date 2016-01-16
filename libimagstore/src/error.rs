@@ -8,7 +8,7 @@ use std::convert::From;
 
 use std::io::Error as IOError;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum StoreErrorKind {
     IdNotFound,
     OutOfMemory,
@@ -20,15 +20,6 @@ fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
         &StoreErrorKind::IdNotFound  => "ID not found",
         &StoreErrorKind::OutOfMemory => "Out of Memory",
     }
-}
-
-impl Debug for StoreErrorKind {
-
-    fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "{:?}", store_error_type_as_str(self)));
-        Ok(())
-    }
-
 }
 
 impl Display for StoreErrorKind {
