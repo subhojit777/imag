@@ -1,5 +1,6 @@
 use toml::Table;
 
+#[derive(Debug, Clone)]
 pub struct EntryHeader {
     toml: Table,
 }
