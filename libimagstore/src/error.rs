@@ -10,7 +10,6 @@ use std::io::Error as IOError;
 
 #[derive(Clone)]
 pub enum StoreErrorType {
-    Unknown,
     IdNotFound,
     OutOfMemory,
     // maybe more
@@ -28,7 +27,6 @@ impl<'a> From<&'a StoreErrorType> for String {
 
     fn from(e: &'a StoreErrorType) -> String {
         match e {
-            &StoreErrorType::Unknown     => String::from("<Unknown>"),
             &StoreErrorType::IdNotFound  => String::from("ID not found"),
             &StoreErrorType::OutOfMemory => String::from("Out of Memory"),
         }
