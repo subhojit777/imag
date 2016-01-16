@@ -47,8 +47,12 @@ script:
 
         for d in $(find -name "Cargo.toml" | grep -vE "^.$"); do
             dir=$(dirname $d)
-            changes_in $dir && travis_cargo_run_in $dir
+            changes_in $dir &&                \
+              echo -e "\nRunning in $d\n" &&  \
+              travis_cargo_run_in $dir
         done
+
+        echo -e "\nRunning on top-level crate...\n"
         travis_cargo_run_in "."
 
 addons:
