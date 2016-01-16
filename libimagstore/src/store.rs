@@ -11,13 +11,13 @@ pub use error::StoreError;
 
 pub type Result<T> = RResult<T, StoreError>;
 
-pub trait Store {
+pub trait Store : Sized {
 
     fn location(&self) -> &PathBuf;
 
     fn create(&self, entry: Entry) -> Result<()>;
-    fn retrieve(&self, path: PathBuf) -> Result<Arc<RwLock<Entry>>>;
-    fn update(&self, entry: Arc<RwLock<Entry>>) -> Result<()>;
+    fn retrieve<'a>(&'a self, path: PathBuf) -> Result<FileLockEntry<'a, Self>>;
+    fn update<'a>(&'a self, entry: FileLockEntry<'a, Self>) -> Result<()>;
     fn retrieve_copy(&self, id : String) -> Result<Entry>;
     fn delete(&self, path: PathBuf) -> Result<()>;
 

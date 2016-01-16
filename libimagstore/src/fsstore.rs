@@ -8,6 +8,7 @@ use std::sync::RwLock;
 
 pub use store::Store;
 pub use store::Result;
+pub use store::FileLockEntry;
 pub use entry::Entry;
 pub use error::StoreError;
 
@@ -44,7 +45,7 @@ impl Store for FSStore {
         unimplemented!()
     }
 
-    fn retrieve(&self, path: PathBuf) -> Result<Arc<RwLock<Entry>>> {
+    fn retrieve<'a>(&'a self, path: PathBuf) -> Result<FileLockEntry<'a, Self>> {
         unimplemented!()
     }
 
@@ -52,7 +53,7 @@ impl Store for FSStore {
         unimplemented!()
     }
 
-    fn update(&self, entry: Arc<RwLock<Entry>>) -> Result<()> {
+    fn update<'a>(&'a self, entry: FileLockEntry<'a, Self>) -> Result<()> {
         unimplemented!()
     }
 
