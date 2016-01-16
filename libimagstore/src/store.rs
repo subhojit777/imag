@@ -3,6 +3,7 @@ use std::string;
 
 pub use entry::Entry;
 pub use error::StoreError;
+pub use single_use_lock::SingleUseLock;
 
 pub type Result<T> = RResult<T, StoreError>;
 pub type LockedEntry = SingleUseLock<Entry>;
