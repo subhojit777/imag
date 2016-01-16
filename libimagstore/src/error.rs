@@ -58,37 +58,24 @@ impl Display for StoreErrorType {
 
 pub struct StoreError {
     err_type: StoreErrorType,
-    expl: Option<&'static str>,
+    expl: &'static str,
     cause: Option<Box<Error>>,
 }
 
 impl StoreError {
 
-    pub fn new() -> StoreError {
+    pub fn new(errtype: StoreErrorType, expl: &'static str, cause: Option<Box<Error>>)
+        -> StoreError
+    {
         StoreError {
-            err_type: StoreErrorType::Unknown,
-            expl:  None,
-            cause: None,
+            err_type: errtype,
+            expl:  expl,
+            cause: cause,
         }
     }
 
     pub fn err_type(&self) -> StoreErrorType {
         self.err_type.clone()
-    }
-
-    pub fn with_type(mut self, t: StoreErrorType) -> StoreError {
-        self.err_type = t;
-        self
-    }
-
-    pub fn with_expl(mut self, e: &'static str) -> StoreError {
-        self.expl = Some(e);
-        self
-    }
-
-    pub fn with_cause(mut self, e: Box<Error>) -> StoreError {
-        self.cause = Some(e);
-        self
     }
 
 }
@@ -107,9 +94,7 @@ impl Display for StoreError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
         let e : String = self.err_type.clone().into();
-        try!(write!(fmt, "[{}]: {}",
-                    e,
-                    self.expl.unwrap_or("")));
+        try!(write!(fmt, "[{}]: {}", e, self.expl));
         Ok(())
     }
 
@@ -118,7 +103,7 @@ impl Display for StoreError {
 impl Error for StoreError {
 
     fn description(&self) -> &str {
-        self.expl.unwrap_or("")
+        self.expl
     }
 
     fn cause(&self) -> Option<&Error> {
