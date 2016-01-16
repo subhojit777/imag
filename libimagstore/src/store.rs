@@ -16,7 +16,7 @@ pub trait Store {
     fn location(&self) -> &PathBuf;
 
     fn create(&self, entry: Entry) -> Result<()>;
-    fn read(&self, path: PathBuf) -> Result<Arc<RwLock<Entry>>>;
+    fn retrieve(&self, path: PathBuf) -> Result<Arc<RwLock<Entry>>>;
     fn update(&self, entry: Arc<RwLock<Entry>>) -> Result<()>;
     fn retrieve_copy(&self, id : String) -> Result<Entry>;
     fn delete(&self, path: PathBuf) -> Result<()>;

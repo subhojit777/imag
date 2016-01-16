@@ -44,7 +44,7 @@ impl Store for FSStore {
         unimplemented!()
     }
 
-    fn read(&self, path: PathBuf) -> Result<Arc<RwLock<Entry>>> {
+    fn retrieve(&self, path: PathBuf) -> Result<Arc<RwLock<Entry>>> {
         unimplemented!()
     }
 
