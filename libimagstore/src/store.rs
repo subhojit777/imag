@@ -77,16 +77,16 @@ impl Store {
     fn create(&self, entry: Entry) -> Result<()> {
         unimplemented!();
     }
-    fn retrieve<'a>(&'a self, path: StoreId) -> Result<FileLockEntry<'a>> {
+    fn retrieve<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
         unimplemented!();
     }
     fn update<'a>(&'a self, entry: FileLockEntry<'a>) -> Result<()> {
         unimplemented!();
     }
-    fn retrieve_copy(&self, path: StoreId) -> Result<Entry> {
+    fn retrieve_copy(&self, id: StoreId) -> Result<Entry> {
         unimplemented!();
     }
-    fn delete(&self, path: StoreId) -> Result<()> {
+    fn delete(&self, id: StoreId) -> Result<()> {
         unimplemented!();
     }
 }
