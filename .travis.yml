@@ -44,6 +44,11 @@ script:
         }
 
         [[ $(changes_in "doc") ]] && echo "Changes in ./doc are not build by CI"
+
+        for d in $(find -name "Cargo.toml" | grep -vE "^.$"); do
+            dir=$(dirname $d)
+            changes_in $dir && travis_cargo_run_in $dir
+        done
         travis_cargo_run_in "."
 
 addons:
