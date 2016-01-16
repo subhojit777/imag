@@ -31,6 +31,7 @@ impl Display for StoreErrorKind {
 
 }
 
+#[derive(Debug)]
 pub struct StoreError {
     err_type: StoreErrorKind,
     cause: Option<Box<Error>>,
@@ -49,16 +50,6 @@ impl StoreError {
 
     pub fn err_type(&self) -> StoreErrorKind {
         self.err_type.clone()
-    }
-
-}
-
-impl Debug for StoreError {
-
-    fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "[{:?}]: caused by: {:?}",
-                    self.err_type, self.cause));
-        Ok(())
     }
 
 }
