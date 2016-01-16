@@ -1,11 +1,10 @@
-use std::path::PathBuf;
-
 use header::EntryHeader;
 use content::EntryContent;
+use store::StoreId;
 
 #[derive(Debug, Clone)]
 pub struct Entry {
-    location: PathBuf,
+    location: StoreId,
     header: EntryHeader,
     content: EntryContent,
 }

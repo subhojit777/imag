@@ -13,6 +13,52 @@ pub use error::StoreError;
 
 pub type Result<T> = RResult<T, StoreError>;
 
+pub type StoreId = PathBuf;
+
+trait IntoStoreId {
+    fn into_storeid(self) -> StoreId;
+}
+
+impl<'a> IntoStoreId for &'a str {
+    fn into_storeid(self) -> StoreId {
+        PathBuf::from(self)
+    }
+}
+
+impl<'a> IntoStoreId for &'a String{
+    fn into_storeid(self) -> StoreId {
+        PathBuf::from(self)
+    }
+}
+
+impl IntoStoreId for String{
+    fn into_storeid(self) -> StoreId {
+        PathBuf::from(self)
+    }
+}
+
+impl IntoStoreId for PathBuf {
+    fn into_storeid(self) -> StoreId {
+        self
+    }
+}
+
+impl<'a> IntoStoreId for &'a PathBuf {
+    fn into_storeid(self) -> StoreId {
+        self.clone()
+    }
+}
+
+impl<ISI: IntoStoreId> IntoStoreId for (ISI, ISI) {
+    fn into_storeid(self) -> StoreId {
+        let (first, second) = self;
+        let mut res : StoreId = first.into_storeid();
+        res.push(second.into_storeid());
+        res
+    }
+}
+
+
 pub struct Store {
     location: PathBuf,
 
@@ -23,7 +69,7 @@ pub struct Store {
      *
      * Could be optimized for a threadsafe HashMap
      */
-    entries: Arc<RwLock<HashMap<PathBuf, (File, Option<Entry>)>>>,
+    entries: Arc<RwLock<HashMap<StoreId, (File, Option<Entry>)>>>,
 }
 
 impl Store {
@@ -31,16 +77,16 @@ impl Store {
     fn create(&self, entry: Entry) -> Result<()> {
         unimplemented!();
     }
-    fn retrieve<'a>(&'a self, path: PathBuf) -> Result<FileLockEntry<'a>> {
+    fn retrieve<'a>(&'a self, path: StoreId) -> Result<FileLockEntry<'a>> {
         unimplemented!();
     }
     fn update<'a>(&'a self, entry: FileLockEntry<'a>) -> Result<()> {
         unimplemented!();
     }
-    fn retrieve_copy(&self, path: PathBuf) -> Result<Entry> {
+    fn retrieve_copy(&self, path: StoreId) -> Result<Entry> {
         unimplemented!();
     }
-    fn delete(&self, path: PathBuf) -> Result<()> {
+    fn delete(&self, path: StoreId) -> Result<()> {
         unimplemented!();
     }
 }
@@ -62,11 +108,11 @@ impl Drop for Store {
 pub struct FileLockEntry<'a> {
     store: &'a Store,
     entry: Entry,
-    key: PathBuf,
+    key: StoreId,
 }
 
 impl<'a> FileLockEntry<'a, > {
-    fn new(store: &'a Store, entry: Entry, key: PathBuf) -> FileLockEntry<'a> {
+    fn new(store: &'a Store, entry: Entry, key: StoreId) -> FileLockEntry<'a> {
         FileLockEntry {
             store: store,
             entry: entry,
@@ -96,3 +142,27 @@ impl<'a> Drop for FileLockEntry<'a> {
         *en = Some(self.entry.clone());
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::path::PathBuf;
+    use store::{StoreId, IntoStoreId};
+
+    #[test]
+    fn into_storeid_trait() {
+        let buf = PathBuf::from("abc/def");
+
+        let test = ("abc", "def");
+        assert_eq!(buf, test.into_storeid());
+
+        let test = "abc/def";
+        assert_eq!(buf, test.into_storeid());
+
+        let test = String::from("abc/def");
+        assert_eq!(buf, test.into_storeid());
+
+        let test = PathBuf::from("abc/def");
+        assert_eq!(buf, test.into_storeid());
+    }
+}
+
