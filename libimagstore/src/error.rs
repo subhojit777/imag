@@ -15,30 +15,17 @@ pub enum StoreErrorType {
     // maybe more
 }
 
-impl From<StoreErrorType> for String {
-
-    fn from(e: StoreErrorType) -> String {
-        String::from(&e)
+fn store_error_type_as_str(e: &StoreErrorType) -> &'static str {
+    match e {
+        &StoreErrorType::IdNotFound  => "ID not found",
+        &StoreErrorType::OutOfMemory => "Out of Memory",
     }
-
-}
-
-impl<'a> From<&'a StoreErrorType> for String {
-
-    fn from(e: &'a StoreErrorType) -> String {
-        match e {
-            &StoreErrorType::IdNotFound  => String::from("ID not found"),
-            &StoreErrorType::OutOfMemory => String::from("Out of Memory"),
-        }
-    }
-
 }
 
 impl Debug for StoreErrorType {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        let s : String = self.into();
-        try!(write!(fmt, "{:?}", s));
+        try!(write!(fmt, "{:?}", store_error_type_as_str(self)));
         Ok(())
     }
 
@@ -47,8 +34,7 @@ impl Debug for StoreErrorType {
 impl Display for StoreErrorType {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        let s : String = self.into();
-        try!(write!(fmt, "{}", s));
+        try!(write!(fmt, "{}", store_error_type_as_str(self)));
         Ok(())
     }
 
@@ -91,8 +77,9 @@ impl Debug for StoreError {
 impl Display for StoreError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        let e : String = self.err_type.clone().into();
-        try!(write!(fmt, "[{}]: {}", e, self.expl));
+        try!(write!(fmt, "[{}]: {}",
+                    store_error_type_as_str(&self.err_type.clone()),
+                    self.expl));
         Ok(())
     }
 
