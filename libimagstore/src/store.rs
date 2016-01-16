@@ -58,6 +58,25 @@ impl<ISI: IntoStoreId> IntoStoreId for (ISI, ISI) {
     }
 }
 
+struct StoreEntry {
+    file: File,
+    entry: Option<Entry>,
+}
+
+impl StoreEntry {
+    fn is_borrowed(&self) -> bool {
+        self.entry.is_none()
+    }
+
+    fn set_entry(&mut self, entry: Entry) -> Result<()> {
+        self.entry = Some(entry);
+        unimplemented!()
+    }
+
+    fn get_entry(&mut self) -> Result<Entry> {
+        unimplemented!()
+    }
+}
 
 pub struct Store {
     location: PathBuf,
@@ -69,7 +88,7 @@ pub struct Store {
      *
      * Could be optimized for a threadsafe HashMap
      */
-    entries: Arc<RwLock<HashMap<StoreId, (File, Option<Entry>)>>>,
+    entries: Arc<RwLock<HashMap<StoreId, StoreEntry>>>,
 }
 
 impl Store {
@@ -103,7 +122,7 @@ impl Drop for Store {
      */
     fn drop(&mut self) {
         self.entries.write().unwrap()
-            .iter().map(|f| (f.1).0.unlock());
+            .iter().map(|f| f.1.file.unlock());
     }
 
 }
@@ -141,8 +160,7 @@ impl<'a> ::std::ops::DerefMut for FileLockEntry<'a> {
 impl<'a> Drop for FileLockEntry<'a> {
     fn drop(&mut self) {
         let mut map = self.store.entries.write().unwrap();
-        let (_, ref mut en) = *map.get_mut(&self.key).unwrap();
-        *en = Some(self.entry.clone());
+        map.get_mut(&self.key).unwrap().set_entry(self.entry.clone());
     }
 }
 
