@@ -6,6 +6,8 @@ use std::clone::Clone;
 
 #[derive(Clone, Copy, Debug)]
 pub enum StoreErrorKind {
+    FileError,
+    IdLocked,
     IdNotFound,
     OutOfMemory,
     // maybe more
@@ -13,6 +15,8 @@ pub enum StoreErrorKind {
 
 fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
     match e {
+        &StoreErrorKind::FileError   => "File Error",
+        &StoreErrorKind::IdLocked    => "ID locked",
         &StoreErrorKind::IdNotFound  => "ID not found",
         &StoreErrorKind::OutOfMemory => "Out of Memory",
     }
