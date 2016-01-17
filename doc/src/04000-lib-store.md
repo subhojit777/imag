@@ -42,6 +42,11 @@ The entry type MUST export functions to get
 - The header object
 - The path of the actual file
 
+The entry type MUST export functions to set
+
+- The header object
+- The content object
+
 ### EntryContent {#sec:libstore:types:entrycontent}
 
 The `EntryContent` type is an type-alias for `String`.
