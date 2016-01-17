@@ -54,19 +54,21 @@ pub struct Store {
 impl Store {
 
     /// Create a new Store object
-    pub fn new(location: PathBuf) -> Store {
+    pub fn new(location: PathBuf) -> Result<Store> {
         use std::fs::create_dir_all;
 
         if !location.exists() {
             create_dir_all(location.clone()).ok(); // TODO: Error handling?
+        } else {
+            if location.is_file() {
+                return Err(StoreError::new(StoreErrorKind::StorePathExists, None));
+            }
         }
 
-        // TODO: Path exists, but is a file? What now?
-
-        Store {
+        Ok(Store {
             location: location,
             entries: Arc::new(RwLock::new(HashMap::new())),
-        }
+        })
     }
 
     /// Creates the Entry at the given location (inside the entry)
