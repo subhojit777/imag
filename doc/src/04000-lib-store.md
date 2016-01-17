@@ -13,12 +13,13 @@ from the filesystem.
 
 The types in @tbl:libstore:types are exported by the library.
 
-| Type         | Meaning                                          |
-| :----------- | :----------------------------------------------- |
-| Entry        | Entity on the Filesystem, File                   |
-| EntryContent | User-Content of the Entry                        |
-| EntryHeader  | Header of the Entry                              |
-| Store        | Store interface                                  |
+| Type          | Meaning                                          |
+| :------------ | :----------------------------------------------- |
+| Entry         | Entity on the Filesystem, File                   |
+| EntryContent  | User-Content of the Entry                        |
+| EntryHeader   | Header of the Entry                              |
+| Store         | Store interface                                  |
+| FileLockEntry | Handle to an Entry                               |
 
 Table: Types the store library exports {#tbl:libstore:types}
 
