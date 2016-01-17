@@ -151,13 +151,13 @@ impl Store {
         let mut entries = entries_lock.unwrap();
 
         // if the entry is currently modified by the user, we cannot drop it
-        if entries.get(&id).map( |e| e.is_borrowed() ).unwrap_or(false) {
+        if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
             return Err(StoreError::new(StoreErrorKind::IdLocked, None));
         }
 
         // remove the entry first, then the file
         entries.remove(&id);
-        remove_file(&id).map_err( |e| { StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))) } )
+        remove_file(&id).map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))))
     }
 }
 
