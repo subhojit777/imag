@@ -83,7 +83,14 @@ impl Store {
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
     /// dropped, the new Entry is written to disk
     pub fn retrieve<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
-        unimplemented!();
+        let hsmap = self.entries.write();
+        if hsmap.is_err() {
+            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
+        }
+        hsmap.unwrap().get_mut(&id)
+            .ok_or(StoreError::new(StoreErrorKind::IdNotFound, None))
+            .and_then(|store_entry| store_entry.get_entry())
+            .and_then(|entry| Ok(FileLockEntry::new(self, entry, id)))
     }
 
     /// Return the `FileLockEntry` and write to disk

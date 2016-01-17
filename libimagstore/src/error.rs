@@ -17,6 +17,7 @@ pub enum StoreErrorKind {
     FileNotCreated,
     StorePathExists,
     StorePathCreate,
+    LockPoisoned,
     // maybe more
 }
 
@@ -30,6 +31,8 @@ fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
         &StoreErrorKind::FileNotCreated  => "File corresponding to ID could not be created",
         &StoreErrorKind::StorePathExists => "Store path exists",
         &StoreErrorKind::StorePathCreate => "Store path create",
+        &StoreErrorKind::LockPoisoned
+            => "The internal Store Lock has been poisoned",
     }
 }
 
