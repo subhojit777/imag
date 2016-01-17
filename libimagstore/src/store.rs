@@ -62,11 +62,17 @@ impl<ISI: IntoStoreId> IntoStoreId for (ISI, ISI) {
     }
 }
 
+#[derive(PartialEq)]
+enum StoreEntryPresence {
+    Present,
+    Borrowed
+}
+
 /// A store entry, depending on the option type it is either borrowed currently
 /// or not.
 struct StoreEntry {
     file: File,
-    entry: Option<Entry>,
+    entry: StoreEntryPresence
 }
 
 
@@ -74,18 +80,21 @@ impl StoreEntry {
     /// The entry is currently borrowed, meaning that some thread is currently
     /// mutating it
     fn is_borrowed(&self) -> bool {
-        self.entry.is_none()
+        self.entry == StoreEntryPresence::Borrowed
     }
 
-    /// Set the entry to the given one. This will also overwrite the entry
-    /// and flush it to disk
+    /// Flush the entry to disk
     fn set_entry(&mut self, entry: Entry) -> Result<()> {
-        self.entry = Some(entry);
         unimplemented!()
     }
 
     /// We borrow the entry
     fn get_entry(&mut self) -> Result<Entry> {
+        unimplemented!()
+    }
+
+    /// We copy the entry
+    fn copy_entry(&mut self) -> Result<Entry> {
         unimplemented!()
     }
 }
@@ -118,6 +127,15 @@ impl Store {
 
     /// Return the `FileLockEntry` and write to disk
     pub fn update<'a>(&'a self, entry: FileLockEntry<'a>) -> Result<()> {
+        self._update(&entry)
+    }
+
+    /// Internal method to write to the filesystem store.
+    ///
+    /// # Assumptions
+    /// This method assumes that entry is dropped _right after_ the call, hence
+    /// it is not public.
+    fn _update<'a>(&'a self, entry: &FileLockEntry<'a>) -> Result<()> {
         unimplemented!();
     }
 
@@ -180,8 +198,7 @@ impl<'a> ::std::ops::DerefMut for FileLockEntry<'a> {
 
 impl<'a> Drop for FileLockEntry<'a> {
     fn drop(&mut self) {
-        let mut map = self.store.entries.write().unwrap();
-        map.get_mut(&self.key).unwrap().set_entry(self.entry.clone());
+        self.store._update(self).unwrap()
     }
 }
 
