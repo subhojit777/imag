@@ -68,9 +68,3 @@ It also MUST contain a getter for this variable.
 It MUST NOT contain a setter for this variable, as changing the store while the
 programm is running is not allowed.
 
-The `Store` object MAY contain caching functionality.
-If the `Store` type contains caching functionality for filesystem operations,
-the interface MUST NOT differ from the non-caching interface.
-If the `Store` type contains caching functionality, these functionality MUST NOT
-BE visible to the user of the library.
-
