@@ -55,6 +55,14 @@ impl Store {
 
     /// Create a new Store object
     pub fn new(location: PathBuf) -> Store {
+        use std::fs::create_dir_all;
+
+        if !location.exists() {
+            create_dir_all(location.clone()).ok(); // TODO: Error handling?
+        }
+
+        // TODO: Path exists, but is a file? What now?
+
         Store {
             location: location,
             entries: Arc::new(RwLock::new(HashMap::new())),
