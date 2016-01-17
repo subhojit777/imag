@@ -10,6 +10,7 @@ use std::io::Error as IOError;
 
 #[derive(Clone, Copy, Debug)]
 pub enum StoreErrorKind {
+    IdLocked,
     IdNotFound,
     OutOfMemory,
     // maybe more
@@ -17,6 +18,7 @@ pub enum StoreErrorKind {
 
 fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
     match e {
+        &StoreErrorKind::IdLocked    => "ID locked",
         &StoreErrorKind::IdNotFound  => "ID not found",
         &StoreErrorKind::OutOfMemory => "Out of Memory",
     }
