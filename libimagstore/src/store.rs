@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fs::File;
+use std::fs::{File, remove_file};
 use std::ops::Drop;
 use std::path::PathBuf;
 use std::result::Result as RResult;
@@ -9,7 +9,7 @@ use std::sync::{RwLock, Mutex};
 use fs2::FileExt;
 
 use entry::Entry;
-use error::StoreError;
+use error::{StoreError, StoreErrorKind};
 
 /// The Result Type returned by any interaction with the store that could fail
 pub type Result<T> = RResult<T, StoreError>;
@@ -147,7 +147,17 @@ impl Store {
 
     /// Delete an entry
     pub fn delete(&self, id: StoreId) -> Result<()> {
-        unimplemented!();
+        let mut entries_lock = self.entries.write();
+        let mut entries = entries_lock.unwrap();
+
+        // if the entry is currently modified by the user, we cannot drop it
+        if entries.get(&id).map( |e| e.is_borrowed() ).unwrap_or(false) {
+            return Err(StoreError::new(StoreErrorKind::IdLocked, None));
+        }
+
+        // remove the entry first, then the file
+        entries.remove(&id);
+        remove_file(&id).map_err( |e| { StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))) } )
     }
 }
 
