@@ -114,6 +114,15 @@ pub struct Store {
 }
 
 impl Store {
+
+    /// Create a new Store object
+    pub fn new(location: PathBuf) -> Store {
+        Store {
+            location: location,
+            entries: Arc::new(RwLock::new(HashMap::new())),
+        }
+    }
+
     /// Creates the Entry at the given location (inside the entry)
     pub fn create(&self, entry: Entry) -> Result<()> {
         unimplemented!();
