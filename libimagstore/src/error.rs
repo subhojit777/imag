@@ -1,12 +1,8 @@
 use std::error::Error;
-use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Error as FmtError;
 use std::clone::Clone;
-use std::convert::From;
-
-use std::io::Error as IOError;
 
 #[derive(Clone, Copy, Debug)]
 pub enum StoreErrorKind {

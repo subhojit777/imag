@@ -4,7 +4,7 @@ use std::ops::Drop;
 use std::path::PathBuf;
 use std::result::Result as RResult;
 use std::sync::Arc;
-use std::sync::{RwLock, Mutex};
+use std::sync::RwLock;
 
 use fs2::FileExt;
 
