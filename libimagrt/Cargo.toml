@@ -11,3 +11,6 @@ log = "0.3.4"
 [dependencies.libimagstore]
 path = "../libimagstore"
 
+[dependencies.libimagutil]
+path = "../libimagutil"
+
