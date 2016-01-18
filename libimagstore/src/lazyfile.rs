@@ -105,14 +105,23 @@ mod test {
         let dir = get_dir();
         let mut path = PathBuf::from(dir.path());
         path.set_file_name("test2");
-        let mut lf = LazyFile::new(path);
-        let mut file = lf.create_file().unwrap();
 
-        file.write(b"Hello World").unwrap();
-        file.sync_all().unwrap();
-        let mut s = Vec::new();
-        file.read_to_end(&mut s).unwrap();
-        assert_eq!(s, "Hello World".to_string().into_bytes());
+        {
+            let mut lf = LazyFile::new(path.clone());
+            let mut file = lf.create_file().unwrap();
+
+            file.write(b"Hello World").unwrap();
+            file.sync_all().unwrap();
+        }
+
+        {
+            let mut lf = LazyFile::new(path);
+            let mut file = lf.create_file().unwrap();
+
+            let mut s = Vec::new();
+            file.read_to_end(&mut s).unwrap();
+            assert_eq!(s, "Hello World".to_string().into_bytes());
+        }
 
         dir.close().unwrap();
     }
