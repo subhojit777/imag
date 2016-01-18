@@ -16,6 +16,7 @@ pub enum StoreErrorKind {
     FileNotFound,
     FileNotCreated,
     StorePathExists,
+    StorePathCreate,
     // maybe more
 }
 
@@ -28,6 +29,7 @@ fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
         &StoreErrorKind::FileNotFound    => "File corresponding to ID not found",
         &StoreErrorKind::FileNotCreated  => "File corresponding to ID could not be created",
         &StoreErrorKind::StorePathExists => "Store path exists",
+        &StoreErrorKind::StorePathCreate => "Store path create",
     }
 }
 
