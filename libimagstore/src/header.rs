@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::result::Result as RResult;
 
-use toml::Table;
+use toml::{Table, Value};
 
 pub mod error {
     use std::fmt::{Debug, Display, Formatter};
@@ -13,6 +13,7 @@ pub mod error {
     pub enum ParserErrorKind {
         TOMLParserErrors,
         MissingMainSection,
+        MissingVersionInfo,
     }
 
     pub struct ParserError {
@@ -53,8 +54,9 @@ pub mod error {
 
         fn description(&self) -> &str {
             match self.kind {
-                ParserErrorKind::MissingMainSection => "Missing main section",
                 ParserErrorKind::TOMLParserErrors   => "Several TOML-Parser-Errors",
+                ParserErrorKind::MissingMainSection => "Missing main section",
+                ParserErrorKind::MissingVersionInfo => "Missing version information in main section",
             }
         }
 
@@ -110,7 +112,42 @@ impl EntryHeader {
         let mut parser = Parser::new(s);
         parser.parse()
             .ok_or(ParserError::new(ParserErrorKind::TOMLParserErrors, None))
+            .and_then(|table| {
+                if !has_main_section(&table) {
+                    Err(ParserError::new(ParserErrorKind::MissingMainSection, None))
+                } else if !has_imag_version_in_main_section(&table) {
+                    Err(ParserError::new(ParserErrorKind::MissingVersionInfo, None))
+                } else {
+                    Ok(table)
+                }
+            })
             .map(|table| EntryHeader::new(table))
     }
 
 }
+
+fn has_main_section(t: &Table) -> bool {
+    t.contains_key("imag") &&
+        match t.get("imag") {
+            Some(&Value::Table(_)) => true,
+            Some(_)                => false,
+            None                   => false,
+        }
+}
+
+fn has_imag_version_in_main_section(t: &Table) -> bool {
+    match t.get("imag").unwrap() {
+        &Value::Table(ref sec) => {
+            sec.get("version")
+                .and_then(|v| {
+                    match v {
+                        &Value::String(_) => Some(true),
+                        _                 => Some(false),
+                    }
+                })
+                .unwrap_or(false)
+        }
+        _                  => false,
+    }
+}
+
