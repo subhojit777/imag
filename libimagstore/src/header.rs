@@ -112,18 +112,20 @@ impl EntryHeader {
         let mut parser = Parser::new(s);
         parser.parse()
             .ok_or(ParserError::new(ParserErrorKind::TOMLParserErrors, None))
-            .and_then(|table| {
-                if !has_main_section(&table) {
-                    Err(ParserError::new(ParserErrorKind::MissingMainSection, None))
-                } else if !has_imag_version_in_main_section(&table) {
-                    Err(ParserError::new(ParserErrorKind::MissingVersionInfo, None))
-                } else {
-                    Ok(table)
-                }
-            })
-            .map(|table| EntryHeader::new(table))
+            .and_then(|t| verify_header_consistency(t))
+            .map(|t| EntryHeader::new(t))
     }
 
+}
+
+fn verify_header_consistency(t: Table) -> Result<Table> {
+    if !has_main_section(&t) {
+        Err(ParserError::new(ParserErrorKind::MissingMainSection, None))
+    } else if !has_imag_version_in_main_section(&t) {
+        Err(ParserError::new(ParserErrorKind::MissingVersionInfo, None))
+    } else {
+        Ok(t)
+    }
 }
 
 fn has_main_section(t: &Table) -> bool {
