@@ -151,3 +151,76 @@ fn has_imag_version_in_main_section(t: &Table) -> bool {
     }
 }
 
+
+#[cfg(test)]
+mod test {
+    use std::collections::BTreeMap;
+
+    use toml::Value;
+
+    #[test]
+    fn test_imag_section() {
+        use super::has_main_section;
+
+        let mut map = BTreeMap::new();
+        map.insert("imag".into(), Value::Table(BTreeMap::new()));
+
+        assert!(has_main_section(&map));
+    }
+
+    #[test]
+    fn test_imag_invalid_section_type() {
+        use super::has_main_section;
+
+        let mut map = BTreeMap::new();
+        map.insert("imag".into(), Value::Boolean(false));
+
+        assert!(!has_main_section(&map));
+    }
+
+    #[test]
+    fn test_imag_abscent_main_section() {
+        use super::has_main_section;
+
+        let mut map = BTreeMap::new();
+        map.insert("not_imag".into(), Value::Boolean(false));
+
+        assert!(!has_main_section(&map));
+    }
+
+    #[test]
+    fn test_main_section_without_version() {
+        use super::has_imag_version_in_main_section;
+
+        let mut map = BTreeMap::new();
+        map.insert("imag".into(), Value::Table(BTreeMap::new()));
+
+        assert!(!has_imag_version_in_main_section(&map));
+    }
+
+    #[test]
+    fn test_main_section_with_version() {
+        use super::has_imag_version_in_main_section;
+
+        let mut map = BTreeMap::new();
+        let mut sub = BTreeMap::new();
+        sub.insert("version".into(), Value::String("0.0.0".into()));
+        map.insert("imag".into(), Value::Table(sub));
+
+        assert!(has_imag_version_in_main_section(&map));
+    }
+
+    #[test]
+    fn test_main_section_with_version_in_wrong_type() {
+        use super::has_imag_version_in_main_section;
+
+        let mut map = BTreeMap::new();
+        let mut sub = BTreeMap::new();
+        sub.insert("version".into(), Value::Boolean(false));
+        map.insert("imag".into(), Value::Table(sub));
+
+        assert!(!has_imag_version_in_main_section(&map));
+    }
+
+}
+
