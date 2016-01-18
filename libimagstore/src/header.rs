@@ -138,12 +138,16 @@ fn has_main_section(t: &Table) -> bool {
 }
 
 fn has_imag_version_in_main_section(t: &Table) -> bool {
+    use regex::Regex;
+
     match t.get("imag").unwrap() {
         &Value::Table(ref sec) => {
             sec.get("version")
                 .and_then(|v| {
                     match v {
-                        &Value::String(_) => Some(true),
+                        &Value::String(ref s) => {
+                            Some(Regex::new(r"^\d{1}\.\d{1}\.\d{1}(.*)").unwrap().is_match(&s[..]))
+                        },
                         _                 => Some(false),
                     }
                 })
