@@ -1,5 +1,6 @@
 
 use error::{StoreError, StoreErrorKind};
+use std::io::{Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::fs::{File, OpenOptions};
 
@@ -25,26 +26,22 @@ impl LazyFile {
     }
 
     pub fn get_file(&mut self) -> Result<&File, StoreError> {
-        let file = match *self {
-            LazyFile::File(ref f) => return Ok(f),
-            LazyFile::Absent(ref p) => {
-                try!(open_file(p).map_err(|e| {
-                    StoreError::new(StoreErrorKind::FileNotFound,
-                                    Some(Box::new(e)))
-                }))
-
-            }
-        };
-        *self = LazyFile::File(file);
-        if let LazyFile::File(ref f) = *self {
-            return Ok(f);
+        match self.get_file_mut() {
+            Ok(file) => Ok(&*file),
+            Err(e) => Err(e)
         }
-        unreachable!()
     }
 
     pub fn get_file_mut(&mut self) -> Result<&mut File, StoreError> {
         let file = match *self {
-            LazyFile::File(ref mut f) => return Ok(f),
+            LazyFile::File(ref mut f) => return {
+                // We seek to the beginning of the file since we expect each
+                // access to the file to be in a different context
+                f.seek(SeekFrom::Start(0)).map_err(|e|
+                    StoreError::new(
+                        StoreErrorKind::FileNotCreated, Some(Box::new(e))));
+                Ok(f)
+            },
             LazyFile::Absent(ref p) => {
                 try!(open_file(p).map_err(|e| {
                     StoreError::new(StoreErrorKind::FileNotFound,
@@ -80,7 +77,7 @@ impl LazyFile {
 #[cfg(test)]
 mod test {
     use super::LazyFile;
-    use std::io::{Read, Write};
+    use std::io::{Read, Write, Seek, SeekFrom};
     use std::path::PathBuf;
     use std::fs::File;
     use tempdir::TempDir;
@@ -105,9 +102,9 @@ mod test {
         let dir = get_dir();
         let mut path = PathBuf::from(dir.path());
         path.set_file_name("test2");
+        let mut lf = LazyFile::new(path.clone());
 
         {
-            let mut lf = LazyFile::new(path.clone());
             let mut file = lf.create_file().unwrap();
 
             file.write(b"Hello World").unwrap();
@@ -115,9 +112,7 @@ mod test {
         }
 
         {
-            let mut lf = LazyFile::new(path);
-            let mut file = lf.create_file().unwrap();
-
+            let mut file = lf.get_file().unwrap();
             let mut s = Vec::new();
             file.read_to_end(&mut s).unwrap();
             assert_eq!(s, "Hello World".to_string().into_bytes());
