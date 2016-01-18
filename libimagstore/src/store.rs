@@ -58,7 +58,11 @@ impl Store {
         use std::fs::create_dir_all;
 
         if !location.exists() {
-            create_dir_all(location.clone()).ok(); // TODO: Error handling?
+            let c = create_dir_all(location.clone());
+            if c.is_err() {
+                return Err(StoreError::new(StoreErrorKind::StorePathCreate,
+                                           Some(Box::new(c.err().unwrap()))));
+            }
         } else {
             if location.is_file() {
                 return Err(StoreError::new(StoreErrorKind::StorePathExists, None));
