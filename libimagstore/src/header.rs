@@ -241,5 +241,22 @@ mod test {
         assert!(verify_header_consistency(header).is_ok());
     }
 
+    #[test]
+    fn test_verification_invalid_versionstring() {
+        use super::verify_header_consistency;
+
+        let mut header = BTreeMap::new();
+        let sub = {
+            let mut sub = BTreeMap::new();
+            sub.insert("version".into(), Value::String(String::from("000")));
+
+            Value::Table(sub)
+        };
+
+        header.insert("imag".into(), sub);
+
+        assert!(!verify_header_consistency(header).is_ok());
+    }
+
 }
 
