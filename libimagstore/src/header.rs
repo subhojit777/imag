@@ -138,7 +138,7 @@ fn has_main_section(t: &Table) -> bool {
 }
 
 fn has_imag_version_in_main_section(t: &Table) -> bool {
-    use regex::Regex;
+    use semver::Version;
 
     match t.get("imag").unwrap() {
         &Value::Table(ref sec) => {
@@ -146,7 +146,7 @@ fn has_imag_version_in_main_section(t: &Table) -> bool {
                 .and_then(|v| {
                     match v {
                         &Value::String(ref s) => {
-                            Some(Regex::new(r"^\d{1}\.\d{1}\.\d{1}(.*)").unwrap().is_match(&s[..]))
+                            Some(Version::parse(&s[..]).is_ok())
                         },
                         _                 => Some(false),
                     }
