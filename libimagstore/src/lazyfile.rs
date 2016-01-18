@@ -83,25 +83,37 @@ mod test {
     use std::io::{Read, Write};
     use std::path::PathBuf;
     use std::fs::File;
+    use tempdir::TempDir;
+
+    fn get_dir() -> TempDir {
+        TempDir::new("test-image").unwrap()
+    }
 
     #[test]
     fn lazy_file() {
-        let path = PathBuf::from("/tmp/test");
+        let dir = get_dir();
+        let mut path = PathBuf::from(dir.path());
+        path.set_file_name("test1");
         let mut lf = LazyFile::new(path);
 
         write!(lf.create_file().unwrap(), "Hello World").unwrap();
+        dir.close().unwrap();
     }
 
     #[test]
     fn lazy_file_with_file() {
-        let path = PathBuf::from("/tmp/test2");
-        let mut lf = LazyFile::new_with_file(File::create(path).unwrap());
-        let mut file = lf.get_file_mut().unwrap();
+        let dir = get_dir();
+        let mut path = PathBuf::from(dir.path());
+        path.set_file_name("test2");
+        let mut lf = LazyFile::new(path);
+        let mut file = lf.create_file().unwrap();
 
-        write!(file, "Hello World").unwrap();
+        file.write(b"Hello World").unwrap();
         file.sync_all().unwrap();
-        let mut s = String::new();
-        file.read_to_string(&mut s).unwrap();
-        assert_eq!(s, "Hello World");
+        let mut s = Vec::new();
+        file.read_to_end(&mut s).unwrap();
+        assert_eq!(s, "Hello World".to_string().into_bytes());
+
+        dir.close().unwrap();
     }
 }
