@@ -1,6 +1,6 @@
 use header::EntryHeader;
 use content::EntryContent;
-use store::StoreId;
+use storeid::StoreId;
 
 /**
  * An Entry of the store

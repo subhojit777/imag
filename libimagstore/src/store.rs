@@ -10,57 +10,10 @@ use fs2::FileExt;
 
 use entry::Entry;
 use error::{StoreError, StoreErrorKind};
+use storeid::StoreId;
 
 /// The Result Type returned by any interaction with the store that could fail
 pub type Result<T> = RResult<T, StoreError>;
-
-/// The Index into the Store
-pub type StoreId = PathBuf;
-
-/// This Trait allows you to convert various representations to a single one
-/// suitable for usage in the Store
-trait IntoStoreId {
-    fn into_storeid(self) -> StoreId;
-}
-
-impl<'a> IntoStoreId for &'a str {
-    fn into_storeid(self) -> StoreId {
-        PathBuf::from(self)
-    }
-}
-
-impl<'a> IntoStoreId for &'a String{
-    fn into_storeid(self) -> StoreId {
-        PathBuf::from(self)
-    }
-}
-
-impl IntoStoreId for String{
-    fn into_storeid(self) -> StoreId {
-        PathBuf::from(self)
-    }
-}
-
-impl IntoStoreId for PathBuf {
-    fn into_storeid(self) -> StoreId {
-        self
-    }
-}
-
-impl<'a> IntoStoreId for &'a PathBuf {
-    fn into_storeid(self) -> StoreId {
-        self.clone()
-    }
-}
-
-impl<ISI: IntoStoreId> IntoStoreId for (ISI, ISI) {
-    fn into_storeid(self) -> StoreId {
-        let (first, second) = self;
-        let mut res : StoreId = first.into_storeid();
-        res.push(second.into_storeid());
-        res
-    }
-}
 
 #[derive(PartialEq)]
 enum StoreEntryPresence {
@@ -220,27 +173,3 @@ impl<'a> Drop for FileLockEntry<'a> {
         self.store._update(self).unwrap()
     }
 }
-
-#[cfg(test)]
-mod test {
-    use std::path::PathBuf;
-    use store::{StoreId, IntoStoreId};
-
-    #[test]
-    fn into_storeid_trait() {
-        let buf = PathBuf::from("abc/def");
-
-        let test = ("abc", "def");
-        assert_eq!(buf, test.into_storeid());
-
-        let test = "abc/def";
-        assert_eq!(buf, test.into_storeid());
-
-        let test = String::from("abc/def");
-        assert_eq!(buf, test.into_storeid());
-
-        let test = PathBuf::from("abc/def");
-        assert_eq!(buf, test.into_storeid());
-    }
-}
-
