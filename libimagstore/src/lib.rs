@@ -1,3 +1,4 @@
+#[macro_use] extern crate version;
 extern crate fs2;
 extern crate regex;
 extern crate toml;
