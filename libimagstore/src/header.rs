@@ -262,5 +262,24 @@ mod test {
         assert!(!verify_header_consistency(header).is_ok());
     }
 
+
+    #[test]
+    fn test_verification_current_version() {
+        use version;
+
+        use super::verify_header_consistency;
+
+        let mut header = BTreeMap::new();
+        let sub = {
+            let mut sub = BTreeMap::new();
+            sub.insert("version".into(), Value::String(version!()));
+
+            Value::Table(sub)
+        };
+
+        header.insert("imag".into(), sub);
+
+        assert!(verify_header_consistency(header).is_ok());
+    }
 }
 
