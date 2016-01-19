@@ -74,6 +74,7 @@ use self::error::{ConfigError, ConfigErrorKind};
 
 pub type Result<T> = RResult<T, ConfigError>;
 
+#[derive(Debug)]
 pub struct Configuration {
     verbosity: bool,
     editor: Option<String>,
@@ -140,15 +141,6 @@ fn fetch_config(rtp: &PathBuf) -> Result<Config> {
         .nth(0)
         .map(|inner| inner.unwrap())
         .ok_or(ConfigError::new(ConfigErrorKind::NoConfigFileFound, None))
-}
-
-impl Debug for Configuration {
-
-    fn fmt(&self, f: &mut Formatter) -> RResult<(), Error> {
-        try!(write!(f, "Configuration (verbose: {})", self.verbosity));
-        Ok(())
-    }
-
 }
 
 impl Default for Configuration {
