@@ -17,6 +17,14 @@ impl<K, V> KeyValue<K, V> {
         KeyValue { k: k, v: v }
     }
 
+    pub fn key(&self) -> &K {
+        &self.k
+    }
+
+    pub fn value(&self) -> &V {
+        &self.v
+    }
+
 }
 
 impl<K, V> Into<(K, V)> for KeyValue<K, V> {
