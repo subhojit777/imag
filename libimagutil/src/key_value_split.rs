@@ -51,36 +51,34 @@ impl IntoKeyValue<String, String> for String {
 
 #[cfg(test)]
 mod test {
-    use super::split_into_key_value;
+    use super::{KeyValue, IntoKeyValue};
 
     #[test]
     fn test_single_quoted() {
-        let s = String::from("foo='bar'");
-        assert_eq!(Some((String::from("foo"), String::from("bar"))), split_into_key_value(s));
+        let s = String::from("foo='bar'").into_kv().unwrap();
+        assert_eq!(KeyValue::new(String::from("foo"), String::from("bar")), s);
     }
 
     #[test]
     fn test_double_quoted() {
-        let s = String::from("foo=\"bar\"");
-        assert_eq!(Some((String::from("foo"), String::from("bar"))), split_into_key_value(s));
+        let s = String::from("foo=\"bar\"").into_kv().unwrap();
+        assert_eq!(KeyValue::new(String::from("foo"), String::from("bar")), s);
     }
 
     #[test]
     fn test_double_and_single_quoted() {
-        let s = String::from("foo=\"bar\'");
-        assert!(split_into_key_value(s).is_none());
+        assert!(String::from("foo=\"bar\'").into_kv().is_none());
     }
 
     #[test]
     fn test_single_and_double_quoted() {
-        let s = String::from("foo=\'bar\"");
-        assert!(split_into_key_value(s).is_none());
+        assert!(String::from("foo=\'bar\"").into_kv().is_none());
     }
 
     #[test]
     fn test_not_quoted() {
-        let s = String::from("foo=bar");
-        assert_eq!(Some((String::from("foo"), String::from("bar"))), split_into_key_value(s));
+        let s = String::from("foo=bar").into_kv().unwrap();
+        assert_eq!(KeyValue::new(String::from("foo"), String::from("bar")), s);
     }
 
 }
