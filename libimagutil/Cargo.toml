@@ -2,3 +2,7 @@
 name = "libimagutil"
 version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+regex = "0.1.47"
+
