@@ -2,3 +2,17 @@
 name = "libimagrt"
 version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+clap = "1.5.5"
+config = "0.1.3"
+log = "0.3.4"
+xdg-basedir = "0.2.2"
+itertools = "0.4.6"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
