@@ -47,7 +47,17 @@ impl<'a> Runtime<'a> {
     }
 
     /**
-     * appname should be "imag-foo"
+     * Get a commandline-interface builder object from `clap`
+     *
+     * This commandline interface builder object already contains some predefined interface flags:
+     *   * -v | --verbose for verbosity
+     *   * --debug for debugging
+     *   * -c <file> | --config <file> for alternative configuration file
+     *   * -r <path> | --rtp <path> for alternative runtimepath
+     *   * --store <path> for alternative store path
+     * Each has the appropriate help text included.
+     *
+     * The `appname` shall be "imag-<command>".
      */
     pub fn get_default_cli_builder(appname: &'a str,
                                    version: &'a str,
@@ -92,6 +102,9 @@ impl<'a> Runtime<'a> {
                 .takes_value(true))
     }
 
+    /**
+     * Initialize the internal logger
+     */
     pub fn init_logger(&self) {
         let lvl = if self.is_debugging() {
             LogLevelFilter::Debug
@@ -112,22 +125,37 @@ impl<'a> Runtime<'a> {
         .ok();
     }
 
+    /**
+     * Get the verbosity flag value
+     */
     pub fn is_verbose(&self) -> bool {
         self.cli_matches.is_present("verbosity")
     }
 
+    /**
+     * Get the debugging flag value
+     */
     pub fn is_debugging(&self) -> bool {
         self.cli_matches.is_present("debugging")
     }
 
+    /**
+     * Get the runtimepath
+     */
     pub fn rtp(&self) -> &PathBuf {
         &self.rtp
     }
 
+    /**
+     * Get the commandline interface matches
+     */
     pub fn cli(&self) -> &ArgMatches {
         &self.cli_matches
     }
 
+    /**
+     * Get the store object
+     */
     pub fn store(&self) -> &Store {
         &self.store
     }
