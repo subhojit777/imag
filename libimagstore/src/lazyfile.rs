@@ -4,6 +4,11 @@ use std::io::{Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::fs::{File, OpenOptions};
 
+/**
+ * LazyFile type
+ *
+ * A lazy file is either absent, but a path to it is available, or it is present.
+ */
 pub enum LazyFile {
     Absent(PathBuf),
     File(File)
@@ -18,13 +23,24 @@ fn create_file<A: AsRef<Path>>(p: A) -> ::std::io::Result<File> {
 }
 
 impl LazyFile {
+
+    /**
+     * Create a new LazyFile instance from a Path
+     */
     pub fn new(p: PathBuf) -> LazyFile {
         LazyFile::Absent(p)
     }
+
+    /**
+     * Create a new LazyFile instance from an already existing file
+     */
     pub fn new_with_file(f: File) -> LazyFile {
         LazyFile::File(f)
     }
 
+    /**
+     * Get the file behind a LazyFile object
+     */
     pub fn get_file(&mut self) -> Result<&File, StoreError> {
         match self.get_file_mut() {
             Ok(file) => Ok(&*file),
@@ -32,6 +48,9 @@ impl LazyFile {
         }
     }
 
+    /**
+     * Get the mutable file behind a LazyFile object
+     */
     pub fn get_file_mut(&mut self) -> Result<&mut File, StoreError> {
         let file = match *self {
             LazyFile::File(ref mut f) => return {
@@ -56,6 +75,9 @@ impl LazyFile {
         unreachable!()
     }
 
+    /**
+     * Create a file out of this LazyFile object
+     */
     pub fn create_file(&mut self) -> Result<&mut File, StoreError> {
         let file = match *self {
             LazyFile::File(ref mut f) => return Ok(f),
