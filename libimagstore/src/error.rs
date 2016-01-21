@@ -10,6 +10,8 @@ pub enum StoreErrorKind {
     IdLocked,
     IdNotFound,
     OutOfMemory,
+    FileNotFound,
+    FileNotCreated,
     // maybe more
 }
 
@@ -19,6 +21,8 @@ fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
         &StoreErrorKind::IdLocked    => "ID locked",
         &StoreErrorKind::IdNotFound  => "ID not found",
         &StoreErrorKind::OutOfMemory => "Out of Memory",
+        &StoreErrorKind::FileNotFound => "File corresponding to ID not found",
+        &StoreErrorKind::FileNotCreated => "File corresponding to ID could not be created",
     }
 }
 
