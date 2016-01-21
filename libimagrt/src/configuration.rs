@@ -6,11 +6,17 @@ use std::result::Result as RResult;
 pub use config::types::Config;
 pub use config::reader::from_file;
 
+/**
+ * Errors which are related to configuration-file loading
+ */
 pub mod error {
     use std::error::Error;
     use std::fmt::{Debug, Display, Formatter};
     use std::fmt::Error as FmtError;
 
+    /**
+     * The kind of an error
+     */
     #[derive(Clone, Debug, PartialEq)]
     pub enum ConfigErrorKind {
         ConfigNotFound,
@@ -18,6 +24,9 @@ pub mod error {
         NoConfigFileFound,
     }
 
+    /**
+     * Configuration error type
+     */
     #[derive(Debug)]
     pub struct ConfigError {
         kind: ConfigErrorKind,
@@ -26,6 +35,9 @@ pub mod error {
 
     impl ConfigError {
 
+        /**
+         * Instantiate a new ConfigError, optionally with cause
+         */
         pub fn new(kind: ConfigErrorKind, cause: Option<Box<Error>>) -> ConfigError {
             ConfigError {
                 kind: kind,
@@ -33,10 +45,16 @@ pub mod error {
             }
         }
 
+        /**
+         * get the Kind of the Error
+         */
         pub fn kind(&self) -> ConfigErrorKind {
             self.kind.clone()
         }
 
+        /**
+         * Get the string, the ConfigError can be described with
+         */
         pub fn as_str(e: &ConfigError) -> &'static str {
             match e.kind() {
                 ConfigErrorKind::ConfigNotFound      => "Config not found",
@@ -72,17 +90,48 @@ pub mod error {
 
 use self::error::{ConfigError, ConfigErrorKind};
 
+
+/**
+ * Result type of this module. Either T or ConfigError
+ */
 pub type Result<T> = RResult<T, ConfigError>;
 
+/**
+ * Configuration object
+ *
+ * Holds all config variables which are globally available plus the configuration object from the
+ * config parser, which can be accessed.
+ */
 #[derive(Debug)]
 pub struct Configuration {
+
+    /**
+     * The verbosity the program should run with
+     */
     verbosity: bool,
+
+    /**
+     * The editor which should be used
+     */
     editor: Option<String>,
+
+    /**
+     * The options the editor should get when opening some file
+     */
     editor_opts: String,
 }
 
 impl Configuration {
 
+    /**
+     * Get a new configuration object.
+     *
+     * The passed runtimepath is used for searching the configuration file, whereas several file
+     * names are tested. If that does not work, the home directory and the XDG basedir are tested
+     * with all variants.
+     *
+     * If that doesn't work either, an error is returned.
+     */
     pub fn new(rtp: &PathBuf) -> Result<Configuration> {
         fetch_config(&rtp).map(|cfg| {
             let verbosity   = cfg.lookup_boolean("verbosity").unwrap_or(false);
@@ -104,6 +153,11 @@ impl Configuration {
 
 }
 
+/**
+ * Helper to fetch the config file
+ *
+ * Tests several variants for the config file path and uses the first one which works.
+ */
 fn fetch_config(rtp: &PathBuf) -> Result<Config> {
     use std::process::exit;
     use std::env;
@@ -145,6 +199,9 @@ fn fetch_config(rtp: &PathBuf) -> Result<Config> {
 
 impl Default for Configuration {
 
+    /**
+     * Get a default configuration object
+     */
     fn default() -> Configuration {
         Configuration {
             verbosity: false,
