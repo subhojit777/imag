@@ -82,21 +82,6 @@ impl StoreEntry {
     fn is_borrowed(&self) -> bool {
         self.entry == StoreEntryPresence::Borrowed
     }
-
-    /// Flush the entry to disk
-    fn set_entry(&mut self, entry: Entry) -> Result<()> {
-        unimplemented!()
-    }
-
-    /// We borrow the entry
-    fn get_entry(&mut self) -> Result<Entry> {
-        unimplemented!()
-    }
-
-    /// We copy the entry
-    fn copy_entry(&mut self) -> Result<Entry> {
-        unimplemented!()
-    }
 }
 
 /// The Store itself, through this object one can interact with IMAG's entries
