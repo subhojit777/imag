@@ -1,6 +1,6 @@
 extern crate fs2;
 extern crate toml;
-extern crate tempdir;
+#[cfg(test)] extern crate tempdir;
 extern crate semver;
 
 pub mod storeid;
