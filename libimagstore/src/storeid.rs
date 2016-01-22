@@ -19,6 +19,13 @@ impl IntoStoreId for PathBuf {
 #[macro_export]
 macro_rules! module_entry_path_mod {
     ($name:expr, $version:expr) => (
+        #[deny(missing_docs,
+                missing_copy_implementations,
+                trivial_casts, trivial_numeric_casts,
+                unsafe_code,
+                unstable_features,
+                unused_import_braces, unused_qualifications,
+                unused_imports)]
         pub mod module_path {
             use semver::Version;
             use std::convert::AsRef;
