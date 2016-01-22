@@ -4,6 +4,9 @@ use std::fmt::Formatter;
 use std::fmt::Error as FmtError;
 use std::clone::Clone;
 
+/**
+ * Kind of store error
+ */
 #[derive(Clone, Copy, Debug)]
 pub enum StoreErrorKind {
     FileError,
@@ -35,6 +38,9 @@ impl Display for StoreErrorKind {
 
 }
 
+/**
+ * Store error type
+ */
 #[derive(Debug)]
 pub struct StoreError {
     err_type: StoreErrorKind,
@@ -43,6 +49,9 @@ pub struct StoreError {
 
 impl StoreError {
 
+    /**
+     * Build a new StoreError from an StoreErrorKind, optionally with cause
+     */
     pub fn new(errtype: StoreErrorKind, cause: Option<Box<Error>>)
         -> StoreError
     {
@@ -52,6 +61,9 @@ impl StoreError {
         }
     }
 
+    /**
+     * Get the error type of this StoreError
+     */
     pub fn err_type(&self) -> StoreErrorKind {
         self.err_type.clone()
     }
