@@ -2,7 +2,8 @@ use std::collections::BTreeMap;
 use std::error::Error;
 use std::result::Result as RResult;
 
-use toml::{Table, Value};
+use toml::{Array, Table, Value};
+use version;
 
 use self::error::ParserErrorKind;
 use self::error::ParserError;
@@ -97,7 +98,7 @@ impl EntryHeader {
      */
     pub fn new() -> EntryHeader {
         EntryHeader {
-            toml: BTreeMap::new(),
+            toml: build_default_header(),
         }
     }
 
@@ -287,5 +288,20 @@ mod test {
 
         assert!(verify_header_consistency(header).is_ok());
     }
+}
+
+fn build_default_header() -> BTreeMap<String, Value> {
+    let mut m = BTreeMap::new();
+
+    m.insert(String::from("imag"), {
+        let mut imag_map = BTreeMap::<String, Value>::new();
+
+        imag_map.insert(String::from("version"), Value::String(version!()));
+        imag_map.insert(String::from("links"), Value::Array(vec![]));
+
+        Value::Table(imag_map)
+    });
+
+    m
 }
 
