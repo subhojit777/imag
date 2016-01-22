@@ -24,8 +24,16 @@ impl Entry {
         &self.header
     }
 
+    pub fn get_header_mut(&mut self) -> &mut EntryHeader {
+        &mut self.header
+    }
+
     pub fn get_content(&self) -> &EntryContent {
         &self.content
+    }
+
+    pub fn get_content_mut(&mut self) -> &mut EntryContent {
+        &mut self.content
     }
 
 }
