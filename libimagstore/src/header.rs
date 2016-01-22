@@ -1,7 +1,11 @@
+use std::collections::BTreeMap;
 use std::error::Error;
 use std::result::Result as RResult;
 
 use toml::{Table, Value};
+
+use self::error::ParserErrorKind;
+use self::error::ParserError;
 
 pub mod error {
     use std::fmt::{Debug, Display, Formatter};
@@ -68,10 +72,6 @@ pub mod error {
 
 }
 
-
-use self::error::ParserErrorKind;
-use self::error::ParserError;
-
 /**
  * EntryHeader
  *
@@ -92,10 +92,12 @@ impl EntryHeader {
 
     /**
      * Get a new header object with a already-filled toml table
+     *
+     * Default header values are inserted into the header object by default.
      */
-    pub fn new(toml: Table) -> EntryHeader {
+    pub fn new() -> EntryHeader {
         EntryHeader {
-            toml: toml,
+            toml: BTreeMap::new(),
         }
     }
 
@@ -113,7 +115,11 @@ impl EntryHeader {
         parser.parse()
             .ok_or(ParserError::new(ParserErrorKind::TOMLParserErrors, None))
             .and_then(|t| verify_header_consistency(t))
-            .map(|t| EntryHeader::new(t))
+            .map(|t| {
+                EntryHeader {
+                    toml: t
+                }
+            })
     }
 
 }
