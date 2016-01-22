@@ -14,3 +14,19 @@ pub struct Entry {
     content: EntryContent,
 }
 
+impl Entry {
+
+    pub fn get_location(&self) -> &StoreId {
+        &self.location
+    }
+
+    pub fn get_header(&self) -> &EntryHeader {
+        &self.header
+    }
+
+    pub fn get_content(&self) -> &EntryContent {
+        &self.content
+    }
+
+}
+
