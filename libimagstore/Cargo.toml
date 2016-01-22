@@ -8,3 +8,4 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 fs2 = "0.2.2"
 toml = "0.1.25"
 tempdir = "0.3.4"
+semver = "0.2"
