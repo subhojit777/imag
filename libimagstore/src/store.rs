@@ -21,39 +21,38 @@ use lazyfile::LazyFile;
 pub type Result<T> = RResult<T, StoreError>;
 
 
-/// A store entry, depending on the option type it is either borrowed currently
-/// or not.
-enum StoreEntry {
-    Present(StoreId, LazyFile),
+#[derive(PartialEq)]
+enum StoreEntryStatus {
+    Present,
     Borrowed
 }
 
-impl PartialEq for StoreEntry {
-    fn eq(&self, other: &StoreEntry) -> bool {
-        use store::StoreEntry::*;
-        match (*self, *other) {
-            (Borrowed, Borrowed) => true,
-            (Borrowed, Present(_,_)) => false,
-            (Present(_,_), Borrowed) => false,
-            (Present(ref a,_), Present(ref b, _)) => a == b
-        }
-    }
+/// A store entry, depending on the option type it is either borrowed currently
+/// or not.
+struct StoreEntry {
+    id: StoreId,
+    file: LazyFile,
+    status: StoreEntryStatus,
 }
-
 
 impl StoreEntry {
     /// The entry is currently borrowed, meaning that some thread is currently
     /// mutating it
     fn is_borrowed(&self) -> bool {
-        *self == StoreEntry::Borrowed
+        self.status == StoreEntryStatus::Borrowed
     }
 
-    fn get_entry(&self) -> Result<Entry> {
-        if let &StoreEntry::Present(ref id, ref file) = self {
-            let file = file.get_file();
-            if let Err(StoreError{err_type: StoreErrorKind::FileNotFound, ..}) = file {
-                Ok(Entry::new(id.clone()))
+    fn get_entry(&mut self) -> Result<Entry> {
+        if !self.is_borrowed() {
+            let file = self.file.get_file();
+            if let Err(err) = file {
+                if err.err_type() == StoreErrorKind::FileNotFound {
+                    Ok(Entry::new(self.id.clone()))
+                } else {
+                    Err(err)
+                }
             } else {
+                // TODO:
                 unimplemented!()
             }
         } else {

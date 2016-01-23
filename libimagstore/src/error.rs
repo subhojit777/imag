@@ -8,7 +8,7 @@ use toml;
 /**
  * Kind of store error
  */
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum StoreErrorKind {
     FileError,
     IdLocked,
