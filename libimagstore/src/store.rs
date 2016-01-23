@@ -226,16 +226,7 @@ pub type EntryResult<V> = RResult<V, ParserError>;
  */
 impl EntryHeader {
 
-    /**
-     * Get a new header object with a already-filled toml table
-     */
-    pub fn new(toml: Table) -> EntryHeader {
-        EntryHeader {
-            toml: toml,
-        }
-    }
-
-    pub fn new_current() -> EntryHeader {
+    pub fn new() -> EntryHeader {
         EntryHeader {
             toml: build_default_header()
         }
