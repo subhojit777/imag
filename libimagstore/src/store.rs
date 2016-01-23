@@ -232,6 +232,12 @@ impl EntryHeader {
         }
     }
 
+    fn from_table(t: Table) -> EntryHeader {
+        EntryHeader {
+            toml: t
+        }
+    }
+
     /**
      * Get the table which lives in the background
      */
@@ -246,7 +252,7 @@ impl EntryHeader {
         parser.parse()
             .ok_or(ParserError::new(ParserErrorKind::TOMLParserErrors, None))
             .and_then(|t| verify_header_consistency(t))
-            .map(|t| EntryHeader::new(t))
+            .map(|t| EntryHeader::from_table(t))
     }
 
 }
@@ -322,7 +328,7 @@ impl Entry {
     fn new(loc: StoreId) -> Entry {
         Entry {
             location: loc,
-            header: EntryHeader::new_current(),
+            header: EntryHeader::new(),
             content: EntryContent::new()
         }
     }
