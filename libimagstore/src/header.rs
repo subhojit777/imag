@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use std::error::Error;
 use std::result::Result as RResult;
+use std::collections::BTreeMap;
 
 use toml::{Array, Table, Value};
 use version;
@@ -99,6 +100,23 @@ impl EntryHeader {
     pub fn new() -> EntryHeader {
         EntryHeader {
             toml: build_default_header(),
+        }
+    }
+
+    pub fn new_current() -> EntryHeader {
+        EntryHeader {
+            toml: {
+                let mut header = BTreeMap::new();
+                let sub = {
+                    let mut sub = BTreeMap::new();
+                    sub.insert("version".into(), Value::String(version!()));
+
+                    Value::Table(sub)
+                };
+
+                header.insert("imag".into(), sub);
+                header
+            }
         }
     }
 

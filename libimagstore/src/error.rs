@@ -18,6 +18,7 @@ pub enum StoreErrorKind {
     StorePathExists,
     StorePathCreate,
     LockPoisoned,
+    EntryAlreadyBorrowed
     // maybe more
 }
 
@@ -33,6 +34,7 @@ fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
         &StoreErrorKind::StorePathCreate => "Store path create",
         &StoreErrorKind::LockPoisoned
             => "The internal Store Lock has been poisoned",
+        &StoreErrorKind::EntryAlreadyBorrowed => "Entry is already borrowed",
     }
 }
 

@@ -11,21 +11,29 @@ use fs2::FileExt;
 use entry::Entry;
 use error::{StoreError, StoreErrorKind};
 use storeid::StoreId;
+use lazyfile::LazyFile;
 
 /// The Result Type returned by any interaction with the store that could fail
 pub type Result<T> = RResult<T, StoreError>;
 
-#[derive(PartialEq)]
-enum StoreEntryPresence {
-    Present,
-    Borrowed
-}
 
 /// A store entry, depending on the option type it is either borrowed currently
 /// or not.
-struct StoreEntry {
-    file: File,
-    entry: StoreEntryPresence
+enum StoreEntry {
+    Present(StoreId, LazyFile),
+    Borrowed
+}
+
+impl PartialEq for StoreEntry {
+    fn eq(&self, other: &StoreEntry) -> bool {
+        use store::StoreEntry::*;
+        match (*self, *other) {
+            (Borrowed, Borrowed) => true,
+            (Borrowed, Present(_,_)) => false,
+            (Present(_,_), Borrowed) => false,
+            (Present(ref a,_), Present(ref b, _)) => a == b
+        }
+    }
 }
 
 
@@ -33,7 +41,20 @@ impl StoreEntry {
     /// The entry is currently borrowed, meaning that some thread is currently
     /// mutating it
     fn is_borrowed(&self) -> bool {
-        self.entry == StoreEntryPresence::Borrowed
+        *self == StoreEntry::Borrowed
+    }
+
+    fn get_entry(&self) -> Result<Entry> {
+        if let &StoreEntry::Present(ref id, ref file) = self {
+            let file = file.get_file();
+            if let Err(StoreError{err_type: StoreErrorKind::FileNotFound, ..}) = file {
+                Ok(Entry::new(id.clone()))
+            } else {
+                unimplemented!()
+            }
+        } else {
+            return Err(StoreError::new(StoreErrorKind::EntryAlreadyBorrowed, None))
+        }
     }
 }
 
@@ -134,11 +155,9 @@ impl Drop for Store {
     /**
      * Unlock all files on drop
      *
-     * TODO: Error message when file cannot be unlocked?
+     * TODO: Unlock them
      */
     fn drop(&mut self) {
-        self.entries.write().unwrap()
-            .iter().map(|f| f.1.file.unlock());
     }
 
 }

@@ -16,6 +16,14 @@ pub struct Entry {
 
 impl Entry {
 
+    fn new(loc: StoreId) -> Entry {
+        Entry {
+            location: loc,
+            header: EntryHeader::new_current(),
+            content: EntryContent::new()
+        }
+    }
+
     pub fn get_location(&self) -> &StoreId {
         &self.location
     }
