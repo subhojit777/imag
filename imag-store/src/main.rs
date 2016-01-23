@@ -7,6 +7,10 @@ extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagutil;
 
+mod ui;
+
+use ui::build_ui;
+
 fn main() {
     println!("Hello, world!");
 }
