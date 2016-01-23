@@ -11,6 +11,7 @@ use std::collections::BTreeMap;
 
 use fs2::FileExt;
 use toml::{Table, Value};
+use regex::Regex;
 
 use error::{ParserErrorKind, ParserError};
 use error::{StoreError, StoreErrorKind};
@@ -44,7 +45,7 @@ impl StoreEntry {
 
     fn get_entry(&mut self) -> Result<Entry> {
         if !self.is_borrowed() {
-            let file = self.file.get_file();
+            let file = self.file.get_file_mut();
             if let Err(err) = file {
                 if err.err_type() == StoreErrorKind::FileNotFound {
                     Ok(Entry::new(self.id.clone()))
@@ -53,7 +54,7 @@ impl StoreEntry {
                 }
             } else {
                 // TODO:
-                unimplemented!()
+                Entry::from_file(self.id.clone(), file.unwrap())
             }
         } else {
             return Err(StoreError::new(StoreErrorKind::EntryAlreadyBorrowed, None))
@@ -307,7 +308,7 @@ fn has_imag_version_in_main_section(t: &Table) -> bool {
                         _                 => Some(false),
                     }
                 })
-                .unwrap_or(false)
+            .unwrap_or(false)
         }
         _                  => false,
     }
@@ -333,6 +334,43 @@ impl Entry {
             header: EntryHeader::new_current(),
             content: EntryContent::new()
         }
+    }
+
+    fn from_file(loc: StoreId, file: &mut File) -> Result<Entry> {
+        use std::io::Read;
+        let file = {
+            let mut buff = String::new();
+            file.read_to_string(&mut buff);
+            buff
+        };
+
+        let re = Regex::new(r"(?smx)
+            ^---$
+            (?P<header>.*) # Header
+            ^---$
+            (?P<content>.*) # Content
+        ").unwrap();
+
+        let matches = re.captures(&file[..]);
+
+        if matches.is_none() {
+            return Err(StoreError::new(StoreErrorKind::MalformedEntry, None));
+        }
+
+        let matches = matches.unwrap();
+
+        let header = matches.name("header");
+        let content = matches.name("content").unwrap_or("");
+
+        if header.is_none() {
+            return Err(StoreError::new(StoreErrorKind::MalformedEntry, None));
+        }
+
+        Ok(Entry {
+            location: loc,
+            header: try!(EntryHeader::parse(header.unwrap())),
+            content: content.into(),
+        })
     }
 
     pub fn get_location(&self) -> &StoreId {

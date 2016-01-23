@@ -3,6 +3,7 @@ use std::fmt::Error as FmtError;
 use std::clone::Clone;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
+use std::convert::From;
 use toml;
 
 /**
@@ -19,7 +20,8 @@ pub enum StoreErrorKind {
     StorePathExists,
     StorePathCreate,
     LockPoisoned,
-    EntryAlreadyBorrowed
+    EntryAlreadyBorrowed,
+    MalformedEntry,
         // maybe more
 }
 
@@ -35,7 +37,8 @@ fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
         &StoreErrorKind::StorePathCreate => "Store path create",
         &StoreErrorKind::LockPoisoned
             => "The internal Store Lock has been poisoned",
-            &StoreErrorKind::EntryAlreadyBorrowed => "Entry is already borrowed",
+        &StoreErrorKind::EntryAlreadyBorrowed => "Entry is already borrowed",
+        &StoreErrorKind::MalformedEntry => "Entry has invalid formatting, missing header",
     }
 }
 
@@ -101,6 +104,14 @@ impl Error for StoreError {
 
 }
 
+impl From<ParserError> for StoreError {
+    fn from(ps: ParserError) -> StoreError {
+        StoreError {
+            err_type: StoreErrorKind::MalformedEntry,
+            cause: Some(Box::new(ps)),
+        }
+    }
+}
 
 #[derive(Clone)]
 pub enum ParserErrorKind {
