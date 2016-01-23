@@ -10,5 +10,6 @@ extern crate libimagutil;
 
 mod configuration;
 mod logger;
-mod runtime;
+
+pub mod runtime;
 
