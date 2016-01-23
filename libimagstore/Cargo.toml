@@ -5,8 +5,10 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
 fs2 = "0.2.2"
-toml = "0.1.25"
+regex = "0.1.47"
 semver = "0.2"
+toml = "0.1.25"
+version = "1.1.0"
 
 [dev-dependencies]
 tempdir = "0.3.4"
