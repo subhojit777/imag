@@ -54,11 +54,25 @@ pub struct Store {
 impl Store {
 
     /// Create a new Store object
-    pub fn new(location: PathBuf) -> Store {
-        Store {
+    pub fn new(location: PathBuf) -> Result<Store> {
+        use std::fs::create_dir_all;
+
+        if !location.exists() {
+            let c = create_dir_all(location.clone());
+            if c.is_err() {
+                return Err(StoreError::new(StoreErrorKind::StorePathCreate,
+                                           Some(Box::new(c.err().unwrap()))));
+            }
+        } else {
+            if location.is_file() {
+                return Err(StoreError::new(StoreErrorKind::StorePathExists, None));
+            }
+        }
+
+        Ok(Store {
             location: location,
             entries: Arc::new(RwLock::new(HashMap::new())),
-        }
+        })
     }
 
     /// Creates the Entry at the given location (inside the entry)

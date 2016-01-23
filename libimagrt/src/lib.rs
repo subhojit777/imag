@@ -9,6 +9,7 @@ extern crate libimagstore;
 extern crate libimagutil;
 
 mod configuration;
+mod error;
 mod logger;
 
 pub mod runtime;

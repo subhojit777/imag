@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::result::Result as RResult;
 
 pub use clap::App;
 
@@ -7,6 +8,8 @@ use log;
 use log::LogLevelFilter;
 
 use configuration::Configuration;
+use error::RuntimeError;
+use error::RuntimeErrorKind;
 use logger::ImagLogger;
 
 use libimagstore::store::Store;
@@ -28,7 +31,7 @@ impl<'a> Runtime<'a> {
      * The cli_spec object should be initially build with the ::get_default_cli_builder() function.
      *
      */
-    pub fn new(cli_spec: App<'a, 'a, 'a, 'a, 'a, 'a>) -> Runtime<'a> {
+    pub fn new(cli_spec: App<'a, 'a, 'a, 'a, 'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
         let matches = cli_spec.get_matches();
         let rtp : PathBuf = matches.value_of("runtimepath").unwrap_or("~/.imag/").into();
         let storepath = matches.value_of("storepath")
@@ -38,12 +41,17 @@ impl<'a> Runtime<'a> {
                                     spath.push("/store");
                                     spath
                                 });
-        Runtime {
-            cli_matches: matches,
-            configuration: Configuration::new(&rtp).unwrap_or(Configuration::default()),
-            rtp: rtp,
-            store: Store::new(storepath),
-        }
+        Store::new(storepath).map(|store| {
+            Runtime {
+                cli_matches: matches,
+                configuration: Configuration::new(&rtp).unwrap_or(Configuration::default()),
+                rtp: rtp,
+                store: store,
+            }
+        })
+        .map_err(|e| {
+            RuntimeError::new(RuntimeErrorKind::Instantiate, Some(Box::new(e)))
+        })
     }
 
     /**
