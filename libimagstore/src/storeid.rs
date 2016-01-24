@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use glob::Paths;
 
 /// The Index into the Store
 pub type StoreId = PathBuf;
@@ -61,6 +62,29 @@ macro_rules! module_entry_path_mod {
             }
         }
     )
+}
+
+pub struct StoreIdIterator {
+    paths: Paths,
+}
+
+impl StoreIdIterator {
+
+    pub fn new(paths: Paths) -> StoreIdIterator {
+        StoreIdIterator {
+            paths: paths,
+        }
+    }
+
+}
+
+impl Iterator for StoreIdIterator {
+    type Item = StoreId;
+
+    fn next(&mut self) -> Option<StoreId> {
+        self.paths.next().and_then(|o| o.ok())
+    }
+
 }
 
 #[cfg(test)]
