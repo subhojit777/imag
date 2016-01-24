@@ -69,6 +69,18 @@ impl StoreEntry {
             return Err(StoreError::new(StoreErrorKind::EntryAlreadyBorrowed, None))
         }
     }
+
+    fn write_entry(&mut self, entry: &Entry) -> Result<()> {
+        if self.is_borrowed() {
+            use std::io::Write;
+            let file = try!(self.file.create_file());
+
+            assert_eq!(self.id, entry.location);
+            file.write_all(entry.to_str().as_bytes());
+        }
+
+        Ok(())
+    }
 }
 
 /// The Store itself, through this object one can interact with IMAG's entries
@@ -151,7 +163,20 @@ impl Store {
     /// This method assumes that entry is dropped _right after_ the call, hence
     /// it is not public.
     fn _update<'a>(&'a self, entry: &FileLockEntry<'a>) -> Result<()> {
-        unimplemented!();
+        let hsmap = self.entries.write();
+        if hsmap.is_err() {
+            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
+        }
+        let mut hsmap = hsmap.unwrap();
+        let mut se = try!(hsmap.get_mut(&entry.key)
+              .ok_or(StoreError::new(StoreErrorKind::IdNotFound, None)));
+
+        assert!(!se.is_borrowed(), "Tried to update a non borrowed entry.");
+
+        try!(se.write_entry(&entry.entry));
+        se.status = StoreEntryStatus::Present;
+
+        Ok(())
     }
 
     /// Retrieve a copy of a given entry, this cannot be used to mutate
@@ -395,6 +420,12 @@ impl Entry {
         })
     }
 
+    pub fn to_str(&self) -> String {
+        format!("---{header}---\n{content}",
+                header  = ::toml::encode_str(&self.header.toml),
+                content = self.content)
+    }
+
     pub fn get_location(&self) -> &StoreId {
         &self.location
     }
@@ -544,7 +575,7 @@ mod test {
 
     static TEST_ENTRY : &'static str = "---
 [imag]
-version = '0.0.3'
+version = \"0.0.3\"
 ---
 Hai";
 
@@ -559,6 +590,17 @@ Hai";
         assert_eq!(entry.content, "Hai");
     }
 
+    #[test]
+    fn test_entry_to_str() {
+        use super::Entry;
+        use std::path::PathBuf;
+        println!("{}", TEST_ENTRY);
+        let entry = Entry::from_str(PathBuf::from("/test/foo~1.3"),
+                                    TEST_ENTRY).unwrap();
+        let string = entry.to_str();
+
+        assert_eq!(TEST_ENTRY, string);
+    }
 
 }
 
