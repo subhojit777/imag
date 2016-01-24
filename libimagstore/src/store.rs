@@ -37,6 +37,15 @@ struct StoreEntry {
 }
 
 impl StoreEntry {
+
+    fn new(id: StoreId) -> StoreEntry {
+        StoreEntry {
+            id: id.clone(),
+            file: LazyFile::Absent(id),
+            status: StoreEntryStatus::Present,
+        }
+    }
+
     /// The entry is currently borrowed, meaning that some thread is currently
     /// mutating it
     fn is_borrowed(&self) -> bool {
@@ -101,8 +110,21 @@ impl Store {
     }
 
     /// Creates the Entry at the given location (inside the entry)
-    pub fn create(&self, entry: Entry) -> Result<()> {
-        unimplemented!();
+    pub fn create<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
+        let hsmap = self.entries.write();
+        if hsmap.is_err() {
+            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
+        }
+        let mut hsmap = hsmap.unwrap();
+        if hsmap.contains_key(&id) {
+            return Err(StoreError::new(StoreErrorKind::EntryAlreadyExists, None))
+        }
+        hsmap.insert(id.clone(), {
+            let mut se = StoreEntry::new(id.clone());
+            se.status = StoreEntryStatus::Borrowed;
+            se
+        });
+        Ok(FileLockEntry::new(self, Entry::new(id.clone()), id))
     }
 
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
