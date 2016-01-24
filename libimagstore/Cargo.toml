@@ -5,6 +5,7 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
 fs2 = "0.2.2"
+glob = "0.2.10"
 regex = "0.1.47"
 semver = "0.2"
 toml = "0.1.25"
