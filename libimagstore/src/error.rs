@@ -17,6 +17,7 @@ pub enum StoreErrorKind {
     OutOfMemory,
     FileNotFound,
     FileNotCreated,
+    IoError,
     StorePathExists,
     StorePathCreate,
     LockPoisoned,
@@ -33,6 +34,7 @@ fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
         &StoreErrorKind::OutOfMemory     => "Out of Memory",
         &StoreErrorKind::FileNotFound    => "File corresponding to ID not found",
         &StoreErrorKind::FileNotCreated  => "File corresponding to ID could not be created",
+        &StoreErrorKind::IoError         => "File Error",
         &StoreErrorKind::StorePathExists => "Store path exists",
         &StoreErrorKind::StorePathCreate => "Store path create",
         &StoreErrorKind::LockPoisoned
@@ -108,6 +110,15 @@ impl From<ParserError> for StoreError {
     fn from(ps: ParserError) -> StoreError {
         StoreError {
             err_type: StoreErrorKind::MalformedEntry,
+            cause: Some(Box::new(ps)),
+        }
+    }
+}
+
+impl From<::std::io::Error> for StoreError {
+    fn from(ps: ::std::io::Error) -> StoreError {
+        StoreError {
+            err_type: StoreErrorKind::IoError,
             cause: Some(Box::new(ps)),
         }
     }

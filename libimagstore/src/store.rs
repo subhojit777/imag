@@ -334,21 +334,24 @@ impl Entry {
     }
 
     fn from_file(loc: StoreId, file: &mut File) -> Result<Entry> {
-        use std::io::Read;
-        let file = {
-            let mut buff = String::new();
-            file.read_to_string(&mut buff);
-            buff
+        let text = {
+            use std::io::Read;
+            let mut s = String::new();
+            try!(file.read_to_string(&mut s));
+            s
         };
+        Self::from_str(loc, &text[..])
+    }
 
+    fn from_str(loc: StoreId, s: &str) -> Result<Entry> {
         let re = Regex::new(r"(?smx)
             ^---$
             (?P<header>.*) # Header
-            ^---$
+            ^---$\n
             (?P<content>.*) # Content
         ").unwrap();
 
-        let matches = re.captures(&file[..]);
+        let matches = re.captures(s);
 
         if matches.is_none() {
             return Err(StoreError::new(StoreErrorKind::MalformedEntry, None));
@@ -516,6 +519,25 @@ mod test {
 
         assert!(verify_header_consistency(header).is_ok());
     }
+
+    static TEST_ENTRY : &'static str = "---
+[imag]
+version = '0.0.3'
+---
+Hai";
+
+    #[test]
+    fn test_entry_from_str() {
+        use super::Entry;
+        use std::path::PathBuf;
+        println!("{}", TEST_ENTRY);
+        let entry = Entry::from_str(PathBuf::from("/test/foo~1.3"),
+                                    TEST_ENTRY).unwrap();
+
+        assert_eq!(entry.content, "Hai");
+    }
+
+
 }
 
 
