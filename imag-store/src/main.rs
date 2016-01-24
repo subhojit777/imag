@@ -10,6 +10,7 @@ extern crate libimagutil;
 use libimagrt::runtime::Runtime;
 use std::process::exit;
 
+mod error;
 mod ui;
 mod create;
 mod read;
