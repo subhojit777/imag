@@ -306,6 +306,10 @@ impl EntryHeader {
         &self.toml
     }
 
+    pub fn toml_mut(&mut self) -> &mut Table {
+        &mut self.toml
+    }
+
     pub fn parse(s: &str) -> EntryResult<EntryHeader> {
         use toml::Parser;
 
