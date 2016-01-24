@@ -377,7 +377,7 @@ pub struct Entry {
 
 impl Entry {
 
-    fn new(loc: StoreId) -> Entry {
+    pub fn new(loc: StoreId) -> Entry {
         Entry {
             location: loc,
             header: EntryHeader::new(),
@@ -385,7 +385,7 @@ impl Entry {
         }
     }
 
-    fn from_file(loc: StoreId, file: &mut File) -> Result<Entry> {
+    pub fn from_file(loc: StoreId, file: &mut File) -> Result<Entry> {
         let text = {
             use std::io::Read;
             let mut s = String::new();
@@ -395,7 +395,7 @@ impl Entry {
         Self::from_str(loc, &text[..])
     }
 
-    fn from_str(loc: StoreId, s: &str) -> Result<Entry> {
+    pub fn from_str(loc: StoreId, s: &str) -> Result<Entry> {
         let re = Regex::new(r"(?smx)
             ^---$
             (?P<header>.*) # Header
