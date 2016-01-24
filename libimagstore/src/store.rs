@@ -15,7 +15,7 @@ use regex::Regex;
 
 use error::{ParserErrorKind, ParserError};
 use error::{StoreError, StoreErrorKind};
-use storeid::StoreId;
+use storeid::{StoreId, StoreIdIterator};
 use lazyfile::LazyFile;
 
 /// The Result Type returned by any interaction with the store that could fail
@@ -138,6 +138,11 @@ impl Store {
             .ok_or(StoreError::new(StoreErrorKind::IdNotFound, None))
             .and_then(|store_entry| store_entry.get_entry())
             .and_then(|entry| Ok(FileLockEntry::new(self, entry, id)))
+    }
+
+    /// Iterate over all StoreIds for one module name
+    pub fn retrieve_for_module(&self, mod_name: &str) -> StoreIdIterator {
+        unimplemented!();
     }
 
     /// Return the `FileLockEntry` and write to disk
