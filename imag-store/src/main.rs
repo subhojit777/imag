@@ -13,13 +13,13 @@ use std::process::exit;
 mod error;
 mod ui;
 mod create;
-mod read;
+mod retrieve;
 mod update;
 mod delete;
 
 use ui::build_ui;
 use create::create;
-use read::read;
+use retrieve::retrieve;
 use update::update;
 use delete::delete;
 
@@ -56,7 +56,7 @@ fn main() {
                 debug!("Call: {}", name);
                 match name {
                     "create" => create(&rt),
-                    "read"   => read(&rt),
+                    "retrieve"   => retrieve(&rt),
                     "update" => update(&rt),
                     "delete" => delete(&rt),
                     _ => {
