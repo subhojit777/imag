@@ -152,7 +152,8 @@ impl Store {
         let mut entries = hsmap.unwrap();
         let mut store_entry = entries.entry(id.clone()).or_insert_with(|| StoreEntry::new(id.clone()));
 
-        // TODO: update the store entry status
+        // update the store entry status
+        store_entry.status = StoreEntryStatus::Borrowed;
 
         // make a file lock entry from the store entry
         store_entry.get_entry().map(|entry| FileLockEntry::new(self, entry, id))
