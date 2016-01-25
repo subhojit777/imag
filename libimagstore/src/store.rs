@@ -152,11 +152,6 @@ impl Store {
         let mut entries = hsmap.unwrap();
         let mut store_entry = entries.entry(id.clone()).or_insert_with(|| StoreEntry::new(id.clone()));
 
-        // make sure only one user gets a borrowed entry at a time
-        if store_entry.is_borrowed() {
-            return Err(StoreError::new(StoreErrorKind::IdLocked, None));
-        }
-
         // TODO: update the store entry status
 
         // make a file lock entry from the store entry
