@@ -187,7 +187,19 @@ impl Store {
     /// Retrieve a copy of a given entry, this cannot be used to mutate
     /// the one on disk
     pub fn retrieve_copy(&self, id: StoreId) -> Result<Entry> {
-        unimplemented!();
+        let mut entries_lock = self.entries.write();
+        if entries_lock.is_err() {
+            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
+        }
+
+        let mut entries = entries_lock.unwrap();
+
+        // if the entry is currently modified by the user, we cannot drop it
+        if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
+            return Err(StoreError::new(StoreErrorKind::IdLocked, None));
+        }
+
+        StoreEntry::new(id).get_entry()
     }
 
     /// Delete an entry
