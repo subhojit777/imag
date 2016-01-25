@@ -193,6 +193,10 @@ impl Store {
     /// Delete an entry
     pub fn delete(&self, id: StoreId) -> Result<()> {
         let mut entries_lock = self.entries.write();
+        if entries_lock.is_err() {
+            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
+        }
+
         let mut entries = entries_lock.unwrap();
 
         // if the entry is currently modified by the user, we cannot drop it
