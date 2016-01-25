@@ -142,22 +142,16 @@ impl Store {
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
     /// dropped, the new Entry is written to disk
     pub fn retrieve<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
-        // get hold of the hashmap
-        let hsmap = self.entries.write();
-        if hsmap.is_err() {
-            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
-        }
-
-        // either get the existing entry ot create it
-        let mut entries = hsmap.unwrap();
-        let mut store_entry = entries.entry(id.clone()).or_insert_with(|| StoreEntry::new(id.clone()));
-
-        // update the store entry status
-        store_entry.status = StoreEntryStatus::Borrowed;
-
-        // make a file lock entry from the store entry
-        store_entry.get_entry().map(|entry| FileLockEntry::new(self, entry, id))
-    }
+        self.entries
+            .write()
+            .map_err(|_| StoreError::new(StoreErrorKind::LockPoisoned, None))
+            .and_then(|mut es| {
+                let mut se = es.entry(id.clone()).or_insert_with(|| StoreEntry::new(id.clone()));
+                se.status = StoreEntryStatus::Borrowed;
+                se.get_entry()
+            })
+            .map(|e| FileLockEntry::new(self, e, id))
+   }
 
     /// Iterate over all StoreIds for one module name
     pub fn retrieve_for_module(&self, mod_name: &str) -> StoreIdIterator {
