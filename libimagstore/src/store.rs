@@ -155,7 +155,7 @@ impl Store {
         // TODO: update the store entry status
 
         // make a file lock entry from the store entry
-        store_entry.get_entry().and_then(|entry| Ok(FileLockEntry::new(self, entry, id)))
+        store_entry.get_entry().map(|entry| FileLockEntry::new(self, entry, id))
     }
 
     /// Iterate over all StoreIds for one module name
