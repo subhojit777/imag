@@ -362,6 +362,84 @@ impl EntryHeader {
         verify_header(&self.toml)
     }
 
+    /**
+     * Insert a header field by a string-spec
+     *
+     * ```ignore
+     *  insert("something.in.a.field", Boolean(true));
+     * ```
+     *
+     * Inserts a Boolean in the section "something" -> "in" -> "a" -> "field"
+     * A JSON equivalent would be
+     *
+     *  {
+     *      something: {
+     *          in: {
+     *              a: {
+     *                  field: true
+     *              }
+     *          }
+     *      }
+     *  }
+     *
+     * Returns true if header field was set, false if there is already a value
+     */
+    pub fn insert(&mut self, spec: &str, v: Value) -> Result<bool> {
+        unimplemented!()
+    }
+
+    /**
+     * Set a header field by a string-spec
+     *
+     * ```ignore
+     *  set("something.in.a.field", Boolean(true));
+     * ```
+     *
+     * Sets a Boolean in the section "something" -> "in" -> "a" -> "field"
+     * A JSON equivalent would be
+     *
+     *  {
+     *      something: {
+     *          in: {
+     *              a: {
+     *                  field: true
+     *              }
+     *          }
+     *      }
+     *  }
+     *
+     * If there is already a value at this place, this value will be overridden and the old value
+     * will be returned
+     */
+    pub fn set(&mut self, spec: &str, v: Value) -> Result<Option<Value>> {
+        unimplemented!()
+    }
+
+    /**
+     * Read a header field by a string-spec
+     *
+     * ```ignore
+     *  let value = read("something.in.a.field");
+     * ```
+     *
+     * Reads a Value in the section "something" -> "in" -> "a" -> "field"
+     * A JSON equivalent would be
+     *
+     *  {
+     *      something: {
+     *          in: {
+     *              a: {
+     *                  field: true
+     *              }
+     *          }
+     *      }
+     *  }
+     *
+     * If there is no a value at this place, None will be returned
+     */
+    pub fn read(&self, spec: &str) -> Result<Option<Value>> {
+        unimplemented!()
+    }
 }
 
 fn build_default_header() -> BTreeMap<String, Value> {
