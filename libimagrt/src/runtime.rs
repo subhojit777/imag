@@ -38,7 +38,7 @@ impl<'a> Runtime<'a> {
                                 .map(PathBuf::from)
                                 .unwrap_or({
                                     let mut spath = rtp.clone();
-                                    spath.push("/store");
+                                    spath.push("store");
                                     spath
                                 });
         Store::new(storepath).map(|store| {
