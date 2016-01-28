@@ -16,6 +16,7 @@ mod create;
 mod retrieve;
 mod update;
 mod delete;
+mod util;
 
 use ui::build_ui;
 use create::create;
