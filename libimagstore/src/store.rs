@@ -147,8 +147,9 @@ impl Store {
             .map_err(|_| StoreError::new(StoreErrorKind::LockPoisoned, None))
             .and_then(|mut es| {
                 let mut se = es.entry(id.clone()).or_insert_with(|| StoreEntry::new(id.clone()));
+                let entry = se.get_entry();
                 se.status = StoreEntryStatus::Borrowed;
-                se.get_entry()
+                entry
             })
             .map(|e| FileLockEntry::new(self, e, id))
    }
