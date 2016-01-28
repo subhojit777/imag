@@ -9,6 +9,7 @@ use std::fs::{File, OpenOptions};
  *
  * A lazy file is either absent, but a path to it is available, or it is present.
  */
+#[derive(Debug)]
 pub enum LazyFile {
     Absent(PathBuf),
     File(File)
