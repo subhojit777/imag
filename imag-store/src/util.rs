@@ -1,11 +1,26 @@
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 use std::str::Split;
 
 use clap::ArgMatches;
 use toml::Value;
 
 use libimagstore::store::EntryHeader;
+use libimagrt::runtime::Runtime;
 use libimagutil::key_value_split::IntoKeyValue;
+
+pub fn build_entry_path(rt: &Runtime, path_elem: &str) -> PathBuf {
+    debug!("Building path...");
+    let mut path = rt.store().path().clone();
+
+    if path_elem.chars().next() == Some('/') {
+        path.push(&path_elem[1..path_elem.len()]);
+    } else {
+        path.push(path_elem);
+    }
+
+    path
+}
 
 pub fn build_toml_header(matches: &ArgMatches, header: EntryHeader) -> EntryHeader {
     debug!("Building header from cli spec");
