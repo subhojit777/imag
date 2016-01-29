@@ -4,7 +4,6 @@ use std::clone::Clone;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 use std::convert::From;
-use toml;
 
 /**
  * Kind of store error
