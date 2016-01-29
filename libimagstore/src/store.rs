@@ -241,6 +241,11 @@ impl Store {
             .unwrap_or(false)
             // we return false, as fs::canonicalize() returns an Err(..) on filesystem errors
     }
+
+    /// Gets the path where this store is on the disk
+    pub fn path(&self) -> &PathBuf {
+        &self.location
+    }
 }
 
 impl Drop for Store {
