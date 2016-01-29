@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use std::error::Error;
 use std::collections::BTreeMap;
-
+use std::io::{Seek, SeekFrom};
 
 use fs2::FileExt;
 use toml::{Table, Value};
@@ -63,7 +63,10 @@ impl StoreEntry {
                 }
             } else {
                 // TODO:
-                Entry::from_file(self.id.clone(), file.unwrap())
+                let mut file = file.unwrap();
+                let entry = Entry::from_file(self.id.clone(), &mut file);
+                file.seek(SeekFrom::Start(0));
+                entry
             }
         } else {
             return Err(StoreError::new(StoreErrorKind::EntryAlreadyBorrowed, None))
