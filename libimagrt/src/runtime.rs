@@ -32,8 +32,19 @@ impl<'a> Runtime<'a> {
      *
      */
     pub fn new(cli_spec: App<'a, 'a, 'a, 'a, 'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
+        use std::env;
+
         let matches = cli_spec.get_matches();
-        let rtp : PathBuf = matches.value_of("runtimepath").unwrap_or("~/.imag/").into();
+        let rtp : PathBuf = matches.value_of("runtimepath")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                env::var("HOME")
+                    .map(PathBuf::from)
+                    .map(|mut p| { p.push(".imag"); p})
+                    .unwrap_or_else(|_| {
+                        panic!("You seem to be $HOME-less. Please get a $HOME before using this software. We are sorry for you and hope you have some accommodation anyways.");
+                    })
+            });
         let storepath = matches.value_of("storepath")
                                 .map(PathBuf::from)
                                 .unwrap_or({
