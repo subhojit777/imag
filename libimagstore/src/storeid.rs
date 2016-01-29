@@ -27,6 +27,7 @@ macro_rules! module_entry_path_mod {
                 unstable_features,
                 unused_import_braces, unused_qualifications,
                 unused_imports)]
+        /// A helper module to create valid module entry paths
         pub mod module_path {
             use semver::Version;
             use std::convert::AsRef;
