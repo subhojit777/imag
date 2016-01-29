@@ -1,5 +1,4 @@
 use std::path::PathBuf;
-use std::result::Result as RResult;
 
 pub use clap::App;
 
