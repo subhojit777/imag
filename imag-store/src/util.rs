@@ -22,10 +22,10 @@ pub fn build_entry_path(rt: &Runtime, path_elem: &str) -> PathBuf {
     path
 }
 
-pub fn build_toml_header(matches: &ArgMatches, header: EntryHeader) -> EntryHeader {
+pub fn build_toml_header(matches: &ArgMatches, mut header: EntryHeader) -> EntryHeader {
     debug!("Building header from cli spec");
     if let Some(headerspecs) = matches.values_of("header") {
-        let mut main = BTreeMap::new();
+        let mut main = header.toml_mut();
         for tpl in headerspecs.into_iter().filter_map(|hs| String::from(hs).into_kv()) {
             let (key, value) = tpl.into();
             debug!("Splitting: {:?}", key);
