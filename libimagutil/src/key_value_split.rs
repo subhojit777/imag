@@ -75,8 +75,7 @@ mod test {
 
     #[test]
     fn test_single_quoted() {
-        let s = String::from("foo='bar'").into_kv().unwrap();
-        assert_eq!(KeyValue::new(String::from("foo"), String::from("bar")), s);
+        assert!(String::from("foo='bar'").into_kv().is_none());
     }
 
     #[test]
