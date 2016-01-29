@@ -6,7 +6,7 @@ pub type StoreId = PathBuf;
 
 /// This Trait allows you to convert various representations to a single one
 /// suitable for usage in the Store
-trait IntoStoreId {
+pub trait IntoStoreId {
     fn into_storeid(self) -> StoreId;
 }
 
