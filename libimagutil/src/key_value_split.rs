@@ -75,7 +75,8 @@ mod test {
 
     #[test]
     fn test_single_quoted() {
-        assert!(String::from("foo='bar'").into_kv().is_none());
+        let s = String::from("foo='bar'").into_kv().unwrap();
+        assert_eq!(KeyValue::new(String::from("foo"), String::from("\'bar\'")), s);
     }
 
     #[test]
@@ -86,12 +87,14 @@ mod test {
 
     #[test]
     fn test_double_and_single_quoted() {
-        assert!(String::from("foo=\"bar\'").into_kv().is_none());
+        let s = String::from("foo=\"bar\'").into_kv().unwrap();
+        assert_eq!(KeyValue::new(String::from("foo"), String::from("\"bar\'")), s);
     }
 
     #[test]
     fn test_single_and_double_quoted() {
-        assert!(String::from("foo=\'bar\"").into_kv().is_none());
+        let s = String::from("foo=\'bar\"").into_kv().unwrap();
+        assert_eq!(KeyValue::new(String::from("foo"), String::from("\'bar\"")), s);
     }
 
     #[test]
