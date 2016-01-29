@@ -181,7 +181,7 @@ impl Store {
         let mut se = try!(hsmap.get_mut(&entry.key)
               .ok_or(StoreError::new(StoreErrorKind::IdNotFound, None)));
 
-        assert!(!se.is_borrowed(), "Tried to update a non borrowed entry.");
+        assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 
         try!(se.write_entry(&entry.entry));
         se.status = StoreEntryStatus::Present;
