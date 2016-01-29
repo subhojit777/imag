@@ -1,5 +1,4 @@
 use std::default::Default;
-use std::fmt::{Debug, Display, Formatter, Error};
 use std::path::PathBuf;
 use std::result::Result as RResult;
 
@@ -159,7 +158,6 @@ impl Configuration {
  * Tests several variants for the config file path and uses the first one which works.
  */
 fn fetch_config(rtp: &PathBuf) -> Result<Config> {
-    use std::process::exit;
     use std::env;
 
     use xdg_basedir;
