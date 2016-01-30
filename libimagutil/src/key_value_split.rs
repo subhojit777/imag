@@ -42,16 +42,28 @@ pub trait IntoKeyValue<K, V> {
 impl IntoKeyValue<String, String> for String {
 
     fn into_kv(self) -> Option<KeyValue<String, String>> {
-        let r = "^(?P<KEY>(.*))=((\"(?P<DOUBLE_QVAL>(.*))\")|(\'(?P<SINGLE_QVAL>(.*)))\'|(?P<VAL>[^\'\"](.*)[^\'\"]))$";
-        let regex = Regex::new(r).unwrap();
-        regex.captures(&self[..]).and_then(|cap| {
-            cap.name("KEY")
-                .map(|name| {
-                    cap.name("SINGLE_QVAL")
-                        .or(cap.name("DOUBLE_QVAL"))
-                        .or(cap.name("VAL"))
-                        .map(|value| KeyValue::new(String::from(name), String::from(value)))
-                }).unwrap_or(None)
+        let key = {
+            let r = "^(?P<KEY>([^=]*))=(.*)$";
+            let r = Regex::new(r).unwrap();
+            r.captures(&self[..])
+                .and_then(|caps| caps.name("KEY"))
+        };
+
+        let value = {
+            let r = "(.*)=(\"(?P<QVALUE>([^\"]*))\"|(?P<VALUE>(.*)))$";
+            let r = Regex::new(r).unwrap();
+            r.captures(&self[..])
+                .map(|caps| {
+                    caps.name("VALUE")
+                        .or(caps.name("QVALUE"))
+                        .unwrap_or("")
+                })
+        };
+
+        key.and_then(|k| {
+            value.and_then(|v| {
+                Some(KeyValue::new(String::from(k), String::from(v)))
+            })
         })
     }
 
@@ -64,7 +76,7 @@ mod test {
     #[test]
     fn test_single_quoted() {
         let s = String::from("foo='bar'").into_kv().unwrap();
-        assert_eq!(KeyValue::new(String::from("foo"), String::from("bar")), s);
+        assert_eq!(KeyValue::new(String::from("foo"), String::from("\'bar\'")), s);
     }
 
     #[test]
@@ -75,12 +87,14 @@ mod test {
 
     #[test]
     fn test_double_and_single_quoted() {
-        assert!(String::from("foo=\"bar\'").into_kv().is_none());
+        let s = String::from("foo=\"bar\'").into_kv().unwrap();
+        assert_eq!(KeyValue::new(String::from("foo"), String::from("\"bar\'")), s);
     }
 
     #[test]
     fn test_single_and_double_quoted() {
-        assert!(String::from("foo=\'bar\"").into_kv().is_none());
+        let s = String::from("foo=\'bar\"").into_kv().unwrap();
+        assert_eq!(KeyValue::new(String::from("foo"), String::from("\'bar\"")), s);
     }
 
     #[test]
