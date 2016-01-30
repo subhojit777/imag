@@ -5,11 +5,9 @@ use std::path::PathBuf;
 use std::result::Result as RResult;
 use std::sync::Arc;
 use std::sync::RwLock;
-use std::error::Error;
 use std::collections::BTreeMap;
 use std::io::{Seek, SeekFrom};
 
-use fs2::FileExt;
 use toml::{Table, Value};
 use regex::Regex;
 

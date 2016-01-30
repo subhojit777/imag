@@ -2,7 +2,6 @@ use std::error::Error;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Error as FmtError;
-use std::clone::Clone;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum RuntimeErrorKind {
