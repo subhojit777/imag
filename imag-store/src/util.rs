@@ -76,6 +76,8 @@ fn insert_key_into(current: String,
 }
 
 fn parse_value(value: String) -> Value {
+    use std::str::FromStr;
+
     fn is_ary(v: &String) -> bool {
         v.chars().next() == Some('[') && v.chars().last() == Some(']') && v.len() >= 3
     }
@@ -91,8 +93,22 @@ fn parse_value(value: String) -> Value {
         let sub = &value[1..(value.len()-1)];
         Value::Array(sub.split(",").map(|v| parse_value(String::from(v))).collect())
     } else {
-        debug!("Building String out of: {:?}...", value);
-        Value::String(value)
+        FromStr::from_str(&value[..])
+            .map(|i: i64| {
+                debug!("Building Integer out of: {:?}...", value);
+                Value::Integer(i)
+            })
+            .unwrap_or_else(|_| {
+                FromStr::from_str(&value[..])
+                    .map(|f: f64| {
+                        debug!("Building Float out of: {:?}...", value);
+                        Value::Float(f)
+                    })
+                    .unwrap_or_else(|_| {
+                        debug!("Building String out of: {:?}...", value);
+                        Value::String(value)
+                    })
+            })
     }
 }
 
