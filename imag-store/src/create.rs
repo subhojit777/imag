@@ -28,13 +28,17 @@ pub fn create(rt: &Runtime) {
             let path = build_entry_path(rt, scmd.value_of("path").unwrap());
             debug!("path = {:?}", path);
 
-            scmd.subcommand_matches("entry")
-                .map(|entry| create_from_cli_spec(rt, scmd, &path))
-                .ok_or(()) // hackythehackhack
-                .map_err(|_| {
-                    create_from_source(rt, scmd, &path)
-                        .unwrap_or_else(|e| debug!("Error building Entry: {:?}", e))
-                });
+            if scmd.subcommand_matches("entry").is_some() {
+                create_from_cli_spec(rt, scmd, &path)
+                    .or_else(|_| create_from_source(rt, scmd, &path))
+                    .or_else(|_| create_with_content_and_header(rt,
+                                                                &path,
+                                                                String::new(),
+                                                                EntryHeader::new()))
+            } else {
+                create_with_content_and_header(rt, &path, String::new(), EntryHeader::new())
+            }
+            .unwrap_or_else(|e| debug!("Error building Entry: {:?}", e))
         });
 }
 
@@ -61,24 +65,11 @@ fn create_from_cli_spec(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> R
 
     debug!("Got content with len = {}", content.len());
 
-    rt.store()
-        .create(PathBuf::from(path))
-        .map(|mut element| {
-            {
-                let mut e_content = element.get_content_mut();
-                *e_content = content;
-                debug!("New content set");
-            }
-            {
-                let mut e_header  = element.get_header_mut();
-                matches.subcommand_matches("entry")
-                    .map(|entry_matches| {
-                        *e_header = build_toml_header(entry_matches, EntryHeader::new());
-                        debug!("New header set");
-                    });
-            }
-        })
-        .map_err(|e| StoreError::new(StoreErrorKind::BackendError, Some(Box::new(e))))
+    let header = matches.subcommand_matches("entry")
+        .map(|entry_matches| build_toml_header(entry_matches, EntryHeader::new()))
+        .unwrap_or(EntryHeader::new());
+
+    create_with_content_and_header(rt, path, content, header)
 }
 
 fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> Result<()> {
@@ -104,6 +95,29 @@ fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> Res
             debug!("Entry build");
         })
         .map_err(|serr| StoreError::new(StoreErrorKind::BackendError, Some(Box::new(serr))))
+}
+
+fn create_with_content_and_header(rt: &Runtime,
+                                  path: &PathBuf,
+                                  content: String,
+                                  header: EntryHeader) -> Result<()>
+{
+    debug!("Creating entry with content");
+    rt.store()
+        .create(PathBuf::from(path))
+        .map(|mut element| {
+            {
+                let mut e_content = element.get_content_mut();
+                *e_content = content;
+                debug!("New content set");
+            }
+            {
+                let mut e_header  = element.get_header_mut();
+                *e_header = header;
+                debug!("New header set");
+            }
+        })
+        .map_err(|e| StoreError::new(StoreErrorKind::BackendError, Some(Box::new(e))))
 }
 
 fn string_from_raw_src(raw_src: &str) -> String {
