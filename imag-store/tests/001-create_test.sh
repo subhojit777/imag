@@ -93,6 +93,33 @@ EOS
     fi
 }
 
+
+test_std_header_plus_custom_multiheader_same_section() {
+    local expected=$(cat <<EOS
+---
+[imag]
+links = []
+version = "0.1.0"
+
+[zzz]
+bar = "baz"
+zzz = "z"
+---
+
+EOS
+)
+
+    local filename="test-std-header-plus-custom-mutliheader-same-section"
+    imag-store create -p /$filename entry -h zzz.zzz=z zzz.bar=baz
+    local result=$(cat ${STORE}/$filename)
+    if [[ "$expected" == "$result" ]]; then
+        out "Expected store entry == result"
+    else
+        err "${STORE}/$filename differs from expected"
+        return 1
+    fi
+}
+
 test_std_header_plus_custom_and_content() {
     local expected=$(cat <<EOS
 ---
@@ -118,11 +145,12 @@ EOS
     fi
 }
 
-invoke_tests                                    \
-    test_call                                   \
-    test_mkstore                                \
-    test_std_header                             \
-    test_std_header_plus_custom                 \
-    test_std_header_plus_custom_multiheader     \
+invoke_tests                                                \
+    test_call                                               \
+    test_mkstore                                            \
+    test_std_header                                         \
+    test_std_header_plus_custom                             \
+    test_std_header_plus_custom_multiheader                 \
+    test_std_header_plus_custom_multiheader_same_section    \
     test_std_header_plus_custom_and_content
 
