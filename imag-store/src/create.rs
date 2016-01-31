@@ -48,14 +48,14 @@ fn create_from_cli_spec(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> R
                 .unwrap_or_else(|| {
                     entry_subcommand
                         .value_of("content-from")
-                        .map(|src| entry_from_raw(src))
+                        .map(|src| string_from_raw_src(src))
                         .unwrap_or(String::new())
                 })
         })
         .unwrap_or_else(|| {
             debug!("Didn't find entry subcommand, getting raw content");
             matches.value_of("from-raw")
-                .map(|raw_src| entry_from_raw(raw_src))
+                .map(|raw_src| string_from_raw_src(raw_src))
                 .unwrap_or(String::new())
         });
 
@@ -85,7 +85,7 @@ fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> Res
     let content = matches
         .value_of("from-raw")
         .ok_or(StoreError::new(StoreErrorKind::NoCommandlineCall, None))
-        .map(|raw_src| entry_from_raw(raw_src));
+        .map(|raw_src| string_from_raw_src(raw_src));
 
     if content.is_err() {
         return content.map(|_| ());
@@ -106,7 +106,7 @@ fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> Res
         .map_err(|serr| StoreError::new(StoreErrorKind::BackendError, Some(Box::new(serr))))
 }
 
-fn entry_from_raw(raw_src: &str) -> String {
+fn string_from_raw_src(raw_src: &str) -> String {
     let mut content = String::new();
     if raw_src == "-" {
         debug!("Reading entry from stdin");
@@ -123,4 +123,3 @@ fn entry_from_raw(raw_src: &str) -> String {
     }
     content
 }
-
