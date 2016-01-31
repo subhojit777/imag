@@ -41,6 +41,30 @@ EOS
     fi
 }
 
+test_std_header_plus_custom() {
+    local expected=$(cat <<EOS
+---
+[imag]
+links = []
+version = "0.1.0"
+
+[zzz]
+zzz = "z"
+---
+
+EOS
+)
+
+    imag-store create -p /test-std-header-plus-custom entry -h zzz.zzz=z
+    local result=$(cat ${STORE}/test-std-header-plus-custom)
+    if [[ "$expected" == "$result" ]]; then
+        out "Expected store entry == result"
+    else
+        err "${STORE}/test differs from expected"
+        return 1
+    fi
+}
+
 invoke_tests                    \
     test_call                   \
     test_mkstore                \
