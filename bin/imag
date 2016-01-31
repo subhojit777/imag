@@ -8,7 +8,7 @@ help() {
     local cmds="$(commands)"
 
     cat <<EOS
-    Usage: imag [--version | -h | --help] <command> <args...>
+    Usage: imag [--version | --versions | -h | --help] <command> <args...>
 
     imag - the personal information management suite for the commandline
 
@@ -41,6 +41,14 @@ commands() {
 
 main() {
     case $1 in
+        --versions)
+            echo -n "imag "; version
+            for command in $(commands); do
+                $command --version
+            done
+            exit 0
+            ;;
+
         --version)
             version
             exit 0
