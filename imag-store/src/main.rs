@@ -1,5 +1,6 @@
 extern crate clap;
 #[macro_use] extern crate log;
+extern crate semver;
 extern crate toml;
 #[macro_use] extern crate version;
 
