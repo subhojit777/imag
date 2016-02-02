@@ -20,7 +20,9 @@ pub struct FieldPath {
 impl FieldPath {
 
     pub fn new(elements: Vec<FieldPathElement>) -> FieldPath {
-        unimplemented!()
+        FieldPath {
+            elements: elements,
+        }
     }
 
     pub fn compile(source: String) -> Result<FieldPath, FieldPathParsingError> {
@@ -28,7 +30,14 @@ impl FieldPath {
     }
 
     pub fn walk(&self, e: &EntryHeader) -> Option<Value> {
-        unimplemented!()
+        let init_val : Value = Value::Table(e.toml().clone());
+
+        self.elements
+            .clone()
+            .into_iter()
+            .fold(Some(init_val), |acc: Option<Value>, token: FieldPathElement| {
+                acc.and_then(|element| token.apply(element))
+            })
     }
 
 }
