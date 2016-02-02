@@ -6,3 +6,7 @@ extern crate toml;
 
 extern crate libimagstore;
 
+pub mod cli;
+pub mod builtin;
+pub mod filter;
+pub mod ops;
