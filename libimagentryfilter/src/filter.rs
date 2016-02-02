@@ -20,10 +20,22 @@ pub trait Filter {
         Or::new(Box::new(self), other)
     }
 
+    fn or3(self, other: Box<Filter>, other2: Box<Filter>) -> Or
+        where Self: Sized + 'static
+    {
+        Or::new(Box::new(self), Box::new(Or::new(other, other2)))
+    }
+
     fn and(self, other: Box<Filter>) -> And
         where Self: Sized + 'static
     {
         And::new(Box::new(self), other)
+    }
+
+    fn and3(self, other: Box<Filter>, other2: Box<Filter>) -> And
+        where Self: Sized + 'static
+    {
+        And::new(Box::new(self), Box::new(And::new(other, other2)))
     }
 
 }
