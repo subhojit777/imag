@@ -7,6 +7,11 @@ pub struct Link {
 }
 
 impl Link {
+
+    pub fn new(s: String) -> Link {
+        Link { link: s }
+    }
+
 }
 
 pub struct Links {
