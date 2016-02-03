@@ -15,6 +15,15 @@ These links could be either links to internal content or external content.
 
 ### Linking to internal content {#sec:thestore:linking:internal}
 
+Links to internal content are stored in the Array "imag.links = []".
+Each entry in this array MUST BE a String which is an absolute path to a store
+entry (@sec:thestore:links).
+
+As links from within the content part of a module is not cross-compatible over
+modules, each module SHOULD store the links which are in the content
+part also in the "imag.links" Array. This way, other modules can read the links
+without having knowledge about how to parse the content part of an entry.
+
 ### Linking to external content {#sec:thestore:linking:external}
 
 Each Entry can store _one link to external content at most_.
