@@ -9,15 +9,19 @@ RUNTIME="/tmp"
 STORE="${RUNTIME}/store"
 
 out() {
-    echo -e "${YELLOW}:: $*${COLOR_OFF}"
+    [[ -z "$DEBUG_OUTPUT_OFF" ]] && echo -e "${YELLOW}:: $*${COLOR_OFF}"
 }
 
 success() {
-    echo -e "${GREEN}>> $*${COLOR_OFF}"
+    [[ -z "$DEBUG_OUTPUT_OFF" ]] && echo -e "${GREEN}>> $*${COLOR_OFF}"
 }
 
 err() {
-    echo -e "${RED}!! $*${COLOR_OFF}"
+    [[ -z "$DEBUG_OUTPUT_OFF" ]] && echo -e "${RED}!! $*${COLOR_OFF}"
+}
+
+silent() {
+    DEBUG_OUTPUT_OFF=1 $*
 }
 
 imag-store() {
