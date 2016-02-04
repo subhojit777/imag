@@ -320,6 +320,12 @@ pub struct EntryHeader {
 
 pub type EntryResult<V> = RResult<V, ParserError>;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Token {
+    Key(String),
+    Index(usize),
+}
+
 /**
  * Wrapper type around file header (TOML) object
  */
@@ -440,6 +446,19 @@ impl EntryHeader {
     pub fn read(&self, spec: &str) -> Result<Option<Value>> {
         unimplemented!()
     }
+
+    fn tokenize(spec: &str) -> Result<Vec<Token>> {
+        use std::str::FromStr;
+
+        spec.split(".")
+            .map(|s| {
+                usize::from_str(s)
+                    .map(Token::Index)
+                    .or_else(|_| Ok(Token::Key(String::from(s))))
+            })
+            .collect()
+    }
+
 }
 
 fn build_default_header() -> BTreeMap<String, Value> {
