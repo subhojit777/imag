@@ -1,3 +1,6 @@
+use std::io::Write;
+use std::io::stderr;
+
 use log::{Log, LogLevel, LogRecord, LogMetadata};
 
 pub struct ImagLogger {
@@ -23,7 +26,7 @@ impl Log for ImagLogger {
     fn log(&self, record: &LogRecord) {
         if self.enabled(record.metadata()) {
             // TODO: This is just simple logging. Maybe we can enhance this lateron
-            println!("[imag][{: <5}]: {}", record.level(), record.args());
+            writeln!(stderr(), "[imag][{: <5}]: {}", record.level(), record.args());
         }
     }
 }
