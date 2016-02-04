@@ -326,7 +326,7 @@ fn build_default_header() -> BTreeMap<String, Value> {
     m.insert(String::from("imag"), {
         let mut imag_map = BTreeMap::<String, Value>::new();
 
-        imag_map.insert(String::from("version"), Value::String(version!()));
+        imag_map.insert(String::from("version"), Value::String(String::from(version!())));
         imag_map.insert(String::from("links"), Value::Array(vec![]));
 
         Value::Table(imag_map)
@@ -579,7 +579,7 @@ mod test {
         let mut header = BTreeMap::new();
         let sub = {
             let mut sub = BTreeMap::new();
-            sub.insert("version".into(), Value::String(version!()));
+            sub.insert("version".into(), Value::String(String::from(version!())));
 
             Value::Table(sub)
         };
