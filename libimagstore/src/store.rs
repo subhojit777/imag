@@ -375,6 +375,9 @@ impl EntryHeader {
      *  insert("something.in.a.field", Boolean(true));
      * ```
      *
+     * If an array field was accessed which is _out of bounds_ of the array available, the element
+     * is appended to the array.
+     *
      * Inserts a Boolean in the section "something" -> "in" -> "a" -> "field"
      * A JSON equivalent would be
      *
@@ -391,7 +394,73 @@ impl EntryHeader {
      * Returns true if header field was set, false if there is already a value
      */
     pub fn insert(&mut self, spec: &str, v: Value) -> Result<bool> {
-        unimplemented!()
+        let tokens = EntryHeader::tokenize(spec);
+        if tokens.is_err() { // return parser error if any
+            return tokens.map(|_| false);
+        }
+        let tokens = tokens.unwrap();
+
+        let destination = tokens.iter().last();
+        if destination.is_none() {
+            return Err(StoreError::new(StoreErrorKind::HeaderPathSyntaxError, None));
+        }
+        let destination = destination.unwrap();
+
+        let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
+        let mut table = Value::Table(self.toml.clone()); // oh fuck, but yes, we clone() here
+        let mut value = EntryHeader::walk_header(&mut table, path_to_dest); // walk N-1 tokens
+        if value.is_err() {
+            return value.map(|_| false);
+        }
+        let mut value = value.unwrap();
+
+        // There is already an value at this place
+        if EntryHeader::extract(value, destination).is_ok() {
+            return Ok(false);
+        }
+
+        match destination {
+            &Token::Key(ref s) => { // if the destination shall be an map key
+                match value {
+                    /*
+                     * Put it in there if we have a map
+                     */
+                    &mut Value::Table(ref mut t) => {
+                        t.insert(s.clone(), v);
+                    }
+
+                    /*
+                     * Fail if there is no map here
+                     */
+                    _ => return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+                }
+            },
+
+            &Token::Index(i) => { // if the destination shall be an array
+                match value {
+
+                    /*
+                     * Put it in there if we have an array
+                     */
+                    &mut Value::Array(ref mut a) => {
+                        a.push(v); // push to the end of the array
+
+                        // if the index is inside the array, we swap-remove the element at this
+                        // index
+                        if a.len() < i {
+                            a.swap_remove(i);
+                        }
+                    },
+
+                    /*
+                     * Fail if there is no array here
+                     */
+                    _ => return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+                }
+            },
+        }
+
+        Ok(true)
     }
 
     /**
