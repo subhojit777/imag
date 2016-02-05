@@ -9,6 +9,7 @@ use std::fs::{File, OpenOptions};
  *
  * A lazy file is either absent, but a path to it is available, or it is present.
  */
+#[derive(Debug)]
 pub enum LazyFile {
     Absent(PathBuf),
     File(File)
@@ -52,6 +53,7 @@ impl LazyFile {
      * Get the mutable file behind a LazyFile object
      */
     pub fn get_file_mut(&mut self) -> Result<&mut File, StoreError> {
+        debug!("Getting lazy file: {:?}", self);
         let file = match *self {
             LazyFile::File(ref mut f) => return {
                 // We seek to the beginning of the file since we expect each
@@ -79,6 +81,7 @@ impl LazyFile {
      * Create a file out of this LazyFile object
      */
     pub fn create_file(&mut self) -> Result<&mut File, StoreError> {
+        debug!("Creating lazy file: {:?}", self);
         let file = match *self {
             LazyFile::File(ref mut f) => return Ok(f),
             LazyFile::Absent(ref p) => {

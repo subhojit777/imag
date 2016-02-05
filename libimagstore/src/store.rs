@@ -104,18 +104,23 @@ impl Store {
     pub fn new(location: PathBuf) -> Result<Store> {
         use std::fs::create_dir_all;
 
+        debug!("Building new Store object");
         if !location.exists() {
+            debug!("Creating store path");
             let c = create_dir_all(location.clone());
             if c.is_err() {
+                debug!("Failed");
                 return Err(StoreError::new(StoreErrorKind::StorePathCreate,
                                            Some(Box::new(c.err().unwrap()))));
             }
         } else {
             if location.is_file() {
+                debug!("Store path exists as file");
                 return Err(StoreError::new(StoreErrorKind::StorePathExists, None));
             }
         }
 
+        debug!("Store building succeeded");
         Ok(Store {
             location: location,
             entries: Arc::new(RwLock::new(HashMap::new())),
@@ -221,6 +226,7 @@ impl Drop for Store {
      * TODO: Unlock them
      */
     fn drop(&mut self) {
+        debug!("Dropping store");
     }
 
 }
@@ -407,6 +413,7 @@ impl Entry {
     }
 
     pub fn from_str(loc: StoreId, s: &str) -> Result<Entry> {
+        debug!("Building entry from string");
         let re = Regex::new(r"(?smx)
             ^---$
             (?P<header>.*) # Header
@@ -429,6 +436,7 @@ impl Entry {
             return Err(StoreError::new(StoreErrorKind::MalformedEntry, None));
         }
 
+        debug!("Header and content found. Yay! Building Entry object now");
         Ok(Entry {
             location: loc,
             header: try!(EntryHeader::parse(header.unwrap())),
