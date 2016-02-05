@@ -462,35 +462,11 @@ impl EntryHeader {
     fn walk_header(v: &mut Value, tokens: Vec<Token>) -> Result<&mut Value> {
         use std::vec::IntoIter;
 
-        fn extract_from_table<'a>(v: &'a mut Value, s: &String) -> Result<&'a mut Value> {
-            match v {
-                &mut Value::Table(ref mut t) => {
-                    t.get_mut(&s[..])
-                        .ok_or(StoreError::new(StoreErrorKind::HeaderKeyNotFound, None))
-                },
-                _ => Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
-            }
-        }
-
-        fn extract_from_array(v: &mut Value, i: usize) -> Result<&mut Value> {
-            match v {
-                &mut Value::Array(ref mut a) => Ok(&mut a[i]),
-                _ => Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
-            }
-        }
-
-        fn extract<'a>(v: &'a mut Value, token: &Token) -> Result<&'a mut Value> {
-            match token {
-                &Token::Key(ref s) => extract_from_table(v, s),
-                &Token::Index(i) => extract_from_array(v, i),
-            }
-        }
-
         fn walk_iter<'a>(v: Result<&'a mut Value>, i: &mut IntoIter<Token>) -> Result<&'a mut Value> {
             let next = i.next();
             v.and_then(move |value| {
                 if let Some(token) = next {
-                    walk_iter(extract(value, &token), i)
+                    walk_iter(EntryHeader::extract(value, &token), i)
                 } else {
                     Ok(value)
                 }
@@ -498,6 +474,36 @@ impl EntryHeader {
         }
 
         walk_iter(Ok(v), &mut tokens.into_iter())
+    }
+
+    fn extract_from_table<'a>(v: &'a mut Value, s: &String) -> Result<&'a mut Value> {
+        match v {
+            &mut Value::Table(ref mut t) => {
+                t.get_mut(&s[..])
+                    .ok_or(StoreError::new(StoreErrorKind::HeaderKeyNotFound, None))
+            },
+            _ => Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+        }
+    }
+
+    fn extract_from_array(v: &mut Value, i: usize) -> Result<&mut Value> {
+        match v {
+            &mut Value::Array(ref mut a) => {
+                if a.len() < i {
+                    Err(StoreError::new(StoreErrorKind::HeaderKeyNotFound, None))
+                } else {
+                    Ok(&mut a[i])
+                }
+            },
+            _ => Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+        }
+    }
+
+    fn extract<'a>(v: &'a mut Value, token: &Token) -> Result<&'a mut Value> {
+        match token {
+            &Token::Key(ref s)  => EntryHeader::extract_from_table(v, s),
+            &Token::Index(i)    => EntryHeader::extract_from_array(v, i),
+        }
     }
 
 }
