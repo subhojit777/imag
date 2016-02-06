@@ -327,13 +327,7 @@ impl EntryHeader {
     }
 
     pub fn verify(&self) -> Result<()> {
-        if !has_main_section(&self.toml) {
-            Err(StoreError::from(ParserError::new(ParserErrorKind::MissingMainSection, None)))
-        } else if !has_imag_version_in_main_section(&self.toml) {
-            Err(StoreError::from(ParserError::new(ParserErrorKind::MissingVersionInfo, None)))
-        } else {
-            Ok(())
-        }
+        verify_header(&self.toml)
     }
 
 }
@@ -352,15 +346,30 @@ fn build_default_header() -> BTreeMap<String, Value> {
 
     m
 }
+fn verify_header(t: &Table) -> Result<()> {
+    if !has_main_section(t) {
+        Err(StoreError::from(ParserError::new(ParserErrorKind::MissingMainSection, None)))
+    } else if !has_imag_version_in_main_section(t) {
+        Err(StoreError::from(ParserError::new(ParserErrorKind::MissingVersionInfo, None)))
+    } else if !has_only_tables(t) {
+        debug!("Could not verify that it only has tables in its base table");
+        Err(StoreError::from(ParserError::new(ParserErrorKind::NonTableInBaseTable, None)))
+    } else {
+        Ok(())
+    }
+}
 
 fn verify_header_consistency(t: Table) -> EntryResult<Table> {
-    if !has_main_section(&t) {
-        Err(ParserError::new(ParserErrorKind::MissingMainSection, None))
-    } else if !has_imag_version_in_main_section(&t) {
-        Err(ParserError::new(ParserErrorKind::MissingVersionInfo, None))
+    use std::error::Error;
+    if let Err(e) = verify_header(&t) {
+        Err(ParserError::new(ParserErrorKind::HeaderInconsistency, None))
     } else {
         Ok(t)
     }
+}
+
+fn has_only_tables(t: &Table) -> bool {
+    t.iter().all(|(_, x)| if let &Value::Table(_) = x { true } else { false })
 }
 
 fn has_main_section(t: &Table) -> bool {
