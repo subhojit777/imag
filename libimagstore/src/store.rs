@@ -320,8 +320,8 @@ impl EntryHeader {
         let mut parser = Parser::new(s);
         parser.parse()
             .ok_or(ParserError::new(ParserErrorKind::TOMLParserErrors, None))
-            .and_then(|t| verify_header_consistency(t))
-            .map(|t| EntryHeader::from_table(t))
+            .and_then(verify_header_consistency)
+            .map(EntryHeader::from_table)
     }
 
 }
