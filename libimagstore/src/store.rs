@@ -186,8 +186,10 @@ impl Store {
 
         assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 
+        debug!("Verifying Entry");
         try!(entry.entry.verify());
 
+        debug!("Writing Entry");
         try!(se.write_entry(&entry.entry));
         se.status = StoreEntryStatus::Present;
 
@@ -369,6 +371,7 @@ fn verify_header_consistency(t: Table) -> EntryResult<Table> {
 }
 
 fn has_only_tables(t: &Table) -> bool {
+    debug!("Verifying that table has only tables");
     t.iter().all(|(_, x)| if let &Value::Table(_) = x { true } else { false })
 }
 
