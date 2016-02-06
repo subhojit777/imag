@@ -10,6 +10,22 @@ test_call() {
     fi
 }
 
+test_call_id() {
+    imag-store create -i /test-call~0.1.0
+    if [[ ! $? -eq 0 ]]; then
+        err "Return value should be zero, was non-zero"
+        return 1;
+    fi
+}
+
+test_call_no_id() {
+    imag-store create
+    if [[ ! $? -eq 1 ]]; then
+        err "Return value should be zero, was non-zero"
+        return 1;
+    fi
+}
+
 test_mkstore() {
     imag-store create -p /test-mkstore~0.1.0 || { err "Calling imag failed"; return 1; }
     if [[ -d ${STORE} ]]; then
@@ -147,6 +163,8 @@ EOS
 
 invoke_tests                                                \
     test_call                                               \
+    test_call_id                                            \
+    test_call_no_id                                         \
     test_mkstore                                            \
     test_std_header                                         \
     test_std_header_plus_custom                             \

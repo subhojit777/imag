@@ -4,6 +4,9 @@ use std::fs::OpenOptions;
 use std::result::Result as RResult;
 use std::io::Read;
 use std::ops::DerefMut;
+use std::io::Write;
+use std::io::stderr;
+use std::process::exit;
 
 use clap::ArgMatches;
 
@@ -25,7 +28,14 @@ pub fn create(rt: &Runtime) {
             debug!("Found 'create' subcommand...");
 
             // unwrap is safe as value is required
-            let path = build_entry_path(rt, scmd.value_of("path").unwrap());
+            let path = scmd.value_of("path").or_else(|| scmd.value_of("id"));
+            if path.is_none() {
+                warn!("No ID / Path provided. Exiting now");
+                write!(stderr(), "No ID / Path provided. Exiting now");
+                exit(1);
+            }
+
+            let path = build_entry_path(rt, path.unwrap());
             debug!("path = {:?}", path);
 
             if scmd.subcommand_matches("entry").is_some() {
