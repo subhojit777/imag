@@ -129,6 +129,10 @@ impl Store {
 
     /// Creates the Entry at the given location (inside the entry)
     pub fn create<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
+        if !self.id_in_store(&id) {
+            return Err(StoreError::new(StoreErrorKind::StorePathOutsideStore, None));
+        }
+
         let hsmap = self.entries.write();
         if hsmap.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -148,6 +152,10 @@ impl Store {
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
     /// dropped, the new Entry is written to disk
     pub fn retrieve<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
+        if !self.id_in_store(&id) {
+            return Err(StoreError::new(StoreErrorKind::StorePathOutsideStore, None));
+        }
+
         self.entries
             .write()
             .map_err(|_| StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -200,6 +208,10 @@ impl Store {
 
     /// Delete an entry
     pub fn delete(&self, id: StoreId) -> Result<()> {
+        if !self.id_in_store(&id) {
+            return Err(StoreError::new(StoreErrorKind::StorePathOutsideStore, None));
+        }
+
         let mut entries_lock = self.entries.write();
         if entries_lock.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -215,6 +227,15 @@ impl Store {
         // remove the entry first, then the file
         entries.remove(&id);
         remove_file(&id).map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))))
+    }
+
+    fn id_in_store(&self, path: &StoreId) -> bool {
+        path.canonicalize()
+            .map(|can| {
+                can.starts_with(&self.location)
+            })
+            .unwrap_or(false)
+            // we return false, as fs::canonicalize() returns an Err(..) on filesystem errors
     }
 }
 
