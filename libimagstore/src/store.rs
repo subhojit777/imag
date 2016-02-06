@@ -186,6 +186,8 @@ impl Store {
 
         assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 
+        try!(entry.entry.verify());
+
         try!(se.write_entry(&entry.entry));
         se.status = StoreEntryStatus::Present;
 
@@ -320,8 +322,18 @@ impl EntryHeader {
         let mut parser = Parser::new(s);
         parser.parse()
             .ok_or(ParserError::new(ParserErrorKind::TOMLParserErrors, None))
-            .and_then(|t| verify_header_consistency(t))
-            .map(|t| EntryHeader::from_table(t))
+            .and_then(verify_header_consistency)
+            .map(EntryHeader::from_table)
+    }
+
+    pub fn verify(&self) -> Result<()> {
+        if !has_main_section(&self.toml) {
+            Err(StoreError::from(ParserError::new(ParserErrorKind::MissingMainSection, None)))
+        } else if !has_imag_version_in_main_section(&self.toml) {
+            Err(StoreError::from(ParserError::new(ParserErrorKind::MissingVersionInfo, None)))
+        } else {
+            Ok(())
+        }
     }
 
 }
@@ -468,6 +480,10 @@ impl Entry {
 
     pub fn get_content_mut(&mut self) -> &mut EntryContent {
         &mut self.content
+    }
+
+    pub fn verify(&self) -> Result<()> {
+        self.header.verify()
     }
 
 }
