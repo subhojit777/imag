@@ -267,8 +267,9 @@ impl<'a> ::std::ops::DerefMut for FileLockEntry<'a> {
 }
 
 impl<'a> Drop for FileLockEntry<'a> {
+    /// This will silently ignore errors, use `Store::update` if you want to catch the errors
     fn drop(&mut self) {
-        self.store._update(self).unwrap()
+        let _ = self.store._update(self);
     }
 }
 
