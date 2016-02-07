@@ -26,7 +26,25 @@ pub fn get_link(header: &EntryHeader) -> Result<Option<Link>> {
 /// Set an external link in the header
 ///
 /// Return the previous set link if there was any
-pub fn set_link(header: &mut EntryHeader, l: Link) -> Option<Link> {
-    unimplemented!()
+pub fn set_link(header: &mut EntryHeader, l: Link) -> Result<Option<Link>> {
+    let old_link = header.set("imag.content.uri", Value::String(l.into()));
+
+    if old_link.is_err() {
+        let kind = LinkErrorKind::EntryHeaderWriteError;
+        let lerr = LinkError::new(kind, Some(Box::new(old_link.err().unwrap())));
+        return Err(lerr);
+    }
+    let old_link = old_link.unwrap();
+
+    if old_link.is_none() {
+        return Ok(None);
+    }
+
+    match old_link.unwrap() {
+        Value::String(s) => Ok(Some(Link::new(s))),
+
+        // We don't do anything in this case and be glad we corrected the type error with this set()
+        _ => Ok(None),
+    }
 }
 
