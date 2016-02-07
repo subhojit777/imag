@@ -52,9 +52,6 @@ script:
               travis_cargo_run_in $dir
         done
 
-        echo -e "\nRunning on top-level crate...\n"
-        travis_cargo_run_in "."
-
 addons:
     apt:
         packages:
