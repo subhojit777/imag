@@ -132,6 +132,8 @@ pub enum ParserErrorKind {
     TOMLParserErrors,
     MissingMainSection,
     MissingVersionInfo,
+    NonTableInBaseTable,
+    HeaderInconsistency,
 }
 
 pub struct ParserError {
@@ -175,6 +177,8 @@ impl Error for ParserError {
             ParserErrorKind::TOMLParserErrors   => "Several TOML-Parser-Errors",
             ParserErrorKind::MissingMainSection => "Missing main section",
             ParserErrorKind::MissingVersionInfo => "Missing version information in main section",
+            ParserErrorKind::NonTableInBaseTable => "A non-table was found in the base table",
+            ParserErrorKind::HeaderInconsistency => "The header is inconsistent",
         }
     }
 

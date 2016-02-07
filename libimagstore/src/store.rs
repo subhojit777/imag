@@ -194,8 +194,10 @@ impl Store {
 
         assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 
+        debug!("Verifying Entry");
         try!(entry.entry.verify());
 
+        debug!("Writing Entry");
         try!(se.write_entry(&entry.entry));
         se.status = StoreEntryStatus::Present;
 
@@ -286,8 +288,9 @@ impl<'a> ::std::ops::DerefMut for FileLockEntry<'a> {
 }
 
 impl<'a> Drop for FileLockEntry<'a> {
+    /// This will silently ignore errors, use `Store::update` if you want to catch the errors
     fn drop(&mut self) {
-        self.store._update(self).unwrap()
+        let _ = self.store._update(self);
     }
 }
 
@@ -348,13 +351,7 @@ impl EntryHeader {
     }
 
     pub fn verify(&self) -> Result<()> {
-        if !has_main_section(&self.toml) {
-            Err(StoreError::from(ParserError::new(ParserErrorKind::MissingMainSection, None)))
-        } else if !has_imag_version_in_main_section(&self.toml) {
-            Err(StoreError::from(ParserError::new(ParserErrorKind::MissingVersionInfo, None)))
-        } else {
-            Ok(())
-        }
+        verify_header(&self.toml)
     }
 
 }
@@ -373,15 +370,31 @@ fn build_default_header() -> BTreeMap<String, Value> {
 
     m
 }
+fn verify_header(t: &Table) -> Result<()> {
+    if !has_main_section(t) {
+        Err(StoreError::from(ParserError::new(ParserErrorKind::MissingMainSection, None)))
+    } else if !has_imag_version_in_main_section(t) {
+        Err(StoreError::from(ParserError::new(ParserErrorKind::MissingVersionInfo, None)))
+    } else if !has_only_tables(t) {
+        debug!("Could not verify that it only has tables in its base table");
+        Err(StoreError::from(ParserError::new(ParserErrorKind::NonTableInBaseTable, None)))
+    } else {
+        Ok(())
+    }
+}
 
 fn verify_header_consistency(t: Table) -> EntryResult<Table> {
-    if !has_main_section(&t) {
-        Err(ParserError::new(ParserErrorKind::MissingMainSection, None))
-    } else if !has_imag_version_in_main_section(&t) {
-        Err(ParserError::new(ParserErrorKind::MissingVersionInfo, None))
+    use std::error::Error;
+    if let Err(e) = verify_header(&t) {
+        Err(ParserError::new(ParserErrorKind::HeaderInconsistency, None))
     } else {
         Ok(t)
     }
+}
+
+fn has_only_tables(t: &Table) -> bool {
+    debug!("Verifying that table has only tables");
+    t.iter().all(|(_, x)| if let &Value::Table(_) = x { true } else { false })
 }
 
 fn has_main_section(t: &Table) -> bool {
