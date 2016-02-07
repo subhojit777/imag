@@ -36,20 +36,24 @@ script:
         travis_cargo_run_in() {
             [[ -d "$1" ]] &&
             cd "$1" &&
-            travis-cargo build &&
-            travis-cargo test &&
-            travis-cargo bench &&
-            travis-cargo --only stable doc &&
-            cd -
+            {
+              travis-cargo build &&
+              travis-cargo test &&
+              travis-cargo bench &&
+              travis-cargo --only stable doc &&
+              cd -
+            } || exit 1
         }
 
         [[ $(changes_in "doc") ]] && echo "Changes in ./doc are not build by CI"
 
         for d in $(find -name "Cargo.toml" | grep -vE "^.$"); do
             dir=$(dirname $d)
-            changes_in $dir &&                \
-              echo -e "\nRunning in $d\n" &&  \
-              travis_cargo_run_in $dir
+            {
+              changes_in $dir &&                  \
+                  echo -e "\nRunning in $d\n" &&  \
+                  travis_cargo_run_in $dir
+            } || true
         done
 
 addons:
