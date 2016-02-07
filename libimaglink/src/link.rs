@@ -19,6 +19,11 @@ pub struct Links {
 }
 
 impl Links {
+
+    pub fn new(s: Vec<Link>) -> Links {
+        Links { links: s }
+    }
+
 }
 
 impl Into<String> for Link {
