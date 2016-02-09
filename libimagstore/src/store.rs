@@ -238,7 +238,7 @@ impl Store {
             .map(|can| {
                 can.starts_with(&self.location)
             })
-            .unwrap_or(false)
+            .unwrap_or(path.starts_with(&self.location))
             // we return false, as fs::canonicalize() returns an Err(..) on filesystem errors
     }
 
