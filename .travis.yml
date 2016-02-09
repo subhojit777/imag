@@ -11,7 +11,7 @@ matrix:
 
 before_install:
     - |
-      c=$(git diff $TRAVIS_BRANCH..$TRAVIS_COMMIT --name-only | cut -d "/" -f 1 | uniq)
+      c=$(git diff $(git merge-base master $TRAVIS_COMMIT)..$TRAVIS_COMMIT --name-only | cut -d "/" -f 1 | uniq)
       if [[ "$c" == "doc" ]]; then
           echo "Only changes in DOC, exiting 0"
           exit 0
@@ -28,12 +28,13 @@ before_script:
 script:
     - |
         changes_in() {
-            [[ $(git diff --name-only $TRAVIS_BRANCH..$TRAVIS_COMMIT | \
+            [[ $(git diff --name-only $(git merge-base master $TRAVIS_COMMIT)..$TRAVIS_COMMIT | \
                 cut -d "/" -f 1 | \
                 grep "$n") ]] > /dev/null
         }
 
         travis_cargo_run_in() {
+            echo ":: Trying to run cargo in $1"
             [[ -d "$1" ]] &&
             cd "$1" &&
             {
@@ -45,14 +46,27 @@ script:
             } || exit 1
         }
 
+        run_sh_test() {
+            echo "-- Running test script: $1"
+              bash $1 || { echo "-- Test failed. Exiting"; exit 1; }
+            echo "-- Test script $1 executed successfully"
+        }
+
         [[ $(changes_in "doc") ]] && echo "Changes in ./doc are not build by CI"
 
-        for d in $(find -name "Cargo.toml" | grep -vE "^.$"); do
+        for d in $(find -name "Cargo.toml" | grep -vE "^./Cargo.toml$"); do
+            echo ":: Working on $d"
             dir=$(dirname $d)
-            {
-              changes_in $dir &&                  \
-                  echo -e "\nRunning in $d\n" &&  \
-                  travis_cargo_run_in $dir
+            { \
+              changes_in $dir &&                      \
+                echo -e "\nRunning in $d\n" &&        \
+                travis_cargo_run_in $dir &&           \
+                tree -I "*doc*" $dir &&               \
+                echo "-- Running test scripts..." &&  \
+                for testsh in $(find $dir -iname "*test.sh"); do
+                  run_sh_test $testsh
+                done && \
+                echo "-- Done with test scripts..."
             } || true
         done
 
@@ -62,6 +76,7 @@ addons:
             - libcurl4-openssl-dev
             - libelf-dev
             - libdw-dev
+            - tree
 
 after_success:
     - travis-cargo --only stable doc-upload

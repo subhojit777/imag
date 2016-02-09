@@ -130,6 +130,7 @@ impl Store {
     /// Creates the Entry at the given location (inside the entry)
     pub fn create<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
         if !self.id_in_store(&id) {
+            debug!("'{:?}' seems not to be in '{:?}'", id, self.location);
             return Err(StoreError::new(StoreErrorKind::StorePathOutsideStore, None));
         }
 
@@ -153,6 +154,7 @@ impl Store {
     /// dropped, the new Entry is written to disk
     pub fn retrieve<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
         if !self.id_in_store(&id) {
+            debug!("'{:?}' seems not to be in '{:?}'", id, self.location);
             return Err(StoreError::new(StoreErrorKind::StorePathOutsideStore, None));
         }
 
@@ -213,6 +215,7 @@ impl Store {
     /// Delete an entry
     pub fn delete(&self, id: StoreId) -> Result<()> {
         if !self.id_in_store(&id) {
+            debug!("'{:?}' seems not to be in '{:?}'", id, self.location);
             return Err(StoreError::new(StoreErrorKind::StorePathOutsideStore, None));
         }
 
@@ -238,8 +241,13 @@ impl Store {
             .map(|can| {
                 can.starts_with(&self.location)
             })
-            .unwrap_or(false)
+            .unwrap_or(path.starts_with(&self.location))
             // we return false, as fs::canonicalize() returns an Err(..) on filesystem errors
+    }
+
+    /// Gets the path where this store is on the disk
+    pub fn path(&self) -> &PathBuf {
+        &self.location
     }
 }
 
