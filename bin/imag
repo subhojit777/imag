@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+
+version() {
+    echo "0.1.0"
+}
+
+help() {
+    local cmds="$(commands)"
+
+    echo "     _                       ";
+    echo "    (_)_ __ ___   __ _  __ _ ";
+    echo "    | | '_ \` _ \ / _\` |/ _\` |";
+    echo "    | | | | | | | (_| | (_| |";
+    echo "    |_|_| |_| |_|\__,_|\__, |";
+    echo "                       |___/ ";
+    echo "    -------------------------";
+    cat <<EOS
+
+    Usage: imag [--version | --versions | -h | --help] <command> <args...>
+
+    imag - the personal information management suite for the commandline
+
+    imag is a PIM suite for the commandline. It consists of several commands,
+    called "modules". Each module implements one PIM aspect and all of these
+    modules can be used independently.
+
+    Available commands:
+    $(for cmd in $cmds; do
+        echo -e "\t$(echo $cmd | sed -r 's,(.*)/imag-(.*),\2,')";
+    done)
+
+    Call a command with "imag <command> <args>"
+    Each command can be called with "--help" to get the respective helptext.
+
+    Please visit https://github.com/matthiasbeyer/imag to view the source code,
+    follow the development of imag or maybe even contribute to imag.
+
+    imag is free software. It is released under the terms of LGPLv2.1
+
+    (c) 2016 Matthias Beyer and contributors
+EOS
+}
+
+commands() {
+    [[ ! -z "$IMAG_IS_THE_SHIT" ]] && \
+        find $IMAG_IS_THE_SHIT -type f -iname "imag-*" -print 2>/dev/null
+    find ${PATH//:/ } -maxdepth 1 -type f -iname "imag-*" -print 2>/dev/null
+}
+
+main() {
+    case $1 in
+        --versions)
+            echo -n "imag "; version
+            for command in $(commands); do
+                $command --version
+            done
+            exit 0
+            ;;
+
+        --version)
+            version
+            exit 0
+            ;;
+
+        --help | -h)
+            help
+            exit 0
+            ;;
+
+        *)
+            local cmd=$1; shift
+            local executable=$(commands | grep $cmd | head -n 1)
+            exec $executable $*
+        ;;
+
+    esac
+}
+
+main $*
