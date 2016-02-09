@@ -52,7 +52,7 @@ EOS
     if [[ "$expected" == "$result" ]]; then
         out "Expected store entry == result"
     else
-        err "${STORE}/test differs from expected"
+        err "${STORE}/test-std-header~0.1.0 differs from expected"
         return 1
     fi
 }
