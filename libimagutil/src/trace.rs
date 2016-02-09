@@ -2,11 +2,31 @@ use std::error::Error;
 use std::io::Write;
 use std::io::stderr;
 
+/// Print an Error type and its cause recursively
+///
+/// The error is printed with "Error NNNN :" as prefix, where "NNNN" is a number which increases
+/// which each recursion into the errors cause. The error description is used to visualize what
+/// failed and if there is a cause "-- caused by:" is appended, and the cause is printed on the next
+/// line.
+///
+/// Example output:
+///
+/// ```ignore
+/// Error    1 : Some error -- caused by:
+/// Error    2 : Some other error -- caused by:
+/// Error    3 : Yet another Error -- caused by:
+/// ...
+///
+/// Error <NNNN> : <Error description>
+/// ```
 pub fn trace_error(e: &Error) {
     print_trace_maxdepth(count_error_causes(e), e, ::std::u64::MAX);
     write!(stderr(), "");
 }
 
+/// Print an Error type and its cause recursively, but only `max` levels
+///
+/// Output is the same as for `trace_error()`, though there are only `max` levels printed.
 pub fn trace_error_maxdepth(e: &Error, max: u64) {
     let n = count_error_causes(e);
     write!(stderr(), "{}/{} Levels of errors will be printed", (if max > n { n } else { max }), n);
@@ -14,6 +34,9 @@ pub fn trace_error_maxdepth(e: &Error, max: u64) {
     write!(stderr(), "");
 }
 
+/// Print an Error type and its cause recursively with the debug!() macro
+///
+/// Output is the same as for `trace_error()`.
 pub fn trace_error_dbg(e: &Error) {
     print_trace_dbg(0, e);
 }
