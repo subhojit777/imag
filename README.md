@@ -12,5 +12,5 @@ base implemented._
 
 # License
 
-This code is released under terms of GNU GPLv2.
+This code is released under terms of GNU LGPLv2.1.
 
