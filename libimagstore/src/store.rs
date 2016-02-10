@@ -487,7 +487,70 @@ impl EntryHeader {
      * will be returned
      */
     pub fn set(&mut self, spec: &str, v: Value) -> Result<Option<Value>> {
-        unimplemented!()
+        let tokens = EntryHeader::tokenize(spec);
+        if tokens.is_err() { // return parser error if any
+            return Err(tokens.err().unwrap());
+        }
+        let tokens = tokens.unwrap();
+
+        let destination = tokens.iter().last();
+        if destination.is_none() {
+            return Err(StoreError::new(StoreErrorKind::HeaderPathSyntaxError, None));
+        }
+        let destination = destination.unwrap();
+
+        let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
+        let mut table = Value::Table(self.toml.clone()); // oh fuck, but yes, we clone() here
+        let mut value = EntryHeader::walk_header(&mut table, path_to_dest); // walk N-1 tokens
+        if value.is_err() {
+            return Err(value.err().unwrap());
+        }
+        let mut value = value.unwrap();
+
+        match destination {
+            &Token::Key(ref s) => { // if the destination shall be an map key->value
+                match value {
+                    /*
+                     * Put it in there if we have a map
+                     */
+                    &mut Value::Table(ref mut t) => {
+                        return Ok(t.insert(s.clone(), v));
+                    }
+
+                    /*
+                     * Fail if there is no map here
+                     */
+                    _ => return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+                }
+            },
+
+            &Token::Index(i) => { // if the destination shall be an array
+                match value {
+
+                    /*
+                     * Put it in there if we have an array
+                     */
+                    &mut Value::Array(ref mut a) => {
+                        a.push(v); // push to the end of the array
+
+                        // if the index is inside the array, we swap-remove the element at this
+                        // index
+                        if a.len() < i {
+                            return Ok(Some(a.swap_remove(i)));
+                        }
+
+                        return Ok(None);
+                    },
+
+                    /*
+                     * Fail if there is no array here
+                     */
+                    _ => return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+                }
+            },
+        }
+
+        Ok(None)
     }
 
     /**
