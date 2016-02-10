@@ -573,10 +573,29 @@ impl EntryHeader {
      *      }
      *  }
      *
-     * If there is no a value at this place, None will be returned
+     * If there is no a value at this place, None will be returned. This also holds true for Arrays
+     * which are accessed at an index which is not yet there, even if the accessed index is much
+     * larger than the array length.
      */
     pub fn read(&self, spec: &str) -> Result<Option<Value>> {
-        unimplemented!()
+        let tokens = EntryHeader::tokenize(spec);
+        if tokens.is_err() { // return parser error if any
+            return Err(tokens.err().unwrap());
+        }
+        let tokens = tokens.unwrap();
+
+        let mut table = Value::Table(self.toml.clone()); // oh fuck, but yes, we clone() here
+        let mut value = EntryHeader::walk_header(&mut table, tokens); // walk N-1 tokens
+        if value.is_err() {
+            let e = value.err().unwrap();
+            match e.err_type() {
+                // We cannot find the header key, as there is no path to it
+                StoreErrorKind::HeaderKeyNotFound => return Ok(None),
+                _ => return Err(e),
+            }
+            return Err(e);
+        }
+        Ok(Some(value.unwrap().clone()))
     }
 
     fn tokenize(spec: &str) -> Result<Vec<Token>> {
