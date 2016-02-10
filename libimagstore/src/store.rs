@@ -1234,5 +1234,40 @@ Hai";
         assert_eq!(&mut Value::Integer(exp), res.unwrap());
     }
 
+    #[test]
+    fn test_header_read() {
+        let v = create_header();
+        let h = match v {
+            Value::Table(t) => EntryHeader::from_table(t),
+            _ => panic!("create_header() doesn't return a table!"),
+        };
+
+        assert!(if let Ok(Some(Value::Table(_)))  = h.read("a") { true } else { false });
+        assert!(if let Ok(Some(Value::Array(_)))   = h.read("a.array") { true } else { false });
+        assert!(if let Ok(Some(Value::Integer(_))) = h.read("a.array.1") { true } else { false });
+        assert!(if let Ok(Some(Value::Integer(_))) = h.read("a.array.9") { true } else { false });
+
+        assert!(if let Ok(Some(Value::Table(_))) = h.read("c") { true } else { false });
+        assert!(if let Ok(Some(Value::Array(_)))  = h.read("c.array") { true } else { false });
+        assert!(if let Ok(Some(Value::String(_))) = h.read("c.array.1") { true } else { false });
+        assert!(if let Ok(None) = h.read("c.array.9") { true } else { false });
+
+        assert!(if let Ok(Some(Value::Integer(_))) = h.read("d.array.0.d1") { true } else { false });
+        assert!(if let Ok(None) = h.read("d.array.0.d2") { true } else { false });
+        assert!(if let Ok(None) = h.read("d.array.0.d3") { true } else { false });
+
+        assert!(if let Ok(None) = h.read("d.array.1.d1") { true } else { false });
+        assert!(if let Ok(Some(Value::Integer(_))) = h.read("d.array.1.d2") { true } else { false });
+        assert!(if let Ok(None) = h.read("d.array.1.d3") { true } else { false });
+
+        assert!(if let Ok(None) = h.read("d.array.2.d1") { true } else { false });
+        assert!(if let Ok(None) = h.read("d.array.2.d2") { true } else { false });
+        assert!(if let Ok(Some(Value::Integer(_))) = h.read("d.array.2.d3") { true } else { false });
+
+        assert!(if let Ok(Some(Value::String(_))) = h.read("d.something") { true } else { false });
+        assert!(if let Ok(Some(Value::Table(_))) = h.read("d.and") { true } else { false });
+        assert!(if let Ok(Some(Value::Table(_))) = h.read("d.and.something") { true } else { false });
+        assert!(if let Ok(Some(Value::String(_))) = h.read("d.and.something.totally") { true } else { false });
+    }
 }
 
