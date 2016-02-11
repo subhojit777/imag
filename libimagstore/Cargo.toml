@@ -4,9 +4,9 @@ version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
-log = "0.3.5"
 fs2 = "0.2.2"
 glob = "0.2.10"
+log = "0.3.5"
 regex = "0.1.47"
 semver = "0.2"
 toml = "0.1.25"
@@ -14,3 +14,5 @@ version = "2.0.1"
 
 [dev-dependencies]
 tempdir = "0.3.4"
+env_logger = "0.3"
+

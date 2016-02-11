@@ -492,12 +492,14 @@ impl EntryHeader {
             return Err(tokens.err().unwrap());
         }
         let tokens = tokens.unwrap();
+        debug!("tokens = {:?}", tokens);
 
         let destination = tokens.iter().last();
         if destination.is_none() {
             return Err(StoreError::new(StoreErrorKind::HeaderPathSyntaxError, None));
         }
         let destination = destination.unwrap();
+        debug!("destination = {:?}", destination);
 
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
         let mut table = Value::Table(self.toml.clone()); // oh fuck, but yes, we clone() here
@@ -506,6 +508,7 @@ impl EntryHeader {
             return Err(value.err().unwrap());
         }
         let mut value = value.unwrap();
+        debug!("walked value = {:?}", value);
 
         match destination {
             &Token::Key(ref s) => { // if the destination shall be an map key->value
@@ -514,13 +517,17 @@ impl EntryHeader {
                      * Put it in there if we have a map
                      */
                     &mut Value::Table(ref mut t) => {
+                        debug!("Matched Key->Table");
                         return Ok(t.insert(s.clone(), v));
                     }
 
                     /*
                      * Fail if there is no map here
                      */
-                    _ => return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+                    _ => {
+                        debug!("Matched Key->NON-Table");
+                        return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None));
+                    }
                 }
             },
 
@@ -531,21 +538,27 @@ impl EntryHeader {
                      * Put it in there if we have an array
                      */
                     &mut Value::Array(ref mut a) => {
+                        debug!("Matched Index->Array");
                         a.push(v); // push to the end of the array
 
                         // if the index is inside the array, we swap-remove the element at this
                         // index
-                        if a.len() < i {
+                        if a.len() > i {
+                            debug!("Swap-Removing in Array {:?}[{:?}] <- {:?}", a, i, a[a.len()-1]);
                             return Ok(Some(a.swap_remove(i)));
                         }
 
+                        debug!("Appended");
                         return Ok(None);
                     },
 
                     /*
                      * Fail if there is no array here
                      */
-                    _ => return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+                    _ => {
+                        debug!("Matched Index->NON-Array");
+                        return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None));
+                    },
                 }
             },
         }
@@ -828,6 +841,8 @@ impl Entry {
 
 #[cfg(test)]
 mod test {
+    extern crate env_logger;
+
     use std::collections::BTreeMap;
     use super::EntryHeader;
     use super::Token;
