@@ -1305,5 +1305,45 @@ Hai";
         assert_eq!(h.read("a.array.9").unwrap().unwrap(), Value::Integer(9));
     }
 
+    #[test]
+    fn test_header_set_new() {
+        let _ = env_logger::init();
+        let v = create_header();
+        let mut h = match v {
+            Value::Table(t) => EntryHeader::from_table(t),
+            _ => panic!("create_header() doesn't return a table!"),
+        };
+
+        assert!(h.read("a.foo").is_ok());
+        assert!(h.read("a.foo").unwrap().is_none());
+
+        {
+            let v = h.set("a.foo", Value::Integer(42));
+            assert!(v.is_ok());
+            assert!(v.unwrap().is_none());
+
+            assert!(if let Ok(Some(Value::Table(_))) = h.read("a") { true } else { false });
+            assert!(if let Ok(Some(Value::Integer(_))) = h.read("a.foo") { true } else { false });
+        }
+
+        {
+            let v = h.set("new", Value::Table(BTreeMap::new()));
+            assert!(v.is_ok());
+            assert!(v.unwrap().is_none());
+
+            let v = h.set("new.subset", Value::Table(BTreeMap::new()));
+            assert!(v.is_ok());
+            assert!(v.unwrap().is_none());
+
+            let v = h.set("new.subset.dest", Value::Integer(1337));
+            assert!(v.is_ok());
+            assert!(v.unwrap().is_none());
+
+            assert!(if let Ok(Some(Value::Table(_))) = h.read("new") { true } else { false });
+            assert!(if let Ok(Some(Value::Table(_))) = h.read("new.subset") { true } else { false });
+            assert!(if let Ok(Some(Value::Integer(_))) = h.read("new.subset.dest") { true } else { false });
+        }
+    }
+
 }
 
