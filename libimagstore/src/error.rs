@@ -27,6 +27,7 @@ pub enum StoreErrorKind {
     HeaderPathSyntaxError,
     HeaderPathTypeFailure,
     HeaderKeyNotFound,
+    HeaderTypeFailure,
         // maybe more
 }
 
@@ -50,6 +51,7 @@ fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
         &StoreErrorKind::HeaderPathSyntaxError => "Syntax error in accessor string",
         &StoreErrorKind::HeaderPathTypeFailure => "Header has wrong type for path",
         &StoreErrorKind::HeaderKeyNotFound     => "Header Key not found",
+        &StoreErrorKind::HeaderTypeFailure     => "Header type is wrong",
     }
 }
 

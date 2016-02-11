@@ -315,7 +315,7 @@ pub type EntryContent = String;
  */
 #[derive(Debug, Clone)]
 pub struct EntryHeader {
-    toml: Table,
+    header: Value,
 }
 
 pub type EntryResult<V> = RResult<V, ParserError>;
@@ -333,25 +333,14 @@ impl EntryHeader {
 
     pub fn new() -> EntryHeader {
         EntryHeader {
-            toml: build_default_header()
+            header: build_default_header()
         }
     }
 
     fn from_table(t: Table) -> EntryHeader {
         EntryHeader {
-            toml: t
+            header: Value::Table(t)
         }
-    }
-
-    /**
-     * Get the table which lives in the background
-     */
-    pub fn toml(&self) -> &Table {
-        &self.toml
-    }
-
-    pub fn toml_mut(&mut self) -> &mut Table {
-        &mut self.toml
     }
 
     pub fn parse(s: &str) -> EntryResult<EntryHeader> {
@@ -365,7 +354,10 @@ impl EntryHeader {
     }
 
     pub fn verify(&self) -> Result<()> {
-        verify_header(&self.toml)
+        match &self.header {
+            &Value::Table(ref t) => verify_header(&t),
+            _ => Err(StoreError::new(StoreErrorKind::HeaderTypeFailure, None)),
+        }
     }
 
     /**
@@ -407,8 +399,7 @@ impl EntryHeader {
         let destination = destination.unwrap();
 
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        let mut table = Value::Table(self.toml.clone()); // oh fuck, but yes, we clone() here
-        let mut value = EntryHeader::walk_header(&mut table, path_to_dest); // walk N-1 tokens
+        let mut value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
         if value.is_err() {
             return value.map(|_| false);
         }
@@ -502,8 +493,7 @@ impl EntryHeader {
         debug!("destination = {:?}", destination);
 
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        let mut table = Value::Table(self.toml.clone()); // oh fuck, but yes, we clone() here
-        let mut value = EntryHeader::walk_header(&mut table, path_to_dest); // walk N-1 tokens
+        let mut value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
         if value.is_err() {
             return Err(value.err().unwrap());
         }
@@ -597,8 +587,8 @@ impl EntryHeader {
         }
         let tokens = tokens.unwrap();
 
-        let mut table = Value::Table(self.toml.clone()); // oh fuck, but yes, we clone() here
-        let mut value = EntryHeader::walk_header(&mut table, tokens); // walk N-1 tokens
+        let mut header_clone = self.header.clone(); // we clone as READing is simpler this way
+        let mut value = EntryHeader::walk_header(&mut header_clone, tokens); // walk N-1 tokens
         if value.is_err() {
             let e = value.err().unwrap();
             match e.err_type() {
@@ -672,7 +662,7 @@ impl EntryHeader {
 
 }
 
-fn build_default_header() -> BTreeMap<String, Value> {
+fn build_default_header() -> Value { // BTreeMap<String, Value>
     let mut m = BTreeMap::new();
 
     m.insert(String::from("imag"), {
@@ -684,7 +674,7 @@ fn build_default_header() -> BTreeMap<String, Value> {
         Value::Table(imag_map)
     });
 
-    m
+    Value::Table(m)
 }
 fn verify_header(t: &Table) -> Result<()> {
     if !has_main_section(t) {
@@ -808,7 +798,7 @@ impl Entry {
 
     pub fn to_str(&self) -> String {
         format!("---{header}---\n{content}",
-                header  = ::toml::encode_str(&self.header.toml),
+                header  = ::toml::encode_str(&self.header.header),
                 content = self.content)
     }
 
