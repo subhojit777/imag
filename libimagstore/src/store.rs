@@ -1345,5 +1345,75 @@ Hai";
         }
     }
 
+
+    #[test]
+    fn test_header_insert_override() {
+        let _ = env_logger::init();
+        let v = create_header();
+        let mut h = match v {
+            Value::Table(t) => EntryHeader::from_table(t),
+            _ => panic!("create_header() doesn't return a table!"),
+        };
+
+        println!("Testing index 0");
+        assert_eq!(h.read("a.array.0").unwrap().unwrap(), Value::Integer(0));
+
+        println!("Altering index 0");
+        assert_eq!(h.insert("a.array.0", Value::Integer(42)).unwrap(), false);
+        println!("...should have failed");
+
+        println!("Testing all indexes");
+        assert_eq!(h.read("a.array.0").unwrap().unwrap(), Value::Integer(0));
+        assert_eq!(h.read("a.array.1").unwrap().unwrap(), Value::Integer(1));
+        assert_eq!(h.read("a.array.2").unwrap().unwrap(), Value::Integer(2));
+        assert_eq!(h.read("a.array.3").unwrap().unwrap(), Value::Integer(3));
+        assert_eq!(h.read("a.array.4").unwrap().unwrap(), Value::Integer(4));
+        assert_eq!(h.read("a.array.5").unwrap().unwrap(), Value::Integer(5));
+        assert_eq!(h.read("a.array.6").unwrap().unwrap(), Value::Integer(6));
+        assert_eq!(h.read("a.array.7").unwrap().unwrap(), Value::Integer(7));
+        assert_eq!(h.read("a.array.8").unwrap().unwrap(), Value::Integer(8));
+        assert_eq!(h.read("a.array.9").unwrap().unwrap(), Value::Integer(9));
+    }
+
+    #[test]
+    fn test_header_insert_new() {
+        let _ = env_logger::init();
+        let v = create_header();
+        let mut h = match v {
+            Value::Table(t) => EntryHeader::from_table(t),
+            _ => panic!("create_header() doesn't return a table!"),
+        };
+
+        assert!(h.read("a.foo").is_ok());
+        assert!(h.read("a.foo").unwrap().is_none());
+
+        {
+            let v = h.insert("a.foo", Value::Integer(42));
+            assert!(v.is_ok());
+            assert_eq!(v.unwrap(), true);
+
+            assert!(if let Ok(Some(Value::Table(_))) = h.read("a") { true } else { false });
+            assert!(if let Ok(Some(Value::Integer(_))) = h.read("a.foo") { true } else { false });
+        }
+
+        {
+            let v = h.insert("new", Value::Table(BTreeMap::new()));
+            assert!(v.is_ok());
+            assert_eq!(v.unwrap(), true);
+
+            let v = h.insert("new.subset", Value::Table(BTreeMap::new()));
+            assert!(v.is_ok());
+            assert_eq!(v.unwrap(), true);
+
+            let v = h.insert("new.subset.dest", Value::Integer(1337));
+            assert!(v.is_ok());
+            assert_eq!(v.unwrap(), true);
+
+            assert!(if let Ok(Some(Value::Table(_))) = h.read("new") { true } else { false });
+            assert!(if let Ok(Some(Value::Table(_))) = h.read("new.subset") { true } else { false });
+            assert!(if let Ok(Some(Value::Integer(_))) = h.read("new.subset.dest") { true } else { false });
+        }
+    }
+
 }
 
