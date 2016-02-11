@@ -1274,5 +1274,36 @@ Hai";
         assert!(if let Ok(Some(Value::Table(_))) = h.read("d.and.something") { true } else { false });
         assert!(if let Ok(Some(Value::String(_))) = h.read("d.and.something.totally") { true } else { false });
     }
+
+    #[test]
+    fn test_header_set_override() {
+        let _ = env_logger::init();
+        let v = create_header();
+        let mut h = match v {
+            Value::Table(t) => EntryHeader::from_table(t),
+            _ => panic!("create_header() doesn't return a table!"),
+        };
+
+        println!("Testing index 0");
+        assert_eq!(h.read("a.array.0").unwrap().unwrap(), Value::Integer(0));
+
+        println!("Altering index 0");
+        assert_eq!(h.set("a.array.0", Value::Integer(42)).unwrap().unwrap(), Value::Integer(0));
+
+        println!("Values now: {:?}", h);
+
+        println!("Testing all indexes");
+        assert_eq!(h.read("a.array.0").unwrap().unwrap(), Value::Integer(42));
+        assert_eq!(h.read("a.array.1").unwrap().unwrap(), Value::Integer(1));
+        assert_eq!(h.read("a.array.2").unwrap().unwrap(), Value::Integer(2));
+        assert_eq!(h.read("a.array.3").unwrap().unwrap(), Value::Integer(3));
+        assert_eq!(h.read("a.array.4").unwrap().unwrap(), Value::Integer(4));
+        assert_eq!(h.read("a.array.5").unwrap().unwrap(), Value::Integer(5));
+        assert_eq!(h.read("a.array.6").unwrap().unwrap(), Value::Integer(6));
+        assert_eq!(h.read("a.array.7").unwrap().unwrap(), Value::Integer(7));
+        assert_eq!(h.read("a.array.8").unwrap().unwrap(), Value::Integer(8));
+        assert_eq!(h.read("a.array.9").unwrap().unwrap(), Value::Integer(9));
+    }
+
 }
 
