@@ -7,6 +7,7 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use std::collections::BTreeMap;
 use std::io::{Seek, SeekFrom};
+use std::convert::Into;
 
 use toml::{Table, Value};
 use regex::Regex;
@@ -728,6 +729,17 @@ impl EntryHeader {
         match token {
             &Token::Key(ref s)  => EntryHeader::extract_from_table(v, s),
             &Token::Index(i)    => EntryHeader::extract_from_array(v, i),
+        }
+    }
+
+}
+
+impl Into<Table> for EntryHeader {
+
+    fn into(self) -> Table {
+        match self.header {
+            Value::Table(t) => t,
+            _ => panic!("EntryHeader is not a table!"),
         }
     }
 
