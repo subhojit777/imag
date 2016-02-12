@@ -601,6 +601,65 @@ impl EntryHeader {
         Ok(Some(value.unwrap().clone()))
     }
 
+    pub fn delete(&mut self, spec: &str) -> Result<Option<Value>> {
+        let tokens = EntryHeader::tokenize(spec);
+        if tokens.is_err() { // return parser error if any
+            return Err(tokens.err().unwrap());
+        }
+        let tokens = tokens.unwrap();
+
+        let destination = tokens.iter().last();
+        if destination.is_none() {
+            return Err(StoreError::new(StoreErrorKind::HeaderPathSyntaxError, None));
+        }
+        let destination = destination.unwrap();
+        debug!("destination = {:?}", destination);
+
+        let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
+        let mut value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
+        if value.is_err() {
+            return Err(value.err().unwrap());
+        }
+        let mut value = value.unwrap();
+        debug!("walked value = {:?}", value);
+
+        match destination {
+            &Token::Key(ref s) => { // if the destination shall be an map key->value
+                match value {
+                    &mut Value::Table(ref mut t) => {
+                        debug!("Matched Key->Table, removing {:?}", s);
+                        return Ok(t.remove(s));
+                    },
+                    _ => {
+                        debug!("Matched Key->NON-Table");
+                        return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None));
+                    }
+                }
+            },
+
+            &Token::Index(i) => { // if the destination shall be an array
+                match value {
+                    &mut Value::Array(ref mut a) => {
+                        // if the index is inside the array, we swap-remove the element at this
+                        // index
+                        if a.len() > i {
+                            debug!("Removing in Array {:?}[{:?}]", a, i);
+                            return Ok(Some(a.remove(i)));
+                        } else {
+                            return Ok(None);
+                        }
+                    },
+                    _ => {
+                        debug!("Matched Index->NON-Array");
+                        return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None));
+                    },
+                }
+            },
+        }
+
+        Ok(None)
+    }
+
     fn tokenize(spec: &str) -> Result<Vec<Token>> {
         use std::str::FromStr;
 
