@@ -1474,5 +1474,26 @@ Hai";
         }
     }
 
+    #[test]
+    fn test_header_delete() {
+        let _ = env_logger::init();
+        let v = create_header();
+        let mut h = match v {
+            Value::Table(t) => EntryHeader::from_table(t),
+            _ => panic!("create_header() doesn't return a table!"),
+        };
+
+        assert!(if let Ok(Some(Value::Table(_)))   = h.read("a") { true } else { false });
+        assert!(if let Ok(Some(Value::Array(_)))   = h.read("a.array") { true } else { false });
+        assert!(if let Ok(Some(Value::Integer(_))) = h.read("a.array.1") { true } else { false });
+        assert!(if let Ok(Some(Value::Integer(_))) = h.read("a.array.9") { true } else { false });
+
+        assert!(if let Ok(Some(Value::Integer(1))) = h.delete("a.array.1") { true } else { false });
+        assert!(if let Ok(Some(Value::Integer(9))) = h.delete("a.array.8") { true } else { false });
+        assert!(if let Ok(Some(Value::Array(_)))   = h.delete("a.array") { true } else { false });
+        assert!(if let Ok(Some(Value::Table(_)))   = h.delete("a") { true } else { false });
+
+    }
+
 }
 
