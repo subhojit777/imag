@@ -478,7 +478,11 @@ impl EntryHeader {
      * will be returned
      */
     pub fn set(&mut self, spec: &str, v: Value) -> Result<Option<Value>> {
-        let tokens = EntryHeader::tokenize(spec, '.');
+        self.set_with_sep(spec, '.', v)
+    }
+
+    pub fn set_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<Option<Value>> {
+        let tokens = EntryHeader::tokenize(spec, sep);
         if tokens.is_err() { // return parser error if any
             return Err(tokens.err().unwrap());
         }
