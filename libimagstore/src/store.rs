@@ -7,6 +7,7 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use std::collections::BTreeMap;
 use std::io::{Seek, SeekFrom};
+use std::convert::From;
 use std::convert::Into;
 
 use toml::{Table, Value};
@@ -741,6 +742,14 @@ impl Into<Table> for EntryHeader {
             Value::Table(t) => t,
             _ => panic!("EntryHeader is not a table!"),
         }
+    }
+
+}
+
+impl From<Table> for EntryHeader {
+
+    fn from(t: Table) -> EntryHeader {
+        EntryHeader { header: Value::Table(t) }
     }
 
 }
