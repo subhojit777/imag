@@ -581,7 +581,11 @@ impl EntryHeader {
      * larger than the array length.
      */
     pub fn read(&self, spec: &str) -> Result<Option<Value>> {
-        let tokens = EntryHeader::tokenize(spec, '.');
+        self.read_with_sep(spec, '.')
+    }
+
+    pub fn read_with_sep(&self, spec: &str, splitchr: char) -> Result<Option<Value>> {
+        let tokens = EntryHeader::tokenize(spec, splitchr);
         if tokens.is_err() { // return parser error if any
             return Err(tokens.err().unwrap());
         }
