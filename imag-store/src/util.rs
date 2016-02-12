@@ -43,7 +43,7 @@ pub fn build_entry_path(rt: &Runtime, path_elem: &str) -> PathBuf {
 pub fn build_toml_header(matches: &ArgMatches, mut header: EntryHeader) -> EntryHeader {
     debug!("Building header from cli spec");
     if let Some(headerspecs) = matches.values_of("header") {
-        let mut main = header.toml_mut();
+        let mut main = header.into();
         debug!("headerspec = {:?}", headerspecs);
         let kvs = headerspecs.into_iter()
                             .filter_map(|hs| {
@@ -61,9 +61,13 @@ pub fn build_toml_header(matches: &ArgMatches, mut header: EntryHeader) -> Entry
                 insert_key_into(String::from(current.unwrap()), &mut split, value, &mut main);
             }
         }
+
+        debug!("Header = {:?}", main);
+        EntryHeader::from(main)
+    } else {
+        debug!("Header = {:?}", header);
+        header
     }
-    debug!("Header = {:?}", header);
-    header
 }
 
 fn insert_key_into(current: String,
