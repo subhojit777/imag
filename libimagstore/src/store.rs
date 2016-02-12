@@ -386,7 +386,7 @@ impl EntryHeader {
      * Returns true if header field was set, false if there is already a value
      */
     pub fn insert(&mut self, spec: &str, v: Value) -> Result<bool> {
-        let tokens = EntryHeader::tokenize(spec);
+        let tokens = EntryHeader::tokenize(spec, '.');
         if tokens.is_err() { // return parser error if any
             return tokens.map(|_| false);
         }
@@ -478,7 +478,7 @@ impl EntryHeader {
      * will be returned
      */
     pub fn set(&mut self, spec: &str, v: Value) -> Result<Option<Value>> {
-        let tokens = EntryHeader::tokenize(spec);
+        let tokens = EntryHeader::tokenize(spec, '.');
         if tokens.is_err() { // return parser error if any
             return Err(tokens.err().unwrap());
         }
@@ -581,7 +581,7 @@ impl EntryHeader {
      * larger than the array length.
      */
     pub fn read(&self, spec: &str) -> Result<Option<Value>> {
-        let tokens = EntryHeader::tokenize(spec);
+        let tokens = EntryHeader::tokenize(spec, '.');
         if tokens.is_err() { // return parser error if any
             return Err(tokens.err().unwrap());
         }
@@ -602,7 +602,7 @@ impl EntryHeader {
     }
 
     pub fn delete(&mut self, spec: &str) -> Result<Option<Value>> {
-        let tokens = EntryHeader::tokenize(spec);
+        let tokens = EntryHeader::tokenize(spec, '.');
         if tokens.is_err() { // return parser error if any
             return Err(tokens.err().unwrap());
         }
@@ -660,10 +660,10 @@ impl EntryHeader {
         Ok(None)
     }
 
-    fn tokenize(spec: &str) -> Result<Vec<Token>> {
+    fn tokenize(spec: &str, splitchr: char) -> Result<Vec<Token>> {
         use std::str::FromStr;
 
-        spec.split(".")
+        spec.split(splitchr)
             .map(|s| {
                 usize::from_str(s)
                     .map(Token::Index)
@@ -1047,7 +1047,7 @@ Hai";
 
     #[test]
     fn test_walk_header_simple() {
-        let tokens = EntryHeader::tokenize("a").unwrap();
+        let tokens = EntryHeader::tokenize("a", '.').unwrap();
         assert!(tokens.len() == 1, "1 token was expected, {} were parsed", tokens.len());
         assert!(tokens.iter().next().unwrap() == &Token::Key(String::from("a")),
                 "'a' token was expected, {:?} was parsed", tokens.iter().next());
@@ -1062,7 +1062,7 @@ Hai";
 
     #[test]
     fn test_walk_header_with_array() {
-        let tokens = EntryHeader::tokenize("a.0").unwrap();
+        let tokens = EntryHeader::tokenize("a.0", '.').unwrap();
         assert!(tokens.len() == 2, "2 token was expected, {} were parsed", tokens.len());
         assert!(tokens.iter().next().unwrap() == &Token::Key(String::from("a")),
                 "'a' token was expected, {:?} was parsed", tokens.iter().next());
@@ -1079,7 +1079,7 @@ Hai";
 
     #[test]
     fn test_walk_header_extract_array() {
-        let tokens = EntryHeader::tokenize("a").unwrap();
+        let tokens = EntryHeader::tokenize("a", '.').unwrap();
         assert!(tokens.len() == 1, "1 token was expected, {} were parsed", tokens.len());
         assert!(tokens.iter().next().unwrap() == &Token::Key(String::from("a")),
                 "'a' token was expected, {:?} was parsed", tokens.iter().next());
@@ -1247,7 +1247,7 @@ Hai";
     }
 
     fn test_walk_header_extract_section(secname: &str, expected: &Value) {
-        let tokens = EntryHeader::tokenize(secname).unwrap();
+        let tokens = EntryHeader::tokenize(secname, '.').unwrap();
         assert!(tokens.len() == 1, "1 token was expected, {} were parsed", tokens.len());
         assert!(tokens.iter().next().unwrap() == &Token::Key(String::from(secname)),
                 "'{}' token was expected, {:?} was parsed", secname, tokens.iter().next());
@@ -1275,7 +1275,7 @@ Hai";
     }
 
     fn test_extract_number(sec: &str, idx: usize, exp: i64) {
-        let tokens = EntryHeader::tokenize(&format!("{}.array.{}", sec, idx)[..]).unwrap();
+        let tokens = EntryHeader::tokenize(&format!("{}.array.{}", sec, idx)[..], '.').unwrap();
         assert!(tokens.len() == 3, "3 token was expected, {} were parsed", tokens.len());
         {
             let mut iter = tokens.iter();
