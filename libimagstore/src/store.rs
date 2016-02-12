@@ -386,7 +386,11 @@ impl EntryHeader {
      * Returns true if header field was set, false if there is already a value
      */
     pub fn insert(&mut self, spec: &str, v: Value) -> Result<bool> {
-        let tokens = EntryHeader::tokenize(spec, '.');
+        self.insert_with_sep(spec, '.', v)
+    }
+
+    pub fn insert_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<bool> {
+        let tokens = EntryHeader::tokenize(spec, sep);
         if tokens.is_err() { // return parser error if any
             return tokens.map(|_| false);
         }
