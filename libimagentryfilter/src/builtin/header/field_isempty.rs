@@ -22,18 +22,17 @@ impl FieldIsEmpty {
 impl Filter for FieldIsEmpty {
 
     fn filter(&self, e: &Entry) -> bool {
-        let header = e.get_header();
-        self.header_field_path
-            .walk(header)
+        e.get_header()
+            .read(&self.header_field_path[..])
             .map(|v| {
                 match v {
-                    Value::Array(a)   => a.is_empty(),
-                    Value::Boolean(_) => false,
-                    Value::Float(_)   => false,
-                    Value::Integer(_) => false,
-                    Value::String(_)  => false,
-                    Value::Table(t)   => t.is_empty(),
-                    _                 => true,
+                    Some(Value::Array(a))   => a.is_empty(),
+                    Some(Value::Boolean(_)) => false,
+                    Some(Value::Float(_))   => false,
+                    Some(Value::Integer(_)) => false,
+                    Some(Value::String(_))  => false,
+                    Some(Value::Table(t))   => t.is_empty(),
+                    _                       => true,
                 }
             })
             .unwrap_or(false)

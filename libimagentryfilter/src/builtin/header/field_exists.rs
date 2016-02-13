@@ -22,8 +22,7 @@ impl FieldExists {
 impl Filter for FieldExists {
 
     fn filter(&self, e: &Entry) -> bool {
-        let header = e.get_header();
-        self.header_field_path.walk(header).is_some()
+        e.get_header().read(&self.header_field_path[..]).is_ok()
     }
 
 }

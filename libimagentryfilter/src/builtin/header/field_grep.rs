@@ -26,13 +26,12 @@ impl FieldGrep {
 impl Filter for FieldGrep {
 
     fn filter(&self, e: &Entry) -> bool {
-        let header = e.get_header();
-        self.header_field_path
-            .walk(header)
+        e.get_header()
+            .read(&self.header_field_path[..])
             .map(|v| {
                 match v {
-                    Value::String(s) => self.grep.captures(&s[..]).is_some(),
-                    _ => false,
+                    Some(Value::String(s)) => self.grep.captures(&s[..]).is_some(),
+                    _                      => false,
                 }
             })
             .unwrap_or(false)
