@@ -4,3 +4,16 @@ version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
+semver = "0.2"
+log = "0.3.5"
+toml = "0.1.25"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimagtag]
+path = "../libimagtag"
+
