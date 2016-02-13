@@ -3,6 +3,12 @@ extern crate semver;
 extern crate toml;
 
 extern crate libimagrt;
-extern crate libimagstore;
+#[macro_use] extern crate libimagstore;
 extern crate libimagtag;
+
+module_entry_path_mod!("notes", "0.1.0");
+
+pub mod error;
+pub mod note;
+pub mod result;
 
