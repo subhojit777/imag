@@ -24,6 +24,10 @@ pub enum StoreErrorKind {
     EntryAlreadyBorrowed,
     EntryAlreadyExists,
     MalformedEntry,
+    HeaderPathSyntaxError,
+    HeaderPathTypeFailure,
+    HeaderKeyNotFound,
+    HeaderTypeFailure,
         // maybe more
 }
 
@@ -44,6 +48,10 @@ fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
         &StoreErrorKind::EntryAlreadyBorrowed => "Entry is already borrowed",
         &StoreErrorKind::EntryAlreadyExists   => "Entry already exists",
         &StoreErrorKind::MalformedEntry => "Entry has invalid formatting, missing header",
+        &StoreErrorKind::HeaderPathSyntaxError => "Syntax error in accessor string",
+        &StoreErrorKind::HeaderPathTypeFailure => "Header has wrong type for path",
+        &StoreErrorKind::HeaderKeyNotFound     => "Header Key not found",
+        &StoreErrorKind::HeaderTypeFailure     => "Header type is wrong",
     }
 }
 

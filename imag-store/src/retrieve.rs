@@ -50,7 +50,7 @@ fn print_entry(rt: &Runtime, scmd: &ArgMatches, e: FileLockEntry) {
             } else {
                 debug!("Printing header as TOML...");
                 // We have to Value::Table() for Display
-                println!("{}", Value::Table(entry.get_header().toml().clone()))
+                println!("{}", Value::Table(entry.get_header().clone().into()))
             }
         }
 

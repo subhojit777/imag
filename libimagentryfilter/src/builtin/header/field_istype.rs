@@ -50,10 +50,9 @@ impl FieldIsType {
 impl Filter for FieldIsType {
 
     fn filter(&self, e: &Entry) -> bool {
-        let header = e.get_header();
-        self.header_field_path
-            .walk(header)
-            .map(|v| self.expected_type.matches(&v))
+        e.get_header()
+            .read(&self.header_field_path[..])
+            .map(|val| val.map(|v| self.expected_type.matches(&v)).unwrap_or(false))
             .unwrap_or(false)
     }
 

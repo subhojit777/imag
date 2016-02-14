@@ -25,10 +25,9 @@ impl FieldEq {
 impl Filter for FieldEq {
 
     fn filter(&self, e: &Entry) -> bool {
-        let header = e.get_header();
-        self.header_field_path
-            .walk(header)
-            .map(|v| self.expected_value == v.clone())
+        e.get_header()
+            .read(&self.header_field_path[..])
+            .map(|val| val.map(|v| v == self.expected_value).unwrap_or(false))
             .unwrap_or(false)
     }
 
