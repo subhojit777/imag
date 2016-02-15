@@ -1,3 +1,4 @@
+use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
 use libimagstore::store::Result as StoreResult;
 
@@ -52,6 +53,25 @@ impl InternalLinker for EntryHeader {
             })
     }
 
+}
+
+impl InternalLinker for Entry {
+
+    fn get_internal_links(&self) -> Result<Links> {
+        self.get_header().get_internal_links()
+    }
+
+    fn set_internal_links(&mut self, links: Links) -> Result<Links> {
+        self.get_header_mut().set_internal_links(links)
+    }
+
+    fn add_internal_link(&mut self, link: Link) -> Result<()> {
+        self.get_header_mut().add_internal_link(link)
+    }
+
+    fn remove_internal_link(&mut self, link: Link) -> Result<()> {
+        self.get_header_mut().remove_internal_link(link)
+    }
 }
 
 fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Links> {
