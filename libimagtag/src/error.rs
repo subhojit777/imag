@@ -8,12 +8,14 @@ use std::fmt;
 pub enum TagErrorKind {
     TagTypeError,
     HeaderReadError,
+    HeaderWriteError,
 }
 
 fn tag_error_type_as_str(e: &TagErrorKind) -> &'static str {
     match e {
         &TagErrorKind::TagTypeError => "Entry Header Tag Type wrong",
         &TagErrorKind::HeaderReadError => "Error while reading entry header",
+        &TagErrorKind::HeaderWriteError=> "Error while writing entry header",
     }
 }
 
