@@ -19,7 +19,10 @@ pub fn set_links(header: &mut EntryHeader, links: Links) -> Result<Links> {
 }
 
 pub fn add_link(header: &mut EntryHeader, link: Link) -> Result<()> {
-    unimplemented!()
+    get_links(header).and_then(|mut links| {
+        links.add(link);
+        set_links(header, links).map(|_| ())
+    })
 }
 
 fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Links> {
