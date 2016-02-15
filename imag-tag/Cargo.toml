@@ -1,0 +1,24 @@
+[package]
+name = "imag-tag"
+version = "0.1.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+clap = "1.5.5"
+log = "0.3.5"
+version = "2.0.1"
+semver = "0.2.1"
+toml = "0.1.25"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
+[dependencies.libimagtag]
+path = "../libimagtag"
+
