@@ -26,6 +26,14 @@ impl Links {
         Links { links: s }
     }
 
+    pub fn add(&mut self, l: Link) {
+        self.links.push(l);
+    }
+
+    pub fn remove(&mut self, l: Link) {
+        self.links.retain(|link| l != link.clone());
+    }
+
 }
 
 impl Into<String> for Link {
