@@ -114,3 +114,30 @@ impl Tagable for EntryHeader {
 
 }
 
+impl Tagable for Entry {
+
+    fn get_tags(&self) -> Result<Vec<Tag>> {
+        self.get_header().get_tags()
+    }
+
+    fn set_tags(&mut self, ts: Vec<Tag>) -> Result<()> {
+        self.get_header_mut().set_tags(ts)
+    }
+
+    fn add_tag(&mut self, t: Tag) -> Result<()> {
+        self.get_header_mut().add_tag(t)
+    }
+
+    fn remove_tag(&mut self, t: Tag) -> Result<()> {
+        self.get_header_mut().remove_tag(t)
+    }
+
+    fn has_tag(&self, t: &Tag) -> Result<bool> {
+        self.get_header().has_tag(t)
+    }
+
+    fn has_tags(&self, ts: &Vec<Tag>) -> Result<bool> {
+        self.get_header().has_tags(ts)
+    }
+
+}
