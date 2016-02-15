@@ -2,6 +2,7 @@ use std::convert::Into;
 
 use libimagstore::store::Entry;
 
+#[derive(PartialOrd, Ord, Eq, PartialEq, Clone, Debug)]
 pub struct Link {
     link: String
 }
@@ -14,6 +15,7 @@ impl Link {
 
 }
 
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Links {
     links: Vec<Link>,
 }
