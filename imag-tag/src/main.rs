@@ -9,6 +9,8 @@ extern crate libimagrt;
 extern crate libimagtag;
 extern crate libimagutil;
 
+mod ui;
+
 fn main() {
     println!("Hello, world!");
 }
