@@ -67,43 +67,12 @@ impl Tagable for EntryHeader {
     }
 
     fn remove_tag(&mut self, t: Tag) -> Result<()> {
-        let tags = self.read("imag.tags");
-        if tags.is_err() {
-            let kind = TagErrorKind::HeaderReadError;
-            return Err(TagError::new(kind, Some(Box::new(tags.err().unwrap()))));
-        }
-        let tags = tags.unwrap();
-
-        if !tags.iter().all(|t| match t { &Value::String(_) => true, _ => false }) {
-            return Err(TagError::new(TagErrorKind::TagTypeError, None));
-        }
-
-        if tags.is_none() {
-            return Ok(());
-        }
-        let tags = tags.unwrap();
-
-        if !match tags { Value::Array(_) => true, _ => false } {
-            return Err(TagError::new(TagErrorKind::TagTypeError, None));
-        }
-
-        match tags {
-            Value::Array(tag_array) => {
-                let mut tag_array = tag_array.clone();
-                tag_array.retain(|tag| {
-                    match tag {
-                        &Value::String(ref s) => s.clone() != t,
-                        _ => unreachable!(),
-                    }
-                });
-
-                self.set("imag.tags", Value::Array(tag_array))
-                    .map_err(|e| TagError::new(TagErrorKind::TagTypeError, Some(Box::new(e))))
-                    .map(|_| ())
-            },
-
-            _ => unreachable!(),
-        }
+        self.get_tags()
+            .map(|mut tags| {
+                tags.retain(|tag| tag.clone() != t);
+                self.set_tags(tags)
+            })
+            .map(|_| ())
     }
 
     fn has_tag(&self, t: &Tag) -> Result<bool> {
