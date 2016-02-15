@@ -25,6 +25,13 @@ pub fn add_link(header: &mut EntryHeader, link: Link) -> Result<()> {
     })
 }
 
+pub fn remove_link(header: &mut EntryHeader, link: Link) -> Result<()> {
+    get_links(header).and_then(|mut links| {
+        links.remove(link);
+        set_links(header, links).map(|_| ())
+    })
+}
+
 fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Links> {
     if links.is_err() {
         let lerr  = LinkError::new(LinkErrorKind::EntryHeaderReadError,
