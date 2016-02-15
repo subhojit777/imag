@@ -1,3 +1,4 @@
+use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
 
 use error::{LinkError, LinkErrorKind};
@@ -62,3 +63,14 @@ impl ExternalLinker for EntryHeader {
 
 }
 
+impl ExternalLinker for Entry {
+
+    fn get_external_link(&self) -> Result<Option<Link>> {
+        self.get_header().get_external_link()
+    }
+
+    fn set_external_link(&mut self, l: Link) -> Result<Option<Link>> {
+        self.get_header_mut().set_external_link(l)
+    }
+
+}
