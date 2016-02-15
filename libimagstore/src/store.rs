@@ -9,6 +9,9 @@ use std::collections::BTreeMap;
 use std::io::{Seek, SeekFrom};
 use std::convert::From;
 use std::convert::Into;
+use std::sync::Mutex;
+use std::ops::Deref;
+use std::ops::DerefMut;
 
 use toml::{Table, Value};
 use regex::Regex;
@@ -17,6 +20,12 @@ use error::{ParserErrorKind, ParserError};
 use error::{StoreError, StoreErrorKind};
 use storeid::{StoreId, StoreIdIterator};
 use lazyfile::LazyFile;
+
+use hook::Hook;
+use hook::read::{PreReadHook, PostReadHook};
+use hook::create::{PreCreateHook, PostCreateHook};
+use hook::retrieve::{PreRetrieveHook, PostRetrieveHook};
+use hook::delete::{PreDeleteHook, PostDeleteHook};
 
 /// The Result Type returned by any interaction with the store that could fail
 pub type Result<T> = RResult<T, StoreError>;
@@ -90,6 +99,19 @@ impl StoreEntry {
 pub struct Store {
     location: PathBuf,
 
+    /*
+     * Registered hooks
+     */
+
+    pre_read_hooks      : Arc<Mutex<Vec<Box<PreReadHook>>>>,
+    post_read_hooks     : Arc<Mutex<Vec<Box<PostReadHook>>>>,
+    pre_create_hooks    : Arc<Mutex<Vec<Box<PreCreateHook>>>>,
+    post_create_hooks   : Arc<Mutex<Vec<Box<PostCreateHook>>>>,
+    pre_retrieve_hooks  : Arc<Mutex<Vec<Box<PreRetrieveHook>>>>,
+    post_retrieve_hooks : Arc<Mutex<Vec<Box<PostRetrieveHook>>>>,
+    pre_delete_hooks    : Arc<Mutex<Vec<Box<PreDeleteHook>>>>,
+    post_delete_hooks   : Arc<Mutex<Vec<Box<PostDeleteHook>>>>,
+
     /**
      * Internal Path->File cache map
      *
@@ -125,6 +147,14 @@ impl Store {
         debug!("Store building succeeded");
         Ok(Store {
             location: location,
+            pre_read_hooks      : Arc::new(Mutex::new(vec![])),
+            post_read_hooks     : Arc::new(Mutex::new(vec![])),
+            pre_create_hooks    : Arc::new(Mutex::new(vec![])),
+            post_create_hooks   : Arc::new(Mutex::new(vec![])),
+            pre_retrieve_hooks  : Arc::new(Mutex::new(vec![])),
+            post_retrieve_hooks : Arc::new(Mutex::new(vec![])),
+            pre_delete_hooks    : Arc::new(Mutex::new(vec![])),
+            post_delete_hooks   : Arc::new(Mutex::new(vec![])),
             entries: Arc::new(RwLock::new(HashMap::new())),
         })
     }
@@ -250,6 +280,78 @@ impl Store {
     /// Gets the path where this store is on the disk
     pub fn path(&self) -> &PathBuf {
         &self.location
+    }
+
+    pub fn register_pre_read_hook(&self, h: Box<PreReadHook>) -> Result<()> {
+        self.pre_read_hooks
+            .deref()
+            .lock()
+            .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None))
+            // TODO: cause: Some(Box::new(e))
+            .map(|mut guard| guard.deref_mut().push(h))
+    }
+
+    pub fn register_post_read_hook(&self, h: Box<PostReadHook>) -> Result<()> {
+        self.post_read_hooks
+            .deref()
+            .lock()
+            .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None))
+            // TODO: cause: Some(Box::new(e))
+            .map(|mut guard| guard.deref_mut().push(h))
+    }
+
+    pub fn register_pre_create_hook(&self, h: Box<PreCreateHook>) -> Result<()> {
+        self.pre_create_hooks
+            .deref()
+            .lock()
+            .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None))
+            // TODO: cause: Some(Box::new(e))
+            .map(|mut guard| guard.deref_mut().push(h))
+    }
+
+    pub fn register_post_create_hook(&self, h: Box<PostCreateHook>) -> Result<()> {
+        self.post_create_hooks
+            .deref()
+            .lock()
+            .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None))
+            // TODO: cause: Some(Box::new(e))
+            .map(|mut guard| guard.deref_mut().push(h))
+    }
+
+    pub fn register_pre_retrieve_hook(&self, h: Box<PreRetrieveHook>) -> Result<()> {
+        self.pre_retrieve_hooks
+            .deref()
+            .lock()
+            .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None))
+            // TODO: cause: Some(Box::new(e))
+            .map(|mut guard| guard.deref_mut().push(h))
+    }
+
+    pub fn register_post_retrieve_hook(&self, h: Box<PostRetrieveHook>) -> Result<()> {
+        self.post_retrieve_hooks
+            .deref()
+            .lock()
+            .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None))
+            // TODO: cause: Some(Box::new(e))
+            .map(|mut guard| guard.deref_mut().push(h))
+    }
+
+    pub fn register_pre_delete_hook(&self, h: Box<PreDeleteHook>) -> Result<()> {
+        self.pre_delete_hooks
+            .deref()
+            .lock()
+            .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None))
+            // TODO: cause: Some(Box::new(e))
+            .map(|mut guard| guard.deref_mut().push(h))
+    }
+
+    pub fn register_post_delete_hook(&self, h: Box<PostDeleteHook>) -> Result<()> {
+        self.post_delete_hooks
+            .deref()
+            .lock()
+            .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None))
+            // TODO: cause: Some(Box::new(e))
+            .map(|mut guard| guard.deref_mut().push(h))
     }
 
 }
