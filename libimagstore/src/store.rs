@@ -448,8 +448,13 @@ impl Store {
         unimplemented!()
     }
 
-    pub fn execute_pre_update_hooks(&self, id: &FileLockEntry) -> Result<()> {
-        unimplemented!()
+    pub fn execute_pre_update_hooks(&self, fle: &FileLockEntry) -> Result<()> {
+        let guard = self.pre_update_hooks.deref().lock();
+        if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
+
+        guard.unwrap().deref().iter()
+            .fold(Ok(()), |acc, hook| acc.and_then(|_| hook.pre_update(fle)))
+            .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
     }
 
     pub fn execute_post_update_hooks(&self, id: &FileLockEntry) -> Result<()> {
