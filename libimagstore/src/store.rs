@@ -419,7 +419,12 @@ impl Store {
     }
 
     pub fn execute_pre_create_hooks(&self, id: &StoreId) -> Result<()> {
-        unimplemented!()
+        let guard = self.pre_create_hooks.deref().lock();
+        if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
+
+        guard.unwrap().deref().iter()
+            .fold(Ok(()), |acc, hook| acc.and_then(|_| hook.pre_create(id)))
+            .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
     }
 
     pub fn execute_post_create_hooks<'a>(&'a self, fle: FileLockEntry<'a>)
