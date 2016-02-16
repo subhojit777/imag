@@ -5,8 +5,7 @@ use self::error::HookError;
 
 pub type HookResult = Result<(), HookError>;
 
-pub trait Hook {
-    fn description(&self) -> &str;
+pub trait Hook : Eq + PartialEq + Debug + Display {
     fn dependencies(&self) -> Vec<Box<Hook>>;
 }
 
