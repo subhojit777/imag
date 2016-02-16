@@ -1,64 +1,75 @@
-use storeid::StoreId;
-use store::FileLockEntry;
-
 use self::error::HookError;
 
-pub type HookResult = Result<(), HookError>;
-
-pub trait Hook : Eq + PartialEq + Debug + Display {
-    fn dependencies(&self) -> Vec<Box<Hook>>;
-}
-
-pub trait StoreIdHook : Hook {
-    fn execute(&self, &StoreId) -> HookResult;
-}
-
-pub trait FileLockHook : Hook {
-    fn execute(&self, &StoreId, &FileLockEntry) -> HookResult;
-}
+pub type HookResult<T> = Result<T, HookError>;
 
 pub mod read {
-    use super::FileLockHook;
-    use super::StoreIdHook;
+    use storeid::StoreId;
+    use store::FileLockEntry;
+    use super::HookResult;
 
-    pub trait PreReadHook : StoreIdHook {
+    pub trait PreReadHook {
+        fn pre_read(&self, &StoreId) -> HookResult<()>;
     }
 
-    pub trait PostReadHook : FileLockHook {
+    pub trait PostReadHook {
+        fn post_read<'a>(&self, FileLockEntry<'a>) -> HookResult<FileLockEntry<'a>>;
     }
 
 }
 
 pub mod create {
-    use super::FileLockHook;
-    use super::StoreIdHook;
+    use storeid::StoreId;
+    use store::FileLockEntry;
+    use super::HookResult;
 
-    pub trait PreCreateHook : StoreIdHook {
+    pub trait PreCreateHook {
+        fn pre_create(&self, &StoreId) -> HookResult<()>;
     }
 
-    pub trait PostCreateHook : FileLockHook {
+    pub trait PostCreateHook {
+        fn post_create<'a>(&self, FileLockEntry<'a>) -> HookResult<FileLockEntry<'a>>;
     }
 
 }
 
 pub mod retrieve {
-    use super::FileLockHook;
-    use super::StoreIdHook;
+    use storeid::StoreId;
+    use store::FileLockEntry;
+    use super::HookResult;
 
-    pub trait PreRetrieveHook : StoreIdHook {
+    pub trait PreRetrieveHook {
+        fn pre_retrieve(&self, &StoreId) -> HookResult<()>;
     }
 
-    pub trait PostRetrieveHook : FileLockHook {
+    pub trait PostRetrieveHook {
+        fn post_retrieve<'a>(&self, FileLockEntry<'a>) -> HookResult<FileLockEntry<'a>>;
+    }
+}
+
+pub mod update {
+    use store::FileLockEntry;
+    use super::HookResult;
+
+    pub trait PreUpdateHook {
+        fn pre_update(&self, &FileLockEntry) -> HookResult<()>;
+    }
+
+    pub trait PostUpdateHook {
+        fn post_update(&self, &FileLockEntry) -> HookResult<()>;
     }
 }
 
 pub mod delete {
-    use super::StoreIdHook;
+    use storeid::StoreId;
+    use store::FileLockEntry;
+    use super::HookResult;
 
-    pub trait PreDeleteHook : StoreIdHook {
+    pub trait PreDeleteHook {
+        fn pre_delete(&self, &StoreId) -> HookResult<()>;
     }
 
-    pub trait PostDeleteHook : StoreIdHook {
+    pub trait PostDeleteHook {
+        fn post_delete(&self, &StoreId) -> HookResult<()>;
     }
 }
 

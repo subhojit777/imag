@@ -21,7 +21,6 @@ use error::{StoreError, StoreErrorKind};
 use storeid::{StoreId, StoreIdIterator};
 use lazyfile::LazyFile;
 
-use hook::Hook;
 use hook::read::{PreReadHook, PostReadHook};
 use hook::create::{PreCreateHook, PostCreateHook};
 use hook::retrieve::{PreRetrieveHook, PostRetrieveHook};
@@ -109,6 +108,8 @@ pub struct Store {
     post_create_hooks   : Arc<Mutex<Vec<Box<PostCreateHook>>>>,
     pre_retrieve_hooks  : Arc<Mutex<Vec<Box<PreRetrieveHook>>>>,
     post_retrieve_hooks : Arc<Mutex<Vec<Box<PostRetrieveHook>>>>,
+    pre_update_hooks    : Arc<Mutex<Vec<Box<PreUpdateHook>>>>,
+    post_update_hooks   : Arc<Mutex<Vec<Box<PostUpdateHook>>>>,
     pre_delete_hooks    : Arc<Mutex<Vec<Box<PreDeleteHook>>>>,
     post_delete_hooks   : Arc<Mutex<Vec<Box<PostDeleteHook>>>>,
 
@@ -153,6 +154,8 @@ impl Store {
             post_create_hooks   : Arc::new(Mutex::new(vec![])),
             pre_retrieve_hooks  : Arc::new(Mutex::new(vec![])),
             post_retrieve_hooks : Arc::new(Mutex::new(vec![])),
+            pre_update_hooks    : Arc::new(Mutex::new(vec![])),
+            post_update_hooks   : Arc::new(Mutex::new(vec![])),
             pre_delete_hooks    : Arc::new(Mutex::new(vec![])),
             post_delete_hooks   : Arc::new(Mutex::new(vec![])),
             entries: Arc::new(RwLock::new(HashMap::new())),
@@ -335,6 +338,25 @@ impl Store {
             // TODO: cause: Some(Box::new(e))
             .map(|mut guard| guard.deref_mut().push(h))
     }
+
+    pub fn register_pre_update_hook(&self, h: Box<PreUpdateHook>) -> Result<()> {
+        self.pre_update_hooks
+            .deref()
+            .lock()
+            .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None))
+            // TODO: cause: Some(Box::new(e))
+            .map(|mut guard| guard.deref_mut().push(h))
+    }
+
+    pub fn register_post_update_hook(&self, h: Box<PostUpdateHook>) -> Result<()> {
+        self.post_update_hooks
+            .deref()
+            .lock()
+            .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None))
+            // TODO: cause: Some(Box::new(e))
+            .map(|mut guard| guard.deref_mut().push(h))
+    }
+
 
     pub fn register_pre_delete_hook(&self, h: Box<PreDeleteHook>) -> Result<()> {
         self.pre_delete_hooks
