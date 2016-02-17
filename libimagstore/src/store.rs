@@ -441,7 +441,18 @@ impl Store {
     pub fn execute_post_create_hooks<'a>(&'a self, fle: FileLockEntry<'a>)
         -> Result<FileLockEntry<'a>>
     {
-        unimplemented!()
+        self.post_create_hooks
+            .deref()
+            .lock()
+            .map_err(|e| StoreError::new(StoreErrorKind::PostHookExecuteError, None))
+            .and_then(|guard| {
+                guard.deref()
+                    .iter()
+                    .fold(Ok(fle), move |file, hook| file.and_then(|f| hook.post_create(f)))
+                    .map_err(|e| {
+                        StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e)))
+                    })
+            })
     }
 
     pub fn execute_pre_retrieve_hooks(&self, id: &StoreId) -> Result<()> {
