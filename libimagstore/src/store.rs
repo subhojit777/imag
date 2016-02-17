@@ -515,7 +515,18 @@ impl Store {
     }
 
     pub fn execute_post_delete_hooks(&self, id: &StoreId) -> Result<()> {
-        unimplemented!()
+        self.post_delete_hooks
+            .deref()
+            .lock()
+            .map_err(|e| StoreError::new(StoreErrorKind::PostHookExecuteError, None))
+            .and_then(|guard| {
+                guard.deref()
+                    .iter()
+                    .fold(Ok(()), move |res, hook| res.and_then(|_| hook.post_delete(id)))
+                    .map_err(|e| {
+                        StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e)))
+                    })
+            })
     }
 
 }
