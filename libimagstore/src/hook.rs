@@ -94,13 +94,37 @@ pub mod error {
     use std::fmt::Error as FmtError;
     use std::clone::Clone;
     use std::fmt::{Display, Formatter};
+    use std::convert::Into;
 
     /**
      * Kind of error
      */
-    #[derive(Clone, Copy, Debug, PartialEq)]
+    #[derive(Clone, Copy, Debug)]
     pub enum HookErrorKind {
+        Pre(PreHookErrorKind),
+        Post(PostHookErrorKind)
+    }
+
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub enum PreHookErrorKind {
         // ...
+    }
+
+    impl Into<HookErrorKind> for PreHookErrorKind {
+        fn into(self) -> HookErrorKind {
+            HookErrorKind::Pre(self)
+        }
+    }
+
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub enum PostHookErrorKind {
+        // ...
+    }
+
+    impl Into<HookErrorKind> for PostHookErrorKind {
+        fn into(self) -> HookErrorKind {
+            HookErrorKind::Post(self)
+        }
     }
 
     fn hook_error_type_as_str(e: &HookErrorKind) -> &'static str {
