@@ -1,84 +1,90 @@
+use std::fmt::Debug;
+
+use toml::Value;
+
 use self::error::HookError;
 
 pub type HookResult<T> = Result<T, HookError>;
 
-pub mod read {
-    use std::fmt::Debug;
+pub trait Configureable {
+    fn set_config(&mut self, cfg: Value);
+}
 
+pub trait Hook : Configureable + Debug {
+}
+
+pub mod read {
     use storeid::StoreId;
     use store::FileLockEntry;
     use super::HookResult;
+    use super::Hook;
 
-    pub trait PreReadHook : Debug {
+    pub trait PreReadHook : Hook {
         fn pre_read(&self, &StoreId) -> HookResult<()>;
     }
 
-    pub trait PostReadHook : Debug {
+    pub trait PostReadHook : Hook {
         fn post_read<'a>(&self, FileLockEntry<'a>) -> HookResult<FileLockEntry<'a>>;
     }
 
 }
 
 pub mod create {
-    use std::fmt::Debug;
-
     use storeid::StoreId;
     use store::FileLockEntry;
     use super::HookResult;
+    use super::Hook;
 
-    pub trait PreCreateHook : Debug {
+    pub trait PreCreateHook : Hook {
         fn pre_create(&self, &StoreId) -> HookResult<()>;
     }
 
-    pub trait PostCreateHook : Debug {
+    pub trait PostCreateHook : Hook {
         fn post_create<'a>(&self, FileLockEntry<'a>) -> HookResult<FileLockEntry<'a>>;
     }
 
 }
 
 pub mod retrieve {
-    use std::fmt::Debug;
-
     use storeid::StoreId;
     use store::FileLockEntry;
     use super::HookResult;
+    use super::Hook;
 
-    pub trait PreRetrieveHook : Debug {
+    pub trait PreRetrieveHook : Hook {
         fn pre_retrieve(&self, &StoreId) -> HookResult<()>;
     }
 
-    pub trait PostRetrieveHook : Debug {
+    pub trait PostRetrieveHook : Hook {
         fn post_retrieve<'a>(&self, FileLockEntry<'a>) -> HookResult<FileLockEntry<'a>>;
     }
 }
 
 pub mod update {
-    use std::fmt::Debug;
-
     use store::FileLockEntry;
     use super::HookResult;
+    use super::Hook;
 
-    pub trait PreUpdateHook : Debug {
+    pub trait PreUpdateHook : Hook {
         fn pre_update(&self, &FileLockEntry) -> HookResult<()>;
     }
 
-    pub trait PostUpdateHook : Debug {
+    pub trait PostUpdateHook : Hook {
         fn post_update(&self, &FileLockEntry) -> HookResult<()>;
     }
 }
 
 pub mod delete {
-    use std::fmt::Debug;
-
     use storeid::StoreId;
     use store::FileLockEntry;
     use super::HookResult;
+    use super::Hook;
 
-    pub trait PreDeleteHook : Debug {
+    pub trait PreDeleteHook : Hook {
         fn pre_delete(&self, &StoreId) -> HookResult<()>;
     }
 
-    pub trait PostDeleteHook : Debug {
+    pub trait PostDeleteHook : Hook {
         fn post_delete(&self, &StoreId) -> HookResult<()>;
     }
 }
