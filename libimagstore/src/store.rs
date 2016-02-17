@@ -313,6 +313,7 @@ impl Store {
     }
 
     pub fn register_pre_read_hook(&self, h: Box<PreReadHook>) -> Result<()> {
+        debug!("Registering pre-read hook: {:?}", h);
         self.pre_read_hooks
             .deref()
             .lock()
@@ -322,6 +323,7 @@ impl Store {
     }
 
     pub fn register_post_read_hook(&self, h: Box<PostReadHook>) -> Result<()> {
+        debug!("Registering post-read hook: {:?}", h);
         self.post_read_hooks
             .deref()
             .lock()
@@ -331,6 +333,7 @@ impl Store {
     }
 
     pub fn register_pre_create_hook(&self, h: Box<PreCreateHook>) -> Result<()> {
+        debug!("Registering pre-create hook: {:?}", h);
         self.pre_create_hooks
             .deref()
             .lock()
@@ -340,6 +343,7 @@ impl Store {
     }
 
     pub fn register_post_create_hook(&self, h: Box<PostCreateHook>) -> Result<()> {
+        debug!("Registering post-create hook: {:?}", h);
         self.post_create_hooks
             .deref()
             .lock()
@@ -349,6 +353,7 @@ impl Store {
     }
 
     pub fn register_pre_retrieve_hook(&self, h: Box<PreRetrieveHook>) -> Result<()> {
+        debug!("Registering pre-retrieve hook: {:?}", h);
         self.pre_retrieve_hooks
             .deref()
             .lock()
@@ -358,6 +363,7 @@ impl Store {
     }
 
     pub fn register_post_retrieve_hook(&self, h: Box<PostRetrieveHook>) -> Result<()> {
+        debug!("Registering post-retrieve hook: {:?}", h);
         self.post_retrieve_hooks
             .deref()
             .lock()
@@ -367,6 +373,7 @@ impl Store {
     }
 
     pub fn register_pre_update_hook(&self, h: Box<PreUpdateHook>) -> Result<()> {
+        debug!("Registering pre-update hook: {:?}", h);
         self.pre_update_hooks
             .deref()
             .lock()
@@ -376,6 +383,7 @@ impl Store {
     }
 
     pub fn register_post_update_hook(&self, h: Box<PostUpdateHook>) -> Result<()> {
+        debug!("Registering post-update hook: {:?}", h);
         self.post_update_hooks
             .deref()
             .lock()
@@ -386,6 +394,7 @@ impl Store {
 
 
     pub fn register_pre_delete_hook(&self, h: Box<PreDeleteHook>) -> Result<()> {
+        debug!("Registering pre-delete hook: {:?}", h);
         self.pre_delete_hooks
             .deref()
             .lock()
@@ -395,6 +404,7 @@ impl Store {
     }
 
     pub fn register_post_delete_hook(&self, h: Box<PostDeleteHook>) -> Result<()> {
+        debug!("Registering post-delete hook: {:?}", h);
         self.post_delete_hooks
             .deref()
             .lock()
