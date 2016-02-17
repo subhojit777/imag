@@ -490,8 +490,19 @@ impl Store {
             .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
     }
 
-    pub fn execute_post_update_hooks(&self, id: &FileLockEntry) -> Result<()> {
-        unimplemented!()
+    pub fn execute_post_update_hooks(&self, fle: &FileLockEntry) -> Result<()> {
+        self.post_update_hooks
+            .deref()
+            .lock()
+            .map_err(|e| StoreError::new(StoreErrorKind::PostHookExecuteError, None))
+            .and_then(|guard| {
+                guard.deref()
+                    .iter()
+                    .fold(Ok(()), move |res, hook| res.and_then(|_| hook.post_update(fle)))
+                    .map_err(|e| {
+                        StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e)))
+                    })
+            })
     }
 
     pub fn execute_pre_delete_hooks(&self, id: &StoreId) -> Result<()> {
