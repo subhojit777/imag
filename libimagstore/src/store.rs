@@ -414,17 +414,22 @@ impl Store {
     }
 
     pub fn execute_pre_read_hooks(&self, id: &StoreId) -> Result<()> {
+        debug!("Execute pre-read hooks: {:?}", self.pre_read_hooks);
         let guard = self.pre_read_hooks.deref().lock();
         if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
 
         guard.unwrap().deref().iter()
-            .fold(Ok(()), |acc, hook| acc.and_then(|_| hook.pre_read(id)))
+            .fold(Ok(()), |acc, hook| {
+                debug!("[Hook][exec]: {:?}", hook);
+                acc.and_then(|_| hook.pre_read(id))
+            })
             .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
     }
 
     pub fn execute_post_read_hooks<'a>(&'a self, fle: FileLockEntry<'a>)
         -> Result<FileLockEntry<'a>>
     {
+        debug!("Execute post-read hooks: {:?}", self.post_read_hooks);
         self.post_read_hooks
             .deref()
             .lock()
@@ -432,7 +437,10 @@ impl Store {
             .and_then(|guard| {
                 guard.deref()
                     .iter()
-                    .fold(Ok(fle), move |file, hook| file.and_then(|f| hook.post_read(f)))
+                    .fold(Ok(fle), move |file, hook| {
+                        debug!("[Hook][exec]: {:?}", hook);
+                        file.and_then(|f| hook.post_read(f))
+                    })
                     .map_err(|e| {
                         StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e)))
                     })
@@ -440,17 +448,22 @@ impl Store {
     }
 
     pub fn execute_pre_create_hooks(&self, id: &StoreId) -> Result<()> {
+        debug!("Execute pre-create hooks: {:?}", self.pre_create_hooks);
         let guard = self.pre_create_hooks.deref().lock();
         if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
 
         guard.unwrap().deref().iter()
-            .fold(Ok(()), |acc, hook| acc.and_then(|_| hook.pre_create(id)))
+            .fold(Ok(()), |acc, hook| {
+                debug!("[Hook][exec]: {:?}", hook);
+                acc.and_then(|_| hook.pre_create(id))
+            })
             .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
     }
 
     pub fn execute_post_create_hooks<'a>(&'a self, fle: FileLockEntry<'a>)
         -> Result<FileLockEntry<'a>>
     {
+        debug!("Execute post-create hooks: {:?}", self.post_create_hooks);
         self.post_create_hooks
             .deref()
             .lock()
@@ -458,7 +471,10 @@ impl Store {
             .and_then(|guard| {
                 guard.deref()
                     .iter()
-                    .fold(Ok(fle), move |file, hook| file.and_then(|f| hook.post_create(f)))
+                    .fold(Ok(fle), move |file, hook| {
+                        debug!("[Hook][exec]: {:?}", hook);
+                        file.and_then(|f| hook.post_create(f))
+                    })
                     .map_err(|e| {
                         StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e)))
                     })
@@ -466,17 +482,22 @@ impl Store {
     }
 
     pub fn execute_pre_retrieve_hooks(&self, id: &StoreId) -> Result<()> {
+        debug!("Execute pre-retrieve hooks: {:?}", self.pre_retrieve_hooks);
         let guard = self.pre_retrieve_hooks.deref().lock();
         if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
 
         guard.unwrap().deref().iter()
-            .fold(Ok(()), |acc, hook| acc.and_then(|_| hook.pre_retrieve(id)))
+            .fold(Ok(()), |acc, hook| {
+                debug!("[Hook][exec]: {:?}", hook);
+                acc.and_then(|_| hook.pre_retrieve(id))
+            })
             .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
     }
 
     pub fn execute_post_retrieve_hooks<'a>(&'a self, fle: FileLockEntry<'a>)
         -> Result<FileLockEntry<'a>>
     {
+        debug!("Execute post-retrieve hooks: {:?}", self.post_retrieve_hooks);
         self.post_retrieve_hooks
             .deref()
             .lock()
@@ -484,7 +505,10 @@ impl Store {
             .and_then(|guard| {
                 guard.deref()
                     .iter()
-                    .fold(Ok(fle), move |file, hook| file.and_then(|f| hook.post_retrieve(f)))
+                    .fold(Ok(fle), move |file, hook| {
+                        debug!("[Hook][exec]: {:?}", hook);
+                        file.and_then(|f| hook.post_retrieve(f))
+                    })
                     .map_err(|e| {
                         StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e)))
                     })
@@ -492,15 +516,20 @@ impl Store {
     }
 
     pub fn execute_pre_update_hooks(&self, fle: &FileLockEntry) -> Result<()> {
+        debug!("Execute pre-update hooks: {:?}", self.pre_update_hooks);
         let guard = self.pre_update_hooks.deref().lock();
         if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
 
         guard.unwrap().deref().iter()
-            .fold(Ok(()), |acc, hook| acc.and_then(|_| hook.pre_update(fle)))
+            .fold(Ok(()), |acc, hook| {
+                debug!("[Hook][exec]: {:?}", hook);
+                acc.and_then(|_| hook.pre_update(fle))
+            })
             .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
     }
 
     pub fn execute_post_update_hooks(&self, fle: &FileLockEntry) -> Result<()> {
+        debug!("Execute post-update hooks: {:?}", self.post_update_hooks);
         self.post_update_hooks
             .deref()
             .lock()
@@ -508,7 +537,10 @@ impl Store {
             .and_then(|guard| {
                 guard.deref()
                     .iter()
-                    .fold(Ok(()), move |res, hook| res.and_then(|_| hook.post_update(fle)))
+                    .fold(Ok(()), move |res, hook| {
+                        debug!("[Hook][exec]: {:?}", hook);
+                        res.and_then(|_| hook.post_update(fle))
+                    })
                     .map_err(|e| {
                         StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e)))
                     })
@@ -516,15 +548,20 @@ impl Store {
     }
 
     pub fn execute_pre_delete_hooks(&self, id: &StoreId) -> Result<()> {
+        debug!("Execute pre-delete hooks: {:?}", self.pre_delete_hooks);
         let guard = self.pre_delete_hooks.deref().lock();
         if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
 
         guard.unwrap().deref().iter()
-            .fold(Ok(()), |acc, hook| acc.and_then(|_| hook.pre_delete(id)))
+            .fold(Ok(()), |acc, hook| {
+                debug!("[Hook][exec]: {:?}", hook);
+                acc.and_then(|_| hook.pre_delete(id))
+            })
             .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
     }
 
     pub fn execute_post_delete_hooks(&self, id: &StoreId) -> Result<()> {
+        debug!("Execute post-delete hooks: {:?}", self.post_delete_hooks);
         self.post_delete_hooks
             .deref()
             .lock()
@@ -532,7 +569,10 @@ impl Store {
             .and_then(|guard| {
                 guard.deref()
                     .iter()
-                    .fold(Ok(()), move |res, hook| res.and_then(|_| hook.post_delete(id)))
+                    .fold(Ok(()), move |res, hook| {
+                        debug!("[Hook][exec]: {:?}", hook);
+                        res.and_then(|_| hook.post_delete(id))
+                    })
                     .map_err(|e| {
                         StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e)))
                     })
