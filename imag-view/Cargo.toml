@@ -4,3 +4,20 @@ version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
+clap = "2.1.1"
+glob = "0.2.11"
+log = "0.3.5"
+rustbox = "0.8.1"
+semver = "0.2.1"
+toml = "0.1.25"
+version = "2.0.1"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
