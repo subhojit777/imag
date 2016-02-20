@@ -1,6 +1,6 @@
 use clap::{Arg, App, SubCommand};
 
-pub fn build_ui<'a>(app: App<'a, 'a, 'a, 'a, 'a, 'a>) -> App<'a, 'a, 'a, 'a, 'a, 'a> {
+pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app.subcommand(SubCommand::with_name("create")
                    .about("Create an entry from the store")
                    .version("0.1")
