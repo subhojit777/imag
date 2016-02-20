@@ -870,14 +870,16 @@ impl Entry {
 
     pub fn from_str(loc: StoreId, s: &str) -> Result<Entry> {
         debug!("Building entry from string");
-        let re = Regex::new(r"(?smx)
-            ^---$
-            (?P<header>.*) # Header
-            ^---$\n
-            (?P<content>.*) # Content
-        ").unwrap();
+        lazy_static! {
+            static ref RE: Regex = Regex::new(r"(?smx)
+                ^---$
+                (?P<header>.*) # Header
+                ^---$\n
+                (?P<content>.*) # Content
+            ").unwrap();
+        }
 
-        let matches = re.captures(s);
+        let matches = RE.captures(s);
 
         if matches.is_none() {
             return Err(StoreError::new(StoreErrorKind::MalformedEntry, None));
