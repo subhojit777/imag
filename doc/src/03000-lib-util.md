@@ -27,5 +27,29 @@ respectively. The implementation is realized via Regex.
 
 The `KeyValue` type implementes `Into<(K, V)>` for convenience.
 
+## Error tracing {#sec:libutil:errortrace}
 
+The error tracing functions are functions which help printing an error chain
+to the user.
+
+It allows to trace nested errors like @lst:errtrace:exampleerror to the user
+in a backtrace-ish way (@lst:errtrace:exampletrace).
+
+```{#lst:errtrace:exampleerror.rust .numberLines caption="Error chain"}
+ErrA::new(a_errorkind,
+          Some(Box::new(ErrB::new(b_errorkind,
+                                  Some(Box::new(ErrC::new(c_errorkind,
+                                                          None)))
+                                  )))
+          )
+```
+
+The variants of the function allow limiting the trace to a certain depth or
+printing the error trace to the debug output stream.
+
+```{#lst:errtrace:exampletrace .numberLines caption="Error trace"}
+[Error][c_errorkind]: Some C-error text -- caused:
+[Error][b_errorkind]: Some B-error text -- caused:
+[Error][a_errorkind]: Some A-error text
+```
 
