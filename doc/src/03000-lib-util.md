@@ -53,3 +53,19 @@ printing the error trace to the debug output stream.
 [Error][a_errorkind]: Some A-error text
 ```
 
+## Variant generator {#sec:libutil:vargen}
+
+The `generate_variants()` function can be used to generate variants of a base
+vector value.
+
+```{#lst:vargen:exampleuse .rust .numberLines caption="Variant generation"}
+let base = 1;
+let vars = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+let res = generate_variants(base, vars, &|base, var| base + var);
+
+assert!(res == vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+```
+
+As shown in @lst:vargen:exampleuse (from the tests), can this function
+be used to generate values from a base value.
+
