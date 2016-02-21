@@ -9,11 +9,23 @@ used by all other libraries and/or binaries.
 
 It is explicitely not intended for module-use only, but for all other libraries.
 
-## Datatypes {#sec:libutil:datatypes}
+## Key-Value split {#sec:libutil:kvsplit}
 
-_Nothing here yet_
+This helper implements functionality to split key-value string into two parts.
+It was introduced to simplify commandline specification for header fields (see
+@lst:kvsplit:headerspec).
 
-## Functions {#sec:libutil:functions}
+```{#lst:kvsplit:headerspec .bash .numberLines caption="Headerfield spec"}
+imag store create --path /some.entry entry --header field=foo
+#                                                   ^^^^^^^^^
+```
 
-_Nothing here yet_
+It is implemented by introducing a `KeyValue` type which is generic over Key
+and Value. This type gets implemented `KeyValue<String, String> for String` to
+be able to split a `String` into two `String` objects, key and value
+respectively. The implementation is realized via Regex.
+
+The `KeyValue` type implementes `Into<(K, V)>` for convenience.
+
+
 
