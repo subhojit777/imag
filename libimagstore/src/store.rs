@@ -591,6 +591,16 @@ impl Store {
             .map_err(|e| SEK::DeleteCallError.into_error_with_cause(e))
     }
 
+    /// Move an entry
+    pub fn save_as(&self, entry: FileLockEntry, new_id: StoreId) -> Result<()> {
+        unimplemented!()
+    }
+
+    /// Move an entry without loading
+    pub fn move_by_id(&self, old_id: StoreId, new_id: StoreId) -> Result<()> {
+        unimplemented!()
+    }
+
     /// Gets the path where this store is on the disk
     pub fn path(&self) -> &PathBuf {
         &self.location
