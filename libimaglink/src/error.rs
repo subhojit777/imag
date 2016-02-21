@@ -9,6 +9,8 @@ pub enum LinkErrorKind {
     EntryHeaderReadError,
     EntryHeaderWriteError,
     ExistingLinkTypeWrong,
+    LinkTargetDoesNotExist,
+    InternalConversionError,
 }
 
 fn link_error_type_as_str(e: &LinkErrorKind) -> &'static str {
@@ -21,6 +23,12 @@ fn link_error_type_as_str(e: &LinkErrorKind) -> &'static str {
 
         &LinkErrorKind::ExistingLinkTypeWrong
             => "Existing link entry has wrong type",
+
+        &LinkErrorKind::LinkTargetDoesNotExist
+            => "Link target does not exist in the store",
+
+        &LinkErrorKind::InternalConversionError
+            => "Error while converting values internally",
     }
 }
 
