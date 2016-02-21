@@ -68,3 +68,38 @@ It also MUST contain a getter for this variable.
 It MUST NOT contain a setter for this variable, as changing the store while the
 programm is running is not allowed.
 
+## Hook system {#sec:libstore:hooks}
+
+The store library includes a hook system, which can be used to execute arbitrary
+code before or after the store was accessed. The following hooks are available:
+
+* `PreReadHook`
+* `PostReadHook`
+* `PreCreateHook`
+* `PostCreateHook`
+* `PreUpdateHook`
+* `PostUpdateHook`
+* `PreDeleteHook`
+* `PostDeleteHook`
+
+Which are executed before or after the store action is executed. The `Pre`-Hooks
+can deny the execution by returning an error. The `Post`-Hooks can (for the
+appropriate store actions) alter the hook result.
+
+Registering hooks with the store is implemented via functions on the `Store`
+type itself. Hooks MUST NEVER be removed from the `Store` object during runtime,
+only adding hooks to the store is allowed.
+
+As the hooks are simply trait objects, one is able to implement arbitrary hooks,
+for example
+
+* Simple consistency-checks for the store
+* Version control system adaption for the store (via git for example)
+* Encryption of store entries (via gnupg for example)
+* Automatic backup on every change to the store (via rsnapshot for example)
+
+Some hooks MAY be shipped with the imag source distribution and be enabled by
+default.
+
+Execution order of the hooks is a not-yet-solved problem.
+
