@@ -9,13 +9,15 @@ pub enum TagErrorKind {
     TagTypeError,
     HeaderReadError,
     HeaderWriteError,
+    NotATag,
 }
 
 fn tag_error_type_as_str(e: &TagErrorKind) -> &'static str {
     match e {
-        &TagErrorKind::TagTypeError => "Entry Header Tag Type wrong",
-        &TagErrorKind::HeaderReadError => "Error while reading entry header",
-        &TagErrorKind::HeaderWriteError=> "Error while writing entry header",
+        &TagErrorKind::TagTypeError     => "Entry Header Tag Type wrong",
+        &TagErrorKind::HeaderReadError  => "Error while reading entry header",
+        &TagErrorKind::HeaderWriteError => "Error while writing entry header",
+        &TagErrorKind::NotATag          => "String is not a tag",
     }
 }
 

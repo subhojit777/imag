@@ -3,6 +3,7 @@ use libimagstore::store::{Entry, EntryHeader};
 use error::{TagError, TagErrorKind};
 use result::Result;
 use tag::Tag;
+use util::is_tag;
 
 use toml::Value;
 
@@ -34,6 +35,12 @@ impl Tagable for EntryHeader {
                 if !tags.iter().all(|t| match t { &Value::String(_) => true, _ => false }) {
                     return Err(TagError::new(TagErrorKind::TagTypeError, None));
                 }
+                if tags.iter().any(|t| match t {
+                    &Value::String(ref s) => !is_tag(&s),
+                    _ => unreachable!()})
+                {
+                    return Err(TagError::new(TagErrorKind::NotATag, None));
+                }
 
                 Ok(tags.iter()
                     .cloned()
@@ -51,6 +58,11 @@ impl Tagable for EntryHeader {
     }
 
     fn set_tags(&mut self, ts: Vec<Tag>) -> Result<()> {
+        if ts.iter().any(|tag| !is_tag(tag)) {
+            debug!("Not a tag: '{}'", ts.iter().filter(|t| !is_tag(t)).next().unwrap());
+            return Err(TagError::new(TagErrorKind::NotATag, None));
+        }
+
         let a = ts.iter().map(|t| Value::String(t.clone())).collect();
         self.set("imag.tags", Value::Array(a))
             .map(|_| ())
@@ -58,6 +70,11 @@ impl Tagable for EntryHeader {
     }
 
     fn add_tag(&mut self, t: Tag) -> Result<()> {
+        if !is_tag(&t) {
+            debug!("Not a tag: '{}'", t);
+            return Err(TagError::new(TagErrorKind::NotATag, None));
+        }
+
         self.get_tags()
             .map(|mut tags| {
                 tags.push(t);
@@ -67,6 +84,11 @@ impl Tagable for EntryHeader {
     }
 
     fn remove_tag(&mut self, t: Tag) -> Result<()> {
+        if !is_tag(&t) {
+            debug!("Not a tag: '{}'", t);
+            return Err(TagError::new(TagErrorKind::NotATag, None));
+        }
+
         self.get_tags()
             .map(|mut tags| {
                 tags.retain(|tag| tag.clone() != t);
