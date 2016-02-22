@@ -3,6 +3,7 @@ use std::fmt::Debug;
 use toml::Value;
 
 use self::error::HookError;
+use store::FileLockEntry;
 
 pub type HookResult<T> = Result<T, HookError>;
 
@@ -10,12 +11,30 @@ pub trait Configureable {
     fn set_config(&mut self, cfg: Value);
 }
 
-pub trait Hook : Configureable + Debug {
+pub trait MutableHookDataAccessor : Send + Sync {
+    fn access_mut(&self, &mut FileLockEntry) -> HookResult<()>;
+}
+
+pub trait NonMutableHookDataAccessor : Send + Sync {
+    fn access(&self, &FileLockEntry) -> HookResult<()>;
+}
+
+pub enum HookDataAccessor {
+    MutableAccess(Box<MutableHookDataAccessor>),
+    NonMutableAccess(Box<NonMutableHookDataAccessor>),
+}
+
+pub trait HookDataAccessorProvider {
+    fn accessor(&self) -> Box<HookDataAccessor>;
+}
+
+pub trait Hook : Configureable + Debug + Send + Sync {
 }
 
 pub mod read {
     use storeid::StoreId;
     use store::FileLockEntry;
+    use super::HookDataAccessorProvider;
     use super::HookResult;
     use super::Hook;
 
@@ -23,8 +42,7 @@ pub mod read {
         fn pre_read(&self, &StoreId) -> HookResult<()>;
     }
 
-    pub trait PostReadHook : Hook {
-        fn post_read<'a>(&self, FileLockEntry<'a>) -> HookResult<FileLockEntry<'a>>;
+    pub trait PostReadHook : Hook + HookDataAccessorProvider {
     }
 
 }
@@ -32,6 +50,7 @@ pub mod read {
 pub mod create {
     use storeid::StoreId;
     use store::FileLockEntry;
+    use super::HookDataAccessorProvider;
     use super::HookResult;
     use super::Hook;
 
@@ -39,8 +58,7 @@ pub mod create {
         fn pre_create(&self, &StoreId) -> HookResult<()>;
     }
 
-    pub trait PostCreateHook : Hook {
-        fn post_create<'a>(&self, FileLockEntry<'a>) -> HookResult<FileLockEntry<'a>>;
+    pub trait PostCreateHook : Hook + HookDataAccessorProvider {
     }
 
 }
@@ -48,6 +66,7 @@ pub mod create {
 pub mod retrieve {
     use storeid::StoreId;
     use store::FileLockEntry;
+    use super::HookDataAccessorProvider;
     use super::HookResult;
     use super::Hook;
 
@@ -55,13 +74,13 @@ pub mod retrieve {
         fn pre_retrieve(&self, &StoreId) -> HookResult<()>;
     }
 
-    pub trait PostRetrieveHook : Hook {
-        fn post_retrieve<'a>(&self, FileLockEntry<'a>) -> HookResult<FileLockEntry<'a>>;
+    pub trait PostRetrieveHook : Hook + HookDataAccessorProvider {
     }
 }
 
 pub mod update {
     use store::FileLockEntry;
+    use super::HookDataAccessorProvider;
     use super::HookResult;
     use super::Hook;
 
@@ -69,14 +88,14 @@ pub mod update {
         fn pre_update(&self, &FileLockEntry) -> HookResult<()>;
     }
 
-    pub trait PostUpdateHook : Hook {
-        fn post_update(&self, &FileLockEntry) -> HookResult<()>;
+    pub trait PostUpdateHook : Hook + HookDataAccessorProvider {
     }
 }
 
 pub mod delete {
     use storeid::StoreId;
     use store::FileLockEntry;
+    use super::HookDataAccessorProvider;
     use super::HookResult;
     use super::Hook;
 
