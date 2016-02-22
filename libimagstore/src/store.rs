@@ -22,6 +22,10 @@ use storeid::{StoreId, StoreIdIterator};
 use lazyfile::LazyFile;
 
 use hook::HookResult;
+use hook::{ MutableHookDataAccessor,
+            NonMutableHookDataAccessor,
+            HookDataAccessor,
+            HookDataAccessorProvider};
 use hook::read::{PreReadHook, PostReadHook};
 use hook::create::{PreCreateHook, PostCreateHook};
 use hook::retrieve::{PreRetrieveHook, PostRetrieveHook};
@@ -222,8 +226,8 @@ impl Store {
     }
 
     /// Return the `FileLockEntry` and write to disk
-    pub fn update<'a>(&'a self, entry: FileLockEntry<'a>) -> Result<()> {
-        if let Err(e) = self.execute_pre_update_hooks(&entry) {
+    pub fn update<'a>(&'a self, mut entry: FileLockEntry<'a>) -> Result<()> {
+        if let Err(e) = self.execute_pre_update_hooks(&mut entry) {
             return Err(e);
         }
 
@@ -231,7 +235,8 @@ impl Store {
             return Err(e);
         }
 
-        self.execute_post_update_hooks(&entry)
+        self.execute_post_update_hooks(entry)
+            .map(|_| ())
     }
 
     /// Internal method to write to the filesystem store.
@@ -435,16 +440,51 @@ impl Store {
             .lock()
             .map_err(|e| StoreError::new(StoreErrorKind::PostHookExecuteError, None))
             .and_then(|guard| {
-                guard.deref()
-                    .iter()
-                    .fold(Ok(fle), move |file, hook| {
-                        debug!("[Hook][exec]: {:?}", hook);
-                        file.and_then(|f| hook.post_read(f))
-                    })
+                let accessors = guard.deref().iter().map(|h| h.accessor()).collect();
+                self.execute_hook_accessors(accessors, fle)
                     .map_err(|e| {
                         StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e)))
                     })
             })
+    }
+
+    fn execute_hook_accessors<'a>(&self, accessors: Vec<Box<HookDataAccessor>>, fle: FileLockEntry<'a>)
+        -> Result<FileLockEntry<'a>>
+    {
+        use hook::HookDataAccessor as HDA;
+
+        let iter_par = accessors.iter().all(|accessor| {
+            if let &HookDataAccessor::NonMutableAccess(_) = accessor.deref() {
+                true
+            } else {
+                false
+            }
+        });
+        debug!("Parallel execution of hooks = {}", iter_par);
+
+        if iter_par {
+            debug!("Parallel execution of hooks not implemented yet");
+        } // else {
+
+        accessors.into_iter().fold(Ok(fle), move |acc, accessor| {
+            match accessor.deref() {
+                &HDA::MutableAccess(ref accessor) => {
+                    match acc {
+                        Ok(mut fle) => accessor.access_mut(&mut fle).and(Ok(fle)),
+                        Err(e) => Err(e),
+                    }
+                },
+                &HDA::NonMutableAccess(ref accessor) => {
+                    match acc {
+                        Ok(mut fle) => accessor.access(&fle).and(Ok(fle)),
+                        Err(e) => Err(e),
+                    }
+                },
+            }
+        })
+        .map_err(|e| StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e))))
+
+        // } // else
     }
 
     pub fn execute_pre_create_hooks(&self, id: &StoreId) -> Result<()> {
@@ -469,12 +509,8 @@ impl Store {
             .lock()
             .map_err(|e| StoreError::new(StoreErrorKind::PostHookExecuteError, None))
             .and_then(|guard| {
-                guard.deref()
-                    .iter()
-                    .fold(Ok(fle), move |file, hook| {
-                        debug!("[Hook][exec]: {:?}", hook);
-                        file.and_then(|f| hook.post_create(f))
-                    })
+                let accessors = guard.deref().iter().map(|h| h.accessor()).collect();
+                self.execute_hook_accessors(accessors, fle)
                     .map_err(|e| {
                         StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e)))
                     })
@@ -503,19 +539,15 @@ impl Store {
             .lock()
             .map_err(|e| StoreError::new(StoreErrorKind::PostHookExecuteError, None))
             .and_then(|guard| {
-                guard.deref()
-                    .iter()
-                    .fold(Ok(fle), move |file, hook| {
-                        debug!("[Hook][exec]: {:?}", hook);
-                        file.and_then(|f| hook.post_retrieve(f))
-                    })
+                let accessors = guard.deref().iter().map(|h| h.accessor()).collect();
+                self.execute_hook_accessors(accessors, fle)
                     .map_err(|e| {
                         StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e)))
                     })
             })
     }
 
-    pub fn execute_pre_update_hooks(&self, fle: &FileLockEntry) -> Result<()> {
+    pub fn execute_pre_update_hooks(&self, fle: &mut FileLockEntry) -> Result<()> {
         debug!("Execute pre-update hooks: {:?}", self.pre_update_hooks);
         let guard = self.pre_update_hooks.deref().lock();
         if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
@@ -528,19 +560,15 @@ impl Store {
             .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
     }
 
-    pub fn execute_post_update_hooks(&self, fle: &FileLockEntry) -> Result<()> {
+    pub fn execute_post_update_hooks<'a>(&self, fle: FileLockEntry<'a>) -> Result<FileLockEntry<'a>> {
         debug!("Execute post-update hooks: {:?}", self.post_update_hooks);
         self.post_update_hooks
             .deref()
             .lock()
             .map_err(|e| StoreError::new(StoreErrorKind::PostHookExecuteError, None))
             .and_then(|guard| {
-                guard.deref()
-                    .iter()
-                    .fold(Ok(()), move |res, hook| {
-                        debug!("[Hook][exec]: {:?}", hook);
-                        res.and_then(|_| hook.post_update(fle))
-                    })
+                let accessors = guard.deref().iter().map(|h| h.accessor()).collect();
+                self.execute_hook_accessors(accessors, fle)
                     .map_err(|e| {
                         StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e)))
                     })
