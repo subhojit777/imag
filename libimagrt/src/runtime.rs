@@ -100,14 +100,12 @@ impl<'a> Runtime<'a> {
                 .takes_value(false))
 
             .arg(Arg::with_name("config")
-                .short("c")
                 .long("config")
                 .help("Path to alternative config file")
                 .required(false)
                 .takes_value(true))
 
             .arg(Arg::with_name("runtimepath")
-                .short("r")
                 .long("rtp")
                 .help("Alternative runtimepath")
                 .required(false)
