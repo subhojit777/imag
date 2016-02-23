@@ -28,7 +28,7 @@ pub enum StoreErrorKind {
     HeaderKeyNotFound,
     HeaderTypeFailure,
     HookRegisterError,
-    HookExecuteError,
+    HookExecutionError,
     PreHookExecuteError,
     PostHookExecuteError,
         // maybe more

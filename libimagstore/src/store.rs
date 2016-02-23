@@ -15,6 +15,8 @@ use std::ops::DerefMut;
 
 use toml::{Table, Value};
 use regex::Regex;
+use crossbeam;
+use crossbeam::ScopedJoinHandle;
 
 use error::{ParserErrorKind, ParserError};
 use error::{StoreError, StoreErrorKind};
@@ -448,43 +450,68 @@ impl Store {
             })
     }
 
-    fn execute_hook_accessors<'a>(&self, accessors: Vec<Box<HookDataAccessor>>, fle: FileLockEntry<'a>)
+    fn execute_hook_accessors<'a>(&self,
+                                  accessors: Vec<Box<HookDataAccessor>>,
+                                  fle: FileLockEntry<'a>)
         -> Result<FileLockEntry<'a>>
     {
-        use hook::HookDataAccessor as HDA;
+        use std::thread;
+        use std::thread::JoinHandle;
 
-        let iter_par = accessors.iter().all(|accessor| {
-            if let &HookDataAccessor::NonMutableAccess(_) = accessor.deref() {
-                true
-            } else {
-                false
-            }
+        use hook::HookDataAccessor as HDA;
+        use error::StoreError as SE;
+        use error::StoreErrorKind as SEK;
+
+        let iter_par = accessors.iter().all(|a| {
+            match a.deref() { &HDA::NonMutableAccess(_) => true, _ => false }
         });
         debug!("Parallel execution of hooks = {}", iter_par);
 
         if iter_par {
             debug!("Parallel execution of hooks not implemented yet");
-        } // else {
+            let threads : Vec<Result<()>> = accessors
+                .iter()
+                .map(|accessor| {
+                    crossbeam::scope(|scope| {
+                        scope.spawn(|| {
+                            match accessor.deref() {
+                                &HDA::NonMutableAccess(ref accessor) => accessor.access(&fle),
+                                _ => panic!("There shouldn't be a MutableHookDataAcceessor but there is"),
+                            }
+                            .map_err(|e| ()) // TODO: We're losing the error cause here
+                        })
+                    })
+                })
+                .map(|item| item.join().map_err(|_| SE::new(SEK::HookExecutionError, None)))
+                .collect();
 
-        accessors.into_iter().fold(Ok(fle), move |acc, accessor| {
-            match accessor.deref() {
-                &HDA::MutableAccess(ref accessor) => {
-                    match acc {
-                        Ok(mut fle) => accessor.access_mut(&mut fle).and(Ok(fle)),
-                        Err(e) => Err(e),
-                    }
-                },
-                &HDA::NonMutableAccess(ref accessor) => {
-                    match acc {
-                        Ok(mut fle) => accessor.access(&fle).and(Ok(fle)),
-                        Err(e) => Err(e),
-                    }
-                },
-            }
-        })
-        .map_err(|e| StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e))))
-
-        // } // else
+            threads
+                .into_iter()
+                .fold(Ok(fle), |acc, elem| {
+                    acc.and_then(|a| {
+                        elem.map(|_| a)
+                            .map_err(|_| SE::new(SEK::HookExecutionError, None))
+                    })
+                })
+        } else {
+            accessors.into_iter().fold(Ok(fle), move |acc, accessor| {
+                match accessor.deref() {
+                    &HDA::MutableAccess(ref accessor) => {
+                        match acc {
+                            Ok(mut fle) => accessor.access_mut(&mut fle).and(Ok(fle)),
+                            Err(e)      => Err(e),
+                        }
+                    },
+                    &HDA::NonMutableAccess(ref accessor) => {
+                        match acc {
+                            Ok(mut fle) => accessor.access(&fle).and(Ok(fle)),
+                            Err(e)      => Err(e),
+                        }
+                    },
+                }
+            })
+            .map_err(|e| SE::new(SEK::HookExecutionError, Some(Box::new(e))))
+        }
     }
 
     pub fn execute_pre_create_hooks(&self, id: &StoreId) -> Result<()> {
