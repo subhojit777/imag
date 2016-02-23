@@ -24,6 +24,7 @@ mod viewer;
 use ui::build_ui;
 use viewer::Viewer;
 use viewer::ViewInformation;
+use viewer::stdout::StdoutViewer;
 
 fn main() {
     let name = "imag-view";

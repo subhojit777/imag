@@ -1,3 +1,5 @@
+pub mod stdout;
+
 use libimagstore::store::Entry;
 
 #[derive(Debug)]
