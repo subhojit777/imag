@@ -7,6 +7,7 @@ extern crate regex;
 extern crate toml;
 #[cfg(test)] extern crate tempdir;
 extern crate semver;
+extern crate crossbeam;
 
 pub mod storeid;
 pub mod error;
