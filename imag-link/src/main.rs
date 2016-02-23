@@ -11,6 +11,10 @@ extern crate libimagutil;
 
 use libimagstore::store::Store;
 
+mod ui;
+
+use ui::build_ui;
+
 fn main() {
     println!("Hello, world!");
 }
