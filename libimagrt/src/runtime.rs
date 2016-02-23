@@ -16,7 +16,7 @@ use libimagstore::store::Store;
 pub struct Runtime<'a> {
     rtp: PathBuf,
     configuration: Configuration,
-    cli_matches: ArgMatches<'a, 'a>,
+    cli_matches: ArgMatches<'a>,
     store: Store,
 }
 
@@ -30,7 +30,7 @@ impl<'a> Runtime<'a> {
      * The cli_spec object should be initially build with the ::get_default_cli_builder() function.
      *
      */
-    pub fn new(cli_spec: App<'a, 'a, 'a, 'a, 'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
+    pub fn new(cli_spec: App<'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
         use std::env;
 
         let matches = cli_spec.get_matches();
@@ -80,7 +80,7 @@ impl<'a> Runtime<'a> {
     pub fn get_default_cli_builder(appname: &'a str,
                                    version: &'a str,
                                    about: &'a str)
-        -> App<'a, 'a, 'a, 'a, 'a, 'a>
+        -> App<'a, 'a>
     {
         App::new(appname)
             .version(version)

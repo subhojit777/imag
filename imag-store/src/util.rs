@@ -44,7 +44,6 @@ pub fn build_toml_header(matches: &ArgMatches, mut header: EntryHeader) -> Entry
     debug!("Building header from cli spec");
     if let Some(headerspecs) = matches.values_of("header") {
         let mut main = header.into();
-        debug!("headerspec = {:?}", headerspecs);
         let kvs = headerspecs.into_iter()
                             .filter_map(|hs| {
                                 debug!("- Processing: '{}'", hs);
