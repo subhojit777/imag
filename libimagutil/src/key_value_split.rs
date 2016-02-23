@@ -43,16 +43,19 @@ impl IntoKeyValue<String, String> for String {
 
     fn into_kv(self) -> Option<KeyValue<String, String>> {
         let key = {
-            let r = "^(?P<KEY>([^=]*))=(.*)$";
-            let r = Regex::new(r).unwrap();
-            r.captures(&self[..])
+            lazy_static! {
+                static ref R: Regex = Regex::new("^(?P<KEY>([^=]*))=(.*)$").unwrap();
+            }
+            R.captures(&self[..])
                 .and_then(|caps| caps.name("KEY"))
         };
 
         let value = {
-            let r = "(.*)=(\"(?P<QVALUE>([^\"]*))\"|(?P<VALUE>(.*)))$";
-            let r = Regex::new(r).unwrap();
-            r.captures(&self[..])
+            lazy_static! {
+                static ref R: Regex = Regex::new("(.*)=(\"(?P<QVALUE>([^\"]*))\"|(?P<VALUE>(.*)))$")
+                    .unwrap();
+            }
+            R.captures(&self[..])
                 .map(|caps| {
                     caps.name("VALUE")
                         .or(caps.name("QVALUE"))

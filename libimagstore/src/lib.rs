@@ -2,6 +2,7 @@
 #[macro_use] extern crate version;
 extern crate fs2;
 extern crate glob;
+#[macro_use] extern crate lazy_static;
 extern crate regex;
 extern crate toml;
 #[cfg(test)] extern crate tempdir;
