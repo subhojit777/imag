@@ -8,6 +8,7 @@ use result::Result;
 
 use toml::Value;
 use toml::Table;
+use url::Url;
 
 #[derive(PartialOrd, Ord, Eq, PartialEq, Clone, Debug)]
 pub struct Link {
@@ -18,6 +19,10 @@ impl Link {
 
     pub fn new(s: String) -> Link {
         Link { link: s }
+    }
+
+    pub fn is_valid(&self) -> bool {
+        Url::parse(&self.link[..]).is_ok()
     }
 
 }
@@ -39,6 +44,10 @@ impl Links {
 
     pub fn remove(&mut self, l: Link) {
         self.links.retain(|link| l != link.clone());
+    }
+
+    pub fn all_valid(&self) -> bool {
+        self.links.iter().all(|l| l.is_valid())
     }
 
 }

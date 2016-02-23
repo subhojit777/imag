@@ -6,6 +6,7 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 [dependencies]
 log = "0.3.4"
 toml = "0.1.27"
+url = "0.5.5"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
