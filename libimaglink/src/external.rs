@@ -100,6 +100,10 @@ impl ExternalLinker for EntryHeader {
     ///
     /// Return the previous set link if there was any
     fn set_external_link(&mut self, l: Link) -> Result<Option<Link>> {
+        if !l.is_valid() {
+            return Err(LinkError::new(LinkErrorKind::InvalidUri, None));
+        }
+
         let old_link = self.set("imag.content.uri", Value::String(l.into()));
 
         if old_link.is_err() {

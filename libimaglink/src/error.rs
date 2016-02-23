@@ -11,6 +11,7 @@ pub enum LinkErrorKind {
     ExistingLinkTypeWrong,
     LinkTargetDoesNotExist,
     InternalConversionError,
+    InvalidUri,
 }
 
 fn link_error_type_as_str(e: &LinkErrorKind) -> &'static str {
@@ -29,6 +30,9 @@ fn link_error_type_as_str(e: &LinkErrorKind) -> &'static str {
 
         &LinkErrorKind::InternalConversionError
             => "Error while converting values internally",
+
+        &LinkErrorKind::InvalidUri
+            => "URI is not valid",
     }
 }
 
