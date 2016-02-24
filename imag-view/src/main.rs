@@ -124,6 +124,33 @@ fn load_entry<'a>(id: &str,
 }
 
 fn view_versions_of(id: &str, rt: &Runtime) {
-    unimplemented!()
+    use glob::glob;
+
+    let mut path = rt.store().path().clone();
+
+    if id.chars().next() == Some('/') {
+        path.push(format!("{}~*", &id[1..id.len()]));
+    } else {
+        path.push(format!("{}~*", id));
+    }
+
+    if let Some(path) = path.to_str() {
+        match glob(path) {
+            Ok(paths) =>
+                for entry in paths {
+                    match entry {
+                        Ok(path) => println!("{}", path.file_name().and_then(|s| s.to_str()).unwrap()),
+                        Err(e)   => trace_error(e.error()),
+                    }
+                },
+            Err(e) => {
+                // trace_error(&e); // error seems not to be implemented
+                debug!("Error in pattern");
+                exit(1);
+            },
+        }
+    } else {
+        warn!("Could not build glob() argument!");
+    }
 }
 
