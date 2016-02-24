@@ -1,11 +1,8 @@
-use std::convert::Into;
-
 use regex::Regex;
 use regex::Error as RError;
 
 use libimagstore::store::Entry;
 
-use builtin::header::field_path::FieldPath;
 use filter::Filter;
 
 pub trait IntoRegex {

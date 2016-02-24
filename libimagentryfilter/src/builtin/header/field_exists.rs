@@ -3,8 +3,6 @@ use libimagstore::store::Entry;
 use builtin::header::field_path::FieldPath;
 use filter::Filter;
 
-use toml::Value;
-
 pub struct FieldExists {
     header_field_path: FieldPath,
 }
