@@ -15,7 +15,9 @@ use clap::ArgMatches;
 
 use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
+use libimagstore::store::FileLockEntry;
 use libimagstore::store::Result as StoreResult;
+use libimagstore::storeid::StoreId;
 use libimagutil::trace::trace_error;
 
 mod ui;
@@ -69,7 +71,7 @@ fn main() {
         let scmd = scmd.unwrap();
 
         let viewer = build_viewer(scmd);
-        let entry = load_entry(entry_id, entry_version);
+        let entry = load_entry(entry_id, entry_version, &rt);
         if entry.is_err() {
             trace_error(&entry.err().unwrap());
             exit(1);
@@ -88,8 +90,37 @@ fn main() {
     }
 }
 
-fn load_entry(id: &str, version: Option<&str>) -> StoreResult<Entry> {
-    unimplemented!()
+// TODO: This is a shameless adaption of imag-store/src/util.rs
+fn load_entry<'a>(id: &str,
+                  version: Option<&str>,
+                  rt: &'a Runtime)
+    -> StoreResult<FileLockEntry<'a>>
+{
+    use std::ops::Deref;
+
+    debug!("Checking path element for version");
+
+    let version = {
+        version.unwrap_or_else(|| {
+            id.split("~").last().unwrap_or_else(|| {
+                warn!("No version");
+                exit(1);
+            })
+        })
+    };
+
+    debug!("Building path from {:?} and {:?}", id, version);
+    let mut path = rt.store().path().clone();
+
+    if id.chars().next() == Some('/') {
+        path.push(format!("{}~{}", &id[1..id.len()], version));
+    } else {
+        path.push(format!("{}~{}", id, version));
+    }
+
+    // the above is the adaption...
+
+    rt.store().retrieve(path)
 }
 
 fn view_versions_of(id: &str, rt: &Runtime) {

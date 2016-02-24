@@ -1,10 +1,9 @@
 pub mod stdout;
 
-use libimagstore::store::Entry;
+use libimagstore::store::FileLockEntry;
 
-#[derive(Debug)]
-pub struct ViewInformation {
-    pub entry: Entry,
+pub struct ViewInformation<'a> {
+    pub entry: FileLockEntry<'a>,
     pub view_header: bool,
     pub view_content: bool,
     pub view_copy: bool,
