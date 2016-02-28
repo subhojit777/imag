@@ -1,0 +1,14 @@
+[package]
+name = "libimagtag"
+version = "0.1.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+clap = "2.1.1"
+log = "0.3.5"
+regex = "0.1.47"
+toml = "0.1.25"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
