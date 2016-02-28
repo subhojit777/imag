@@ -53,6 +53,18 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .takes_value(true)
                         .required(true)
                         .help("Create counter with this name")))
-}
 
+        .subcommand(SubCommand::with_name("interactive")
+                   .about("Interactively count things")
+                   .version("0.1")
+                   .arg(Arg::with_name("spec")
+                        .long("spec")
+                        .short("s")
+                        .takes_value(true)
+                        .multiple(true)
+                        .required(true)
+                        .help("Specification for key-bindings. Use <KEY>=<VALUE> where KEY is the
+                        key to bind (single character) and VALUE is the path to the counter to bind
+                        to.")))
+}
 

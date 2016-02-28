@@ -16,11 +16,13 @@ use libimagutil::key_value_split::IntoKeyValue;
 
 mod create;
 mod delete;
+mod interactive;
 mod ui;
 
 use ui::build_ui;
 use create::create;
 use delete::delete;
+use interactive::interactive;
 
 enum Action {
     Inc,
@@ -121,14 +123,13 @@ fn main() {
             |name| {
                 debug!("Call: {}", name);
                 match name {
-                    "create" => create(&rt),
-                    "delete" => delete(&rt),
+                    "create"      => create(&rt),
+                    "delete"      => delete(&rt),
+                    "interactive" => interactive(&rt),
                     _ => {
                         debug!("Unknown command"); // More error handling
                     },
                 };
             })
-
-
-
 }
+
