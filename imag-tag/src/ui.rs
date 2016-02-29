@@ -1,6 +1,6 @@
 use clap::{Arg, App, SubCommand};
 
-pub fn build_ui<'a>(app: App<'a, 'a, 'a, 'a, 'a, 'a>) -> App<'a, 'a, 'a, 'a, 'a, 'a> {
+pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app.arg(Arg::with_name("id")
                 .long("id")
                 .short("i")
