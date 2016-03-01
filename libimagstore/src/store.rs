@@ -617,12 +617,11 @@ impl EntryHeader {
         let value = EntryHeader::walk_header(&mut header_clone, tokens); // walk N-1 tokens
         if value.is_err() {
             let e = value.err().unwrap();
-            match e.err_type() {
+            return match e.err_type() {
                 // We cannot find the header key, as there is no path to it
-                StoreErrorKind::HeaderKeyNotFound => return Ok(None),
-                _ => return Err(e),
-            }
-            return Err(e);
+                StoreErrorKind::HeaderKeyNotFound => Ok(None),
+                _ => Err(e),
+            };
         }
         Ok(Some(value.unwrap().clone()))
     }
