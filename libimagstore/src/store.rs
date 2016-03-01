@@ -614,7 +614,7 @@ impl EntryHeader {
         let tokens = tokens.unwrap();
 
         let mut header_clone = self.header.clone(); // we clone as READing is simpler this way
-        let mut value = EntryHeader::walk_header(&mut header_clone, tokens); // walk N-1 tokens
+        let value = EntryHeader::walk_header(&mut header_clone, tokens); // walk N-1 tokens
         if value.is_err() {
             let e = value.err().unwrap();
             match e.err_type() {
