@@ -233,7 +233,7 @@ impl Store {
             return Err(StoreError::new(StoreErrorKind::StorePathOutsideStore, None));
         }
 
-        let mut entries_lock = self.entries.write();
+        let entries_lock = self.entries.write();
         if entries_lock.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
         }
