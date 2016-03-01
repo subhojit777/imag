@@ -793,7 +793,6 @@ fn verify_header(t: &Table) -> Result<()> {
 }
 
 fn verify_header_consistency(t: Table) -> EntryResult<Table> {
-    use std::error::Error;
     if let Err(e) = verify_header(&t) {
         Err(ParserError::new(ParserErrorKind::HeaderInconsistency, Some(Box::new(e))))
     } else {
