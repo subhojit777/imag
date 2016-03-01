@@ -417,7 +417,7 @@ impl EntryHeader {
         let destination = destination.unwrap();
 
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        let mut value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
+        let value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
         if value.is_err() {
             return value.map(|_| false);
         }
