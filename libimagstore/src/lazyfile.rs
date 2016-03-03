@@ -58,10 +58,9 @@ impl LazyFile {
             LazyFile::File(ref mut f) => return {
                 // We seek to the beginning of the file since we expect each
                 // access to the file to be in a different context
-                f.seek(SeekFrom::Start(0)).map_err(|e|
-                    StoreError::new(
-                        StoreErrorKind::FileNotCreated, Some(Box::new(e))));
-                Ok(f)
+                f.seek(SeekFrom::Start(0))
+                    .map_err(|e| StoreError::new(StoreErrorKind::FileNotCreated, Some(Box::new(e))))
+                    .map(|_| f)
             },
             LazyFile::Absent(ref p) => {
                 try!(open_file(p).map_err(|e| {

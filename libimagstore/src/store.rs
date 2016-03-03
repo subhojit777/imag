@@ -211,12 +211,12 @@ impl Store {
     /// Retrieve a copy of a given entry, this cannot be used to mutate
     /// the one on disk
     pub fn retrieve_copy(&self, id: StoreId) -> Result<Entry> {
-        let mut entries_lock = self.entries.write();
+        let entries_lock = self.entries.write();
         if entries_lock.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
         }
 
-        let mut entries = entries_lock.unwrap();
+        let entries = entries_lock.unwrap();
 
         // if the entry is currently modified by the user, we cannot drop it
         if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
@@ -233,7 +233,7 @@ impl Store {
             return Err(StoreError::new(StoreErrorKind::StorePathOutsideStore, None));
         }
 
-        let mut entries_lock = self.entries.write();
+        let entries_lock = self.entries.write();
         if entries_lock.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
         }
@@ -417,7 +417,7 @@ impl EntryHeader {
         let destination = destination.unwrap();
 
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        let mut value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
+        let value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
         if value.is_err() {
             return value.map(|_| false);
         }
@@ -515,7 +515,7 @@ impl EntryHeader {
         debug!("destination = {:?}", destination);
 
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        let mut value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
+        let value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
         if value.is_err() {
             return Err(value.err().unwrap());
         }
@@ -614,15 +614,14 @@ impl EntryHeader {
         let tokens = tokens.unwrap();
 
         let mut header_clone = self.header.clone(); // we clone as READing is simpler this way
-        let mut value = EntryHeader::walk_header(&mut header_clone, tokens); // walk N-1 tokens
+        let value = EntryHeader::walk_header(&mut header_clone, tokens); // walk N-1 tokens
         if value.is_err() {
             let e = value.err().unwrap();
-            match e.err_type() {
+            return match e.err_type() {
                 // We cannot find the header key, as there is no path to it
-                StoreErrorKind::HeaderKeyNotFound => return Ok(None),
-                _ => return Err(e),
-            }
-            return Err(e);
+                StoreErrorKind::HeaderKeyNotFound => Ok(None),
+                _ => Err(e),
+            };
         }
         Ok(Some(value.unwrap().clone()))
     }
@@ -642,7 +641,7 @@ impl EntryHeader {
         debug!("destination = {:?}", destination);
 
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        let mut value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
+        let value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
         if value.is_err() {
             return Err(value.err().unwrap());
         }
@@ -794,9 +793,8 @@ fn verify_header(t: &Table) -> Result<()> {
 }
 
 fn verify_header_consistency(t: Table) -> EntryResult<Table> {
-    use std::error::Error;
     if let Err(e) = verify_header(&t) {
-        Err(ParserError::new(ParserErrorKind::HeaderInconsistency, None))
+        Err(ParserError::new(ParserErrorKind::HeaderInconsistency, Some(Box::new(e))))
     } else {
         Ok(t)
     }
