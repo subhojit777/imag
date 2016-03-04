@@ -9,6 +9,7 @@ use std::convert::Into;
  */
 #[derive(Clone, Copy, Debug)]
 pub enum HookErrorKind {
+    HookExecutionError,
     Pre(PreHookErrorKind),
     Post(PostHookErrorKind)
 }
