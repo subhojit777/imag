@@ -23,8 +23,8 @@ use error::{StoreError, StoreErrorKind};
 use storeid::{StoreId, StoreIdIterator};
 use lazyfile::LazyFile;
 
-use hook::HookResult;
-use hook::{ MutableHookDataAccessor,
+use hook::result::HookResult;
+use hook::accessor::{ MutableHookDataAccessor,
             NonMutableHookDataAccessor,
             HookDataAccessor,
             HookDataAccessorProvider};
@@ -458,7 +458,7 @@ impl Store {
         use std::thread;
         use std::thread::JoinHandle;
 
-        use hook::HookDataAccessor as HDA;
+        use hook::accessor::HookDataAccessor as HDA;
         use error::StoreError as SE;
         use error::StoreErrorKind as SEK;
 
