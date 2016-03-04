@@ -3,6 +3,7 @@ use storeid::StoreId;
 use hook::Hook;
 use hook::result::HookResult;
 use hook::accessor::{StoreIdAccessor, MutableHookDataAccessor, NonMutableHookDataAccessor};
+use hook::accessor::HookDataAccessor as HDA;
 
 #[derive(Debug)]
 pub struct Aspect {
@@ -31,7 +32,18 @@ impl Aspect {
 
 impl StoreIdAccessor for Aspect {
     fn access(&self, id: &StoreId) -> HookResult<()> {
-        unimplemented!()
+        let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
+        if !accessors.iter().all(|a| match a { &HDA::StoreIdAccess(_)  => true, _ => false }) {
+            unimplemented!()
+        }
+
+        for accessor in accessors {
+            match accessor {
+                HDA::StoreIdAccess(accessor) => try!(accessor.access(id)),
+                _ => unreachable!(),
+            }
+        }
+        Ok(())
     }
 }
 
