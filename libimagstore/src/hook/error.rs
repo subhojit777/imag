@@ -10,6 +10,7 @@ use std::convert::Into;
 #[derive(Clone, Copy, Debug)]
 pub enum HookErrorKind {
     HookExecutionError,
+    AccessTypeViolation,
     Pre(PreHookErrorKind),
     Post(PostHookErrorKind)
 }

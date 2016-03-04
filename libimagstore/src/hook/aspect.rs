@@ -5,6 +5,9 @@ use hook::result::HookResult;
 use hook::accessor::{StoreIdAccessor, MutableHookDataAccessor, NonMutableHookDataAccessor};
 use hook::accessor::HookDataAccessor as HDA;
 
+use hook::error::HookError as HE;
+use hook::error::HookErrorKind as HEK;
+
 #[derive(Debug)]
 pub struct Aspect {
     name: String,
@@ -36,12 +39,9 @@ impl StoreIdAccessor for Aspect {
         use std::thread;
         use std::thread::JoinHandle;
 
-        use hook::error::HookError as HE;
-        use hook::error::HookErrorKind as HEK;
-
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
         if !accessors.iter().all(|a| match a { &HDA::StoreIdAccess(_)  => true, _ => false }) {
-            unimplemented!()
+            return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
         let threads : Vec<HookResult<()>> = accessors
@@ -74,7 +74,7 @@ impl MutableHookDataAccessor for Aspect {
     fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
         if !accessors.iter().all(|a| match a { &HDA::MutableAccess(_)  => true, _ => false }) {
-            unimplemented!()
+            return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
         for accessor in accessors {
@@ -93,12 +93,9 @@ impl NonMutableHookDataAccessor for Aspect {
         use std::thread;
         use std::thread::JoinHandle;
 
-        use hook::error::HookError as HE;
-        use hook::error::HookErrorKind as HEK;
-
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
         if !accessors.iter().all(|a| match a { &HDA::NonMutableAccess(_)  => true, _ => false }) {
-            unimplemented!()
+            return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
         let threads : Vec<HookResult<()>> = accessors
