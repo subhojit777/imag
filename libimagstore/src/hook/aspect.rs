@@ -66,7 +66,18 @@ impl MutableHookDataAccessor for Aspect {
 
 impl NonMutableHookDataAccessor for Aspect {
     fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
-        unimplemented!()
+        let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
+        if !accessors.iter().all(|a| match a { &HDA::NonMutableAccess(_)  => true, _ => false }) {
+            unimplemented!()
+        }
+
+        for accessor in accessors {
+            match accessor {
+                HDA::NonMutableAccess(accessor) => try!(accessor.access(fle)),
+                _ => unreachable!(),
+            }
+        }
+        Ok(())
     }
 }
 
