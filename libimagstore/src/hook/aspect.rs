@@ -49,7 +49,18 @@ impl StoreIdAccessor for Aspect {
 
 impl MutableHookDataAccessor for Aspect {
     fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
-        unimplemented!()
+        let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
+        if !accessors.iter().all(|a| match a { &HDA::MutableAccess(_)  => true, _ => false }) {
+            unimplemented!()
+        }
+
+        for accessor in accessors {
+            match accessor {
+                HDA::MutableAccess(accessor) => try!(accessor.access_mut(fle)),
+                _ => unreachable!(),
+            }
+        }
+        Ok(())
     }
 }
 
