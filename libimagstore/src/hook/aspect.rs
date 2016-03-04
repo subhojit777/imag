@@ -89,18 +89,41 @@ impl MutableHookDataAccessor for Aspect {
 
 impl NonMutableHookDataAccessor for Aspect {
     fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
+        use crossbeam;
+        use std::thread;
+        use std::thread::JoinHandle;
+
+        use hook::error::HookError as HE;
+        use hook::error::HookErrorKind as HEK;
+
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
         if !accessors.iter().all(|a| match a { &HDA::NonMutableAccess(_)  => true, _ => false }) {
             unimplemented!()
         }
 
-        for accessor in accessors {
-            match accessor {
-                HDA::NonMutableAccess(accessor) => try!(accessor.access(fle)),
-                _ => unreachable!(),
-            }
-        }
-        Ok(())
+        let threads : Vec<HookResult<()>> = accessors
+            .iter()
+            .map(|accessor| {
+                crossbeam::scope(|scope| {
+                    scope.spawn(|| {
+                        match accessor {
+                            &HDA::NonMutableAccess(accessor) => accessor.access(fle),
+                            _ => unreachable!(),
+                        }
+                        .map_err(|e| ()) // TODO: We're losing the error cause here
+                    })
+                })
+            })
+            .map(|i| i.join().map_err(|_| HE::new(HEK::HookExecutionError, None)))
+            .collect();
+
+        threads
+            .into_iter()
+            .fold(Ok(()), |acc, elem| {
+                acc.and_then(|a| {
+                    elem.map(|_| a).map_err(|_| HE::new(HEK::HookExecutionError, None))
+                })
+            })
     }
 }
 
