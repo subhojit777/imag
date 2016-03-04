@@ -28,11 +28,6 @@ use hook::accessor::{ MutableHookDataAccessor,
             NonMutableHookDataAccessor,
             HookDataAccessor,
             HookDataAccessorProvider};
-use hook::read::{PreReadHook, PostReadHook};
-use hook::create::{PreCreateHook, PostCreateHook};
-use hook::retrieve::{PreRetrieveHook, PostRetrieveHook};
-use hook::update::{PreUpdateHook, PostUpdateHook};
-use hook::delete::{PreDeleteHook, PostDeleteHook};
 
 /// The Result Type returned by any interaction with the store that could fail
 pub type Result<T> = RResult<T, StoreError>;
