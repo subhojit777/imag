@@ -6,6 +6,7 @@ use self::error::HookError;
 use store::FileLockEntry;
 
 pub mod accessor;
+pub mod aspect;
 pub mod create;
 pub mod delete;
 pub mod error;
