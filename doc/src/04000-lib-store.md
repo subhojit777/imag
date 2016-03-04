@@ -82,6 +82,8 @@ code before or after the store was accessed. The following hooks are available:
 * `PreDeleteHook`
 * `PostDeleteHook`
 
+These are called "Hook positions" in the following.
+
 Which are executed before or after the store action is executed. The `Pre`-Hooks
 can deny the execution by returning an error. The `Post`-Hooks can (for the
 appropriate store actions) alter the hook result.
@@ -102,4 +104,60 @@ Some hooks MAY be shipped with the imag source distribution and be enabled by
 default.
 
 Execution order of the hooks is a not-yet-solved problem.
+
+### Hook-Aspects {#sec:libstore:hooks:aspects}
+
+Each hook can be assigned to an "Aspect". There MAY BE zero or more aspects for
+each Hook position. Aspects can be sorted and configured via the configuration
+file, whereas each aspect has its own configuration section:
+
+```{#lst:hooks:aspects:cfg .toml .numberLines caption="Hook config section"}
+[hooks]
+
+[[aspects]]
+
+// Defines order of aspects for the pre-read hook position
+pre-read-aspects  = [ "misc" ]
+
+// Defines order of aspects for the post-read hook position
+post-read-aspects = [ "decryption" ]
+
+// ...
+
+// configuration for the "misc" hook aspect
+[[misc]]
+parallel-execution = true
+
+// configuration for the "decryption" hook aspect
+[[decryption]]
+parallel-execution = false
+```
+
+Aspects are executed in the same order they appear in the configuration. Aspects
+_could_ be sorted in different order for each hook position.
+
+Aspects where parallel execution is enabled MAY BE executed in sequence if one
+of the hooks wants mutable access to the data they hook into.
+
+Hooks can then be assigned to one hook aspect. Hooks MUST never be assigned to
+more than one hook aspect. Hooks which are not assigned to any aspect MUST never
+be executed.
+
+```{#lst:hooks:cfg .toml .numberLines caption="Hook configuration"}
+[hooks]
+
+// decrypt hook with gnupg. An appropriate "gnupg-encrypt" hook must be defined
+// to be fully operational, of course
+[[gnupg-decrypt]]
+aspect = "decryption"
+key = "0x123456789"
+
+// version control hook. Sorted into aspect "misc" here.
+[[git]]
+aspect = "misc"
+
+// ...
+```
+
+Hooks MAY HAVE arbitrary configuration keys.
 
