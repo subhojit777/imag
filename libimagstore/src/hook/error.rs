@@ -11,30 +11,6 @@ use std::convert::Into;
 pub enum HookErrorKind {
     HookExecutionError,
     AccessTypeViolation,
-    Pre(PreHookErrorKind),
-    Post(PostHookErrorKind)
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum PreHookErrorKind {
-    // ...
-}
-
-impl Into<HookErrorKind> for PreHookErrorKind {
-    fn into(self) -> HookErrorKind {
-        HookErrorKind::Pre(self)
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum PostHookErrorKind {
-    // ...
-}
-
-impl Into<HookErrorKind> for PostHookErrorKind {
-    fn into(self) -> HookErrorKind {
-        HookErrorKind::Post(self)
-    }
 }
 
 pub trait IntoHookError {
@@ -54,38 +30,6 @@ impl Into<HookError> for (HookErrorKind, Box<Error>) {
 
     fn into(self) -> HookError {
         HookError::new(self.0, Some(self.1))
-    }
-
-}
-
-impl Into<HookError> for PreHookErrorKind {
-
-    fn into(self) -> HookError {
-        HookError::new(HookErrorKind::Pre(self), None)
-    }
-
-}
-
-impl Into<HookError> for (PreHookErrorKind, Box<Error>) {
-
-    fn into(self) -> HookError {
-        HookError::new(HookErrorKind::Pre(self.0), Some(self.1))
-    }
-
-}
-
-impl Into<HookError> for PostHookErrorKind {
-
-    fn into(self) -> HookError {
-        HookError::new(HookErrorKind::Post(self), None)
-    }
-
-}
-
-impl Into<HookError> for (PostHookErrorKind, Box<Error>) {
-
-    fn into(self) -> HookError {
-        HookError::new(HookErrorKind::Post(self.0), Some(self.1))
     }
 
 }
