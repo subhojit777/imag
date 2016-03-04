@@ -8,6 +8,7 @@ use store::FileLockEntry;
 pub mod accessor;
 pub mod aspect;
 pub mod error;
+pub mod position;
 pub mod result;
 
 use hook::accessor::HookDataAccessorProvider;
