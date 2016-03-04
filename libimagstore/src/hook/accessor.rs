@@ -14,14 +14,14 @@ pub trait NonMutableHookDataAccessor : Send + Sync {
     fn access(&self, &FileLockEntry) -> HookResult<()>;
 }
 
-pub enum HookDataAccessor {
-    StoreIdAccess(Box<StoreIdAccessor>),
-    MutableAccess(Box<MutableHookDataAccessor>),
-    NonMutableAccess(Box<NonMutableHookDataAccessor>),
+pub enum HookDataAccessor<'a> {
+    StoreIdAccess(&'a StoreIdAccessor),
+    MutableAccess(&'a MutableHookDataAccessor),
+    NonMutableAccess(&'a NonMutableHookDataAccessor),
 }
 
 pub trait HookDataAccessorProvider {
-    fn accessor(&self) -> Box<HookDataAccessor>;
+    fn accessor(&self) -> HookDataAccessor;
 }
 
 
