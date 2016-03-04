@@ -498,19 +498,25 @@ impl Store {
                 match accessor.deref() {
                     &HDA::MutableAccess(ref accessor) => {
                         match acc {
-                            Ok(mut fle) => accessor.access_mut(&mut fle).and(Ok(fle)),
-                            Err(e)      => Err(e),
+                            Ok(mut fle) => accessor
+                                .access_mut(&mut fle)
+                                .and(Ok(fle))
+                                .map_err(|e| SE::new(SEK::HookExecutionError, Some(Box::new(e)))),
+                            Err(e)      => Err(SE::new(SEK::HookExecutionError, Some(Box::new(e)))),
                         }
                     },
                     &HDA::NonMutableAccess(ref accessor) => {
                         match acc {
-                            Ok(mut fle) => accessor.access(&fle).and(Ok(fle)),
-                            Err(e)      => Err(e),
+                            Ok(mut fle) => accessor
+                                .access(&fle)
+                                .and(Ok(fle))
+                                .map_err(|e| SE::new(SEK::HookExecutionError, Some(Box::new(e)))),
+                            Err(e)      => Err(SE::new(SEK::HookExecutionError, Some(Box::new(e)))),
                         }
                     },
+                    _ => Err(StoreError::new(StoreErrorKind::HookExecutionError, None)),
                 }
             })
-            .map_err(|e| SE::new(SEK::HookExecutionError, Some(Box::new(e))))
         }
     }
 
