@@ -105,6 +105,11 @@ impl StoreEntry {
 pub struct Store {
     location: PathBuf,
 
+    /**
+     * Configuration object of the store
+     */
+    configuration: Value,
+
     /*
      * Registered hooks
      */
@@ -133,12 +138,12 @@ pub struct Store {
 impl Store {
 
     /// Create a new Store object
-    pub fn new(location: PathBuf, store_config: &Value) -> Result<Store> {
+    pub fn new(location: PathBuf, store_config: Value) -> Result<Store> {
         use std::fs::create_dir_all;
         use configuration::*;
 
         debug!("Validating Store configuration");
-        if !config_is_valid(store_config) {
+        if !config_is_valid(&store_config) {
             return Err(StoreError::new(StoreErrorKind::ConfigurationError, None));
         }
 
@@ -158,38 +163,39 @@ impl Store {
             }
         }
 
-        let pre_read_aspects = get_pre_read_aspect_names(store_config)
+        let pre_read_aspects = get_pre_read_aspect_names(&store_config)
             .into_iter().map(|n| Aspect::new(n)).collect();
 
-        let post_read_aspects = get_post_read_aspect_names(store_config)
+        let post_read_aspects = get_post_read_aspect_names(&store_config)
             .into_iter().map(|n| Aspect::new(n)).collect();
 
-        let pre_create_aspects = get_pre_create_aspect_names(store_config)
+        let pre_create_aspects = get_pre_create_aspect_names(&store_config)
             .into_iter().map(|n| Aspect::new(n)).collect();
 
-        let post_create_aspects = get_post_create_aspect_names(store_config)
+        let post_create_aspects = get_post_create_aspect_names(&store_config)
             .into_iter().map(|n| Aspect::new(n)).collect();
 
-        let pre_retrieve_aspects = get_pre_retrieve_aspect_names(store_config)
+        let pre_retrieve_aspects = get_pre_retrieve_aspect_names(&store_config)
             .into_iter().map(|n| Aspect::new(n)).collect();
 
-        let post_retrieve_aspects = get_post_retrieve_aspect_names(store_config)
+        let post_retrieve_aspects = get_post_retrieve_aspect_names(&store_config)
             .into_iter().map(|n| Aspect::new(n)).collect();
 
-        let pre_update_aspects = get_pre_update_aspect_names(store_config)
+        let pre_update_aspects = get_pre_update_aspect_names(&store_config)
             .into_iter().map(|n| Aspect::new(n)).collect();
 
-        let post_update_aspects = get_post_update_aspect_names(store_config)
+        let post_update_aspects = get_post_update_aspect_names(&store_config)
             .into_iter().map(|n| Aspect::new(n)).collect();
 
-        let pre_delete_aspects = get_pre_delete_aspect_names(store_config)
+        let pre_delete_aspects = get_pre_delete_aspect_names(&store_config)
             .into_iter().map(|n| Aspect::new(n)).collect();
 
-        let post_delete_aspects = get_post_delete_aspect_names(store_config)
+        let post_delete_aspects = get_post_delete_aspect_names(&store_config)
             .into_iter().map(|n| Aspect::new(n)).collect();
 
         let store = Store {
             location: location,
+            configuration: store_config,
             pre_read_aspects      : Arc::new(Mutex::new(pre_read_aspects)),
             post_read_aspects     : Arc::new(Mutex::new(post_read_aspects)),
             pre_create_aspects    : Arc::new(Mutex::new(pre_create_aspects)),
