@@ -164,34 +164,64 @@ impl Store {
         }
 
         let pre_read_aspects = get_pre_read_aspect_names(&store_config)
-            .into_iter().map(|n| Aspect::new(n)).collect();
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
 
         let post_read_aspects = get_post_read_aspect_names(&store_config)
-            .into_iter().map(|n| Aspect::new(n)).collect();
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
 
         let pre_create_aspects = get_pre_create_aspect_names(&store_config)
-            .into_iter().map(|n| Aspect::new(n)).collect();
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
 
         let post_create_aspects = get_post_create_aspect_names(&store_config)
-            .into_iter().map(|n| Aspect::new(n)).collect();
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
 
         let pre_retrieve_aspects = get_pre_retrieve_aspect_names(&store_config)
-            .into_iter().map(|n| Aspect::new(n)).collect();
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
 
         let post_retrieve_aspects = get_post_retrieve_aspect_names(&store_config)
-            .into_iter().map(|n| Aspect::new(n)).collect();
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
 
         let pre_update_aspects = get_pre_update_aspect_names(&store_config)
-            .into_iter().map(|n| Aspect::new(n)).collect();
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
 
         let post_update_aspects = get_post_update_aspect_names(&store_config)
-            .into_iter().map(|n| Aspect::new(n)).collect();
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
 
         let pre_delete_aspects = get_pre_delete_aspect_names(&store_config)
-            .into_iter().map(|n| Aspect::new(n)).collect();
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
 
         let post_delete_aspects = get_post_delete_aspect_names(&store_config)
-            .into_iter().map(|n| Aspect::new(n)).collect();
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
 
         let store = Store {
             location: location,
