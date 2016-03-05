@@ -112,9 +112,7 @@ each Hook position. Aspects can be sorted and configured via the configuration
 file, whereas each aspect has its own configuration section:
 
 ```{#lst:hooks:aspects:cfg .toml .numberLines caption="Hook config section"}
-[hooks]
-
-[[aspects]]
+[store]
 
 // Defines order of aspects for the pre-read hook position
 pre-read-aspects  = [ "misc" ]
@@ -125,16 +123,21 @@ post-read-aspects = [ "decryption" ]
 // ...
 
 // configuration for the "misc" hook aspect
-[[misc]]
+[[aspects.misc]]
 parallel-execution = true
 
 // configuration for the "decryption" hook aspect
-[[decryption]]
+[[aspects.decryption]]
 parallel-execution = false
 ```
 
-Aspects are executed in the same order they appear in the configuration. Aspects
-_could_ be sorted in different order for each hook position.
+Aspects are executed in the same order they appear in the configuration (in the
+`pre-read-aspects = []` array, for example).
+Aspects _could_ be sorted in different order for each hook position.
+
+Aspect names are unique, so one aspect "misc" in "pre-read-aspects" is the
+same as in "post-read-aspects" and both be configured via `aspects.misc`, though
+they do not share hooks.
 
 Aspects where parallel execution is enabled MAY BE executed in sequence if one
 of the hooks wants mutable access to the data they hook into.
