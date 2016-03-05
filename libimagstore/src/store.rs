@@ -108,7 +108,7 @@ pub struct Store {
     /**
      * Configuration object of the store
      */
-    configuration: Value,
+    configuration: Option<Value>,
 
     /*
      * Registered hooks
@@ -138,7 +138,7 @@ pub struct Store {
 impl Store {
 
     /// Create a new Store object
-    pub fn new(location: PathBuf, store_config: Value) -> Result<Store> {
+    pub fn new(location: PathBuf, store_config: Option<Value>) -> Result<Store> {
         use std::fs::create_dir_all;
         use configuration::*;
 
@@ -417,7 +417,7 @@ impl Store {
 
     fn get_config_for_hook(&self, name: &str) -> Option<&Value> {
         match &self.configuration {
-            &Value::Table(ref tabl) => {
+            &Some(Value::Table(ref tabl)) => {
                 tabl.get("hooks")
                     .map(|hook_section| {
                         match hook_section {

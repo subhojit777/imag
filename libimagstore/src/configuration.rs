@@ -36,8 +36,17 @@ use hook::position::HookPosition;
 /// It does NOT check:
 ///  * Whether all aspects which are used in the hook configuration are also configured
 ///
-pub fn config_is_valid(config: &Value) -> bool {
+/// No configuration is a valid configuration, as the store will use the most conservative settings
+/// automatically. This has also performance impact, as all hooks run in no-parallel mode then.
+/// You have been warned!
+///
+///
+pub fn config_is_valid(config: &Option<Value>) -> bool {
     use std::collections::BTreeMap;
+
+    if config.is_none() {
+        return true;
+    }
 
     fn has_key_with_map(v: &BTreeMap<String, Value>, key: &str) -> bool {
         v.get(key).map(|t| match t { &Value::Table(_) => true, _ => false }).unwrap_or(false)
@@ -94,7 +103,7 @@ pub fn config_is_valid(config: &Value) -> bool {
     }
 
     match config {
-        &Value::Table(ref t) => {
+        &Some(Value::Table(ref t)) => {
             has_key_with_string_ary(t, "pre-read-hook-aspects")        &&
             has_key_with_string_ary(t, "post-read-hook-aspects")       &&
             has_key_with_string_ary(t, "pre-create-hook-aspects")      &&
@@ -122,43 +131,43 @@ pub fn config_is_valid(config: &Value) -> bool {
     }
 }
 
-pub fn get_pre_read_aspect_names(value: &Value) -> Vec<String> {
+pub fn get_pre_read_aspect_names(value: &Option<Value>) -> Vec<String> {
     get_aspect_names_for_aspect_position("pre-read-hook-aspects", value)
 }
 
-pub fn get_post_read_aspect_names(value: &Value) -> Vec<String> {
+pub fn get_post_read_aspect_names(value: &Option<Value>) -> Vec<String> {
     get_aspect_names_for_aspect_position("post-read-hook-aspects", value)
 }
 
-pub fn get_pre_create_aspect_names(value: &Value) -> Vec<String> {
+pub fn get_pre_create_aspect_names(value: &Option<Value>) -> Vec<String> {
     get_aspect_names_for_aspect_position("pre-create-hook-aspects", value)
 }
 
-pub fn get_post_create_aspect_names(value: &Value) -> Vec<String> {
+pub fn get_post_create_aspect_names(value: &Option<Value>) -> Vec<String> {
     get_aspect_names_for_aspect_position("post-create-hook-aspects", value)
 }
 
-pub fn get_pre_retrieve_aspect_names(value: &Value) -> Vec<String> {
+pub fn get_pre_retrieve_aspect_names(value: &Option<Value>) -> Vec<String> {
     get_aspect_names_for_aspect_position("pre-retrieve-hook-aspects", value)
 }
 
-pub fn get_post_retrieve_aspect_names(value: &Value) -> Vec<String> {
+pub fn get_post_retrieve_aspect_names(value: &Option<Value>) -> Vec<String> {
     get_aspect_names_for_aspect_position("post-retrieve-hook-aspects", value)
 }
 
-pub fn get_pre_update_aspect_names(value: &Value) -> Vec<String> {
+pub fn get_pre_update_aspect_names(value: &Option<Value>) -> Vec<String> {
     get_aspect_names_for_aspect_position("pre-update-hook-aspects", value)
 }
 
-pub fn get_post_update_aspect_names(value: &Value) -> Vec<String> {
+pub fn get_post_update_aspect_names(value: &Option<Value>) -> Vec<String> {
     get_aspect_names_for_aspect_position("post-update-hook-aspects", value)
 }
 
-pub fn get_pre_delete_aspect_names(value: &Value) -> Vec<String> {
+pub fn get_pre_delete_aspect_names(value: &Option<Value>) -> Vec<String> {
     get_aspect_names_for_aspect_position("pre-delete-hook-aspects", value)
 }
 
-pub fn get_post_delete_aspect_names(value: &Value) -> Vec<String> {
+pub fn get_post_delete_aspect_names(value: &Option<Value>) -> Vec<String> {
     get_aspect_names_for_aspect_position("post-delete-hook-aspects", value)
 }
 
@@ -208,11 +217,11 @@ impl AspectConfig {
 
 }
 
-fn get_aspect_names_for_aspect_position(config_name: &'static str, value: &Value) -> Vec<String> {
+fn get_aspect_names_for_aspect_position(config_name: &'static str, value: &Option<Value>) -> Vec<String> {
     let mut v = vec![];
 
     match value {
-        &Value::Table(ref t) => {
+        &Some(Value::Table(ref t)) => {
             match t.get(config_name) {
                 Some(&Value::Array(ref a)) => {
                     for elem in a {
@@ -225,6 +234,7 @@ fn get_aspect_names_for_aspect_position(config_name: &'static str, value: &Value
                 _ => warn!("'{}' configuration key should contain Array, does not", config_name),
             };
         },
+        &None => warn!("No store configuration"),
         _ => warn!("Configuration is not a table"),
     }
     v
