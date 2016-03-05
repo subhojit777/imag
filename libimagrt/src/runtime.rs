@@ -15,7 +15,7 @@ use libimagstore::store::Store;
 
 pub struct Runtime<'a> {
     rtp: PathBuf,
-    configuration: Configuration,
+    configuration: Option<Configuration>,
     cli_matches: ArgMatches<'a>,
     store: Store,
 }
@@ -33,6 +33,8 @@ impl<'a> Runtime<'a> {
     pub fn new(cli_spec: App<'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
         use std::env;
         use std::error::Error;
+
+        use configuration::error::ConfigErrorKind;
 
         let matches = cli_spec.get_matches();
         let rtp : PathBuf = matches.value_of("runtimepath")
@@ -54,11 +56,17 @@ impl<'a> Runtime<'a> {
                                 });
 
         let cfg = Configuration::new(&rtp);
-        if cfg.is_err() {
-            let cause : Option<Box<Error>> = Some(Box::new(cfg.err().unwrap()));
-            return Err(RuntimeError::new(RuntimeErrorKind::Instantiate, cause));
-        }
-        let cfg = cfg.unwrap();
+        let cfg = if cfg.is_err() {
+            let e = cfg.err().unwrap();
+            if e.kind() != ConfigErrorKind::NoConfigFileFound {
+                let cause : Option<Box<Error>> = Some(Box::new(e));
+                return Err(RuntimeError::new(RuntimeErrorKind::Instantiate, cause));
+            } else {
+                None
+            }
+        } else {
+            Some(cfg.unwrap())
+        };
 
         Store::new(storepath).map(|store| {
             Runtime {
