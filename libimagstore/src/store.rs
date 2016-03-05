@@ -375,7 +375,7 @@ impl Store {
     pub fn register_hook(&mut self,
                          position: HookPosition,
                          aspect_name: &String,
-                         h: Box<Hook>)
+                         mut h: Box<Hook>)
         -> Result<()>
     {
         debug!("Registering hook: {:?}", h);
@@ -407,11 +407,28 @@ impl Store {
         let mut guard  = guard.unwrap();
         for mut aspect in guard.deref_mut() {
             if aspect.name().clone() == aspect_name.clone() {
+                self.get_config_for_hook(h.name()).map(|config| h.set_config(config));
                 aspect.register_hook(h);
                 return Ok(());
             }
         }
         return Err(StoreError::new(StoreErrorKind::HookRegisterError, None));
+    }
+
+    fn get_config_for_hook(&self, name: &str) -> Option<&Value> {
+        match &self.configuration {
+            &Value::Table(ref tabl) => {
+                tabl.get("hooks")
+                    .map(|hook_section| {
+                        match hook_section {
+                            &Value::Table(ref tabl) => tabl.get(name),
+                            _ => None
+                        }
+                    })
+                    .unwrap_or(None)
+            },
+            _ => None,
+        }
     }
 
     fn execute_hooks_for_id(&self,
