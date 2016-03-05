@@ -13,5 +13,6 @@ pub mod storeid;
 pub mod error;
 pub mod hook;
 pub mod store;
+mod configuration;
 mod lazyfile;
 
