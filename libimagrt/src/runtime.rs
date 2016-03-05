@@ -32,6 +32,7 @@ impl<'a> Runtime<'a> {
      */
     pub fn new(cli_spec: App<'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
         use std::env;
+        use std::error::Error;
 
         let matches = cli_spec.get_matches();
         let rtp : PathBuf = matches.value_of("runtimepath")
@@ -51,10 +52,18 @@ impl<'a> Runtime<'a> {
                                     spath.push("store");
                                     spath
                                 });
+
+        let cfg = Configuration::new(&rtp);
+        if cfg.is_err() {
+            let cause : Option<Box<Error>> = Some(Box::new(cfg.err().unwrap()));
+            return Err(RuntimeError::new(RuntimeErrorKind::Instantiate, cause));
+        }
+        let cfg = cfg.unwrap();
+
         Store::new(storepath).map(|store| {
             Runtime {
                 cli_matches: matches,
-                configuration: Configuration::new(&rtp).unwrap_or(Configuration::default()),
+                configuration: cfg,
                 rtp: rtp,
                 store: store,
             }

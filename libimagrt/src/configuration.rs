@@ -1,4 +1,3 @@
-use std::default::Default;
 use std::path::PathBuf;
 use std::result::Result as RResult;
 
@@ -104,6 +103,11 @@ pub type Result<T> = RResult<T, ConfigError>;
 pub struct Configuration {
 
     /**
+     * The plain configuration object for direct access if necessary
+     */
+    config: Value,
+
+    /**
      * The verbosity the program should run with
      */
     verbosity: bool,
@@ -142,11 +146,16 @@ impl Configuration {
             debug!("  - editor-opts: {}", editor_opts);
 
             Configuration {
+                config: cfg,
                 verbosity: verbosity,
                 editor: editor,
                 editor_opts: editor_opts,
             }
         })
+    }
+
+    pub fn config(&self) -> &Value {
+        &self.config
     }
 
 }
@@ -226,20 +235,5 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
         .nth(0)
         .map(|inner| Value::Table(inner.unwrap()))
         .ok_or(ConfigError::new(ConfigErrorKind::NoConfigFileFound, None))
-}
-
-impl Default for Configuration {
-
-    /**
-     * Get a default configuration object
-     */
-    fn default() -> Configuration {
-        Configuration {
-            verbosity: false,
-            editor: Some(String::from("nano")),
-            editor_opts: String::from(""),
-        }
-    }
-
 }
 
