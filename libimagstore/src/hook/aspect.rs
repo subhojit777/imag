@@ -7,17 +7,20 @@ use hook::accessor::HookDataAccessor as HDA;
 
 use hook::error::HookError as HE;
 use hook::error::HookErrorKind as HEK;
+use configuration::AspectConfig;
 
 #[derive(Debug)]
 pub struct Aspect {
+    cfg: Option<AspectConfig>,
     name: String,
     hooks: Vec<Box<Hook>>,
 }
 
 impl Aspect {
 
-    pub fn new(name: String) -> Aspect {
+    pub fn new(name: String, cfg: Option<AspectConfig>) -> Aspect {
         Aspect {
+            cfg: cfg,
             name: name,
             hooks: vec![],
         }
