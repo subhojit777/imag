@@ -123,45 +123,65 @@ pub fn config_is_valid(config: &Value) -> bool {
 }
 
 pub fn get_pre_read_aspect_names(value: &Value) -> Vec<String> {
-    get_aspect_names_for_aspect_position(HookPosition::PreRead, value)
+    get_aspect_names_for_aspect_position("pre-read-hook-aspects", value)
 }
 
 pub fn get_post_read_aspect_names(value: &Value) -> Vec<String> {
-    get_aspect_names_for_aspect_position(HookPosition::PostRead, value)
+    get_aspect_names_for_aspect_position("post-read-hook-aspects", value)
 }
 
 pub fn get_pre_create_aspect_names(value: &Value) -> Vec<String> {
-    get_aspect_names_for_aspect_position(HookPosition::PreCreate, value)
+    get_aspect_names_for_aspect_position("pre-create-hook-aspects", value)
 }
 
 pub fn get_post_create_aspect_names(value: &Value) -> Vec<String> {
-    get_aspect_names_for_aspect_position(HookPosition::PostCreate, value)
+    get_aspect_names_for_aspect_position("post-create-hook-aspects", value)
 }
 
 pub fn get_pre_retrieve_aspect_names(value: &Value) -> Vec<String> {
-    get_aspect_names_for_aspect_position(HookPosition::PreRetrieve, value)
+    get_aspect_names_for_aspect_position("pre-retrieve-hook-aspects", value)
 }
 
 pub fn get_post_retrieve_aspect_names(value: &Value) -> Vec<String> {
-    get_aspect_names_for_aspect_position(HookPosition::PostRetrieve, value)
+    get_aspect_names_for_aspect_position("post-retrieve-hook-aspects", value)
 }
 
 pub fn get_pre_update_aspect_names(value: &Value) -> Vec<String> {
-    get_aspect_names_for_aspect_position(HookPosition::PreUpdate, value)
+    get_aspect_names_for_aspect_position("pre-update-hook-aspects", value)
 }
 
 pub fn get_post_update_aspect_names(value: &Value) -> Vec<String> {
-    get_aspect_names_for_aspect_position(HookPosition::PostUpdate, value)
+    get_aspect_names_for_aspect_position("post-update-hook-aspects", value)
 }
 
 pub fn get_pre_delete_aspect_names(value: &Value) -> Vec<String> {
-    get_aspect_names_for_aspect_position(HookPosition::PreDelete, value)
+    get_aspect_names_for_aspect_position("pre-delete-hook-aspects", value)
 }
 
 pub fn get_post_delete_aspect_names(value: &Value) -> Vec<String> {
-    get_aspect_names_for_aspect_position(HookPosition::PostDelete, value)
+    get_aspect_names_for_aspect_position("post-delete-hook-aspects", value)
 }
 
-fn get_aspect_names_for_aspect_position(position: HookPosition, value: &Value) -> Vec<String> {
-    unimplemented!()
+fn get_aspect_names_for_aspect_position(config_name: &'static str, value: &Value) -> Vec<String> {
+    let mut v = vec![];
+
+    match value {
+        &Value::Table(ref t) => {
+            match t.get(config_name) {
+                Some(&Value::Array(ref a)) => {
+                    for elem in a {
+                        match elem {
+                            &Value::String(ref s) => v.push(s.clone()),
+                            _ => warn!("Non-String in configuration, inside '{}'", config_name),
+                        }
+                    }
+                },
+                _ => warn!("'{}' configuration key should contain Array, does not", config_name),
+            };
+        },
+        _ => warn!("Configuration is not a table"),
+    }
+    v
 }
+
+
