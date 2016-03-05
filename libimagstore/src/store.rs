@@ -133,8 +133,14 @@ pub struct Store {
 impl Store {
 
     /// Create a new Store object
-    pub fn new(location: PathBuf) -> Result<Store> {
+    pub fn new(location: PathBuf, store_config: &Value) -> Result<Store> {
         use std::fs::create_dir_all;
+        use configuration::*;
+
+        debug!("Validating Store configuration");
+        if !config_is_valid(store_config) {
+            return Err(StoreError::new(StoreErrorKind::ConfigurationError, None));
+        }
 
         debug!("Building new Store object");
         if !location.exists() {
@@ -152,21 +158,53 @@ impl Store {
             }
         }
 
-        debug!("Store building succeeded");
-        Ok(Store {
+        let pre_read_aspects = get_pre_read_aspect_names(store_config)
+            .into_iter().map(|n| Aspect::new(n)).collect();
+
+        let post_read_aspects = get_post_read_aspect_names(store_config)
+            .into_iter().map(|n| Aspect::new(n)).collect();
+
+        let pre_create_aspects = get_pre_create_aspect_names(store_config)
+            .into_iter().map(|n| Aspect::new(n)).collect();
+
+        let post_create_aspects = get_post_create_aspect_names(store_config)
+            .into_iter().map(|n| Aspect::new(n)).collect();
+
+        let pre_retrieve_aspects = get_pre_retrieve_aspect_names(store_config)
+            .into_iter().map(|n| Aspect::new(n)).collect();
+
+        let post_retrieve_aspects = get_post_retrieve_aspect_names(store_config)
+            .into_iter().map(|n| Aspect::new(n)).collect();
+
+        let pre_update_aspects = get_pre_update_aspect_names(store_config)
+            .into_iter().map(|n| Aspect::new(n)).collect();
+
+        let post_update_aspects = get_post_update_aspect_names(store_config)
+            .into_iter().map(|n| Aspect::new(n)).collect();
+
+        let pre_delete_aspects = get_pre_delete_aspect_names(store_config)
+            .into_iter().map(|n| Aspect::new(n)).collect();
+
+        let post_delete_aspects = get_post_delete_aspect_names(store_config)
+            .into_iter().map(|n| Aspect::new(n)).collect();
+
+        let store = Store {
             location: location,
-            pre_read_aspects      : Arc::new(Mutex::new(vec![])),
-            post_read_aspects     : Arc::new(Mutex::new(vec![])),
-            pre_create_aspects    : Arc::new(Mutex::new(vec![])),
-            post_create_aspects   : Arc::new(Mutex::new(vec![])),
-            pre_retrieve_aspects  : Arc::new(Mutex::new(vec![])),
-            post_retrieve_aspects : Arc::new(Mutex::new(vec![])),
-            pre_update_aspects    : Arc::new(Mutex::new(vec![])),
-            post_update_aspects   : Arc::new(Mutex::new(vec![])),
-            pre_delete_aspects    : Arc::new(Mutex::new(vec![])),
-            post_delete_aspects   : Arc::new(Mutex::new(vec![])),
+            pre_read_aspects      : Arc::new(Mutex::new(pre_read_aspects)),
+            post_read_aspects     : Arc::new(Mutex::new(post_read_aspects)),
+            pre_create_aspects    : Arc::new(Mutex::new(pre_create_aspects)),
+            post_create_aspects   : Arc::new(Mutex::new(post_create_aspects)),
+            pre_retrieve_aspects  : Arc::new(Mutex::new(pre_retrieve_aspects)),
+            post_retrieve_aspects : Arc::new(Mutex::new(post_retrieve_aspects)),
+            pre_update_aspects    : Arc::new(Mutex::new(pre_update_aspects)),
+            post_update_aspects   : Arc::new(Mutex::new(post_update_aspects)),
+            pre_delete_aspects    : Arc::new(Mutex::new(pre_delete_aspects)),
+            post_delete_aspects   : Arc::new(Mutex::new(post_delete_aspects)),
             entries: Arc::new(RwLock::new(HashMap::new())),
-        })
+        };
+
+        debug!("Store building succeeded");
+        Ok(store)
     }
 
     fn storify_id(&self, id: StoreId) -> StoreId {

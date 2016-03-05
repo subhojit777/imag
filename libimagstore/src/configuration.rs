@@ -1,7 +1,7 @@
-use config::types::{Config, Value};
+use toml::Value;
 use hook::position::HookPosition;
 
-pub fn config_is_valid(config: &Config) -> bool {
+pub fn config_is_valid(config: &Value) -> bool {
     unimplemented!()
 }
 
