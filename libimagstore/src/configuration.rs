@@ -162,6 +162,52 @@ pub fn get_post_delete_aspect_names(value: &Value) -> Vec<String> {
     get_aspect_names_for_aspect_position("post-delete-hook-aspects", value)
 }
 
+#[derive(Debug)]
+pub struct AspectConfig {
+    parallel: bool,
+    config: Value,
+}
+
+impl AspectConfig {
+
+    pub fn new(init: Value) -> AspectConfig {
+        let parallel = AspectConfig::is_parallel(&init);
+        AspectConfig {
+            config: init,
+            parallel: parallel,
+        }
+    }
+
+    pub fn config(&self) -> &Value {
+        &self.config
+    }
+
+    fn is_parallel(init: &Value) -> bool {
+        match init {
+            &Value::Table(ref t) =>
+                t.get("parallel")
+                    .map(|value| {
+                        match value {
+                            &Value::Boolean(b) => b,
+                            _ => false,
+                        }
+                    })
+                    .unwrap_or(false),
+            _ => false,
+        }
+    }
+
+    /// Get the aspect configuration for an aspect.
+    ///
+    /// Pass the store configuration object, this searches in `[aspects][<aspect_name>]`.
+    ///
+    /// Returns `None` if one of the keys in the chain is not available
+    fn get_for(v: Value, aspect_name: &str) -> Option<AspectConfig> {
+        unimplemented!()
+    }
+
+}
+
 fn get_aspect_names_for_aspect_position(config_name: &'static str, value: &Value) -> Vec<String> {
     let mut v = vec![];
 
