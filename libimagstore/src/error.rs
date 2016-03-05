@@ -10,6 +10,7 @@ use std::convert::From;
  */
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum StoreErrorKind {
+    ConfigurationError,
     FileError,
     IdLocked,
     IdNotFound,
@@ -36,6 +37,7 @@ pub enum StoreErrorKind {
 
 fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
     match e {
+        &StoreErrorKind::ConfigurationError => "Store Configuration Error",
         &StoreErrorKind::FileError       => "File Error",
         &StoreErrorKind::IdLocked        => "ID locked",
         &StoreErrorKind::IdNotFound      => "ID not found",
