@@ -156,6 +156,13 @@ impl Configuration {
         &self.config
     }
 
+    pub fn store_config(&self) -> Option<&Value> {
+        match &self.config {
+            &Value::Table(ref tabl) => tabl.get("store"),
+            _ => None,
+        }
+    }
+
 }
 
 fn get_verbosity(v: &Value) -> bool {

@@ -68,7 +68,14 @@ impl<'a> Runtime<'a> {
             Some(cfg.unwrap())
         };
 
-        Store::new(storepath).map(|store| {
+        let store_config = {
+            match &cfg {
+                &Some(ref c) => c.store_config().map(|c| c.clone()),
+                _ => None
+            }
+        };
+
+        Store::new(storepath, store_config).map(|store| {
             Runtime {
                 cli_matches: matches,
                 configuration: cfg,
