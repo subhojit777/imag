@@ -211,8 +211,12 @@ impl AspectConfig {
     /// Pass the store configuration object, this searches in `[aspects][<aspect_name>]`.
     ///
     /// Returns `None` if one of the keys in the chain is not available
-    fn get_for(v: Value, aspect_name: &str) -> Option<AspectConfig> {
-        unimplemented!()
+    pub fn get_for(v: &Option<Value>, a_name: String) -> Option<AspectConfig> {
+        match v {
+            &Some(Value::Table(ref tabl)) => tabl.get(&a_name[..])
+                .map(|asp| AspectConfig::new(asp.clone())),
+            _ => None,
+        }
     }
 
 }
