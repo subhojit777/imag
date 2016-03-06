@@ -86,7 +86,8 @@ fn main() {
             keep_copy:      keep_copy,
         };
 
-        view_info.view(view_info);
+        let viewer = StdoutViewer::new();
+        viewer.view(view_info);
     }
 }
 
