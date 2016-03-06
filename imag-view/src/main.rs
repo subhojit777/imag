@@ -66,7 +66,26 @@ fn main() {
         }
         let scmd = scmd.unwrap();
 
-        let viewer = build_viewer(scmd);
+        let viewer = {
+            if scmd.is_present("view-in-stdout") {
+                Box::new(StdoutViewer::new())
+            } else if scmd.is_present("view-in-ui") {
+                warn!("Viewing in UI is currently not supported, switch to stdout");
+                Box::new(StdoutViewer::new())
+            } else if scmd.is_present("view-in-browser") {
+                warn!("Viewing in browser is currently not supported, switch to stdout");
+                Box::new(StdoutViewer::new())
+            } else if scmd.is_present("view-in-texteditor") {
+                warn!("Viewing in texteditor is currently not supported, switch to stdout");
+                Box::new(StdoutViewer::new())
+            } else if scmd.is_present("view-in-custom") {
+                warn!("Viewing in custom is currently not supported, switch to stdout");
+                Box::new(StdoutViewer::new())
+            } else {
+                Box::new(StdoutViewer::new())
+            }
+        };
+
         let entry = load_entry(entry_id, entry_version, &rt);
         if entry.is_err() {
             trace_error(&entry.err().unwrap());
@@ -82,7 +101,6 @@ fn main() {
             keep_copy:      keep_copy,
         };
 
-        let viewer = StdoutViewer::new();
         viewer.view(view_info);
     }
 }
