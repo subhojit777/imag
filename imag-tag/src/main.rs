@@ -78,7 +78,9 @@ fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Opti
                 let tags = tags.split(",");
                 for tag in tags {
                     info!("Adding tag '{}'", tag);
-                    e.add_tag(String::from(tag)).map_err(|e| trace_error(&e));
+                    if let Err(e) = e.add_tag(String::from(tag)) {
+                        trace_error(&e);
+                    }
                 }
             });
 
@@ -86,20 +88,25 @@ fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Opti
                 let tags = tags.split(",");
                 for tag in tags {
                     info!("Removing tag '{}'", tag);
-                    e.remove_tag(String::from(tag)).map_err(|e| trace_error(&e));
+                    if let Err(e) = e.remove_tag(String::from(tag)) {
+                        trace_error(&e);
+                    }
                 }
             });
 
             set.map(|tags| {
                 info!("Setting tags '{}'", tags);
                 let tags = tags.split(",").map(String::from).collect();
-                e.set_tags(tags);
+                if let Err(e) = e.set_tags(tags) {
+                    trace_error(&e);
+                }
             });
         })
         .map_err(|e| {
             info!("No entry.");
-            debug!("{}", e);
-        });
+            trace_error(&e);
+        })
+        .ok();
 }
 
 fn list(id: &str, rt: &Runtime) {
