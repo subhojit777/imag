@@ -1,5 +1,7 @@
 use std::io::{Stdout, stdout};
 
+use toml::encode_str;
+
 use viewer::{ViewInformation, Viewer};
 
 pub struct StdoutViewer {
@@ -17,7 +19,21 @@ impl StdoutViewer {
 impl Viewer for StdoutViewer {
 
     fn view(&self, vi: ViewInformation) {
-        unimplemented!()
+        if vi.view_copy {
+            unimplemented!();
+        }
+
+        if vi.view_header {
+            println!("{}", encode_str(vi.entry.get_header().header()));
+        }
+
+        if vi.view_content {
+            println!("{}", vi.entry.get_content());
+        }
+
+        if vi.view_copy && !vi.keep_copy {
+            unimplemented!()
+        }
     }
 
 }
