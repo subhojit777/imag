@@ -1,4 +1,4 @@
-use clap::{Arg, App, SubCommand};
+use clap::{Arg, App, ArgGroup, SubCommand};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app.arg(Arg::with_name("id")
@@ -59,6 +59,15 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .takes_value(true)
                         .required(false)
                         .help("Seperated by string"))
+
+                   .group(ArgGroup::with_name("list-group")
+                          .args(&[
+                                "json",
+                                "linewise",
+                                "commasep",
+                                "sep",
+                          ])
+                          .required(true))
                    )
 
 }

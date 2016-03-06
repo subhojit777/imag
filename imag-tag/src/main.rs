@@ -122,15 +122,7 @@ fn list(id: &str, rt: &Runtime) {
     let sepp_out = scmd.is_present("sep");
     let mut comm_out = scmd.is_present("commasep");
 
-    let flags = vec![json_out, line_out, comm_out, sepp_out];
-
-    if flags.iter().filter(|x| **x).count() > 1 {
-        // More than one flag passed
-        info!("Cannot do more than one thing");
-        exit(1);
-    }
-
-    if !flags.iter().any(|v| *v) {
+    if !vec![json_out, line_out, comm_out, sepp_out].iter().any(|v| *v) {
         // None of the flags passed, go to default
         comm_out = true;
     }
