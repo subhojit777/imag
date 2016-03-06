@@ -145,7 +145,7 @@ fn view_versions_of(id: &str, rt: &Runtime) {
                     }
                 },
             Err(e) => {
-                // trace_error(&e); // error seems not to be implemented
+                warn!("{}", e); // trace_error(&e); // error seems not to be implemented
                 debug!("Error in pattern");
                 exit(1);
             },
