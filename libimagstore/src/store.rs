@@ -351,6 +351,10 @@ impl EntryHeader {
         }
     }
 
+    pub fn header(&self) -> &Value {
+        &self.header
+    }
+
     fn from_table(t: Table) -> EntryHeader {
         EntryHeader {
             header: Value::Table(t)
