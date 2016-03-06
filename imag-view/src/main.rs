@@ -11,13 +11,9 @@ extern crate libimagutil;
 
 use std::process::exit;
 
-use clap::ArgMatches;
-
 use libimagrt::runtime::Runtime;
-use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Result as StoreResult;
-use libimagstore::storeid::StoreId;
 use libimagutil::trace::trace_error;
 
 mod ui;
@@ -97,8 +93,6 @@ fn load_entry<'a>(id: &str,
                   rt: &'a Runtime)
     -> StoreResult<FileLockEntry<'a>>
 {
-    use std::ops::Deref;
-
     debug!("Checking path element for version");
 
     let version = {
