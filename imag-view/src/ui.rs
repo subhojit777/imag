@@ -1,4 +1,4 @@
-use clap::{Arg, App, SubCommand};
+use clap::{Arg, App, ArgGroup, SubCommand};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
@@ -86,6 +86,15 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .takes_value(true) // non-optional, call-string
                         .required(false)
                         .help("View content in custom program, for example 'libreoffice %e', replace '%e' with entry path"))
+
+                   .group(ArgGroup::with_name("viewer")
+                          .args(&["view-in-stdout",
+                                  "view-in-ui",
+                                  "view-in-browser",
+                                  "view-in-texteditor",
+                                  "view-in-custom",
+                          ])
+                          .required(false))
                    )
 
         .subcommand(SubCommand::with_name("compile")
