@@ -3,7 +3,7 @@
 #[cfg(unix)] extern crate xdg_basedir;
 
 extern crate clap;
-extern crate config;
+extern crate toml;
 
 extern crate libimagstore;
 extern crate libimagutil;

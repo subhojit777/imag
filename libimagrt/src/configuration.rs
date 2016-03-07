@@ -1,9 +1,7 @@
-use std::default::Default;
 use std::path::PathBuf;
 use std::result::Result as RResult;
 
-pub use config::types::Config;
-pub use config::reader::from_file;
+use toml::{Parser, Value};
 
 /**
  * Errors which are related to configuration-file loading
@@ -18,7 +16,6 @@ pub mod error {
      */
     #[derive(Clone, Debug, PartialEq)]
     pub enum ConfigErrorKind {
-        ConfigNotFound,
         ConfigParsingFailed,
         NoConfigFileFound,
     }
@@ -56,7 +53,6 @@ pub mod error {
          */
         pub fn as_str(e: &ConfigError) -> &'static str {
             match e.kind() {
-                ConfigErrorKind::ConfigNotFound      => "Config not found",
                 ConfigErrorKind::ConfigParsingFailed => "Config parsing failed",
                 ConfigErrorKind::NoConfigFileFound   => "No config file found",
             }
@@ -105,6 +101,11 @@ pub type Result<T> = RResult<T, ConfigError>;
 pub struct Configuration {
 
     /**
+     * The plain configuration object for direct access if necessary
+     */
+    config: Value,
+
+    /**
      * The verbosity the program should run with
      */
     verbosity: bool,
@@ -133,9 +134,9 @@ impl Configuration {
      */
     pub fn new(rtp: &PathBuf) -> Result<Configuration> {
         fetch_config(&rtp).map(|cfg| {
-            let verbosity   = cfg.lookup_boolean("verbosity").unwrap_or(false);
-            let editor      = cfg.lookup_str("editor").map(String::from);
-            let editor_opts = String::from(cfg.lookup_str("editor-opts").unwrap_or(""));
+            let verbosity   = get_verbosity(&cfg);
+            let editor      = get_editor(&cfg);
+            let editor_opts = get_editor_opts(&cfg);
 
             debug!("Building configuration");
             debug!("  - verbosity  : {:?}", verbosity);
@@ -143,6 +144,7 @@ impl Configuration {
             debug!("  - editor-opts: {}", editor_opts);
 
             Configuration {
+                config: cfg,
                 verbosity: verbosity,
                 editor: editor,
                 editor_opts: editor_opts,
@@ -150,6 +152,36 @@ impl Configuration {
         })
     }
 
+    pub fn config(&self) -> &Value {
+        &self.config
+    }
+
+}
+
+fn get_verbosity(v: &Value) -> bool {
+    match v {
+        &Value::Table(ref t) => t.get("verbose")
+                .map(|v| match v { &Value::Boolean(b) => b, _ => false, })
+                .unwrap_or(false),
+        _ => false,
+    }
+}
+
+fn get_editor(v: &Value) -> Option<String> {
+    match v {
+        &Value::Table(ref t) => t.get("editor")
+                .and_then(|v| match v { &Value::String(ref s) => Some(s.clone()), _ => None, }),
+        _ => None,
+    }
+}
+
+fn get_editor_opts(v: &Value) -> String {
+    match v {
+        &Value::Table(ref t) => t.get("editor-opts")
+                .and_then(|v| match v { &Value::String(ref s) => Some(s.clone()), _ => None, })
+                .unwrap_or(String::new()),
+        _ => String::new(),
+    }
 }
 
 /**
@@ -157,8 +189,10 @@ impl Configuration {
  *
  * Tests several variants for the config file path and uses the first one which works.
  */
-fn fetch_config(rtp: &PathBuf) -> Result<Config> {
+fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     use std::env;
+    use std::fs::File;
+    use std::io::Read;
 
     use xdg_basedir;
     use itertools::Itertools;
@@ -184,29 +218,20 @@ fn fetch_config(rtp: &PathBuf) -> Result<Config> {
         .flatten()
         .filter(|path| path.exists())
         .map(|path| {
-            from_file(&path)
-                    .map_err(|e| {
-                        ConfigError::new(ConfigErrorKind::ConfigParsingFailed, Some(Box::new(e)))
-                    })
+            let content = {
+                let mut s = String::new();
+                let mut f = File::open(path);
+                if f.is_err() {
+                }
+                let mut f = f.unwrap();
+                f.read_to_string(&mut s);
+                s
+            };
+            Parser::new(&content[..]).parse()
         })
-        .filter(|loaded| loaded.is_ok())
+        .filter(|loaded| loaded.is_some())
         .nth(0)
-        .map(|inner| inner.unwrap())
+        .map(|inner| Value::Table(inner.unwrap()))
         .ok_or(ConfigError::new(ConfigErrorKind::NoConfigFileFound, None))
-}
-
-impl Default for Configuration {
-
-    /**
-     * Get a default configuration object
-     */
-    fn default() -> Configuration {
-        Configuration {
-            verbosity: false,
-            editor: Some(String::from("nano")),
-            editor_opts: String::from(""),
-        }
-    }
-
 }
 
