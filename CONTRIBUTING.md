@@ -23,6 +23,19 @@ your history before merging!
 Make sure to prefix your commits with `"doc: "` if you change the document. Do
 not change document and code in one commit, always seperate them.
 
+# Merging tools which use the imag core functionality into this repo
+
+If you're writing an application or module for imag, feel free to propose
+integrating it into the imag core distribution, if it fulfills the following
+requirements:
+
+1. It is written in Rust
+1. It has a commandline interface which is the main interface to the module.
+1. It is licensed under the terms of GNU LGPLv2.1
+
+(If your tool does not fulfill these requirements, I won't merge it into the
+imag core distribution.)
+
 # Code of Conduct
 
 We use the same
