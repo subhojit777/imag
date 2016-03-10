@@ -230,7 +230,7 @@ impl Store {
     /// Delete an entry
     pub fn delete(&self, id: StoreId) -> Result<()> {
         let id = self.storify_id(id);
-        let entries_lock = self.entries.write();
+        let mut entries_lock = self.entries.write();
         if entries_lock.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
         }
