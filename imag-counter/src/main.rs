@@ -17,12 +17,14 @@ use libimagutil::key_value_split::IntoKeyValue;
 mod create;
 mod delete;
 mod interactive;
+mod list;
 mod ui;
 
 use ui::build_ui;
 use create::create;
 use delete::delete;
 use interactive::interactive;
+use list::list;
 
 enum Action {
     Inc,
@@ -126,6 +128,7 @@ fn main() {
                     "create"      => create(&rt),
                     "delete"      => delete(&rt),
                     "interactive" => interactive(&rt),
+                    "list"        => list(&rt),
                     _ => {
                         debug!("Unknown command"); // More error handling
                     },
