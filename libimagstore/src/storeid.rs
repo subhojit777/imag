@@ -44,7 +44,7 @@ macro_rules! module_entry_path_mod {
                 /// Path has to be a valid UTF-8 string or this will panic!
                 pub fn new<P: AsRef<Path>>(pa: P) -> ModuleEntryPath {
                     let mut path = PathBuf::new();
-                    path.push(format!("/{}", $name));
+                    path.push(format!("{}", $name));
                     path.push(pa.as_ref().clone());
                     let version = Version::parse($version).unwrap();
                     let name = pa.as_ref().file_name().unwrap()

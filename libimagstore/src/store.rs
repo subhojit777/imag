@@ -129,8 +129,17 @@ impl Store {
         })
     }
 
+    fn storify_id(&self, id: StoreId) -> StoreId {
+        debug!("Create new store id out of: {:?} and {:?}", self.location, id);
+        let mut new_id = self.location.clone();
+        new_id.push(id);
+        debug!("Created: '{:?}'", new_id);
+        new_id
+    }
+
     /// Creates the Entry at the given location (inside the entry)
     pub fn create<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
+        let id = self.storify_id(id);
         let hsmap = self.entries.write();
         if hsmap.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -150,6 +159,7 @@ impl Store {
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
     /// dropped, the new Entry is written to disk
     pub fn retrieve<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
+        let id = self.storify_id(id);
         self.entries
             .write()
             .map_err(|_| StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -201,6 +211,7 @@ impl Store {
     /// Retrieve a copy of a given entry, this cannot be used to mutate
     /// the one on disk
     pub fn retrieve_copy(&self, id: StoreId) -> Result<Entry> {
+        let id = self.storify_id(id);
         let entries_lock = self.entries.write();
         if entries_lock.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -218,6 +229,7 @@ impl Store {
 
     /// Delete an entry
     pub fn delete(&self, id: StoreId) -> Result<()> {
+        let id = self.storify_id(id);
         let entries_lock = self.entries.write();
         if entries_lock.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
