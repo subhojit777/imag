@@ -41,7 +41,7 @@ fn main() {
         } else {
             println!("Could not set up Runtime");
             println!("{:?}", rt.err().unwrap());
-            exit(1);
+            exit(1); // we can afford not-executing destructors here
         }
     };
 
@@ -56,7 +56,10 @@ fn main() {
     let entry_id = rt.cli().value_of("id").unwrap(); // enforced by clap
 
     if rt.cli().is_present("versions") {
-        view_versions_of(entry_id, &rt);
+        if let Err(e) = view_versions_of(entry_id, &rt) {
+            trace_error(&e);
+            exit(1); // we can afford not-executing destructors here
+        }
     } else {
         let entry_version   = rt.cli().value_of("version");
         let view_header     = rt.cli().is_present("view-header");
@@ -67,7 +70,7 @@ fn main() {
         let scmd = rt.cli().subcommand_matches("view-in");
         if scmd.is_none() {
             debug!("No commandline call");
-            exit(1);
+            exit(1); // we can afford not-executing destructors here
         }
         let scmd = scmd.unwrap();
 
@@ -94,7 +97,7 @@ fn main() {
         let entry = load_entry(entry_id, entry_version, &rt);
         if entry.is_err() {
             trace_error(&entry.err().unwrap());
-            exit(1);
+            exit(1); // we can afford not-executing destructors here
         }
         let entry = entry.unwrap();
 
@@ -114,17 +117,22 @@ fn main() {
 fn load_entry<'a>(id: &str,
                   version: Option<&str>,
                   rt: &'a Runtime)
-    -> StoreResult<FileLockEntry<'a>>
+    -> Result<FileLockEntry<'a>>
 {
     debug!("Checking path element for version");
 
     let version = {
-        version.unwrap_or_else(|| {
-            id.split("~").last().unwrap_or_else(|| {
+        if version.is_none() {
+            let r = id.split("~").last();
+            if r.is_none() {
                 warn!("No version");
-                exit(1);
-            })
-        })
+                return Err(ViewError::new(ViewErrorKind::NoVersion, None));
+            } else {
+                r.unwrap()
+            }
+        } else {
+            version.unwrap()
+        }
     };
 
     debug!("Building path from {:?} and {:?}", id, version);
@@ -139,9 +147,10 @@ fn load_entry<'a>(id: &str,
     // the above is the adaption...
 
     rt.store().retrieve(path)
+        .map_err(|e| ViewError::new(ViewErrorKind::StoreError, Some(Box::new(e))))
 }
 
-fn view_versions_of(id: &str, rt: &Runtime) {
+fn view_versions_of(id: &str, rt: &Runtime) -> Result<()> {
     use glob::glob;
 
     let mut path = rt.store().path().clone();
@@ -154,21 +163,23 @@ fn view_versions_of(id: &str, rt: &Runtime) {
 
     if let Some(path) = path.to_str() {
         match glob(path) {
-            Ok(paths) =>
+            Ok(paths) => {
                 for entry in paths {
                     match entry {
                         Ok(path) => println!("{}", path.file_name().and_then(|s| s.to_str()).unwrap()),
                         Err(e)   => trace_error(e.error()),
                     }
-                },
+                }
+                Ok(())
+            },
             Err(e) => {
-                warn!("{}", e); // trace_error(&e); // error seems not to be implemented
                 debug!("Error in pattern");
-                exit(1);
+                Err(ViewError::new(ViewErrorKind::PatternError, Some(Box::new(e))))
             },
         }
     } else {
         warn!("Could not build glob() argument!");
+        Err(ViewError::new(ViewErrorKind::GlobBuildError, None))
     }
 }
 
