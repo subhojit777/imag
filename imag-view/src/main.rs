@@ -9,6 +9,7 @@ extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagutil;
 
+use std::result::Result as RResult;
 use std::process::exit;
 
 use libimagrt::runtime::Runtime;
@@ -16,13 +17,17 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::store::Result as StoreResult;
 use libimagutil::trace::trace_error;
 
+mod error;
 mod ui;
 mod viewer;
 
+use error::{ViewError, ViewErrorKind};
 use ui::build_ui;
 use viewer::Viewer;
 use viewer::ViewInformation;
 use viewer::stdout::StdoutViewer;
+
+type Result<T> = RResult<T, ViewError>;
 
 fn main() {
     let name = "imag-view";
