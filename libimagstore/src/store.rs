@@ -129,13 +129,17 @@ impl Store {
         })
     }
 
+    fn storify_id(&self, id: StoreId) -> StoreId {
+        debug!("Create new store id out of: {:?} and {:?}", self.location, id);
+        let mut new_id = self.location.clone();
+        new_id.push(id);
+        debug!("Created: '{:?}'", new_id);
+        new_id
+    }
+
     /// Creates the Entry at the given location (inside the entry)
     pub fn create<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
-        if !self.id_in_store(&id) {
-            debug!("'{:?}' seems not to be in '{:?}'", id, self.location);
-            return Err(StoreError::new(StoreErrorKind::StorePathOutsideStore, None));
-        }
-
+        let id = self.storify_id(id);
         let hsmap = self.entries.write();
         if hsmap.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -155,11 +159,7 @@ impl Store {
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
     /// dropped, the new Entry is written to disk
     pub fn retrieve<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
-        if !self.id_in_store(&id) {
-            debug!("'{:?}' seems not to be in '{:?}'", id, self.location);
-            return Err(StoreError::new(StoreErrorKind::StorePathOutsideStore, None));
-        }
-
+        let id = self.storify_id(id);
         self.entries
             .write()
             .map_err(|_| StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -211,6 +211,7 @@ impl Store {
     /// Retrieve a copy of a given entry, this cannot be used to mutate
     /// the one on disk
     pub fn retrieve_copy(&self, id: StoreId) -> Result<Entry> {
+        let id = self.storify_id(id);
         let entries_lock = self.entries.write();
         if entries_lock.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -228,11 +229,7 @@ impl Store {
 
     /// Delete an entry
     pub fn delete(&self, id: StoreId) -> Result<()> {
-        if !self.id_in_store(&id) {
-            debug!("'{:?}' seems not to be in '{:?}'", id, self.location);
-            return Err(StoreError::new(StoreErrorKind::StorePathOutsideStore, None));
-        }
-
+        let id = self.storify_id(id);
         let entries_lock = self.entries.write();
         if entries_lock.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -250,19 +247,11 @@ impl Store {
         remove_file(&id).map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))))
     }
 
-    fn id_in_store(&self, path: &StoreId) -> bool {
-        path.canonicalize()
-            .map(|can| {
-                can.starts_with(&self.location)
-            })
-            .unwrap_or(path.starts_with(&self.location))
-            // we return false, as fs::canonicalize() returns an Err(..) on filesystem errors
-    }
-
     /// Gets the path where this store is on the disk
     pub fn path(&self) -> &PathBuf {
         &self.location
     }
+
 }
 
 impl Drop for Store {
