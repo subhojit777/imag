@@ -76,13 +76,28 @@ impl StoreIdAccessor for Aspect {
 impl MutableHookDataAccessor for Aspect {
     fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
-        if !accessors.iter().all(|a| match a { &HDA::MutableAccess(_)  => true, _ => false }) {
+
+        fn is_file_accessor(a: &HDA) -> bool {
+            match a {
+                &HDA::MutableAccess(_)  => true,
+                &HDA::NonMutableAccess(_)  => true,
+                _ => false,
+            }
+        }
+
+        if !accessors.iter().all(|a| is_file_accessor(a)) {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
         for accessor in accessors {
             match accessor {
-                HDA::MutableAccess(accessor) => try!(accessor.access_mut(fle)),
+                HDA::MutableAccess(accessor)    => try!(accessor.access_mut(fle)),
+
+                // TODO: Naiive implementation.
+                // More sophisticated version would check whether there are _chunks_ of
+                // NonMutableAccess accessors and execute these chunks in parallel. We do not have
+                // performance concerns yet, so this is okay.
+                HDA::NonMutableAccess(accessor) => try!(accessor.access(fle)),
                 _ => unreachable!(),
             }
         }
