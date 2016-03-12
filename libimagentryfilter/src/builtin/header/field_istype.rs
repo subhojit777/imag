@@ -1,6 +1,8 @@
 use libimagstore::store::Entry;
 
 use builtin::header::field_path::FieldPath;
+use builtin::header::field_predicate::FieldPredicate;
+use builtin::header::field_predicate::Predicate;
 use filter::Filter;
 
 use toml::Value;
@@ -31,17 +33,27 @@ impl Type {
 
 }
 
+struct IsTypePred {
+    ty: Type
+}
+
+impl Predicate for IsTypePred {
+
+    fn evaluate(&self, v: Value) -> bool {
+        self.ty.matches(&v)
+    }
+
+}
+
 pub struct FieldIsType {
-    header_field_path: FieldPath,
-    expected_type: Type,
+    filter: FieldPredicate<IsTypePred>,
 }
 
 impl FieldIsType {
 
     pub fn new(path: FieldPath, expected_type: Type) -> FieldIsType {
         FieldIsType {
-            header_field_path: path,
-            expected_type: expected_type,
+            filter: FieldPredicate::new(path, Box::new(IsTypePred { ty: expected_type })),
         }
     }
 
@@ -50,10 +62,7 @@ impl FieldIsType {
 impl Filter for FieldIsType {
 
     fn filter(&self, e: &Entry) -> bool {
-        e.get_header()
-            .read(&self.header_field_path[..])
-            .map(|val| val.map(|v| self.expected_type.matches(&v)).unwrap_or(false))
-            .unwrap_or(false)
+        self.filter.filter(e)
     }
 
 }
