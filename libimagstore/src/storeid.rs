@@ -1,5 +1,10 @@
 use std::path::PathBuf;
 use glob::Paths;
+use semver::Version;
+
+use error::{StoreError, StoreErrorKind};
+use store::Result;
+use store::Store;
 
 /// The Index into the Store
 pub type StoreId = PathBuf;
@@ -16,26 +21,17 @@ impl IntoStoreId for PathBuf {
     }
 }
 
-pub fn build_entry_path(rt: &Runtime, path_elem: &str) -> PathBuf {
+pub fn build_entry_path(store: &Store, path_elem: &str) -> Result<PathBuf> {
     debug!("Checking path element for version");
-    {
-        let contains_version = {
-            path_elem.split("~")
-                .last()
-                .map(|version| Version::parse(version).is_ok())
-                .unwrap_or(false)
-        };
-
-        if !contains_version {
-            debug!("Version cannot be parsed inside {:?}", path_elem);
-            warn!("Path does not contain version. Will panic now!");
-            panic!("No version in path");
-        }
+    if path_elem.split("~").last().map(|v| Version::parse(v).is_err()).unwrap_or(false) {
+        debug!("Version cannot be parsed from {:?}", path_elem);
+        debug!("Path does not contain version!");
+        return Err(StoreError::new(StoreErrorKind::StorePathLacksVersion, None));
     }
     debug!("Version checking succeeded");
 
     debug!("Building path from {:?}", path_elem);
-    let mut path = rt.store().path().clone();
+    let mut path = store.path().clone();
 
     if path_elem.chars().next() == Some('/') {
         path.push(&path_elem[1..path_elem.len()]);
@@ -43,7 +39,7 @@ pub fn build_entry_path(rt: &Runtime, path_elem: &str) -> PathBuf {
         path.push(path_elem);
     }
 
-    path
+    Ok(path)
 }
 
 #[macro_export]
