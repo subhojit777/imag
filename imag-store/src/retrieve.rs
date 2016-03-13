@@ -6,9 +6,8 @@ use clap::ArgMatches;
 use toml::Value;
 
 use libimagstore::store::FileLockEntry;
+use libimagstore::storeid::build_entry_path;
 use libimagrt::runtime::Runtime;
-
-use util::build_entry_path;
 
 pub fn retrieve(rt: &Runtime) {
     rt.cli()

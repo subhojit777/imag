@@ -2,8 +2,8 @@ use std::path::PathBuf;
 use std::ops::DerefMut;
 
 use libimagrt::runtime::Runtime;
-use util::build_toml_header;
 use util::build_entry_path;
+use util::build_toml_header;
 
 pub fn update(rt: &Runtime) {
     rt.cli()

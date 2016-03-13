@@ -1,8 +1,7 @@
 use std::path::PathBuf;
 
+use libimagstore::storeid::build_entry_path;
 use libimagrt::runtime::Runtime;
-
-use util::build_entry_path;
 
 pub fn delete(rt: &Runtime) {
     use std::process::exit;

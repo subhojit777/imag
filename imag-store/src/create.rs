@@ -13,10 +13,10 @@ use clap::ArgMatches;
 use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
+use libimagstore::storeid::build_entry_path;
 
 use error::StoreError;
 use error::StoreErrorKind;
-use util::build_entry_path;
 use util::build_toml_header;
 
 type Result<T> = RResult<T, StoreError>;
