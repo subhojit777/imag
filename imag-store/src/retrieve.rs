@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::ops::Deref;
 use std::fmt::Display;
+use std::process::exit;
 
 use clap::ArgMatches;
 use toml::Value;
@@ -8,22 +9,31 @@ use toml::Value;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::build_entry_path;
 use libimagrt::runtime::Runtime;
+use libimagutil::trace::trace_error;
 
 pub fn retrieve(rt: &Runtime) {
     rt.cli()
         .subcommand_matches("retrieve")
         .map(|scmd| {
-            let path = scmd.value_of("id").map(|id| build_entry_path(rt, id)).unwrap();
-            debug!("path = {:?}", path);
-            rt.store()
-                // "id" must be present, enforced via clap spec
-                .retrieve(path)
-                .map(|e| print_entry(rt, scmd, e))
-                .map_err(|e| {
-                    debug!("No entry.");
-                    debug!("{}", e);
-                })
+            scmd.value_of("id")
+                .map(|id| {
+                    let path = build_entry_path(rt.store(), id);
+                    if path.is_err() {
+                        trace_error(&path.err().unwrap());
+                        exit(1);
+                    }
+                    let path = path.unwrap();
+                    debug!("path = {:?}", path);
 
+                    rt.store()
+                        // "id" must be present, enforced via clap spec
+                        .retrieve(path)
+                        .map(|e| print_entry(rt, scmd, e))
+                        .map_err(|e| {
+                            debug!("No entry.");
+                            debug!("{}", e);
+                        })
+                })
         });
 }
 

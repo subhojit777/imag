@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use libimagstore::storeid::build_entry_path;
 use libimagrt::runtime::Runtime;
+use libimagutil::trace::trace_error;
 
 pub fn delete(rt: &Runtime) {
     use std::process::exit;
@@ -11,9 +12,16 @@ pub fn delete(rt: &Runtime) {
         .map(|sub| {
             sub.value_of("id")
                 .map(|id| {
+                    let path = build_entry_path(rt.store(), id);
+                    if path.is_err() {
+                        trace_error(&path.err().unwrap());
+                        exit(1);
+                    }
+                    let path = path.unwrap();
                     debug!("Deleting file at {:?}", id);
+
                     rt.store()
-                        .delete(build_entry_path(rt, id))
+                        .delete(path)
                         .map_err(|e| {
                            warn!("Error: {:?}", e);
                            exit(1);
