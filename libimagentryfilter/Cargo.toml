@@ -9,6 +9,7 @@ itertools = "0.4.7"
 log = "0.3.4"
 regex = "0.1.48"
 toml = "0.1.27"
+semver = "0.2.1"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
