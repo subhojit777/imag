@@ -29,7 +29,7 @@ pub fn trace_error(e: &Error) {
 /// Output is the same as for `trace_error()`, though there are only `max` levels printed.
 pub fn trace_error_maxdepth(e: &Error, max: u64) {
     let n = count_error_causes(e);
-    write!(stderr(), "{}/{} Levels of errors will be printed", (if max > n { n } else { max }), n);
+    write!(stderr(), "{}/{} Levels of errors will be printed\n", (if max > n { n } else { max }), n);
     print_trace_maxdepth(n, e, max);
     write!(stderr(), "");
 }
@@ -48,7 +48,7 @@ pub fn trace_error_dbg(e: &Error) {
 fn print_trace_maxdepth(idx: u64, e: &Error, max: u64) -> Option<&Error> {
     if e.cause().is_some() && idx > 0 {
         print_trace_maxdepth(idx - 1, e.cause().unwrap(), max);
-        write!(stderr(), " -- caused:");
+        write!(stderr(), " -- caused:\n");
     }
     write!(stderr(), "Error {:>4} : {}", idx, e.description());
     e.cause()
