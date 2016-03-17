@@ -598,7 +598,27 @@ impl Store {
 
     /// Move an entry without loading
     pub fn move_by_id(&self, old_id: StoreId, new_id: StoreId) -> Result<()> {
-        unimplemented!()
+        use std::fs::rename;
+
+        let new_id = self.storify_id(new_id);
+        let old_id = self.storify_id(old_id);
+        let hsmap = self.entries.write();
+        if hsmap.is_err() {
+            return Err(SE::new(SEK::LockPoisoned, None))
+        }
+        if hsmap.unwrap().contains_key(&old_id) {
+            return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
+        } else {
+            match rename(old_id, new_id.clone()) {
+                Err(e) => {
+                    let kind = SEK::EntryRenameError;
+                    return Err(SE::new(kind, Some(Box::new(e))));
+                },
+                _ => {
+                    debug!("Rename worked");
+                },
+            }
+        }
     }
 
     /// Gets the path where this store is on the disk
