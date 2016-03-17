@@ -591,9 +591,29 @@ impl Store {
             .map_err(|e| SEK::DeleteCallError.into_error_with_cause(e))
     }
 
-    /// Move an entry
+    /// Save an Entry in another place
+    /// Removes the original entry
+    /// Executes the post_move_aspects for the new id
     pub fn save_as(&self, entry: FileLockEntry, new_id: StoreId) -> Result<()> {
-        unimplemented!()
+        use std::fs::copy;
+        use std::fs::remove_file;
+
+        let new_id = self.storify_id(new_id);
+        let hsmap = self.entries.write();
+        if hsmap.is_err() {
+            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
+        }
+        if hsmap.unwrap().contains_key(&new_id) {
+            return Err(StoreError::new(StoreErrorKind::EntryAlreadyExists, None))
+        }
+
+        let old_id = entry.get_location().clone();
+        drop(entry); // so no funny things happen in the next step
+
+        copy(old_id.clone(), new_id.clone())
+            .and_then(|_| remove_file(old_id))
+            .map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))))
+            .and_then(|_| self.execute_hooks_for_id(self.post_move_aspects.clone(), &new_id))
     }
 
     /// Move an entry without loading
