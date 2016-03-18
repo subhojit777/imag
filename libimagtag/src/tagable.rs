@@ -1,4 +1,7 @@
-use libimagstore::store::{Entry, EntryHeader};
+use std::ops::Deref;
+use std::ops::DerefMut;
+
+use libimagstore::store::{Entry, EntryHeader, FileLockEntry};
 
 use error::{TagError, TagErrorKind};
 use result::Result;
@@ -163,3 +166,32 @@ impl Tagable for Entry {
     }
 
 }
+
+impl<'a> Tagable for FileLockEntry<'a> {
+
+    fn get_tags(&self) -> Result<Vec<Tag>> {
+        self.deref().get_tags()
+    }
+
+    fn set_tags(&mut self, ts: Vec<Tag>) -> Result<()> {
+        self.deref_mut().set_tags(ts)
+    }
+
+    fn add_tag(&mut self, t: Tag) -> Result<()> {
+        self.deref_mut().add_tag(t)
+    }
+
+    fn remove_tag(&mut self, t: Tag) -> Result<()> {
+        self.deref_mut().remove_tag(t)
+    }
+
+    fn has_tag(&self, t: &Tag) -> Result<bool> {
+        self.deref().has_tag(t)
+    }
+
+    fn has_tags(&self, ts: &Vec<Tag>) -> Result<bool> {
+        self.deref().has_tags(ts)
+    }
+
+}
+
