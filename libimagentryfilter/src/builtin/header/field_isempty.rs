@@ -30,7 +30,7 @@ impl Filter for FieldIsEmpty {
                     Some(Value::Boolean(_)) => false,
                     Some(Value::Float(_))   => false,
                     Some(Value::Integer(_)) => false,
-                    Some(Value::String(_))  => false,
+                    Some(Value::String(s))  => s.is_empty(),
                     Some(Value::Table(t))   => t.is_empty(),
                     _                       => true,
                 }
