@@ -13,3 +13,6 @@ toml = "0.1.27"
 [dependencies.libimagstore]
 path = "../libimagstore"
 
+[dependencies.libimagtag]
+path = "../libimagtag"
+
