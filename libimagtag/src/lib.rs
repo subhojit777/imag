@@ -6,6 +6,7 @@ extern crate toml;
 extern crate libimagstore;
 
 pub mod error;
+pub mod exec;
 pub mod result;
 pub mod tag;
 pub mod tagable;
