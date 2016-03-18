@@ -315,10 +315,11 @@ impl Store {
         if let Some(path) = path.to_str() {
             let path = [ path, "/*" ].join("");
             debug!("glob()ing with '{}'", path);
-            glob(&path[..]).map(StoreIdIterator::new)
+            glob(&path[..])
+                .map(StoreIdIterator::new)
                 .map_err(|e| StoreError::new(StoreErrorKind::GlobError, Some(Box::new(e))))
         } else {
-            unimplemented!()
+            Err(StoreError::new(StoreErrorKind::EncodingError, None))
         }
     }
 
