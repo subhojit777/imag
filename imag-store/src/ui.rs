@@ -1,4 +1,4 @@
-use clap::{Arg, App, SubCommand};
+use clap::{Arg, App, ArgGroup, SubCommand};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app.subcommand(SubCommand::with_name("create")
@@ -20,6 +20,11 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .long("from-raw")
                         .takes_value(true)
                         .help("Create a new entry by reading this file ('-' for stdin)"))
+
+                   .group(ArgGroup::with_name("create-destination-group")
+                          .args(&["path", "id"])
+                          .required(true))
+
                    .subcommand(SubCommand::with_name("entry")
                                .about("Create an entry via commandline")
                                .version("0.1")
@@ -33,6 +38,11 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                                     .short("f")
                                     .takes_value(true)
                                     .help("Content for the Entry from this file ('-' for stdin)"))
+
+                               .group(ArgGroup::with_name("create-content-group")
+                                      .args(&["content", "content-from"])
+                                      .required(false))
+
                                .arg(Arg::with_name("header")
                                     .long("header")
                                     .short("h")
@@ -67,6 +77,11 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .long("raw")
                         .short("r")
                         .help("Print Entries as they are in the store"))
+
+                   .group(ArgGroup::with_name("retrieve-print-group")
+                          .args(&["header-json", "raw"])
+                          .required(true))
+
                    .subcommand(SubCommand::with_name("filter-header")
                                .about("Retrieve Entries by filtering")
                                .version("0.1")
