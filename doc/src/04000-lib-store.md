@@ -68,3 +68,99 @@ It also MUST contain a getter for this variable.
 It MUST NOT contain a setter for this variable, as changing the store while the
 programm is running is not allowed.
 
+## Hook system {#sec:libstore:hooks}
+
+The store library includes a hook system, which can be used to execute arbitrary
+code before or after the store was accessed. The following hooks are available:
+
+* `PreReadHook`
+* `PostReadHook`
+* `PreCreateHook`
+* `PostCreateHook`
+* `PreUpdateHook`
+* `PostUpdateHook`
+* `PreDeleteHook`
+* `PostDeleteHook`
+
+These are called "Hook positions" in the following.
+
+Which are executed before or after the store action is executed. The `Pre`-Hooks
+can deny the execution by returning an error. The `Post`-Hooks can (for the
+appropriate store actions) alter the hook result.
+
+Registering hooks with the store is implemented via functions on the `Store`
+type itself. Hooks MUST NEVER be removed from the `Store` object during runtime,
+only adding hooks to the store is allowed.
+
+As the hooks are simply trait objects, one is able to implement arbitrary hooks,
+for example
+
+* Simple consistency-checks for the store
+* Version control system adaption for the store (via git for example)
+* Encryption of store entries (via gnupg for example)
+* Automatic backup on every change to the store (via rsnapshot for example)
+
+Some hooks MAY be shipped with the imag source distribution and be enabled by
+default.
+
+Execution order of the hooks is a not-yet-solved problem.
+
+### Hook-Aspects {#sec:libstore:hooks:aspects}
+
+Each hook can be assigned to an "Aspect". There MAY BE zero or more aspects for
+each Hook position. Aspects can be sorted and configured via the configuration
+file, whereas each aspect has its own configuration section:
+
+```{#lst:hooks:aspects:cfg .toml .numberLines caption="Hook config section"}
+[store]
+
+// Defines order of aspects for the pre-read hook position
+pre-read-aspects  = [ "misc" ]
+
+// Defines order of aspects for the post-read hook position
+post-read-aspects = [ "decryption" ]
+
+// ...
+
+// configuration for the "misc" hook aspect
+[[aspects.misc]]
+parallel-execution = true
+
+// configuration for the "decryption" hook aspect
+[[aspects.decryption]]
+parallel-execution = false
+```
+
+Aspects are executed in the same order they appear in the configuration (in the
+`pre-read-aspects = []` array, for example).
+Aspects _could_ be sorted in different order for each hook position.
+
+Aspect names are unique, so one aspect "misc" in "pre-read-aspects" is the
+same as in "post-read-aspects" and both be configured via `aspects.misc`, though
+they do not share hooks.
+
+Aspects where parallel execution is enabled MAY BE executed in sequence if one
+of the hooks wants mutable access to the data they hook into.
+
+Hooks can then be assigned to one hook aspect. Hooks MUST never be assigned to
+more than one hook aspect. Hooks which are not assigned to any aspect MUST never
+be executed.
+
+```{#lst:hooks:cfg .toml .numberLines caption="Hook configuration"}
+[hooks]
+
+// decrypt hook with gnupg. An appropriate "gnupg-encrypt" hook must be defined
+// to be fully operational, of course
+[[gnupg-decrypt]]
+aspect = "decryption"
+key = "0x123456789"
+
+// version control hook. Sorted into aspect "misc" here.
+[[git]]
+aspect = "misc"
+
+// ...
+```
+
+Hooks MAY HAVE arbitrary configuration keys.
+

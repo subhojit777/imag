@@ -9,14 +9,29 @@ use std::collections::BTreeMap;
 use std::io::{Seek, SeekFrom};
 use std::convert::From;
 use std::convert::Into;
+use std::sync::Mutex;
+use std::ops::Deref;
+use std::ops::DerefMut;
 
 use toml::{Table, Value};
 use regex::Regex;
+use crossbeam;
+use crossbeam::ScopedJoinHandle;
 
 use error::{ParserErrorKind, ParserError};
 use error::{StoreError, StoreErrorKind};
 use storeid::{StoreId, StoreIdIterator};
 use lazyfile::LazyFile;
+
+use hook::aspect::Aspect;
+use hook::result::HookResult;
+use hook::accessor::{ MutableHookDataAccessor,
+            NonMutableHookDataAccessor,
+            StoreIdAccessor,
+            HookDataAccessor,
+            HookDataAccessorProvider};
+use hook::position::HookPosition;
+use hook::Hook;
 
 /// The Result Type returned by any interaction with the store that could fail
 pub type Result<T> = RResult<T, StoreError>;
@@ -91,6 +106,26 @@ pub struct Store {
     location: PathBuf,
 
     /**
+     * Configuration object of the store
+     */
+    configuration: Option<Value>,
+
+    /*
+     * Registered hooks
+     */
+
+    pre_read_aspects      : Arc<Mutex<Vec<Aspect>>>,
+    post_read_aspects     : Arc<Mutex<Vec<Aspect>>>,
+    pre_create_aspects    : Arc<Mutex<Vec<Aspect>>>,
+    post_create_aspects   : Arc<Mutex<Vec<Aspect>>>,
+    pre_retrieve_aspects  : Arc<Mutex<Vec<Aspect>>>,
+    post_retrieve_aspects : Arc<Mutex<Vec<Aspect>>>,
+    pre_update_aspects    : Arc<Mutex<Vec<Aspect>>>,
+    post_update_aspects   : Arc<Mutex<Vec<Aspect>>>,
+    pre_delete_aspects    : Arc<Mutex<Vec<Aspect>>>,
+    post_delete_aspects   : Arc<Mutex<Vec<Aspect>>>,
+
+    /**
      * Internal Path->File cache map
      *
      * Caches the files, so they remain flock()ed
@@ -103,8 +138,14 @@ pub struct Store {
 impl Store {
 
     /// Create a new Store object
-    pub fn new(location: PathBuf) -> Result<Store> {
+    pub fn new(location: PathBuf, store_config: Option<Value>) -> Result<Store> {
         use std::fs::create_dir_all;
+        use configuration::*;
+
+        debug!("Validating Store configuration");
+        if !config_is_valid(&store_config) {
+            return Err(StoreError::new(StoreErrorKind::ConfigurationError, None));
+        }
 
         debug!("Building new Store object");
         if !location.exists() {
@@ -122,11 +163,84 @@ impl Store {
             }
         }
 
-        debug!("Store building succeeded");
-        Ok(Store {
+        let pre_read_aspects = get_pre_read_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
+        let post_read_aspects = get_post_read_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
+        let pre_create_aspects = get_pre_create_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
+        let post_create_aspects = get_post_create_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
+        let pre_retrieve_aspects = get_pre_retrieve_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
+        let post_retrieve_aspects = get_post_retrieve_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
+        let pre_update_aspects = get_pre_update_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
+        let post_update_aspects = get_post_update_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
+        let pre_delete_aspects = get_pre_delete_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
+        let post_delete_aspects = get_post_delete_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
+        let store = Store {
             location: location,
+            configuration: store_config,
+            pre_read_aspects      : Arc::new(Mutex::new(pre_read_aspects)),
+            post_read_aspects     : Arc::new(Mutex::new(post_read_aspects)),
+            pre_create_aspects    : Arc::new(Mutex::new(pre_create_aspects)),
+            post_create_aspects   : Arc::new(Mutex::new(post_create_aspects)),
+            pre_retrieve_aspects  : Arc::new(Mutex::new(pre_retrieve_aspects)),
+            post_retrieve_aspects : Arc::new(Mutex::new(post_retrieve_aspects)),
+            pre_update_aspects    : Arc::new(Mutex::new(pre_update_aspects)),
+            post_update_aspects   : Arc::new(Mutex::new(post_update_aspects)),
+            pre_delete_aspects    : Arc::new(Mutex::new(pre_delete_aspects)),
+            post_delete_aspects   : Arc::new(Mutex::new(post_delete_aspects)),
             entries: Arc::new(RwLock::new(HashMap::new())),
-        })
+        };
+
+        debug!("Store building succeeded");
+        Ok(store)
     }
 
     fn storify_id(&self, id: StoreId) -> StoreId {
@@ -140,6 +254,10 @@ impl Store {
     /// Creates the Entry at the given location (inside the entry)
     pub fn create<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
         let id = self.storify_id(id);
+        if let Err(e) = self.execute_hooks_for_id(self.pre_create_aspects.clone(), &id) {
+            return Err(e);
+        }
+
         let hsmap = self.entries.write();
         if hsmap.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -153,13 +271,21 @@ impl Store {
             se.status = StoreEntryStatus::Borrowed;
             se
         });
-        Ok(FileLockEntry::new(self, Entry::new(id.clone()), id))
+
+        let mut fle = FileLockEntry::new(self, Entry::new(id.clone()), id);
+        self.execute_hooks_for_mut_file(self.post_create_aspects.clone(), &mut fle)
+            .map_err(|e| StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e))))
+            .map(|_| fle)
     }
 
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
     /// dropped, the new Entry is written to disk
     pub fn retrieve<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
         let id = self.storify_id(id);
+        if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
+            return Err(e);
+        }
+
         self.entries
             .write()
             .map_err(|_| StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -170,6 +296,14 @@ impl Store {
                 entry
             })
             .map(|e| FileLockEntry::new(self, e, id))
+            .and_then(|mut fle| {
+                if let Err(e) = self.execute_hooks_for_mut_file(self.pre_retrieve_aspects.clone(), &mut fle) {
+                    Err(StoreError::new(StoreErrorKind::HookExecutionError, Some(Box::new(e))))
+                } else {
+                    Ok(fle)
+                }
+
+            })
    }
 
     /// Iterate over all StoreIds for one module name
@@ -178,8 +312,16 @@ impl Store {
     }
 
     /// Return the `FileLockEntry` and write to disk
-    pub fn update<'a>(&'a self, entry: FileLockEntry<'a>) -> Result<()> {
-        self._update(&entry)
+    pub fn update<'a>(&'a self, mut entry: FileLockEntry<'a>) -> Result<()> {
+        if let Err(e) = self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), &mut entry) {
+            return Err(e);
+        }
+
+        if let Err(e) = self._update(&entry) {
+            return Err(e);
+        }
+
+        self.execute_hooks_for_mut_file(self.post_update_aspects.clone(), &mut entry)
     }
 
     /// Internal method to write to the filesystem store.
@@ -230,7 +372,11 @@ impl Store {
     /// Delete an entry
     pub fn delete(&self, id: StoreId) -> Result<()> {
         let id = self.storify_id(id);
-        let mut entries_lock = self.entries.write();
+        if let Err(e) = self.execute_hooks_for_id(self.pre_delete_aspects.clone(), &id) {
+            return Err(e);
+        }
+
+        let entries_lock = self.entries.write();
         if entries_lock.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
         }
@@ -244,12 +390,123 @@ impl Store {
 
         // remove the entry first, then the file
         entries.remove(&id);
-        remove_file(&id).map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))))
+        if let Err(e) = remove_file(&id) {
+            return Err(StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))));
+        }
+
+        self.execute_hooks_for_id(self.post_delete_aspects.clone(), &id)
     }
 
     /// Gets the path where this store is on the disk
     pub fn path(&self) -> &PathBuf {
         &self.location
+    }
+
+    pub fn register_hook(&mut self,
+                         position: HookPosition,
+                         aspect_name: &String,
+                         mut h: Box<Hook>)
+        -> Result<()>
+    {
+        debug!("Registering hook: {:?}", h);
+        debug!("     in position: {:?}", position);
+        debug!("     with aspect: {:?}", aspect_name);
+
+        let mut guard = match position {
+                HookPosition::PreRead      => self.pre_read_aspects.clone(),
+                HookPosition::PostRead     => self.post_read_aspects.clone(),
+                HookPosition::PreCreate    => self.pre_create_aspects.clone(),
+                HookPosition::PostCreate   => self.post_create_aspects.clone(),
+                HookPosition::PreRetrieve  => self.pre_retrieve_aspects.clone(),
+                HookPosition::PostRetrieve => self.post_retrieve_aspects.clone(),
+                HookPosition::PreUpdate    => self.pre_update_aspects.clone(),
+                HookPosition::PostUpdate   => self.post_update_aspects.clone(),
+                HookPosition::PreDelete    => self.pre_delete_aspects.clone(),
+                HookPosition::PostDelete   => self.post_delete_aspects.clone(),
+            };
+
+        let mut guard = guard
+            .deref()
+            .lock()
+            .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None));
+
+        if guard.is_err() {
+            return Err(StoreError::new(StoreErrorKind::HookRegisterError,
+                                       Some(Box::new(guard.err().unwrap()))));
+        }
+        let mut guard  = guard.unwrap();
+        for mut aspect in guard.deref_mut() {
+            if aspect.name().clone() == aspect_name.clone() {
+                self.get_config_for_hook(h.name()).map(|config| h.set_config(config));
+                aspect.register_hook(h);
+                return Ok(());
+            }
+        }
+        return Err(StoreError::new(StoreErrorKind::HookRegisterError, None));
+    }
+
+    fn get_config_for_hook(&self, name: &str) -> Option<&Value> {
+        match &self.configuration {
+            &Some(Value::Table(ref tabl)) => {
+                tabl.get("hooks")
+                    .map(|hook_section| {
+                        match hook_section {
+                            &Value::Table(ref tabl) => tabl.get(name),
+                            _ => None
+                        }
+                    })
+                    .unwrap_or(None)
+            },
+            _ => None,
+        }
+    }
+
+    fn execute_hooks_for_id(&self,
+                            aspects: Arc<Mutex<Vec<Aspect>>>,
+                            id: &StoreId)
+        -> Result<()>
+    {
+        let guard = aspects.deref().lock();
+        if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
+
+        guard.unwrap().deref().iter()
+            .fold(Ok(()), |acc, aspect| {
+                debug!("[Aspect][exec]: {:?}", aspect);
+                acc.and_then(|_| (aspect as &StoreIdAccessor).access(id))
+            })
+            .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
+    }
+
+    fn execute_hooks_for_mut_file(&self,
+                                  aspects: Arc<Mutex<Vec<Aspect>>>,
+                                  fle: &mut FileLockEntry)
+        -> Result<()>
+    {
+        let guard = aspects.deref().lock();
+        if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
+
+        guard.unwrap().deref().iter()
+            .fold(Ok(()), |acc, aspect| {
+                debug!("[Aspect][exec]: {:?}", aspect);
+                acc.and_then(|_| aspect.access_mut(fle))
+            })
+            .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
+    }
+
+    fn execute_hooks_for_file(&self,
+                              aspects: Arc<Mutex<Vec<Aspect>>>,
+                              fle: &FileLockEntry)
+        -> Result<()>
+    {
+        let guard = aspects.deref().lock();
+        if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
+
+        guard.unwrap().deref().iter()
+            .fold(Ok(()), |acc, aspect| {
+                debug!("[Aspect][exec]: {:?}", aspect);
+                acc.and_then(|_| (aspect as &NonMutableHookDataAccessor).access(fle))
+            })
+            .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
     }
 
 }

@@ -12,6 +12,7 @@ regex = "0.1.54"
 semver = "0.2"
 toml = "0.1.25"
 version = "2.0.1"
+crossbeam = "0.2.8"
 
 [dev-dependencies]
 tempdir = "0.3.4"

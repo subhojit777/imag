@@ -10,6 +10,7 @@ use std::convert::From;
  */
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum StoreErrorKind {
+    ConfigurationError,
     FileError,
     IdLocked,
     IdNotFound,
@@ -27,11 +28,16 @@ pub enum StoreErrorKind {
     HeaderPathTypeFailure,
     HeaderKeyNotFound,
     HeaderTypeFailure,
+    HookRegisterError,
+    HookExecutionError,
+    PreHookExecuteError,
+    PostHookExecuteError,
         // maybe more
 }
 
 fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
     match e {
+        &StoreErrorKind::ConfigurationError => "Store Configuration Error",
         &StoreErrorKind::FileError       => "File Error",
         &StoreErrorKind::IdLocked        => "ID locked",
         &StoreErrorKind::IdNotFound      => "ID not found",
@@ -50,6 +56,10 @@ fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
         &StoreErrorKind::HeaderPathTypeFailure => "Header has wrong type for path",
         &StoreErrorKind::HeaderKeyNotFound     => "Header Key not found",
         &StoreErrorKind::HeaderTypeFailure     => "Header type is wrong",
+        &StoreErrorKind::HookRegisterError     => "Hook register error",
+        &StoreErrorKind::HookExecutionError    => "Hook execution error",
+        &StoreErrorKind::PreHookExecuteError   => "Pre-Hook execution error",
+        &StoreErrorKind::PostHookExecuteError  => "Post-Hook execution error",
     }
 }
 
