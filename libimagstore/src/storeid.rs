@@ -1,5 +1,10 @@
 use std::path::PathBuf;
 use glob::Paths;
+use semver::Version;
+
+use error::{StoreError, StoreErrorKind};
+use store::Result;
+use store::Store;
 
 /// The Index into the Store
 pub type StoreId = PathBuf;
@@ -16,6 +21,26 @@ impl IntoStoreId for PathBuf {
     }
 }
 
+pub fn build_entry_path(store: &Store, path_elem: &str) -> Result<PathBuf> {
+    debug!("Checking path element for version");
+    if path_elem.split("~").last().map(|v| Version::parse(v).is_err()).unwrap_or(false) {
+        debug!("Version cannot be parsed from {:?}", path_elem);
+        debug!("Path does not contain version!");
+        return Err(StoreError::new(StoreErrorKind::StorePathLacksVersion, None));
+    }
+    debug!("Version checking succeeded");
+
+    debug!("Building path from {:?}", path_elem);
+    let mut path = store.path().clone();
+
+    if path_elem.chars().next() == Some('/') {
+        path.push(&path_elem[1..path_elem.len()]);
+    } else {
+        path.push(path_elem);
+    }
+
+    Ok(path)
+}
 
 #[macro_export]
 macro_rules! module_entry_path_mod {

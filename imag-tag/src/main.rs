@@ -13,12 +13,11 @@ use std::process::exit;
 
 use libimagrt::runtime::Runtime;
 use libimagtag::tagable::Tagable;
+use libimagstore::storeid::build_entry_path;
 
 mod ui;
-mod util;
 
 use ui::build_ui;
-use util::build_entry_path;
 
 use libimagutil::trace::trace_error;
 
@@ -68,8 +67,17 @@ fn main() {
 }
 
 fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Option<&str>) {
-    let path = build_entry_path(rt, id);
+    let path = {
+        match build_entry_path(rt.store(), id) {
+            Err(e) => {
+                trace_error(&e);
+                exit(1);
+            },
+            Ok(s) => s,
+        }
+    };
     debug!("path = {:?}", path);
+
     rt.store()
         // "id" must be present, enforced via clap spec
         .retrieve(path)
@@ -110,7 +118,15 @@ fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Opti
 }
 
 fn list(id: &str, rt: &Runtime) {
-    let path = build_entry_path(rt, id);
+    let path = {
+        match build_entry_path(rt.store(), id) {
+            Err(e) => {
+                trace_error(&e);
+                exit(1);
+            },
+            Ok(s) => s,
+        }
+    };
     debug!("path = {:?}", path);
 
     let entry = rt.store().retrieve(path.clone());
