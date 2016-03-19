@@ -3,6 +3,7 @@
 extern crate itertools;
 extern crate regex;
 extern crate toml;
+extern crate semver;
 
 extern crate libimagstore;
 extern crate libimagtag;
