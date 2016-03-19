@@ -5,6 +5,8 @@ use std::ops::{DerefMut, Deref};
 use toml::Value;
 
 use libimagstore::storeid::IntoStoreId;
+use libimagstore::storeid::StoreId;
+use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagtag::tag::Tag;
@@ -92,6 +94,12 @@ impl<'a> Note<'a> {
             .map(|entry| Note { entry: entry })
     }
 
+    pub fn all_notes(store: &Store) -> Result<NoteIterator> {
+        store.retrieve_for_module("notes")
+            .map(|iter| NoteIterator::new(store, iter))
+            .map_err(|e| NE::new(NEK::StoreReadError, Some(Box::new(e))))
+    }
+
 }
 
 impl<'a> Tagable for Note<'a> {
@@ -118,6 +126,49 @@ impl<'a> Tagable for Note<'a> {
 
     fn has_tags(&self, ts: &Vec<Tag>) -> TagResult<bool> {
         self.entry.deref().has_tags(ts)
+    }
+
+}
+
+trait FromStoreId {
+    fn from_storeid<'a>(&'a Store, StoreId) -> Result<Note<'a>>;
+}
+
+impl<'a> FromStoreId for Note<'a> {
+
+    fn from_storeid<'b>(store: &'b Store, id: StoreId) -> Result<Note<'b>> {
+        debug!("Loading note from storeid: '{:?}'", id);
+        match store.retrieve(id) {
+            Err(e)    => Err(NE::new(NEK::StoreReadError, Some(Box::new(e)))),
+            Ok(entry) => Ok(Note { entry: entry }),
+        }
+    }
+
+}
+
+pub struct NoteIterator<'a> {
+    store: &'a Store,
+    iditer: StoreIdIterator,
+}
+
+impl<'a> NoteIterator<'a> {
+
+    pub fn new(store: &'a Store, iditer: StoreIdIterator) -> NoteIterator<'a> {
+        NoteIterator {
+            store: store,
+            iditer: iditer,
+        }
+    }
+
+}
+
+impl<'a> Iterator for NoteIterator<'a> {
+    type Item = Result<Note<'a>>;
+
+    fn next(&mut self) -> Option<Result<Note<'a>>> {
+        self.iditer
+            .next()
+            .map(|id| Note::from_storeid(self.store, id))
     }
 
 }
