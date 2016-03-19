@@ -53,14 +53,12 @@ fn main() {
         });
 }
 
-fn create(rt: &Runtime) {
-    let name = rt.cli()
-        .subcommand_matches("create")
-        .unwrap() // we already know it is there
-        .value_of("name")
-        .unwrap(); // enforced by clap
+fn name_from_cli(rt: &Runtime, subcmd: &str) -> String {
+    rt.cli().subcommand_matches(subcmd).unwrap().value_of("name").map(String::from).unwrap()
+}
 
-    Note::new(rt.store(), String::from(name), String::new())
+fn create(rt: &Runtime) {
+    Note::new(rt.store(), String::from(name_from_cli(rt, "create")), String::new())
         .map_err(|e| trace_error(&e))
         .map(|note| {
             // call editor now...
@@ -68,13 +66,7 @@ fn create(rt: &Runtime) {
 }
 
 fn delete(rt: &Runtime) {
-    let name = rt.cli()
-        .subcommand_matches("delete")
-        .unwrap() // we already know it is there
-        .value_of("name")
-        .unwrap(); // enforced by clap
-
-    Note::delete(rt.store(), String::from(name))
+    Note::delete(rt.store(), String::from(name_from_cli(rt, "delete")))
         .map_err(|e| trace_error(&e))
         .map(|_| println!("Ok"));
 }
