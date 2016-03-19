@@ -8,6 +8,7 @@ use toml::Value;
 use std::collections::BTreeMap;
 
 use libimagstore::store::Store;
+use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::error::StoreError;
@@ -140,5 +141,55 @@ impl<'a> Counter<'a> {
         store.delete(ModuleEntryPath::new(name).into_storeid())
             .map_err(|e| CE::new(CEK::StoreWriteError, Some(Box::new(e))))
     }
+
+    pub fn all_counters(store: &Store) -> Result<CounterIterator> {
+        store.retrieve_for_module("counter")
+            .map(|iter| CounterIterator::new(store, iter))
+            .map_err(|e| CE::new(CEK::StoreReadError, Some(Box::new(e))))
+    }
+
+}
+
+trait FromStoreId {
+    fn from_storeid<'a>(&'a Store, StoreId) -> Result<Counter<'a>>;
+}
+
+impl<'a> FromStoreId for Counter<'a> {
+
+    fn from_storeid<'b>(store: &'b Store, id: StoreId) -> Result<Counter<'b>> {
+        debug!("Loading counter from storeid: '{:?}'", id);
+        match store.retrieve(id) {
+            Err(e) => Err(CE::new(CEK::StoreReadError, Some(Box::new(e)))),
+            Ok(c)  => Ok(Counter { fle: c }),
+        }
+    }
+
+}
+
+pub struct CounterIterator<'a> {
+    store: &'a Store,
+    iditer: StoreIdIterator,
+}
+
+impl<'a> CounterIterator<'a> {
+
+    pub fn new(store: &'a Store, iditer: StoreIdIterator) -> CounterIterator<'a> {
+        CounterIterator {
+            store: store,
+            iditer: iditer,
+        }
+    }
+
+}
+
+impl<'a> Iterator for CounterIterator<'a> {
+    type Item = Result<Counter<'a>>;
+
+    fn next(&mut self) -> Option<Result<Counter<'a>>> {
+        self.iditer
+            .next()
+            .map(|id| Counter::from_storeid(self.store, id))
+    }
+
 }
 
