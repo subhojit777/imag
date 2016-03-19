@@ -5,19 +5,19 @@ use tag::Tag;
 /// Generates a clap::SubCommand to be integrated in the commandline-ui builder for building a
 /// "tags --add foo --remove bar" subcommand to do tagging action.
 pub fn tag_subcommand<'a, 'b>() -> App<'a, 'b> {
-    SubCommand::with_name("tags")
+    SubCommand::with_name(tag_subcommand_name())
         .author("Matthias Beyer <mail@beyermatthias.de>")
         .version("0.1")
         .about("Add or remove tags")
 
-        .arg(Arg::with_name("add-tags")
+        .arg(Arg::with_name(tag_subcommand_add_arg_name())
              .short("a")
              .long("add")
              .takes_value(true)
              .multiple(true)
              .help("Add tags, seperated by comma or by specifying multiple times"))
 
-        .arg(Arg::with_name("remove-tags")
+        .arg(Arg::with_name(tag_subcommand_remove_arg_name())
              .short("r")
              .long("remove")
              .takes_value(true)
@@ -25,15 +25,35 @@ pub fn tag_subcommand<'a, 'b>() -> App<'a, 'b> {
              .help("Remove tags, seperated by comma or by specifying multiple times"))
 }
 
+pub fn tag_subcommand_name() -> &'static str {
+    "tags"
+}
+
+pub fn tag_subcommand_add_arg_name() -> &'static str {
+    "add-tags"
+}
+
+pub fn tag_subcommand_remove_arg_name() -> &'static str {
+    "remove-tags"
+}
+
+pub fn tag_subcommand_names() -> Vec<&'static str> {
+    vec![tag_subcommand_add_arg_name(), tag_subcommand_remove_arg_name()]
+}
+
 /// Generates a clap::Arg which can be integrated into the commandline-ui builder for building a
 /// "-t" or "--tags" argument which takes values for tagging actions (add, remove)
 pub fn tag_argument<'a, 'b>() -> Arg<'a, 'b> {
-    Arg::with_name("specify-tags")
+    Arg::with_name(tag_argument_name())
         .short("t")
         .long("tags")
         .takes_value(true)
         .multiple(true)
         .help("Add or remove tags, prefixed by '+' (for adding) or '-' (for removing)")
+}
+
+pub fn tag_argument_name() -> &'static str {
+    "specify-tags"
 }
 
 /// Get the tags which should be added from the commandline
