@@ -81,6 +81,11 @@ impl<'a> Note<'a> {
         self.entry.deref().get_content()
     }
 
+    pub fn delete(store: &Store, name: String) -> Result<()> {
+        store.delete(ModuleEntryPath::new(name).into_storeid())
+            .map_err(|e| NE::new(NEK::StoreWriteError, Some(Box::new(e))))
+    }
+
 }
 
 impl<'a> Tagable for Note<'a> {
