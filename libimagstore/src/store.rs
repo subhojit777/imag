@@ -186,6 +186,8 @@ pub struct Store {
     post_update_aspects   : Arc<Mutex<Vec<Aspect>>>,
     pre_delete_aspects    : Arc<Mutex<Vec<Aspect>>>,
     post_delete_aspects   : Arc<Mutex<Vec<Aspect>>>,
+    pre_move_aspects      : Arc<Mutex<Vec<Aspect>>>,
+    post_move_aspects     : Arc<Mutex<Vec<Aspect>>>,
 
     /**
      * Internal Path->File cache map
@@ -277,6 +279,18 @@ impl Store {
                 Aspect::new(n, cfg)
             }).collect();
 
+        let pre_move_aspects = get_pre_move_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
+        let post_move_aspects = get_post_move_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
         let store = Store {
             location: location.clone(),
             configuration: store_config,
@@ -291,6 +305,8 @@ impl Store {
             post_update_aspects   : Arc::new(Mutex::new(post_update_aspects)),
             pre_delete_aspects    : Arc::new(Mutex::new(pre_delete_aspects)),
             post_delete_aspects   : Arc::new(Mutex::new(post_delete_aspects)),
+            pre_move_aspects    : Arc::new(Mutex::new(pre_move_aspects)),
+            post_move_aspects   : Arc::new(Mutex::new(post_move_aspects)),
             entries: Arc::new(RwLock::new(HashMap::new())),
         };
 
@@ -622,6 +638,18 @@ impl Store {
 
         let new_id = self.storify_id(new_id);
         let old_id = self.storify_id(old_id);
+
+        if let Err(e) = self.execute_hooks_for_id(self.pre_move_aspects.clone(), &old_id) {
+            if e.is_aborting() {
+                return Err(e)
+                    .map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::MoveByIdCallError.into_error_with_cause(e))
+            } else {
+                trace_error(&e);
+            }
+        }
+
         let hsmap = self.entries.write();
         if hsmap.is_err() {
             return Err(SE::new(SEK::LockPoisoned, None))
@@ -639,6 +667,11 @@ impl Store {
                 },
             }
         }
+
+        self.execute_hooks_for_id(self.pre_move_aspects.clone(), &new_id)
+            .map_err(|e| SE::new(SEK::PostHookExecuteError, Some(Box::new(e))))
+            .map_err(Box::new)
+            .map_err(|e| SEK::MoveByIdCallError.into_error_with_cause(e))
     }
 
     /// Gets the path where this store is on the disk
