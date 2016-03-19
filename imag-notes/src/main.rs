@@ -60,18 +60,20 @@ fn name_from_cli(rt: &Runtime, subcmd: &str) -> String {
 fn create(rt: &Runtime) {
     Note::new(rt.store(), String::from(name_from_cli(rt, "create")), String::new())
         .map_err(|e| trace_error(&e))
-        .map(|note| {
+        .map(|_| {
             // call editor now...
-        });
+        })
+        .ok();
 }
 
 fn delete(rt: &Runtime) {
     Note::delete(rt.store(), String::from(name_from_cli(rt, "delete")))
         .map_err(|e| trace_error(&e))
-        .map(|_| println!("Ok"));
+        .map(|_| println!("Ok"))
+        .ok();
 }
 
-fn edit(rt: &Runtime) {
+fn edit(_: &Runtime) {
     unimplemented!()
 }
 
@@ -105,7 +107,10 @@ fn list(rt: &Runtime) {
     });
 
     for note in iter {
-        note.get_name().map(|name| println!("{}", name));
+        note.get_name()
+            .map(|name| println!("{}", name))
+            .map_err(|e| trace_error(&e))
+            .ok();
     }
 }
 
