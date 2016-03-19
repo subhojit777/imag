@@ -86,6 +86,12 @@ impl<'a> Note<'a> {
             .map_err(|e| NE::new(NEK::StoreWriteError, Some(Box::new(e))))
     }
 
+    pub fn retrieve(store: &Store, name: String) -> Result<Note> {
+        store.retrieve(ModuleEntryPath::new(name).into_storeid())
+            .map_err(|e| NE::new(NEK::StoreWriteError, Some(Box::new(e))))
+            .map(|entry| Note { entry: entry })
+    }
+
 }
 
 impl<'a> Tagable for Note<'a> {
