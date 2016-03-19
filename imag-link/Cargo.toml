@@ -1,0 +1,24 @@
+[package]
+name = "imag-link"
+version = "0.1.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+semver = "0.2.1"
+clap = "2.1.1"
+log = "0.3.5"
+version = "2.0.1"
+toml = "0.1.25"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimaglink]
+path = "../libimaglink"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
