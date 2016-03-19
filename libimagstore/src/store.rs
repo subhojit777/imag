@@ -17,6 +17,7 @@ use toml::{Table, Value};
 use regex::Regex;
 use crossbeam;
 use crossbeam::ScopedJoinHandle;
+use glob::glob;
 
 use error::{ParserErrorKind, ParserError};
 use error::{StoreError, StoreErrorKind};
@@ -307,8 +308,19 @@ impl Store {
    }
 
     /// Iterate over all StoreIds for one module name
-    pub fn retrieve_for_module(&self, mod_name: &str) -> StoreIdIterator {
-        unimplemented!();
+    pub fn retrieve_for_module(&self, mod_name: &str) -> Result<StoreIdIterator> {
+        let mut path = self.path().clone();
+        path.push(mod_name);
+
+        if let Some(path) = path.to_str() {
+            let path = [ path, "/*" ].join("");
+            debug!("glob()ing with '{}'", path);
+            glob(&path[..])
+                .map(StoreIdIterator::new)
+                .map_err(|e| StoreError::new(StoreErrorKind::GlobError, Some(Box::new(e))))
+        } else {
+            Err(StoreError::new(StoreErrorKind::EncodingError, None))
+        }
     }
 
     /// Return the `FileLockEntry` and write to disk

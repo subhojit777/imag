@@ -33,6 +33,8 @@ pub enum StoreErrorKind {
     PreHookExecuteError,
     PostHookExecuteError,
     StorePathLacksVersion,
+    GlobError,
+    EncodingError,
         // maybe more
 }
 
@@ -62,6 +64,8 @@ fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
         &StoreErrorKind::PreHookExecuteError   => "Pre-Hook execution error",
         &StoreErrorKind::PostHookExecuteError  => "Post-Hook execution error",
         &StoreErrorKind::StorePathLacksVersion => "The supplied store path has no version part",
+        &StoreErrorKind::GlobError => "glob() error",
+        &StoreErrorKind::EncodingError => "Encoding error",
     }
 }
 
