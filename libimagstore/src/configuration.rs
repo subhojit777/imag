@@ -182,10 +182,6 @@ impl AspectConfig {
         }
     }
 
-    pub fn config(&self) -> &Value {
-        &self.config
-    }
-
     fn is_parallel(init: &Value) -> bool {
         match init {
             &Value::Table(ref t) =>
