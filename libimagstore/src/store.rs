@@ -90,10 +90,11 @@ impl StoreEntry {
             let file = try!(self.file.create_file());
 
             assert_eq!(self.id, entry.location);
-            file.write_all(entry.to_str().as_bytes());
+            file.write_all(entry.to_str().as_bytes())
+                .map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))))
+        } else {
+            Ok(())
         }
-
-        Ok(())
     }
 }
 
