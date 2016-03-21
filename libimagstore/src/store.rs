@@ -419,7 +419,7 @@ impl Store {
         debug!("     in position: {:?}", position);
         debug!("     with aspect: {:?}", aspect_name);
 
-        let mut guard = match position {
+        let guard = match position {
                 HookPosition::PreRead      => self.pre_read_aspects.clone(),
                 HookPosition::PostRead     => self.post_read_aspects.clone(),
                 HookPosition::PreCreate    => self.pre_create_aspects.clone(),
@@ -432,7 +432,7 @@ impl Store {
                 HookPosition::PostDelete   => self.post_delete_aspects.clone(),
             };
 
-        let mut guard = guard
+        let guard = guard
             .deref()
             .lock()
             .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None));
