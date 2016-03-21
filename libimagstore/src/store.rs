@@ -76,7 +76,7 @@ impl StoreEntry {
                 // TODO:
                 let mut file = file.unwrap();
                 let entry = Entry::from_file(self.id.clone(), &mut file);
-                file.seek(SeekFrom::Start(0));
+                file.seek(SeekFrom::Start(0)).ok();
                 entry
             }
         } else {
