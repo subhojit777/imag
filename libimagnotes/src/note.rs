@@ -36,16 +36,23 @@ impl<'a> Note<'a> {
 
             {
                 let mut entry  = lockentry.deref_mut();
-                let mut header = entry.get_header_mut();
-                let setres = header.set("note", Value::Table(BTreeMap::new()));
-                if setres.is_err() {
-                    return Err(NE::new(NEK::StoreWriteError, Some(Box::new(setres.err().unwrap()))));
+
+                {
+                    let mut header = entry.get_header_mut();
+                    let setres = header.set("note", Value::Table(BTreeMap::new()));
+                    if setres.is_err() {
+                        let kind = NEK::StoreWriteError;
+                        return Err(NE::new(kind, Some(Box::new(setres.err().unwrap()))));
+                    }
+
+                    let setres = header.set("note.name", Value::String(name));
+                    if setres.is_err() {
+                        let kind = NEK::StoreWriteError;
+                        return Err(NE::new(kind, Some(Box::new(setres.err().unwrap()))));
+                    }
                 }
 
-                let setres = header.set("note.name", Value::String(name));
-                if setres.is_err() {
-                    return Err(NE::new(NEK::StoreWriteError, Some(Box::new(setres.err().unwrap()))));
-                }
+                *entry.get_content_mut() = text;
             }
 
             lockentry
