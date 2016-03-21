@@ -1,4 +1,3 @@
-use std::convert::Into;
 use std::collections::BTreeMap;
 use std::ops::{DerefMut, Deref};
 
@@ -12,7 +11,6 @@ use libimagstore::store::Store;
 use libimagtag::tag::Tag;
 use libimagtag::tagable::Tagable;
 use libimagtag::result::Result as TagResult;
-use libimagtag::error::{TagError, TagErrorKind};
 
 use module_path::ModuleEntryPath;
 use result::Result;
