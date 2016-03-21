@@ -107,9 +107,8 @@ impl LazyFile {
 #[cfg(test)]
 mod test {
     use super::LazyFile;
-    use std::io::{Read, Write, Seek, SeekFrom};
+    use std::io::{Read, Write};
     use std::path::PathBuf;
-    use std::fs::File;
     use tempdir::TempDir;
 
     fn get_dir() -> TempDir {

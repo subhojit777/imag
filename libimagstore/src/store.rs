@@ -15,8 +15,6 @@ use std::ops::DerefMut;
 
 use toml::{Table, Value};
 use regex::Regex;
-use crossbeam;
-use crossbeam::ScopedJoinHandle;
 use glob::glob;
 
 use error::{ParserErrorKind, ParserError};
@@ -25,12 +23,9 @@ use storeid::{StoreId, StoreIdIterator};
 use lazyfile::LazyFile;
 
 use hook::aspect::Aspect;
-use hook::result::HookResult;
 use hook::accessor::{ MutableHookDataAccessor,
             NonMutableHookDataAccessor,
-            StoreIdAccessor,
-            HookDataAccessor,
-            HookDataAccessorProvider};
+            StoreIdAccessor};
 use hook::position::HookPosition;
 use hook::Hook;
 
@@ -1306,8 +1301,6 @@ mod test {
 
     #[test]
     fn test_verification_current_version() {
-        use version;
-
         use super::verify_header_consistency;
 
         let mut header = BTreeMap::new();

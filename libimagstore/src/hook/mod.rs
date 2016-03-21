@@ -2,9 +2,6 @@ use std::fmt::Debug;
 
 use toml::Value;
 
-use self::error::HookError;
-use store::FileLockEntry;
-
 pub mod accessor;
 pub mod aspect;
 pub mod error;

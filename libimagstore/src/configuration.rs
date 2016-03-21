@@ -1,5 +1,4 @@
 use toml::Value;
-use hook::position::HookPosition;
 
 /// Check whether the configuration is valid for the store
 ///
