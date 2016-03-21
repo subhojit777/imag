@@ -54,7 +54,7 @@ impl StoreIdAccessor for Aspect {
                             &HDA::StoreIdAccess(accessor) => accessor.access(id),
                             _ => unreachable!(),
                         }
-                        .map_err(|e| ()) // TODO: We're losing the error cause here
+                        .map_err(|_| ()) // TODO: We're losing the error cause here
                     })
                 })
             })
@@ -121,7 +121,7 @@ impl NonMutableHookDataAccessor for Aspect {
                             &HDA::NonMutableAccess(accessor) => accessor.access(fle),
                             _ => unreachable!(),
                         }
-                        .map_err(|e| ()) // TODO: We're losing the error cause here
+                        .map_err(|_| ()) // TODO: We're losing the error cause here
                     })
                 })
             })
