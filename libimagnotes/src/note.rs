@@ -28,7 +28,7 @@ impl<'a> Note<'a> {
 
         debug!("Creating new Note: '{}'", name);
         let fle = {
-            let mut lockentry = store.create(ModuleEntryPath::new(name.clone()).into_storeid());
+            let lockentry = store.create(ModuleEntryPath::new(name.clone()).into_storeid());
             if lockentry.is_err() {
                 return Err(NE::new(NEK::StoreWriteError, Some(Box::new(lockentry.err().unwrap()))));
             }
@@ -69,7 +69,7 @@ impl<'a> Note<'a> {
     }
 
     pub fn get_name(&self) -> Result<String> {
-        let mut header = self.entry.deref().get_header();
+        let header = self.entry.deref().get_header();
         match header.read("note.name") {
             Ok(Some(Value::String(s))) => Ok(String::from(s)),
             Ok(_)                => {
