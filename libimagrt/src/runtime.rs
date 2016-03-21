@@ -1,4 +1,6 @@
 use std::path::PathBuf;
+use std::process::Command;
+use std::env;
 
 pub use clap::App;
 
@@ -140,6 +142,12 @@ impl<'a> Runtime<'a> {
                 .help("Alternative storepath. Must be specified as full path, can be outside of the RTP")
                 .required(false)
                 .takes_value(true))
+
+            .arg(Arg::with_name("editor")
+                .long("editor")
+                .help("Set editor")
+                .required(false)
+                .takes_value(true))
     }
 
     /**
@@ -200,6 +208,19 @@ impl<'a> Runtime<'a> {
         &self.store
     }
 
+    pub fn editor(&self) -> Option<Command> {
+        self.cli()
+            .value_of("editor")
+            .map(String::from)
+            .or({
+                match &self.configuration {
+                    &Some(ref c) => c.editor().map(|s| s.clone()),
+                    _ => None,
+                }
+            })
+            .or(env::var("EDITOR").ok())
+            .map(Command::new)
+    }
 }
 
 
