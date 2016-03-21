@@ -500,22 +500,6 @@ impl Store {
             .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
     }
 
-    fn execute_hooks_for_file(&self,
-                              aspects: Arc<Mutex<Vec<Aspect>>>,
-                              fle: &FileLockEntry)
-        -> Result<()>
-    {
-        let guard = aspects.deref().lock();
-        if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
-
-        guard.unwrap().deref().iter()
-            .fold(Ok(()), |acc, aspect| {
-                debug!("[Aspect][exec]: {:?}", aspect);
-                acc.and_then(|_| (aspect as &NonMutableHookDataAccessor).access(fle))
-            })
-            .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
-    }
-
 }
 
 impl Drop for Store {
