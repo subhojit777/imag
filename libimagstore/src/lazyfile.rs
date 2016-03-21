@@ -32,30 +32,6 @@ fn create_file<A: AsRef<Path>>(p: A) -> ::std::io::Result<File> {
 impl LazyFile {
 
     /**
-     * Create a new LazyFile instance from a Path
-     */
-    pub fn new(p: PathBuf) -> LazyFile {
-        LazyFile::Absent(p)
-    }
-
-    /**
-     * Create a new LazyFile instance from an already existing file
-     */
-    pub fn new_with_file(f: File) -> LazyFile {
-        LazyFile::File(f)
-    }
-
-    /**
-     * Get the file behind a LazyFile object
-     */
-    pub fn get_file(&mut self) -> Result<&File, StoreError> {
-        match self.get_file_mut() {
-            Ok(file) => Ok(&*file),
-            Err(e) => Err(e)
-        }
-    }
-
-    /**
      * Get the mutable file behind a LazyFile object
      */
     pub fn get_file_mut(&mut self) -> Result<&mut File, StoreError> {
@@ -120,7 +96,7 @@ mod test {
         let dir = get_dir();
         let mut path = PathBuf::from(dir.path());
         path.set_file_name("test1");
-        let mut lf = LazyFile::new(path);
+        let mut lf = LazyFile::Absent(path);
 
         write!(lf.create_file().unwrap(), "Hello World").unwrap();
         dir.close().unwrap();
@@ -131,7 +107,7 @@ mod test {
         let dir = get_dir();
         let mut path = PathBuf::from(dir.path());
         path.set_file_name("test2");
-        let mut lf = LazyFile::new(path.clone());
+        let mut lf = LazyFile::Absent(path.clone());
 
         {
             let mut file = lf.create_file().unwrap();
@@ -141,7 +117,7 @@ mod test {
         }
 
         {
-            let mut file = lf.get_file().unwrap();
+            let mut file = lf.get_file_mut().unwrap();
             let mut s = Vec::new();
             file.read_to_end(&mut s).unwrap();
             assert_eq!(s, "Hello World".to_string().into_bytes());
