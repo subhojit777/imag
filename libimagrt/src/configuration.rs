@@ -152,6 +152,10 @@ impl Configuration {
         })
     }
 
+    pub fn editor(&self) -> Option<&String> {
+        self.editor.as_ref()
+    }
+
     pub fn config(&self) -> &Value {
         &self.config
     }
