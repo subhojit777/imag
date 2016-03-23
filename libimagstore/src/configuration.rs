@@ -1,5 +1,4 @@
 use toml::Value;
-use hook::position::HookPosition;
 
 /// Check whether the configuration is valid for the store
 ///
@@ -46,10 +45,6 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
 
     if config.is_none() {
         return true;
-    }
-
-    fn has_key_with_map(v: &BTreeMap<String, Value>, key: &str) -> bool {
-        v.get(key).map(|t| match t { &Value::Table(_) => true, _ => false }).unwrap_or(false)
     }
 
     fn has_key_with_string_ary(v: &BTreeMap<String, Value>, key: &str) -> bool {
@@ -185,10 +180,6 @@ impl AspectConfig {
             config: init,
             parallel: parallel,
         }
-    }
-
-    pub fn config(&self) -> &Value {
-        &self.config
     }
 
     fn is_parallel(init: &Value) -> bool {

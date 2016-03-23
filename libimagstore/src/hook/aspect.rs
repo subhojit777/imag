@@ -39,8 +39,6 @@ impl Aspect {
 impl StoreIdAccessor for Aspect {
     fn access(&self, id: &StoreId) -> HookResult<()> {
         use crossbeam;
-        use std::thread;
-        use std::thread::JoinHandle;
 
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
         if !accessors.iter().all(|a| match a { &HDA::StoreIdAccess(_)  => true, _ => false }) {
@@ -56,7 +54,7 @@ impl StoreIdAccessor for Aspect {
                             &HDA::StoreIdAccess(accessor) => accessor.access(id),
                             _ => unreachable!(),
                         }
-                        .map_err(|e| ()) // TODO: We're losing the error cause here
+                        .map_err(|_| ()) // TODO: We're losing the error cause here
                     })
                 })
             })
@@ -108,8 +106,6 @@ impl MutableHookDataAccessor for Aspect {
 impl NonMutableHookDataAccessor for Aspect {
     fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
         use crossbeam;
-        use std::thread;
-        use std::thread::JoinHandle;
 
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
         if !accessors.iter().all(|a| match a { &HDA::NonMutableAccess(_)  => true, _ => false }) {
@@ -125,7 +121,7 @@ impl NonMutableHookDataAccessor for Aspect {
                             &HDA::NonMutableAccess(accessor) => accessor.access(fle),
                             _ => unreachable!(),
                         }
-                        .map_err(|e| ()) // TODO: We're losing the error cause here
+                        .map_err(|_| ()) // TODO: We're losing the error cause here
                     })
                 })
             })

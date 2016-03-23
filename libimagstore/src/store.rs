@@ -15,8 +15,6 @@ use std::ops::DerefMut;
 
 use toml::{Table, Value};
 use regex::Regex;
-use crossbeam;
-use crossbeam::ScopedJoinHandle;
 use glob::glob;
 
 use error::{ParserErrorKind, ParserError};
@@ -25,12 +23,9 @@ use storeid::{StoreId, StoreIdIterator};
 use lazyfile::LazyFile;
 
 use hook::aspect::Aspect;
-use hook::result::HookResult;
 use hook::accessor::{ MutableHookDataAccessor,
             NonMutableHookDataAccessor,
-            StoreIdAccessor,
-            HookDataAccessor,
-            HookDataAccessorProvider};
+            StoreIdAccessor};
 use hook::position::HookPosition;
 use hook::Hook;
 
@@ -81,7 +76,7 @@ impl StoreEntry {
                 // TODO:
                 let mut file = file.unwrap();
                 let entry = Entry::from_file(self.id.clone(), &mut file);
-                file.seek(SeekFrom::Start(0));
+                file.seek(SeekFrom::Start(0)).ok();
                 entry
             }
         } else {
@@ -95,10 +90,11 @@ impl StoreEntry {
             let file = try!(self.file.create_file());
 
             assert_eq!(self.id, entry.location);
-            file.write_all(entry.to_str().as_bytes());
+            file.write_all(entry.to_str().as_bytes())
+                .map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))))
+        } else {
+            Ok(())
         }
-
-        Ok(())
     }
 }
 
@@ -424,7 +420,7 @@ impl Store {
         debug!("     in position: {:?}", position);
         debug!("     with aspect: {:?}", aspect_name);
 
-        let mut guard = match position {
+        let guard = match position {
                 HookPosition::PreRead      => self.pre_read_aspects.clone(),
                 HookPosition::PostRead     => self.post_read_aspects.clone(),
                 HookPosition::PreCreate    => self.pre_create_aspects.clone(),
@@ -437,7 +433,7 @@ impl Store {
                 HookPosition::PostDelete   => self.post_delete_aspects.clone(),
             };
 
-        let mut guard = guard
+        let guard = guard
             .deref()
             .lock()
             .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None));
@@ -501,22 +497,6 @@ impl Store {
             .fold(Ok(()), |acc, aspect| {
                 debug!("[Aspect][exec]: {:?}", aspect);
                 acc.and_then(|_| aspect.access_mut(fle))
-            })
-            .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
-    }
-
-    fn execute_hooks_for_file(&self,
-                              aspects: Arc<Mutex<Vec<Aspect>>>,
-                              fle: &FileLockEntry)
-        -> Result<()>
-    {
-        let guard = aspects.deref().lock();
-        if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
-
-        guard.unwrap().deref().iter()
-            .fold(Ok(()), |acc, aspect| {
-                debug!("[Aspect][exec]: {:?}", aspect);
-                acc.and_then(|_| (aspect as &NonMutableHookDataAccessor).access(fle))
             })
             .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
     }
@@ -1306,8 +1286,6 @@ mod test {
 
     #[test]
     fn test_verification_current_version() {
-        use version;
-
         use super::verify_header_consistency;
 
         let mut header = BTreeMap::new();
