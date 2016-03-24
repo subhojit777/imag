@@ -9,6 +9,7 @@ toml = "0.1.27"
 log = "0.3.4"
 xdg-basedir = "0.2.2"
 itertools = "0.4.6"
+tempfile = "2.1.1"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
