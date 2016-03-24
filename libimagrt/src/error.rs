@@ -6,6 +6,8 @@ use std::fmt::Error as FmtError;
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum RuntimeErrorKind {
     Instantiate,
+    IOError,
+    ProcessExitFailure,
 
     // more?
 }
@@ -29,7 +31,9 @@ impl RuntimeError {
 
 fn runtime_error_kind_as_str(e: &RuntimeErrorKind) -> &'static str {
     match e {
-        &RuntimeErrorKind::Instantiate => "Could not instantiate",
+        &RuntimeErrorKind::Instantiate          => "Could not instantiate",
+        &RuntimeErrorKind::IOError              => "IO Error",
+        &RuntimeErrorKind::ProcessExitFailure   => "Process exited with failure",
     }
 }
 
