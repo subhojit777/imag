@@ -37,24 +37,13 @@ pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> EditResult<()> {
     use std::io::SeekFrom;
     use std::io::Write;
 
-    let file = NamedTempFile::new();
-    if file.is_err() {
-        return Err(RuntimeError::new(RuntimeErrorKind::Instantiate, None));
-    }
-    let file      = file.unwrap();
+    let file      = try!(NamedTempFile::new());
     let file_path = file.path();
-    let file      = file.reopen();
+    let mut file  = try!(file.reopen());
 
-    if file.is_err() {
-        return Err(RuntimeError::new(RuntimeErrorKind::IOError, Some(Box::new(file.err().unwrap()))));
-    }
-
-    let mut file = file.unwrap();
     file.write_all(&s.clone().into_bytes()[..]);
 
-    if let Err(e) = file.sync_data() {
-        return Err(RuntimeError::new(RuntimeErrorKind::IOError, Some(Box::new(e))));
-    }
+    try!(file.sync_data());
 
     if let Some(mut editor) = rt.editor() {
         let exit_status = editor.arg(file_path).status();
