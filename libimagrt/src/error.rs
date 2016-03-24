@@ -2,6 +2,7 @@ use std::error::Error;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Error as FmtError;
+use std::io::Error as IOError;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum RuntimeErrorKind {
@@ -54,6 +55,14 @@ impl Error for RuntimeError {
 
     fn cause(&self) -> Option<&Error> {
         self.cause.as_ref().map(|e| &**e)
+    }
+
+}
+
+impl From<IOError> for RuntimeError {
+
+    fn from(ioe: IOError) -> RuntimeError {
+        RuntimeError::new(RuntimeErrorKind::IOError, Some(Box::new(ioe)))
     }
 
 }
