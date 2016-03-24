@@ -49,15 +49,15 @@ pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> EditResult<()> {
         let exit_status = editor.arg(file_path).status();
 
         match exit_status.map(|s| s.success()) {
-            Ok(true) => {
+            Ok(true)  => {
                 file.sync_data()
                     .and_then(|_| file.seek(SeekFrom::Start(0)))
                     .and_then(|_| file.read_to_string(s))
                     .map(|_| ())
                     .map_err(|e| RuntimeError::new(RuntimeErrorKind::IOError, Some(Box::new(e))))
             },
-            Ok(_)    => Err(RuntimeError::new(RuntimeErrorKind::ProcessExitFailure, None)),
-            Err(e)   => Err(RuntimeError::new(RuntimeErrorKind::IOError, Some(Box::new(e)))),
+            Ok(false) => Err(RuntimeError::new(RuntimeErrorKind::ProcessExitFailure, None)),
+            Err(e)    => Err(RuntimeError::new(RuntimeErrorKind::IOError, Some(Box::new(e)))),
         }
     } else {
         Err(RuntimeError::new(RuntimeErrorKind::Instantiate, None))
