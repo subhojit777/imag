@@ -3,3 +3,5 @@ extern crate toml;
 
 extern crate libimagstore;
 
+pub mod debug;
+

@@ -21,6 +21,7 @@ extern crate clap;
 extern crate toml;
 
 extern crate libimagstore;
+extern crate libimagstorestdhook;
 extern crate libimagutil;
 
 mod configuration;
