@@ -235,7 +235,7 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
                 if f.is_err() {
                 }
                 let mut f = f.unwrap();
-                f.read_to_string(&mut s);
+                f.read_to_string(&mut s).ok();
                 s
             };
             Parser::new(&content[..]).parse()
