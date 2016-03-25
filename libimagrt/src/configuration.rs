@@ -227,7 +227,7 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
                                     .unwrap_or(vec![]),
     ].iter()
         .flatten()
-        .filter(|path| path.exists())
+        .filter(|path| path.exists() && path.is_file())
         .map(|path| {
             let content = {
                 let mut s = String::new();
