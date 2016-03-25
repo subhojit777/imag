@@ -4,3 +4,8 @@ This library provides utility functionality for the modules and the binary
 frontends, such as reading and parsing the configuration file, a builder
 helper for the commandline interface and such.
 
+It also contains the store object and creates it from configuration.
+
+the `libimagrt::runtime::Runtime` object is the first complex object that comes
+to live in a imag binary.
+
