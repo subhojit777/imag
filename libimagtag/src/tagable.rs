@@ -1,6 +1,8 @@
 use std::ops::Deref;
 use std::ops::DerefMut;
 
+use itertools::Itertools;
+
 use libimagstore::store::{Entry, EntryHeader, FileLockEntry};
 
 use error::{TagError, TagErrorKind};
@@ -66,7 +68,7 @@ impl Tagable for EntryHeader {
             return Err(TagError::new(TagErrorKind::NotATag, None));
         }
 
-        let a = ts.iter().map(|t| Value::String(t.clone())).collect();
+        let a = ts.iter().unique().map(|t| Value::String(t.clone())).collect();
         self.set("imag.tags", Value::Array(a))
             .map(|_| ())
             .map_err(|e| TagError::new(TagErrorKind::HeaderWriteError, Some(Box::new(e))))
@@ -81,7 +83,7 @@ impl Tagable for EntryHeader {
         self.get_tags()
             .map(|mut tags| {
                 tags.push(t);
-                self.set_tags(tags)
+                self.set_tags(tags.into_iter().unique().collect())
             })
             .map(|_| ())
     }
