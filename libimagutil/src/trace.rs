@@ -21,7 +21,7 @@ use std::io::stderr;
 /// ```
 pub fn trace_error(e: &Error) {
     print_trace_maxdepth(count_error_causes(e), e, ::std::u64::MAX);
-    write!(stderr(), "");
+    write!(stderr(), "\n");
 }
 
 /// Print an Error type and its cause recursively, but only `max` levels
@@ -47,8 +47,12 @@ pub fn trace_error_dbg(e: &Error) {
 /// processed.
 fn print_trace_maxdepth(idx: u64, e: &Error, max: u64) -> Option<&Error> {
     if e.cause().is_some() && idx > 0 {
-        print_trace_maxdepth(idx - 1, e.cause().unwrap(), max);
-        write!(stderr(), " -- caused:\n");
+        match print_trace_maxdepth(idx - 1, e.cause().unwrap(), max) {
+            None => write!(stderr(), "\n"),
+            Some(_) => write!(stderr(), " -- caused:\n"),
+        };
+    } else {
+        write!(stderr(), "\n");
     }
     write!(stderr(), "Error {:>4} : {}", idx, e.description());
     e.cause()
