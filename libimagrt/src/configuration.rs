@@ -8,7 +8,7 @@ use toml::{Parser, Value};
  */
 pub mod error {
     use std::error::Error;
-    use std::fmt::{Debug, Display, Formatter};
+    use std::fmt::{Display, Formatter};
     use std::fmt::Error as FmtError;
 
     /**
