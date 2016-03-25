@@ -231,7 +231,7 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
         .map(|path| {
             let content = {
                 let mut s = String::new();
-                let mut f = File::open(path);
+                let f = File::open(path);
                 if f.is_err() {
                 }
                 let mut f = f.unwrap();
