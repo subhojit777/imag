@@ -213,7 +213,7 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     let variants = vec!["config", "config.toml", "imagrc", "imagrc.toml"];
     let modifier = |base: &PathBuf, v: &'static str| {
         let mut base = base.clone();
-        base.push(format!("/{}", v));
+        base.push(format!("{}", v));
         base
     };
 
