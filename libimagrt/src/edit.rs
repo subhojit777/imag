@@ -41,8 +41,7 @@ pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> EditResult<()> {
     let file_path = file.path();
     let mut file  = try!(file.reopen());
 
-    file.write_all(&s.clone().into_bytes()[..]);
-
+    try!(file.write_all(&s.clone().into_bytes()[..]));
     try!(file.sync_data());
 
     if let Some(mut editor) = rt.editor() {
