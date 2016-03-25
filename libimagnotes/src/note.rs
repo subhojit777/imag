@@ -3,6 +3,8 @@ use std::ops::{DerefMut, Deref};
 
 use toml::Value;
 
+use libimagrt::runtime::Runtime;
+use libimagrt::edit::{Edit, EditResult};
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
@@ -103,6 +105,14 @@ impl<'a> Note<'a> {
         store.retrieve_for_module("notes")
             .map(|iter| NoteIterator::new(store, iter))
             .map_err(|e| NE::new(NEK::StoreReadError, Some(Box::new(e))))
+    }
+
+}
+
+impl<'a> Edit for Note<'a> {
+
+    fn edit_content(&mut self, rt: &Runtime) -> EditResult<()> {
+        self.entry.edit_content(rt)
     }
 
 }
