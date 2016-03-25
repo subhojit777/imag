@@ -7,11 +7,15 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use std::collections::BTreeMap;
 use std::io::{Seek, SeekFrom};
+use std::io::Write;
 use std::convert::From;
 use std::convert::Into;
 use std::sync::Mutex;
 use std::ops::Deref;
 use std::ops::DerefMut;
+use std::fmt::Formatter;
+use std::fmt::Debug;
+use std::fmt::Error as FMTError;
 
 use toml::{Table, Value};
 use regex::Regex;
@@ -33,7 +37,7 @@ use hook::Hook;
 pub type Result<T> = RResult<T, StoreError>;
 
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum StoreEntryStatus {
     Present,
     Borrowed
@@ -41,6 +45,7 @@ enum StoreEntryStatus {
 
 /// A store entry, depending on the option type it is either borrowed currently
 /// or not.
+#[derive(Debug)]
 struct StoreEntry {
     id: StoreId,
     file: LazyFile,
@@ -501,6 +506,32 @@ impl Store {
                 acc.and_then(|_| aspect.access_mut(fle))
             })
             .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
+    }
+
+}
+
+impl Debug for Store {
+
+    fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FMTError> {
+        try!(write!(fmt, " --- Store ---\n"));
+        try!(write!(fmt, "\n"));
+        try!(write!(fmt, " - location               : {:?}\n", self.location));
+        try!(write!(fmt, " - configuration          : {:?}\n", self.configuration));
+        try!(write!(fmt, " - pre_read_aspects       : {:?}\n", self.pre_read_aspects      ));
+        try!(write!(fmt, " - post_read_aspects      : {:?}\n", self.post_read_aspects     ));
+        try!(write!(fmt, " - pre_create_aspects     : {:?}\n", self.pre_create_aspects    ));
+        try!(write!(fmt, " - post_create_aspects    : {:?}\n", self.post_create_aspects   ));
+        try!(write!(fmt, " - pre_retrieve_aspects   : {:?}\n", self.pre_retrieve_aspects  ));
+        try!(write!(fmt, " - post_retrieve_aspects  : {:?}\n", self.post_retrieve_aspects ));
+        try!(write!(fmt, " - pre_update_aspects     : {:?}\n", self.pre_update_aspects    ));
+        try!(write!(fmt, " - post_update_aspects    : {:?}\n", self.post_update_aspects   ));
+        try!(write!(fmt, " - pre_delete_aspects     : {:?}\n", self.pre_delete_aspects    ));
+        try!(write!(fmt, " - post_delete_aspects    : {:?}\n", self.post_delete_aspects   ));
+        try!(write!(fmt, "\n"));
+        try!(write!(fmt, "Entries:\n"));
+        try!(write!(fmt, "{:?}", self.entries));
+        try!(write!(fmt, "\n"));
+        Ok(())
     }
 
 }
