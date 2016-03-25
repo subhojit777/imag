@@ -1,7 +1,5 @@
 #[derive(Debug)]
 pub enum HookPosition {
-    PreRead,
-    PostRead,
     PreCreate,
     PostCreate,
     PreRetrieve,
