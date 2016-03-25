@@ -39,6 +39,12 @@ impl<'a> Runtime<'a> {
         use configuration::error::ConfigErrorKind;
 
         let matches = cli_spec.get_matches();
+
+        let is_debugging = matches.is_present("debugging");
+        let is_verbose   = matches.is_present("verbosity");
+
+        Runtime::init_logger(is_debugging, is_verbose);
+
         let rtp : PathBuf = matches.value_of("runtimepath")
             .map(PathBuf::from)
             .unwrap_or_else(|| {
@@ -153,10 +159,10 @@ impl<'a> Runtime<'a> {
     /**
      * Initialize the internal logger
      */
-    pub fn init_logger(&self) {
-        let lvl = if self.is_debugging() {
+    fn init_logger(is_debugging: bool, is_verbose: bool) {
+        let lvl = if is_debugging {
             LogLevelFilter::Debug
-        } else if self.is_verbose() {
+        } else if is_verbose {
             LogLevelFilter::Info
         } else {
             LogLevelFilter::Error
