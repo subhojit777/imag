@@ -240,6 +240,11 @@ impl Store {
         Ok(store)
     }
 
+    /// Get the store configuration
+    pub fn config(&self) -> Option<&Value> {
+        self.configuration.as_ref()
+    }
+
     fn storify_id(&self, id: StoreId) -> StoreId {
         debug!("Create new store id out of: {:?} and {:?}", self.location, id);
         let mut new_id = self.location.clone();
