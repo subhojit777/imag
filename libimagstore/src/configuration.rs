@@ -42,6 +42,8 @@ use toml::Value;
 ///
 pub fn config_is_valid(config: &Option<Value>) -> bool {
     use std::collections::BTreeMap;
+    use std::io::Write;
+    use std::io::stderr;
 
     if config.is_none() {
         return true;
@@ -50,14 +52,21 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
     fn has_key_with_string_ary(v: &BTreeMap<String, Value>, key: &str) -> bool {
         v.get(key)
             .map(|t| match t {
-                &Value::Array(ref a) => a.iter().all(|elem| {
-                    match elem {
-                        &Value::String(_) => true,
-                        _ => false,
+                    &Value::Array(ref a) => a.iter().all(|elem| {
+                        match elem {
+                            &Value::String(_) => true,
+                            _ => false,
+                        }
+                    }),
+                    _ => {
+                        write!(stderr(), "Key '{}' in store config should contain an array", key)
+                            .ok();
+                        false
                     }
-                }),
-                _ => false
-            }).unwrap_or(false)
+            }).unwrap_or_else(|| {
+                write!(stderr(), "Required key '{}' is not in store config", key).ok();
+                false
+            })
     }
 
     /// Check that
@@ -79,8 +88,8 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
                 match section_table { // which is
                     &Value::Table(ref section_table) => // a table
                         section_table
-                            .values() // which has values,
-                            .all(|cfg| { // and all of these values
+                            .iter() // which has values,
+                            .all(|(inner_key, cfg)| { // and all of these values
                                 match cfg {
                                     &Value::Table(ref hook_config) => { // are tables
                                         hook_config.get(key) // with a key
@@ -88,13 +97,25 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
                                             .map(|hook_aspect| f(&hook_aspect))
                                             .unwrap_or(false)
                                     },
-                                    _ => false,
+                                    _ => {
+                                        write!(stderr(), "Store config expects '{}' to be in '{}.{}', but isn't.",
+                                                 key, section, inner_key).ok();
+                                        false
+                                    }
                                 }
                             }),
-                    _ => false,
+                    _ => {
+                        write!(stderr(), "Store config expects '{}' to be a Table, but isn't.",
+                               section).ok();
+                        false
+                    }
                 }
             })
-            .unwrap_or(false)
+            .unwrap_or_else(|| {
+                write!(stderr(), "Store config expects section '{}' to be present, but isn't.",
+                        section).ok();
+                false
+            })
     }
 
     match config {
@@ -113,16 +134,21 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
             // The section "hooks" has maps which have a key "aspect" which has a value of type
             // String
             check_all_inner_maps_have_key_with(t, "hooks", "aspect", |asp| {
-                match asp { &Value::String(_) => true, _ => false }
+                let res = match asp { &Value::String(_) => true, _ => false };
+                res
             }) &&
 
             // The section "aspects" has maps which have a key "parllel" which has a value of type
             // Boolean
             check_all_inner_maps_have_key_with(t, "aspects", "parallel", |asp| {
-                match asp { &Value::Boolean(_) => true, _ => false, }
+                let res = match asp { &Value::Boolean(_) => true, _ => false, };
+                res
             })
         }
-        _ => false,
+        _ => {
+            write!(stderr(), "Store config is no table").ok();
+            false
+        },
     }
 }
 
