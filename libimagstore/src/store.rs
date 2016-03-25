@@ -436,7 +436,7 @@ impl Store {
         let guard = guard
             .deref()
             .lock()
-            .map_err(|_| StoreError::new(StoreErrorKind::HookRegisterError, None));
+            .map_err(|_| StoreError::new(StoreErrorKind::LockError, None));
 
         if guard.is_err() {
             return Err(StoreError::new(StoreErrorKind::HookRegisterError,
@@ -450,7 +450,9 @@ impl Store {
                 return Ok(());
             }
         }
-        return Err(StoreError::new(StoreErrorKind::HookRegisterError, None));
+
+        let annfe = StoreError::new(StoreErrorKind::AspectNameNotFoundError, None);
+        return Err(StoreError::new(StoreErrorKind::HookRegisterError, Some(Box::new(annfe))));
     }
 
     fn get_config_for_hook(&self, name: &str) -> Option<&Value> {
