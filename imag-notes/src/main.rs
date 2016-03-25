@@ -10,6 +10,7 @@ extern crate libimagutil;
 
 use std::process::exit;
 
+use libimagrt::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagnotes::note::Note;
 use libimagutil::trace::trace_error;
@@ -73,8 +74,19 @@ fn delete(rt: &Runtime) {
         .ok();
 }
 
-fn edit(_: &Runtime) {
-    unimplemented!()
+fn edit(rt: &Runtime) {
+    let note = Note::retrieve(rt.store(), name_from_cli(rt, "edit"));
+    if note.is_err() {
+        trace_error(&note.err().unwrap());
+        warn!("Cannot edit nonexistent Note");
+    } else {
+        let mut note = note.unwrap();
+        if let Err(e) = note.edit_content(rt) {
+            trace_error(&e);
+            warn!("Editing failed");
+        }
+    }
+
 }
 
 fn list(rt: &Runtime) {
