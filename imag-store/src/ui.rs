@@ -78,10 +78,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .short("r")
                         .help("Print Entries as they are in the store"))
 
-                   .group(ArgGroup::with_name("retrieve-print-group")
-                          .args(&["header-json", "raw"])
-                          .required(true))
-
                    .subcommand(SubCommand::with_name("filter-header")
                                .about("Retrieve Entries by filtering")
                                .version("0.1")
