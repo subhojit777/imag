@@ -506,8 +506,6 @@ impl Debug for Store {
         try!(write!(fmt, "\n"));
         try!(write!(fmt, " - location               : {:?}\n", self.location));
         try!(write!(fmt, " - configuration          : {:?}\n", self.configuration));
-        try!(write!(fmt, " - pre_read_aspects       : {:?}\n", self.pre_read_aspects      ));
-        try!(write!(fmt, " - post_read_aspects      : {:?}\n", self.post_read_aspects     ));
         try!(write!(fmt, " - pre_create_aspects     : {:?}\n", self.pre_create_aspects    ));
         try!(write!(fmt, " - post_create_aspects    : {:?}\n", self.post_create_aspects   ));
         try!(write!(fmt, " - pre_retrieve_aspects   : {:?}\n", self.pre_retrieve_aspects  ));
