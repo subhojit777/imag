@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use std::result::Result as RResult;
+use std::ops::Deref;
 
 use toml::{Parser, Value};
 
@@ -165,6 +166,15 @@ impl Configuration {
             &Value::Table(ref tabl) => tabl.get("store"),
             _ => None,
         }
+    }
+
+}
+
+impl Deref for Configuration {
+    type Target = Value;
+
+    fn deref(&self) -> &Value {
+        &self.config
     }
 
 }
