@@ -41,8 +41,6 @@ fn main() {
         }
     };
 
-    rt.init_logger();
-
     debug!("Hello. Logging was just enabled");
     debug!("I already set up the Runtime object and build the commandline interface parser.");
     debug!("Lets get rollin' ...");
