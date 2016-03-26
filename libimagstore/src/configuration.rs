@@ -126,14 +126,6 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
     }
 }
 
-pub fn get_pre_read_aspect_names(value: &Option<Value>) -> Vec<String> {
-    get_aspect_names_for_aspect_position("pre-read-hook-aspects", value)
-}
-
-pub fn get_post_read_aspect_names(value: &Option<Value>) -> Vec<String> {
-    get_aspect_names_for_aspect_position("post-read-hook-aspects", value)
-}
-
 pub fn get_pre_create_aspect_names(value: &Option<Value>) -> Vec<String> {
     get_aspect_names_for_aspect_position("pre-create-hook-aspects", value)
 }

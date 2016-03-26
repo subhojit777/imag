@@ -116,8 +116,6 @@ pub struct Store {
      * Registered hooks
      */
 
-    pre_read_aspects      : Arc<Mutex<Vec<Aspect>>>,
-    post_read_aspects     : Arc<Mutex<Vec<Aspect>>>,
     pre_create_aspects    : Arc<Mutex<Vec<Aspect>>>,
     post_create_aspects   : Arc<Mutex<Vec<Aspect>>>,
     pre_retrieve_aspects  : Arc<Mutex<Vec<Aspect>>>,
@@ -164,18 +162,6 @@ impl Store {
                 return Err(StoreError::new(StoreErrorKind::StorePathExists, None));
             }
         }
-
-        let pre_read_aspects = get_pre_read_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
-
-        let post_read_aspects = get_post_read_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
 
         let pre_create_aspects = get_pre_create_aspect_names(&store_config)
             .into_iter().map(|n| {
@@ -228,8 +214,6 @@ impl Store {
         let store = Store {
             location: location,
             configuration: store_config,
-            pre_read_aspects      : Arc::new(Mutex::new(pre_read_aspects)),
-            post_read_aspects     : Arc::new(Mutex::new(post_read_aspects)),
             pre_create_aspects    : Arc::new(Mutex::new(pre_create_aspects)),
             post_create_aspects   : Arc::new(Mutex::new(post_create_aspects)),
             pre_retrieve_aspects  : Arc::new(Mutex::new(pre_retrieve_aspects)),
@@ -431,8 +415,6 @@ impl Store {
         debug!("     with aspect: {:?}", aspect_name);
 
         let guard = match position {
-                HookPosition::PreRead      => self.pre_read_aspects.clone(),
-                HookPosition::PostRead     => self.post_read_aspects.clone(),
                 HookPosition::PreCreate    => self.pre_create_aspects.clone(),
                 HookPosition::PostCreate   => self.post_create_aspects.clone(),
                 HookPosition::PreRetrieve  => self.pre_retrieve_aspects.clone(),
