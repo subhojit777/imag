@@ -204,6 +204,8 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     use std::env;
     use std::fs::File;
     use std::io::Read;
+    use std::io::Write;
+    use std::io::stderr;
 
     use xdg_basedir;
     use itertools::Itertools;
@@ -238,7 +240,18 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
                 f.read_to_string(&mut s).ok();
                 s
             };
-            Parser::new(&content[..]).parse()
+            let mut parser = Parser::new(&content[..]);
+            let res = parser.parse();
+            if res.is_none() {
+                write!(stderr(), "Config file parser error:");
+                for error in parser.errors {
+                    write!(stderr(), "At [{}][{}] <> {}", error.lo, error.hi, error);
+                    write!(stderr(), "in: '{}'", &content[error.lo..error.hi]);
+                }
+                None
+            } else {
+                res
+            }
         })
         .filter(|loaded| loaded.is_some())
         .nth(0)
