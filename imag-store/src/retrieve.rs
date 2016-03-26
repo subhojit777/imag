@@ -31,7 +31,8 @@ pub fn retrieve(rt: &Runtime) {
                         .map(|e| print_entry(rt, scmd, e))
                         .map_err(|e| {
                             debug!("No entry.");
-                            debug!("{}", e);
+                            debug!("{}:", e);
+                            trace_error(&e);
                         })
                 })
         });
