@@ -1,28 +1,28 @@
 use std::io::stdout;
 use std::io::Write;
+use std::ops::Deref;
 
-use cli::list_subcommand_name;
 use lister::Lister;
 use result::Result;
 
-use clap::ArgMatches;
 use libimagstore::store::FileLockEntry;
+use libimagstore::store::Entry;
 
-pub struct LineLister<'a> {
-    unknown_output: &'a str,
+pub struct CoreLister<'a> {
+    lister: &'a Fn(&Entry) -> String,
 }
 
-impl<'a> LineLister<'a> {
+impl<'a> CoreLister<'a> {
 
-    pub fn new(unknown_output: &'a str) -> LineLister<'a> {
-        LineLister {
-            unknown_output: unknown_output,
+    pub fn new(lister: &'a Fn(&Entry) -> String) -> CoreLister<'a> {
+        CoreLister {
+            lister: lister,
         }
     }
 
 }
 
-impl<'a> Lister for LineLister<'a> {
+impl<'a> Lister for CoreLister<'a> {
 
     fn list<'b, I: Iterator<Item = FileLockEntry<'b>>>(&self, entries: I) -> Result<()> {
         use error::ListError as LE;
@@ -30,11 +30,11 @@ impl<'a> Lister for LineLister<'a> {
 
         entries.fold(Ok(()), |accu, entry| {
             accu.and_then(|_| {
-                    write!(stdout(), "{:?}\n",
-                            entry.get_location().to_str().unwrap_or(self.unknown_output))
+                    write!(stdout(), "{:?}\n", (self.lister)(entry.deref()))
                         .map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))
                 })
             })
     }
 
 }
+
