@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 use std::process::Command;
 use std::env;
+use std::io::stderr;
+use std::io::Write;
 
 pub use clap::App;
 
@@ -36,14 +38,14 @@ impl<'a> Runtime<'a> {
         use std::env;
         use std::error::Error;
 
+        use libimagstore::hook::position::HookPosition;
+        use libimagstorestdhook::debug::DebugHook;
+        use libimagutil::trace::trace_error;
+
         use configuration::error::ConfigErrorKind;
 
         let matches = cli_spec.get_matches();
-
         let is_debugging = matches.is_present("debugging");
-        let is_verbose   = matches.is_present("verbosity");
-
-        Runtime::init_logger(is_debugging, is_verbose);
 
         let rtp : PathBuf = matches.value_of("runtimepath")
             .map(PathBuf::from)
@@ -70,6 +72,7 @@ impl<'a> Runtime<'a> {
                 let cause : Option<Box<Error>> = Some(Box::new(e));
                 return Err(RuntimeError::new(RuntimeErrorKind::Instantiate, cause));
             } else {
+                trace_error(&e);
                 None
             }
         } else {
@@ -79,11 +82,39 @@ impl<'a> Runtime<'a> {
         let store_config = {
             match &cfg {
                 &Some(ref c) => c.store_config().map(|c| c.clone()),
-                _ => None
+                &None => None,
             }
         };
 
-        Store::new(storepath, store_config).map(|store| {
+        if is_debugging {
+            write!(stderr(), "Config: {:?}\n", cfg);
+            write!(stderr(), "Store-config: {:?}\n", store_config);
+        }
+
+        Store::new(storepath, store_config).map(|mut store| {
+            // If we are debugging, generate hooks for all positions
+            if is_debugging {
+                let hooks = vec![
+                    (DebugHook::new(HookPosition::PreCreate), HookPosition::PreCreate),
+                    (DebugHook::new(HookPosition::PostCreate), HookPosition::PostCreate),
+                    (DebugHook::new(HookPosition::PreRetrieve), HookPosition::PreRetrieve),
+                    (DebugHook::new(HookPosition::PostRetrieve), HookPosition::PostRetrieve),
+                    (DebugHook::new(HookPosition::PreUpdate), HookPosition::PreUpdate),
+                    (DebugHook::new(HookPosition::PostUpdate), HookPosition::PostUpdate),
+                    (DebugHook::new(HookPosition::PreDelete), HookPosition::PreDelete),
+                    (DebugHook::new(HookPosition::PostDelete), HookPosition::PostDelete),
+                ];
+
+                // Put all debug hooks into the aspect "debug".
+                // If it fails, trace the error and warn, but continue.
+                for (hook, position) in hooks {
+                    if let Err(e) = store.register_hook(position, &String::from("debug"), Box::new(hook)) {
+                        trace_error(&e);
+                        warn!("Registering debug hook with store failed");
+                    }
+                }
+            }
+
             Runtime {
                 cli_matches: matches,
                 configuration: cfg,
@@ -228,5 +259,4 @@ impl<'a> Runtime<'a> {
             .map(Command::new)
     }
 }
-
 

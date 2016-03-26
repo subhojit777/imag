@@ -1,0 +1,12 @@
+[package]
+name = "libimagstorestdhook"
+version = "0.1.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+toml = "0.1.25"
+log = "0.3.5"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
