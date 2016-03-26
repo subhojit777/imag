@@ -8,7 +8,7 @@ use toml::{Parser, Value};
  */
 pub mod error {
     use std::error::Error;
-    use std::fmt::{Debug, Display, Formatter};
+    use std::fmt::{Display, Formatter};
     use std::fmt::Error as FmtError;
 
     /**
@@ -231,11 +231,11 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
         .map(|path| {
             let content = {
                 let mut s = String::new();
-                let mut f = File::open(path);
+                let f = File::open(path);
                 if f.is_err() {
                 }
                 let mut f = f.unwrap();
-                f.read_to_string(&mut s);
+                f.read_to_string(&mut s).ok();
                 s
             };
             Parser::new(&content[..]).parse()
