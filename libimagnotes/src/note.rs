@@ -161,6 +161,16 @@ impl<'a> FromStoreId for Note<'a> {
 
 }
 
+impl<'a> Deref for Note<'a> {
+
+    type Target = FileLockEntry<'a>;
+
+    fn deref(&self) -> &FileLockEntry<'a> {
+        &self.entry
+    }
+
+}
+
 pub struct NoteIterator<'a> {
     store: &'a Store,
     iditer: StoreIdIterator,
