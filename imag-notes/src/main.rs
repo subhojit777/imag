@@ -59,12 +59,16 @@ fn name_from_cli(rt: &Runtime, subcmd: &str) -> String {
 }
 
 fn create(rt: &Runtime) {
-    Note::new(rt.store(), String::from(name_from_cli(rt, "create")), String::new())
+    let name = name_from_cli(rt, "create");
+    Note::new(rt.store(), name.clone(), String::new())
         .map_err(|e| trace_error(&e))
-        .map(|_| {
-            // call editor now...
-        })
         .ok();
+
+    if rt.cli().subcommand_matches("create").unwrap().is_present("edit") {
+        if !edit_entry(rt, name) {
+            exit(1);
+        }
+    }
 }
 
 fn delete(rt: &Runtime) {
@@ -75,18 +79,24 @@ fn delete(rt: &Runtime) {
 }
 
 fn edit(rt: &Runtime) {
-    let note = Note::retrieve(rt.store(), name_from_cli(rt, "edit"));
+    edit_entry(rt, name_from_cli(rt, "edit"));
+}
+
+fn edit_entry(rt: &Runtime, name: String) -> bool {
+    let note = Note::retrieve(rt.store(), name);
     if note.is_err() {
         trace_error(&note.err().unwrap());
         warn!("Cannot edit nonexistent Note");
-    } else {
-        let mut note = note.unwrap();
-        if let Err(e) = note.edit_content(rt) {
-            trace_error(&e);
-            warn!("Editing failed");
-        }
+        return false
     }
 
+    let mut note = note.unwrap();
+    if let Err(e) = note.edit_content(rt) {
+        trace_error(&e);
+        warn!("Editing failed");
+        return false
+    }
+    true
 }
 
 fn list(rt: &Runtime) {
