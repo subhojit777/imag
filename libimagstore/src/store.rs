@@ -290,7 +290,7 @@ impl Store {
             })
             .map(|e| FileLockEntry::new(self, e, id))
             .and_then(|mut fle| {
-                if let Err(e) = self.execute_hooks_for_mut_file(self.pre_retrieve_aspects.clone(), &mut fle) {
+                if let Err(e) = self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle) {
                     Err(StoreError::new(StoreErrorKind::HookExecutionError, Some(Box::new(e))))
                 } else {
                     Ok(fle)
