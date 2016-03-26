@@ -239,6 +239,13 @@ impl<'a> Runtime<'a> {
     }
 
     /**
+     * Get the configuration object
+     */
+    pub fn config(&self) -> Option<&Configuration> {
+        self.configuration.as_ref()
+    }
+
+    /**
      * Get the store object
      */
     pub fn store(&self) -> &Store {
