@@ -36,7 +36,8 @@ impl Into<HookError> for (HookErrorKind, Box<Error>) {
 
 fn hook_error_type_as_str(e: &HookErrorKind) -> &'static str {
     match e {
-        _ => "",
+        &HookErrorKind::HookExecutionError  => "Hook exec error",
+        &HookErrorKind::AccessTypeViolation => "Hook access type violation",
     }
 }
 
