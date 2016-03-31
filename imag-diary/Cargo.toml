@@ -4,3 +4,32 @@ version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
+chrono = "0.2"
+version = "2.0"
+clap = "2.1.1"
+log = "0.3.5"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimagdiary]
+path = "../libimagdiary"
+
+[dependencies.libimagentrylist]
+path = "../libimagentrylist"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimaginteraction]
+path = "../libimaginteraction"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagtimeui]
+path = "../libimagtimeui"
+

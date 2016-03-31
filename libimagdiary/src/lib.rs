@@ -23,7 +23,7 @@ extern crate regex;
 extern crate itertools;
 
 #[macro_use] extern crate libimagstore;
-extern crate libimagutil;
+#[macro_use] extern crate libimagutil;
 #[macro_use] extern crate libimagerror;
 extern crate libimagrt;
 
