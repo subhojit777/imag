@@ -4,16 +4,23 @@ version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
+chrono = "0.2"
 log = "0.3.5"
 semver = "0.2"
 toml = "0.1.25"
+regex = "0.1"
+lazy_static = "0.2"
+itertools = "0.4"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
 
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
 [dependencies.libimagrt]
 path = "../libimagrt"
-
-[dependencies.libimagnotes]
-path = "../libimagnotes"
 
