@@ -45,7 +45,11 @@ impl<'a> Runtime<'a> {
         use configuration::error::ConfigErrorKind;
 
         let matches = cli_spec.get_matches();
+
         let is_debugging = matches.is_present("debugging");
+        let is_verbose   = matches.is_present("verbosity");
+
+        Runtime::init_logger(is_debugging, is_verbose);
 
         let rtp : PathBuf = matches.value_of("runtimepath")
             .map(PathBuf::from)
