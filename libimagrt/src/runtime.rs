@@ -39,8 +39,10 @@ impl<'a> Runtime<'a> {
         use std::error::Error;
 
         use libimagstore::hook::position::HookPosition;
+        use libimagstore::error::StoreErrorKind;
         use libimagstorestdhook::debug::DebugHook;
         use libimagutil::trace::trace_error;
+        use libimagutil::trace::trace_error_dbg;
 
         use configuration::error::ConfigErrorKind;
 
@@ -109,8 +111,12 @@ impl<'a> Runtime<'a> {
                 // If it fails, trace the error and warn, but continue.
                 for (hook, position) in hooks {
                     if let Err(e) = store.register_hook(position, &String::from("debug"), Box::new(hook)) {
-                        trace_error(&e);
-                        warn!("Registering debug hook with store failed");
+                        if e.err_type() == StoreErrorKind::HookRegisterError {
+                            trace_error_dbg(&e);
+                            warn!("Registering debug hook with store failed");
+                        } else {
+                            trace_error(&e);
+                        };
                     }
                 }
             }
