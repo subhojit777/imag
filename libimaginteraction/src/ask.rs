@@ -1,6 +1,8 @@
 // functions to ask the user for data, with crate:spinner
 
 use std::io::stdin;
+use std::io::BufRead;
+use std::io::BufReader;
 
 use regex::Regex;
 use ansi_term::Colour::*;
@@ -8,6 +10,10 @@ use ansi_term::Colour::*;
 /// Ask the user for a Yes/No answer. Optionally provide a default value. If none is provided, this
 /// keeps loop{}ing
 pub fn ask_bool(s: &str, default: Option<bool>) -> bool {
+    ask_bool_(s, default, &mut BufReader::new(stdin()))
+}
+
+fn ask_bool_<R: BufRead>(s: &str, default: Option<bool>, input: &mut R) -> bool {
     lazy_static! {
         static ref R_YES: Regex = Regex::new(r"^[Yy]$").unwrap();
         static ref R_NO: Regex  = Regex::new(r"^[Nn]$").unwrap();
@@ -22,7 +28,7 @@ pub fn ask_bool(s: &str, default: Option<bool>) -> bool {
         }
 
         let mut s = String::new();
-        let _     = stdin().read_line(&mut s);
+        let _     = input.read_line(&mut s);
 
         if R_YES.is_match(&s[..]) {
             return true
@@ -62,3 +68,82 @@ pub fn ask_question(question: &str, nl: bool) {
     }
 }
 
+#[cfg(test)]
+mod test {
+    use std::io::BufReader;
+
+    use super::ask_bool_;
+
+    #[test]
+    fn test_ask_bool_nodefault_yes() {
+        let question = "Is this true";
+        let default  = None;
+        let answers  = "\n\n\n\n\ny";
+
+        assert!(ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
+    }
+
+    #[test]
+    fn test_ask_bool_nodefault_no() {
+        let question = "Is this true";
+        let default  = None;
+        let answers  = "n";
+
+        assert!(false == ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
+    }
+
+    #[test]
+    fn test_ask_bool_default_no() {
+        let question = "Is this true";
+        let default  = Some(false);
+        let answers  = "n";
+
+        assert!(false == ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
+    }
+
+    #[test]
+    fn test_ask_bool_default_yes() {
+        let question = "Is this true";
+        let default  = Some(true);
+        let answers  = "y";
+
+        assert!(true == ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
+    }
+
+    #[test]
+    fn test_ask_bool_default_yes_answer_no() {
+        let question = "Is this true";
+        let default  = Some(true);
+        let answers  = "n";
+
+        assert!(false == ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
+    }
+
+    #[test]
+    fn test_ask_bool_default_no_answer_yes() {
+        let question = "Is this true";
+        let default  = Some(false);
+        let answers  = "y";
+
+        assert!(true == ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
+    }
+
+    #[test]
+    fn test_ask_bool_default_no_without_answer() {
+        let question = "Is this true";
+        let default  = Some(false);
+        let answers  = "\n";
+
+        assert!(false == ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
+    }
+
+    #[test]
+    fn test_ask_bool_default_yes_without_answer() {
+        let question = "Is this true";
+        let default  = Some(true);
+        let answers  = "\n";
+
+        assert!(true == ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
+    }
+
+}
