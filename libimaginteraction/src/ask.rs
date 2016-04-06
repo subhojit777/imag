@@ -71,8 +71,74 @@ fn ask_uint_<R: BufRead>(s: &str, default: Option<u64>, input: &mut R) -> u64 {
     }
 }
 
-pub fn ask_string(s: &str) -> String {
-    unimplemented!()
+/// Ask the user for a String.
+///
+/// If `permit_empty` is set to false, the default value will be returned if the user inserts an
+/// empty string.
+///
+/// If the `permit_empty` value is true, the `default` value is never returned.
+///
+/// If the `permit_multiline` is set to true, the `prompt` will be displayed before each input line.
+///
+/// If the `eof` parameter is `None`, the input ends as soon as there is an empty line input from
+/// the user. If the parameter is `Some(text)`, the input ends if the input line is equal to `text`.
+pub fn ask_string(s: &str,
+                  default: Option<String>,
+                  permit_empty: bool,
+                  permit_multiline: bool,
+                  eof: Option<&str>,
+                  prompt: &str)
+    -> String
+{
+    ask_string_(s,
+                default,
+                permit_empty,
+                permit_multiline,
+                eof,
+                prompt,
+                &mut BufReader::new(stdin()))
+}
+
+pub fn ask_string_<R: BufRead>(s: &str,
+                               default: Option<String>,
+                               permit_empty: bool,
+                               permit_multiline: bool,
+                               eof: Option<&str>,
+                               prompt: &str,
+                               input: &mut R)
+    -> String
+{
+    let mut v = vec![];
+    loop {
+        ask_question(s, true);
+        print!("{}", prompt);
+
+        let mut s = String::new();
+        let _     = input.read_line(&mut s);
+
+        if permit_multiline {
+            if permit_multiline && eof.map(|e| e == s).unwrap_or(false) {
+                return v.join("\n");
+            }
+
+            if permit_empty || v.len() != 0 {
+                v.push(s);
+            }
+            print!("{}", prompt);
+        } else {
+            if s.len() == 0 && permit_empty {
+                return s;
+            } else if s.len() == 0 && !permit_empty {
+                if default.is_some() {
+                    return default.unwrap();
+                } else {
+                    continue;
+                }
+            } else {
+                return s;
+            }
+        }
+    }
 }
 
 pub fn ask_enum<E: From<String>>(s: &str) -> E {
