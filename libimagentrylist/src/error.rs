@@ -10,7 +10,8 @@ use std::fmt::{Display, Formatter};
 pub enum ListErrorKind {
     FormatError,
     EntryError,
-    IterationError
+    IterationError,
+    CLIError,
 }
 
 fn counter_error_type_as_str(err: &ListErrorKind) -> &'static str{
@@ -18,6 +19,7 @@ fn counter_error_type_as_str(err: &ListErrorKind) -> &'static str{
         &ListErrorKind::FormatError    => "FormatError",
         &ListErrorKind::EntryError     => "EntryError",
         &ListErrorKind::IterationError => "IterationError",
+        &ListErrorKind::CLIError       => "No CLI subcommand for listing entries",
     }
 }
 
