@@ -13,6 +13,14 @@ pub trait Edit {
     fn edit_content(&mut self, rt: &Runtime) -> EditResult<()>;
 }
 
+impl Edit for String {
+
+    fn edit_content(&mut self, rt: &Runtime) -> EditResult<()> {
+        edit_in_tmpfile(rt, self).map(|_| ())
+    }
+
+}
+
 impl Edit for Entry {
 
     fn edit_content(&mut self, rt: &Runtime) -> EditResult<()> {
