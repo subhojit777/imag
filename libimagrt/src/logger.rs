@@ -26,7 +26,13 @@ impl Log for ImagLogger {
     fn log(&self, record: &LogRecord) {
         if self.enabled(record.metadata()) {
             // TODO: This is just simple logging. Maybe we can enhance this lateron
-            writeln!(stderr(), "[imag][{: <5}]: {}", record.level(), record.args()).ok();
+            if record.metadata().level() == LogLevel::Debug {
+                let loc = record.location();
+                writeln!(stderr(), "[imag][{: <5}][{}][{: >5}]: {}",
+                         record.level(), loc.file(), loc.line(), record.args()).ok();
+            } else {
+                writeln!(stderr(), "[imag][{: <5}]: {}", record.level(), record.args()).ok();
+            }
         }
     }
 }
