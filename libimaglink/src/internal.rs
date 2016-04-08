@@ -1,5 +1,6 @@
 use libimagstore::storeid::StoreId;
 use libimagstore::store::Entry;
+use libimagstore::store::EntryHeader;
 use libimagstore::store::Result as StoreResult;
 
 use error::{LinkError, LinkErrorKind};
@@ -61,23 +62,7 @@ impl InternalLinker for Entry {
                 self.get_internal_links()
                     .and_then(|mut links| {
                         links.push(new_link);
-
-                        // try to convert them to str so we can put them back into the header
-                        let links : Vec<Option<Value>> = links
-                            .into_iter()
-                            .map(|s| s.to_str().map(|s| Value::String(String::from(s))))
-                            .collect();
-
-                        if links.iter().any(|o| o.is_none()) {
-                            // if any type convert failed we fail as well
-                            Err(LinkError::new(LinkErrorKind::InternalConversionError, None))
-                        } else {
-                            // I know it is ugly
-                            let links = links.into_iter().map(|opt| opt.unwrap()).collect();
-                            let process = self.get_header_mut().set("imag.links", Value::Array(links));
-                            process_rw_result(process)
-                                .map(|_| ())
-                        }
+                        rewrite_links(self.get_header_mut(), links)
                     })
             })
     }
@@ -88,48 +73,35 @@ impl InternalLinker for Entry {
 
         link.get_internal_links()
             .and_then(|links| {
-                let links : Vec<Option<Value>> = links.into_iter()
-                    .filter(|l| l.clone() != own_loc)
-                    .map(|s| {
-                        match s.to_str() {
-                            Some(s) => Some(Value::String(String::from(s))),
-                            _ => None
-                        }
-                    })
-                    .collect();
-
-                if links.iter().any(|o| o.is_none()) {
-                    Err(LinkError::new(LinkErrorKind::InternalConversionError, None))
-                } else {
-                    let links = links.into_iter().map(|opt| opt.unwrap()).collect();
-                    process_rw_result(self.get_header_mut().set("imag.links", Value::Array(links)))
-                        .map(|_| ())
-                }
+                let links = links.into_iter().filter(|l| l.clone() != own_loc).collect();
+                rewrite_links(self.get_header_mut(), links)
             })
             .and_then(|_| {
                 self.get_internal_links()
                     .and_then(|links| {
-                        let links : Vec<Option<Value>> = links
-                            .into_iter()
-                            .filter(|l| l.clone() != other_loc)
-                            .map(|s| {
-                                match s.to_str() {
-                                    Some(s) => Some(Value::String(String::from(s))),
-                                    _ => None
-                                }
-                            })
-                            .collect();
-                        if links.iter().any(|o| o.is_none()) {
-                            Err(LinkError::new(LinkErrorKind::InternalConversionError, None))
-                        } else {
-                            let links = links.into_iter().map(|opt| opt.unwrap()).collect();
-                            process_rw_result(link.get_header_mut().set("imag.links", Value::Array(links)))
-                                .map(|_| ())
-                        }
+                        let links = links.into_iter().filter(|l| l.clone() != other_loc).collect();
+                        rewrite_links(link.get_header_mut(), links)
                     })
             })
     }
 
+}
+
+fn rewrite_links(header: &mut EntryHeader, links: Vec<StoreId>) -> Result<()> {
+    let links : Vec<Option<Value>> = links
+        .into_iter()
+        .map(|s| s.to_str().map(|s| Value::String(String::from(s))))
+        .collect();
+
+    if links.iter().any(|o| o.is_none()) {
+        // if any type convert failed we fail as well
+        Err(LinkError::new(LinkErrorKind::InternalConversionError, None))
+    } else {
+        // I know it is ugly
+        let links = links.into_iter().map(|opt| opt.unwrap()).collect();
+        let process = header.set("imag.links", Value::Array(links));
+        process_rw_result(process).map(|_| ())
+    }
 }
 
 /// When Linking A -> B, the specification wants us to link back B -> A.
