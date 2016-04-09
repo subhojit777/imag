@@ -13,21 +13,27 @@
 
 use std::convert::Into;
 use std::ops::Deref;
+use std::ops::DerefMut;
+use std::collections::BTreeMap;
 
 use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagstore::storeid::StoreId;
+use libimagstore::storeid::IntoStoreId;
 
 use error::LinkError as LE;
 use error::LinkErrorKind as LEK;
 use result::Result;
 use internal::InternalLinker;
+use module_path::ModuleEntryPath;
 
 use toml::Value;
 use toml::Table;
 use url::Url;
+use sodiumoxide::crypto::hash;
+use sodiumoxide::crypto::hash::sha512::Digest;
 
 /// "Link" Type, just an abstraction over FileLockEntry to have some convenience internally.
 struct Link<'a> {
@@ -94,7 +100,7 @@ pub trait ExternalLinker : InternalLinker {
     fn get_external_links(&self, store: &Store) -> Result<Vec<Url>>;
 
     /// Set the external links for the implementor object
-    fn set_external_links(&mut self, links: Vec<Url>) -> Result<Vec<Url>>;
+    fn set_external_links(&mut self, store: &Store, links: Vec<Url>) -> Result<()>;
 
     /// Add an external link to the implementor object
     fn add_external_link(&mut self, link: Url) -> Result<()>;
@@ -141,11 +147,59 @@ impl ExternalLinker for Entry {
     }
 
     /// Set the external links for the implementor object
-    fn set_external_links(&mut self, links: Vec<Url>) -> Result<Vec<Url>> {
+    fn set_external_links(&mut self, store: &Store, links: Vec<Url>) -> Result<()> {
         // Take all the links, generate a SHA sum out of each one, filter out the already existing
         // store entries and store the other URIs in the header of one FileLockEntry each, in
         // the path /link/external/<SHA of the URL>
-        unimplemented!()
+
+        /// Convert a hash::sha512::Digest from sodiumoxide into a StoreId
+        fn hash_to_storeid(d: Digest) -> StoreId {
+            let hash = &d[..];
+            let v = Vec::from(hash);
+            let s = String::from_utf8(v).unwrap(); // TODO: Uncaught unwrap()
+            ModuleEntryPath::new(format!("external/{}", s)).into_storeid()
+        }
+
+        for link in links { // for all links
+            let hash     = hash::hash(link.serialize().as_bytes());
+            let file_id  = hash_to_storeid(hash);
+
+            let mut file = {
+                if let Ok(mut file) = store.retrieve(file_id.clone()) { // retrieve the file from the store
+                    file
+                } else { // or
+                    let res = store.create(file_id) // create it
+                        .and_then(|mut file| {
+                            {
+                                let mut hdr = file.deref_mut().get_header_mut();
+
+                                // Write the URI into the header
+                                match hdr.set("imag.content", Value::Table(BTreeMap::new())) {
+                                    Ok(_) => {
+                                        let v = Value::String(link.serialize());
+                                        hdr.set("imag.content.uri", v);
+                                        Ok(())
+                                    },
+                                    Err(e) => Err(e),
+                                }
+                            }.map(|_| file)
+                        })
+                        .map_err(|e| LE::new(LEK::StoreWriteError, Some(Box::new(e))));
+
+                    // And if that fails we can error
+                    if let Err(e) = res {
+                        return Err(e);
+                    }
+                    res.unwrap()
+                }
+            };
+
+            // then add an internal link to the new file or return an error if this fails
+            if let Err(e) = self.add_internal_link(file.deref_mut()) {
+                return Err(LE::new(LEK::StoreWriteError, Some(Box::new(e))));
+            }
+        }
+        Ok(())
     }
 
     /// Add an external link to the implementor object
