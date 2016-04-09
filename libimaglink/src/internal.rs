@@ -8,7 +8,7 @@ use result::Result;
 
 use toml::Value;
 
-pub type Link = String;
+pub type Link = StoreId;
 
 pub trait InternalLinker {
 
@@ -56,81 +56,76 @@ impl InternalLinker for Entry {
 
     fn add_internal_link(&mut self, link: &mut Entry) -> Result<()> {
         let new_link = link.get_location().clone();
-        let new_link = new_link.to_str();
-        if new_link.is_none() {
-            return Err(LinkError::new(LinkErrorKind::InternalConversionError, None));
-        }
-        let new_link = new_link.unwrap();
 
         add_foreign_link(link, self.get_location().clone())
             .and_then(|_| {
                 self.get_internal_links()
                     .and_then(|mut links| {
-                        links.push(String::from(new_link));
-                        let links = links.into_iter().map(|s| Value::String(s)).collect();
-                        let process = self.get_header_mut().set("imag.links", Value::Array(links));
-                        process_rw_result(process)
-                            .map(|_| ())
+                        links.push(new_link);
+                        rewrite_links(self.get_header_mut(), links)
                     })
             })
     }
 
     fn remove_internal_link(&mut self, link: &mut Entry) -> Result<()> {
-        let own_loc = link.get_location().clone();
-        let own_loc = own_loc.to_str();
-        if own_loc.is_none() {
-            return Err(LinkError::new(LinkErrorKind::InternalConversionError, None));
-        }
-        let own_loc = own_loc.unwrap();
-
+        let own_loc   = link.get_location().clone();
         let other_loc = link.get_location().clone();
-        let other_loc = other_loc.to_str();
-        if other_loc.is_none() {
-            return Err(LinkError::new(LinkErrorKind::InternalConversionError, None));
-        }
-        let other_loc = other_loc.unwrap();
 
         link.get_internal_links()
-            .and_then(|mut links| {
-                let links = links.into_iter()
-                    .filter(|l| l.clone() != own_loc)
-                    .map(|s| Value::String(s))
-                    .collect();
-                process_rw_result(link.get_header_mut().set("imag.links", Value::Array(links)))
-                    .map(|_| ())
+            .and_then(|links| {
+                let links = links.into_iter().filter(|l| l.clone() != own_loc).collect();
+                rewrite_links(self.get_header_mut(), links)
             })
             .and_then(|_| {
                 self.get_internal_links()
-                    .and_then(|mut links| {
-                        let links = links
-                            .into_iter()
-                            .filter(|l| l.clone() != other_loc)
-                            .map(|s| Value::String(s))
-                            .collect();
-                        process_rw_result(self.get_header_mut().set("imag.links", Value::Array(links)))
-                            .map(|_| ())
+                    .and_then(|links| {
+                        let links = links.into_iter().filter(|l| l.clone() != other_loc).collect();
+                        rewrite_links(link.get_header_mut(), links)
                     })
             })
     }
 
 }
 
+fn rewrite_links(header: &mut EntryHeader, links: Vec<StoreId>) -> Result<()> {
+    let links : Vec<Option<Value>> = links
+        .into_iter()
+        .map(|s| s.to_str().map(|s| Value::String(String::from(s))))
+        .collect();
+
+    if links.iter().any(|o| o.is_none()) {
+        // if any type convert failed we fail as well
+        Err(LinkError::new(LinkErrorKind::InternalConversionError, None))
+    } else {
+        // I know it is ugly
+        let links = links.into_iter().map(|opt| opt.unwrap()).collect();
+        let process = header.set("imag.links", Value::Array(links));
+        process_rw_result(process).map(|_| ())
+    }
+}
+
 /// When Linking A -> B, the specification wants us to link back B -> A.
 /// This is a helper function which does this.
 fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
-    let from = from.to_str();
-    if from.is_none() {
-        debug!("Cannot convert pathbuf '{:?}' to String", from);
-        return Err(LinkError::new(LinkErrorKind::InternalConversionError, None));
-    }
-    let from = from.unwrap();
-
     target.get_internal_links()
         .and_then(|mut links| {
-            links.push(String::from(from));
-            let links = links.into_iter().map(|s| Value::String(s)).collect();
-            process_rw_result(target.get_header_mut().set("imag.links", Value::Array(links)))
-                .map(|_| ())
+            links.push(from);
+            let links : Vec<Option<Value>> = links
+                .into_iter()
+                .map(|s| {
+                    match s.to_str() {
+                        Some(s) => Some(Value::String(String::from(s))),
+                        _ => None
+                    }
+                })
+                .collect();
+            if links.iter().any(|o| o.is_none()) {
+                Err(LinkError::new(LinkErrorKind::InternalConversionError, None))
+            } else {
+                let links = links.into_iter().map(|opt| opt.unwrap()).collect();
+                process_rw_result(target.get_header_mut().set("imag.links", Value::Array(links)))
+                    .map(|_| ())
+            }
         })
 }
 
@@ -149,7 +144,7 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
     let links : Vec<Link> = links.into_iter()
         .map(|link| {
             match link {
-                Value::String(s) => String::from(s),
+                Value::String(s) => StoreId::from(s),
                 _ => unreachable!(),
             }
         })
