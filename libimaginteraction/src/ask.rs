@@ -141,10 +141,6 @@ pub fn ask_string_<R: BufRead>(s: &str,
     }
 }
 
-pub fn ask_enum<E: From<String>>(s: &str) -> E {
-    unimplemented!()
-}
-
 /// Helper function to print a imag question string. The `question` argument may not contain a
 /// trailing questionmark.
 ///
