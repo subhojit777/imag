@@ -80,12 +80,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                          .required(false)
                          .help("List external link"))
 
-                    .arg(Arg::with_name("show")
-                         .long("show")
-                         .short("s")
-                         .takes_value(false)
-                         .required(false)
-                         .help("List external link (alias for --list)"))
                     )
 }
 
