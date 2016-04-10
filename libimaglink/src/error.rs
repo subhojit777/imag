@@ -13,6 +13,7 @@ pub enum LinkErrorKind {
     InternalConversionError,
     InvalidUri,
     StoreReadError,
+    StoreWriteError,
 }
 
 fn link_error_type_as_str(e: &LinkErrorKind) -> &'static str {
@@ -37,6 +38,9 @@ fn link_error_type_as_str(e: &LinkErrorKind) -> &'static str {
 
         &LinkErrorKind::StoreReadError
             => "Store read error",
+
+        &LinkErrorKind::StoreWriteError
+            => "Store write error",
     }
 }
 
