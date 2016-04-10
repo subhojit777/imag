@@ -106,7 +106,7 @@ pub trait ExternalLinker : InternalLinker {
     fn add_external_link(&mut self, store: &Store, link: Url) -> Result<()>;
 
     /// Remove an external link from the implementor object
-    fn remove_external_link(&mut self, link: Url) -> Result<()>;
+    fn remove_external_link(&mut self, store: &Store, link: Url) -> Result<()>;
 
 }
 
@@ -213,9 +213,15 @@ impl ExternalLinker for Entry {
     }
 
     /// Remove an external link from the implementor object
-    fn remove_external_link(&mut self, link: Url) -> Result<()> {
+    fn remove_external_link(&mut self, store: &Store, link: Url) -> Result<()> {
         // get external links, remove this one, save them
-        unimplemented!()
+        self.get_external_links(store)
+            .and_then(|mut links| {
+                let links = links.into_iter()
+                    .filter(|l| l.serialize() != link.serialize())
+                    .collect();
+                self.set_external_links(store, links)
+            })
     }
 
 }
