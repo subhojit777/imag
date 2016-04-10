@@ -103,7 +103,7 @@ pub trait ExternalLinker : InternalLinker {
     fn set_external_links(&mut self, store: &Store, links: Vec<Url>) -> Result<()>;
 
     /// Add an external link to the implementor object
-    fn add_external_link(&mut self, link: Url) -> Result<()>;
+    fn add_external_link(&mut self, store: &Store, link: Url) -> Result<()>;
 
     /// Remove an external link from the implementor object
     fn remove_external_link(&mut self, link: Url) -> Result<()>;
@@ -203,9 +203,13 @@ impl ExternalLinker for Entry {
     }
 
     /// Add an external link to the implementor object
-    fn add_external_link(&mut self, link: Url) -> Result<()> {
+    fn add_external_link(&mut self, store: &Store, link: Url) -> Result<()> {
         // get external links, add this one, save them
-        unimplemented!()
+        self.get_external_links(store)
+            .and_then(|mut links| {
+                links.push(link);
+                self.set_external_links(store, links)
+            })
     }
 
     /// Remove an external link from the implementor object
