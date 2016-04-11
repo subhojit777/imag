@@ -85,6 +85,42 @@ Though, the very core of the system is stable and nothing prevents _you_ from
 contributing and implementing a module, though some convenience is not yet
 provided (as the libraries are work-in-progress).
 
+## Building/Running
+
+### Building
+
+To build a single module:
+```
+$> cd <imag-proj-dir>/imag-<module>
+$> cargo build
+```
+It may be tiresome to build all the modules by hand, but one can do something
+like this:
+```
+$> for dir in \
+>$(find ./ -maxdepth 1 -path "./imag-*" -name "imag-*" -type d)
+>do
+>pushd $dir; cargo build; popd
+>done
+```
+
+### Running
+
+To run imag, simply call `./bin/imag`. This script has a function to search for
+modules, which utilizes an environment variable called `IMAG_IS_THE_SHIT`.
+To run imag with all components:
+```
+$> IMAG_IS_THE_SHIT=$(pwd) ./bin/imag
+```
+assuming you are currently in the imag source directory. Otherwise it is
+```
+$>IMAG_IS_THE_SHIT=$IMAG_SRC $IMAG_SRC/bin/imag
+```
+if $IMAG_SOURCE points to the imag source directory.
+
+To test, simply add `--help` to one of the above commands. Imag should now be
+able to find the available commands.
+
 ## Documentation
 
 For detailed information, please read [the documentation](./doc/) (You can
@@ -95,6 +131,6 @@ either read the Markdown files or compile it to HTML/PDF using
 
 We chose to distribute this software under terms of GNU LGPLv2.1.
 
-This dicision was made to ensure everyone can write applications which use the
+This decision was made to ensure everyone can write applications which use the
 imag core functionality which is distributed with the imag source distribution.
 
