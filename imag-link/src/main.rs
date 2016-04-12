@@ -194,21 +194,25 @@ fn handle_external_linking(rt: &Runtime) {
     let mut entry = entry.unwrap();
 
     if scmd.is_present("add") {
+        debug!("Adding link to entry!");
         add_link_to_entry(rt.store(), scmd, &mut entry);
         return;
     }
 
     if scmd.is_present("remove") {
+        debug!("Removing link from entry!");
         remove_link_from_entry(rt.store(), scmd, &mut entry);
         return;
     }
 
     if scmd.is_present("set") {
+        debug!("Setting links in entry!");
         set_links_for_entry(rt.store(), scmd, &mut entry);
         return;
     }
 
     if scmd.is_present("list") {
+        debug!("Listing links in entry!");
         list_links_for_entry(rt.store(), &mut entry);
         return;
     }
@@ -221,14 +225,18 @@ fn add_link_to_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLockEn
 
     let link = Url::parse(link);
     if link.is_err() {
+        debug!("URL parsing error...");
         trace_error(&link.err().unwrap());
+        debug!("Exiting");
         exit(1);
     }
     let link = link.unwrap();
 
     if let Err(e) = entry.add_external_link(store, link) {
+        debug!("Error while adding external link...");
         trace_error(&e);
     } else {
+        debug!("Everything worked well");
         info!("Ok");
     }
 }
