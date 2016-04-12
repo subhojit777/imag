@@ -112,6 +112,7 @@ pub trait ExternalLinker : InternalLinker {
 
 /// Check whether the StoreId starts with `/link/external/`
 fn is_link_store_id(id: &StoreId) -> bool {
+    debug!("Checking whether this is a /link/external/*: '{:?}'", id);
     id.starts_with("/link/external/")
 }
 
@@ -132,12 +133,17 @@ impl ExternalLinker for Entry {
         // put them into the return vector.
         self.get_internal_links()
             .map(|vect| {
+                debug!("Getting external links");
                 vect.into_iter()
                     .filter(is_link_store_id)
                     .map(|id| {
-                        match store.retrieve(id) {
+                        debug!("Retrieving entry for id: '{:?}'", id);
+                        match store.retrieve(id.clone()) {
                             Ok(f) => get_external_link_from_file(&f),
-                            Err(e) => Err(LE::new(LEK::StoreReadError, Some(Box::new(e)))),
+                            Err(e) => {
+                                debug!("Retrieving entry for id: '{:?}' failed", id);
+                                Err(LE::new(LEK::StoreReadError, Some(Box::new(e))))
+                            }
                         }
                     })
                     .filter_map(|x| x.ok()) // TODO: Do not ignore error here
@@ -157,30 +163,47 @@ impl ExternalLinker for Entry {
             let hash = &d[..];
             let v = Vec::from(hash);
             let s = String::from_utf8(v).unwrap(); // TODO: Uncaught unwrap()
-            ModuleEntryPath::new(format!("external/{}", s)).into_storeid()
+            debug!("Generating store id for digest: '{:?}' == {}", d, s);
+
+            let id = ModuleEntryPath::new(format!("external/{}", s)).into_storeid();
+            debug!("Generted store id: '{:?}'", id);
+
+            id
         }
 
+        debug!("Iterating {} links = {:?}", links.len(), links);
         for link in links { // for all links
             let hash     = hash::hash(link.serialize().as_bytes());
             let file_id  = hash_to_storeid(hash);
 
+            debug!("Link    = '{:?}'", link);
+            debug!("Hash    = '{:?}'", hash);
+            debug!("StoreId = '{:?}'", file_id);
+
             let mut file = {
                 if let Ok(mut file) = store.retrieve(file_id.clone()) { // retrieve the file from the store
+                    debug!("Woha, there is already a file for this link: '{:?}'", link);
                     file
                 } else { // or
+                    debug!("Generating file for link = '{:?}' on id = {:?}", link, file_id);
                     let res = store.create(file_id) // create it
                         .and_then(|mut file| {
                             {
+                                debug!("Generating header content!");
                                 let mut hdr = file.deref_mut().get_header_mut();
 
                                 // Write the URI into the header
                                 match hdr.set("imag.content", Value::Table(BTreeMap::new())) {
                                     Ok(_) => {
                                         let v = Value::String(link.serialize());
+                                        debug!("setting URL = '{:?}", v);
                                         hdr.set("imag.content.uri", v);
                                         Ok(())
                                     },
-                                    Err(e) => Err(e),
+                                    Err(e) => {
+                                        debug!("Failed to generate a table in header at 'imag.content'");
+                                        Err(e)
+                                    },
                                 }
                             }.map(|_| file)
                         })
@@ -188,26 +211,33 @@ impl ExternalLinker for Entry {
 
                     // And if that fails we can error
                     if let Err(e) = res {
+                        debug!("Failed to create or retrieve an file for this link '{:?}'", link);
                         return Err(e);
                     }
+                    debug!("Success creating or retrieving an file for this link '{:?}'", link);
                     res.unwrap()
                 }
             };
 
             // then add an internal link to the new file or return an error if this fails
             if let Err(e) = self.add_internal_link(file.deref_mut()) {
+                debug!("Error adding internal link");
                 return Err(LE::new(LEK::StoreWriteError, Some(Box::new(e))));
             }
         }
+        debug!("Ready iterating");
         Ok(())
     }
 
     /// Add an external link to the implementor object
     fn add_external_link(&mut self, store: &Store, link: Url) -> Result<()> {
         // get external links, add this one, save them
+        debug!("Getting links");
         self.get_external_links(store)
             .and_then(|mut links| {
+                debug!("Adding link = '{:?}' to links = {:?}", link, links);
                 links.push(link);
+                debug!("Setting {} links = {:?}", links.len(), links);
                 self.set_external_links(store, links)
             })
     }
@@ -217,6 +247,7 @@ impl ExternalLinker for Entry {
         // get external links, remove this one, save them
         self.get_external_links(store)
             .and_then(|mut links| {
+                debug!("Removing link = '{:?}' from links = {:?}", link, links);
                 let links = links.into_iter()
                     .filter(|l| l.serialize() != link.serialize())
                     .collect();
