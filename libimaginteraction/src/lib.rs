@@ -10,5 +10,6 @@ extern crate libimagstore;
 #[macro_use] extern crate libimagutil;
 
 pub mod ask;
+pub mod error;
 pub mod filter;
 
