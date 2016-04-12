@@ -1,4 +1,4 @@
-use clap::{Arg, App, SubCommand};
+use clap::{Arg, ArgGroup, App, SubCommand};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
@@ -86,6 +86,10 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                          .takes_value(false)
                          .required(false)
                          .help("List external links"))
+
+                    .group(ArgGroup::with_name("external-link-group")
+                           .args(&["add", "remove", "set", "list"])
+                           .required(true))
 
                     )
 }
