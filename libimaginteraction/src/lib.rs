@@ -12,4 +12,5 @@ extern crate libimagstore;
 pub mod ask;
 pub mod error;
 pub mod filter;
+pub mod result;
 
