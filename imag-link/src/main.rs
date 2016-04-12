@@ -110,10 +110,15 @@ fn get_from_entry<'a>(rt: &'a Runtime) -> Option<FileLockEntry<'a>> {
     rt.cli()
         .subcommand_matches("internal")
         .unwrap() // safe, we know there is an "internal" subcommand"
+        .subcommand_matches("add")
+        .unwrap() // safe, we know there is an "add" subcommand
         .value_of("from")
         .and_then(|from_name| {
             match get_entry_by_name(rt, from_name) {
-                Err(e) => { trace_error(&e); None },
+                Err(e) => {
+                    debug!("We couldn't get the entry from name: '{:?}'", from_name);
+                    trace_error(&e); None
+                },
                 Ok(e) => Some(e),
             }
 
@@ -124,6 +129,8 @@ fn get_to_entries<'a>(rt: &'a Runtime) -> Option<Vec<FileLockEntry<'a>>> {
     rt.cli()
         .subcommand_matches("internal")
         .unwrap() // safe, we know there is an "internal" subcommand"
+        .subcommand_matches("add")
+        .unwrap() // safe, we know there is an "add" subcommand
         .values_of("to")
         .map(|values| {
             let mut v = vec![];
