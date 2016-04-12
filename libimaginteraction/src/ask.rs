@@ -3,9 +3,15 @@
 use std::io::stdin;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::result::Result as RResult;
+
+use error::InteractionError;
+use error::InteractionErrorKind;
+use result::Result;
 
 use regex::Regex;
 use ansi_term::Colour::*;
+use interactor::*;
 
 /// Ask the user for a Yes/No answer. Optionally provide a default value. If none is provided, this
 /// keeps loop{}ing
@@ -59,7 +65,7 @@ fn ask_uint_<R: BufRead>(s: &str, default: Option<u64>, input: &mut R) -> u64 {
         let mut s = String::new();
         let _     = input.read_line(&mut s);
 
-        let u : Result<u64, _> = FromStr::from_str(&s[..]);
+        let u : RResult<u64, _> = FromStr::from_str(&s[..]);
         match u {
             Ok(u)  => { return u; },
             Err(_) => {
@@ -139,6 +145,11 @@ pub fn ask_string_<R: BufRead>(s: &str,
             }
         }
     }
+}
+
+pub fn ask_select_from_list(list: &[&str]) -> Result<String> {
+    pick_from_list(default_menu_cmd().as_mut(), list, "Selection: ")
+        .map_err(|e| InteractionError::new(InteractionErrorKind::Unknown, Some(Box::new(e))))
 }
 
 /// Helper function to print a imag question string. The `question` argument may not contain a
