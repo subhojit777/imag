@@ -131,13 +131,32 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
 
 fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
     if links.is_err() {
+        debug!("RW action on store failed. Generating LinkError");
         let lerr  = LinkError::new(LinkErrorKind::EntryHeaderReadError,
                                    Some(Box::new(links.err().unwrap())));
         return Err(lerr);
     }
     let links = links.unwrap();
 
-    if links.iter().any(|l| match l { &Value::String(_) => true, _ => false }) {
+    if links.is_none() {
+        debug!("We got no value from the header!");
+        return Ok(vec![])
+    }
+    let links = links.unwrap();
+
+    let links = {
+        match links {
+            Value::Array(a) => a,
+            _ => {
+                debug!("We expected an Array for the links, but there was a non-Array!");
+                return Err(LinkError::new(LinkErrorKind::ExistingLinkTypeWrong, None));
+            },
+        }
+    };
+
+    if !links.iter().all(|l| match l { &Value::String(_) => true, _ => false }) {
+        debug!("At least one of the Values which were expected in the Array of links is a non-String!");
+        debug!("Generating LinkError");
         return Err(LinkError::new(LinkErrorKind::ExistingLinkTypeWrong, None));
     }
 
@@ -150,6 +169,7 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
         })
         .collect();
 
+    debug!("Ok, the RW action was successful, returning link vector now!");
     Ok(links)
 }
 
