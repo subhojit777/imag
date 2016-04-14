@@ -5,4 +5,5 @@ extern crate fs2;
 extern crate libimagstore;
 
 pub mod debug;
+pub mod flock;
 
