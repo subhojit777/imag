@@ -1,4 +1,7 @@
 use std::path::PathBuf;
+use std::path::Path;
+use std::borrow::Borrow;
+
 use glob::Paths;
 use semver::Version;
 use std::fmt::{Debug, Formatter};
@@ -10,7 +13,48 @@ use store::Result;
 use store::Store;
 
 /// The Index into the Store
-pub type StoreId = PathBuf;
+#[derive(Debug, Clone, PartialEq, Hash, Eq, PartialOrd, Ord)]
+pub struct StoreId(PathBuf);
+
+impl Into<PathBuf> for StoreId {
+
+    fn into(self) -> PathBuf {
+        self.0
+    }
+
+}
+
+impl From<PathBuf> for StoreId {
+
+    fn from(pb: PathBuf) -> StoreId {
+        StoreId(pb)
+    }
+
+}
+
+impl From<String> for StoreId {
+
+    fn from(string: String) -> StoreId {
+        StoreId(string.into())
+    }
+
+}
+
+impl AsRef<Path> for StoreId {
+
+    fn as_ref(&self) -> &Path {
+        self.0.as_ref()
+    }
+
+}
+
+impl Borrow<Path> for StoreId {
+
+    fn borrow(&self) -> &Path {
+        self.0.borrow()
+    }
+
+}
 
 /// This Trait allows you to convert various representations to a single one
 /// suitable for usage in the Store
