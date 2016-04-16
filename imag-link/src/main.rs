@@ -95,7 +95,7 @@ fn handle_internal_linking(rt: &Runtime) {
         debug!("Listing ready!");
     } else {
         let mut from = {
-            let mut from = get_from_entry(&rt);
+            let from = get_from_entry(&rt);
             if from.is_none() {
                 warn!("No 'from' entry");
                 exit(1);
@@ -104,8 +104,8 @@ fn handle_internal_linking(rt: &Runtime) {
         };
         debug!("Link from = {:?}", from.deref());
 
-        let mut to = {
-            let mut to = get_to_entries(&rt);
+        let to = {
+            let to = get_to_entries(&rt);
             if to.is_none() {
                 warn!("No 'to' entry");
                 exit(1);
