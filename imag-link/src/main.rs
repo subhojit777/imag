@@ -81,7 +81,9 @@ fn handle_internal_linking(rt: &Runtime) {
                                 println!("{: <3}: {}", i, link);
                                 i += 1;
                             }
-                        });
+                        })
+                        .map_err(|e| trace_error(&e))
+                        .ok();
                 },
 
                 Err(e) => {
