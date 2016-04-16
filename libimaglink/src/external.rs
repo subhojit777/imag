@@ -11,13 +11,11 @@
 /// This helps us greatly with deduplication of URLs.
 ///
 
-use std::convert::Into;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::collections::BTreeMap;
 
 use libimagstore::store::Entry;
-use libimagstore::store::EntryHeader;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagstore::storeid::StoreId;
@@ -30,7 +28,6 @@ use internal::InternalLinker;
 use module_path::ModuleEntryPath;
 
 use toml::Value;
-use toml::Table;
 use url::Url;
 use crypto::sha1::Sha1;
 use crypto::digest::Digest;
@@ -234,7 +231,7 @@ impl ExternalLinker for Entry {
     fn remove_external_link(&mut self, store: &Store, link: Url) -> Result<()> {
         // get external links, remove this one, save them
         self.get_external_links(store)
-            .and_then(|mut links| {
+            .and_then(|links| {
                 debug!("Removing link = '{:?}' from links = {:?}", link, links);
                 let links = links.into_iter()
                     .filter(|l| l.serialize() != link.serialize())
