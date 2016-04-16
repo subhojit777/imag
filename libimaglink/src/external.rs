@@ -32,8 +32,8 @@ use module_path::ModuleEntryPath;
 use toml::Value;
 use toml::Table;
 use url::Url;
-use sodiumoxide::crypto::hash;
-use sodiumoxide::crypto::hash::sha512::Digest;
+use crypto::sha1::Sha1;
+use crypto::digest::Digest;
 
 /// "Link" Type, just an abstraction over FileLockEntry to have some convenience internally.
 struct Link<'a> {
@@ -158,23 +158,14 @@ impl ExternalLinker for Entry {
         // store entries and store the other URIs in the header of one FileLockEntry each, in
         // the path /link/external/<SHA of the URL>
 
-        /// Convert a hash::sha512::Digest from sodiumoxide into a StoreId
-        fn hash_to_storeid(d: Digest) -> StoreId {
-            let hash = &d[..];
-            let v = Vec::from(hash);
-            let s = String::from_utf8(v).unwrap(); // TODO: Uncaught unwrap()
-            debug!("Generating store id for digest: '{:?}' == {}", d, s);
-
-            let id = ModuleEntryPath::new(format!("external/{}", s)).into_storeid();
-            debug!("Generted store id: '{:?}'", id);
-
-            id
-        }
-
         debug!("Iterating {} links = {:?}", links.len(), links);
         for link in links { // for all links
-            let hash     = hash::hash(link.serialize().as_bytes());
-            let file_id  = hash_to_storeid(hash);
+            let hash = {
+                let mut s = Sha1::new();
+                s.input_str(&link.serialize()[..]);
+                s.result_str()
+            };
+            let file_id = ModuleEntryPath::new(format!("external/{}", hash)).into_storeid();
 
             debug!("Link    = '{:?}'", link);
             debug!("Hash    = '{:?}'", hash);
