@@ -20,6 +20,8 @@ use std::fmt::Error as FMTError;
 use toml::{Table, Value};
 use regex::Regex;
 use glob::glob;
+use walkdir::WalkDir;
+use walkdir::Iter as WalkDirIter;
 
 use error::{ParserErrorKind, ParserError};
 use error::{StoreError, StoreErrorKind};
@@ -51,6 +53,57 @@ struct StoreEntry {
     file: LazyFile,
     status: StoreEntryStatus,
 }
+
+pub enum StoreObject {
+    Id(StoreId),
+    Collection(PathBuf),
+}
+
+pub struct Walk {
+    dirwalker: WalkDirIter,
+}
+
+impl Walk {
+
+    fn new(mut store_path: PathBuf, mod_name: &str) -> Walk {
+        store_path.push(mod_name);
+        Walk {
+            dirwalker: WalkDir::new(store_path).into_iter(),
+        }
+    }
+}
+
+impl ::std::ops::Deref for Walk {
+    type Target = WalkDirIter;
+
+    fn deref(&self) -> &Self::Target {
+        &self.dirwalker
+    }
+}
+
+impl Iterator for Walk {
+    type Item = StoreObject;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(something) = self.dirwalker.next() {
+            match something {
+                Ok(next) => if next.file_type().is_dir() {
+                                return Some(StoreObject::Collection(next.path().to_path_buf()))
+                            } else if next.file_type().is_file() {
+                                return Some(StoreObject::Id(next.path().to_path_buf().into()))
+                            },
+                Err(e) => {
+                    warn!("Error in Walker");
+                    debug!("{:?}", e);
+                    return None;
+                }
+            }
+        }
+
+        return None;
+    }
+}
+
 
 impl StoreEntry {
 
@@ -313,6 +366,11 @@ impl Store {
         } else {
             Err(StoreError::new(StoreErrorKind::EncodingError, None))
         }
+    }
+
+    // Walk the store tree for the module
+    pub fn walk<'a>(&'a self, mod_name: &str) -> Walk {
+        Walk::new(self.path().clone(), mod_name)
     }
 
     /// Return the `FileLockEntry` and write to disk
