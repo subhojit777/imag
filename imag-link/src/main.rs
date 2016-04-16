@@ -20,7 +20,7 @@ extern crate toml;
 extern crate url;
 #[macro_use] extern crate version;
 
-extern crate libimaglink;
+extern crate libimagentrylink;
 extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagutil;
@@ -34,7 +34,7 @@ use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagutil::trace::trace_error;
-use libimaglink::external::ExternalLinker;
+use libimagentrylink::external::ExternalLinker;
 use clap::ArgMatches;
 use url::Url;
 
@@ -77,7 +77,7 @@ fn main() {
 }
 
 fn handle_internal_linking(rt: &Runtime) {
-    use libimaglink::internal::InternalLinker;
+    use libimagentrylink::internal::InternalLinker;
     use libimagutil::trace::trace_error;
 
     debug!("Handle internal linking call");
