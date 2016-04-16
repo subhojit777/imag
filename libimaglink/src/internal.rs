@@ -7,6 +7,7 @@ use error::{LinkError, LinkErrorKind};
 use result::Result;
 
 use toml::Value;
+use itertools::Itertools;
 
 pub type Link = StoreId;
 
@@ -48,9 +49,10 @@ impl InternalLinker for Entry {
             }
             let link = link.unwrap();
 
-            new_links.push(Value::String(String::from(link)));
+            new_links.push(String::from(link));
         }
 
+        let new_links = new_links.into_iter().unique().map(|s| Value::String(s)).collect();
         process_rw_result(self.get_header_mut().set("imag.links", Value::Array(new_links)))
     }
 
@@ -90,7 +92,9 @@ impl InternalLinker for Entry {
 fn rewrite_links(header: &mut EntryHeader, links: Vec<StoreId>) -> Result<()> {
     let links : Vec<Option<Value>> = links
         .into_iter()
-        .map(|s| s.to_str().map(|s| Value::String(String::from(s))))
+        .map(|s| s.to_str().map(|s| String::from(s)))
+        .unique()
+        .map(|elem| elem.map(|s| Value::String(s)))
         .collect();
 
     if links.iter().any(|o| o.is_none()) {
@@ -114,10 +118,12 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
                 .into_iter()
                 .map(|s| {
                     match s.to_str() {
-                        Some(s) => Some(Value::String(String::from(s))),
+                        Some(s) => Some(String::from(s)),
                         _ => None
                     }
                 })
+                .unique()
+                .map(|elem| elem.map(|s| Value::String(s)))
                 .collect();
             if links.iter().any(|o| o.is_none()) {
                 Err(LinkError::new(LinkErrorKind::InternalConversionError, None))
