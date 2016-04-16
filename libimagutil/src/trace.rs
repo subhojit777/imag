@@ -21,7 +21,7 @@ use std::io::stderr;
 /// ```
 pub fn trace_error(e: &Error) {
     print_trace_maxdepth(count_error_causes(e), e, ::std::u64::MAX);
-    write!(stderr(), "\n");
+    write!(stderr(), "\n").ok();
 }
 
 /// Print an Error type and its cause recursively, but only `max` levels
@@ -29,9 +29,10 @@ pub fn trace_error(e: &Error) {
 /// Output is the same as for `trace_error()`, though there are only `max` levels printed.
 pub fn trace_error_maxdepth(e: &Error, max: u64) {
     let n = count_error_causes(e);
-    write!(stderr(), "{}/{} Levels of errors will be printed\n", (if max > n { n } else { max }), n);
+    write!(stderr(),
+    "{}/{} Levels of errors will be printed\n", (if max > n { n } else { max }), n).ok();
     print_trace_maxdepth(n, e, max);
-    write!(stderr(), "");
+    write!(stderr(), "").ok();
 }
 
 /// Print an Error type and its cause recursively with the debug!() macro
@@ -48,13 +49,13 @@ pub fn trace_error_dbg(e: &Error) {
 fn print_trace_maxdepth(idx: u64, e: &Error, max: u64) -> Option<&Error> {
     if e.cause().is_some() && idx > 0 {
         match print_trace_maxdepth(idx - 1, e.cause().unwrap(), max) {
-            None => write!(stderr(), "\n"),
-            Some(_) => write!(stderr(), " -- caused:\n"),
+            None    => write!(stderr(), "\n").ok(),
+            Some(_) => write!(stderr(), " -- caused:\n").ok(),
         };
     } else {
-        write!(stderr(), "\n");
+        write!(stderr(), "\n").ok();
     }
-    write!(stderr(), "Error {:>4} : {}", idx, e.description());
+    write!(stderr(), "Error {:>4} : {}", idx, e.description()).ok();
     e.cause()
 }
 
