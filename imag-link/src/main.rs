@@ -12,7 +12,6 @@ extern crate libimagutil;
 
 use std::process::exit;
 use std::ops::Deref;
-use std::error::Error;
 
 use libimagrt::runtime::Runtime;
 use libimagstore::error::StoreError;
