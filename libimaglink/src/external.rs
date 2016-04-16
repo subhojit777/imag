@@ -231,7 +231,7 @@ impl ExternalLinker for Entry {
     fn remove_external_link(&mut self, store: &Store, link: Url) -> Result<()> {
         // get external links, remove this one, save them
         self.get_external_links(store)
-            .and_then(|mut links| {
+            .and_then(|links| {
                 debug!("Removing link = '{:?}' from links = {:?}", link, links);
                 let links = links.into_iter()
                     .filter(|l| l.serialize() != link.serialize())
