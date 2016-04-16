@@ -1,8 +1,6 @@
 use std::error::Error;
 use std::fmt::Error as FmtError;
-use std::clone::Clone;
-use std::fmt::{Debug, Display, Formatter};
-use std::fmt;
+use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum LinkErrorKind {

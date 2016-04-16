@@ -11,13 +11,11 @@
 /// This helps us greatly with deduplication of URLs.
 ///
 
-use std::convert::Into;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::collections::BTreeMap;
 
 use libimagstore::store::Entry;
-use libimagstore::store::EntryHeader;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagstore::storeid::StoreId;
@@ -30,7 +28,6 @@ use internal::InternalLinker;
 use module_path::ModuleEntryPath;
 
 use toml::Value;
-use toml::Table;
 use url::Url;
 use crypto::sha1::Sha1;
 use crypto::digest::Digest;
