@@ -41,7 +41,7 @@ script:
         }
 
         run_sh_test() {
-            echo "--- Running test script: $1"
+            echo "--- Running test script: '$1'"
               bash $1 || { echo "--- Test failed. Exiting"; exit 1; }
             echo "--- Test script $1 executed successfully"
         }
