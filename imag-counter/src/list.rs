@@ -1,12 +1,11 @@
 use libimagrt::runtime::Runtime;
 use libimagutil::trace::trace_error;
 use libimagcounter::counter::Counter;
-use libimagcounter::result::Result;
 
 pub fn list(rt: &Runtime) {
     rt.cli()
         .subcommand_matches("list")
-        .map(|scmd| {
+        .map(|_| {
             debug!("Found 'list' subcommand...");
 
             Counter::all_counters(rt.store()).map(|iterator| {
@@ -26,7 +25,8 @@ pub fn list(rt: &Runtime) {
                             }
                         }
                     })
-                    .map_err(|e| trace_error(&e));
+                    .map_err(|e| trace_error(&e))
+                    .ok();
                 }
             })
             .map_err(|e| trace_error(&e))

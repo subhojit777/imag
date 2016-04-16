@@ -10,7 +10,6 @@ use libimagcounter::counter::Counter;
 use libimagcounter::error::CounterError;
 use libimagrt::runtime::Runtime;
 use libimagutil::key_value_split::IntoKeyValue;
-use libimagutil::key_value_split::KeyValue;
 use libimagutil::trace::trace_error;
 
 type Result<T> = RResult<T, CounterError>;
@@ -18,7 +17,7 @@ type Result<T> = RResult<T, CounterError>;
 pub fn interactive(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("interactive");
     if scmd.is_none() {
-        write!(stderr(), "No subcommand");
+        debug!("No subcommand");
         exit(1);
     }
     let scmd = scmd.unwrap();
@@ -37,7 +36,7 @@ pub fn interactive(rt: &Runtime) {
         pairs.insert('q', Binding::Function(String::from("quit"), Box::new(quit)));
     }
 
-    stderr().flush();
+    stderr().flush().ok();
     loop {
         println!("---");
         for (k, v) in &pairs {
@@ -59,10 +58,14 @@ pub fn interactive(rt: &Runtime) {
                     Some(&mut Binding::Counter(ref mut ctr)) => {
                         if increment {
                             debug!("Incrementing");
-                            ctr.inc();
+                            if let Err(e) = ctr.inc() {
+                                trace_error(&e);
+                            }
                         } else {
                             debug!("Decrementing");
-                            ctr.dec();
+                            if let Err(e) = ctr.dec() {
+                                trace_error(&e);
+                            }
                         }
                         true
                     },
@@ -128,7 +131,7 @@ impl<'a> Display for Binding<'a> {
 fn compute_pair<'a>(rt: &'a Runtime, spec: &str) -> Result<(char, Binding<'a>)> {
     let kv = String::from(spec).into_kv();
     if kv.is_none() {
-        write!(stderr(), "Key-Value parsing failed!");
+        debug!("Key-Value parsing failed!");
         exit(1);
     }
     let kv = kv.unwrap();
