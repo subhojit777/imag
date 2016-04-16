@@ -33,7 +33,7 @@ impl<'a> Counter<'a> {
 
         debug!("Creating new counter: '{}' with value: {}", name, init);
         let fle = {
-            let mut lockentry = store.create(ModuleEntryPath::new(name.clone()).into_storeid());
+            let lockentry = store.create(ModuleEntryPath::new(name.clone()).into_storeid());
             if lockentry.is_err() {
                 return Err(CE::new(CEK::StoreWriteError, Some(Box::new(lockentry.err().unwrap()))));
             }
@@ -105,8 +105,7 @@ impl<'a> Counter<'a> {
     }
 
     pub fn name(&self) -> Result<CounterName> {
-        let mut header = self.fle.deref().get_header();
-        header.read("counter.name")
+        self.fle.get_header().read("counter.name")
             .map_err(|e| CE::new(CEK::StoreWriteError, Some(Box::new(e))))
             .and_then(|v| {
                 match v {
@@ -117,8 +116,7 @@ impl<'a> Counter<'a> {
     }
 
     pub fn value(&self) -> Result<i64> {
-        let mut header = self.fle.deref().get_header();
-        header.read("counter.value")
+        self.fle.get_header().read("counter.value")
             .map_err(|e| CE::new(CEK::StoreWriteError, Some(Box::new(e))))
             .and_then(|v| {
                 match v {
