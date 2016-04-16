@@ -62,47 +62,74 @@ fn handle_internal_linking(rt: &Runtime) {
     use libimaglink::internal::InternalLinker;
     use libimagutil::trace::trace_error;
 
-    let mut from = {
-        let mut from = get_from_entry(&rt);
-        if from.is_none() {
-            warn!("No 'from' entry");
-            exit(1);
-        }
-        from.unwrap()
-    };
-    debug!("Link from = {:?}", from.deref());
+    debug!("Handle internal linking call");
+    let cmd = rt.cli().subcommand_matches("internal").unwrap();
 
-    let mut to = {
-        let mut to = get_to_entries(&rt);
-        if to.is_none() {
-            warn!("No 'to' entry");
-            exit(1);
-        }
-        to.unwrap()
-    };
-    debug!("Link to = {:?}", to.iter().map(|f| f.deref()).collect::<Vec<&Entry>>());
+    if cmd.is_present("list") {
+        debug!("List...");
+        for entry in cmd.value_of("list").unwrap().split(",") {
+            debug!("Listing for '{}'", entry);
+            match get_entry_by_name(rt, entry) {
+                Ok(e) => {
+                    e.get_internal_links()
+                        .map(|links| {
+                            let mut i = 0;
+                            for link in links.iter().map(|l| l.to_str()).filter_map(|x| x) {
+                                println!("{: <3}: {}", i, link);
+                                i += 1;
+                            }
+                        });
+                },
 
-    match rt.cli().subcommand_matches("internal").unwrap().subcommand_name() {
-        Some("add") => {
-            for mut to_entry in to {
-                if let Err(e) = to_entry.add_internal_link(&mut from) {
+                Err(e) => {
                     trace_error(&e);
-                    exit(1);
-                }
+                    break;
+                },
             }
-        },
-
-        Some("remove") => {
-            for mut to_entry in to {
-                if let Err(e) = to_entry.remove_internal_link(&mut from) {
-                    trace_error(&e);
-                    exit(1);
-                }
+        }
+        debug!("Listing ready!");
+    } else {
+        let mut from = {
+            let mut from = get_from_entry(&rt);
+            if from.is_none() {
+                warn!("No 'from' entry");
+                exit(1);
             }
-        },
+            from.unwrap()
+        };
+        debug!("Link from = {:?}", from.deref());
 
-        _ => unreachable!(),
-        // as the get_from_entry()/get_to_entries() would have errored
+        let mut to = {
+            let mut to = get_to_entries(&rt);
+            if to.is_none() {
+                warn!("No 'to' entry");
+                exit(1);
+            }
+            to.unwrap()
+        };
+        debug!("Link to = {:?}", to.iter().map(|f| f.deref()).collect::<Vec<&Entry>>());
+
+        match cmd.subcommand_name() {
+            Some("add") => {
+                for mut to_entry in to {
+                    if let Err(e) = to_entry.add_internal_link(&mut from) {
+                        trace_error(&e);
+                        exit(1);
+                    }
+                }
+            },
+
+            Some("remove") => {
+                for mut to_entry in to {
+                    if let Err(e) = to_entry.remove_internal_link(&mut from) {
+                        trace_error(&e);
+                        exit(1);
+                    }
+                }
+            },
+
+            _ => unreachable!(),
+        };
     }
 }
 
