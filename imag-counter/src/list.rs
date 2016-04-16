@@ -25,7 +25,8 @@ pub fn list(rt: &Runtime) {
                             }
                         }
                     })
-                    .map_err(|e| trace_error(&e));
+                    .map_err(|e| trace_error(&e))
+                    .ok();
                 }
             })
             .map_err(|e| trace_error(&e))

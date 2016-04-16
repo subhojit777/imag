@@ -118,7 +118,8 @@ fn main() {
                             })
                     },
                 }
-                .map_err(|e| trace_error(&e));
+                .map_err(|e| trace_error(&e))
+                .ok();
             },
             |name| {
                 debug!("Call: {}", name);
