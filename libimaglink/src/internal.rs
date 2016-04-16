@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use libimagstore::storeid::StoreId;
 use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
@@ -52,7 +54,16 @@ impl InternalLinker for Entry {
             new_links.push(String::from(link));
         }
 
-        let new_links = new_links.into_iter().unique().map(|s| Value::String(s)).collect();
+        let new_links = new_links
+            .into_iter()
+            .unique()
+            .map(|s| Value::String(s))
+            .sorted_by(|a, b| {
+                match (a, b) {
+                    (&Value::String(ref a), &Value::String(ref b)) => Ord::cmp(a, b),
+                    _                                              => unreachable!()
+                }
+            });
         process_rw_result(self.get_header_mut().set("imag.links", Value::Array(new_links)))
     }
 
@@ -95,7 +106,13 @@ fn rewrite_links(header: &mut EntryHeader, links: Vec<StoreId>) -> Result<()> {
         .map(|s| s.to_str().map(|s| String::from(s)))
         .unique()
         .map(|elem| elem.map(|s| Value::String(s)))
-        .collect();
+        .sorted_by(|a, b| {
+            match (a, b) {
+                (&Some(Value::String(ref a)), &Some(Value::String(ref b))) => Ord::cmp(a, b),
+                (&None, _) | (_, &None) => Ordering::Equal,
+                _                                              => unreachable!()
+            }
+        });
 
     if links.iter().any(|o| o.is_none()) {
         // if any type convert failed we fail as well
@@ -124,7 +141,13 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
                 })
                 .unique()
                 .map(|elem| elem.map(|s| Value::String(s)))
-                .collect();
+                .sorted_by(|a, b| {
+                    match (a, b) {
+                        (&Some(Value::String(ref a)), &Some(Value::String(ref b))) => Ord::cmp(a, b),
+                        (&None, _) | (_, &None) => Ordering::Equal,
+                        _                                              => unreachable!()
+                    }
+                });
             if links.iter().any(|o| o.is_none()) {
                 Err(LinkError::new(LinkErrorKind::InternalConversionError, None))
             } else {
