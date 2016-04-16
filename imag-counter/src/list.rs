@@ -5,7 +5,7 @@ use libimagcounter::counter::Counter;
 pub fn list(rt: &Runtime) {
     rt.cli()
         .subcommand_matches("list")
-        .map(|scmd| {
+        .map(|_| {
             debug!("Found 'list' subcommand...");
 
             Counter::all_counters(rt.store()).map(|iterator| {
