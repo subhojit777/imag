@@ -171,44 +171,41 @@ impl ExternalLinker for Entry {
             debug!("Hash    = '{:?}'", hash);
             debug!("StoreId = '{:?}'", file_id);
 
-            let mut file = {
-                if let Ok(mut file) = store.retrieve(file_id.clone()) { // retrieve the file from the store
-                    debug!("Woha, there is already a file for this link: '{:?}'", link);
-                    file
-                } else { // or
-                    debug!("Generating file for link = '{:?}' on id = {:?}", link, file_id);
-                    let res = store.create(file_id) // create it
-                        .and_then(|mut file| {
-                            {
-                                debug!("Generating header content!");
-                                let mut hdr = file.deref_mut().get_header_mut();
+            // retrieve the file from the store, which implicitely creates the entry if it does not
+            // exist
+            let file = store.retrieve(file_id.clone());
+            if file.is_err() {
+                debug!("Failed to create or retrieve an file for this link '{:?}'", link);
+                return Err(LE::new(LEK::StoreWriteError, Some(Box::new(file.err().unwrap()))));
+            }
+            let mut file = file.unwrap();
 
-                                // Write the URI into the header
-                                match hdr.set("imag.content", Value::Table(BTreeMap::new())) {
-                                    Ok(_) => {
-                                        let v = Value::String(link.serialize());
-                                        debug!("setting URL = '{:?}", v);
-                                        hdr.set("imag.content.uri", v);
-                                        Ok(())
-                                    },
-                                    Err(e) => {
-                                        debug!("Failed to generate a table in header at 'imag.content'");
-                                        Err(e)
-                                    },
-                                }
-                            }.map(|_| file)
-                        })
-                        .map_err(|e| LE::new(LEK::StoreWriteError, Some(Box::new(e))));
+            debug!("Generating header content!");
+            {
+                let mut hdr = file.deref_mut().get_header_mut();
 
-                    // And if that fails we can error
-                    if let Err(e) = res {
-                        debug!("Failed to create or retrieve an file for this link '{:?}'", link);
-                        return Err(e);
-                    }
-                    debug!("Success creating or retrieving an file for this link '{:?}'", link);
-                    res.unwrap()
+                let mut table = match hdr.read("imag.content") {
+                    Ok(Some(Value::Table(table))) => table,
+                    Ok(Some(_)) => {
+                        warn!("There is a value at 'imag.content' which is not a table.");
+                        warn!("Going to override this value");
+                        BTreeMap::new()
+                    },
+                    Ok(None) => BTreeMap::new(),
+                    Err(e)   => return Err(LE::new(LEK::StoreWriteError, Some(Box::new(e)))),
+                };
+
+                let v = Value::String(link.serialize());
+
+                debug!("setting URL = '{:?}", v);
+                table.insert(String::from("url"), v);
+
+                if let Err(e) = hdr.set("imag.content", Value::Table(table)) {
+                    return Err(LE::new(LEK::StoreWriteError, Some(Box::new(e))));
+                } else {
+                    debug!("Setting URL worked");
                 }
-            };
+            }
 
             // then add an internal link to the new file or return an error if this fails
             if let Err(e) = self.add_internal_link(file.deref_mut()) {
