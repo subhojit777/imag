@@ -14,6 +14,6 @@ semver = "0.2.1"
 [dependencies.libimagstore]
 path = "../libimagstore"
 
-[dependencies.libimagtag]
-path = "../libimagtag"
+[dependencies.libimagentrytag]
+path = "../libimagentrytag"
 

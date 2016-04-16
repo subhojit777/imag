@@ -5,7 +5,7 @@ extern crate semver;
 
 extern crate libimagnotes;
 extern crate libimagrt;
-extern crate libimagtag;
+extern crate libimagentrytag;
 extern crate libimagutil;
 
 use std::process::exit;

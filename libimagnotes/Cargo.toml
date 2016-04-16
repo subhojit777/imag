@@ -14,6 +14,6 @@ path = "../libimagstore"
 [dependencies.libimagrt]
 path = "../libimagrt"
 
-[dependencies.libimagtag]
-path = "../libimagtag"
+[dependencies.libimagentrytag]
+path = "../libimagentrytag"
 

@@ -10,9 +10,9 @@ use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
-use libimagtag::tag::Tag;
-use libimagtag::tagable::Tagable;
-use libimagtag::result::Result as TagResult;
+use libimagentrytag::tag::Tag;
+use libimagentrytag::tagable::Tagable;
+use libimagentrytag::result::Result as TagResult;
 
 use module_path::ModuleEntryPath;
 use result::Result;

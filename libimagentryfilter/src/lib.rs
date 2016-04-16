@@ -6,7 +6,7 @@ extern crate toml;
 extern crate semver;
 
 extern crate libimagstore;
-extern crate libimagtag;
+extern crate libimagentrytag;
 
 // core functionality modules of the crate,
 // these depend only on libimagstore
