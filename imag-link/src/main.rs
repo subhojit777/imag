@@ -1,3 +1,18 @@
+#![deny(
+    non_camel_case_types,
+    non_snake_case,
+    path_statements,
+    trivial_numeric_casts,
+    unstable_features,
+    unused_allocation,
+    unused_import_braces,
+    unused_imports,
+    unused_must_use,
+    unused_mut,
+    unused_qualifications,
+    while_true,
+)]
+
 #[macro_use] extern crate log;
 extern crate clap;
 #[macro_use] extern crate semver;
@@ -12,7 +27,6 @@ extern crate libimagutil;
 
 use std::process::exit;
 use std::ops::Deref;
-use std::error::Error;
 
 use libimagrt::runtime::Runtime;
 use libimagstore::error::StoreError;
@@ -82,7 +96,9 @@ fn handle_internal_linking(rt: &Runtime) {
                                 println!("{: <3}: {}", i, link);
                                 i += 1;
                             }
-                        });
+                        })
+                        .map_err(|e| trace_error(&e))
+                        .ok();
                 },
 
                 Err(e) => {
@@ -94,7 +110,7 @@ fn handle_internal_linking(rt: &Runtime) {
         debug!("Listing ready!");
     } else {
         let mut from = {
-            let mut from = get_from_entry(&rt);
+            let from = get_from_entry(&rt);
             if from.is_none() {
                 warn!("No 'from' entry");
                 exit(1);
@@ -103,8 +119,8 @@ fn handle_internal_linking(rt: &Runtime) {
         };
         debug!("Link from = {:?}", from.deref());
 
-        let mut to = {
-            let mut to = get_to_entries(&rt);
+        let to = {
+            let to = get_to_entries(&rt);
             if to.is_none() {
                 warn!("No 'to' entry");
                 exit(1);
