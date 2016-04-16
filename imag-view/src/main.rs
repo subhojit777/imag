@@ -14,7 +14,6 @@ use std::process::exit;
 
 use libimagrt::runtime::Runtime;
 use libimagstore::store::FileLockEntry;
-use libimagstore::store::Result as StoreResult;
 use libimagutil::trace::trace_error;
 
 mod error;
