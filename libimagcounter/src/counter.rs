@@ -1,7 +1,4 @@
-use std::convert::From;
-use std::convert::Into;
 use std::ops::DerefMut;
-use std::ops::Deref;
 
 use toml::Value;
 
@@ -11,8 +8,6 @@ use libimagstore::store::Store;
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
-use libimagstore::error::StoreError;
-use libimagstore::store::Entry;
 use libimagstore::storeid::IntoStoreId;
 
 use module_path::ModuleEntryPath;
