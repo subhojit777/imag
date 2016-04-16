@@ -1,7 +1,6 @@
 use libimagrt::runtime::Runtime;
 use libimagutil::trace::trace_error;
 use libimagcounter::counter::Counter;
-use libimagcounter::result::Result;
 
 pub fn list(rt: &Runtime) {
     rt.cli()
