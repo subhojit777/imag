@@ -1,6 +1,6 @@
 use libimagstore::store::Entry;
-use libimagtag::tagable::Tagable;
-use libimagtag::tag::Tag;
+use libimagentrytag::tagable::Tagable;
+use libimagentrytag::tag::Tag;
 
 use filter::Filter;
 

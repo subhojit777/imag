@@ -6,13 +6,13 @@ extern crate toml;
 
 extern crate libimagstore;
 extern crate libimagrt;
-extern crate libimagtag;
+extern crate libimagentrytag;
 extern crate libimagutil;
 
 use std::process::exit;
 
 use libimagrt::runtime::Runtime;
-use libimagtag::tagable::Tagable;
+use libimagentrytag::tagable::Tagable;
 use libimagstore::storeid::build_entry_path;
 
 mod ui;
