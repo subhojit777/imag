@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use libimagstore::storeid::StoreId;
 use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
@@ -7,6 +9,7 @@ use error::{LinkError, LinkErrorKind};
 use result::Result;
 
 use toml::Value;
+use itertools::Itertools;
 
 pub type Link = StoreId;
 
@@ -42,15 +45,14 @@ impl InternalLinker for Entry {
                 return Err(e);
             }
             let link = link.get_location().clone();
-            let link = link.to_str();
-            if link.is_none() {
-                return Err(LinkError::new(LinkErrorKind::InternalConversionError, None));
-            }
-            let link = link.unwrap();
-
-            new_links.push(Value::String(String::from(link)));
+            new_links.push(link);
         }
 
+        let new_links = links_into_values(new_links);
+        if new_links.iter().any(|o| o.is_none()) {
+            return Err(LinkError::new(LinkErrorKind::InternalConversionError, None));
+        }
+        let new_links = new_links.into_iter().map(|o| o.unwrap()).collect();
         process_rw_result(self.get_header_mut().set("imag.links", Value::Array(new_links)))
     }
 
@@ -87,11 +89,23 @@ impl InternalLinker for Entry {
 
 }
 
-fn rewrite_links(header: &mut EntryHeader, links: Vec<StoreId>) -> Result<()> {
-    let links : Vec<Option<Value>> = links
+fn links_into_values(links: Vec<StoreId>) -> Vec<Option<Value>> {
+    links
         .into_iter()
-        .map(|s| s.to_str().map(|s| Value::String(String::from(s))))
-        .collect();
+        .map(|s| s.to_str().map(|s| String::from(s)))
+        .unique()
+        .map(|elem| elem.map(|s| Value::String(s)))
+        .sorted_by(|a, b| {
+            match (a, b) {
+                (&Some(Value::String(ref a)), &Some(Value::String(ref b))) => Ord::cmp(a, b),
+                (&None, _) | (_, &None) => Ordering::Equal,
+                _                                              => unreachable!()
+            }
+        })
+}
+
+fn rewrite_links(header: &mut EntryHeader, links: Vec<StoreId>) -> Result<()> {
+    let links = links_into_values(links);
 
     if links.iter().any(|o| o.is_none()) {
         // if any type convert failed we fail as well
@@ -110,15 +124,7 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
     target.get_internal_links()
         .and_then(|mut links| {
             links.push(from);
-            let links : Vec<Option<Value>> = links
-                .into_iter()
-                .map(|s| {
-                    match s.to_str() {
-                        Some(s) => Some(Value::String(String::from(s))),
-                        _ => None
-                    }
-                })
-                .collect();
+            let links = links_into_values(links);
             if links.iter().any(|o| o.is_none()) {
                 Err(LinkError::new(LinkErrorKind::InternalConversionError, None))
             } else {

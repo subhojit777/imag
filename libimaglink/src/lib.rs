@@ -1,3 +1,4 @@
+extern crate itertools;
 #[macro_use] extern crate log;
 extern crate toml;
 extern crate url;
