@@ -2,6 +2,7 @@
 extern crate clap;
 #[macro_use] extern crate semver;
 extern crate toml;
+extern crate url;
 #[macro_use] extern crate version;
 
 extern crate libimaglink;
@@ -19,6 +20,9 @@ use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagutil::trace::trace_error;
+use libimaglink::external::ExternalLinker;
+use clap::ArgMatches;
+use url::Url;
 
 mod ui;
 
@@ -49,7 +53,7 @@ fn main() {
         .map(|name| {
             match name {
                 "internal" => handle_internal_linking(&rt),
-                "external" => { unimplemented!() },
+                "external" => handle_external_linking(&rt),
                 _ => {
                     warn!("No commandline call");
                     exit(1);
@@ -175,5 +179,129 @@ fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<FileLockEntry<'a
     use libimagstore::storeid::build_entry_path;
     build_entry_path(rt.store(), name)
         .and_then(|path| rt.store().retrieve(path))
+}
+
+fn handle_external_linking(rt: &Runtime) {
+    use libimagutil::trace::trace_error;
+
+    let scmd       = rt.cli().subcommand_matches("external").unwrap();
+    let entry_name = scmd.value_of("id").unwrap(); // enforced by clap
+    let entry      = get_entry_by_name(rt, entry_name);
+    if entry.is_err() {
+        trace_error(&entry.err().unwrap());
+        exit(1);
+    }
+    let mut entry = entry.unwrap();
+
+    if scmd.is_present("add") {
+        debug!("Adding link to entry!");
+        add_link_to_entry(rt.store(), scmd, &mut entry);
+        return;
+    }
+
+    if scmd.is_present("remove") {
+        debug!("Removing link from entry!");
+        remove_link_from_entry(rt.store(), scmd, &mut entry);
+        return;
+    }
+
+    if scmd.is_present("set") {
+        debug!("Setting links in entry!");
+        set_links_for_entry(rt.store(), scmd, &mut entry);
+        return;
+    }
+
+    if scmd.is_present("list") {
+        debug!("Listing links in entry!");
+        list_links_for_entry(rt.store(), &mut entry);
+        return;
+    }
+
+    panic!("Clap failed to enforce one of 'add', 'remove', 'set' or 'list'");
+}
+
+fn add_link_to_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLockEntry) {
+    let link = matches.value_of("add").unwrap();
+
+    let link = Url::parse(link);
+    if link.is_err() {
+        debug!("URL parsing error...");
+        trace_error(&link.err().unwrap());
+        debug!("Exiting");
+        exit(1);
+    }
+    let link = link.unwrap();
+
+    if let Err(e) = entry.add_external_link(store, link) {
+        debug!("Error while adding external link...");
+        trace_error(&e);
+    } else {
+        debug!("Everything worked well");
+        info!("Ok");
+    }
+}
+
+fn remove_link_from_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLockEntry) {
+    let link = matches.value_of("remove").unwrap();
+
+    let link = Url::parse(link);
+    if link.is_err() {
+        trace_error(&link.err().unwrap());
+        exit(1);
+    }
+    let link = link.unwrap();
+
+    if let Err(e) = entry.remove_external_link(store, link) {
+        trace_error(&e);
+    } else {
+        info!("Ok");
+    }
+}
+
+fn set_links_for_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLockEntry) {
+    let links = matches
+        .value_of("links")
+        .map(String::from)
+        .unwrap()
+        .split(",")
+        .map(|uri| {
+            match Url::parse(uri) {
+                Err(e) => {
+                    warn!("Could not parse '{}' as URL, ignoring", uri);
+                    trace_error(&e);
+                    None
+                },
+                Ok(u) => Some(u),
+            }
+        })
+        .filter_map(|x| x)
+        .collect();
+
+    if let Err(e) = entry.set_external_links(store, links) {
+        trace_error(&e);
+    } else {
+        info!("Ok");
+    }
+}
+
+fn list_links_for_entry(store: &Store, entry: &mut FileLockEntry) {
+    let res = entry.get_external_links(store)
+        .and_then(|links| {
+            let mut i = 0;
+            for link in links {
+                println!("{: <3}: {}", i, link);
+                i += 1;
+            }
+            Ok(())
+        });
+
+    match res {
+        Err(e) => {
+            trace_error(&e);
+        },
+        Ok(_) => {
+            info!("Ok");
+        },
+    }
 }
 
