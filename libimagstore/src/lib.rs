@@ -22,6 +22,7 @@ extern crate toml;
 #[cfg(test)] extern crate tempdir;
 extern crate semver;
 extern crate crossbeam;
+extern crate walkdir;
 
 pub mod storeid;
 pub mod error;
