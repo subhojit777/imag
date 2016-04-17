@@ -252,10 +252,10 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
             let mut parser = Parser::new(&content[..]);
             let res = parser.parse();
             if res.is_none() {
-                write!(stderr(), "Config file parser error:");
+                write!(stderr(), "Config file parser error:").ok();
                 for error in parser.errors {
-                    write!(stderr(), "At [{}][{}] <> {}", error.lo, error.hi, error);
-                    write!(stderr(), "in: '{}'", &content[error.lo..error.hi]);
+                    write!(stderr(), "At [{}][{}] <> {}", error.lo, error.hi, error).ok();
+                    write!(stderr(), "in: '{}'", &content[error.lo..error.hi]).ok();
                 }
                 None
             } else {
