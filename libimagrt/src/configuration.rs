@@ -17,7 +17,6 @@ pub mod error {
      */
     #[derive(Clone, Debug, PartialEq)]
     pub enum ConfigErrorKind {
-        ConfigParsingFailed,
         NoConfigFileFound,
     }
 
@@ -54,7 +53,6 @@ pub mod error {
          */
         pub fn as_str(e: &ConfigError) -> &'static str {
             match e.kind() {
-                ConfigErrorKind::ConfigParsingFailed => "Config parsing failed",
                 ConfigErrorKind::NoConfigFileFound   => "No config file found",
             }
         }
