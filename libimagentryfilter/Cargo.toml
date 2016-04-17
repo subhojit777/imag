@@ -5,7 +5,7 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
 clap = "2.1.1"
-itertools = "0.4.7"
+itertools = "0.4"
 log = "0.3.4"
 regex = "0.1.48"
 toml = "0.1.27"
