@@ -610,46 +610,42 @@ impl Store {
     /// Save a copy of the Entry in another place
     /// Executes the post_move_aspects for the new id
     pub fn save_to(&self, entry: &FileLockEntry, new_id: StoreId) -> Result<()> {
-        use std::fs::copy;
-
-        let new_id = self.storify_id(new_id);
-        let hsmap = self.entries.write();
-        if hsmap.is_err() {
-            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
-        }
-        if hsmap.unwrap().contains_key(&new_id) {
-            return Err(StoreError::new(StoreErrorKind::EntryAlreadyExists, None))
-        }
-
-        let old_id = entry.get_location().clone();
-
-        copy(old_id.clone(), new_id.clone())
-            .map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))))
-            .and_then(|_| self.execute_hooks_for_id(self.post_move_aspects.clone(), &new_id))
+        self.save_to_other_location(entry, new_id, false)
     }
 
     /// Save an Entry in another place
     /// Removes the original entry
     /// Executes the post_move_aspects for the new id
     pub fn save_as(&self, entry: FileLockEntry, new_id: StoreId) -> Result<()> {
+        self.save_to_other_location(&entry, new_id, true)
+    }
+
+    fn save_to_other_location(&self, entry: &FileLockEntry, new_id: StoreId, remove_old: bool)
+        -> Result<()>
+    {
         use std::fs::copy;
         use std::fs::remove_file;
 
         let new_id = self.storify_id(new_id);
         let hsmap = self.entries.write();
         if hsmap.is_err() {
-            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
+            return Err(SE::new(SEK::LockPoisoned, None))
         }
         if hsmap.unwrap().contains_key(&new_id) {
-            return Err(StoreError::new(StoreErrorKind::EntryAlreadyExists, None))
+            return Err(SE::new(SEK::EntryAlreadyExists, None))
         }
 
         let old_id = entry.get_location().clone();
-        drop(entry); // so no funny things happen in the next step
 
         copy(old_id.clone(), new_id.clone())
-            .and_then(|_| remove_file(old_id))
-            .map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))))
+            .and_then(|_| {
+                if remove_old {
+                    remove_file(old_id)
+                } else {
+                    Ok(())
+                }
+            })
+            .map_err(|e| SE::new(SEK::FileError, Some(Box::new(e))))
             .and_then(|_| self.execute_hooks_for_id(self.post_move_aspects.clone(), &new_id))
     }
 
