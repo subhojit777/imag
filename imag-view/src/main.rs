@@ -45,12 +45,6 @@ fn main() {
         }
     };
 
-    debug!("Hello. Logging was just enabled");
-    debug!("I already set up the Runtime object and build the commandline interface parser.");
-    debug!("Lets get rollin' ...");
-
-    info!("No implementation yet");
-
     let entry_id = rt.cli().value_of("id").unwrap(); // enforced by clap
 
     if rt.cli().is_present("versions") {
