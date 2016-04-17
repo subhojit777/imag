@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
-itertools = "0.4.7"
+itertools = "0.4"
 log = "0.3.4"
 toml = "0.1.27"
 semver = "0.2"
