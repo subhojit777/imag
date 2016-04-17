@@ -34,10 +34,6 @@ fn main() {
         }
     };
 
-    debug!("Hello. Logging was just enabled");
-    debug!("I already set up the Runtime object and build the commandline interface parser.");
-    debug!("Lets get rollin' ...");
-
     rt.cli()
         .subcommand_name()
         .map(|name| {
