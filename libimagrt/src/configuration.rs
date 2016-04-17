@@ -17,7 +17,6 @@ pub mod error {
      */
     #[derive(Clone, Debug, PartialEq)]
     pub enum ConfigErrorKind {
-        ConfigParsingFailed,
         NoConfigFileFound,
     }
 
@@ -54,7 +53,6 @@ pub mod error {
          */
         pub fn as_str(e: &ConfigError) -> &'static str {
             match e.kind() {
-                ConfigErrorKind::ConfigParsingFailed => "Config parsing failed",
                 ConfigErrorKind::NoConfigFileFound   => "No config file found",
             }
         }
@@ -157,6 +155,7 @@ impl Configuration {
         self.editor.as_ref()
     }
 
+    #[allow(dead_code)] // Why do I actually need this annotation on a pub function?
     pub fn config(&self) -> &Value {
         &self.config
     }
@@ -253,10 +252,10 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
             let mut parser = Parser::new(&content[..]);
             let res = parser.parse();
             if res.is_none() {
-                write!(stderr(), "Config file parser error:");
+                write!(stderr(), "Config file parser error:").ok();
                 for error in parser.errors {
-                    write!(stderr(), "At [{}][{}] <> {}", error.lo, error.hi, error);
-                    write!(stderr(), "in: '{}'", &content[error.lo..error.hi]);
+                    write!(stderr(), "At [{}][{}] <> {}", error.lo, error.hi, error).ok();
+                    write!(stderr(), "in: '{}'", &content[error.lo..error.hi]).ok();
                 }
                 None
             } else {

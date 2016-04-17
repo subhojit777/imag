@@ -93,8 +93,8 @@ impl<'a> Runtime<'a> {
         };
 
         if is_debugging {
-            write!(stderr(), "Config: {:?}\n", cfg);
-            write!(stderr(), "Store-config: {:?}\n", store_config);
+            write!(stderr(), "Config: {:?}\n", cfg).ok();
+            write!(stderr(), "Store-config: {:?}\n", store_config).ok();
         }
 
         Store::new(storepath, store_config).map(|mut store| {
