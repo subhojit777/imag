@@ -173,7 +173,7 @@ impl ExternalLinker for Entry {
             let file = store.retrieve(file_id.clone());
             if file.is_err() {
                 debug!("Failed to create or retrieve an file for this link '{:?}'", link);
-                return Err(LE::new(LEK::StoreWriteError, Some(Box::new(file.err().unwrap()))));
+                return Err(LE::new(LEK::StoreWriteError, Some(Box::new(file.unwrap_err()))));
             }
             let mut file = file.unwrap();
 
