@@ -155,6 +155,7 @@ impl Configuration {
         self.editor.as_ref()
     }
 
+    #[allow(dead_code)] // Why do I actually need this annotation on a pub function?
     pub fn config(&self) -> &Value {
         &self.config
     }
