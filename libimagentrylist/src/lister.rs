@@ -1,5 +1,3 @@
-use clap::ArgMatches;
-
 use libimagstore::store::FileLockEntry;
 
 use result::Result;

@@ -1,11 +1,9 @@
 use std::io::stdout;
 use std::io::Write;
 
-use cli::list_subcommand_name;
 use lister::Lister;
 use result::Result;
 
-use clap::ArgMatches;
 use libimagstore::store::FileLockEntry;
 
 pub struct LineLister<'a> {
