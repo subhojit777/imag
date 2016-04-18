@@ -3,7 +3,6 @@ use toml::Value;
 
 use libimagstore::store::Entry;
 
-use builtin::header::field_path::FieldPath;
 use filter::Filter;
 
 pub struct VersionGt {
