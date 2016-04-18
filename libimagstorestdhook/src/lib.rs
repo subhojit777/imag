@@ -24,4 +24,5 @@ extern crate libimagutil;
 
 pub mod debug;
 pub mod flock;
+pub mod linkverify;
 
