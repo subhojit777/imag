@@ -42,6 +42,10 @@ imag-call-binary() {
     $bin $flags $*
 }
 
+cat_entry() {
+    cat ${STORE}/$1
+}
+
 reset_store() {
     rm -r "${STORE}"
 }
