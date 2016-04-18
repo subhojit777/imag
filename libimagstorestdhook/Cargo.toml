@@ -11,3 +11,9 @@ fs2 = "0.2.3"
 [dependencies.libimagstore]
 path = "../libimagstore"
 
+[dependencies.libimagentrylink]
+path = "../libimagentrylink"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
