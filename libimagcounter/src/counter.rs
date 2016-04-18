@@ -30,7 +30,7 @@ impl<'a> Counter<'a> {
         let fle = {
             let lockentry = store.create(ModuleEntryPath::new(name.clone()).into_storeid());
             if lockentry.is_err() {
-                return Err(CE::new(CEK::StoreWriteError, Some(Box::new(lockentry.unwrap_err()))));
+                return Err(CE::new(CEK::StoreWriteError, Some(Box::new(lockentry.err().unwrap()))));
             }
             let mut lockentry = lockentry.unwrap();
 
