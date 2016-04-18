@@ -19,6 +19,7 @@ use result::Result;
 use error::NoteError as NE;
 use error::NoteErrorKind as NEK;
 
+#[derive(Debug)]
 pub struct Note<'a> {
     entry: FileLockEntry<'a>,
 }
