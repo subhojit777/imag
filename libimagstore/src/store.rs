@@ -537,6 +537,7 @@ impl Drop for Store {
 }
 
 /// A struct that allows you to borrow an Entry
+#[derive(Debug)]
 pub struct FileLockEntry<'a> {
     store: &'a Store,
     entry: Entry,
