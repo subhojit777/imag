@@ -172,6 +172,7 @@ impl<'a> Deref for Note<'a> {
 
 }
 
+#[derive(Debug)]
 pub struct NoteIterator<'a> {
     store: &'a Store,
     iditer: StoreIdIterator,
