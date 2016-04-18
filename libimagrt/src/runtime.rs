@@ -17,6 +17,7 @@ use logger::ImagLogger;
 
 use libimagstore::store::Store;
 
+#[derive(Debug)]
 pub struct Runtime<'a> {
     rtp: PathBuf,
     configuration: Option<Configuration>,
