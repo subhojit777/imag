@@ -434,7 +434,7 @@ impl Store {
 
         if guard.is_err() {
             return Err(StoreError::new(StoreErrorKind::HookRegisterError,
-                                       Some(Box::new(guard.unwrap_err()))));
+                                       Some(Box::new(guard.err().unwrap()))));
         }
         let mut guard  = guard.unwrap();
         for mut aspect in guard.deref_mut() {
