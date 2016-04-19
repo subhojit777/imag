@@ -44,7 +44,7 @@ pub mod error {
         /**
          * get the Kind of the Error
          */
-        pub fn kind(&self) -> ConfigErrorKind {
+        pub fn err_type(&self) -> ConfigErrorKind {
             self.kind.clone()
         }
 
@@ -52,7 +52,7 @@ pub mod error {
          * Get the string, the ConfigError can be described with
          */
         pub fn as_str(e: &ConfigError) -> &'static str {
-            match e.kind() {
+            match e.err_type() {
                 ConfigErrorKind::NoConfigFileFound   => "No config file found",
             }
         }

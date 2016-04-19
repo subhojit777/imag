@@ -74,7 +74,7 @@ impl<'a> Runtime<'a> {
         let cfg = Configuration::new(&rtp);
         let cfg = if cfg.is_err() {
             let e = cfg.err().unwrap();
-            if e.kind() != ConfigErrorKind::NoConfigFileFound {
+            if e.err_type() != ConfigErrorKind::NoConfigFileFound {
                 let cause : Option<Box<Error>> = Some(Box::new(e));
                 return Err(RuntimeError::new(RuntimeErrorKind::Instantiate, cause));
             } else {
