@@ -1,0 +1,6 @@
+[package]
+name = "libimagtask"
+version = "0.1.0"
+authors = ["mario <mario-krehl@gmx.de>"]
+
+[dependencies]
