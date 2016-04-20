@@ -19,7 +19,10 @@ extern crate toml;
 extern crate fs2;
 
 extern crate libimagstore;
+extern crate libimagentrylink;
+extern crate libimagutil;
 
 pub mod debug;
 pub mod flock;
+pub mod linkverify;
 
