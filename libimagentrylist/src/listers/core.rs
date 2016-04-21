@@ -1,6 +1,5 @@
 use std::io::stdout;
 use std::io::Write;
-use std::ops::Deref;
 
 use lister::Lister;
 use result::Result;
@@ -30,7 +29,7 @@ impl<'a> Lister for CoreLister<'a> {
 
         entries.fold(Ok(()), |accu, entry| {
             accu.and_then(|_| {
-                    write!(stdout(), "{:?}\n", (self.lister)(entry.deref()))
+                    write!(stdout(), "{:?}\n", (self.lister)(&entry))
                         .map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))
                 })
             })
