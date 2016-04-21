@@ -64,14 +64,14 @@ impl<'a> Note<'a> {
     }
 
     pub fn set_name(&mut self, n: String) -> Result<()> {
-        let mut header = self.entry.deref_mut().get_header_mut();
+        let mut header = self.entry.get_header_mut();
         header.set("note.name", Value::String(n))
             .map_err(|e| NE::new(NEK::StoreWriteError, Some(Box::new(e))))
             .map(|_| ())
     }
 
     pub fn get_name(&self) -> Result<String> {
-        let header = self.entry.deref().get_header();
+        let header = self.entry.get_header();
         match header.read("note.name") {
             Ok(Some(Value::String(s))) => Ok(String::from(s)),
             Ok(_)                => {
@@ -83,11 +83,11 @@ impl<'a> Note<'a> {
     }
 
     pub fn set_text(&mut self, n: String) {
-        *self.entry.deref_mut().get_content_mut() = n
+        *self.entry.get_content_mut() = n
     }
 
     pub fn get_text(&self) -> &String {
-        self.entry.deref().get_content()
+        self.entry.get_content()
     }
 
     pub fn delete(store: &Store, name: String) -> Result<()> {
@@ -120,27 +120,27 @@ impl<'a> Edit for Note<'a> {
 impl<'a> Tagable for Note<'a> {
 
     fn get_tags(&self) -> TagResult<Vec<Tag>> {
-        self.entry.deref().get_tags()
+        self.entry.get_tags()
     }
 
     fn set_tags(&mut self, ts: Vec<Tag>) -> TagResult<()> {
-        self.entry.deref_mut().set_tags(ts)
+        self.entry.set_tags(ts)
     }
 
     fn add_tag(&mut self, t: Tag) -> TagResult<()> {
-        self.entry.deref_mut().add_tag(t)
+        self.entry.add_tag(t)
     }
 
     fn remove_tag(&mut self, t: Tag) -> TagResult<()> {
-        self.entry.deref_mut().remove_tag(t)
+        self.entry.remove_tag(t)
     }
 
     fn has_tag(&self, t: &Tag) -> TagResult<bool> {
-        self.entry.deref().has_tag(t)
+        self.entry.has_tag(t)
     }
 
     fn has_tags(&self, ts: &Vec<Tag>) -> TagResult<bool> {
-        self.entry.deref().has_tags(ts)
+        self.entry.has_tags(ts)
     }
 
 }
