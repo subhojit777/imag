@@ -553,7 +553,7 @@ impl<'a> FileLockEntry<'a, > {
     }
 }
 
-impl<'a> ::std::ops::Deref for FileLockEntry<'a> {
+impl<'a> Deref for FileLockEntry<'a> {
     type Target = Entry;
 
     fn deref(&self) -> &Self::Target {
@@ -561,7 +561,7 @@ impl<'a> ::std::ops::Deref for FileLockEntry<'a> {
     }
 }
 
-impl<'a> ::std::ops::DerefMut for FileLockEntry<'a> {
+impl<'a> DerefMut for FileLockEntry<'a> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.entry
     }
