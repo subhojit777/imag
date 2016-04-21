@@ -7,7 +7,7 @@ use toml::Value;
 use libimagstore::store::EntryHeader;
 use libimagutil::key_value_split::IntoKeyValue;
 
-pub fn build_toml_header(matches: &ArgMatches, mut header: EntryHeader) -> EntryHeader {
+pub fn build_toml_header(matches: &ArgMatches, header: EntryHeader) -> EntryHeader {
     debug!("Building header from cli spec");
     if let Some(headerspecs) = matches.values_of("header") {
         let mut main = header.into();
