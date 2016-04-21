@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use std::process::exit;
 
 use clap::ArgMatches;
