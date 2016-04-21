@@ -1,13 +1,10 @@
 use std::collections::BTreeMap;
-use std::path::PathBuf;
 use std::str::Split;
 
 use clap::ArgMatches;
-use semver::Version;
 use toml::Value;
 
 use libimagstore::store::EntryHeader;
-use libimagrt::runtime::Runtime;
 use libimagutil::key_value_split::IntoKeyValue;
 
 pub fn build_toml_header(matches: &ArgMatches, mut header: EntryHeader) -> EntryHeader {
