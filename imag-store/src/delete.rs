@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use libimagstore::storeid::build_entry_path;
 use libimagrt::runtime::Runtime;
 use libimagutil::trace::trace_error;

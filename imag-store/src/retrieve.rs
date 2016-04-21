@@ -1,6 +1,4 @@
-use std::path::PathBuf;
 use std::ops::Deref;
-use std::fmt::Display;
 use std::process::exit;
 
 use clap::ArgMatches;
