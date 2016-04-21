@@ -51,7 +51,7 @@ fn main() {
             rt.unwrap()
         } else {
             println!("Could not set up Runtime");
-            println!("{:?}", rt.err().unwrap());
+            println!("{:?}", rt.unwrap_err());
             exit(1);
         }
     };

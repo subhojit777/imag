@@ -31,7 +31,7 @@ impl Tagable for EntryHeader {
         let tags = self.read("imag.tags");
         if tags.is_err() {
             let kind = TagErrorKind::HeaderReadError;
-            return Err(TagError::new(kind, Some(Box::new(tags.err().unwrap()))));
+            return Err(TagError::new(kind, Some(Box::new(tags.unwrap_err()))));
         }
         let tags = tags.unwrap();
 
@@ -106,7 +106,7 @@ impl Tagable for EntryHeader {
         let tags = self.read("imag.tags");
         if tags.is_err() {
             let kind = TagErrorKind::HeaderReadError;
-            return Err(TagError::new(kind, Some(Box::new(tags.err().unwrap()))));
+            return Err(TagError::new(kind, Some(Box::new(tags.unwrap_err()))));
         }
         let tags = tags.unwrap();
 
@@ -129,7 +129,7 @@ impl Tagable for EntryHeader {
         for tag in tags {
             let check = self.has_tag(tag);
             if check.is_err() {
-                return Err(check.err().unwrap());
+                return Err(check.unwrap_err());
             }
             let check = check.unwrap();
 

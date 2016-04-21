@@ -19,6 +19,7 @@ use result::Result;
 use error::NoteError as NE;
 use error::NoteErrorKind as NEK;
 
+#[derive(Debug)]
 pub struct Note<'a> {
     entry: FileLockEntry<'a>,
 }
@@ -32,7 +33,7 @@ impl<'a> Note<'a> {
         let fle = {
             let lockentry = store.create(ModuleEntryPath::new(name.clone()).into_storeid());
             if lockentry.is_err() {
-                return Err(NE::new(NEK::StoreWriteError, Some(Box::new(lockentry.err().unwrap()))));
+                return Err(NE::new(NEK::StoreWriteError, Some(Box::new(lockentry.unwrap_err()))));
             }
             let mut lockentry = lockentry.unwrap();
 
@@ -44,13 +45,13 @@ impl<'a> Note<'a> {
                     let setres = header.set("note", Value::Table(BTreeMap::new()));
                     if setres.is_err() {
                         let kind = NEK::StoreWriteError;
-                        return Err(NE::new(kind, Some(Box::new(setres.err().unwrap()))));
+                        return Err(NE::new(kind, Some(Box::new(setres.unwrap_err()))));
                     }
 
                     let setres = header.set("note.name", Value::String(name));
                     if setres.is_err() {
                         let kind = NEK::StoreWriteError;
-                        return Err(NE::new(kind, Some(Box::new(setres.err().unwrap()))));
+                        return Err(NE::new(kind, Some(Box::new(setres.unwrap_err()))));
                     }
                 }
 
@@ -171,6 +172,7 @@ impl<'a> Deref for Note<'a> {
 
 }
 
+#[derive(Debug)]
 pub struct NoteIterator<'a> {
     store: &'a Store,
     iditer: StoreIdIterator,

@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 use glob::Paths;
 use semver::Version;
+use std::fmt::{Debug, Formatter};
+use std::fmt::Error as FmtError;
+use std::result::Result as RResult;
 
 use error::{StoreError, StoreErrorKind};
 use store::Result;
@@ -92,6 +95,14 @@ macro_rules! module_entry_path_mod {
 
 pub struct StoreIdIterator {
     paths: Paths,
+}
+
+impl Debug for StoreIdIterator {
+
+    fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
+        write!(fmt, "StoreIdIterator")
+    }
+
 }
 
 impl StoreIdIterator {

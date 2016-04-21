@@ -53,7 +53,7 @@ fn main() {
             rt.unwrap()
         } else {
             println!("Could not set up Runtime");
-            println!("{:?}", rt.err().unwrap());
+            println!("{:?}", rt.unwrap_err());
             exit(1);
         }
     };
@@ -200,7 +200,7 @@ fn handle_external_linking(rt: &Runtime) {
     let entry_name = scmd.value_of("id").unwrap(); // enforced by clap
     let entry      = get_entry_by_name(rt, entry_name);
     if entry.is_err() {
-        trace_error(&entry.err().unwrap());
+        trace_error(&entry.unwrap_err());
         exit(1);
     }
     let mut entry = entry.unwrap();
@@ -238,7 +238,7 @@ fn add_link_to_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLockEn
     let link = Url::parse(link);
     if link.is_err() {
         debug!("URL parsing error...");
-        trace_error(&link.err().unwrap());
+        trace_error(&link.unwrap_err());
         debug!("Exiting");
         exit(1);
     }
@@ -258,7 +258,7 @@ fn remove_link_from_entry(store: &Store, matches: &ArgMatches, entry: &mut FileL
 
     let link = Url::parse(link);
     if link.is_err() {
-        trace_error(&link.err().unwrap());
+        trace_error(&link.unwrap_err());
         exit(1);
     }
     let link = link.unwrap();

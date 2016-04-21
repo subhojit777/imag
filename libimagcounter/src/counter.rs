@@ -39,17 +39,17 @@ impl<'a> Counter<'a> {
                 let mut header = entry.get_header_mut();
                 let setres = header.set("counter", Value::Table(BTreeMap::new()));
                 if setres.is_err() {
-                    return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.err().unwrap()))));
+                    return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
                 }
 
                 let setres = header.set("counter.name", Value::String(name));
                 if setres.is_err() {
-                    return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.err().unwrap()))));
+                    return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
                 }
 
                 let setres = header.set("counter.value", Value::Integer(init));
                 if setres.is_err() {
-                    return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.err().unwrap()))));
+                    return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
                 }
             }
 

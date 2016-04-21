@@ -139,7 +139,7 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
     if links.is_err() {
         debug!("RW action on store failed. Generating LinkError");
         let lerr  = LinkError::new(LinkErrorKind::EntryHeaderReadError,
-                                   Some(Box::new(links.err().unwrap())));
+                                   Some(Box::new(links.unwrap_err())));
         return Err(lerr);
     }
     let links = links.unwrap();
