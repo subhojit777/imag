@@ -41,7 +41,7 @@ pub fn retrieve(rt: &Runtime) {
 fn print_entry(rt: &Runtime, scmd: &ArgMatches, e: FileLockEntry) {
     if do_print_raw(scmd) {
         debug!("Printing raw content...");
-        println!("{}", e.deref().to_str());
+        println!("{}", e.to_str());
     } else if do_filter(scmd) {
         debug!("Filtering...");
         warn!("Filtering via header specs is currently now supported.");
@@ -49,7 +49,6 @@ fn print_entry(rt: &Runtime, scmd: &ArgMatches, e: FileLockEntry) {
         unimplemented!()
     } else {
         debug!("Printing structured...");
-        let entry = e.deref();
         if do_print_header(scmd) {
             debug!("Printing header...");
             if do_print_header_as_json(rt.cli()) {
@@ -60,13 +59,13 @@ fn print_entry(rt: &Runtime, scmd: &ArgMatches, e: FileLockEntry) {
             } else {
                 debug!("Printing header as TOML...");
                 // We have to Value::Table() for Display
-                println!("{}", Value::Table(entry.get_header().clone().into()))
+                println!("{}", Value::Table(e.get_header().clone().into()))
             }
         }
 
         if do_print_content(scmd) {
             debug!("Printing content...");
-            println!("{}", entry.get_content());
+            println!("{}", e.get_content());
         }
 
     }
