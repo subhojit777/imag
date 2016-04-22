@@ -75,7 +75,8 @@ impl<'a> Runtime<'a> {
                 let cause : Option<Box<Error>> = Some(Box::new(e));
                 return Err(RuntimeError::new(RuntimeErrorKind::Instantiate, cause));
             } else {
-                trace_error(&e);
+                warn!("No config file found.");
+                warn!("Continuing without configuration file");
                 None
             },
 
