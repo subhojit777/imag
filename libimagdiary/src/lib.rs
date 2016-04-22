@@ -13,6 +13,7 @@ extern crate libimagrt;
 
 module_entry_path_mod!("diary", "0.1.0");
 
+pub mod config;
 pub mod error;
 pub mod diaryid;
 pub mod diary;
