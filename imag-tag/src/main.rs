@@ -32,7 +32,7 @@ fn main() {
             rt.unwrap()
         } else {
             println!("Could not set up Runtime");
-            println!("{:?}", rt.err().unwrap());
+            println!("{:?}", rt.unwrap_err());
             exit(1);
         }
     };
@@ -127,7 +127,7 @@ fn list(id: &str, rt: &Runtime) {
     if entry.is_err() {
         debug!("Could not retrieve '{:?}' => {:?}", id, path);
         warn!("Could not retrieve entry '{}'", id);
-        trace_error(&entry.err().unwrap());
+        trace_error(&entry.unwrap_err());
         exit(1);
     }
     let entry = entry.unwrap();
@@ -146,7 +146,7 @@ fn list(id: &str, rt: &Runtime) {
 
     let tags = entry.get_tags();
     if tags.is_err() {
-        trace_error(&tags.err().unwrap());
+        trace_error(&tags.unwrap_err());
         exit(1);
     }
     let tags = tags.unwrap();

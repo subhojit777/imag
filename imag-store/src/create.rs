@@ -32,13 +32,13 @@ pub fn create(rt: &Runtime) {
             let path = scmd.value_of("path").or_else(|| scmd.value_of("id"));
             if path.is_none() {
                 warn!("No ID / Path provided. Exiting now");
-                write!(stderr(), "No ID / Path provided. Exiting now");
+                write!(stderr(), "No ID / Path provided. Exiting now").ok();
                 exit(1);
             }
 
             let path = build_entry_path(rt.store(), path.unwrap());
             if path.is_err() {
-                trace_error(&path.err().unwrap());
+                trace_error(&path.unwrap_err());
                 exit(1);
             }
             let path = path.unwrap();
@@ -101,14 +101,15 @@ fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> Res
     debug!("Content with len = {}", content.len());
 
     Entry::from_str(path.clone(), &content[..])
-        .map(|mut new_e| {
-            rt.store()
+        .and_then(|new_e| {
+            let r = rt.store()
                 .create(path.clone())
                 .map(|mut old_e| {
                     *old_e.deref_mut() = new_e;
                 });
 
             debug!("Entry build");
+            r
         })
         .map_err(|serr| StoreError::new(StoreErrorKind::BackendError, Some(Box::new(serr))))
 }
@@ -144,7 +145,7 @@ fn string_from_raw_src(raw_src: &str) -> String {
         debug!("Read {:?} bytes", res);
     } else {
         debug!("Reading entry from file at {:?}", raw_src);
-        OpenOptions::new()
+        let _ = OpenOptions::new()
             .read(true)
             .write(false)
             .create(false)

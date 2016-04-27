@@ -1,6 +1,5 @@
 use std::io::stdout;
 use std::io::Write;
-use std::ops::Deref;
 
 use lister::Lister;
 use result::Result;
@@ -28,7 +27,7 @@ impl Lister for PathLister {
         use error::ListErrorKind as LEK;
 
         entries.fold(Ok(()), |accu, entry| {
-            accu.and_then(|_| Ok(entry.deref().get_location().clone()))
+            accu.and_then(|_| Ok(entry.get_location().clone()))
                 .and_then(|pb| {
                     if self.absolute {
                         pb.canonicalize().map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))

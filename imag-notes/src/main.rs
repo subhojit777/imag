@@ -29,7 +29,7 @@ fn main() {
             rt.unwrap()
         } else {
             println!("Could not set up Runtime");
-            println!("{:?}", rt.err().unwrap());
+            println!("{:?}", rt.unwrap_err());
             exit(1);
         }
     };
@@ -81,7 +81,7 @@ fn edit(rt: &Runtime) {
 fn edit_entry(rt: &Runtime, name: String) -> bool {
     let note = Note::retrieve(rt.store(), name);
     if note.is_err() {
-        trace_error(&note.err().unwrap());
+        trace_error(&note.unwrap_err());
         warn!("Cannot edit nonexistent Note");
         return false
     }
@@ -100,7 +100,7 @@ fn list(rt: &Runtime) {
 
     let iter = Note::all_notes(rt.store());
     if iter.is_err() {
-        trace_error(&iter.err().unwrap());
+        trace_error(&iter.unwrap_err());
         exit(1);
     }
 

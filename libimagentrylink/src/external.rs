@@ -11,7 +11,6 @@
 /// This helps us greatly with deduplication of URLs.
 ///
 
-use std::ops::Deref;
 use std::ops::DerefMut;
 use std::collections::BTreeMap;
 
@@ -60,8 +59,7 @@ impl<'a> Link<'a> {
 
     /// Get a link Url object from a FileLockEntry, ignore errors.
     fn get_link_uri_from_filelockentry(file: &FileLockEntry<'a>) -> Option<Url> {
-        file.deref()
-            .get_header()
+        file.get_header()
             .read("imag.content.uri")
             .ok()
             .and_then(|opt| {
@@ -74,7 +72,6 @@ impl<'a> Link<'a> {
 
     pub fn get_url(&self) -> Result<Option<Url>> {
         let opt = self.link
-            .deref()
             .get_header()
             .read("imag.content.uri");
 
@@ -173,7 +170,7 @@ impl ExternalLinker for Entry {
             let file = store.retrieve(file_id.clone());
             if file.is_err() {
                 debug!("Failed to create or retrieve an file for this link '{:?}'", link);
-                return Err(LE::new(LEK::StoreWriteError, Some(Box::new(file.err().unwrap()))));
+                return Err(LE::new(LEK::StoreWriteError, Some(Box::new(file.unwrap_err()))));
             }
             let mut file = file.unwrap();
 

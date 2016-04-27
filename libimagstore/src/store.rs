@@ -156,7 +156,7 @@ impl Store {
             if c.is_err() {
                 debug!("Failed");
                 return Err(StoreError::new(StoreErrorKind::StorePathCreate,
-                                           Some(Box::new(c.err().unwrap()))));
+                                           Some(Box::new(c.unwrap_err()))));
             }
         } else {
             if location.is_file() {
@@ -537,6 +537,7 @@ impl Drop for Store {
 }
 
 /// A struct that allows you to borrow an Entry
+#[derive(Debug)]
 pub struct FileLockEntry<'a> {
     store: &'a Store,
     entry: Entry,
@@ -553,7 +554,7 @@ impl<'a> FileLockEntry<'a, > {
     }
 }
 
-impl<'a> ::std::ops::Deref for FileLockEntry<'a> {
+impl<'a> Deref for FileLockEntry<'a> {
     type Target = Entry;
 
     fn deref(&self) -> &Self::Target {
@@ -561,7 +562,7 @@ impl<'a> ::std::ops::Deref for FileLockEntry<'a> {
     }
 }
 
-impl<'a> ::std::ops::DerefMut for FileLockEntry<'a> {
+impl<'a> DerefMut for FileLockEntry<'a> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.entry
     }
@@ -764,7 +765,7 @@ impl EntryHeader {
     pub fn set_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<Option<Value>> {
         let tokens = EntryHeader::tokenize(spec, sep);
         if tokens.is_err() { // return parser error if any
-            return Err(tokens.err().unwrap());
+            return Err(tokens.unwrap_err());
         }
         let tokens = tokens.unwrap();
         debug!("tokens = {:?}", tokens);
@@ -779,7 +780,7 @@ impl EntryHeader {
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
         let value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
         if value.is_err() {
-            return Err(value.err().unwrap());
+            return Err(value.unwrap_err());
         }
         let mut value = value.unwrap();
         debug!("walked value = {:?}", value);
@@ -871,14 +872,14 @@ impl EntryHeader {
     pub fn read_with_sep(&self, spec: &str, splitchr: char) -> Result<Option<Value>> {
         let tokens = EntryHeader::tokenize(spec, splitchr);
         if tokens.is_err() { // return parser error if any
-            return Err(tokens.err().unwrap());
+            return Err(tokens.unwrap_err());
         }
         let tokens = tokens.unwrap();
 
         let mut header_clone = self.header.clone(); // we clone as READing is simpler this way
         let value = EntryHeader::walk_header(&mut header_clone, tokens); // walk N-1 tokens
         if value.is_err() {
-            let e = value.err().unwrap();
+            let e = value.unwrap_err();
             return match e.err_type() {
                 // We cannot find the header key, as there is no path to it
                 StoreErrorKind::HeaderKeyNotFound => Ok(None),
@@ -891,7 +892,7 @@ impl EntryHeader {
     pub fn delete(&mut self, spec: &str) -> Result<Option<Value>> {
         let tokens = EntryHeader::tokenize(spec, '.');
         if tokens.is_err() { // return parser error if any
-            return Err(tokens.err().unwrap());
+            return Err(tokens.unwrap_err());
         }
         let tokens = tokens.unwrap();
 
@@ -905,7 +906,7 @@ impl EntryHeader {
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
         let value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
         if value.is_err() {
-            return Err(value.err().unwrap());
+            return Err(value.unwrap_err());
         }
         let mut value = value.unwrap();
         debug!("walked value = {:?}", value);

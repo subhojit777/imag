@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use std::ops::DerefMut;
 use std::process::exit;
 
@@ -16,7 +15,7 @@ pub fn update(rt: &Runtime) {
                 .map(|id| {
                     let path = build_entry_path(rt.store(), id);
                     if path.is_err() {
-                        trace_error(&path.err().unwrap());
+                        trace_error(&path.unwrap_err());
                         exit(1);
                     }
                     let path = path.unwrap();

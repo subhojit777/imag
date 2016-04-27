@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+source $(dirname ${BASH_SOURCE[0]})/../../tests/utils.sh
 source $(dirname ${BASH_SOURCE[0]})/utils.sh
 
 test_call() {

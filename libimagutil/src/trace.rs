@@ -55,7 +55,7 @@ fn print_trace_maxdepth(idx: u64, e: &Error, max: u64) -> Option<&Error> {
     } else {
         write!(stderr(), "\n").ok();
     }
-    write!(stderr(), "Error {:>4} : {}", idx, e.description()).ok();
+    write!(stderr(), "ERROR[{:>4}]: {}", idx, e.description()).ok();
     e.cause()
 }
 
@@ -65,9 +65,8 @@ fn count_error_causes(e: &Error) -> u64 {
 }
 
 fn print_trace_dbg(idx: u64, e: &Error) {
-    debug!("Error {:>4} : {}", idx, e.description());
+    debug!("ERROR[{:>4}]: {}", idx, e.description());
     if e.cause().is_some() {
-        debug!(" -- caused by:");
         print_trace_dbg(idx + 1, e.cause().unwrap());
     }
 }

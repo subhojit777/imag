@@ -54,7 +54,7 @@ fn main() {
             rt.unwrap()
         } else {
             println!("Could not set up Runtime");
-            println!("{:?}", rt.err().unwrap());
+            println!("{:?}", rt.unwrap_err());
             exit(1); // we can afford not-executing destructors here
         }
     };
@@ -102,7 +102,7 @@ fn main() {
 
         let entry = load_entry(entry_id, entry_version, &rt);
         if entry.is_err() {
-            trace_error(&entry.err().unwrap());
+            trace_error(&entry.unwrap_err());
             exit(1); // we can afford not-executing destructors here
         }
         let entry = entry.unwrap();

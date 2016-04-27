@@ -15,11 +15,11 @@ pub fn list(rt: &Runtime) {
                         let value   = c.value();
 
                         if name.is_err() {
-                            trace_error(&name.err().unwrap());
+                            trace_error(&name.unwrap_err());
                         } else {
 
                             if value.is_err() {
-                                trace_error(&value.err().unwrap());
+                                trace_error(&value.unwrap_err());
                             } else {
                                 println!("{} - {}", name.unwrap(), value.unwrap());
                             }
