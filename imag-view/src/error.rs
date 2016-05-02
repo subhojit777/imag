@@ -15,11 +15,11 @@ pub enum ViewErrorKind {
 }
 
 fn view_error_type_as_str(e: &ViewErrorKind) -> &'static str {
-    match e {
-        &ViewErrorKind::StoreError => "Store error",
-        &ViewErrorKind::NoVersion => "No version specified",
-        &ViewErrorKind::PatternError => "Error in Pattern",
-        &ViewErrorKind::GlobBuildError => "Could not build glob() Argument",
+    match *e {
+        ViewErrorKind::StoreError => "Store error",
+        ViewErrorKind::NoVersion => "No version specified",
+        ViewErrorKind::PatternError => "Error in Pattern",
+        ViewErrorKind::GlobBuildError => "Could not build glob() Argument",
     }
 }
 
@@ -59,7 +59,7 @@ impl ViewError {
      * Get the error type of this ViewError
      */
     pub fn err_type(&self) -> ViewErrorKind {
-        self.err_type.clone()
+        self.err_type
     }
 
 }
@@ -67,7 +67,7 @@ impl ViewError {
 impl Display for ViewError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "[{}]", view_error_type_as_str(&self.err_type.clone())));
+        try!(write!(fmt, "[{}]", view_error_type_as_str(&self.err_type)));
         Ok(())
     }
 
@@ -76,7 +76,7 @@ impl Display for ViewError {
 impl Error for ViewError {
 
     fn description(&self) -> &str {
-        view_error_type_as_str(&self.err_type.clone())
+        view_error_type_as_str(&self.err_type)
     }
 
     fn cause(&self) -> Option<&Error> {

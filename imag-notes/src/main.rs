@@ -60,10 +60,9 @@ fn create(rt: &Runtime) {
         .map_err(|e| trace_error(&e))
         .ok();
 
-    if rt.cli().subcommand_matches("create").unwrap().is_present("edit") {
-        if !edit_entry(rt, name) {
-            exit(1);
-        }
+    if rt.cli().subcommand_matches("create").unwrap().is_present("edit") &&
+            !edit_entry(rt, name) {
+        exit(1);
     }
 }
 

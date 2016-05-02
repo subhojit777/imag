@@ -129,7 +129,7 @@ fn load_entry<'a>(id: &str,
 
     let version = {
         if version.is_none() {
-            let r = id.split("~").last();
+            let r = id.split('~').last();
             if r.is_none() {
                 warn!("No version");
                 return Err(ViewError::new(ViewErrorKind::NoVersion, None));
@@ -144,7 +144,7 @@ fn load_entry<'a>(id: &str,
     debug!("Building path from {:?} and {:?}", id, version);
     let mut path = rt.store().path().clone();
 
-    if id.chars().next() == Some('/') {
+    if id.starts_with('/') {
         path.push(format!("{}~{}", &id[1..id.len()], version));
     } else {
         path.push(format!("{}~{}", id, version));
@@ -161,7 +161,7 @@ fn view_versions_of(id: &str, rt: &Runtime) -> Result<()> {
 
     let mut path = rt.store().path().clone();
 
-    if id.chars().next() == Some('/') {
+    if id.starts_with('/') {
         path.push(format!("{}~*", &id[1..id.len()]));
     } else {
         path.push(format!("{}~*", id));

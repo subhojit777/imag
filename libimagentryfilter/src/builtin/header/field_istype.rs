@@ -21,11 +21,11 @@ impl Type {
 
     fn matches(&self, v: &Value) -> bool {
         match (self, v) {
-            (&Type::String,  &Value::String(_))  => true,
-            (&Type::Integer, &Value::Integer(_)) => true,
-            (&Type::Float,   &Value::Float(_))   => true,
-            (&Type::Boolean, &Value::Boolean(_)) => true,
-            (&Type::Array,   &Value::Array(_))   => true,
+            (&Type::String,  &Value::String(_))  |
+            (&Type::Integer, &Value::Integer(_)) |
+            (&Type::Float,   &Value::Float(_))   |
+            (&Type::Boolean, &Value::Boolean(_)) |
+            (&Type::Array,   &Value::Array(_))   |
             (&Type::Table,   &Value::Table(_))   => true,
             _                                    => false,
         }

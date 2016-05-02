@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt::Error as FmtError;
-use std::clone::Clone;
 use std::fmt::{Display, Formatter};
 
 /**
@@ -15,11 +14,11 @@ pub enum CounterErrorKind {
 }
 
 fn counter_error_type_as_str(e: &CounterErrorKind) -> &'static str {
-    match e {
-        &CounterErrorKind::StoreReadError  => "Store read error",
-        &CounterErrorKind::StoreWriteError => "Store write error",
-        &CounterErrorKind::HeaderTypeError => "Header type error",
-        &CounterErrorKind::HeaderFieldMissingError => "Header field missing error",
+    match *e {
+        CounterErrorKind::StoreReadError  => "Store read error",
+        CounterErrorKind::StoreWriteError => "Store write error",
+        CounterErrorKind::HeaderTypeError => "Header type error",
+        CounterErrorKind::HeaderFieldMissingError => "Header field missing error",
     }
 }
 
@@ -59,7 +58,7 @@ impl CounterError {
      * Get the error type of this CounterError
      */
     pub fn err_type(&self) -> CounterErrorKind {
-        self.err_type.clone()
+        self.err_type
     }
 
 }
@@ -67,7 +66,7 @@ impl CounterError {
 impl Display for CounterError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "[{}]", counter_error_type_as_str(&self.err_type.clone())));
+        try!(write!(fmt, "[{}]", counter_error_type_as_str(&self.err_type)));
         Ok(())
     }
 
@@ -76,7 +75,7 @@ impl Display for CounterError {
 impl Error for CounterError {
 
     fn description(&self) -> &str {
-        counter_error_type_as_str(&self.err_type.clone())
+        counter_error_type_as_str(&self.err_type)
     }
 
     fn cause(&self) -> Option<&Error> {

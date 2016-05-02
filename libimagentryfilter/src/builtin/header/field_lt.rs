@@ -14,15 +14,15 @@ struct EqLt {
 impl Predicate for EqLt {
 
     fn evaluate(&self, v: Value) -> bool {
-        match &self.comp {
-            &Value::Integer(i) => {
+        match self.comp {
+            Value::Integer(i) => {
                 match v {
                     Value::Integer(j) => i < j,
                     Value::Float(f) => (i as f64) < f,
                     _ => false,
                 }
             },
-            &Value::Float(f) => {
+            Value::Float(f) => {
                 match v {
                     Value::Integer(i) => f < (i as f64),
                     Value::Float(d) => f < d,
