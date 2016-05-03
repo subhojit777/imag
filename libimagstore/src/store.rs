@@ -23,7 +23,7 @@ use glob::glob;
 
 use error::{ParserErrorKind, ParserError};
 use error::{StoreError, StoreErrorKind};
-use storeid::{StoreId, StoreIdIterator};
+use storeid::{IntoStoreId, StoreId, StoreIdIterator};
 use lazyfile::LazyFile;
 
 use hook::aspect::Aspect;
@@ -245,8 +245,8 @@ impl Store {
     }
 
     /// Creates the Entry at the given location (inside the entry)
-    pub fn create<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
-        let id = self.storify_id(id);
+    pub fn create<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
+        let id = self.storify_id(id.into_storeid());
         if let Err(e) = self.execute_hooks_for_id(self.pre_create_aspects.clone(), &id) {
             return Err(e);
         }
@@ -273,8 +273,8 @@ impl Store {
 
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
     /// dropped, the new Entry is written to disk
-    pub fn retrieve<'a>(&'a self, id: StoreId) -> Result<FileLockEntry<'a>> {
-        let id = self.storify_id(id);
+    pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
+        let id = self.storify_id(id.into_storeid());
         if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
             return Err(e);
         }
@@ -356,8 +356,8 @@ impl Store {
 
     /// Retrieve a copy of a given entry, this cannot be used to mutate
     /// the one on disk
-    pub fn retrieve_copy(&self, id: StoreId) -> Result<Entry> {
-        let id = self.storify_id(id);
+    pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
+        let id = self.storify_id(id.into_storeid());
         let entries_lock = self.entries.write();
         if entries_lock.is_err() {
             return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
@@ -374,8 +374,8 @@ impl Store {
     }
 
     /// Delete an entry
-    pub fn delete(&self, id: StoreId) -> Result<()> {
-        let id = self.storify_id(id);
+    pub fn delete<S: IntoStoreId>(&self, id: S) -> Result<()> {
+        let id = self.storify_id(id.into_storeid());
         if let Err(e) = self.execute_hooks_for_id(self.pre_delete_aspects.clone(), &id) {
             return Err(e);
         }
