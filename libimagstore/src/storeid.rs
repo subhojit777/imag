@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use std::path::Path;
 use std::borrow::Borrow;
+use std::ops::Deref;
 
 use glob::Paths;
 use semver::Version;
@@ -20,6 +21,15 @@ impl Into<PathBuf> for StoreId {
 
     fn into(self) -> PathBuf {
         self.0
+    }
+
+}
+
+impl Deref for StoreId {
+    type Target = PathBuf;
+
+    fn deref(&self) -> &PathBuf {
+        &self.0
     }
 
 }
