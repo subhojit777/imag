@@ -57,7 +57,7 @@ impl StoreEntry {
     fn new(id: StoreId) -> StoreEntry {
         StoreEntry {
             id: id.clone(),
-            file: LazyFile::Absent(id),
+            file: LazyFile::Absent(id.into()),
             status: StoreEntryStatus::Present,
         }
     }
@@ -241,7 +241,7 @@ impl Store {
         let mut new_id = self.location.clone();
         new_id.push(id);
         debug!("Created: '{:?}'", new_id);
-        new_id
+        StoreId::from(new_id)
     }
 
     /// Creates the Entry at the given location (inside the entry)

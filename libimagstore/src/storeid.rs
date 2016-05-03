@@ -64,7 +64,7 @@ pub trait IntoStoreId {
 
 impl IntoStoreId for PathBuf {
     fn into_storeid(self) -> StoreId {
-        self
+        StoreId(self)
     }
 }
 
@@ -163,7 +163,7 @@ impl Iterator for StoreIdIterator {
     type Item = StoreId;
 
     fn next(&mut self) -> Option<StoreId> {
-        self.paths.next().and_then(|o| o.ok())
+        self.paths.next().and_then(|o| o.ok()).map(|p| StoreId::from(p))
     }
 
 }
