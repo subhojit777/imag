@@ -32,7 +32,7 @@ impl Lister for PathLister {
                     if self.absolute {
                         pb.canonicalize().map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))
                     } else {
-                        Ok(pb)
+                        Ok(pb.into())
                     }
                 })
                 .and_then(|pb| {
