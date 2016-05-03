@@ -31,10 +31,10 @@ impl RuntimeError {
 }
 
 fn runtime_error_kind_as_str(e: &RuntimeErrorKind) -> &'static str {
-    match e {
-        &RuntimeErrorKind::Instantiate          => "Could not instantiate",
-        &RuntimeErrorKind::IOError              => "IO Error",
-        &RuntimeErrorKind::ProcessExitFailure   => "Process exited with failure",
+    match *e {
+        RuntimeErrorKind::Instantiate          => "Could not instantiate",
+        RuntimeErrorKind::IOError              => "IO Error",
+        RuntimeErrorKind::ProcessExitFailure   => "Process exited with failure",
     }
 }
 

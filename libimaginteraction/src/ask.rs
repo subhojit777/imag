@@ -40,13 +40,10 @@ fn ask_bool_<R: BufRead>(s: &str, default: Option<bool>, input: &mut R) -> bool 
             return true
         } else if R_NO.is_match(&s[..]) {
             return false
-        } else {
-            if default.is_some() {
-                return default.unwrap();
-            }
-
-            // else again...
+        } else if default.is_some() {
+            return default.unwrap();
         }
+        // else again...
     }
 }
 
@@ -123,26 +120,24 @@ pub fn ask_string_<R: BufRead>(s: &str,
         let _     = input.read_line(&mut s);
 
         if permit_multiline {
-            if permit_multiline && eof.map(|e| e == s).unwrap_or(false) {
+            if permit_multiline && eof.map_or(false, |e| e == s) {
                 return v.join("\n");
             }
 
-            if permit_empty || v.len() != 0 {
+            if permit_empty || !v.is_empty() {
                 v.push(s);
             }
             print!("{}", prompt);
-        } else {
-            if s.len() == 0 && permit_empty {
-                return s;
-            } else if s.len() == 0 && !permit_empty {
-                if default.is_some() {
-                    return default.unwrap();
-                } else {
-                    continue;
-                }
+        } else if s.is_empty() && permit_empty {
+            return s;
+        } else if s.is_empty() && !permit_empty {
+            if default.is_some() {
+                return default.unwrap();
             } else {
-                return s;
+                continue;
             }
+        } else {
+            return s;
         }
     }
 }

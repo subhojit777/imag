@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt::Error as FmtError;
-use std::clone::Clone;
 use std::fmt::{Display, Formatter};
 
 /**
@@ -16,11 +15,11 @@ pub enum NoteErrorKind {
 }
 
 fn note_error_type_as_str(e: &NoteErrorKind) -> &'static str {
-    match e {
-        &NoteErrorKind::StoreWriteError => "Error writing store",
-        &NoteErrorKind::StoreReadError  => "Error reading store",
-        &NoteErrorKind::HeaderTypeError => "Header type error",
-        &NoteErrorKind::NoteToEntryConversion => "Error converting Note instance to Entry instance",
+    match *e {
+        NoteErrorKind::StoreWriteError => "Error writing store",
+        NoteErrorKind::StoreReadError  => "Error reading store",
+        NoteErrorKind::HeaderTypeError => "Header type error",
+        NoteErrorKind::NoteToEntryConversion => "Error converting Note instance to Entry instance",
     }
 }
 
@@ -58,7 +57,7 @@ impl NoteError {
      * Get the error type of this NoteError
      */
     pub fn err_type(&self) -> NoteErrorKind {
-        self.err_type.clone()
+        self.err_type
     }
 
 }
@@ -66,7 +65,7 @@ impl NoteError {
 impl Display for NoteError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "[{}]", note_error_type_as_str(&self.err_type.clone())));
+        try!(write!(fmt, "[{}]", note_error_type_as_str(&self.err_type)));
         Ok(())
     }
 
@@ -75,7 +74,7 @@ impl Display for NoteError {
 impl Error for NoteError {
 
     fn description(&self) -> &str {
-        note_error_type_as_str(&self.err_type.clone())
+        note_error_type_as_str(&self.err_type)
     }
 
     fn cause(&self) -> Option<&Error> {

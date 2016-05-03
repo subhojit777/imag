@@ -55,22 +55,20 @@ impl<'a> Runtime<'a> {
         Runtime::init_logger(is_debugging, is_verbose);
 
         let rtp : PathBuf = matches.value_of("runtimepath")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| {
+            .map_or_else(|| {
                 env::var("HOME")
                     .map(PathBuf::from)
                     .map(|mut p| { p.push(".imag"); p})
                     .unwrap_or_else(|_| {
                         panic!("You seem to be $HOME-less. Please get a $HOME before using this software. We are sorry for you and hope you have some accommodation anyways.");
                     })
-            });
+            }, PathBuf::from);
         let storepath = matches.value_of("storepath")
-                                .map(PathBuf::from)
-                                .unwrap_or({
+                                .map_or_else(|| {
                                     let mut spath = rtp.clone();
                                     spath.push("store");
                                     spath
-                                });
+                                }, PathBuf::from);
 
         let cfg = Configuration::new(&rtp);
         let cfg = if cfg.is_err() {
@@ -87,9 +85,9 @@ impl<'a> Runtime<'a> {
         };
 
         let store_config = {
-            match &cfg {
-                &Some(ref c) => c.store_config().map(|c| c.clone()),
-                &None => None,
+            match cfg {
+                Some(ref c) => c.store_config().cloned(),
+                None => None,
             }
         };
 
@@ -268,8 +266,8 @@ impl<'a> Runtime<'a> {
             .value_of("editor")
             .map(String::from)
             .or({
-                match &self.configuration {
-                    &Some(ref c) => c.editor().map(|s| s.clone()),
+                match self.configuration {
+                    Some(ref c) => c.editor().cloned(),
                     _ => None,
                 }
             })

@@ -140,7 +140,7 @@ impl StoreEntry {
                 entry
             }
         } else {
-            return Err(StoreError::new(StoreErrorKind::EntryAlreadyBorrowed, None))
+            Err(StoreError::new(StoreErrorKind::EntryAlreadyBorrowed, None))
         }
     }
 
@@ -213,11 +213,9 @@ impl Store {
                 return Err(StoreError::new(StoreErrorKind::StorePathCreate,
                                            Some(Box::new(c.unwrap_err()))));
             }
-        } else {
-            if location.is_file() {
-                debug!("Store path exists as file");
-                return Err(StoreError::new(StoreErrorKind::StorePathExists, None));
-            }
+        } else if location.is_file() {
+            debug!("Store path exists as file");
+            return Err(StoreError::new(StoreErrorKind::StorePathExists, None));
         }
 
         let pre_create_aspects = get_pre_create_aspect_names(&store_config)
@@ -468,7 +466,7 @@ impl Store {
 
     pub fn register_hook(&mut self,
                          position: HookPosition,
-                         aspect_name: &String,
+                         aspect_name: &str,
                          mut h: Box<Hook>)
         -> Result<()>
     {
@@ -506,16 +504,16 @@ impl Store {
         }
 
         let annfe = StoreError::new(StoreErrorKind::AspectNameNotFoundError, None);
-        return Err(StoreError::new(StoreErrorKind::HookRegisterError, Some(Box::new(annfe))));
+        Err(StoreError::new(StoreErrorKind::HookRegisterError, Some(Box::new(annfe))))
     }
 
     fn get_config_for_hook(&self, name: &str) -> Option<&Value> {
-        match &self.configuration {
-            &Some(Value::Table(ref tabl)) => {
+        match self.configuration {
+            Some(Value::Table(ref tabl)) => {
                 tabl.get("hooks")
                     .map(|hook_section| {
-                        match hook_section {
-                            &Value::Table(ref tabl) => tabl.get(name),
+                        match *hook_section {
+                            Value::Table(ref tabl) => tabl.get(name),
                             _ => None
                         }
                     })
@@ -635,17 +633,13 @@ impl<'a> Drop for FileLockEntry<'a> {
     }
 }
 
-/**
- * EntryContent type
- */
+/// `EntryContent` type
 pub type EntryContent = String;
 
-/**
- * EntryHeader
- *
- * This is basically a wrapper around toml::Table which provides convenience to the user of the
- * librray.
- */
+/// `EntryHeader`
+///
+/// This is basically a wrapper around `toml::Table` which provides convenience to the user of the
+/// library.
 #[derive(Debug, Clone)]
 pub struct EntryHeader {
     header: Value,
@@ -691,8 +685,8 @@ impl EntryHeader {
     }
 
     pub fn verify(&self) -> Result<()> {
-        match &self.header {
-            &Value::Table(ref t) => verify_header(&t),
+        match self.header {
+            Value::Table(ref t) => verify_header(&t),
             _ => Err(StoreError::new(StoreErrorKind::HeaderTypeFailure, None)),
         }
     }
@@ -751,13 +745,13 @@ impl EntryHeader {
             return Ok(false);
         }
 
-        match destination {
-            &Token::Key(ref s) => { // if the destination shall be an map key
-                match value {
+        match *destination {
+            Token::Key(ref s) => { // if the destination shall be an map key
+                match *value {
                     /*
                      * Put it in there if we have a map
                      */
-                    &mut Value::Table(ref mut t) => {
+                    Value::Table(ref mut t) => {
                         t.insert(s.clone(), v);
                     }
 
@@ -768,13 +762,13 @@ impl EntryHeader {
                 }
             },
 
-            &Token::Index(i) => { // if the destination shall be an array
-                match value {
+            Token::Index(i) => { // if the destination shall be an array
+                match *value {
 
                     /*
                      * Put it in there if we have an array
                      */
-                    &mut Value::Array(ref mut a) => {
+                    Value::Array(ref mut a) => {
                         a.push(v); // push to the end of the array
 
                         // if the index is inside the array, we swap-remove the element at this
@@ -845,13 +839,13 @@ impl EntryHeader {
         let mut value = value.unwrap();
         debug!("walked value = {:?}", value);
 
-        match destination {
-            &Token::Key(ref s) => { // if the destination shall be an map key->value
-                match value {
+        match *destination {
+            Token::Key(ref s) => { // if the destination shall be an map key->value
+                match *value {
                     /*
                      * Put it in there if we have a map
                      */
-                    &mut Value::Table(ref mut t) => {
+                    Value::Table(ref mut t) => {
                         debug!("Matched Key->Table");
                         return Ok(t.insert(s.clone(), v));
                     }
@@ -866,13 +860,13 @@ impl EntryHeader {
                 }
             },
 
-            &Token::Index(i) => { // if the destination shall be an array
-                match value {
+            Token::Index(i) => { // if the destination shall be an array
+                match *value {
 
                     /*
                      * Put it in there if we have an array
                      */
-                    &mut Value::Array(ref mut a) => {
+                    Value::Array(ref mut a) => {
                         debug!("Matched Index->Array");
                         a.push(v); // push to the end of the array
 
@@ -971,10 +965,10 @@ impl EntryHeader {
         let mut value = value.unwrap();
         debug!("walked value = {:?}", value);
 
-        match destination {
-            &Token::Key(ref s) => { // if the destination shall be an map key->value
-                match value {
-                    &mut Value::Table(ref mut t) => {
+        match *destination {
+            Token::Key(ref s) => { // if the destination shall be an map key->value
+                match *value {
+                    Value::Table(ref mut t) => {
                         debug!("Matched Key->Table, removing {:?}", s);
                         return Ok(t.remove(s));
                     },
@@ -985,9 +979,9 @@ impl EntryHeader {
                 }
             },
 
-            &Token::Index(i) => { // if the destination shall be an array
-                match value {
-                    &mut Value::Array(ref mut a) => {
+            Token::Index(i) => { // if the destination shall be an array
+                match *value {
+                    Value::Array(ref mut a) => {
                         // if the index is inside the array, we swap-remove the element at this
                         // index
                         if a.len() > i {
@@ -1037,9 +1031,9 @@ impl EntryHeader {
         walk_iter(Ok(v), &mut tokens.into_iter())
     }
 
-    fn extract_from_table<'a>(v: &'a mut Value, s: &String) -> Result<&'a mut Value> {
-        match v {
-            &mut Value::Table(ref mut t) => {
+    fn extract_from_table<'a>(v: &'a mut Value, s: &str) -> Result<&'a mut Value> {
+        match *v {
+            Value::Table(ref mut t) => {
                 t.get_mut(&s[..])
                     .ok_or(StoreError::new(StoreErrorKind::HeaderKeyNotFound, None))
             },
@@ -1048,8 +1042,8 @@ impl EntryHeader {
     }
 
     fn extract_from_array(v: &mut Value, i: usize) -> Result<&mut Value> {
-        match v {
-            &mut Value::Array(ref mut a) => {
+        match *v {
+            Value::Array(ref mut a) => {
                 if a.len() < i {
                     Err(StoreError::new(StoreErrorKind::HeaderKeyNotFound, None))
                 } else {
@@ -1061,9 +1055,9 @@ impl EntryHeader {
     }
 
     fn extract<'a>(v: &'a mut Value, token: &Token) -> Result<&'a mut Value> {
-        match token {
-            &Token::Key(ref s)  => EntryHeader::extract_from_table(v, s),
-            &Token::Index(i)    => EntryHeader::extract_from_array(v, i),
+        match *token {
+            Token::Key(ref s)  => EntryHeader::extract_from_table(v, s),
+            Token::Index(i)    => EntryHeader::extract_from_array(v, i),
         }
     }
 
@@ -1125,7 +1119,7 @@ fn verify_header_consistency(t: Table) -> EntryResult<Table> {
 
 fn has_only_tables(t: &Table) -> bool {
     debug!("Verifying that table has only tables");
-    t.iter().all(|(_, x)| if let &Value::Table(_) = x { true } else { false })
+    t.iter().all(|(_, x)| if let Value::Table(_) = *x { true } else { false })
 }
 
 fn has_main_section(t: &Table) -> bool {
@@ -1140,20 +1134,20 @@ fn has_main_section(t: &Table) -> bool {
 fn has_imag_version_in_main_section(t: &Table) -> bool {
     use semver::Version;
 
-    match t.get("imag").unwrap() {
-        &Value::Table(ref sec) => {
+    match *t.get("imag").unwrap() {
+        Value::Table(ref sec) => {
             sec.get("version")
                 .and_then(|v| {
-                    match v {
-                        &Value::String(ref s) => {
+                    match *v {
+                        Value::String(ref s) => {
                             Some(Version::parse(&s[..]).is_ok())
                         },
-                        _                 => Some(false),
+                        _ => Some(false),
                     }
                 })
             .unwrap_or(false)
         }
-        _                  => false,
+        _ => false,
     }
 }
 

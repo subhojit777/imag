@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt::Error as FmtError;
-use std::clone::Clone;
 use std::fmt::{Display, Formatter};
 
 /**
@@ -52,7 +51,7 @@ impl ViewError {
      * Get the error type of this ViewError
      */
     pub fn err_type(&self) -> ViewErrorKind {
-        self.err_type.clone()
+        self.err_type
     }
 
 }
@@ -60,7 +59,7 @@ impl ViewError {
 impl Display for ViewError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "[{}]", counter_error_type_as_str(&self.err_type.clone())));
+        try!(write!(fmt, "[{}]", counter_error_type_as_str(&self.err_type)));
         Ok(())
     }
 
@@ -69,7 +68,7 @@ impl Display for ViewError {
 impl Error for ViewError {
 
     fn description(&self) -> &str {
-        counter_error_type_as_str(&self.err_type.clone())
+        counter_error_type_as_str(&self.err_type)
     }
 
     fn cause(&self) -> Option<&Error> {

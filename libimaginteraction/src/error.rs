@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt::Error as FmtError;
-use std::clone::Clone;
 use std::fmt::{Display, Formatter};
 
 /**
@@ -12,8 +11,8 @@ pub enum InteractionErrorKind {
 }
 
 fn interaction_error_type_as_str(e: &InteractionErrorKind) -> &'static str {
-    match e {
-        &InteractionErrorKind::Unknown => "Unknown Error",
+    match *e {
+        InteractionErrorKind::Unknown => "Unknown Error",
     }
 }
 
@@ -50,7 +49,7 @@ impl InteractionError {
      * Get the error type of this InteractionError
      */
     pub fn err_type(&self) -> InteractionErrorKind {
-        self.err_type.clone()
+        self.err_type
     }
 
 }
@@ -58,7 +57,7 @@ impl InteractionError {
 impl Display for InteractionError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "[{}]", interaction_error_type_as_str(&self.err_type.clone())));
+        try!(write!(fmt, "[{}]", interaction_error_type_as_str(&self.err_type)));
         Ok(())
     }
 
@@ -67,7 +66,7 @@ impl Display for InteractionError {
 impl Error for InteractionError {
 
     fn description(&self) -> &str {
-        interaction_error_type_as_str(&self.err_type.clone())
+        interaction_error_type_as_str(&self.err_type)
     }
 
     fn cause(&self) -> Option<&Error> {

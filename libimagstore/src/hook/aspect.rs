@@ -41,7 +41,7 @@ impl StoreIdAccessor for Aspect {
         use crossbeam;
 
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
-        if !accessors.iter().all(|a| match a { &HDA::StoreIdAccess(_)  => true, _ => false }) {
+        if !accessors.iter().all(|a| match *a { HDA::StoreIdAccess(_)  => true, _ => false }) {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
@@ -50,8 +50,8 @@ impl StoreIdAccessor for Aspect {
             .map(|accessor| {
                 crossbeam::scope(|scope| {
                     scope.spawn(|| {
-                        match accessor {
-                            &HDA::StoreIdAccess(accessor) => accessor.access(id),
+                        match *accessor {
+                            HDA::StoreIdAccess(accessor) => accessor.access(id),
                             _ => unreachable!(),
                         }
                         .map_err(|_| ()) // TODO: We're losing the error cause here
@@ -76,9 +76,9 @@ impl MutableHookDataAccessor for Aspect {
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
 
         fn is_file_accessor(a: &HDA) -> bool {
-            match a {
-                &HDA::MutableAccess(_)  => true,
-                &HDA::NonMutableAccess(_)  => true,
+            match *a {
+                HDA::MutableAccess(_)     |
+                HDA::NonMutableAccess(_)  => true,
                 _ => false,
             }
         }
@@ -108,7 +108,7 @@ impl NonMutableHookDataAccessor for Aspect {
         use crossbeam;
 
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
-        if !accessors.iter().all(|a| match a { &HDA::NonMutableAccess(_)  => true, _ => false }) {
+        if !accessors.iter().all(|a| match *a { HDA::NonMutableAccess(_)  => true, _ => false }) {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
@@ -117,8 +117,8 @@ impl NonMutableHookDataAccessor for Aspect {
             .map(|accessor| {
                 crossbeam::scope(|scope| {
                     scope.spawn(|| {
-                        match accessor {
-                            &HDA::NonMutableAccess(accessor) => accessor.access(fle),
+                        match *accessor {
+                            HDA::NonMutableAccess(accessor) => accessor.access(fle),
                             _ => unreachable!(),
                         }
                         .map_err(|_| ()) // TODO: We're losing the error cause here

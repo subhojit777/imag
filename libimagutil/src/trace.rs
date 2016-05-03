@@ -59,7 +59,7 @@ fn print_trace_maxdepth(idx: u64, e: &Error, max: u64) -> Option<&Error> {
     e.cause()
 }
 
-/// Count errors in Error::cause() recursively
+/// Count errors in `Error::cause()` recursively
 fn count_error_causes(e: &Error) -> u64 {
     1 + if e.cause().is_some() { count_error_causes(e.cause().unwrap()) } else { 0 }
 }

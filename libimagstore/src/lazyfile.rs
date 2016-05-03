@@ -4,11 +4,9 @@ use std::io::{Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::fs::{File, OpenOptions, create_dir_all};
 
-/**
- * LazyFile type
- *
- * A lazy file is either absent, but a path to it is available, or it is present.
- */
+/// `LazyFile` type
+///
+/// A lazy file is either absent, but a path to it is available, or it is present.
 #[derive(Debug)]
 pub enum LazyFile {
     Absent(PathBuf),

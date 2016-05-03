@@ -92,9 +92,9 @@ impl InternalLinker for Entry {
 fn links_into_values(links: Vec<StoreId>) -> Vec<Option<Value>> {
     links
         .into_iter()
-        .map(|s| s.to_str().map(|s| String::from(s)))
+        .map(|s| s.to_str().map(String::from))
         .unique()
-        .map(|elem| elem.map(|s| Value::String(s)))
+        .map(|elem| elem.map(Value::String))
         .sorted_by(|a, b| {
             match (a, b) {
                 (&Some(Value::String(ref a)), &Some(Value::String(ref b))) => Ord::cmp(a, b),
@@ -160,7 +160,7 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
         }
     };
 
-    if !links.iter().all(|l| match l { &Value::String(_) => true, _ => false }) {
+    if !links.iter().all(|l| match *l { Value::String(_) => true, _ => false }) {
         debug!("At least one of the Values which were expected in the Array of links is a non-String!");
         debug!("Generating LinkError");
         return Err(LinkError::new(LinkErrorKind::ExistingLinkTypeWrong, None));

@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt::Error as FmtError;
-use std::clone::Clone;
 use std::fmt::{Display, Formatter};
 
 /**
@@ -15,11 +14,11 @@ pub enum ListErrorKind {
 }
 
 fn counter_error_type_as_str(err: &ListErrorKind) -> &'static str{
-    match err {
-        &ListErrorKind::FormatError    => "FormatError",
-        &ListErrorKind::EntryError     => "EntryError",
-        &ListErrorKind::IterationError => "IterationError",
-        &ListErrorKind::CLIError       => "No CLI subcommand for listing entries",
+    match *err {
+        ListErrorKind::FormatError    => "FormatError",
+        ListErrorKind::EntryError     => "EntryError",
+        ListErrorKind::IterationError => "IterationError",
+        ListErrorKind::CLIError       => "No CLI subcommand for listing entries",
     }
 }
 
@@ -57,7 +56,7 @@ impl ListError {
      * Get the error type of this ListError
      */
     pub fn err_type(&self) -> ListErrorKind {
-        self.err_type.clone()
+        self.err_type
     }
 
 }
@@ -65,7 +64,7 @@ impl ListError {
 impl Display for ListError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "[{}]", counter_error_type_as_str(&self.err_type.clone())));
+        try!(write!(fmt, "[{}]", counter_error_type_as_str(&self.err_type)));
         Ok(())
     }
 
@@ -74,7 +73,7 @@ impl Display for ListError {
 impl Error for ListError {
 
     fn description(&self) -> &str {
-        counter_error_type_as_str(&self.err_type.clone())
+        counter_error_type_as_str(&self.err_type)
     }
 
     fn cause(&self) -> Option<&Error> {

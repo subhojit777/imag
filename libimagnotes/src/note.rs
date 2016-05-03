@@ -10,7 +10,7 @@ use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
-use libimagentrytag::tag::Tag;
+use libimagentrytag::tag::{Tag, TagSlice};
 use libimagentrytag::tagable::Tagable;
 use libimagentrytag::result::Result as TagResult;
 
@@ -124,7 +124,7 @@ impl<'a> Tagable for Note<'a> {
         self.entry.get_tags()
     }
 
-    fn set_tags(&mut self, ts: Vec<Tag>) -> TagResult<()> {
+    fn set_tags(&mut self, ts: &[Tag]) -> TagResult<()> {
         self.entry.set_tags(ts)
     }
 
@@ -136,23 +136,23 @@ impl<'a> Tagable for Note<'a> {
         self.entry.remove_tag(t)
     }
 
-    fn has_tag(&self, t: &Tag) -> TagResult<bool> {
+    fn has_tag(&self, t: TagSlice) -> TagResult<bool> {
         self.entry.has_tag(t)
     }
 
-    fn has_tags(&self, ts: &Vec<Tag>) -> TagResult<bool> {
+    fn has_tags(&self, ts: &[Tag]) -> TagResult<bool> {
         self.entry.has_tags(ts)
     }
 
 }
 
 trait FromStoreId {
-    fn from_storeid<'a>(&'a Store, StoreId) -> Result<Note<'a>>;
+    fn from_storeid(&Store, StoreId) -> Result<Note>;
 }
 
 impl<'a> FromStoreId for Note<'a> {
 
-    fn from_storeid<'b>(store: &'b Store, id: StoreId) -> Result<Note<'b>> {
+    fn from_storeid(store: &Store, id: StoreId) -> Result<Note> {
         debug!("Loading note from storeid: '{:?}'", id);
         match store.retrieve(id) {
             Err(e)    => Err(NE::new(NEK::StoreReadError, Some(Box::new(e)))),
