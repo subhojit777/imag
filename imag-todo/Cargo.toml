@@ -1,5 +1,5 @@
 [package]
-name = "libimagtask"
+name = "imag-todo"
 version = "0.1.0"
 authors = ["mario <mario-krehl@gmx.de>"]
 

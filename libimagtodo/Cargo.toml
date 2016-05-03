@@ -1,5 +1,5 @@
 [package]
-name = "imag-task"
+name = "libimagtodo"
 version = "0.1.0"
 authors = ["mario <mario-krehl@gmx.de>"]
 
