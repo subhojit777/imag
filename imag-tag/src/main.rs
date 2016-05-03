@@ -96,8 +96,8 @@ fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Opti
 
             set.map(|tags| {
                 info!("Setting tags '{}'", tags);
-                let tags = tags.split(',').map(String::from).collect();
-                if let Err(e) = e.set_tags(tags) {
+                let tags : Vec<_> = tags.split(',').map(String::from).collect();
+                if let Err(e) = e.set_tags(&tags) {
                     trace_error(&e);
                 }
             });
