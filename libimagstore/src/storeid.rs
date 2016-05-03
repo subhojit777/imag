@@ -116,6 +116,8 @@ macro_rules! module_entry_path_mod {
             use std::path::Path;
             use std::path::PathBuf;
 
+            use $crate::storeid::StoreId;
+
             /// A Struct giving you the ability to choose store entries assigned
             /// to it.
             ///
@@ -140,7 +142,7 @@ macro_rules! module_entry_path_mod {
 
             impl $crate::storeid::IntoStoreId for ModuleEntryPath {
                 fn into_storeid(self) -> $crate::storeid::StoreId {
-                    self.0
+                    StoreId::from(self.0)
                 }
             }
         }
