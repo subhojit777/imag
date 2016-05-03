@@ -78,6 +78,12 @@ impl IntoStoreId for PathBuf {
     }
 }
 
+impl IntoStoreId for StoreId {
+    fn into_storeid(self) -> StoreId {
+        self
+    }
+}
+
 pub fn build_entry_path(store: &Store, path_elem: &str) -> Result<PathBuf> {
     debug!("Checking path element for version");
     if path_elem.split("~").last().map(|v| Version::parse(v).is_err()).unwrap_or(false) {
