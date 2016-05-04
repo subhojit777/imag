@@ -5,3 +5,7 @@ authors = ["mario <mario-krehl@gmx.de>"]
 
 [dependencies]
 task-hookrs = { git = "https://github.com/matthiasbeyer/task-hookrs.git" }
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+

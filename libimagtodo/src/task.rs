@@ -1,8 +1,13 @@
-extern crate task_hookrs;
+use std::ops::Deref;
 
-use self::task_hookrs::task::Task as TTask;
+use task_hookrs::task::Task as TTask;
+
+use libimagstore::store::FileLockEntry;
 
 pub struct Task {
     uuid : str,
 }
 
+impl Deref<FileLockEntry> for Task {
+
+}
