@@ -1119,7 +1119,7 @@ impl Entry {
         }
     }
 
-    pub fn from_file(loc: StoreId, file: &mut File) -> Result<Entry> {
+    pub fn from_file<S: IntoStoreId>(loc: S, file: &mut File) -> Result<Entry> {
         let text = {
             use std::io::Read;
             let mut s = String::new();
@@ -1129,7 +1129,7 @@ impl Entry {
         Self::from_str(loc, &text[..])
     }
 
-    pub fn from_str(loc: StoreId, s: &str) -> Result<Entry> {
+    pub fn from_str<S: IntoStoreId>(loc: S, s: &str) -> Result<Entry> {
         debug!("Building entry from string");
         lazy_static! {
             static ref RE: Regex = Regex::new(r"(?smx)
@@ -1157,7 +1157,7 @@ impl Entry {
 
         debug!("Header and content found. Yay! Building Entry object now");
         Ok(Entry {
-            location: loc,
+            location: loc.into_storeid(),
             header: try!(EntryHeader::parse(header.unwrap())),
             content: content.into(),
         })
