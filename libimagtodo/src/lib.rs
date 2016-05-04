@@ -1,3 +1,4 @@
+extern crate semver;
 
 extern crate task_hookrs;
 #[macro_use] extern crate libimagstore;

@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["mario <mario-krehl@gmx.de>"]
 
 [dependencies]
+semver = "0.2"
 task-hookrs = { git = "https://github.com/matthiasbeyer/task-hookrs.git" }
 
 [dependencies.libimagstore]

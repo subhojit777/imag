@@ -4,10 +4,17 @@ use task_hookrs::task::Task as TTask;
 
 use libimagstore::store::FileLockEntry;
 
-pub struct Task {
-    uuid : str,
+#[derive(Debug)]
+pub struct Task<'a> {
+    flentry : FileLockEntry<'a>,
 }
 
-impl Deref<FileLockEntry> for Task {
-
+impl<'a> From<TTask> for Task<'a> {
+    fn from(ttask : TTask) -> Task<'a> {
+        Task {
+            flentry : {
+            }
+        }
+    }
 }
+
