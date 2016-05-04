@@ -1,3 +1,5 @@
+pub mod task;
+
 #[cfg(test)]
 mod tests {
     #[test]
