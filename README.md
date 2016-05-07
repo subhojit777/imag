@@ -1,7 +1,7 @@
 # imag
 
 Imag is a CLI PIM suite with a nice API-ish commandline interface, so you can
-integrate it in your tools of coice (Editor, MUA, RSS reader, etc etc).
+integrate it in your tools of choice (Editor, MUA, RSS reader, etc etc).
 
 ## Goal
 
