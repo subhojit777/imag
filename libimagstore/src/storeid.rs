@@ -1,4 +1,8 @@
 use std::path::PathBuf;
+use std::path::Path;
+use std::borrow::Borrow;
+use std::ops::Deref;
+
 use glob::Paths;
 use semver::Version;
 use std::fmt::{Debug, Formatter};
@@ -10,7 +14,57 @@ use store::Result;
 use store::Store;
 
 /// The Index into the Store
-pub type StoreId = PathBuf;
+#[derive(Debug, Clone, PartialEq, Hash, Eq, PartialOrd, Ord)]
+pub struct StoreId(PathBuf);
+
+impl Into<PathBuf> for StoreId {
+
+    fn into(self) -> PathBuf {
+        self.0
+    }
+
+}
+
+impl Deref for StoreId {
+    type Target = PathBuf;
+
+    fn deref(&self) -> &PathBuf {
+        &self.0
+    }
+
+}
+
+impl From<PathBuf> for StoreId {
+
+    fn from(pb: PathBuf) -> StoreId {
+        StoreId(pb)
+    }
+
+}
+
+impl From<String> for StoreId {
+
+    fn from(string: String) -> StoreId {
+        StoreId(string.into())
+    }
+
+}
+
+impl AsRef<Path> for StoreId {
+
+    fn as_ref(&self) -> &Path {
+        self.0.as_ref()
+    }
+
+}
+
+impl Borrow<Path> for StoreId {
+
+    fn borrow(&self) -> &Path {
+        self.0.borrow()
+    }
+
+}
 
 /// This Trait allows you to convert various representations to a single one
 /// suitable for usage in the Store
@@ -19,6 +73,12 @@ pub trait IntoStoreId {
 }
 
 impl IntoStoreId for PathBuf {
+    fn into_storeid(self) -> StoreId {
+        StoreId(self)
+    }
+}
+
+impl IntoStoreId for StoreId {
     fn into_storeid(self) -> StoreId {
         self
     }
@@ -62,6 +122,8 @@ macro_rules! module_entry_path_mod {
             use std::path::Path;
             use std::path::PathBuf;
 
+            use $crate::storeid::StoreId;
+
             /// A Struct giving you the ability to choose store entries assigned
             /// to it.
             ///
@@ -86,7 +148,7 @@ macro_rules! module_entry_path_mod {
 
             impl $crate::storeid::IntoStoreId for ModuleEntryPath {
                 fn into_storeid(self) -> $crate::storeid::StoreId {
-                    self.0
+                    StoreId::from(self.0)
                 }
             }
         }
@@ -119,7 +181,7 @@ impl Iterator for StoreIdIterator {
     type Item = StoreId;
 
     fn next(&mut self) -> Option<StoreId> {
-        self.paths.next().and_then(|o| o.ok())
+        self.paths.next().and_then(|o| o.ok()).map(|p| StoreId::from(p))
     }
 
 }
