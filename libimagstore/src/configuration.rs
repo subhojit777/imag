@@ -120,8 +120,6 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
 
     match config {
         &Some(Value::Table(ref t)) => {
-            has_key_with_string_ary(t, "pre-read-hook-aspects")        &&
-            has_key_with_string_ary(t, "post-read-hook-aspects")       &&
             has_key_with_string_ary(t, "pre-create-hook-aspects")      &&
             has_key_with_string_ary(t, "post-create-hook-aspects")     &&
             has_key_with_string_ary(t, "pre-retrieve-hook-aspects")    &&
