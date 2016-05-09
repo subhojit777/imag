@@ -1,5 +1,6 @@
 extern crate semver;
 extern crate uuid;
+extern crate toml;
 
 extern crate task_hookrs;
 #[macro_use] extern crate libimagstore;
