@@ -244,13 +244,16 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
                 let mut s = String::new();
                 let f = File::open(path);
                 if f.is_err() {
+                    return None
                 }
                 let mut f = f.unwrap();
                 f.read_to_string(&mut s).ok();
                 s
             };
+
             let mut parser = Parser::new(&content[..]);
             let res = parser.parse();
+
             if res.is_none() {
                 write!(stderr(), "Config file parser error:").ok();
                 for error in parser.errors {
