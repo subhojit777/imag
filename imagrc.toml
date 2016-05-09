@@ -1,0 +1,27 @@
+# This is a example configuration file for the imag suite.
+# It is written in TOML
+
+[store]
+
+
+pre-create-hook-aspects    = [ "debug" ]
+post-create-hook-aspects   = [ "debug" ]
+
+pre-retrieve-hook-aspects  = [ "debug" ]
+post-retrieve-hook-aspects = [ "debug" ]
+
+pre-update-hook-aspects    = [ "debug" ]
+post-update-hook-aspects   = [ "debug" ]
+
+pre-delete-hook-aspects    = [ "debug" ]
+post-delete-hook-aspects   = [ "debug" ]
+
+[store.aspects]
+
+[[aspects.debug]]
+parallel = false
+
+[store.hooks]
+
+[[hooks.debug]]
+aspect = "debug"
