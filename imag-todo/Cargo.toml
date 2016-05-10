@@ -1,6 +1,22 @@
 [package]
+authors = ["mario <mario-krehl@gmx.de>"]
 name = "imag-todo"
 version = "0.1.0"
-authors = ["mario <mario-krehl@gmx.de>"]
 
 [dependencies]
+clap = "2.4.3"
+glob = "0.2.11"
+log = "0.3.6"
+semver = "0.2.3"
+toml = "0.1.28"
+version = "2.0.1"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
