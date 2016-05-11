@@ -6,7 +6,7 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 [dependencies]
 clap = "2.1.1"
 toml = "0.1.27"
-log = "0.3.4"
+log = "0.3"
 xdg-basedir = "0.2.2"
 itertools = "0.4"
 tempfile = "2.1.1"
