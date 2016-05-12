@@ -3,7 +3,6 @@ use std::path::Path;
 use std::borrow::Borrow;
 use std::ops::Deref;
 
-use glob::Paths;
 use semver::Version;
 use std::fmt::{Debug, Formatter};
 use std::fmt::Error as FmtError;
@@ -153,45 +152,6 @@ macro_rules! module_entry_path_mod {
             }
         }
     )
-}
-
-pub struct GlobStoreIdIterator {
-    paths: Paths,
-}
-
-impl Debug for GlobStoreIdIterator {
-
-    fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
-        write!(fmt, "GlobStoreIdIterator")
-    }
-
-}
-
-impl GlobStoreIdIterator {
-
-    pub fn new(paths: Paths) -> GlobStoreIdIterator {
-        GlobStoreIdIterator {
-            paths: paths,
-        }
-    }
-
-}
-
-impl Iterator for GlobStoreIdIterator {
-    type Item = StoreId;
-
-    fn next(&mut self) -> Option<StoreId> {
-        self.paths.next().and_then(|o| {
-            match o {
-                Ok(o) => Some(o),
-                Err(e) => {
-                    debug!("GlobStoreIdIterator error: {:?}", e);
-                    None
-                },
-            }
-        }).map(|p| StoreId::from(p))
-    }
-
 }
 
 pub struct StoreIdIterator {
