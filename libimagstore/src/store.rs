@@ -25,7 +25,7 @@ use walkdir::Iter as WalkDirIter;
 
 use error::{ParserErrorKind, ParserError};
 use error::{StoreError, StoreErrorKind};
-use storeid::{IntoStoreId, StoreId, StoreIdIterator};
+use storeid::{IntoStoreId, StoreId, GlobStoreIdIterator, StoreIdIterator};
 use lazyfile::LazyFile;
 
 use hook::aspect::Aspect;
@@ -361,7 +361,7 @@ impl Store {
             let path = [ path, "/*" ].join("");
             debug!("glob()ing with '{}'", path);
             glob(&path[..])
-                .map(StoreIdIterator::new)
+                .map(|paths| StoreIdIterator::new(Box::new(GlobStoreIdIterator::new(paths))))
                 .map_err(|e| StoreError::new(StoreErrorKind::GlobError, Some(Box::new(e))))
         } else {
             Err(StoreError::new(StoreErrorKind::EncodingError, None))

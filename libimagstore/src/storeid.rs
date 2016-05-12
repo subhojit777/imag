@@ -155,8 +155,39 @@ macro_rules! module_entry_path_mod {
     )
 }
 
-pub struct StoreIdIterator {
+pub struct GlobStoreIdIterator {
     paths: Paths,
+}
+
+impl Debug for GlobStoreIdIterator {
+
+    fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
+        write!(fmt, "GlobStoreIdIterator")
+    }
+
+}
+
+impl GlobStoreIdIterator {
+
+    pub fn new(paths: Paths) -> GlobStoreIdIterator {
+        GlobStoreIdIterator {
+            paths: paths,
+        }
+    }
+
+}
+
+impl Iterator for GlobStoreIdIterator {
+    type Item = StoreId;
+
+    fn next(&mut self) -> Option<StoreId> {
+        self.paths.next().and_then(|o| o.ok()).map(|p| StoreId::from(p))
+    }
+
+}
+
+pub struct StoreIdIterator {
+    iter: Box<Iterator<Item = StoreId>>,
 }
 
 impl Debug for StoreIdIterator {
@@ -169,9 +200,9 @@ impl Debug for StoreIdIterator {
 
 impl StoreIdIterator {
 
-    pub fn new(paths: Paths) -> StoreIdIterator {
+    pub fn new(iter: Box<Iterator<Item = StoreId>>) -> StoreIdIterator {
         StoreIdIterator {
-            paths: paths,
+            iter: iter,
         }
     }
 
@@ -181,7 +212,7 @@ impl Iterator for StoreIdIterator {
     type Item = StoreId;
 
     fn next(&mut self) -> Option<StoreId> {
-        self.paths.next().and_then(|o| o.ok()).map(|p| StoreId::from(p))
+        self.iter.next()
     }
 
 }
