@@ -156,7 +156,7 @@ impl ExternalLinker for Entry {
         for link in links { // for all links
             let hash = {
                 let mut s = Sha1::new();
-                s.input_str(&link.serialize()[..]);
+                s.input_str(&link.as_str()[..]);
                 s.result_str()
             };
             let file_id = ModuleEntryPath::new(format!("external/{}", hash)).into_storeid();
@@ -189,7 +189,7 @@ impl ExternalLinker for Entry {
                     Err(e)   => return Err(LE::new(LEK::StoreWriteError, Some(Box::new(e)))),
                 };
 
-                let v = Value::String(link.serialize());
+                let v = Value::String(link.into_string());
 
                 debug!("setting URL = '{:?}", v);
                 table.insert(String::from("url"), v);
@@ -231,7 +231,7 @@ impl ExternalLinker for Entry {
             .and_then(|links| {
                 debug!("Removing link = '{:?}' from links = {:?}", link, links);
                 let links = links.into_iter()
-                    .filter(|l| l.serialize() != link.serialize())
+                    .filter(|l| l.as_str() != link.as_str())
                     .collect();
                 self.set_external_links(store, links)
             })
