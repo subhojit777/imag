@@ -181,7 +181,15 @@ impl Iterator for GlobStoreIdIterator {
     type Item = StoreId;
 
     fn next(&mut self) -> Option<StoreId> {
-        self.paths.next().and_then(|o| o.ok()).map(|p| StoreId::from(p))
+        self.paths.next().and_then(|o| {
+            match o {
+                Ok(o) => Some(o),
+                Err(e) => {
+                    debug!("GlobStoreIdIterator error: {:?}", e);
+                    None
+                },
+            }
+        }).map(|p| StoreId::from(p))
     }
 
 }
