@@ -324,6 +324,9 @@ impl Store {
 
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
     /// dropped, the new Entry is written to disk
+    ///
+    /// Implicitely creates a entry in the store if there is no entry with the id `id`. For a
+    /// non-implicitely-create look at `Store::get`.
     pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = self.storify_id(id.into_storeid());
         if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
@@ -345,7 +348,44 @@ impl Store {
                     .map_err(|e| SE::new(SEK::HookExecutionError, Some(Box::new(e))))
                     .and(Ok(fle))
             })
-   }
+    }
+
+    /// Get an entry from the store if it exists.
+    ///
+    /// This executes the {pre,post}_retrieve_aspects hooks.
+    pub fn get<'a, S: IntoStoreId>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>>
+    {
+        let id = self.storify_id(id.into_storeid());
+        if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
+            return Err(e);
+        }
+
+        let mut entries = match self.entries.write() {
+            // Loosing the error here
+            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Ok(e)  => e,
+        };
+
+        let mut se = match entries.get_mut(&id) {
+            Some(e) => e,
+            None    => return Ok(None),
+        };
+
+        let entry = match se.get_entry() {
+            Ok(e) => e,
+            Err(e) => return Err(e),
+        };
+
+        se.status = StoreEntryStatus::Borrowed;
+
+        let mut fle = FileLockEntry::new(self, entry, id);
+
+        if let Err(e) = self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle) {
+            Err(SE::new(SEK::HookExecutionError, Some(Box::new(e))))
+        } else {
+            Ok(Some(fle))
+        }
+    }
 
     /// Iterate over all StoreIds for one module name
     pub fn retrieve_for_module(&self, mod_name: &str) -> Result<StoreIdIterator> {
