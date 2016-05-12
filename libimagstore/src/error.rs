@@ -28,7 +28,8 @@ generate_error_types!(StoreError, StoreErrorKind,
     PostHookExecuteError    => "Post-Hook execution error",
     StorePathLacksVersion   => "The supplied store path has no version part",
     GlobError               => "glob() error",
-    EncodingError           => "Encoding error"
+    EncodingError           => "Encoding error",
+    StorePathError          => "Store Path error"
 );
 
 generate_error_types!(ParserError, ParserErrorKind,
