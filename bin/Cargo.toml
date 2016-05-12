@@ -1,0 +1,10 @@
+[package]
+name = "imag"
+version = "0.1.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+version = "2.0"
+walkdir = "0.1.5"
+crossbeam = "0.2.9"
+
