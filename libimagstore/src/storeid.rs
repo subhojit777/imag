@@ -3,7 +3,6 @@ use std::path::Path;
 use std::borrow::Borrow;
 use std::ops::Deref;
 
-use glob::Paths;
 use semver::Version;
 use std::fmt::{Debug, Formatter};
 use std::fmt::Error as FmtError;
@@ -156,7 +155,7 @@ macro_rules! module_entry_path_mod {
 }
 
 pub struct StoreIdIterator {
-    paths: Paths,
+    iter: Box<Iterator<Item = StoreId>>,
 }
 
 impl Debug for StoreIdIterator {
@@ -169,9 +168,9 @@ impl Debug for StoreIdIterator {
 
 impl StoreIdIterator {
 
-    pub fn new(paths: Paths) -> StoreIdIterator {
+    pub fn new(iter: Box<Iterator<Item = StoreId>>) -> StoreIdIterator {
         StoreIdIterator {
-            paths: paths,
+            iter: iter,
         }
     }
 
@@ -181,7 +180,7 @@ impl Iterator for StoreIdIterator {
     type Item = StoreId;
 
     fn next(&mut self) -> Option<StoreId> {
-        self.paths.next().and_then(|o| o.ok()).map(|p| StoreId::from(p))
+        self.iter.next()
     }
 
 }

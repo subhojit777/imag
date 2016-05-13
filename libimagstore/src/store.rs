@@ -35,6 +35,8 @@ use hook::accessor::{ MutableHookDataAccessor,
 use hook::position::HookPosition;
 use hook::Hook;
 
+use self::glob_store_iter::*;
+
 /// The Result Type returned by any interaction with the store that could fail
 pub type Result<T> = RResult<T, StoreError>;
 
@@ -361,7 +363,7 @@ impl Store {
             let path = [ path, "/*" ].join("");
             debug!("glob()ing with '{}'", path);
             glob(&path[..])
-                .map(StoreIdIterator::new)
+                .map(|paths| StoreIdIterator::new(Box::new(GlobStoreIdIterator::new(paths))))
                 .map_err(|e| StoreError::new(StoreErrorKind::GlobError, Some(Box::new(e))))
         } else {
             Err(StoreError::new(StoreErrorKind::EncodingError, None))
@@ -1249,6 +1251,53 @@ impl Entry {
 
     pub fn verify(&self) -> Result<()> {
         self.header.verify()
+    }
+
+}
+
+mod glob_store_iter {
+    use std::fmt::{Debug, Formatter};
+    use std::fmt::Error as FmtError;
+    use glob::Paths;
+    use storeid::StoreId;
+
+    pub struct GlobStoreIdIterator {
+        paths: Paths,
+    }
+
+    impl Debug for GlobStoreIdIterator {
+
+        fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
+            write!(fmt, "GlobStoreIdIterator")
+        }
+
+    }
+
+    impl GlobStoreIdIterator {
+
+        pub fn new(paths: Paths) -> GlobStoreIdIterator {
+            GlobStoreIdIterator {
+                paths: paths,
+            }
+        }
+
+    }
+
+    impl Iterator for GlobStoreIdIterator {
+        type Item = StoreId;
+
+        fn next(&mut self) -> Option<StoreId> {
+            self.paths.next().and_then(|o| {
+                match o {
+                    Ok(o) => Some(o),
+                    Err(e) => {
+                        debug!("GlobStoreIdIterator error: {:?}", e);
+                        None
+                    },
+                }
+            }).map(|p| StoreId::from(p))
+        }
+
     }
 
 }
