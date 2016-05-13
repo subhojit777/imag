@@ -94,11 +94,15 @@ fn get_commands() -> Vec<String> {
     execs
 }
 
+fn find_command() -> Option<String> {
+    env::args().skip(1).filter(|x| !x.starts_with("-")).next()
+}
+
 fn main() {
     let commands  = get_commands();
     let mut args  = env::args();
     let _         = args.next();
-    let first_arg = match args.next() {
+    let first_arg = match find_command() {
         Some(s) => s,
         None    => {
             help(commands);
