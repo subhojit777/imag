@@ -105,7 +105,7 @@ pub trait ExternalLinker : InternalLinker {
 }
 
 /// Check whether the StoreId starts with `/link/external/`
-fn is_link_store_id(id: &StoreId) -> bool {
+pub fn is_external_link_storeid(id: &StoreId) -> bool {
     debug!("Checking whether this is a /link/external/*: '{:?}'", id);
     id.starts_with("/link/external/")
 }
@@ -129,7 +129,7 @@ impl ExternalLinker for Entry {
             .map(|vect| {
                 debug!("Getting external links");
                 vect.into_iter()
-                    .filter(is_link_store_id)
+                    .filter(is_external_link_storeid)
                     .map(|id| {
                         debug!("Retrieving entry for id: '{:?}'", id);
                         match store.retrieve(id.clone()) {
