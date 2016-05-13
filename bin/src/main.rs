@@ -98,6 +98,14 @@ fn find_command() -> Option<String> {
     env::args().skip(1).filter(|x| !x.starts_with("-")).next()
 }
 
+fn find_args(command: &str) -> Vec<String> {
+    env::args()
+        .skip(1)
+        .position(|e| e == command)
+        .map(|pos| env::args().skip(pos + 2).collect::<Vec<String>>())
+        .unwrap_or(vec![])
+}
+
 fn main() {
     let commands  = get_commands();
     let mut args  = env::args();
@@ -145,6 +153,7 @@ fn main() {
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
+                .args(&find_args(s)[..])
                 .spawn()
                 .and_then(|mut handle| handle.wait())
             {
