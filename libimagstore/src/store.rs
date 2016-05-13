@@ -438,7 +438,8 @@ impl Store {
                 debug!("glob()ing with '{}'", path);
                 glob(&path[..]).map_err(|e| SE::new(SEK::GlobError, Some(Box::new(e))))
             })
-            .map(|paths| StoreIdIterator::new(Box::new(GlobStoreIdIterator::new(paths))))
+            .map(|paths| GlobStoreIdIterator::new(paths).into())
+            .map_err(|e| SE::new(SEK::GlobError, Some(Box::new(e))))
     }
 
     // Walk the store tree for the module
@@ -1299,6 +1300,7 @@ mod glob_store_iter {
     use std::fmt::Error as FmtError;
     use glob::Paths;
     use storeid::StoreId;
+    use storeid::StoreIdIterator;
 
     pub struct GlobStoreIdIterator {
         paths: Paths,
@@ -1308,6 +1310,14 @@ mod glob_store_iter {
 
         fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
             write!(fmt, "GlobStoreIdIterator")
+        }
+
+    }
+
+    impl Into<StoreIdIterator> for GlobStoreIdIterator {
+
+        fn into(self) -> StoreIdIterator {
+            StoreIdIterator::new(Box::new(self))
         }
 
     }
