@@ -429,12 +429,10 @@ impl Store {
             return Err(e);
         }
 
-        let entries_lock = self.entries.write();
-        if entries_lock.is_err() {
-            return Err(SE::new(SEK::LockPoisoned, None))
-        }
-
-        let mut entries = entries_lock.unwrap();
+        let mut entries = match self.entries.write() {
+            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Ok(e) => e,
+        };
 
         // if the entry is currently modified by the user, we cannot drop it
         if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
