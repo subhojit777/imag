@@ -44,9 +44,8 @@ fn main() {
             || {
                 let add = rt.cli().value_of("add");
                 let rem = rt.cli().value_of("remove");
-                let set = rt.cli().value_of("set");
 
-                alter(&rt, id, add, rem, set);
+                alter(&rt, id, add, rem);
             },
             |name| {
                 debug!("Call: {}", name);
@@ -60,7 +59,7 @@ fn main() {
             });
 }
 
-fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Option<&str>) {
+fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>) {
     let path = {
         match build_entry_path(rt.store(), id) {
             Err(e) => {
@@ -91,14 +90,6 @@ fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Opti
                     if let Err(e) = e.remove_tag(String::from(tag)) {
                         trace_error(&e);
                     }
-                }
-            });
-
-            set.map(|tags| {
-                info!("Setting tags '{}'", tags);
-                let tags : Vec<_> = tags.split(',').map(String::from).collect();
-                if let Err(e) = e.set_tags(&tags) {
-                    trace_error(&e);
                 }
             });
         })

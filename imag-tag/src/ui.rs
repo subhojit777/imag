@@ -24,14 +24,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
              .multiple(true)
              .help("Remove this tag"))
 
-        .arg(Arg::with_name("set")
-             .long("set")
-             .short("s")
-             .takes_value(true)
-             .required(false)
-             .multiple(true)
-             .help("Set these tags"))
-
        .subcommand(SubCommand::with_name("list")
                    .about("List tags (default)")
                    .version("0.1")
