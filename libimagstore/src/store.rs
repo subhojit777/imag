@@ -919,25 +919,23 @@ impl EntryHeader {
     }
 
     pub fn delete(&mut self, spec: &str) -> Result<Option<Value>> {
-        let tokens = EntryHeader::tokenize(spec, '.');
-        if tokens.is_err() { // return parser error if any
-            return Err(tokens.unwrap_err());
-        }
-        let tokens = tokens.unwrap();
+        let tokens = match EntryHeader::tokenize(spec, '.') {
+            Err(e) => return Err(e),
+            Ok(t) => t
+        };
 
-        let destination = tokens.iter().last();
-        if destination.is_none() {
-            return Err(SE::new(SEK::HeaderPathSyntaxError, None));
-        }
-        let destination = destination.unwrap();
+        let destination = match tokens.iter().last() {
+            None => return Err(SE::new(SEK::HeaderPathSyntaxError, None)),
+            Some(d) => d
+        };
         debug!("destination = {:?}", destination);
 
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        let value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
-        if value.is_err() {
-            return Err(value.unwrap_err());
-        }
-        let mut value = value.unwrap();
+        // walk N-1 tokens
+        let mut value = match EntryHeader::walk_header(&mut self.header, path_to_dest) {
+            Err(e) => return Err(e),
+            Ok(v) => v
+        };
         debug!("walked value = {:?}", value);
 
         match *destination {
