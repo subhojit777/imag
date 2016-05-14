@@ -18,6 +18,9 @@ walkdir = "0.1.5"
 [dependencies.libimagerror]
 path = "../libimagerror"
 
+[dependencies.libimagutil]
+path = "../libimagutil"
+
 [dev-dependencies]
 tempdir = "0.3.4"
 env_logger = "0.3"
