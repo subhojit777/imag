@@ -409,12 +409,10 @@ impl Store {
     /// the one on disk
     pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
         let id = self.storify_id(id.into_storeid());
-        let entries_lock = self.entries.write();
-        if entries_lock.is_err() {
-            return Err(SE::new(SEK::LockPoisoned, None))
-        }
-
-        let entries = entries_lock.unwrap();
+        let entries = match self.entries.write() {
+            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Ok(e) => e,
+        };
 
         // if the entry is currently modified by the user, we cannot drop it
         if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
