@@ -352,15 +352,14 @@ impl Store {
         let mut path = self.path().clone();
         path.push(mod_name);
 
-        if let Some(path) = path.to_str() {
-            let path = [ path, "/*" ].join("");
-            debug!("glob()ing with '{}'", path);
-            glob(&path[..])
-                .map(|paths| StoreIdIterator::new(Box::new(GlobStoreIdIterator::new(paths))))
-                .map_err(|e| SE::new(SEK::GlobError, Some(Box::new(e))))
-        } else {
-            Err(SE::new(SEK::EncodingError, None))
-        }
+        path.to_str()
+            .ok_or(SE::new(SEK::EncodingError, None))
+            .and_then(|path| {
+                let path = [ path, "/*" ].join("");
+                debug!("glob()ing with '{}'", path);
+                glob(&path[..]).map_err(|e| SE::new(SEK::GlobError, Some(Box::new(e))))
+            })
+            .map(|paths| StoreIdIterator::new(Box::new(GlobStoreIdIterator::new(paths))))
     }
 
     // Walk the store tree for the module
