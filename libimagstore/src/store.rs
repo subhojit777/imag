@@ -1192,25 +1192,22 @@ impl Entry {
             ").unwrap();
         }
 
-        let matches = RE.captures(s);
+        let matches = match RE.captures(s) {
+            None    => return Err(StoreError::new(StoreErrorKind::MalformedEntry, None)),
+            Some(s) => s,
+        };
 
-        if matches.is_none() {
-            return Err(StoreError::new(StoreErrorKind::MalformedEntry, None));
-        }
+        let header = match matches.name("header") {
+            None    => return Err(StoreError::new(StoreErrorKind::MalformedEntry, None)),
+            Some(s) => s
+        };
 
-        let matches = matches.unwrap();
-
-        let header = matches.name("header");
         let content = matches.name("content").unwrap_or("");
-
-        if header.is_none() {
-            return Err(StoreError::new(StoreErrorKind::MalformedEntry, None));
-        }
 
         debug!("Header and content found. Yay! Building Entry object now");
         Ok(Entry {
             location: loc.into_storeid(),
-            header: try!(EntryHeader::parse(header.unwrap())),
+            header: try!(EntryHeader::parse(header)),
             content: content.into(),
         })
     }
