@@ -26,4 +26,5 @@ extern crate libimagentrylink;
 pub mod debug;
 pub mod flock;
 pub mod linkverify;
+pub mod vcs;
 
