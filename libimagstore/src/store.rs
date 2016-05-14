@@ -302,11 +302,11 @@ impl Store {
             return Err(e);
         }
 
-        let hsmap = self.entries.write();
-        if hsmap.is_err() {
-            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
-        }
-        let mut hsmap = hsmap.unwrap();
+        let mut hsmap = match self.entries.write() {
+            Err(_) => return Err(StoreError::new(StoreErrorKind::LockPoisoned, None)),
+            Ok(s) => s,
+        };
+
         if hsmap.contains_key(&id) {
             return Err(StoreError::new(StoreErrorKind::EntryAlreadyExists, None))
         }
