@@ -7,7 +7,6 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use std::collections::BTreeMap;
 use std::io::{Seek, SeekFrom};
-use std::io::Write;
 use std::convert::From;
 use std::convert::Into;
 use std::sync::Mutex;
@@ -30,7 +29,6 @@ use lazyfile::LazyFile;
 
 use hook::aspect::Aspect;
 use hook::accessor::{ MutableHookDataAccessor,
-            NonMutableHookDataAccessor,
             StoreIdAccessor};
 use hook::position::HookPosition;
 use hook::Hook;

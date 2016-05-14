@@ -85,8 +85,8 @@ fn create_from_cli_spec(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> R
 fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> Result<()> {
     let content = matches
         .value_of("from-raw")
-        .ok_or_else(|| StoreError::new(StoreErrorKind::NoCommandlineCall, None))
-        .map(|raw_src| string_from_raw_src(raw_src));
+        .ok_or(StoreError::new(StoreErrorKind::NoCommandlineCall, None))
+        .map(string_from_raw_src);
 
     if content.is_err() {
         return content.map(|_| ());
