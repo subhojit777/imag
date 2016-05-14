@@ -23,7 +23,7 @@ use walkdir::WalkDir;
 use walkdir::Iter as WalkDirIter;
 
 use error::{ParserErrorKind, ParserError};
-use error::{StoreError, StoreErrorKind};
+use error::{StoreError as SE, StoreErrorKind as SEK};
 use storeid::{IntoStoreId, StoreId, StoreIdIterator};
 use lazyfile::LazyFile;
 
@@ -36,7 +36,7 @@ use hook::Hook;
 use self::glob_store_iter::*;
 
 /// The Result Type returned by any interaction with the store that could fail
-pub type Result<T> = RResult<T, StoreError>;
+pub type Result<T> = RResult<T, SE>;
 
 
 #[derive(Debug, PartialEq)]
@@ -125,7 +125,7 @@ impl StoreEntry {
         if !self.is_borrowed() {
             let file = self.file.get_file_mut();
             if let Err(err) = file {
-                if err.err_type() == StoreErrorKind::FileNotFound {
+                if err.err_type() == SEK::FileNotFound {
                     Ok(Entry::new(self.id.clone()))
                 } else {
                     Err(err)
@@ -138,7 +138,7 @@ impl StoreEntry {
                 entry
             }
         } else {
-            Err(StoreError::new(StoreErrorKind::EntryAlreadyBorrowed, None))
+            Err(SE::new(SEK::EntryAlreadyBorrowed, None))
         }
     }
 
@@ -149,9 +149,9 @@ impl StoreEntry {
 
             assert_eq!(self.id, entry.location);
             try!(file.set_len(0)
-                .map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e)))));
+                .map_err(|e| SE::new(SEK::FileError, Some(Box::new(e)))));
             file.write_all(entry.to_str().as_bytes())
-                .map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))))
+                .map_err(|e| SE::new(SEK::FileError, Some(Box::new(e))))
         } else {
             Ok(())
         }
@@ -199,7 +199,7 @@ impl Store {
 
         debug!("Validating Store configuration");
         if !config_is_valid(&store_config) {
-            return Err(StoreError::new(StoreErrorKind::ConfigurationError, None));
+            return Err(SE::new(SEK::ConfigurationError, None));
         }
 
         debug!("Building new Store object");
@@ -208,12 +208,12 @@ impl Store {
             let c = create_dir_all(location.clone());
             if c.is_err() {
                 debug!("Failed");
-                return Err(StoreError::new(StoreErrorKind::StorePathCreate,
+                return Err(SE::new(SEK::StorePathCreate,
                                            Some(Box::new(c.unwrap_err()))));
             }
         } else if location.is_file() {
             debug!("Store path exists as file");
-            return Err(StoreError::new(StoreErrorKind::StorePathExists, None));
+            return Err(SE::new(SEK::StorePathExists, None));
         }
 
         let pre_create_aspects = get_pre_create_aspect_names(&store_config)
@@ -303,12 +303,12 @@ impl Store {
         }
 
         let mut hsmap = match self.entries.write() {
-            Err(_) => return Err(StoreError::new(StoreErrorKind::LockPoisoned, None)),
+            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
             Ok(s) => s,
         };
 
         if hsmap.contains_key(&id) {
-            return Err(StoreError::new(StoreErrorKind::EntryAlreadyExists, None))
+            return Err(SE::new(SEK::EntryAlreadyExists, None))
         }
         hsmap.insert(id.clone(), {
             let mut se = StoreEntry::new(id.clone());
@@ -318,7 +318,7 @@ impl Store {
 
         let mut fle = FileLockEntry::new(self, Entry::new(id.clone()), id);
         self.execute_hooks_for_mut_file(self.post_create_aspects.clone(), &mut fle)
-            .map_err(|e| StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e))))
+            .map_err(|e| SE::new(SEK::PostHookExecuteError, Some(Box::new(e))))
             .map(|_| fle)
     }
 
@@ -332,7 +332,7 @@ impl Store {
 
         self.entries
             .write()
-            .map_err(|_| StoreError::new(StoreErrorKind::LockPoisoned, None))
+            .map_err(|_| SE::new(SEK::LockPoisoned, None))
             .and_then(|mut es| {
                 let mut se = es.entry(id.clone()).or_insert_with(|| StoreEntry::new(id.clone()));
                 let entry = se.get_entry();
@@ -342,7 +342,7 @@ impl Store {
             .map(|e| FileLockEntry::new(self, e, id))
             .and_then(|mut fle| {
                 self.execute_hooks_for_mut_file(self.pre_retrieve_aspects.clone(), &mut fle)
-                    .map_err(|e| StoreError::new(StoreErrorKind::HookExecutionError, Some(Box::new(e))))
+                    .map_err(|e| SE::new(SEK::HookExecutionError, Some(Box::new(e))))
                     .and(Ok(fle))
             })
    }
@@ -357,9 +357,9 @@ impl Store {
             debug!("glob()ing with '{}'", path);
             glob(&path[..])
                 .map(|paths| StoreIdIterator::new(Box::new(GlobStoreIdIterator::new(paths))))
-                .map_err(|e| StoreError::new(StoreErrorKind::GlobError, Some(Box::new(e))))
+                .map_err(|e| SE::new(SEK::GlobError, Some(Box::new(e))))
         } else {
-            Err(StoreError::new(StoreErrorKind::EncodingError, None))
+            Err(SE::new(SEK::EncodingError, None))
         }
     }
 
@@ -389,11 +389,11 @@ impl Store {
     fn _update<'a>(&'a self, entry: &FileLockEntry<'a>) -> Result<()> {
         let hsmap = self.entries.write();
         if hsmap.is_err() {
-            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
+            return Err(SE::new(SEK::LockPoisoned, None))
         }
         let mut hsmap = hsmap.unwrap();
         let mut se = try!(hsmap.get_mut(&entry.key)
-              .ok_or(StoreError::new(StoreErrorKind::IdNotFound, None)));
+              .ok_or(SE::new(SEK::IdNotFound, None)));
 
         assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 
@@ -413,14 +413,14 @@ impl Store {
         let id = self.storify_id(id.into_storeid());
         let entries_lock = self.entries.write();
         if entries_lock.is_err() {
-            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
+            return Err(SE::new(SEK::LockPoisoned, None))
         }
 
         let entries = entries_lock.unwrap();
 
         // if the entry is currently modified by the user, we cannot drop it
         if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
-            return Err(StoreError::new(StoreErrorKind::IdLocked, None));
+            return Err(SE::new(SEK::IdLocked, None));
         }
 
         StoreEntry::new(id).get_entry()
@@ -435,20 +435,20 @@ impl Store {
 
         let entries_lock = self.entries.write();
         if entries_lock.is_err() {
-            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
+            return Err(SE::new(SEK::LockPoisoned, None))
         }
 
         let mut entries = entries_lock.unwrap();
 
         // if the entry is currently modified by the user, we cannot drop it
         if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
-            return Err(StoreError::new(StoreErrorKind::IdLocked, None));
+            return Err(SE::new(SEK::IdLocked, None));
         }
 
         // remove the entry first, then the file
         entries.remove(&id);
         if let Err(e) = remove_file(&id) {
-            return Err(StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))));
+            return Err(SE::new(SEK::FileError, Some(Box::new(e))));
         }
 
         self.execute_hooks_for_id(self.post_delete_aspects.clone(), &id)
@@ -483,10 +483,10 @@ impl Store {
         let guard = guard
             .deref()
             .lock()
-            .map_err(|_| StoreError::new(StoreErrorKind::LockError, None));
+            .map_err(|_| SE::new(SEK::LockError, None));
 
         if guard.is_err() {
-            return Err(StoreError::new(StoreErrorKind::HookRegisterError,
+            return Err(SE::new(SEK::HookRegisterError,
                                        Some(Box::new(guard.err().unwrap()))));
         }
         let mut guard  = guard.unwrap();
@@ -498,8 +498,8 @@ impl Store {
             }
         }
 
-        let annfe = StoreError::new(StoreErrorKind::AspectNameNotFoundError, None);
-        Err(StoreError::new(StoreErrorKind::HookRegisterError, Some(Box::new(annfe))))
+        let annfe = SE::new(SEK::AspectNameNotFoundError, None);
+        Err(SE::new(SEK::HookRegisterError, Some(Box::new(annfe))))
     }
 
     fn get_config_for_hook(&self, name: &str) -> Option<&Value> {
@@ -524,14 +524,14 @@ impl Store {
         -> Result<()>
     {
         let guard = aspects.deref().lock();
-        if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
+        if guard.is_err() { return Err(SE::new(SEK::PreHookExecuteError, None)) }
 
         guard.unwrap().deref().iter()
             .fold(Ok(()), |acc, aspect| {
                 debug!("[Aspect][exec]: {:?}", aspect);
                 acc.and_then(|_| (aspect as &StoreIdAccessor).access(id))
             })
-            .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
+            .map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
     }
 
     fn execute_hooks_for_mut_file(&self,
@@ -540,14 +540,14 @@ impl Store {
         -> Result<()>
     {
         let guard = aspects.deref().lock();
-        if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
+        if guard.is_err() { return Err(SE::new(SEK::PreHookExecuteError, None)) }
 
         guard.unwrap().deref().iter()
             .fold(Ok(()), |acc, aspect| {
                 debug!("[Aspect][exec]: {:?}", aspect);
                 acc.and_then(|_| aspect.access_mut(fle))
             })
-            .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
+            .map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
     }
 
 }
@@ -682,7 +682,7 @@ impl EntryHeader {
     pub fn verify(&self) -> Result<()> {
         match self.header {
             Value::Table(ref t) => verify_header(&t),
-            _ => Err(StoreError::new(StoreErrorKind::HeaderTypeFailure, None)),
+            _ => Err(SE::new(SEK::HeaderTypeFailure, None)),
         }
     }
 
@@ -724,7 +724,7 @@ impl EntryHeader {
 
         let destination = tokens.iter().last();
         if destination.is_none() {
-            return Err(StoreError::new(StoreErrorKind::HeaderPathSyntaxError, None));
+            return Err(SE::new(SEK::HeaderPathSyntaxError, None));
         }
         let destination = destination.unwrap();
 
@@ -753,7 +753,7 @@ impl EntryHeader {
                     /*
                      * Fail if there is no map here
                      */
-                    _ => return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+                    _ => return Err(SE::new(SEK::HeaderPathTypeFailure, None)),
                 }
             },
 
@@ -776,7 +776,7 @@ impl EntryHeader {
                     /*
                      * Fail if there is no array here
                      */
-                    _ => return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+                    _ => return Err(SE::new(SEK::HeaderPathTypeFailure, None)),
                 }
             },
         }
@@ -821,7 +821,7 @@ impl EntryHeader {
 
         let destination = tokens.iter().last();
         if destination.is_none() {
-            return Err(StoreError::new(StoreErrorKind::HeaderPathSyntaxError, None));
+            return Err(SE::new(SEK::HeaderPathSyntaxError, None));
         }
         let destination = destination.unwrap();
         debug!("destination = {:?}", destination);
@@ -850,7 +850,7 @@ impl EntryHeader {
                      */
                     _ => {
                         debug!("Matched Key->NON-Table");
-                        return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None));
+                        return Err(SE::new(SEK::HeaderPathTypeFailure, None));
                     }
                 }
             },
@@ -881,7 +881,7 @@ impl EntryHeader {
                      */
                     _ => {
                         debug!("Matched Index->NON-Array");
-                        return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None));
+                        return Err(SE::new(SEK::HeaderPathTypeFailure, None));
                     },
                 }
             },
@@ -931,7 +931,7 @@ impl EntryHeader {
             let e = value.unwrap_err();
             return match e.err_type() {
                 // We cannot find the header key, as there is no path to it
-                StoreErrorKind::HeaderKeyNotFound => Ok(None),
+                SEK::HeaderKeyNotFound => Ok(None),
                 _ => Err(e),
             };
         }
@@ -947,7 +947,7 @@ impl EntryHeader {
 
         let destination = tokens.iter().last();
         if destination.is_none() {
-            return Err(StoreError::new(StoreErrorKind::HeaderPathSyntaxError, None));
+            return Err(SE::new(SEK::HeaderPathSyntaxError, None));
         }
         let destination = destination.unwrap();
         debug!("destination = {:?}", destination);
@@ -969,7 +969,7 @@ impl EntryHeader {
                     },
                     _ => {
                         debug!("Matched Key->NON-Table");
-                        return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None));
+                        return Err(SE::new(SEK::HeaderPathTypeFailure, None));
                     }
                 }
             },
@@ -988,7 +988,7 @@ impl EntryHeader {
                     },
                     _ => {
                         debug!("Matched Index->NON-Array");
-                        return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None));
+                        return Err(SE::new(SEK::HeaderPathTypeFailure, None));
                     },
                 }
             },
@@ -1030,9 +1030,9 @@ impl EntryHeader {
         match *v {
             Value::Table(ref mut t) => {
                 t.get_mut(&s[..])
-                    .ok_or(StoreError::new(StoreErrorKind::HeaderKeyNotFound, None))
+                    .ok_or(SE::new(SEK::HeaderKeyNotFound, None))
             },
-            _ => Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+            _ => Err(SE::new(SEK::HeaderPathTypeFailure, None)),
         }
     }
 
@@ -1040,12 +1040,12 @@ impl EntryHeader {
         match *v {
             Value::Array(ref mut a) => {
                 if a.len() < i {
-                    Err(StoreError::new(StoreErrorKind::HeaderKeyNotFound, None))
+                    Err(SE::new(SEK::HeaderKeyNotFound, None))
                 } else {
                     Ok(&mut a[i])
                 }
             },
-            _ => Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+            _ => Err(SE::new(SEK::HeaderPathTypeFailure, None)),
         }
     }
 
@@ -1093,12 +1093,12 @@ fn build_default_header() -> Value { // BTreeMap<String, Value>
 }
 fn verify_header(t: &Table) -> Result<()> {
     if !has_main_section(t) {
-        Err(StoreError::from(ParserError::new(ParserErrorKind::MissingMainSection, None)))
+        Err(SE::from(ParserError::new(ParserErrorKind::MissingMainSection, None)))
     } else if !has_imag_version_in_main_section(t) {
-        Err(StoreError::from(ParserError::new(ParserErrorKind::MissingVersionInfo, None)))
+        Err(SE::from(ParserError::new(ParserErrorKind::MissingVersionInfo, None)))
     } else if !has_only_tables(t) {
         debug!("Could not verify that it only has tables in its base table");
-        Err(StoreError::from(ParserError::new(ParserErrorKind::NonTableInBaseTable, None)))
+        Err(SE::from(ParserError::new(ParserErrorKind::NonTableInBaseTable, None)))
     } else {
         Ok(())
     }
@@ -1190,12 +1190,12 @@ impl Entry {
         }
 
         let matches = match RE.captures(s) {
-            None    => return Err(StoreError::new(StoreErrorKind::MalformedEntry, None)),
+            None    => return Err(SE::new(SEK::MalformedEntry, None)),
             Some(s) => s,
         };
 
         let header = match matches.name("header") {
-            None    => return Err(StoreError::new(StoreErrorKind::MalformedEntry, None)),
+            None    => return Err(SE::new(SEK::MalformedEntry, None)),
             Some(s) => s
         };
 
