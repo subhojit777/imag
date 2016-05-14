@@ -386,13 +386,12 @@ impl Store {
     /// This method assumes that entry is dropped _right after_ the call, hence
     /// it is not public.
     fn _update<'a>(&'a self, entry: &FileLockEntry<'a>) -> Result<()> {
-        let hsmap = self.entries.write();
-        if hsmap.is_err() {
-            return Err(SE::new(SEK::LockPoisoned, None))
-        }
-        let mut hsmap = hsmap.unwrap();
-        let mut se = try!(hsmap.get_mut(&entry.key)
-              .ok_or(SE::new(SEK::IdNotFound, None)));
+        let mut hsmap = match self.entries.write() {
+            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Ok(e) => e,
+        };
+
+        let mut se = try!(hsmap.get_mut(&entry.key).ok_or(SE::new(SEK::IdNotFound, None)));
 
         assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 
