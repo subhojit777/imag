@@ -1110,10 +1110,8 @@ fn has_imag_version_in_main_section(t: &Table) -> bool {
             sec.get("version")
                 .and_then(|v| {
                     match *v {
-                        Value::String(ref s) => {
-                            Some(Version::parse(&s[..]).is_ok())
-                        },
-                        _ => Some(false),
+                        Value::String(ref s) => Some(Version::parse(&s[..]).is_ok()),
+                        _                    => Some(false),
                     }
                 })
             .unwrap_or(false)
