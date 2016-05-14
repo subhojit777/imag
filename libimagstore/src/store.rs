@@ -512,15 +512,13 @@ impl Store {
                             id: &StoreId)
         -> Result<()>
     {
-        let guard = aspects.deref().lock();
-        if guard.is_err() { return Err(SE::new(SEK::PreHookExecuteError, None)) }
-
-        guard.unwrap().deref().iter()
-            .fold(Ok(()), |acc, aspect| {
-                debug!("[Aspect][exec]: {:?}", aspect);
-                acc.and_then(|_| (aspect as &StoreIdAccessor).access(id))
-            })
-            .map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
+        match aspects.lock() {
+            Err(_) => return Err(SE::new(SEK::PreHookExecuteError, None)),
+            Ok(g) => g
+        }.iter().fold(Ok(()), |acc, aspect| {
+            debug!("[Aspect][exec]: {:?}", aspect);
+            acc.and_then(|_| (aspect as &StoreIdAccessor).access(id))
+        }).map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
     }
 
     fn execute_hooks_for_mut_file(&self,
