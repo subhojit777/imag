@@ -901,23 +901,21 @@ impl EntryHeader {
     }
 
     pub fn read_with_sep(&self, spec: &str, splitchr: char) -> Result<Option<Value>> {
-        let tokens = EntryHeader::tokenize(spec, splitchr);
-        if tokens.is_err() { // return parser error if any
-            return Err(tokens.unwrap_err());
-        }
-        let tokens = tokens.unwrap();
+        let tokens = match EntryHeader::tokenize(spec, splitchr) {
+            Err(e) => return Err(e),
+            Ok(t) => t,
+        };
 
         let mut header_clone = self.header.clone(); // we clone as READing is simpler this way
-        let value = EntryHeader::walk_header(&mut header_clone, tokens); // walk N-1 tokens
-        if value.is_err() {
-            let e = value.unwrap_err();
-            return match e.err_type() {
+        // walk N-1 tokens
+        match EntryHeader::walk_header(&mut header_clone, tokens) {
+            Err(e) => match e.err_type() {
                 // We cannot find the header key, as there is no path to it
                 SEK::HeaderKeyNotFound => Ok(None),
                 _ => Err(e),
-            };
+            },
+            Ok(v) => Ok(Some(v.clone())),
         }
-        Ok(Some(value.unwrap().clone()))
     }
 
     pub fn delete(&mut self, spec: &str) -> Result<Option<Value>> {
