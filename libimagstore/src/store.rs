@@ -701,24 +701,23 @@ impl EntryHeader {
     }
 
     pub fn insert_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<bool> {
-        let tokens = EntryHeader::tokenize(spec, sep);
-        if tokens.is_err() { // return parser error if any
-            return tokens.map(|_| false);
-        }
-        let tokens = tokens.unwrap();
+        let tokens = match EntryHeader::tokenize(spec, sep) {
+            Err(e) => return Err(e),
+            Ok(t) => t
+        };
 
-        let destination = tokens.iter().last();
-        if destination.is_none() {
-            return Err(SE::new(SEK::HeaderPathSyntaxError, None));
-        }
-        let destination = destination.unwrap();
+        let destination = match tokens.iter().last() {
+            None => return Err(SE::new(SEK::HeaderPathSyntaxError, None)),
+            Some(d) => d,
+        };
 
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        let value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
-        if value.is_err() {
-            return value.map(|_| false);
-        }
-        let mut value = value.unwrap();
+
+        // walk N-1 tokens
+        let value = match EntryHeader::walk_header(&mut self.header, path_to_dest) {
+            Err(e) => return Err(e),
+            Ok(v) => v
+        };
 
         // There is already an value at this place
         if EntryHeader::extract(value, destination).is_ok() {
