@@ -474,16 +474,11 @@ impl Store {
                 HookPosition::PostDelete   => self.post_delete_aspects.clone(),
             };
 
-        let guard = guard
-            .deref()
-            .lock()
-            .map_err(|_| SE::new(SEK::LockError, None));
+        let mut guard = match guard.deref().lock().map_err(|_| SE::new(SEK::LockError, None)) {
+            Err(e) => return Err(SE::new(SEK::HookRegisterError, Some(Box::new(e)))),
+            Ok(g) => g,
+        };
 
-        if guard.is_err() {
-            return Err(SE::new(SEK::HookRegisterError,
-                                       Some(Box::new(guard.err().unwrap()))));
-        }
-        let mut guard  = guard.unwrap();
         for mut aspect in guard.deref_mut() {
             if aspect.name().clone() == aspect_name.clone() {
                 self.get_config_for_hook(h.name()).map(|config| h.set_config(config));
