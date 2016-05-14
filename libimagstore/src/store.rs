@@ -1083,11 +1083,9 @@ fn verify_header(t: &Table) -> Result<()> {
 }
 
 fn verify_header_consistency(t: Table) -> EntryResult<Table> {
-    if let Err(e) = verify_header(&t) {
-        Err(ParserError::new(ParserErrorKind::HeaderInconsistency, Some(Box::new(e))))
-    } else {
-        Ok(t)
-    }
+    verify_header(&t)
+        .map_err(|e| ParserError::new(ParserErrorKind::HeaderInconsistency, Some(Box::new(e))))
+        .map(|_| t)
 }
 
 fn has_only_tables(t: &Table) -> bool {
