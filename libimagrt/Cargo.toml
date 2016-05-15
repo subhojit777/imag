@@ -21,3 +21,6 @@ path = "../libimagstorestdhook"
 [dependencies.libimagutil]
 path = "../libimagutil"
 
+[dependencies.libimagerror]
+path = "../libimagerror"
+
