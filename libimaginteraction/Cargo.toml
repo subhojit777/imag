@@ -20,3 +20,6 @@ path = "../libimagentryfilter"
 [dependencies.libimagutil]
 path = "../libimagutil"
 
+[dependencies.libimagerror]
+path = "../libimagerror"
+
