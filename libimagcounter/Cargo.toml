@@ -11,3 +11,6 @@ semver = "0.2"
 [dependencies.libimagstore]
 path = "../libimagstore"
 
+[dependencies.libimagerror]
+path = "../libimagerror"
+
