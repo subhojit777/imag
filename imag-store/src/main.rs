@@ -22,6 +22,7 @@ extern crate toml;
 extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagutil;
+#[macro_use] extern crate libimagerror;
 
 use libimagrt::runtime::Runtime;
 use std::process::exit;
