@@ -13,3 +13,6 @@ itertools = "0.4"
 [dependencies.libimagstore]
 path = "../libimagstore"
 
+[dependencies.libimagerror]
+path = "../libimagerror"
+
