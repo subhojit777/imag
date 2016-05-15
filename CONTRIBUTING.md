@@ -95,7 +95,126 @@ ask questions as well!
 
 Feel free to reach out via mail.
 
+## More information about the structure of this project
+
+Here goes some notes on how this project is structured.
+
+### Issue- and PR-Labels
+
+Our labels are color coded as well as "namespaced". The color groups labels
+exactly as the prefix does. The prefix is the first component which is seperated
+from the others by `"/`". See below:
+
+| Label                     | Description                       | search                                     |
+| ---                       | ---                               | ---                                        |
+| complexity/easy           | Easy to do                        | [search][search-complexity/easy]           |
+| complexity/high           | Not so easy to do                 | [search][search-complexity/high]           |
+| complexity/medium         | Relatively easy                   | [search][search-complexity/medium]         |
+| kind/bug                  | Bug                               | [search][search-kind/bug]                  |
+| kind/doc                  | Documentation related             | [search][search-kind/doc]                  |
+| kind/enhancement          | Enhancement                       | [search][search-kind/enhancement]          |
+| kind/feature              | Feature                           | [search][search-kind/feature]              |
+| kind/hotfix               | Hotfix                            | [search][search-kind/hotfix]               |
+| kind/infrastructure       | Infrastructure code               | [search][search-kind/infrastructure]       |
+| kind/invalid              | Not valid Issue/PR                | [search][search-kind/invalid]              |
+| kind/nicetohave           | Would be a nice thing             | [search][search-kind/nicetohave]           |
+| kind/refactor             | Refactor codebase                 | [search][search-kind/refactor]             |
+| meta/assigned             | Is assigned                       | [search][search-meta/assigned]             |
+| meta/blocked              | Blocked by other Issue/PR         | [search][search-meta/blocked]              |
+| meta/blocker              | Blocks other Issue/PR             | [search][search-meta/blocker]              |
+| meta/decision-pending     | Not clear what to do              | [search][search-meta/decision-pending]     |
+| meta/dependencies         | Dependency-related                | [search][search-meta/dependencies]         |
+| meta/doc                  | Documentation related             | [search][search-meta/doc]                  |
+| meta/importance/high      | Very Important                    | [search][search-meta/importance/high]      |
+| meta/importance/low       | Not so important                  | [search][search-meta/importance/low]       |
+| meta/importance/medium    | Rather important                  | [search][search-meta/importance/medium]    |
+| meta/on-hold              | Do not work on this!              | [search][search-meta/on-hold]              |
+| meta/ready                | Ready for review/merge            | [search][search-meta/ready]                |
+| meta/reopen-later         | Reopen closed issue/pr later      | [search][search-meta/reopen-later]         |
+| meta/WIP                  | Work in Progress                  | [search][search-meta/WIP]                  |
+| nochange/duplicate        | Duplicated                        | [search][search-nochange/duplicate]        |
+| nochange/question         | Question                          | [search][search-nochange/question]         |
+| nochange/rfc              | Request for comments              | [search][search-nochange/rfc]              |
+| nochange/wontfix          | Won't fix this issue              | [search][search-nochange/wontfix]          |
+| part/bin/imag-counter     | Targets binary: imag-counter      | [search][search-part/bin/imag-counter]     |
+| part/bin/imag-link        | Targets binary: imag-link         | [search][search-part/bin/imag-link]        |
+| part/bin/imag-store       | Targets binary: imag-store        | [search][search-part/bin/imag-store]       |
+| part/bin/imag-tag         | Targets binary: imag-tag          | [search][search-part/bin/imag-tag]         |
+| part/bin/imag-view        | Targets binary: imag-view         | [search][search-part/bin/imag-view]        |
+| part/interface            | Changes the interface             | [search][search-part/interface]            |
+| part/lib/imagcounter      | Targets library: imagcounter      | [search][search-part/lib/imagcounter]      |
+| part/lib/imagentryfilter  | Targets library: imagentryfilter  | [search][search-part/lib/imagentryfilter]  |
+| part/lib/imagentrylink    | Targets library: imagentrylink    | [search][search-part/lib/imagentrylink]    |
+| part/lib/imagentrylist    | Targets library: imagentrylist    | [search][search-part/lib/imagentrylist]    |
+| part/lib/imagentrymarkup  | Targets library: imagentrymarkup  | [search][search-part/lib/imagentrymarkup]  |
+| part/lib/imagentryprinter | Targets library: imagentryprinter | [search][search-part/lib/imagentryprinter] |
+| part/lib/imagentrytag     | Targets library: imagentrytag     | [search][search-part/lib/imagentrytag]     |
+| part/lib/imagentryview    | Targets library: imagentryview    | [search][search-part/lib/imagentryview]    |
+| part/lib/imagnotes        | Targets library: imagnotes        | [search][search-part/lib/imagnotes]        |
+| part/lib/imagrt           | Targets library: imagrt           | [search][search-part/lib/imagrt]           |
+| part/lib/imagstore        | Targets library: imagstore        | [search][search-part/lib/imagstore]        |
+| part/lib/imagstorestdhook | Targets library: imagstorestdhook | [search][search-part/lib/imagstorestdhook] |
+| part/lib/imagutil         | Targets library:                  | [search][search-part/lib/imagutil]         |
+| part/_new_binary          | Introduces new binary             | [search][search-part/_new_binary]          |
+| part/_new_library         | Introduces new library            | [search][search-part/_new_library]         |
+| test/change               | Changes a test                    | [search][search-test/change]               |
+| test/missing              | Test missing                      | [search][search-test/missing]              |
+| test/new                  | New test                          | [search][search-test/new]                  |
+
 ## FAQ
 
 _to be written_
 
+[search-complexity/easy]: https://github.com/matthiasbeyer/imag/labels/
+[search-complexity/high]: https://github.com/matthiasbeyer/imag/labels/complexity%2Fhigh
+[search-complexity/medium]: https://github.com/matthiasbeyer/imag/labels/complexity%2Fmedium
+[search-kind/bug]: https://github.com/matthiasbeyer/imag/labels/kind%2Fbug
+[search-kind/doc]: https://github.com/matthiasbeyer/imag/labels/kind%2Fdoc
+[search-kind/enhancement]: https://github.com/matthiasbeyer/imag/labels/kind%2Fenhancement
+[search-kind/feature]: https://github.com/matthiasbeyer/imag/labels/kind%2Ffeature
+[search-kind/hotfix]: https://github.com/matthiasbeyer/imag/labels/kind%2Fhotfix
+[search-kind/infrastructure]: https://github.com/matthiasbeyer/imag/labels/kind%2Finfrastructure
+[search-kind/invalid]: https://github.com/matthiasbeyer/imag/labels/kind%2Finvalid
+[search-kind/nicetohave]: https://github.com/matthiasbeyer/imag/labels/kind%2Fnicetohave
+[search-kind/refactor]: https://github.com/matthiasbeyer/imag/labels/kind%2Frefactor
+[search-meta/assigned]: https://github.com/matthiasbeyer/imag/labels/meta%2Fassigned
+[search-meta/blocked]: https://github.com/matthiasbeyer/imag/labels/meta%2Fblocked
+[search-meta/blocker]: https://github.com/matthiasbeyer/imag/labels/meta%2Fblocker
+[search-meta/decision-pending]: https://github.com/matthiasbeyer/imag/labels/meta%2Fdecision-pending
+[search-meta/dependencies]: https://github.com/matthiasbeyer/imag/labels/meta%2Fdependencies
+[search-meta/doc]: https://github.com/matthiasbeyer/imag/labels/meta%2Fdoc
+[search-meta/importance/high]: https://github.com/matthiasbeyer/imag/labels/meta%2Fimportance%2Fhigh
+[search-meta/importance/low]: https://github.com/matthiasbeyer/imag/labels/meta%2Fimportance%2Flow
+[search-meta/importance/medium]: https://github.com/matthiasbeyer/imag/labels/meta%2Fimportance%2Fmedium
+[search-meta/on-hold]: https://github.com/matthiasbeyer/imag/labels/meta%2Fon-hold
+[search-meta/ready]: https://github.com/matthiasbeyer/imag/labels/meta%2Fready
+[search-meta/reopen-later]: https://github.com/matthiasbeyer/imag/labels/meta%2Freopen-later
+[search-meta/WIP]: https://github.com/matthiasbeyer/imag/labels/meta%2FWIP
+[search-nochange/duplicate]: https://github.com/matthiasbeyer/imag/labels/nochange%2Fduplicate
+[search-nochange/question]: https://github.com/matthiasbeyer/imag/labels/nochange%2Fquestion
+[search-nochange/rfc]: https://github.com/matthiasbeyer/imag/labels/nochange%2Frfc
+[search-nochange/wontfix]: https://github.com/matthiasbeyer/imag/labels/nochange%2Fwontfix
+[search-part/bin/imag-counter]: https://github.com/matthiasbeyer/imag/labels/part%2Fbin%2Fimag-counter
+[search-part/bin/imag-link]: https://github.com/matthiasbeyer/imag/labels/part%2Fbin%2Fimag-link
+[search-part/bin/imag-store]: https://github.com/matthiasbeyer/imag/labels/part%2Fbin%2Fimag-store
+[search-part/bin/imag-tag]: https://github.com/matthiasbeyer/imag/labels/part%2Fbin%2Fimag-tag
+[search-part/bin/imag-view]: https://github.com/matthiasbeyer/imag/labels/part%2Fbin%2Fimag-view
+[search-part/interface]: https://github.com/matthiasbeyer/imag/labels/part%2F_interface
+[search-part/lib/imagcounter]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagcounter
+[search-part/lib/imagentryfilter]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagentryfilter
+[search-part/lib/imagentrylink]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagentrylink
+[search-part/lib/imagentrylist]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagentrylist
+[search-part/lib/imagentrymarkup]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagentrymarkup
+[search-part/lib/imagentryprinter]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagentryprinter
+[search-part/lib/imagentrytag]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagentrytag
+[search-part/lib/imagentryview]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagentryview
+[search-part/lib/imagnotes]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagnotes
+[search-part/lib/imagrt]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagrt
+[search-part/lib/imagstore]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagstore
+[search-part/lib/imagstorestdhook]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagstorestdhook
+[search-part/lib/imagutil]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagutil
+[search-part/_new_binary]: https://github.com/matthiasbeyer/imag/labels/part%2F_new_binary
+[search-part/_new_library]: https://github.com/matthiasbeyer/imag/labels/part%2F_new_library
+[search-test/change]: https://github.com/matthiasbeyer/imag/labels/test%2Fchange
+[search-test/missing]: https://github.com/matthiasbeyer/imag/labels/test%2Fmissing
+[search-test/new]: https://github.com/matthiasbeyer/imag/labels/test%2Fnew
