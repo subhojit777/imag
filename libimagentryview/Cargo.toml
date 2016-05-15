@@ -8,3 +8,6 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 [dependencies.libimagstore]
 path = "../libimagstore"
 
+[dependencies.libimagerror]
+path = "../libimagerror"
+
