@@ -20,6 +20,7 @@ extern crate toml;
 
 extern crate libimagrt;
 #[macro_use] extern crate libimagstore;
+#[macro_use] extern crate libimagerror;
 extern crate libimagentrytag;
 
 module_entry_path_mod!("notes", "0.1.0");
