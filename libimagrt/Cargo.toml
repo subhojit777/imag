@@ -10,6 +10,7 @@ log = "0.3"
 xdg-basedir = "0.2.2"
 itertools = "0.4"
 tempfile = "2.1.1"
+ansi_term = "0.7"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
