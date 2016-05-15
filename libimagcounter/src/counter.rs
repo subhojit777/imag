@@ -144,12 +144,12 @@ impl<'a> Counter<'a> {
 }
 
 trait FromStoreId {
-    fn from_storeid<'a>(&'a Store, StoreId) -> Result<Counter<'a>>;
+    fn from_storeid(&Store, StoreId) -> Result<Counter>;
 }
 
 impl<'a> FromStoreId for Counter<'a> {
 
-    fn from_storeid<'b>(store: &'b Store, id: StoreId) -> Result<Counter<'b>> {
+    fn from_storeid(store: &Store, id: StoreId) -> Result<Counter> {
         debug!("Loading counter from storeid: '{:?}'", id);
         match store.retrieve(id) {
             Err(e) => Err(CE::new(CEK::StoreReadError, Some(Box::new(e)))),

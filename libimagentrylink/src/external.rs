@@ -31,7 +31,7 @@ use url::Url;
 use crypto::sha1::Sha1;
 use crypto::digest::Digest;
 
-/// "Link" Type, just an abstraction over FileLockEntry to have some convenience internally.
+/// "Link" Type, just an abstraction over `FileLockEntry` to have some convenience internally.
 struct Link<'a> {
     link: FileLockEntry<'a>
 }
@@ -57,7 +57,7 @@ impl<'a> Link<'a> {
             .map_err(|e| LE::new(LEK::StoreReadError, Some(Box::new(e))))
     }
 
-    /// Get a link Url object from a FileLockEntry, ignore errors.
+    /// Get a link Url object from a `FileLockEntry`, ignore errors.
     fn get_link_uri_from_filelockentry(file: &FileLockEntry<'a>) -> Option<Url> {
         file.get_header()
             .read("imag.content.uri")
@@ -78,7 +78,7 @@ impl<'a> Link<'a> {
         match opt {
             Ok(Some(Value::String(s))) => {
                 Url::parse(&s[..])
-                     .map(|s| Some(s))
+                     .map(Some)
                      .map_err(|e| LE::new(LEK::EntryHeaderReadError, Some(Box::new(e))))
             },
             Ok(None) => Ok(None),
@@ -115,7 +115,7 @@ fn get_external_link_from_file(entry: &FileLockEntry) -> Result<Url> {
         .ok_or(LE::new(LEK::StoreReadError, None))
 }
 
-/// Implement ExternalLinker for Entry, hiding the fact that there is no such thing as an external
+/// Implement `ExternalLinker` for `Entry`, hiding the fact that there is no such thing as an external
 /// link in an entry, but internal links to other entries which serve as external links, as one
 /// entry in the store can only have one external link.
 impl ExternalLinker for Entry {

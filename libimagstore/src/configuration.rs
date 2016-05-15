@@ -51,10 +51,13 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
 
     fn has_key_with_string_ary(v: &BTreeMap<String, Value>, key: &str) -> bool {
         v.get(key)
-            .map(|t| match t {
-                    &Value::Array(ref a) => a.iter().all(|elem| {
-                        match elem {
-                            &Value::String(_) => true,
+            .map_or_else(|| {
+                write!(stderr(), "Required key '{}' is not in store config", key).ok();
+                false
+            }, |t| match *t {
+                    Value::Array(ref a) => a.iter().all(|elem| {
+                        match *elem {
+                            Value::String(_) => true,
                             _ => false,
                         }
                     }),
@@ -63,9 +66,6 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
                             .ok();
                         false
                     }
-            }).unwrap_or_else(|| {
-                write!(stderr(), "Required key '{}' is not in store config", key).ok();
-                false
             })
     }
 
@@ -84,18 +84,21 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
         where F: Fn(&Value) -> bool
     {
         store_config.get(section) // The store config has the section `section`
-            .map(|section_table| {
-                match section_table { // which is
-                    &Value::Table(ref section_table) => // a table
+            .map_or_else(|| {
+                write!(stderr(), "Store config expects section '{}' to be present, but isn't.",
+                        section).ok();
+                false
+            }, |section_table| {
+                match *section_table { // which is
+                    Value::Table(ref section_table) => // a table
                         section_table
                             .iter() // which has values,
                             .all(|(inner_key, cfg)| { // and all of these values
-                                match cfg {
-                                    &Value::Table(ref hook_config) => { // are tables
+                                match *cfg {
+                                    Value::Table(ref hook_config) => { // are tables
                                         hook_config.get(key) // with a key
                                             // fullfilling this constraint
-                                            .map(|hook_aspect| f(&hook_aspect))
-                                            .unwrap_or(false)
+                                            .map_or(false, |hook_aspect| f(&hook_aspect))
                                     },
                                     _ => {
                                         write!(stderr(), "Store config expects '{}' to be in '{}.{}', but isn't.",
@@ -111,16 +114,10 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
                     }
                 }
             })
-            .unwrap_or_else(|| {
-                write!(stderr(), "Store config expects section '{}' to be present, but isn't.",
-                        section).ok();
-                false
-            })
     }
 
-    match config {
-        &Some(Value::Table(ref t)) => {
-            has_key_with_string_ary(t, "pre-create-hook-aspects")      &&
+    match *config {
+        Some(Value::Table(ref t)) => {            has_key_with_string_ary(t, "pre-create-hook-aspects")      &&
             has_key_with_string_ary(t, "post-create-hook-aspects")     &&
             has_key_with_string_ary(t, "pre-retrieve-hook-aspects")    &&
             has_key_with_string_ary(t, "post-retrieve-hook-aspects")   &&
@@ -132,15 +129,13 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
             // The section "hooks" has maps which have a key "aspect" which has a value of type
             // String
             check_all_inner_maps_have_key_with(t, "hooks", "aspect", |asp| {
-                let res = match asp { &Value::String(_) => true, _ => false };
-                res
+                match *asp { Value::String(_) => true, _ => false }
             }) &&
 
             // The section "aspects" has maps which have a key "parllel" which has a value of type
             // Boolean
             check_all_inner_maps_have_key_with(t, "aspects", "parallel", |asp| {
-                let res = match asp { &Value::Boolean(_) => true, _ => false, };
-                res
+                match *asp { Value::Boolean(_) => true, _ => false, }
             })
         }
         _ => {
@@ -199,16 +194,15 @@ impl AspectConfig {
     }
 
     fn is_parallel(init: &Value) -> bool {
-        match init {
-            &Value::Table(ref t) =>
+        match *init {
+            Value::Table(ref t) =>
                 t.get("parallel")
-                    .map(|value| {
-                        match value {
-                            &Value::Boolean(b) => b,
+                    .map_or(false, |value| {
+                        match *value {
+                            Value::Boolean(b) => b,
                             _ => false,
                         }
-                    })
-                    .unwrap_or(false),
+                    }),
             _ => false,
         }
     }
@@ -219,8 +213,8 @@ impl AspectConfig {
     ///
     /// Returns `None` if one of the keys in the chain is not available
     pub fn get_for(v: &Option<Value>, a_name: String) -> Option<AspectConfig> {
-        match v {
-            &Some(Value::Table(ref tabl)) => tabl.get(&a_name[..])
+        match *v {
+            Some(Value::Table(ref tabl)) => tabl.get(&a_name[..])
                 .map(|asp| AspectConfig::new(asp.clone())),
             _ => None,
         }
@@ -231,13 +225,13 @@ impl AspectConfig {
 fn get_aspect_names_for_aspect_position(config_name: &'static str, value: &Option<Value>) -> Vec<String> {
     let mut v = vec![];
 
-    match value {
-        &Some(Value::Table(ref t)) => {
+    match *value {
+        Some(Value::Table(ref t)) => {
             match t.get(config_name) {
                 Some(&Value::Array(ref a)) => {
                     for elem in a {
-                        match elem {
-                            &Value::String(ref s) => v.push(s.clone()),
+                        match *elem {
+                            Value::String(ref s) => v.push(s.clone()),
                             _ => warn!("Non-String in configuration, inside '{}'", config_name),
                         }
                     }
@@ -245,7 +239,7 @@ fn get_aspect_names_for_aspect_position(config_name: &'static str, value: &Optio
                 _ => warn!("'{}' configuration key should contain Array, does not", config_name),
             };
         },
-        &None => warn!("No store configuration"),
+        None => warn!("No store configuration"),
         _ => warn!("Configuration is not a table"),
     }
     v

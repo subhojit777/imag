@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt::Error as FmtError;
-use std::clone::Clone;
 use std::fmt::{Debug, Display, Formatter};
 use std::fmt;
 use std::convert::From;
@@ -41,35 +40,35 @@ pub enum StoreErrorKind {
 }
 
 fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
-    match e {
-        &StoreErrorKind::ConfigurationError => "Store Configuration Error",
-        &StoreErrorKind::FileError       => "File Error",
-        &StoreErrorKind::IdLocked        => "ID locked",
-        &StoreErrorKind::IdNotFound      => "ID not found",
-        &StoreErrorKind::OutOfMemory     => "Out of Memory",
-        &StoreErrorKind::FileNotFound    => "File corresponding to ID not found",
-        &StoreErrorKind::FileNotCreated  => "File corresponding to ID could not be created",
-        &StoreErrorKind::IoError         => "File Error",
-        &StoreErrorKind::StorePathExists => "Store path exists",
-        &StoreErrorKind::StorePathCreate => "Store path create",
-        &StoreErrorKind::LockError       => "Error locking datastructure",
-        &StoreErrorKind::LockPoisoned
+    match *e {
+        StoreErrorKind::ConfigurationError => "Store Configuration Error",
+        StoreErrorKind::FileError       |
+        StoreErrorKind::IoError         => "File Error",
+        StoreErrorKind::IdLocked        => "ID locked",
+        StoreErrorKind::IdNotFound      => "ID not found",
+        StoreErrorKind::OutOfMemory     => "Out of Memory",
+        StoreErrorKind::FileNotFound    => "File corresponding to ID not found",
+        StoreErrorKind::FileNotCreated  => "File corresponding to ID could not be created",
+        StoreErrorKind::StorePathExists |
+        StoreErrorKind::StorePathCreate => "Store path create",
+        StoreErrorKind::LockError       => "Error locking datastructure",
+        StoreErrorKind::LockPoisoned
             => "The internal Store Lock has been poisoned",
-        &StoreErrorKind::EntryAlreadyBorrowed => "Entry is already borrowed",
-        &StoreErrorKind::EntryAlreadyExists   => "Entry already exists",
-        &StoreErrorKind::MalformedEntry => "Entry has invalid formatting, missing header",
-        &StoreErrorKind::HeaderPathSyntaxError => "Syntax error in accessor string",
-        &StoreErrorKind::HeaderPathTypeFailure => "Header has wrong type for path",
-        &StoreErrorKind::HeaderKeyNotFound     => "Header Key not found",
-        &StoreErrorKind::HeaderTypeFailure     => "Header type is wrong",
-        &StoreErrorKind::HookRegisterError     => "Hook register error",
-        &StoreErrorKind::AspectNameNotFoundError => "Aspect name not found",
-        &StoreErrorKind::HookExecutionError    => "Hook execution error",
-        &StoreErrorKind::PreHookExecuteError   => "Pre-Hook execution error",
-        &StoreErrorKind::PostHookExecuteError  => "Post-Hook execution error",
-        &StoreErrorKind::StorePathLacksVersion => "The supplied store path has no version part",
-        &StoreErrorKind::GlobError => "glob() error",
-        &StoreErrorKind::EncodingError => "Encoding error",
+        StoreErrorKind::EntryAlreadyBorrowed => "Entry is already borrowed",
+        StoreErrorKind::EntryAlreadyExists   => "Entry already exists",
+        StoreErrorKind::MalformedEntry => "Entry has invalid formatting, missing header",
+        StoreErrorKind::HeaderPathSyntaxError => "Syntax error in accessor string",
+        StoreErrorKind::HeaderPathTypeFailure => "Header has wrong type for path",
+        StoreErrorKind::HeaderKeyNotFound     => "Header Key not found",
+        StoreErrorKind::HeaderTypeFailure     => "Header type is wrong",
+        StoreErrorKind::HookRegisterError     => "Hook register error",
+        StoreErrorKind::AspectNameNotFoundError => "Aspect name not found",
+        StoreErrorKind::HookExecutionError    => "Hook execution error",
+        StoreErrorKind::PreHookExecuteError   => "Pre-Hook execution error",
+        StoreErrorKind::PostHookExecuteError  => "Post-Hook execution error",
+        StoreErrorKind::StorePathLacksVersion => "The supplied store path has no version part",
+        StoreErrorKind::GlobError             => "glob() error",
+        StoreErrorKind::EncodingError         => "Encoding error",
     }
 }
 
@@ -109,7 +108,7 @@ impl StoreError {
      * Get the error type of this StoreError
      */
     pub fn err_type(&self) -> StoreErrorKind {
-        self.err_type.clone()
+        self.err_type
     }
 
 }
@@ -117,7 +116,7 @@ impl StoreError {
 impl Display for StoreError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "[{}]", store_error_type_as_str(&self.err_type.clone())));
+        try!(write!(fmt, "[{}]", store_error_type_as_str(&self.err_type)));
         Ok(())
     }
 
@@ -126,7 +125,7 @@ impl Display for StoreError {
 impl Error for StoreError {
 
     fn description(&self) -> &str {
-        store_error_type_as_str(&self.err_type.clone())
+        store_error_type_as_str(&self.err_type)
     }
 
     fn cause(&self) -> Option<&Error> {

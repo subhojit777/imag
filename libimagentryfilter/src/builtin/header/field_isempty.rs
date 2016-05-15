@@ -27,11 +27,11 @@ impl Filter for FieldIsEmpty {
             .map(|v| {
                 match v {
                     Some(Value::Array(a))   => a.is_empty(),
-                    Some(Value::Boolean(_)) => false,
-                    Some(Value::Float(_))   => false,
-                    Some(Value::Integer(_)) => false,
                     Some(Value::String(s))  => s.is_empty(),
                     Some(Value::Table(t))   => t.is_empty(),
+                    Some(Value::Boolean(_)) |
+                    Some(Value::Float(_))   |
+                    Some(Value::Integer(_)) => false,
                     _                       => true,
                 }
             })

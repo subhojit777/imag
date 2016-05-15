@@ -85,7 +85,7 @@ impl IntoStoreId for StoreId {
 
 pub fn build_entry_path(store: &Store, path_elem: &str) -> Result<PathBuf> {
     debug!("Checking path element for version");
-    if path_elem.split("~").last().map(|v| Version::parse(v).is_err()).unwrap_or(false) {
+    if path_elem.split('~').last().map_or(false, |v| Version::parse(v).is_err()) {
         debug!("Version cannot be parsed from {:?}", path_elem);
         debug!("Path does not contain version!");
         return Err(StoreError::new(StoreErrorKind::StorePathLacksVersion, None));
@@ -95,8 +95,8 @@ pub fn build_entry_path(store: &Store, path_elem: &str) -> Result<PathBuf> {
     debug!("Building path from {:?}", path_elem);
     let mut path = store.path().clone();
 
-    if path_elem.chars().next() == Some('/') {
-        path.push(&path_elem[1..path_elem.len()]);
+    if path_elem.starts_with('/') {
+        path.push(&path_elem[1..]);
     } else {
         path.push(path_elem);
     }

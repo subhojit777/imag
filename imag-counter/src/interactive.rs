@@ -51,7 +51,7 @@ pub fn interactive(rt: &Runtime) {
             exit(1);
         }
 
-        let cont = if input.len() > 0 {
+        let cont = if !input.is_empty() {
             let increment = match input.chars().next() { Some('-') => false, _ => true };
             input.chars().all(|chr| {
                 match pairs.get_mut(&chr) {
@@ -94,8 +94,8 @@ pub fn interactive(rt: &Runtime) {
 fn has_quit_binding(pairs: &BTreeMap<char, Binding>) -> bool {
     pairs.iter()
         .any(|(_, bind)| {
-            match bind {
-                &Binding::Function(ref name, _) => name == "quit",
+            match *bind {
+                Binding::Function(ref name, _) => name == "quit",
                 _ => false,
             }
         })
@@ -109,8 +109,8 @@ enum Binding<'a> {
 impl<'a> Display for Binding<'a> {
 
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), Error> {
-        match self {
-            &Binding::Counter(ref c) => {
+        match *self {
+            Binding::Counter(ref c) => {
                 match c.name() {
                     Ok(name) => {
                         try!(write!(fmt, "{}", name));
@@ -122,7 +122,7 @@ impl<'a> Display for Binding<'a> {
                     },
                 }
             },
-            &Binding::Function(ref name, _) => write!(fmt, "{}()", name),
+            Binding::Function(ref name, _) => write!(fmt, "{}()", name),
         }
     }
 

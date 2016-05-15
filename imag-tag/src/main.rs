@@ -77,8 +77,7 @@ fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Opti
         .retrieve(path)
         .map(|mut e| {
             add.map(|tags| {
-                let tags = tags.split(",");
-                for tag in tags {
+                for tag in tags.split(',') {
                     info!("Adding tag '{}'", tag);
                     if let Err(e) = e.add_tag(String::from(tag)) {
                         trace_error(&e);
@@ -87,8 +86,7 @@ fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Opti
             });
 
             rem.map(|tags| {
-                let tags = tags.split(",");
-                for tag in tags {
+                for tag in tags.split(',') {
                     info!("Removing tag '{}'", tag);
                     if let Err(e) = e.remove_tag(String::from(tag)) {
                         trace_error(&e);
@@ -98,8 +96,8 @@ fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Opti
 
             set.map(|tags| {
                 info!("Setting tags '{}'", tags);
-                let tags = tags.split(",").map(String::from).collect();
-                if let Err(e) = e.set_tags(tags) {
+                let tags : Vec<_> = tags.split(',').map(String::from).collect();
+                if let Err(e) = e.set_tags(&tags) {
                     trace_error(&e);
                 }
             });

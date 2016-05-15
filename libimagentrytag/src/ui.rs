@@ -2,7 +2,7 @@ use clap::{Arg, ArgMatches, App, SubCommand};
 
 use tag::Tag;
 
-/// Generates a clap::SubCommand to be integrated in the commandline-ui builder for building a
+/// Generates a `clap::SubCommand` to be integrated in the commandline-ui builder for building a
 /// "tags --add foo --remove bar" subcommand to do tagging action.
 pub fn tag_subcommand<'a, 'b>() -> App<'a, 'b> {
     SubCommand::with_name(tag_subcommand_name())
@@ -41,7 +41,7 @@ pub fn tag_subcommand_names() -> Vec<&'static str> {
     vec![tag_subcommand_add_arg_name(), tag_subcommand_remove_arg_name()]
 }
 
-/// Generates a clap::Arg which can be integrated into the commandline-ui builder for building a
+/// Generates a `clap::Arg` which can be integrated into the commandline-ui builder for building a
 /// "-t" or "--tags" argument which takes values for tagging actions (add, remove)
 pub fn tag_argument<'a, 'b>() -> Arg<'a, 'b> {
     Arg::with_name(tag_argument_name())
@@ -79,7 +79,7 @@ fn extract_tags(matches: &ArgMatches, specifier: &str, specchar: char) -> Option
             .map(|argmatches| {
                 argmatches
                     .map(String::from)
-                    .filter(|s| s.chars().next() == Some(specchar))
+                    .filter(|s| s.starts_with(specchar))
                     .map(|s| {
                         String::from(s.split_at(1).1)
                     })

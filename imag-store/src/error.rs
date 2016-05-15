@@ -3,20 +3,18 @@ use std::fmt::Error as FmtError;
 use std::clone::Clone;
 use std::fmt::{Display, Formatter};
 
-/**
- * Kind of store error
- */
 #[derive(Clone, Copy, Debug, PartialEq)]
+/// Kind of store error
 pub enum StoreErrorKind {
     BackendError,
     NoCommandlineCall,
-        // maybe more
+    // maybe more
 }
 
 fn store_error_type_as_str(e: &StoreErrorKind) -> &'static str {
-    match e {
-        &StoreErrorKind::BackendError      => "Backend Error",
-        &StoreErrorKind::NoCommandlineCall => "No commandline call",
+    match *e {
+        StoreErrorKind::BackendError      => "Backend Error",
+        StoreErrorKind::NoCommandlineCall => "No commandline call",
     }
 }
 
@@ -37,9 +35,7 @@ pub struct StoreError {
 
 impl StoreError {
 
-    /**
-     * Build a new StoreError from an StoreErrorKind, optionally with cause
-     */
+    ///Build a new StoreError from an StoreErrorKind, optionally with cause
     pub fn new(errtype: StoreErrorKind, cause: Option<Box<Error>>)
         -> StoreError
         {
@@ -49,11 +45,9 @@ impl StoreError {
             }
         }
 
-    /**
-     * Get the error type of this StoreError
-     */
+    /// Get the error type of this StoreError
     pub fn err_type(&self) -> StoreErrorKind {
-        self.err_type.clone()
+        self.err_type
     }
 
 }
@@ -70,7 +64,7 @@ impl Display for StoreError {
 impl Error for StoreError {
 
     fn description(&self) -> &str {
-        store_error_type_as_str(&self.err_type.clone())
+        store_error_type_as_str(&self.err_type)
     }
 
     fn cause(&self) -> Option<&Error> {

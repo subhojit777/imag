@@ -81,16 +81,14 @@ fn handle_internal_linking(rt: &Runtime) {
 
     if cmd.is_present("list") {
         debug!("List...");
-        for entry in cmd.value_of("list").unwrap().split(",") {
+        for entry in cmd.value_of("list").unwrap().split(',') {
             debug!("Listing for '{}'", entry);
             match get_entry_by_name(rt, entry) {
                 Ok(e) => {
                     e.get_internal_links()
                         .map(|links| {
-                            let mut i = 0;
-                            for link in links.iter().map(|l| l.to_str()).filter_map(|x| x) {
+                            for (i, link) in links.iter().map(|l| l.to_str()).filter_map(|x| x).enumerate() {
                                 println!("{: <3}: {}", i, link);
-                                i += 1;
                             }
                         })
                         .map_err(|e| trace_error(&e))
@@ -275,7 +273,7 @@ fn set_links_for_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLock
         .value_of("links")
         .map(String::from)
         .unwrap()
-        .split(",")
+        .split(',')
         .map(|uri| {
             match Url::parse(uri) {
                 Err(e) => {
@@ -299,10 +297,8 @@ fn set_links_for_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLock
 fn list_links_for_entry(store: &Store, entry: &mut FileLockEntry) {
     let res = entry.get_external_links(store)
         .and_then(|links| {
-            let mut i = 0;
-            for link in links {
+            for (i, link) in links.iter().enumerate() {
                 println!("{: <3}: {}", i, link);
-                i += 1;
             }
             Ok(())
         });

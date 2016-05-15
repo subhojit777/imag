@@ -1,6 +1,5 @@
 use std::error::Error;
 use std::fmt::Error as FmtError;
-use std::clone::Clone;
 use std::fmt::{Display, Formatter};
 use std::convert::Into;
 
@@ -35,9 +34,9 @@ impl Into<HookError> for (HookErrorKind, Box<Error>) {
 }
 
 fn hook_error_type_as_str(e: &HookErrorKind) -> &'static str {
-    match e {
-        &HookErrorKind::HookExecutionError  => "Hook exec error",
-        &HookErrorKind::AccessTypeViolation => "Hook access type violation",
+    match *e {
+        HookErrorKind::HookExecutionError  => "Hook exec error",
+        HookErrorKind::AccessTypeViolation => "Hook access type violation",
     }
 }
 
@@ -77,7 +76,7 @@ impl HookError {
      * Get the error type of this HookError
      */
     pub fn err_type(&self) -> HookErrorKind {
-        self.err_type.clone()
+        self.err_type
     }
 
 }
@@ -85,7 +84,7 @@ impl HookError {
 impl Display for HookError {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        try!(write!(fmt, "[{}]", hook_error_type_as_str(&self.err_type.clone())));
+        try!(write!(fmt, "[{}]", hook_error_type_as_str(&self.err_type)));
         Ok(())
     }
 
@@ -94,7 +93,7 @@ impl Display for HookError {
 impl Error for HookError {
 
     fn description(&self) -> &str {
-        hook_error_type_as_str(&self.err_type.clone())
+        hook_error_type_as_str(&self.err_type)
     }
 
     fn cause(&self) -> Option<&Error> {

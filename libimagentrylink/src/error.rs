@@ -15,29 +15,29 @@ pub enum LinkErrorKind {
 }
 
 fn link_error_type_as_str(e: &LinkErrorKind) -> &'static str {
-    match e {
-        &LinkErrorKind::EntryHeaderReadError
+    match *e {
+        LinkErrorKind::EntryHeaderReadError
             => "Error while reading an entry header",
 
-        &LinkErrorKind::EntryHeaderWriteError
+        LinkErrorKind::EntryHeaderWriteError
             => "Error while writing an entry header",
 
-        &LinkErrorKind::ExistingLinkTypeWrong
+        LinkErrorKind::ExistingLinkTypeWrong
             => "Existing link entry has wrong type",
 
-        &LinkErrorKind::LinkTargetDoesNotExist
+        LinkErrorKind::LinkTargetDoesNotExist
             => "Link target does not exist in the store",
 
-        &LinkErrorKind::InternalConversionError
+        LinkErrorKind::InternalConversionError
             => "Error while converting values internally",
 
-        &LinkErrorKind::InvalidUri
+        LinkErrorKind::InvalidUri
             => "URI is not valid",
 
-        &LinkErrorKind::StoreReadError
+        LinkErrorKind::StoreReadError
             => "Store read error",
 
-        &LinkErrorKind::StoreWriteError
+        LinkErrorKind::StoreWriteError
             => "Store write error",
     }
 }

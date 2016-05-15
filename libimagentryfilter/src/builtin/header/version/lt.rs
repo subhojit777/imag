@@ -23,7 +23,7 @@ impl Filter for VersionLt {
         e.get_header()
             .read("imag.version")
             .map(|val| {
-                val.map(|v| {
+                val.map_or(false, |v| {
                     match v {
                         Value::String(s) => {
                             match Version::parse(&s[..]) {
@@ -34,7 +34,6 @@ impl Filter for VersionLt {
                         _ => false,
                     }
                 })
-                .unwrap_or(false)
             })
             .unwrap_or(false)
     }
