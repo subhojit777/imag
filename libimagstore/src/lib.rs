@@ -24,6 +24,8 @@ extern crate semver;
 extern crate crossbeam;
 extern crate walkdir;
 
+#[macro_use] extern crate libimagerror;
+
 pub mod storeid;
 pub mod error;
 pub mod hook;
