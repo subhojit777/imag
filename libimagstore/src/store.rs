@@ -23,7 +23,7 @@ use walkdir::WalkDir;
 use walkdir::Iter as WalkDirIter;
 
 use error::{ParserErrorKind, ParserError};
-use error::{StoreError, StoreErrorKind};
+use error::{StoreError as SE, StoreErrorKind as SEK};
 use storeid::{IntoStoreId, StoreId, StoreIdIterator};
 use lazyfile::LazyFile;
 
@@ -36,7 +36,7 @@ use hook::Hook;
 use self::glob_store_iter::*;
 
 /// The Result Type returned by any interaction with the store that could fail
-pub type Result<T> = RResult<T, StoreError>;
+pub type Result<T> = RResult<T, SE>;
 
 
 #[derive(Debug, PartialEq)]
@@ -125,7 +125,7 @@ impl StoreEntry {
         if !self.is_borrowed() {
             let file = self.file.get_file_mut();
             if let Err(err) = file {
-                if err.err_type() == StoreErrorKind::FileNotFound {
+                if err.err_type() == SEK::FileNotFound {
                     Ok(Entry::new(self.id.clone()))
                 } else {
                     Err(err)
@@ -138,7 +138,7 @@ impl StoreEntry {
                 entry
             }
         } else {
-            Err(StoreError::new(StoreErrorKind::EntryAlreadyBorrowed, None))
+            Err(SE::new(SEK::EntryAlreadyBorrowed, None))
         }
     }
 
@@ -149,9 +149,9 @@ impl StoreEntry {
 
             assert_eq!(self.id, entry.location);
             try!(file.set_len(0)
-                .map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e)))));
+                .map_err(|e| SE::new(SEK::FileError, Some(Box::new(e)))));
             file.write_all(entry.to_str().as_bytes())
-                .map_err(|e| StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))))
+                .map_err(|e| SE::new(SEK::FileError, Some(Box::new(e))))
         } else {
             Ok(())
         }
@@ -199,7 +199,7 @@ impl Store {
 
         debug!("Validating Store configuration");
         if !config_is_valid(&store_config) {
-            return Err(StoreError::new(StoreErrorKind::ConfigurationError, None));
+            return Err(SE::new(SEK::ConfigurationError, None));
         }
 
         debug!("Building new Store object");
@@ -208,12 +208,12 @@ impl Store {
             let c = create_dir_all(location.clone());
             if c.is_err() {
                 debug!("Failed");
-                return Err(StoreError::new(StoreErrorKind::StorePathCreate,
+                return Err(SE::new(SEK::StorePathCreate,
                                            Some(Box::new(c.unwrap_err()))));
             }
         } else if location.is_file() {
             debug!("Store path exists as file");
-            return Err(StoreError::new(StoreErrorKind::StorePathExists, None));
+            return Err(SE::new(SEK::StorePathExists, None));
         }
 
         let pre_create_aspects = get_pre_create_aspect_names(&store_config)
@@ -302,13 +302,13 @@ impl Store {
             return Err(e);
         }
 
-        let hsmap = self.entries.write();
-        if hsmap.is_err() {
-            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
-        }
-        let mut hsmap = hsmap.unwrap();
+        let mut hsmap = match self.entries.write() {
+            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Ok(s) => s,
+        };
+
         if hsmap.contains_key(&id) {
-            return Err(StoreError::new(StoreErrorKind::EntryAlreadyExists, None))
+            return Err(SE::new(SEK::EntryAlreadyExists, None))
         }
         hsmap.insert(id.clone(), {
             let mut se = StoreEntry::new(id.clone());
@@ -318,7 +318,7 @@ impl Store {
 
         let mut fle = FileLockEntry::new(self, Entry::new(id.clone()), id);
         self.execute_hooks_for_mut_file(self.post_create_aspects.clone(), &mut fle)
-            .map_err(|e| StoreError::new(StoreErrorKind::PostHookExecuteError, Some(Box::new(e))))
+            .map_err(|e| SE::new(SEK::PostHookExecuteError, Some(Box::new(e))))
             .map(|_| fle)
     }
 
@@ -332,7 +332,7 @@ impl Store {
 
         self.entries
             .write()
-            .map_err(|_| StoreError::new(StoreErrorKind::LockPoisoned, None))
+            .map_err(|_| SE::new(SEK::LockPoisoned, None))
             .and_then(|mut es| {
                 let mut se = es.entry(id.clone()).or_insert_with(|| StoreEntry::new(id.clone()));
                 let entry = se.get_entry();
@@ -341,12 +341,9 @@ impl Store {
             })
             .map(|e| FileLockEntry::new(self, e, id))
             .and_then(|mut fle| {
-                if let Err(e) = self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle) {
-                    Err(StoreError::new(StoreErrorKind::HookExecutionError, Some(Box::new(e))))
-                } else {
-                    Ok(fle)
-                }
-
+                self.execute_hooks_for_mut_file(self.pre_retrieve_aspects.clone(), &mut fle)
+                    .map_err(|e| SE::new(SEK::HookExecutionError, Some(Box::new(e))))
+                    .and(Ok(fle))
             })
    }
 
@@ -355,15 +352,14 @@ impl Store {
         let mut path = self.path().clone();
         path.push(mod_name);
 
-        if let Some(path) = path.to_str() {
-            let path = [ path, "/*" ].join("");
-            debug!("glob()ing with '{}'", path);
-            glob(&path[..])
-                .map(|paths| StoreIdIterator::new(Box::new(GlobStoreIdIterator::new(paths))))
-                .map_err(|e| StoreError::new(StoreErrorKind::GlobError, Some(Box::new(e))))
-        } else {
-            Err(StoreError::new(StoreErrorKind::EncodingError, None))
-        }
+        path.to_str()
+            .ok_or(SE::new(SEK::EncodingError, None))
+            .and_then(|path| {
+                let path = [ path, "/*" ].join("");
+                debug!("glob()ing with '{}'", path);
+                glob(&path[..]).map_err(|e| SE::new(SEK::GlobError, Some(Box::new(e))))
+            })
+            .map(|paths| StoreIdIterator::new(Box::new(GlobStoreIdIterator::new(paths))))
     }
 
     // Walk the store tree for the module
@@ -390,13 +386,12 @@ impl Store {
     /// This method assumes that entry is dropped _right after_ the call, hence
     /// it is not public.
     fn _update<'a>(&'a self, entry: &FileLockEntry<'a>) -> Result<()> {
-        let hsmap = self.entries.write();
-        if hsmap.is_err() {
-            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
-        }
-        let mut hsmap = hsmap.unwrap();
-        let mut se = try!(hsmap.get_mut(&entry.key)
-              .ok_or(StoreError::new(StoreErrorKind::IdNotFound, None)));
+        let mut hsmap = match self.entries.write() {
+            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Ok(e) => e,
+        };
+
+        let mut se = try!(hsmap.get_mut(&entry.key).ok_or(SE::new(SEK::IdNotFound, None)));
 
         assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 
@@ -414,16 +409,14 @@ impl Store {
     /// the one on disk
     pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
         let id = self.storify_id(id.into_storeid());
-        let entries_lock = self.entries.write();
-        if entries_lock.is_err() {
-            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
-        }
-
-        let entries = entries_lock.unwrap();
+        let entries = match self.entries.write() {
+            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Ok(e) => e,
+        };
 
         // if the entry is currently modified by the user, we cannot drop it
         if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
-            return Err(StoreError::new(StoreErrorKind::IdLocked, None));
+            return Err(SE::new(SEK::IdLocked, None));
         }
 
         StoreEntry::new(id).get_entry()
@@ -436,22 +429,20 @@ impl Store {
             return Err(e);
         }
 
-        let entries_lock = self.entries.write();
-        if entries_lock.is_err() {
-            return Err(StoreError::new(StoreErrorKind::LockPoisoned, None))
-        }
-
-        let mut entries = entries_lock.unwrap();
+        let mut entries = match self.entries.write() {
+            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Ok(e) => e,
+        };
 
         // if the entry is currently modified by the user, we cannot drop it
         if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
-            return Err(StoreError::new(StoreErrorKind::IdLocked, None));
+            return Err(SE::new(SEK::IdLocked, None));
         }
 
         // remove the entry first, then the file
         entries.remove(&id);
         if let Err(e) = remove_file(&id) {
-            return Err(StoreError::new(StoreErrorKind::FileError, Some(Box::new(e))));
+            return Err(SE::new(SEK::FileError, Some(Box::new(e))));
         }
 
         self.execute_hooks_for_id(self.post_delete_aspects.clone(), &id)
@@ -483,16 +474,11 @@ impl Store {
                 HookPosition::PostDelete   => self.post_delete_aspects.clone(),
             };
 
-        let guard = guard
-            .deref()
-            .lock()
-            .map_err(|_| StoreError::new(StoreErrorKind::LockError, None));
+        let mut guard = match guard.deref().lock().map_err(|_| SE::new(SEK::LockError, None)) {
+            Err(e) => return Err(SE::new(SEK::HookRegisterError, Some(Box::new(e)))),
+            Ok(g) => g,
+        };
 
-        if guard.is_err() {
-            return Err(StoreError::new(StoreErrorKind::HookRegisterError,
-                                       Some(Box::new(guard.err().unwrap()))));
-        }
-        let mut guard  = guard.unwrap();
         for mut aspect in guard.deref_mut() {
             if aspect.name().clone() == aspect_name.clone() {
                 self.get_config_for_hook(h.name()).map(|config| h.set_config(config));
@@ -501,8 +487,8 @@ impl Store {
             }
         }
 
-        let annfe = StoreError::new(StoreErrorKind::AspectNameNotFoundError, None);
-        Err(StoreError::new(StoreErrorKind::HookRegisterError, Some(Box::new(annfe))))
+        let annfe = SE::new(SEK::AspectNameNotFoundError, None);
+        Err(SE::new(SEK::HookRegisterError, Some(Box::new(annfe))))
     }
 
     fn get_config_for_hook(&self, name: &str) -> Option<&Value> {
@@ -526,15 +512,13 @@ impl Store {
                             id: &StoreId)
         -> Result<()>
     {
-        let guard = aspects.deref().lock();
-        if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
-
-        guard.unwrap().deref().iter()
-            .fold(Ok(()), |acc, aspect| {
-                debug!("[Aspect][exec]: {:?}", aspect);
-                acc.and_then(|_| (aspect as &StoreIdAccessor).access(id))
-            })
-            .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
+        match aspects.lock() {
+            Err(_) => return Err(SE::new(SEK::PreHookExecuteError, None)),
+            Ok(g) => g
+        }.iter().fold(Ok(()), |acc, aspect| {
+            debug!("[Aspect][exec]: {:?}", aspect);
+            acc.and_then(|_| (aspect as &StoreIdAccessor).access(id))
+        }).map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
     }
 
     fn execute_hooks_for_mut_file(&self,
@@ -542,15 +526,13 @@ impl Store {
                                   fle: &mut FileLockEntry)
         -> Result<()>
     {
-        let guard = aspects.deref().lock();
-        if guard.is_err() { return Err(StoreError::new(StoreErrorKind::PreHookExecuteError, None)) }
-
-        guard.unwrap().deref().iter()
-            .fold(Ok(()), |acc, aspect| {
-                debug!("[Aspect][exec]: {:?}", aspect);
-                acc.and_then(|_| aspect.access_mut(fle))
-            })
-            .map_err(|e| StoreError::new(StoreErrorKind::PreHookExecuteError, Some(Box::new(e))))
+        match aspects.lock() {
+            Err(_) => return Err(SE::new(SEK::PreHookExecuteError, None)),
+            Ok(g) => g
+        }.iter().fold(Ok(()), |acc, aspect| {
+            debug!("[Aspect][exec]: {:?}", aspect);
+            acc.and_then(|_| aspect.access_mut(fle))
+        }).map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
     }
 
 }
@@ -685,7 +667,7 @@ impl EntryHeader {
     pub fn verify(&self) -> Result<()> {
         match self.header {
             Value::Table(ref t) => verify_header(&t),
-            _ => Err(StoreError::new(StoreErrorKind::HeaderTypeFailure, None)),
+            _ => Err(SE::new(SEK::HeaderTypeFailure, None)),
         }
     }
 
@@ -719,24 +701,23 @@ impl EntryHeader {
     }
 
     pub fn insert_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<bool> {
-        let tokens = EntryHeader::tokenize(spec, sep);
-        if tokens.is_err() { // return parser error if any
-            return tokens.map(|_| false);
-        }
-        let tokens = tokens.unwrap();
+        let tokens = match EntryHeader::tokenize(spec, sep) {
+            Err(e) => return Err(e),
+            Ok(t) => t
+        };
 
-        let destination = tokens.iter().last();
-        if destination.is_none() {
-            return Err(StoreError::new(StoreErrorKind::HeaderPathSyntaxError, None));
-        }
-        let destination = destination.unwrap();
+        let destination = match tokens.iter().last() {
+            None => return Err(SE::new(SEK::HeaderPathSyntaxError, None)),
+            Some(d) => d,
+        };
 
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        let value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
-        if value.is_err() {
-            return value.map(|_| false);
-        }
-        let mut value = value.unwrap();
+
+        // walk N-1 tokens
+        let value = match EntryHeader::walk_header(&mut self.header, path_to_dest) {
+            Err(e) => return Err(e),
+            Ok(v) => v
+        };
 
         // There is already an value at this place
         if EntryHeader::extract(value, destination).is_ok() {
@@ -756,7 +737,7 @@ impl EntryHeader {
                     /*
                      * Fail if there is no map here
                      */
-                    _ => return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+                    _ => return Err(SE::new(SEK::HeaderPathTypeFailure, None)),
                 }
             },
 
@@ -779,7 +760,7 @@ impl EntryHeader {
                     /*
                      * Fail if there is no array here
                      */
-                    _ => return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+                    _ => return Err(SE::new(SEK::HeaderPathTypeFailure, None)),
                 }
             },
         }
@@ -815,26 +796,24 @@ impl EntryHeader {
     }
 
     pub fn set_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<Option<Value>> {
-        let tokens = EntryHeader::tokenize(spec, sep);
-        if tokens.is_err() { // return parser error if any
-            return Err(tokens.unwrap_err());
-        }
-        let tokens = tokens.unwrap();
+        let tokens = match EntryHeader::tokenize(spec, sep) {
+            Err(e) => return Err(e),
+            Ok(t) => t,
+        };
         debug!("tokens = {:?}", tokens);
 
-        let destination = tokens.iter().last();
-        if destination.is_none() {
-            return Err(StoreError::new(StoreErrorKind::HeaderPathSyntaxError, None));
-        }
-        let destination = destination.unwrap();
+        let destination = match tokens.iter().last() {
+            None => return Err(SE::new(SEK::HeaderPathSyntaxError, None)),
+            Some(d) => d
+        };
         debug!("destination = {:?}", destination);
 
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        let value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
-        if value.is_err() {
-            return Err(value.unwrap_err());
-        }
-        let mut value = value.unwrap();
+        // walk N-1 tokens
+        let value = match EntryHeader::walk_header(&mut self.header, path_to_dest) {
+            Err(e) => return Err(e),
+            Ok(v) => v
+        };
         debug!("walked value = {:?}", value);
 
         match *destination {
@@ -853,7 +832,7 @@ impl EntryHeader {
                      */
                     _ => {
                         debug!("Matched Key->NON-Table");
-                        return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None));
+                        return Err(SE::new(SEK::HeaderPathTypeFailure, None));
                     }
                 }
             },
@@ -884,7 +863,7 @@ impl EntryHeader {
                      */
                     _ => {
                         debug!("Matched Index->NON-Array");
-                        return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None));
+                        return Err(SE::new(SEK::HeaderPathTypeFailure, None));
                     },
                 }
             },
@@ -922,45 +901,41 @@ impl EntryHeader {
     }
 
     pub fn read_with_sep(&self, spec: &str, splitchr: char) -> Result<Option<Value>> {
-        let tokens = EntryHeader::tokenize(spec, splitchr);
-        if tokens.is_err() { // return parser error if any
-            return Err(tokens.unwrap_err());
-        }
-        let tokens = tokens.unwrap();
+        let tokens = match EntryHeader::tokenize(spec, splitchr) {
+            Err(e) => return Err(e),
+            Ok(t) => t,
+        };
 
         let mut header_clone = self.header.clone(); // we clone as READing is simpler this way
-        let value = EntryHeader::walk_header(&mut header_clone, tokens); // walk N-1 tokens
-        if value.is_err() {
-            let e = value.unwrap_err();
-            return match e.err_type() {
+        // walk N-1 tokens
+        match EntryHeader::walk_header(&mut header_clone, tokens) {
+            Err(e) => match e.err_type() {
                 // We cannot find the header key, as there is no path to it
-                StoreErrorKind::HeaderKeyNotFound => Ok(None),
+                SEK::HeaderKeyNotFound => Ok(None),
                 _ => Err(e),
-            };
+            },
+            Ok(v) => Ok(Some(v.clone())),
         }
-        Ok(Some(value.unwrap().clone()))
     }
 
     pub fn delete(&mut self, spec: &str) -> Result<Option<Value>> {
-        let tokens = EntryHeader::tokenize(spec, '.');
-        if tokens.is_err() { // return parser error if any
-            return Err(tokens.unwrap_err());
-        }
-        let tokens = tokens.unwrap();
+        let tokens = match EntryHeader::tokenize(spec, '.') {
+            Err(e) => return Err(e),
+            Ok(t) => t
+        };
 
-        let destination = tokens.iter().last();
-        if destination.is_none() {
-            return Err(StoreError::new(StoreErrorKind::HeaderPathSyntaxError, None));
-        }
-        let destination = destination.unwrap();
+        let destination = match tokens.iter().last() {
+            None => return Err(SE::new(SEK::HeaderPathSyntaxError, None)),
+            Some(d) => d
+        };
         debug!("destination = {:?}", destination);
 
         let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        let value = EntryHeader::walk_header(&mut self.header, path_to_dest); // walk N-1 tokens
-        if value.is_err() {
-            return Err(value.unwrap_err());
-        }
-        let mut value = value.unwrap();
+        // walk N-1 tokens
+        let mut value = match EntryHeader::walk_header(&mut self.header, path_to_dest) {
+            Err(e) => return Err(e),
+            Ok(v) => v
+        };
         debug!("walked value = {:?}", value);
 
         match *destination {
@@ -972,7 +947,7 @@ impl EntryHeader {
                     },
                     _ => {
                         debug!("Matched Key->NON-Table");
-                        return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None));
+                        return Err(SE::new(SEK::HeaderPathTypeFailure, None));
                     }
                 }
             },
@@ -991,7 +966,7 @@ impl EntryHeader {
                     },
                     _ => {
                         debug!("Matched Index->NON-Array");
-                        return Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None));
+                        return Err(SE::new(SEK::HeaderPathTypeFailure, None));
                     },
                 }
             },
@@ -1033,9 +1008,9 @@ impl EntryHeader {
         match *v {
             Value::Table(ref mut t) => {
                 t.get_mut(&s[..])
-                    .ok_or(StoreError::new(StoreErrorKind::HeaderKeyNotFound, None))
+                    .ok_or(SE::new(SEK::HeaderKeyNotFound, None))
             },
-            _ => Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+            _ => Err(SE::new(SEK::HeaderPathTypeFailure, None)),
         }
     }
 
@@ -1043,12 +1018,12 @@ impl EntryHeader {
         match *v {
             Value::Array(ref mut a) => {
                 if a.len() < i {
-                    Err(StoreError::new(StoreErrorKind::HeaderKeyNotFound, None))
+                    Err(SE::new(SEK::HeaderKeyNotFound, None))
                 } else {
                     Ok(&mut a[i])
                 }
             },
-            _ => Err(StoreError::new(StoreErrorKind::HeaderPathTypeFailure, None)),
+            _ => Err(SE::new(SEK::HeaderPathTypeFailure, None)),
         }
     }
 
@@ -1096,23 +1071,21 @@ fn build_default_header() -> Value { // BTreeMap<String, Value>
 }
 fn verify_header(t: &Table) -> Result<()> {
     if !has_main_section(t) {
-        Err(StoreError::from(ParserError::new(ParserErrorKind::MissingMainSection, None)))
+        Err(SE::from(ParserError::new(ParserErrorKind::MissingMainSection, None)))
     } else if !has_imag_version_in_main_section(t) {
-        Err(StoreError::from(ParserError::new(ParserErrorKind::MissingVersionInfo, None)))
+        Err(SE::from(ParserError::new(ParserErrorKind::MissingVersionInfo, None)))
     } else if !has_only_tables(t) {
         debug!("Could not verify that it only has tables in its base table");
-        Err(StoreError::from(ParserError::new(ParserErrorKind::NonTableInBaseTable, None)))
+        Err(SE::from(ParserError::new(ParserErrorKind::NonTableInBaseTable, None)))
     } else {
         Ok(())
     }
 }
 
 fn verify_header_consistency(t: Table) -> EntryResult<Table> {
-    if let Err(e) = verify_header(&t) {
-        Err(ParserError::new(ParserErrorKind::HeaderInconsistency, Some(Box::new(e))))
-    } else {
-        Ok(t)
-    }
+    verify_header(&t)
+        .map_err(|e| ParserError::new(ParserErrorKind::HeaderInconsistency, Some(Box::new(e))))
+        .map(|_| t)
 }
 
 fn has_only_tables(t: &Table) -> bool {
@@ -1137,10 +1110,8 @@ fn has_imag_version_in_main_section(t: &Table) -> bool {
             sec.get("version")
                 .and_then(|v| {
                     match *v {
-                        Value::String(ref s) => {
-                            Some(Version::parse(&s[..]).is_ok())
-                        },
-                        _ => Some(false),
+                        Value::String(ref s) => Some(Version::parse(&s[..]).is_ok()),
+                        _                    => Some(false),
                     }
                 })
             .unwrap_or(false)
@@ -1192,25 +1163,22 @@ impl Entry {
             ").unwrap();
         }
 
-        let matches = RE.captures(s);
+        let matches = match RE.captures(s) {
+            None    => return Err(SE::new(SEK::MalformedEntry, None)),
+            Some(s) => s,
+        };
 
-        if matches.is_none() {
-            return Err(StoreError::new(StoreErrorKind::MalformedEntry, None));
-        }
+        let header = match matches.name("header") {
+            None    => return Err(SE::new(SEK::MalformedEntry, None)),
+            Some(s) => s
+        };
 
-        let matches = matches.unwrap();
-
-        let header = matches.name("header");
         let content = matches.name("content").unwrap_or("");
-
-        if header.is_none() {
-            return Err(StoreError::new(StoreErrorKind::MalformedEntry, None));
-        }
 
         debug!("Header and content found. Yay! Building Entry object now");
         Ok(Entry {
             location: loc.into_storeid(),
-            header: try!(EntryHeader::parse(header.unwrap())),
+            header: try!(EntryHeader::parse(header)),
             content: content.into(),
         })
     }
