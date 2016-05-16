@@ -20,6 +20,6 @@ path = "../libimagrt"
 [dependencies.libimagentrylink]
 path = "../libimagentrylink"
 
-[dependencies.libimagutil]
-path = "../libimagutil"
+[dependencies.libimagerror]
+path = "../libimagerror"
 
