@@ -42,8 +42,8 @@ impl<'a> Runtime<'a> {
         use libimagstore::hook::position::HookPosition;
         use libimagstore::error::StoreErrorKind;
         use libimagstorestdhook::debug::DebugHook;
-        use libimagutil::trace::trace_error;
-        use libimagutil::trace::trace_error_dbg;
+        use libimagerror::trace::trace_error;
+        use libimagerror::trace::trace_error_dbg;
 
         use configuration::error::ConfigErrorKind;
 
