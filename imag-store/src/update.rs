@@ -3,7 +3,7 @@ use std::process::exit;
 
 use libimagrt::runtime::Runtime;
 use libimagstore::storeid::build_entry_path;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 
 use util::build_toml_header;
 

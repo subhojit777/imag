@@ -14,7 +14,7 @@ use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
 use libimagstore::storeid::build_entry_path;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 
 use error::StoreError;
 use error::StoreErrorKind;

@@ -6,7 +6,7 @@ use toml::Value;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::build_entry_path;
 use libimagrt::runtime::Runtime;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 
 pub fn retrieve(rt: &Runtime) {
     rt.cli()
