@@ -9,7 +9,7 @@ use libimagstore::hook::accessor::NonMutableHookDataAccessor;
 use libimagstore::hook::result::HookResult;
 use libimagstore::store::FileLockEntry;
 use libimagentrylink::internal::InternalLinker;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 
 #[derive(Debug, Clone)]
 pub struct LinkedEntriesExistHook {
