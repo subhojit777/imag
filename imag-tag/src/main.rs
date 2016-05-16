@@ -42,11 +42,10 @@ fn main() {
         .subcommand_name()
         .map_or_else(
             || {
-                let add = rt.cli().value_of("add");
-                let rem = rt.cli().value_of("remove");
-                let set = rt.cli().value_of("set");
+                let add = rt.cli().values_of("add").map(|o| o.map(String::from));
+                let rem = rt.cli().values_of("remove").map(|o| o.map(String::from));
 
-                alter(&rt, id, add, rem, set);
+                alter(&rt, id, add, rem);
             },
             |name| {
                 debug!("Call: {}", name);
@@ -60,7 +59,7 @@ fn main() {
             });
 }
 
-fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Option<&str>) {
+fn alter<SI: Iterator<Item = String>>(rt: &Runtime, id: &str, add: Option<SI>, rem: Option<SI>) {
     let path = {
         match build_entry_path(rt.store(), id) {
             Err(e) => {
@@ -77,30 +76,22 @@ fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Opti
         .retrieve(path)
         .map(|mut e| {
             add.map(|tags| {
-                for tag in tags.split(',') {
-                    info!("Adding tag '{}'", tag);
-                    if let Err(e) = e.add_tag(String::from(tag)) {
+                for tag in tags {
+                    debug!("Adding tag '{:?}'", tag);
+                    if let Err(e) = e.add_tag(tag) {
                         trace_error(&e);
                     }
                 }
-            });
+            }); // it is okay to ignore a None here
 
             rem.map(|tags| {
-                for tag in tags.split(',') {
-                    info!("Removing tag '{}'", tag);
-                    if let Err(e) = e.remove_tag(String::from(tag)) {
+                for tag in tags {
+                    debug!("Removing tag '{:?}'", tag);
+                    if let Err(e) = e.remove_tag(tag) {
                         trace_error(&e);
                     }
                 }
-            });
-
-            set.map(|tags| {
-                info!("Setting tags '{}'", tags);
-                let tags : Vec<_> = tags.split(',').map(String::from).collect();
-                if let Err(e) = e.set_tags(&tags) {
-                    trace_error(&e);
-                }
-            });
+            }); // it is okay to ignore a None here
         })
         .map_err(|e| {
             info!("No entry.");
