@@ -2,7 +2,7 @@ use std::str::FromStr;
 use std::process::exit;
 
 use libimagrt::runtime::Runtime;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 use libimagcounter::counter::Counter;
 
 pub fn create(rt: &Runtime) {
