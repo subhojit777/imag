@@ -70,25 +70,21 @@ impl<'a> Runtime<'a> {
                                     spath
                                 }, PathBuf::from);
 
-        let cfg = Configuration::new(&rtp);
-        let cfg = if cfg.is_err() {
-            let e = cfg.unwrap_err();
-            if e.err_type() != ConfigErrorKind::NoConfigFileFound {
+        let cfg = match Configuration::new(&rtp) {
+            Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
                 let cause : Option<Box<Error>> = Some(Box::new(e));
                 return Err(RuntimeError::new(RuntimeErrorKind::Instantiate, cause));
             } else {
                 trace_error(&e);
                 None
-            }
-        } else {
-            Some(cfg.unwrap())
+            },
+
+            Ok(cfg) => Some(cfg),
         };
 
-        let store_config = {
-            match cfg {
-                Some(ref c) => c.store_config().cloned(),
-                None => None,
-            }
+        let store_config = match cfg {
+            Some(ref c) => c.store_config().cloned(),
+            None        => None,
         };
 
         if is_debugging {
