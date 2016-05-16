@@ -22,12 +22,13 @@ macro_rules! generate_error_module {
 }
 
 #[macro_export]
-macro_rules! generate_error_types {
-    (
+macro_rules! generate_custom_error_types {
+    {
         $name: ident,
         $kindname: ident,
+        $customMemberTypeName: ident,
         $($kind:ident => $string:expr),*
-    ) => {
+    } => {
         #[derive(Clone, Copy, Debug, PartialEq)]
         pub enum $kindname {
             $( $kind ),*
@@ -62,6 +63,7 @@ macro_rules! generate_error_types {
         pub struct $name {
             err_type: $kindname,
             cause: Option<Box<Error>>,
+            custom_data: Option<$customMemberTypeName>,
         }
 
         impl $name {
@@ -70,6 +72,7 @@ macro_rules! generate_error_types {
                 $name {
                     err_type: errtype,
                     cause: cause,
+                    custom_data: None,
                 }
             }
 
@@ -104,6 +107,18 @@ macro_rules! generate_error_types {
 
     }
 }
+
+#[macro_export]
+macro_rules! generate_error_types {
+    (
+        $name: ident,
+        $kindname: ident,
+        $($kind:ident => $string:expr),*
+    ) => {
+        generate_custom_error_types!($name, $kindname, members = {}, functions = {}, $($kind),*);
+    }
+}
+
 
 #[cfg(test)]
 mod test {
