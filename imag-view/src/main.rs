@@ -22,7 +22,6 @@ extern crate toml;
 
 extern crate libimagrt;
 extern crate libimagstore;
-extern crate libimagutil;
 #[macro_use] extern crate libimagerror;
 
 use std::result::Result as RResult;
@@ -30,7 +29,7 @@ use std::process::exit;
 
 use libimagrt::runtime::Runtime;
 use libimagstore::store::FileLockEntry;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 
 mod error;
 mod ui;
