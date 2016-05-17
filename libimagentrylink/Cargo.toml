@@ -14,3 +14,6 @@ rust-crypto = "0.2.35"
 [dependencies.libimagstore]
 path = "../libimagstore"
 
+[dependencies.libimagerror]
+path = "../libimagerror"
+

@@ -8,6 +8,7 @@ extern crate regex;
 extern crate libimagentryfilter;
 extern crate libimagstore;
 #[macro_use] extern crate libimagutil;
+#[macro_use] extern crate libimagerror;
 
 pub mod ask;
 pub mod error;
