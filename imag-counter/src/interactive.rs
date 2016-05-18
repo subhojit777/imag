@@ -10,7 +10,7 @@ use libimagcounter::counter::Counter;
 use libimagcounter::error::CounterError;
 use libimagrt::runtime::Runtime;
 use libimagutil::key_value_split::IntoKeyValue;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 
 type Result<T> = RResult<T, CounterError>;
 

@@ -23,7 +23,7 @@ extern crate url;
 extern crate libimagentrylink;
 extern crate libimagrt;
 extern crate libimagstore;
-extern crate libimagutil;
+extern crate libimagerror;
 
 use std::process::exit;
 use std::ops::Deref;
@@ -33,7 +33,7 @@ use libimagstore::error::StoreError;
 use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 use libimagentrylink::external::ExternalLinker;
 use clap::ArgMatches;
 use url::Url;
@@ -74,7 +74,7 @@ fn main() {
 
 fn handle_internal_linking(rt: &Runtime) {
     use libimagentrylink::internal::InternalLinker;
-    use libimagutil::trace::trace_error;
+    use libimagerror::trace::trace_error;
 
     debug!("Handle internal linking call");
     let cmd = rt.cli().subcommand_matches("internal").unwrap();
@@ -192,7 +192,7 @@ fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<FileLockEntry<'a
 }
 
 fn handle_external_linking(rt: &Runtime) {
-    use libimagutil::trace::trace_error;
+    use libimagerror::trace::trace_error;
 
     let scmd       = rt.cli().subcommand_matches("external").unwrap();
     let entry_name = scmd.value_of("id").unwrap(); // enforced by clap

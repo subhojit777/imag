@@ -6,14 +6,14 @@ extern crate semver;
 extern crate libimagnotes;
 extern crate libimagrt;
 extern crate libimagentrytag;
-extern crate libimagutil;
+extern crate libimagerror;
 
 use std::process::exit;
 
 use libimagrt::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagnotes::note::Note;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 
 mod ui;
 use ui::build_ui;

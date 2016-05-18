@@ -1,5 +1,5 @@
 use libimagrt::runtime::Runtime;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 use libimagcounter::counter::Counter;
 
 pub fn list(rt: &Runtime) {

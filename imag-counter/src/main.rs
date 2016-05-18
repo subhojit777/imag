@@ -19,6 +19,7 @@ extern crate clap;
 
 extern crate libimagcounter;
 extern crate libimagrt;
+extern crate libimagerror;
 extern crate libimagutil;
 
 use std::process::exit;
@@ -26,7 +27,7 @@ use std::str::FromStr;
 
 use libimagrt::runtime::Runtime;
 use libimagcounter::counter::Counter;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 use libimagutil::key_value_split::IntoKeyValue;
 
 mod create;

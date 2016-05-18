@@ -18,9 +18,6 @@ path = "../libimagstore"
 [dependencies.libimagrt]
 path = "../libimagrt"
 
-[dependencies.libimagutil]
-path = "../libimagutil"
-
 [dependencies.libimagerror]
 path = "../libimagerror"
 

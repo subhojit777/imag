@@ -7,19 +7,18 @@ extern crate toml;
 extern crate libimagstore;
 extern crate libimagrt;
 extern crate libimagentrytag;
-extern crate libimagutil;
+extern crate libimagerror;
 
 use std::process::exit;
 
 use libimagrt::runtime::Runtime;
 use libimagentrytag::tagable::Tagable;
 use libimagstore::storeid::build_entry_path;
+use libimagerror::trace::trace_error;
 
 mod ui;
 
 use ui::build_ui;
-
-use libimagutil::trace::trace_error;
 
 fn main() {
     let name = "imag-store";

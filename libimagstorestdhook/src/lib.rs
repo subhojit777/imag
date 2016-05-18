@@ -20,7 +20,7 @@ extern crate fs2;
 
 extern crate libimagstore;
 extern crate libimagentrylink;
-extern crate libimagutil;
+extern crate libimagerror;
 
 pub mod debug;
 pub mod flock;
