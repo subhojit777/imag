@@ -24,8 +24,7 @@ extern crate libimagstore;
 extern crate libimagutil;
 #[macro_use] extern crate libimagerror;
 
-use libimagrt::runtime::Runtime;
-use std::process::exit;
+use libimagrt::setup::generate_runtime_setup;
 
 mod error;
 mod ui;
@@ -42,20 +41,10 @@ use update::update;
 use delete::delete;
 
 fn main() {
-    let name = "imag-store";
-    let version = &version!()[..];
-    let about = "Direct interface to the store. Use with great care!";
-    let ui = build_ui(Runtime::get_default_cli_builder(name, version, about));
-    let rt = {
-        let rt = Runtime::new(ui);
-        if rt.is_ok() {
-            rt.unwrap()
-        } else {
-            println!("Could not set up Runtime");
-            println!("{:?}", rt.unwrap_err());
-            exit(1);
-        }
-    };
+    let rt = generate_runtime_setup("imag-store",
+                                    &version!()[..],
+                                    "Direct interface to the store. Use with great care!",
+                                    build_ui);
 
     rt.cli()
         .subcommand_name()
