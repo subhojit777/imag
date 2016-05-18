@@ -79,7 +79,13 @@ pub fn get_add_tags(matches: &ArgMatches) -> Option<Vec<Tag>> {
 ///
 /// Returns none if the argument was not specified
 pub fn get_remove_tags(matches: &ArgMatches) -> Option<Vec<Tag>> {
-    extract_tags(matches, "remove-tags", '-')
+    if let Some(v) = extract_tags(matches, tag_subcommand_remove_arg_name(), '-') {
+        return Some(v);
+    } else {
+        matches
+            .values_of(tag_subcommand_remove_arg_name())
+            .map(|values| values.map(String::from).collect())
+    }
 }
 
 fn extract_tags(matches: &ArgMatches, specifier: &str, specchar: char) -> Option<Vec<Tag>> {
