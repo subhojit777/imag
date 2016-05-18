@@ -34,4 +34,5 @@ mod logger;
 pub mod edit;
 pub mod error;
 pub mod runtime;
+pub mod setup;
 
