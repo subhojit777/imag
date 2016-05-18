@@ -29,6 +29,7 @@ use std::process::exit;
 use std::ops::Deref;
 
 use libimagrt::runtime::Runtime;
+use libimagrt::setup::generate_runtime_setup;
 use libimagstore::error::StoreError;
 use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
@@ -43,20 +44,10 @@ mod ui;
 use ui::build_ui;
 
 fn main() {
-    let name = "imag-link";
-    let version = &version!()[..];
-    let about = "Link entries";
-    let ui = build_ui(Runtime::get_default_cli_builder(name, version, about));
-    let rt = {
-        let rt = Runtime::new(ui);
-        if rt.is_ok() {
-            rt.unwrap()
-        } else {
-            println!("Could not set up Runtime");
-            println!("{:?}", rt.unwrap_err());
-            exit(1);
-        }
-    };
+    let rt = generate_runtime_setup("imag-link",
+                                    &version!()[..],
+                                    "Link entries",
+                                    build_ui);
 
     rt.cli()
         .subcommand_name()
