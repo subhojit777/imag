@@ -4,3 +4,25 @@ version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
+clap = "2.1.1"
+log = "0.3"
+version = "2.0.1"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
+[dependencies.libimagbookmark]
+path = "../libimagbookmark"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagentrylink]
+path = "../libimagentrylink"
+
+[dependencies.libimagentrytag]
+path = "../libimagentrytag"
+
