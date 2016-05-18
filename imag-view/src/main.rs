@@ -28,6 +28,7 @@ use std::result::Result as RResult;
 use std::process::exit;
 
 use libimagrt::runtime::Runtime;
+use libimagrt::setup::generate_runtime_setup;
 use libimagstore::store::FileLockEntry;
 use libimagerror::trace::trace_error;
 
@@ -44,20 +45,10 @@ use viewer::stdout::StdoutViewer;
 type Result<T> = RResult<T, ViewError>;
 
 fn main() {
-    let name = "imag-view";
-    let version = &version!()[..];
-    let about = "View entries (readonly)";
-    let ui = build_ui(Runtime::get_default_cli_builder(name, version, about));
-    let rt = {
-        let rt = Runtime::new(ui);
-        if rt.is_ok() {
-            rt.unwrap()
-        } else {
-            println!("Could not set up Runtime");
-            println!("{:?}", rt.unwrap_err());
-            exit(1); // we can afford not-executing destructors here
-        }
-    };
+    let rt = generate_runtime_setup( "imag-view",
+                                     &version!()[..],
+                                     "View entries (readonly)",
+                                     build_ui);
 
     let entry_id = rt.cli().value_of("id").unwrap(); // enforced by clap
 
