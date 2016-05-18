@@ -66,7 +66,13 @@ pub fn tag_argument_name() -> &'static str {
 ///
 /// Returns none if the argument was not specified
 pub fn get_add_tags(matches: &ArgMatches) -> Option<Vec<Tag>> {
-    extract_tags(matches, "add-tags", '+')
+    if let Some(v) = extract_tags(matches, tag_subcommand_add_arg_name(), '+') {
+        return Some(v);
+    } else {
+        matches
+            .values_of(tag_subcommand_add_arg_name())
+            .map(|values| values.map(String::from).collect())
+    }
 }
 
 /// Get the tags which should be removed from the commandline
