@@ -9,20 +9,26 @@ pub fn tag_subcommand<'a, 'b>() -> App<'a, 'b> {
         .author("Matthias Beyer <mail@beyermatthias.de>")
         .version("0.1")
         .about("Add or remove tags")
+        .arg(tag_add_arg())
+        .arg(tag_remove_arg())
+}
 
-        .arg(Arg::with_name(tag_subcommand_add_arg_name())
-             .short("a")
-             .long("add")
-             .takes_value(true)
-             .multiple(true)
-             .help("Add tags, seperated by comma or by specifying multiple times"))
+pub fn tag_add_arg<'a, 'b>() -> Arg<'a, 'b> {
+    Arg::with_name(tag_subcommand_add_arg_name())
+        .short("a")
+        .long("add")
+        .takes_value(true)
+        .multiple(true)
+        .help("Add tags, seperated by comma or by specifying multiple times")
+}
 
-        .arg(Arg::with_name(tag_subcommand_remove_arg_name())
-             .short("r")
-             .long("remove")
-             .takes_value(true)
-             .multiple(true)
-             .help("Remove tags, seperated by comma or by specifying multiple times"))
+pub fn tag_remove_arg<'a, 'b>() -> Arg<'a, 'b> {
+    Arg::with_name(tag_subcommand_remove_arg_name())
+        .short("r")
+        .long("remove")
+        .takes_value(true)
+        .multiple(true)
+        .help("Remove tags, seperated by comma or by specifying multiple times")
 }
 
 pub fn tag_subcommand_name() -> &'static str {
