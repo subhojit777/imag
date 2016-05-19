@@ -9,20 +9,26 @@ pub fn tag_subcommand<'a, 'b>() -> App<'a, 'b> {
         .author("Matthias Beyer <mail@beyermatthias.de>")
         .version("0.1")
         .about("Add or remove tags")
+        .arg(tag_add_arg())
+        .arg(tag_remove_arg())
+}
 
-        .arg(Arg::with_name(tag_subcommand_add_arg_name())
-             .short("a")
-             .long("add")
-             .takes_value(true)
-             .multiple(true)
-             .help("Add tags, seperated by comma or by specifying multiple times"))
+pub fn tag_add_arg<'a, 'b>() -> Arg<'a, 'b> {
+    Arg::with_name(tag_subcommand_add_arg_name())
+        .short("a")
+        .long("add")
+        .takes_value(true)
+        .multiple(true)
+        .help("Add tags, seperated by comma or by specifying multiple times")
+}
 
-        .arg(Arg::with_name(tag_subcommand_remove_arg_name())
-             .short("r")
-             .long("remove")
-             .takes_value(true)
-             .multiple(true)
-             .help("Remove tags, seperated by comma or by specifying multiple times"))
+pub fn tag_remove_arg<'a, 'b>() -> Arg<'a, 'b> {
+    Arg::with_name(tag_subcommand_remove_arg_name())
+        .short("r")
+        .long("remove")
+        .takes_value(true)
+        .multiple(true)
+        .help("Remove tags, seperated by comma or by specifying multiple times")
 }
 
 pub fn tag_subcommand_name() -> &'static str {
@@ -60,14 +66,18 @@ pub fn tag_argument_name() -> &'static str {
 ///
 /// Returns none if the argument was not specified
 pub fn get_add_tags(matches: &ArgMatches) -> Option<Vec<Tag>> {
-    extract_tags(matches, "add-tags", '+')
+    let add = tag_subcommand_add_arg_name();
+    extract_tags(matches, add, '+')
+        .or_else(|| matches.values_of(add).map(|values| values.map(String::from).collect()))
 }
 
 /// Get the tags which should be removed from the commandline
 ///
 /// Returns none if the argument was not specified
 pub fn get_remove_tags(matches: &ArgMatches) -> Option<Vec<Tag>> {
-    extract_tags(matches, "remove-tags", '-')
+    let rem = tag_subcommand_remove_arg_name();
+    extract_tags(matches, rem, '+')
+        .or_else(|| matches.values_of(rem).map(|values| values.map(String::from).collect()))
 }
 
 fn extract_tags(matches: &ArgMatches, specifier: &str, specchar: char) -> Option<Vec<Tag>> {

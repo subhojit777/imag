@@ -14,8 +14,10 @@ use std::process::exit;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagentrytag::tagable::Tagable;
+use libimagentrytag::tag::Tag;
 use libimagstore::storeid::build_entry_path;
 use libimagerror::trace::trace_error;
+use libimagentrytag::ui::{get_add_tags, get_remove_tags};
 
 mod ui;
 
@@ -32,9 +34,8 @@ fn main() {
         .subcommand_name()
         .map_or_else(
             || {
-                let add = rt.cli().values_of("add").map(|o| o.map(String::from));
-                let rem = rt.cli().values_of("remove").map(|o| o.map(String::from));
-
+                let add = get_add_tags(rt.cli());
+                let rem = get_remove_tags(rt.cli());
                 alter(&rt, id, add, rem);
             },
             |name| {
@@ -49,7 +50,7 @@ fn main() {
             });
 }
 
-fn alter<SI: Iterator<Item = String>>(rt: &Runtime, id: &str, add: Option<SI>, rem: Option<SI>) {
+fn alter(rt: &Runtime, id: &str, add: Option<Vec<Tag>>, rem: Option<Vec<Tag>>) {
     let path = {
         match build_entry_path(rt.store(), id) {
             Err(e) => {
