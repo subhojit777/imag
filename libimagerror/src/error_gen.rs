@@ -1,4 +1,23 @@
 #[macro_export]
+macro_rules! generate_error_imports {
+    () => {
+        use std::error::Error;
+        use std::fmt::Error as FmtError;
+        use std::fmt::{Display, Formatter};
+    }
+}
+
+#[macro_export]
+macro_rules! generate_error_module {
+    ( $exprs:item ) => {
+        pub mod error {
+            generate_error_imports!();
+            $exprs
+        }
+    }
+}
+
+#[macro_export]
 macro_rules! generate_error_types {
     (
         $name: ident,
@@ -71,16 +90,17 @@ macro_rules! generate_error_types {
 
 #[cfg(test)]
 mod test {
-    use std::error::Error;
-    use std::fmt::Error as FmtError;
-    use std::fmt::{Display, Formatter};
 
-    generate_error_types!(TestError, TestErrorKind,
-        TestErrorKindA => "testerrorkind a",
-        TestErrorKindB => "testerrorkind B");
+    generate_error_module!(
+        generate_error_types!(TestError, TestErrorKind,
+            TestErrorKindA => "testerrorkind a",
+            TestErrorKindB => "testerrorkind B");
+    );
 
     #[test]
     fn test_a() {
+        use self::error::{TestError, TestErrorKind};
+
         let kind = TestErrorKind::TestErrorKindA;
         assert_eq!(String::from("testerrorkind a"), format!("{}", kind));
 
@@ -90,6 +110,8 @@ mod test {
 
     #[test]
     fn test_b() {
+        use self::error::{TestError, TestErrorKind};
+
         let kind = TestErrorKind::TestErrorKindB;
         assert_eq!(String::from("testerrorkind B"), format!("{}", kind));
 
@@ -100,6 +122,55 @@ mod test {
 
     #[test]
     fn test_ab() {
+        use std::error::Error;
+        use self::error::{TestError, TestErrorKind};
+
+        let kinda = TestErrorKind::TestErrorKindA;
+        let kindb = TestErrorKind::TestErrorKindB;
+        assert_eq!(String::from("testerrorkind a"), format!("{}", kinda));
+        assert_eq!(String::from("testerrorkind B"), format!("{}", kindb));
+
+        let e = TestError::new(kinda, Some(Box::new(TestError::new(kindb, None))));
+        assert_eq!(String::from("[testerrorkind a]"), format!("{}", e));
+        assert_eq!(TestErrorKind::TestErrorKindA, e.err_type());
+        assert_eq!(String::from("[testerrorkind B]"), format!("{}", e.cause().unwrap()));
+    }
+
+    pub mod anothererrormod {
+        generate_error_imports!();
+        generate_error_types!(TestError, TestErrorKind,
+            TestErrorKindA => "testerrorkind a",
+            TestErrorKindB => "testerrorkind B");
+    }
+
+    #[test]
+    fn test_other_a() {
+        use self::anothererrormod::{TestError, TestErrorKind};
+
+        let kind = TestErrorKind::TestErrorKindA;
+        assert_eq!(String::from("testerrorkind a"), format!("{}", kind));
+
+        let e = TestError::new(kind, None);
+        assert_eq!(String::from("[testerrorkind a]"), format!("{}", e));
+    }
+
+    #[test]
+    fn test_other_b() {
+        use self::anothererrormod::{TestError, TestErrorKind};
+
+        let kind = TestErrorKind::TestErrorKindB;
+        assert_eq!(String::from("testerrorkind B"), format!("{}", kind));
+
+        let e = TestError::new(kind, None);
+        assert_eq!(String::from("[testerrorkind B]"), format!("{}", e));
+
+    }
+
+    #[test]
+    fn test_other_ab() {
+        use std::error::Error;
+        use self::anothererrormod::{TestError, TestErrorKind};
+
         let kinda = TestErrorKind::TestErrorKindA;
         let kindb = TestErrorKind::TestErrorKindB;
         assert_eq!(String::from("testerrorkind a"), format!("{}", kinda));
