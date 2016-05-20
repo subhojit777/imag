@@ -1,11 +1,12 @@
-use std::error::Error;
-use std::fmt::Error as FmtError;
-use std::fmt::{Display, Formatter};
-
-generate_error_types!(ListError, ListErrorKind,
-    FormatError    => "FormatError",
-    EntryError     => "EntryError",
-    IterationError => "IterationError",
-    CLIError       => "No CLI subcommand for listing entries"
+generate_error_module!(
+    generate_error_types!(ListError, ListErrorKind,
+        FormatError    => "FormatError",
+        EntryError     => "EntryError",
+        IterationError => "IterationError",
+        CLIError       => "No CLI subcommand for listing entries"
+    );
 );
+
+pub use self::error::ListError;
+pub use self::error::ListErrorKind;
 

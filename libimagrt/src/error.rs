@@ -1,7 +1,4 @@
-use std::error::Error;
-use std::fmt::Display;
-use std::fmt::Formatter;
-use std::fmt::Error as FmtError;
+generate_error_imports!();
 use std::io::Error as IOError;
 
 generate_error_types!(RuntimeError, RuntimeErrorKind,

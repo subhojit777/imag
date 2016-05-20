@@ -1,11 +1,12 @@
-use std::error::Error;
-use std::fmt::Error as FmtError;
-use std::fmt::{Display, Formatter};
-
-generate_error_types!(CounterError, CounterErrorKind,
-    StoreReadError          => "Store read error",
-    StoreWriteError         => "Store write error",
-    HeaderTypeError         => "Header type error",
-    HeaderFieldMissingError => "Header field missing error"
+generate_error_module!(
+    generate_error_types!(CounterError, CounterErrorKind,
+        StoreReadError          => "Store read error",
+        StoreWriteError         => "Store write error",
+        HeaderTypeError         => "Header type error",
+        HeaderFieldMissingError => "Header field missing error"
+    );
 );
+
+pub use self::error::CounterError;
+pub use self::error::CounterErrorKind;
 
