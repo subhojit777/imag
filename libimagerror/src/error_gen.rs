@@ -1,9 +1,13 @@
+use into::IntoError;
+
 #[macro_export]
 macro_rules! generate_error_imports {
     () => {
         use std::error::Error;
         use std::fmt::Error as FmtError;
         use std::fmt::{Display, Formatter};
+
+        use $crate::into::IntoError;
     }
 }
 
@@ -37,6 +41,19 @@ macro_rules! generate_error_types {
                 };
                 try!(write!(fmt, "{}", s));
                 Ok(())
+            }
+
+        }
+
+        impl IntoError for $kindname {
+            type Target = $name;
+
+            fn into_error(self) -> Self::Target {
+                $name::new(self, None)
+            }
+
+            fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+                $name::new(self, Some(cause))
             }
 
         }
