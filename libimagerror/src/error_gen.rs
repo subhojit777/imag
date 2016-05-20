@@ -6,6 +6,8 @@ macro_rules! generate_error_imports {
         use std::error::Error;
         use std::fmt::Error as FmtError;
         use std::fmt::{Display, Formatter};
+
+        use $crate::into::IntoError;
     }
 }
 
