@@ -1,7 +1,10 @@
 generate_error_imports!();
 use std::convert::From;
 
-generate_error_types!(StoreError, StoreErrorKind,
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
+pub struct CustomErrorData {}
+
+generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     ConfigurationError      => "Store Configuration Error",
     FileError               => "File Error",
     IoError                 => "IO Error",
@@ -31,7 +34,7 @@ generate_error_types!(StoreError, StoreErrorKind,
     EncodingError           => "Encoding error"
 );
 
-generate_error_types!(ParserError, ParserErrorKind,
+generate_custom_error_types!(ParserError, ParserErrorKind, CustomErrorData,
     TOMLParserErrors    => "Several TOML-Parser-Errors",
     MissingMainSection  => "Missing main section",
     MissingVersionInfo  => "Missing version information in main section",
@@ -44,6 +47,7 @@ impl From<ParserError> for StoreError {
         StoreError {
             err_type: StoreErrorKind::MalformedEntry,
             cause: Some(Box::new(ps)),
+            custom_data: None,
         }
     }
 }
@@ -53,6 +57,7 @@ impl From<::std::io::Error> for StoreError {
         StoreError {
             err_type: StoreErrorKind::IoError,
             cause: Some(Box::new(ps)),
+            custom_data: None,
         }
     }
 }
