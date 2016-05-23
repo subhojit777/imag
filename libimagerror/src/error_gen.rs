@@ -82,6 +82,14 @@ macro_rules! generate_custom_error_types {
 
         }
 
+        impl Into<$name> for $kindname {
+
+            fn into(self) -> $name {
+                $name::new(self, None)
+            }
+
+        }
+
         impl Display for $name {
 
             fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {

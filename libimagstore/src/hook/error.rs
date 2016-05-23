@@ -11,14 +11,6 @@ pub trait IntoHookError {
     fn into_hookerror_with_cause(self, cause: Box<Error>) -> HookError;
 }
 
-impl Into<HookError> for HookErrorKind {
-
-    fn into(self) -> HookError {
-        HookError::new(self, None)
-    }
-
-}
-
 impl Into<HookError> for (HookErrorKind, Box<Error>) {
 
     fn into(self) -> HookError {
