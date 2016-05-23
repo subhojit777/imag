@@ -324,6 +324,9 @@ impl Store {
 
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
     /// dropped, the new Entry is written to disk
+    ///
+    /// Implicitely creates a entry in the store if there is no entry with the id `id`. For a
+    /// non-implicitely-create look at `Store::get`.
     pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = self.storify_id(id.into_storeid());
         if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
@@ -345,7 +348,83 @@ impl Store {
                     .map_err(|e| SE::new(SEK::HookExecutionError, Some(Box::new(e))))
                     .and(Ok(fle))
             })
-   }
+    }
+
+    /// Get an entry from the store if it exists.
+    ///
+    /// This executes the {pre,post}_retrieve_aspects hooks.
+    pub fn get<'a, S: IntoStoreId>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>>
+    {
+        let id = self.storify_id(id.into_storeid());
+        if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
+            return Err(e);
+        }
+
+        let mut entries = match self.entries.write() {
+            // Loosing the error here
+            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Ok(e)  => e,
+        };
+
+        let mut se = match entries.get_mut(&id) {
+            Some(e) => e,
+            None    => return Ok(None),
+        };
+
+        let entry = match se.get_entry() {
+            Ok(e) => e,
+            Err(e) => return Err(e),
+        };
+
+        se.status = StoreEntryStatus::Borrowed;
+
+        let mut fle = FileLockEntry::new(self, entry, id);
+
+        if let Err(e) = self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle) {
+            Err(SE::new(SEK::HookExecutionError, Some(Box::new(e))))
+        } else {
+            Ok(Some(fle))
+        }
+    }
+
+    /// Same as `Store::get()` but also tries older versions of the entry, returning an iterator
+    /// over all versions of the entry.
+    pub fn get_all_versions<'a, S: IntoStoreId>(&'a self, id: S) -> Result<StoreIdIterator>
+    {
+        // get PathBuf component from storeid, but not version component
+        fn path_component<S: IntoStoreId>(id: S) -> Result<PathBuf> {
+            let p : PathBuf = id.into_storeid().into();
+            match p.to_str() {
+                Some(s) => {
+                    let mut split       = s.split("~");
+                    let path_element    = match split.next() {
+                        Some(s) => s,
+                        None => return Err(SE::new(SEK::StorePathError, None)),
+                    };
+
+                    Ok(PathBuf::from(path_element))
+                },
+
+                None => Err(SE::new(SEK::StorePathError, None)),
+            }
+        }
+
+        fn build_glob_pattern(mut pb: PathBuf) -> Option<String> {
+            pb.push("~*.*.*");
+            pb.to_str().map(String::from)
+        }
+
+        match path_component(id).map(build_glob_pattern) {
+            Err(e) => Err(SE::new(SEK::StorePathError, Some(Box::new(e)))),
+            Ok(None) => Err(SE::new(SEK::StorePathError, None)),
+            Ok(Some(pattern)) => {
+                glob(&pattern[..])
+                    .map(|paths| GlobStoreIdIterator::new(paths).into())
+                    .map_err(|e| SE::new(SEK::GlobError, Some(Box::new(e))))
+            }
+        }
+
+    }
 
     /// Iterate over all StoreIds for one module name
     pub fn retrieve_for_module(&self, mod_name: &str) -> Result<StoreIdIterator> {
@@ -359,7 +438,8 @@ impl Store {
                 debug!("glob()ing with '{}'", path);
                 glob(&path[..]).map_err(|e| SE::new(SEK::GlobError, Some(Box::new(e))))
             })
-            .map(|paths| StoreIdIterator::new(Box::new(GlobStoreIdIterator::new(paths))))
+            .map(|paths| GlobStoreIdIterator::new(paths).into())
+            .map_err(|e| SE::new(SEK::GlobError, Some(Box::new(e))))
     }
 
     // Walk the store tree for the module
@@ -1220,6 +1300,7 @@ mod glob_store_iter {
     use std::fmt::Error as FmtError;
     use glob::Paths;
     use storeid::StoreId;
+    use storeid::StoreIdIterator;
 
     pub struct GlobStoreIdIterator {
         paths: Paths,
@@ -1229,6 +1310,14 @@ mod glob_store_iter {
 
         fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
             write!(fmt, "GlobStoreIdIterator")
+        }
+
+    }
+
+    impl Into<StoreIdIterator> for GlobStoreIdIterator {
+
+        fn into(self) -> StoreIdIterator {
+            StoreIdIterator::new(Box::new(self))
         }
 
     }
