@@ -37,7 +37,7 @@ impl Tagable for EntryHeader {
 
         match tags {
             Some(Value::Array(tags)) => {
-                if !tags.iter().all(|t| match *t { Value::String(_) => true, _ => false }) {
+                if !tags.iter().all(|t| is_match!(*t, Value::String(_))) {
                     return Err(TagError::new(TagErrorKind::TagTypeError, None));
                 }
                 if tags.iter().any(|t| match *t {
@@ -110,7 +110,7 @@ impl Tagable for EntryHeader {
         }
         let tags = tags.unwrap();
 
-        if !tags.iter().all(|t| match *t { Value::String(_) => true, _ => false }) {
+        if !tags.iter().all(|t| is_match!(*t, Value::String(_))) {
             return Err(TagError::new(TagErrorKind::TagTypeError, None));
         }
 
