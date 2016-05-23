@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
-fs2 = "0.2.2"
+fs2 = "0.2"
 glob = "0.2.11"
 lazy_static = "0.1.15"
 log = "0.3"
