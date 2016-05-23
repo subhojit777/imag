@@ -1,0 +1,16 @@
+[package]
+name = "libimagentrymarkdown"
+version = "0.1.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+log = "0.3"
+hoedown = "5.0.0"
+crossbeam = "0.2"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
