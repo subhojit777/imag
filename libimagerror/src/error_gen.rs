@@ -22,12 +22,13 @@ macro_rules! generate_error_module {
 }
 
 #[macro_export]
-macro_rules! generate_error_types {
-    (
+macro_rules! generate_custom_error_types {
+    {
         $name: ident,
         $kindname: ident,
+        $customMemberTypeName: ident,
         $($kind:ident => $string:expr),*
-    ) => {
+    } => {
         #[derive(Clone, Copy, Debug, PartialEq)]
         pub enum $kindname {
             $( $kind ),*
@@ -62,6 +63,7 @@ macro_rules! generate_error_types {
         pub struct $name {
             err_type: $kindname,
             cause: Option<Box<Error>>,
+            custom_data: Option<$customMemberTypeName>,
         }
 
         impl $name {
@@ -70,6 +72,7 @@ macro_rules! generate_error_types {
                 $name {
                     err_type: errtype,
                     cause: cause,
+                    custom_data: None,
                 }
             }
 
@@ -105,6 +108,22 @@ macro_rules! generate_error_types {
     }
 }
 
+#[macro_export]
+macro_rules! generate_error_types {
+    (
+        $name: ident,
+        $kindname: ident,
+        $($kind:ident => $string:expr),*
+    ) => {
+        #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
+        pub struct SomeNotExistingTypeWithATypeNameNoOneWillEverChoose {}
+        generate_custom_error_types!($name, $kindname,
+                                     SomeNotExistingTypeWithATypeNameNoOneWillEverChoose,
+                                     $($kind => $string),*);
+    }
+}
+
+
 #[cfg(test)]
 mod test {
 
@@ -113,6 +132,36 @@ mod test {
             TestErrorKindA => "testerrorkind a",
             TestErrorKindB => "testerrorkind B");
     );
+
+    #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
+    pub struct CustomData {
+        pub test: i32,
+        pub othr: i64,
+    }
+
+    generate_error_imports!();
+
+    generate_custom_error_types!(CustomTestError, CustomTestErrorKind,
+        CustomData,
+        CustomErrorKindA => "customerrorkind a",
+        CustomErrorKindB => "customerrorkind B");
+
+    impl CustomTestError {
+        pub fn test(&self) -> i32 {
+            match self.custom_data {
+                Some(t) => t.test,
+                None => 0,
+            }
+        }
+
+        pub fn bar(&self) -> i64 {
+            match self.custom_data {
+                Some(t) => t.othr,
+                None => 0,
+            }
+        }
+    }
+
 
     #[test]
     fn test_a() {
