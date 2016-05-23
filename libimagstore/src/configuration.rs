@@ -128,15 +128,13 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
 
             // The section "hooks" has maps which have a key "aspect" which has a value of type
             // String
-            check_all_inner_maps_have_key_with(t, "hooks", "aspect", |asp| {
-                match *asp { Value::String(_) => true, _ => false }
-            }) &&
+            check_all_inner_maps_have_key_with(t, "hooks", "aspect",
+                                               |asp| is_match!(asp, &Value::String(_))) &&
 
             // The section "aspects" has maps which have a key "parllel" which has a value of type
             // Boolean
-            check_all_inner_maps_have_key_with(t, "aspects", "parallel", |asp| {
-                match *asp { Value::Boolean(_) => true, _ => false, }
-            })
+            check_all_inner_maps_have_key_with(t, "aspects", "parallel",
+                                               |asp| is_match!(asp, &Value::Boolean(_)))
         }
         _ => {
             write!(stderr(), "Store config is no table").ok();

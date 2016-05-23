@@ -41,7 +41,7 @@ impl StoreIdAccessor for Aspect {
         use crossbeam;
 
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
-        if !accessors.iter().all(|a| match *a { HDA::StoreIdAccess(_)  => true, _ => false }) {
+        if !accessors.iter().all(|a| is_match!(*a, HDA::StoreIdAccess(_))) {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
@@ -76,11 +76,7 @@ impl MutableHookDataAccessor for Aspect {
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
 
         fn is_file_accessor(a: &HDA) -> bool {
-            match *a {
-                HDA::MutableAccess(_)     |
-                HDA::NonMutableAccess(_)  => true,
-                _ => false,
-            }
+            is_match!(*a, HDA::MutableAccess(_) | HDA::NonMutableAccess(_))
         }
 
         if !accessors.iter().all(|a| is_file_accessor(a)) {
@@ -108,7 +104,7 @@ impl NonMutableHookDataAccessor for Aspect {
         use crossbeam;
 
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
-        if !accessors.iter().all(|a| match *a { HDA::NonMutableAccess(_)  => true, _ => false }) {
+        if !accessors.iter().all(|a| is_match!(*a, HDA::NonMutableAccess(_))) {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
