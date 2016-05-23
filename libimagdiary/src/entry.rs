@@ -6,6 +6,9 @@ use libimagrt::edit::Edit;
 use libimagrt::edit::EditResult;
 use libimagrt::runtime::Runtime;
 
+use diaryid::DiaryId;
+use diaryid::FromStoreId;
+
 #[derive(Debug)]
 pub struct Entry<'a>(FileLockEntry<'a>);
 

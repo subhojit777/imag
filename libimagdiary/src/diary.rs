@@ -2,10 +2,12 @@ use std::cmp::Ordering;
 
 use libimagstore::store::Store;
 use libimagstore::storeid::IntoStoreId;
+use libimagerror::trace::trace_error;
 
 use chrono::offset::local::Local;
 use chrono::Datelike;
 use itertools::Itertools;
+use chrono::naive::datetime::NaiveDateTime;
 
 use entry::Entry;
 use diaryid::DiaryId;
