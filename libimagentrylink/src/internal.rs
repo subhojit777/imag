@@ -160,7 +160,7 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
         }
     };
 
-    if !links.iter().all(|l| match *l { Value::String(_) => true, _ => false }) {
+    if !links.iter().all(|l| is_match!(*l, Value::String(_))) {
         debug!("At least one of the Values which were expected in the Array of links is a non-String!");
         debug!("Generating LinkError");
         return Err(LinkError::new(LinkErrorKind::ExistingLinkTypeWrong, None));

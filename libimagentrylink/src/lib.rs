@@ -21,6 +21,7 @@ extern crate crypto;
 
 #[macro_use] extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
+#[macro_use] extern crate libimagutil;
 
 module_entry_path_mod!("links", "0.1.0");
 

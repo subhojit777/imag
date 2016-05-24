@@ -25,6 +25,7 @@ extern crate crossbeam;
 extern crate walkdir;
 
 #[macro_use] extern crate libimagerror;
+#[macro_use] extern crate libimagutil;
 
 pub mod storeid;
 pub mod error;
