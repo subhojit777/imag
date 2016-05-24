@@ -197,23 +197,30 @@ impl<'a> Runtime<'a> {
      * Initialize the internal logger
      */
     fn init_logger(is_debugging: bool, is_verbose: bool) {
-        let lvl = if is_debugging {
-            LogLevelFilter::Debug
-        } else if is_verbose {
-            LogLevelFilter::Info
-        } else {
-            LogLevelFilter::Error
-        };
+        use std::env::var as env_var;
+        use env_logger;
 
-        log::set_logger(|max_log_lvl| {
-            max_log_lvl.set(lvl);
-            debug!("Init logger with {}", lvl);
-            Box::new(ImagLogger::new(lvl.to_log_level().unwrap()))
-        })
-        .map_err(|_| {
-            panic!("Could not setup logger");
-        })
-        .ok();
+        if env_var("IMAG_LOG_ENV").is_ok() {
+            env_logger::init().unwrap();
+        } else {
+            let lvl = if is_debugging {
+                LogLevelFilter::Debug
+            } else if is_verbose {
+                LogLevelFilter::Info
+            } else {
+                LogLevelFilter::Error
+            };
+
+            log::set_logger(|max_log_lvl| {
+                max_log_lvl.set(lvl);
+                debug!("Init logger with {}", lvl);
+                Box::new(ImagLogger::new(lvl.to_log_level().unwrap()))
+            })
+            .map_err(|_| {
+                panic!("Could not setup logger");
+            })
+            .ok();
+        }
     }
 
     /**
