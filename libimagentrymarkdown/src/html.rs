@@ -1,10 +1,21 @@
+use hoedown::{Markdown, Html as MdHtml};
+use hoedown::renderer::html::Flags as HtmlFlags;
+use hoedown::renderer::Render;
+
 use result::Result;
 use error::MarkdownErrorKind;
+use libimagerror::into::IntoError;
 
 pub type HTML = String;
 
 pub fn to_html(buffer: &str) -> Result<HTML> {
-    unimplemented!()
+    let md = Markdown::new(buffer);
+    let mut html = MdHtml::new(HtmlFlags::empty(), 0);
+    html.render(&md)
+        .to_str()
+        .map(String::from)
+        .map_err(Box::new)
+        .map_err(|e| MarkdownErrorKind::MarkdownRenderError.into_error_with_cause(e))
 }
 
 pub mod iter {
