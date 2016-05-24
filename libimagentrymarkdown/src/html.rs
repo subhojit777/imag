@@ -45,4 +45,12 @@ pub mod iter {
 
     }
 
+    impl<I: Iterator<Item = Entry>> From<I> for ToHtmlIterator<I> {
+
+        fn from(obj: I) -> ToHtmlIterator<I> {
+            ToHtmlIterator::new(obj)
+        }
+
+    }
+
 }
