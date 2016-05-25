@@ -4,6 +4,7 @@ use hoedown::renderer::Render;
 use hoedown::Buffer;
 use hoedown::Markdown;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Link {
     pub title: String,
     pub link: String,
