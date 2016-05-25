@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::ops::{DerefMut, Deref};
+use std::ops::Deref;
 
 use toml::Value;
 
