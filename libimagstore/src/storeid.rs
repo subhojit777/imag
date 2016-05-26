@@ -8,7 +8,7 @@ use std::fmt::{Debug, Formatter};
 use std::fmt::Error as FmtError;
 use std::result::Result as RResult;
 
-use error::{StoreError as SE, StoreErrorKind as SEK};
+use error::StoreErrorKind as SEK;
 use store::Result;
 use store::Store;
 
@@ -88,7 +88,7 @@ pub fn build_entry_path(store: &Store, path_elem: &str) -> Result<PathBuf> {
     if path_elem.split('~').last().map_or(false, |v| Version::parse(v).is_err()) {
         debug!("Version cannot be parsed from {:?}", path_elem);
         debug!("Path does not contain version!");
-        return Err(SE::new(SEK::StorePathLacksVersion, None));
+        return Err(SEK::StorePathLacksVersion.into());
     }
     debug!("Version checking succeeded");
 
