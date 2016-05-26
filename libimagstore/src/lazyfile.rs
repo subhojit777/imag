@@ -1,6 +1,6 @@
 use libimagerror::into::IntoError;
 
-use error::{StoreError, StoreErrorKind};
+use error::{StoreError as SE, StoreErrorKind as SEK};
 use std::io::{Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::fs::{File, OpenOptions, create_dir_all};
@@ -33,7 +33,7 @@ impl LazyFile {
     /**
      * Get the mutable file behind a LazyFile object
      */
-    pub fn get_file_mut(&mut self) -> Result<&mut File, StoreError> {
+    pub fn get_file_mut(&mut self) -> Result<&mut File, SE> {
         debug!("Getting lazy file: {:?}", self);
         let file = match *self {
             LazyFile::File(ref mut f) => return {
@@ -41,13 +41,13 @@ impl LazyFile {
                 // access to the file to be in a different context
                 f.seek(SeekFrom::Start(0))
                     .map_err(Box::new)
-                    .map_err(|e| StoreErrorKind::FileNotCreated.into_error_with_cause(e))
+                    .map_err(|e| SEK::FileNotCreated.into_error_with_cause(e))
                     .map(|_| f)
             },
             LazyFile::Absent(ref p) => {
                 try!(open_file(p)
                      .map_err(Box::new)
-                     .map_err(|e| StoreErrorKind::FileNotFound.into_error_with_cause(e))
+                     .map_err(|e| SEK::FileNotFound.into_error_with_cause(e))
                 )
             }
         };
@@ -61,14 +61,14 @@ impl LazyFile {
     /**
      * Create a file out of this LazyFile object
      */
-    pub fn create_file(&mut self) -> Result<&mut File, StoreError> {
+    pub fn create_file(&mut self) -> Result<&mut File, SE> {
         debug!("Creating lazy file: {:?}", self);
         let file = match *self {
             LazyFile::File(ref mut f) => return Ok(f),
             LazyFile::Absent(ref p) => {
                 try!(create_file(p)
                      .map_err(Box::new)
-                     .map_err(|e| StoreErrorKind::FileNotFound.into_error_with_cause(e))
+                     .map_err(|e| SEK::FileNotFound.into_error_with_cause(e))
                 )
             }
         };
