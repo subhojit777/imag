@@ -171,6 +171,8 @@ pub struct Store {
      * Registered hooks
      */
 
+    store_unload_aspects  : Arc<Mutex<Vec<Aspect>>>,
+
     pre_create_aspects    : Arc<Mutex<Vec<Aspect>>>,
     post_create_aspects   : Arc<Mutex<Vec<Aspect>>>,
     pre_retrieve_aspects  : Arc<Mutex<Vec<Aspect>>>,
@@ -215,6 +217,12 @@ impl Store {
             debug!("Store path exists as file");
             return Err(SE::new(SEK::StorePathExists, None));
         }
+
+        let store_unload_aspects = get_store_unload_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
 
         let pre_create_aspects = get_pre_create_aspect_names(&store_config)
             .into_iter().map(|n| {
@@ -265,8 +273,11 @@ impl Store {
             }).collect();
 
         let store = Store {
-            location: location,
+            location: location.clone(),
             configuration: store_config,
+
+            store_unload_aspects  : Arc::new(Mutex::new(store_unload_aspects)),
+
             pre_create_aspects    : Arc::new(Mutex::new(pre_create_aspects)),
             post_create_aspects   : Arc::new(Mutex::new(post_create_aspects)),
             pre_retrieve_aspects  : Arc::new(Mutex::new(pre_retrieve_aspects)),
@@ -544,6 +555,8 @@ impl Store {
         debug!("     with aspect: {:?}", aspect_name);
 
         let guard = match position {
+                HookPosition::StoreUnload  => self.store_unload_aspects.clone(),
+
                 HookPosition::PreCreate    => self.pre_create_aspects.clone(),
                 HookPosition::PostCreate   => self.post_create_aspects.clone(),
                 HookPosition::PreRetrieve  => self.pre_retrieve_aspects.clone(),
@@ -649,6 +662,12 @@ impl Drop for Store {
      * TODO: Unlock them
      */
     fn drop(&mut self) {
+        let store_id = StoreId::from(self.location.clone());
+        if let Err(e) = self.execute_hooks_for_id(self.store_unload_aspects.clone(), &store_id) {
+            debug!("Store-load hooks execution failed. Cannot create store object.");
+            warn!("Store Unload Hook error: {:?}", e);
+        }
+
         debug!("Dropping store");
     }
 
