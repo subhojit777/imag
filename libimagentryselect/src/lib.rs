@@ -1,6 +1,6 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-    }
-}
+extern crate clap;
+extern crate log;
+extern crate interactor;
+
+extern crate libimagstore;
+
