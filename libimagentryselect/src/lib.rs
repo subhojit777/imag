@@ -4,3 +4,5 @@ extern crate interactor;
 
 extern crate libimagstore;
 
+pub mod ui;
+
