@@ -1,6 +1,9 @@
+use std::path::PathBuf;
+
 use clap::{Arg, ArgMatches};
 
 use libimagstore::storeid::StoreId;
+use libimagerror::trace::trace_error;
 
 pub fn id_argument<'a, 'b>() -> Arg<'a, 'b> {
     Arg::with_name(id_argument_name())
@@ -31,5 +34,20 @@ pub fn get_id(matches: &ArgMatches) -> Option<Vec<StoreId>> {
                  .map(StoreId::from)
                  .collect()
         })
+}
+
+pub fn get_or_select_id(matches: &ArgMatches, store_path: &PathBuf) -> Option<Vec<StoreId>> {
+    use interactor::{pick_file, default_menu_cmd};
+
+    get_id(matches).or_else(|| {
+        match pick_file(default_menu_cmd, store_path.clone()) {
+            Err(e) => {
+                trace_error(&e);
+                None
+            },
+
+            Ok(p) => Some(vec![StoreId::from(p)]),
+        }
+    })
 }
 
