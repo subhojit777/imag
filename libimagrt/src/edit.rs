@@ -7,6 +7,8 @@ use error::RuntimeErrorKind;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Entry;
 
+use libimagerror::into::IntoError;
+
 pub type EditResult<T> = Result<T, RuntimeError>;
 
 pub trait Edit {
@@ -55,18 +57,19 @@ pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> EditResult<()> {
     if let Some(mut editor) = rt.editor() {
         let exit_status = editor.arg(file_path).status();
 
-        match exit_status.map(|s| s.success()) {
+        match exit_status.map(|s| s.success()).map_err(Box::new) {
             Ok(true)  => {
                 file.sync_data()
                     .and_then(|_| file.seek(SeekFrom::Start(0)))
                     .and_then(|_| file.read_to_string(s))
                     .map(|_| ())
-                    .map_err(|e| RuntimeError::new(RuntimeErrorKind::IOError, Some(Box::new(e))))
+                    .map_err(Box::new)
+                    .map_err(|e| RuntimeErrorKind::IOError.into_error_with_cause(e))
             },
-            Ok(false) => Err(RuntimeError::new(RuntimeErrorKind::ProcessExitFailure, None)),
-            Err(e)    => Err(RuntimeError::new(RuntimeErrorKind::IOError, Some(Box::new(e)))),
+            Ok(false) => Err(RuntimeErrorKind::ProcessExitFailure.into()),
+            Err(e)    => Err(RuntimeErrorKind::IOError.into_error_with_cause(e)),
         }
     } else {
-        Err(RuntimeError::new(RuntimeErrorKind::Instantiate, None))
+        Err(RuntimeErrorKind::Instantiate.into())
     }
 }

@@ -182,6 +182,6 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
         .filter(|loaded| loaded.is_some())
         .nth(0)
         .map(|inner| Value::Table(inner.unwrap()))
-        .ok_or_else(|| ConfigError::new(ConfigErrorKind::NoConfigFileFound, None))
+        .ok_or(ConfigErrorKind::NoConfigFileFound.into())
 }
 

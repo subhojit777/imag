@@ -10,7 +10,7 @@ generate_error_types!(RuntimeError, RuntimeErrorKind,
 impl From<IOError> for RuntimeError {
 
     fn from(ioe: IOError) -> RuntimeError {
-        RuntimeError::new(RuntimeErrorKind::IOError, Some(Box::new(ioe)))
+        RuntimeErrorKind::IOError.into_error_with_cause(Box::new(ioe))
     }
 
 }
