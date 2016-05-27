@@ -4,8 +4,9 @@ use libimagstore::storeid::StoreId;
 use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
 use libimagstore::store::Result as StoreResult;
+use libimagerror::into::IntoError;
 
-use error::{LinkError, LinkErrorKind};
+use error::LinkErrorKind as LEK;
 use result::Result;
 
 use toml::Value;
@@ -50,7 +51,7 @@ impl InternalLinker for Entry {
 
         let new_links = links_into_values(new_links);
         if new_links.iter().any(|o| o.is_none()) {
-            return Err(LinkError::new(LinkErrorKind::InternalConversionError, None));
+            return Err(LEK::InternalConversionError.into());
         }
         let new_links = new_links.into_iter().map(|o| o.unwrap()).collect();
         process_rw_result(self.get_header_mut().set("imag.links", Value::Array(new_links)))
@@ -109,7 +110,7 @@ fn rewrite_links(header: &mut EntryHeader, links: Vec<StoreId>) -> Result<()> {
 
     if links.iter().any(|o| o.is_none()) {
         // if any type convert failed we fail as well
-        Err(LinkError::new(LinkErrorKind::InternalConversionError, None))
+        Err(LEK::InternalConversionError.into())
     } else {
         // I know it is ugly
         let links = links.into_iter().map(|opt| opt.unwrap()).collect();
@@ -126,7 +127,7 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
             links.push(from);
             let links = links_into_values(links);
             if links.iter().any(|o| o.is_none()) {
-                Err(LinkError::new(LinkErrorKind::InternalConversionError, None))
+                Err(LEK::InternalConversionError.into())
             } else {
                 let links = links.into_iter().map(|opt| opt.unwrap()).collect();
                 process_rw_result(target.get_header_mut().set("imag.links", Value::Array(links)))
@@ -138,9 +139,7 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
 fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
     if links.is_err() {
         debug!("RW action on store failed. Generating LinkError");
-        let lerr  = LinkError::new(LinkErrorKind::EntryHeaderReadError,
-                                   Some(Box::new(links.unwrap_err())));
-        return Err(lerr);
+        return Err(LEK::EntryHeaderReadError.into_error_with_cause(Box::new(links.unwrap_err())))
     }
     let links = links.unwrap();
 
@@ -155,7 +154,7 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
             Value::Array(a) => a,
             _ => {
                 debug!("We expected an Array for the links, but there was a non-Array!");
-                return Err(LinkError::new(LinkErrorKind::ExistingLinkTypeWrong, None));
+                return Err(LEK::ExistingLinkTypeWrong.into());
             },
         }
     };
@@ -163,7 +162,7 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
     if !links.iter().all(|l| is_match!(*l, Value::String(_))) {
         debug!("At least one of the Values which were expected in the Array of links is a non-String!");
         debug!("Generating LinkError");
-        return Err(LinkError::new(LinkErrorKind::ExistingLinkTypeWrong, None));
+        return Err(LEK::ExistingLinkTypeWrong.into());
     }
 
     let links : Vec<Link> = links.into_iter()
