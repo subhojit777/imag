@@ -4,76 +4,13 @@ use std::ops::Deref;
 
 use toml::{Parser, Value};
 
-/**
- * Errors which are related to configuration-file loading
- */
-pub mod error {
-    use std::error::Error;
-    use std::fmt::{Display, Formatter};
-    use std::fmt::Error as FmtError;
-
-    /// The kind of an error
-    #[derive(Clone, Debug, PartialEq)]
-    pub enum ConfigErrorKind {
-        NoConfigFileFound,
-    }
-
-    /// Configuration error type
-    #[derive(Debug)]
-    pub struct ConfigError {
-        kind: ConfigErrorKind,
-        cause: Option<Box<Error>>,
-    }
-
-    impl ConfigError {
-
-        /// Instantiate a new `ConfigError`, optionally with cause
-        pub fn new(kind: ConfigErrorKind, cause: Option<Box<Error>>) -> ConfigError {
-            ConfigError {
-                kind: kind,
-                cause: cause,
-            }
-        }
-
-        ///get the Kind of the Error
-        pub fn err_type(&self) -> ConfigErrorKind {
-            self.kind.clone()
-        }
-
-        /// Get the string, the `ConfigError` can be described with
-        pub fn as_str(e: &ConfigError) -> &'static str {
-            match e.err_type() {
-                ConfigErrorKind::NoConfigFileFound   => "No config file found",
-            }
-        }
-
-    }
-
-    impl Display for ConfigError {
-
-        fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-            try!(write!(fmt, "{}", ConfigError::as_str(self)));
-            Ok(())
-        }
-
-    }
-
-    impl Error for ConfigError {
-
-        fn description(&self) -> &str {
-            ConfigError::as_str(self)
-        }
-
-        fn cause(&self) -> Option<&Error> {
-            self.cause.as_ref().map(|e| &**e)
-        }
-
-    }
-
-}
+generate_error_module!(
+    generate_error_types!(ConfigError, ConfigErrorKind,
+        NoConfigFileFound   => "No config file found"
+    );
+);
 
 use self::error::{ConfigError, ConfigErrorKind};
-
 
 /**
  * Result type of this module. Either `T` or `ConfigError`
@@ -245,6 +182,6 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
         .filter(|loaded| loaded.is_some())
         .nth(0)
         .map(|inner| Value::Table(inner.unwrap()))
-        .ok_or_else(|| ConfigError::new(ConfigErrorKind::NoConfigFileFound, None))
+        .ok_or(ConfigErrorKind::NoConfigFileFound.into())
 }
 

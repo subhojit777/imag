@@ -37,13 +37,13 @@ impl<'a> Runtime<'a> {
      */
     pub fn new(cli_spec: App<'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
         use std::env;
-        use std::error::Error;
 
         use libimagstore::hook::position::HookPosition;
         use libimagstore::error::StoreErrorKind;
         use libimagstorestdhook::debug::DebugHook;
         use libimagerror::trace::trace_error;
         use libimagerror::trace::trace_error_dbg;
+        use libimagerror::into::IntoError;
 
         use configuration::error::ConfigErrorKind;
 
@@ -72,8 +72,7 @@ impl<'a> Runtime<'a> {
 
         let cfg = match Configuration::new(&rtp) {
             Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
-                let cause : Option<Box<Error>> = Some(Box::new(e));
-                return Err(RuntimeError::new(RuntimeErrorKind::Instantiate, cause));
+                return Err(RuntimeErrorKind::Instantiate.into_error_with_cause(Box::new(e)));
             } else {
                 warn!("No config file found.");
                 warn!("Continuing without configuration file");
@@ -128,9 +127,8 @@ impl<'a> Runtime<'a> {
                 store: store,
             }
         })
-        .map_err(|e| {
-            RuntimeError::new(RuntimeErrorKind::Instantiate, Some(Box::new(e)))
-        })
+        .map_err(Box::new)
+        .map_err(|e| RuntimeErrorKind::Instantiate.into_error_with_cause(e))
     }
 
     /**
