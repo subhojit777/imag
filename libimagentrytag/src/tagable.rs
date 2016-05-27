@@ -4,8 +4,9 @@ use std::ops::DerefMut;
 use itertools::Itertools;
 
 use libimagstore::store::{Entry, EntryHeader, FileLockEntry};
+use libimagerror::into::IntoError;
 
-use error::{TagError, TagErrorKind};
+use error::TagErrorKind;
 use result::Result;
 use tag::{Tag, TagSlice};
 use util::is_tag;
@@ -31,20 +32,20 @@ impl Tagable for EntryHeader {
         let tags = self.read("imag.tags");
         if tags.is_err() {
             let kind = TagErrorKind::HeaderReadError;
-            return Err(TagError::new(kind, Some(Box::new(tags.unwrap_err()))));
+            return Err(kind.into_error_with_cause(Box::new(tags.unwrap_err())));
         }
         let tags = tags.unwrap();
 
         match tags {
             Some(Value::Array(tags)) => {
                 if !tags.iter().all(|t| is_match!(*t, Value::String(_))) {
-                    return Err(TagError::new(TagErrorKind::TagTypeError, None));
+                    return Err(TagErrorKind::TagTypeError.into());
                 }
                 if tags.iter().any(|t| match *t {
                     Value::String(ref s) => !is_tag(s),
                     _ => unreachable!()})
                 {
-                    return Err(TagError::new(TagErrorKind::NotATag, None));
+                    return Err(TagErrorKind::NotATag.into());
                 }
 
                 Ok(tags.iter()
@@ -58,26 +59,27 @@ impl Tagable for EntryHeader {
                     .collect())
             },
             None => Ok(vec![]),
-            _ => Err(TagError::new(TagErrorKind::TagTypeError, None)),
+            _ => Err(TagErrorKind::TagTypeError.into()),
         }
     }
 
     fn set_tags(&mut self, ts: &[Tag]) -> Result<()> {
         if ts.iter().any(|tag| !is_tag(tag)) {
             debug!("Not a tag: '{}'", ts.iter().filter(|t| !is_tag(t)).next().unwrap());
-            return Err(TagError::new(TagErrorKind::NotATag, None));
+            return Err(TagErrorKind::NotATag.into());
         }
 
         let a = ts.iter().unique().map(|t| Value::String(t.clone())).collect();
         self.set("imag.tags", Value::Array(a))
             .map(|_| ())
-            .map_err(|e| TagError::new(TagErrorKind::HeaderWriteError, Some(Box::new(e))))
+            .map_err(Box::new)
+            .map_err(|e| TagErrorKind::HeaderWriteError.into_error_with_cause(e))
     }
 
     fn add_tag(&mut self, t: Tag) -> Result<()> {
         if !is_tag(&t) {
             debug!("Not a tag: '{}'", t);
-            return Err(TagError::new(TagErrorKind::NotATag, None));
+            return Err(TagErrorKind::NotATag.into());
         }
 
         self.get_tags()
@@ -91,7 +93,7 @@ impl Tagable for EntryHeader {
     fn remove_tag(&mut self, t: Tag) -> Result<()> {
         if !is_tag(&t) {
             debug!("Not a tag: '{}'", t);
-            return Err(TagError::new(TagErrorKind::NotATag, None));
+            return Err(TagErrorKind::NotATag.into());
         }
 
         self.get_tags()
@@ -106,12 +108,12 @@ impl Tagable for EntryHeader {
         let tags = self.read("imag.tags");
         if tags.is_err() {
             let kind = TagErrorKind::HeaderReadError;
-            return Err(TagError::new(kind, Some(Box::new(tags.unwrap_err()))));
+            return Err(kind.into_error_with_cause(Box::new(tags.unwrap_err())));
         }
         let tags = tags.unwrap();
 
         if !tags.iter().all(|t| is_match!(*t, Value::String(_))) {
-            return Err(TagError::new(TagErrorKind::TagTypeError, None));
+            return Err(TagErrorKind::TagTypeError.into());
         }
 
         Ok(tags
