@@ -1,5 +1,6 @@
+use libimagerror::into::IntoError;
 
-use error::{StoreError, StoreErrorKind};
+use error::{StoreError as SE, StoreErrorKind as SEK};
 use std::io::{Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::fs::{File, OpenOptions, create_dir_all};
@@ -32,21 +33,22 @@ impl LazyFile {
     /**
      * Get the mutable file behind a LazyFile object
      */
-    pub fn get_file_mut(&mut self) -> Result<&mut File, StoreError> {
+    pub fn get_file_mut(&mut self) -> Result<&mut File, SE> {
         debug!("Getting lazy file: {:?}", self);
         let file = match *self {
             LazyFile::File(ref mut f) => return {
                 // We seek to the beginning of the file since we expect each
                 // access to the file to be in a different context
                 f.seek(SeekFrom::Start(0))
-                    .map_err(|e| StoreError::new(StoreErrorKind::FileNotCreated, Some(Box::new(e))))
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::FileNotCreated.into_error_with_cause(e))
                     .map(|_| f)
             },
             LazyFile::Absent(ref p) => {
-                try!(open_file(p).map_err(|e| {
-                    StoreError::new(StoreErrorKind::FileNotFound,
-                                    Some(Box::new(e)))
-                }))
+                try!(open_file(p)
+                     .map_err(Box::new)
+                     .map_err(|e| SEK::FileNotFound.into_error_with_cause(e))
+                )
             }
         };
         *self = LazyFile::File(file);
@@ -59,15 +61,15 @@ impl LazyFile {
     /**
      * Create a file out of this LazyFile object
      */
-    pub fn create_file(&mut self) -> Result<&mut File, StoreError> {
+    pub fn create_file(&mut self) -> Result<&mut File, SE> {
         debug!("Creating lazy file: {:?}", self);
         let file = match *self {
             LazyFile::File(ref mut f) => return Ok(f),
             LazyFile::Absent(ref p) => {
-                try!(create_file(p).map_err(|e| {
-                    StoreError::new(StoreErrorKind::FileNotFound,
-                                    Some(Box::new(e)))
-                }))
+                try!(create_file(p)
+                     .map_err(Box::new)
+                     .map_err(|e| SEK::FileNotFound.into_error_with_cause(e))
+                )
             }
         };
         *self = LazyFile::File(file);
