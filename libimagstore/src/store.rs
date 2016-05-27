@@ -33,6 +33,8 @@ use hook::accessor::{ MutableHookDataAccessor,
 use hook::position::HookPosition;
 use hook::Hook;
 
+use libimagerror::into::IntoError;
+
 use self::glob_store_iter::*;
 
 /// The Result Type returned by any interaction with the store that could fail
@@ -739,7 +741,7 @@ impl EntryHeader {
 
         let mut parser = Parser::new(s);
         parser.parse()
-            .ok_or(ParserError::new(ParserErrorKind::TOMLParserErrors, None))
+            .ok_or(ParserErrorKind::TOMLParserErrors.into())
             .and_then(verify_header_consistency)
             .map(EntryHeader::from_table)
     }
@@ -1151,12 +1153,12 @@ fn build_default_header() -> Value { // BTreeMap<String, Value>
 }
 fn verify_header(t: &Table) -> Result<()> {
     if !has_main_section(t) {
-        Err(SE::from(ParserError::new(ParserErrorKind::MissingMainSection, None)))
+        Err(SE::from(ParserErrorKind::MissingMainSection.into_error()))
     } else if !has_imag_version_in_main_section(t) {
-        Err(SE::from(ParserError::new(ParserErrorKind::MissingVersionInfo, None)))
+        Err(SE::from(ParserErrorKind::MissingVersionInfo.into_error()))
     } else if !has_only_tables(t) {
         debug!("Could not verify that it only has tables in its base table");
-        Err(SE::from(ParserError::new(ParserErrorKind::NonTableInBaseTable, None)))
+        Err(SE::from(ParserErrorKind::NonTableInBaseTable.into_error()))
     } else {
         Ok(())
     }
@@ -1164,7 +1166,8 @@ fn verify_header(t: &Table) -> Result<()> {
 
 fn verify_header_consistency(t: Table) -> EntryResult<Table> {
     verify_header(&t)
-        .map_err(|e| ParserError::new(ParserErrorKind::HeaderInconsistency, Some(Box::new(e))))
+        .map_err(Box::new)
+        .map_err(|e| ParserErrorKind::HeaderInconsistency.into_error_with_cause(e))
         .map(|_| t)
 }
 
