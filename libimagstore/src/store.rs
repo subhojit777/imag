@@ -353,38 +353,12 @@ impl Store {
     /// Get an entry from the store if it exists.
     ///
     /// This executes the {pre,post}_retrieve_aspects hooks.
-    pub fn get<'a, S: IntoStoreId>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>>
-    {
-        let id = self.storify_id(id.into_storeid());
-        if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
-            return Err(e);
+    pub fn get<'a, S: IntoStoreId + Clone>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>> {
+        if !self.storify_id(id.clone().into_storeid()).exists() {
+            debug!("Does not exist: {:?}", id.clone().into_storeid());
+            return Ok(None);
         }
-
-        let mut entries = match self.entries.write() {
-            // Loosing the error here
-            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
-            Ok(e)  => e,
-        };
-
-        let mut se = match entries.get_mut(&id) {
-            Some(e) => e,
-            None    => return Ok(None),
-        };
-
-        let entry = match se.get_entry() {
-            Ok(e) => e,
-            Err(e) => return Err(e),
-        };
-
-        se.status = StoreEntryStatus::Borrowed;
-
-        let mut fle = FileLockEntry::new(self, entry, id);
-
-        if let Err(e) = self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle) {
-            Err(SE::new(SEK::HookExecutionError, Some(Box::new(e))))
-        } else {
-            Ok(Some(fle))
-        }
+        self.retrieve(id).map(Some)
     }
 
     /// Same as `Store::get()` but also tries older versions of the entry, returning an iterator
