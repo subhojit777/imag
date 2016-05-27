@@ -32,7 +32,7 @@ use crypto::sha1::Sha1;
 use crypto::digest::Digest;
 
 /// "Link" Type, just an abstraction over `FileLockEntry` to have some convenience internally.
-struct Link<'a> {
+pub struct Link<'a> {
     link: FileLockEntry<'a>
 }
 
