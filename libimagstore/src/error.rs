@@ -32,7 +32,17 @@ generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     StorePathLacksVersion   => "The supplied store path has no version part",
     GlobError               => "glob() error",
     EncodingError           => "Encoding error",
-    StorePathError          => "Store Path error"
+    StorePathError          => "Store Path error",
+
+    CreateCallError            => "Error when calling create()",
+    RetrieveCallError          => "Error when calling retrieve()",
+    GetCallError               => "Error when calling get()",
+    GetAllVersionsCallError    => "Error when calling get_all_versions()",
+    RetrieveForModuleCallError => "Error when calling retrieve_for_module()",
+    UpdateCallError            => "Error when calling update()",
+    RetrieveCopyCallError      => "Error when calling retrieve_copy()",
+    DeleteCallError            => "Error when calling delete()"
+
 );
 
 generate_custom_error_types!(ParserError, ParserErrorKind, CustomErrorData,

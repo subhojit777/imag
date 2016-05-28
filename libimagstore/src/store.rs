@@ -308,18 +308,24 @@ impl Store {
                 return Err(e)
                     .map_err(Box::new)
                     .map_err(|e| SEK::PreHookExecuteError.into_error_with_cause(e))
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::CreateCallError.into_error_with_cause(e))
             } else {
                 trace_error(&e);
             }
         }
 
         let mut hsmap = match self.entries.write() {
-            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Err(_) => return Err(SE::new(SEK::LockPoisoned, None))
+                .map_err(Box::new)
+                .map_err(|e| SEK::CreateCallError.into_error_with_cause(e)),
             Ok(s) => s,
         };
 
         if hsmap.contains_key(&id) {
             return Err(SE::new(SEK::EntryAlreadyExists, None))
+                .map_err(Box::new)
+                .map_err(|e| SEK::CreateCallError.into_error_with_cause(e))
         }
         hsmap.insert(id.clone(), {
             let mut se = StoreEntry::new(id.clone());
@@ -331,6 +337,8 @@ impl Store {
         self.execute_hooks_for_mut_file(self.post_create_aspects.clone(), &mut fle)
             .map_err(|e| SE::new(SEK::PostHookExecuteError, Some(Box::new(e))))
             .map(|_| fle)
+            .map_err(Box::new)
+            .map_err(|e| SEK::CreateCallError.into_error_with_cause(e))
     }
 
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
@@ -345,6 +353,8 @@ impl Store {
                 return Err(e)
                     .map_err(Box::new)
                     .map_err(|e| SEK::PreHookExecuteError.into_error_with_cause(e))
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::RetrieveCallError.into_error_with_cause(e))
             } else {
                 trace_error(&e);
             }
@@ -365,6 +375,8 @@ impl Store {
                     .map_err(|e| SE::new(SEK::HookExecutionError, Some(Box::new(e))))
                     .and(Ok(fle))
             })
+            .map_err(Box::new)
+            .map_err(|e| SEK::RetrieveCallError.into_error_with_cause(e))
     }
 
     /// Get an entry from the store if it exists.
@@ -376,6 +388,8 @@ impl Store {
             return Ok(None);
         }
         self.retrieve(id).map(Some)
+            .map_err(Box::new)
+            .map_err(|e| SEK::GetCallError.into_error_with_cause(e))
     }
 
     /// Same as `Store::get()` but also tries older versions of the entry, returning an iterator
@@ -390,13 +404,17 @@ impl Store {
                     let mut split       = s.split("~");
                     let path_element    = match split.next() {
                         Some(s) => s,
-                        None => return Err(SE::new(SEK::StorePathError, None)),
+                        None => return Err(SE::new(SEK::StorePathError, None))
+                            .map_err(Box::new)
+                            .map_err(|e| SEK::GetAllVersionsCallError.into_error_with_cause(e)),
                     };
 
                     Ok(PathBuf::from(path_element))
                 },
 
-                None => Err(SE::new(SEK::StorePathError, None)),
+                None => Err(SE::new(SEK::StorePathError, None))
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::GetAllVersionsCallError.into_error_with_cause(e)),
             }
         }
 
@@ -406,12 +424,18 @@ impl Store {
         }
 
         match path_component(id).map(build_glob_pattern) {
-            Err(e) => Err(SE::new(SEK::StorePathError, Some(Box::new(e)))),
-            Ok(None) => Err(SE::new(SEK::StorePathError, None)),
+            Err(e) => Err(SE::new(SEK::StorePathError, Some(Box::new(e))))
+                .map_err(Box::new)
+                .map_err(|e| SEK::GetAllVersionsCallError.into_error_with_cause(e)),
+            Ok(None) => Err(SE::new(SEK::StorePathError, None))
+                .map_err(Box::new)
+                .map_err(|e| SEK::GetAllVersionsCallError.into_error_with_cause(e)),
             Ok(Some(pattern)) => {
                 glob(&pattern[..])
                     .map(|paths| GlobStoreIdIterator::new(paths).into())
                     .map_err(|e| SE::new(SEK::GlobError, Some(Box::new(e))))
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::GetAllVersionsCallError.into_error_with_cause(e))
             }
         }
 
@@ -431,6 +455,8 @@ impl Store {
             })
             .map(|paths| GlobStoreIdIterator::new(paths).into())
             .map_err(|e| SE::new(SEK::GlobError, Some(Box::new(e))))
+            .map_err(Box::new)
+            .map_err(|e| SEK::RetrieveForModuleCallError.into_error_with_cause(e))
     }
 
     // Walk the store tree for the module
@@ -445,17 +471,23 @@ impl Store {
                 return Err(e)
                     .map_err(Box::new)
                     .map_err(|e| SEK::PreHookExecuteError.into_error_with_cause(e))
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::UpdateCallError.into_error_with_cause(e));
             } else {
                 trace_error(&e);
             }
         }
 
         if let Err(e) = self._update(&entry) {
-            return Err(e);
+            return Err(e)
+                .map_err(Box::new)
+                .map_err(|e| SEK::UpdateCallError.into_error_with_cause(e));
         }
 
         self.execute_hooks_for_mut_file(self.post_update_aspects.clone(), &mut entry)
             .map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
+            .map_err(Box::new)
+            .map_err(|e| SEK::UpdateCallError.into_error_with_cause(e))
     }
 
     /// Internal method to write to the filesystem store.
@@ -488,13 +520,19 @@ impl Store {
     pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
         let id = self.storify_id(id.into_storeid());
         let entries = match self.entries.write() {
-            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Err(_) => {
+                return Err(SE::new(SEK::LockPoisoned, None))
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::RetrieveCopyCallError.into_error_with_cause(e));
+            },
             Ok(e) => e,
         };
 
         // if the entry is currently modified by the user, we cannot drop it
         if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
-            return Err(SE::new(SEK::IdLocked, None));
+            return Err(SE::new(SEK::IdLocked, None))
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::RetrieveCopyCallError.into_error_with_cause(e));
         }
 
         StoreEntry::new(id).get_entry()
@@ -505,32 +543,41 @@ impl Store {
         let id = self.storify_id(id.into_storeid());
         if let Err(e) = self.execute_hooks_for_id(self.pre_delete_aspects.clone(), &id) {
             if e.is_aborting() {
-                return Err(e).map_err(|e| {
-                    SE::new(SEK::PreHookExecuteError, Some(Box::new(e)))
-                })
+                return Err(e)
+                    .map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::DeleteCallError.into_error_with_cause(e))
             } else {
                 trace_error(&e);
             }
         }
 
         let mut entries = match self.entries.write() {
-            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Err(_) => return Err(SE::new(SEK::LockPoisoned, None))
+                .map_err(Box::new)
+                .map_err(|e| SEK::DeleteCallError.into_error_with_cause(e)),
             Ok(e) => e,
         };
 
         // if the entry is currently modified by the user, we cannot drop it
         if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
-            return Err(SE::new(SEK::IdLocked, None));
+            return Err(SE::new(SEK::IdLocked, None))
+                .map_err(Box::new)
+                .map_err(|e| SEK::DeleteCallError.into_error_with_cause(e));
         }
 
         // remove the entry first, then the file
         entries.remove(&id);
         if let Err(e) = remove_file(&id) {
-            return Err(SE::new(SEK::FileError, Some(Box::new(e))));
+            return Err(SE::new(SEK::FileError, Some(Box::new(e))))
+                .map_err(Box::new)
+                .map_err(|e| SEK::DeleteCallError.into_error_with_cause(e));
         }
 
         self.execute_hooks_for_id(self.post_delete_aspects.clone(), &id)
             .map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
+            .map_err(Box::new)
+            .map_err(|e| SEK::DeleteCallError.into_error_with_cause(e))
     }
 
     /// Gets the path where this store is on the disk
