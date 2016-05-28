@@ -70,7 +70,14 @@ impl<'a> Runtime<'a> {
                                     spath
                                 }, PathBuf::from);
 
-        let cfg = match Configuration::new(&rtp) {
+        let configpath = matches.value_of("config")
+                                .map_or_else(|| {
+                                    let mut spath = rtp.clone();
+                                    spath.push("store");
+                                    spath
+                                }, PathBuf::from);
+
+        let cfg = match Configuration::new(&configpath) {
             Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
                 return Err(RuntimeErrorKind::Instantiate.into_error_with_cause(Box::new(e)));
             } else {
