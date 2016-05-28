@@ -39,7 +39,9 @@ impl Into<ChronoNaiveDateTime> for DateTime {
 impl Parse for DateTime {
 
     fn parse(s: &str) -> Option<DateTime> {
-        unimplemented!()
+        Date::parse(s)
+            .and_then(|d| Time::parse(s).map(|t| (d, t)))
+            .map(|(d, t)| DateTime::new(d, t))
     }
 
 }
