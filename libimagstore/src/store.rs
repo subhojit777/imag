@@ -372,7 +372,7 @@ impl Store {
             })
             .map(|e| FileLockEntry::new(self, e, id))
             .and_then(|mut fle| {
-                self.execute_hooks_for_mut_file(self.pre_retrieve_aspects.clone(), &mut fle)
+                self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle)
                     .map_err(|e| SE::new(SEK::HookExecutionError, Some(Box::new(e))))
                     .and(Ok(fle))
             })
