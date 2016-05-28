@@ -4,3 +4,6 @@ extern crate regex;
 #[macro_use] extern crate log;
 
 #[macro_use] extern crate libimagerror;
+
+pub mod date;
+
