@@ -10,8 +10,24 @@ pub struct Time {
 
 impl Time {
 
-    fn new(hour: u32, minute: u32, second: u32) -> Time {
-        unimplemented!()
+    pub fn new(hour: u32, minute: u32, second: u32) -> Time {
+        Time {
+            hour: hour,
+            minute: minute,
+            second: second
+        }
+    }
+
+    pub fn hour(&self) -> u32 {
+        self.hour
+    }
+
+    pub fn minute(&self) -> u32 {
+        self.minute
+    }
+
+    pub fn second(&self) -> u32 {
+        self.second
     }
 
 }
