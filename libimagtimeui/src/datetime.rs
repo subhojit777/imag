@@ -11,8 +11,19 @@ pub struct DateTime {
 
 impl DateTime {
 
-    fn new(date: Date, time: Time) -> DateTime {
-        unimplemented!()
+    pub fn new(date: Date, time: Time) -> DateTime {
+        DateTime {
+            date: date,
+            time: time
+        }
+    }
+
+    pub fn date(&self) -> &Date {
+        &self.date
+    }
+
+    pub fn time(&self) -> &Time {
+        &self.time
     }
 
 }
