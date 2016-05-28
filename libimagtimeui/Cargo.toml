@@ -1,0 +1,14 @@
+[package]
+name = "libimagtimeui"
+version = "0.1.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+lazy_static = "0.1"
+log = "0.3"
+chrono = "0.2"
+regex = "0.1"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
