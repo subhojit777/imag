@@ -69,14 +69,19 @@ fn edit(rt: &Runtime) {
 }
 
 fn edit_entry(rt: &Runtime, name: String) -> bool {
-    let note = Note::retrieve(rt.store(), name);
-    if note.is_err() {
-        trace_error(&note.unwrap_err());
-        warn!("Cannot edit nonexistent Note");
-        return false
-    }
+    let mut note = match Note::get(rt.store(), name) {
+        Ok(Some(note)) => note,
+        Ok(None) => {
+            warn!("Cannot edit nonexistent Note");
+            return false
+        },
+        Err(e) => {
+            trace_error(&e);
+            warn!("Cannot edit nonexistent Note");
+            return false
+        },
+    };
 
-    let mut note = note.unwrap();
     if let Err(e) = note.edit_content(rt) {
         trace_error(&e);
         warn!("Editing failed");

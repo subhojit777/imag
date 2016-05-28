@@ -102,6 +102,16 @@ impl<'a> Note<'a> {
             .map(|entry| Note { entry: entry })
     }
 
+    pub fn get(store: &Store, name: String) -> Result<Option<Note>> {
+        use libimagerror::into::IntoError;
+
+        match store.get(ModuleEntryPath::new(name).into_storeid()) {
+            Ok(Some(entry)) => Ok(Some(Note { entry: entry })),
+            Ok(None) => Ok(None),
+            Err(e) => Err(NEK::StoreWriteError.into_error_with_cause(Box::new(e))),
+        }
+    }
+
     pub fn all_notes(store: &Store) -> Result<NoteIterator> {
         store.retrieve_for_module("notes")
             .map(|iter| NoteIterator::new(store, iter))
