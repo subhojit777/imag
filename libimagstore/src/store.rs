@@ -410,7 +410,7 @@ impl Store {
         path.to_str()
             .ok_or(SE::new(SEK::EncodingError, None))
             .and_then(|path| {
-                let path = [ path, "/*" ].join("");
+                let path = [ path, "/**/*" ].join("");
                 debug!("glob()ing with '{}'", path);
                 glob(&path[..]).map_err(|e| SE::new(SEK::GlobError, Some(Box::new(e))))
             })
