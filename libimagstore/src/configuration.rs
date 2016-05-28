@@ -117,7 +117,10 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
     }
 
     match *config {
-        Some(Value::Table(ref t)) => {            has_key_with_string_ary(t, "pre-create-hook-aspects")      &&
+        Some(Value::Table(ref t)) => {
+            has_key_with_string_ary(t, "store-unload-hook-aspects")    &&
+
+            has_key_with_string_ary(t, "pre-create-hook-aspects")      &&
             has_key_with_string_ary(t, "post-create-hook-aspects")     &&
             has_key_with_string_ary(t, "pre-retrieve-hook-aspects")    &&
             has_key_with_string_ary(t, "post-retrieve-hook-aspects")   &&
@@ -141,6 +144,10 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
             false
         },
     }
+}
+
+pub fn get_store_unload_aspect_names(value: &Option<Value>) -> Vec<String> {
+    get_aspect_names_for_aspect_position("store-unload-hook-aspects", value)
 }
 
 pub fn get_pre_create_aspect_names(value: &Option<Value>) -> Vec<String> {

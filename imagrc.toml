@@ -3,6 +3,10 @@
 
 [store]
 
+# Hooks which get executed right before the Store is closed.
+# They get the store path as StoreId passed, so they can alter the complete
+# store, so these hooks should be chosen carefully.
+store-unload-hook-aspects  = [ "debug" ]
 
 pre-create-hook-aspects    = [ "debug" ]
 post-create-hook-aspects   = [ "debug" ]
