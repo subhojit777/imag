@@ -6,5 +6,6 @@ extern crate regex;
 #[macro_use] extern crate libimagerror;
 
 pub mod date;
+pub mod datetime;
 pub mod time;
 
