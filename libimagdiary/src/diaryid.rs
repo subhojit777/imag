@@ -1,12 +1,10 @@
 use std::convert::Into;
-use std::str::FromStr;
 
 use chrono::naive::datetime::NaiveDateTime;
 use chrono::naive::time::NaiveTime;
 use chrono::naive::date::NaiveDate;
 use chrono::Datelike;
 use chrono::Timelike;
-use regex::Regex;
 
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
@@ -78,7 +76,7 @@ impl IntoStoreId for DiaryId {
 impl Into<String> for DiaryId {
 
     fn into(self) -> String {
-        format!("{}/{}/{}-{}-{}:{}",
+        format!("{}/{}/{}/{}/{}:{}",
                 self.name, self.year, self.month, self.day, self.hour, self.minute)
     }
 
@@ -100,88 +98,58 @@ pub trait FromStoreId : Sized {
 
 }
 
+use std::path::Component;
+
+fn component_to_str<'a>(com: Component<'a>) -> Option<&'a str> {
+    match com {
+        Component::Normal(s) => Some(s),
+        _ => None
+    }.and_then(|s| s.to_str())
+}
+
 impl FromStoreId for DiaryId {
 
     fn from_storeid(s: &StoreId) -> Option<DiaryId> {
-        lazy_static! {
-            static ref RE: Regex = Regex::new(r"(?x)
-            (.*)
-            /(?P<name>(.*))
-            /(?P<year>\d{4})
-            /(?P<month>\d{2})
-            -(?P<day>\d{2})
-            -(?P<hour>\d{2})
-            :(?P<minute>\d{2})
-            "
-            ).unwrap();
-        }
+        use std::str::FromStr;
 
-        s.to_str()
-            .map(|s| { debug!("StoreId = {:?}", s); s })
-            .and_then(|s| RE.captures(s))
-            .and_then(|caps| {
-                let name   = caps.at(0);
-                let year   = caps.at(1);
-                let month  = caps.at(2);
-                let day    = caps.at(3);
-                let hour   = caps.at(4);
-                let minute = caps.at(5);
+        let mut cmps   = s.components().rev();
+        let (hour, minute) = match cmps.next().and_then(component_to_str)
+            .and_then(|time| {
+                let mut time = time.split(":");
+                let hour     = time.next().and_then(|s| FromStr::from_str(s).ok());
+                let minute   = time.next()
+                    .and_then(|s| s.split("~").next())
+                    .and_then(|s| FromStr::from_str(s).ok());
 
-                debug!("some? name   = {:?}", name.is_some());
-                debug!("some? year   = {:?}", year.is_some());
-                debug!("some? month  = {:?}", month.is_some());
-                debug!("some? day    = {:?}", day.is_some());
-                debug!("some? hour   = {:?}", hour.is_some());
-                debug!("some? minute = {:?}", minute.is_some());
+                debug!("Hour   = {:?}", hour);
+                debug!("Minute = {:?}", minute);
 
-                if [name, year, month, day, hour, minute].iter().all(|x| x.is_some()) {
-                    let year = {
-                        match i32::from_str(year.unwrap()) {
-                            Ok(x) => x,
-                            Err(_) => return None,
-                        }
-                    };
-
-                    let month = {
-                        match u32::from_str(month.unwrap()) {
-                            Ok(x) => x,
-                            Err(_) => return None,
-                        }
-                    };
-
-                    let day = {
-                        match u32::from_str(day.unwrap()) {
-                            Ok(x) => x,
-                            Err(_) => return None,
-                        }
-                    };
-
-                    let hour = {
-                        match u32::from_str(hour.unwrap()) {
-                            Ok(x) => x,
-                            Err(_) => return None,
-                        }
-                    };
-
-                    let minute = {
-                        match u32::from_str(minute.unwrap()) {
-                            Ok(x) => x,
-                            Err(_) => return None,
-                        }
-                    };
-
-                    Some(DiaryId {
-                        name   : String::from(name.unwrap()),
-                        year   : year,
-                        month  : month,
-                        day    : day,
-                        hour   : hour,
-                        minute : minute,
-                    })
-                } else {
-                    None
+                match (hour, minute) {
+                    (Some(h), Some(m)) => Some((h, m)),
+                    _ => None,
                 }
             })
+        {
+            Some(s) => s,
+            None => return None,
+        };
+
+        let day   :Option<u32> = cmps.next().and_then(component_to_str).and_then(|s| FromStr::from_str(s).ok());
+        let month :Option<u32> = cmps.next().and_then(component_to_str).and_then(|s| FromStr::from_str(s).ok());
+        let year  :Option<i32> = cmps.next().and_then(component_to_str).and_then(|s| FromStr::from_str(s).ok());
+        let name       = cmps.next().and_then(component_to_str).map(String::from);
+
+        debug!("Day   = {:?}", day);
+        debug!("Month = {:?}", month);
+        debug!("Year  = {:?}", year);
+        debug!("Name  = {:?}", name);
+
+        let day    = if day.is_none()    { return None; } else { day.unwrap() };
+        let month  = if month.is_none()  { return None; } else { month.unwrap() };
+        let year   = if year.is_none()   { return None; } else { year.unwrap() };
+        let name   = if name.is_none()   { return None; } else { name.unwrap() };
+
+        Some(DiaryId::new(name, year, month, day, hour, minute))
     }
 
 }
