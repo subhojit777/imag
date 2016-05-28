@@ -82,15 +82,18 @@ impl<'a> Iterator for DiaryEntryIterator<'a> {
                 debug!("Seems to be in diary: {:?}", next);
                 let id = DiaryId::from_storeid(&next);
                 if id.is_none() {
+                    debug!("Couldn't parse {:?} into DiaryId", next);
                     continue;
                 }
                 let id = id.unwrap();
+                debug!("Success parsing id = {:?}", id);
 
                 let y = match self.year  { None => true, Some(y) => y == id.year() };
                 let m = match self.month { None => true, Some(m) => m == id.month() };
                 let d = match self.day   { None => true, Some(d) => d == id.day() };
 
                 if y && m && d {
+                    debug!("Return = {:?}", id);
                     return Some(self
                                 .store
                                 .retrieve(next)
