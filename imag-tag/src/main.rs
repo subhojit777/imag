@@ -62,10 +62,8 @@ fn alter(rt: &Runtime, id: &str, add: Option<Vec<Tag>>, rem: Option<Vec<Tag>>) {
     };
     debug!("path = {:?}", path);
 
-    rt.store()
-        // "id" must be present, enforced via clap spec
-        .retrieve(path)
-        .map(|mut e| {
+    match rt.store().get(path) {
+        Ok(Some(mut e)) => {
             add.map(|tags| {
                 for tag in tags {
                     debug!("Adding tag '{:?}'", tag);
@@ -83,12 +81,17 @@ fn alter(rt: &Runtime, id: &str, add: Option<Vec<Tag>>, rem: Option<Vec<Tag>>) {
                     }
                 }
             }); // it is okay to ignore a None here
-        })
-        .map_err(|e| {
+        },
+
+        Ok(None) => {
+            info!("No entry found.");
+        },
+
+        Err(e) => {
             info!("No entry.");
             trace_error(&e);
-        })
-        .ok();
+        },
+    }
 }
 
 fn list(id: &str, rt: &Runtime) {
@@ -103,14 +106,20 @@ fn list(id: &str, rt: &Runtime) {
     };
     debug!("path = {:?}", path);
 
-    let entry = rt.store().retrieve(path.clone());
-    if entry.is_err() {
-        debug!("Could not retrieve '{:?}' => {:?}", id, path);
-        warn!("Could not retrieve entry '{}'", id);
-        trace_error(&entry.unwrap_err());
-        exit(1);
-    }
-    let entry = entry.unwrap();
+    let entry = match rt.store().get(path.clone()) {
+        Ok(Some(e)) => e,
+        Ok(None) => {
+            info!("No entry found.");
+            exit(1);
+        },
+
+        Err(e) => {
+            debug!("Could not get '{:?}' => {:?}", id, path);
+            warn!("Could not get entry '{}'", id);
+            trace_error(&e);
+            exit(1);
+        },
+    };
 
     let scmd = rt.cli().subcommand_matches("list").unwrap(); // safe, we checked in main()
 
