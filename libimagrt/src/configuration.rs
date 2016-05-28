@@ -143,6 +143,7 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     };
 
     vec![
+        vec![rtp.clone()],
         gen_vars(rtp.clone(), variants.clone(), &modifier),
 
         env::var("HOME").map(|home| gen_vars(PathBuf::from(home), variants.clone(), &modifier))
