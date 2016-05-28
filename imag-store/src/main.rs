@@ -26,19 +26,21 @@ extern crate libimagutil;
 
 use libimagrt::setup::generate_runtime_setup;
 
-mod error;
-mod ui;
 mod create;
-mod retrieve;
-mod update;
 mod delete;
+mod error;
+mod get;
+mod retrieve;
+mod ui;
+mod update;
 mod util;
 
-use ui::build_ui;
 use create::create;
-use retrieve::retrieve;
-use update::update;
 use delete::delete;
+use get::get;
+use retrieve::retrieve;
+use ui::build_ui;
+use update::update;
 
 fn main() {
     let rt = generate_runtime_setup("imag-store",
@@ -56,10 +58,11 @@ fn main() {
             |name| {
                 debug!("Call: {}", name);
                 match name {
-                    "create" => create(&rt),
-                    "retrieve"   => retrieve(&rt),
-                    "update" => update(&rt),
-                    "delete" => delete(&rt),
+                    "create"   => create(&rt),
+                    "delete"   => delete(&rt),
+                    "get"      => get(&rt),
+                    "retrieve" => retrieve(&rt),
+                    "update"   => update(&rt),
                     _ => {
                         debug!("Unknown command");
                         // More error handling
