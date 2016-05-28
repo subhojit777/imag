@@ -68,3 +68,63 @@ impl Parse for Time {
 
 }
 
+#[cfg(test)]
+mod test {
+    use super::Time;
+    use parse::Parse;
+
+    #[test]
+    fn test_valid() {
+        let s = "2016-12-12T20:01:02";
+        let t = Time::parse(s);
+
+        assert!(t.is_some());
+        let t = t.unwrap();
+
+        assert_eq!(20, t.hour());
+        assert_eq!(1, t.minute());
+        assert_eq!(2, t.second());
+    }
+
+    #[test]
+    fn test_valid_without_sec() {
+        let s = "2016-12-12T20:01";
+        let t = Time::parse(s);
+
+        assert!(t.is_some());
+        let t = t.unwrap();
+
+        assert_eq!(20, t.hour());
+        assert_eq!(1, t.minute());
+        assert_eq!(0, t.second());
+    }
+
+    #[test]
+    fn test_valid_without_min() {
+        let s = "2016-12-12T20";
+        let t = Time::parse(s);
+
+        assert!(t.is_some());
+        let t = t.unwrap();
+
+        assert_eq!(20, t.hour());
+        assert_eq!(0, t.minute());
+        assert_eq!(0, t.second());
+    }
+
+    #[test]
+    fn test_invalid() {
+        assert!(Time::parse("2015-12-12T").is_none());
+        assert!(Time::parse("2015-12-12T200").is_none());
+        assert!(Time::parse("2015-12-12T20-20").is_none());
+        assert!(Time::parse("2015-12-12T20:200").is_none());
+        assert!(Time::parse("2015-12-12T20:20:200").is_none());
+        assert!(Time::parse("2015-12-12T20:20:").is_none());
+        assert!(Time::parse("2015-12-12T20:").is_none());
+        assert!(Time::parse("2015-12-12T2:20:21").is_none());
+        assert!(Time::parse("2015-12-12T2:2:20").is_none());
+        assert!(Time::parse("2015-12-12T2:2:2").is_none());
+    }
+
+}
+
