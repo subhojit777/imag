@@ -28,10 +28,13 @@ use storeid::{IntoStoreId, StoreId, StoreIdIterator};
 use lazyfile::LazyFile;
 
 use hook::aspect::Aspect;
+use hook::error::HookErrorKind;
+use hook::result::HookResult;
 use hook::accessor::{ MutableHookDataAccessor,
             StoreIdAccessor};
 use hook::position::HookPosition;
 use hook::Hook;
+use libimagerror::trace::trace_error;
 
 use libimagerror::into::IntoError;
 
@@ -301,7 +304,13 @@ impl Store {
     pub fn create<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = self.storify_id(id.into_storeid());
         if let Err(e) = self.execute_hooks_for_id(self.pre_create_aspects.clone(), &id) {
-            return Err(e);
+            if e.is_aborting() {
+                return Err(e)
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::PreHookExecuteError.into_error_with_cause(e))
+            } else {
+                trace_error(&e);
+            }
         }
 
         let mut hsmap = match self.entries.write() {
@@ -332,7 +341,13 @@ impl Store {
     pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = self.storify_id(id.into_storeid());
         if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
-            return Err(e);
+            if e.is_aborting() {
+                return Err(e)
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::PreHookExecuteError.into_error_with_cause(e))
+            } else {
+                trace_error(&e);
+            }
         }
 
         self.entries
@@ -426,7 +441,13 @@ impl Store {
     /// Return the `FileLockEntry` and write to disk
     pub fn update<'a>(&'a self, mut entry: FileLockEntry<'a>) -> Result<()> {
         if let Err(e) = self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), &mut entry) {
-            return Err(e);
+            if e.is_aborting() {
+                return Err(e)
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::PreHookExecuteError.into_error_with_cause(e))
+            } else {
+                trace_error(&e);
+            }
         }
 
         if let Err(e) = self._update(&entry) {
@@ -434,6 +455,7 @@ impl Store {
         }
 
         self.execute_hooks_for_mut_file(self.post_update_aspects.clone(), &mut entry)
+            .map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
     }
 
     /// Internal method to write to the filesystem store.
@@ -482,7 +504,13 @@ impl Store {
     pub fn delete<S: IntoStoreId>(&self, id: S) -> Result<()> {
         let id = self.storify_id(id.into_storeid());
         if let Err(e) = self.execute_hooks_for_id(self.pre_delete_aspects.clone(), &id) {
-            return Err(e);
+            if e.is_aborting() {
+                return Err(e).map_err(|e| {
+                    SE::new(SEK::PreHookExecuteError, Some(Box::new(e)))
+                })
+            } else {
+                trace_error(&e);
+            }
         }
 
         let mut entries = match self.entries.write() {
@@ -502,6 +530,7 @@ impl Store {
         }
 
         self.execute_hooks_for_id(self.post_delete_aspects.clone(), &id)
+            .map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
     }
 
     /// Gets the path where this store is on the disk
@@ -566,29 +595,29 @@ impl Store {
     fn execute_hooks_for_id(&self,
                             aspects: Arc<Mutex<Vec<Aspect>>>,
                             id: &StoreId)
-        -> Result<()>
+        -> HookResult<()>
     {
         match aspects.lock() {
-            Err(_) => return Err(SE::new(SEK::PreHookExecuteError, None)),
+            Err(_) => return Err(HookErrorKind::HookExecutionError.into()),
             Ok(g) => g
         }.iter().fold(Ok(()), |acc, aspect| {
             debug!("[Aspect][exec]: {:?}", aspect);
             acc.and_then(|_| (aspect as &StoreIdAccessor).access(id))
-        }).map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
+        }).map_err(Box::new).map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
     }
 
     fn execute_hooks_for_mut_file(&self,
                                   aspects: Arc<Mutex<Vec<Aspect>>>,
                                   fle: &mut FileLockEntry)
-        -> Result<()>
+        -> HookResult<()>
     {
         match aspects.lock() {
-            Err(_) => return Err(SE::new(SEK::PreHookExecuteError, None)),
+            Err(_) => return Err(HookErrorKind::HookExecutionError.into()),
             Ok(g) => g
         }.iter().fold(Ok(()), |acc, aspect| {
             debug!("[Aspect][exec]: {:?}", aspect);
             acc.and_then(|_| aspect.access_mut(fle))
-        }).map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
+        }).map_err(Box::new).map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
     }
 
 }

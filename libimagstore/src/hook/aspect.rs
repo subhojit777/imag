@@ -1,3 +1,5 @@
+use libimagerror::trace::trace_error;
+
 use store::FileLockEntry;
 use storeid::StoreId;
 use hook::Hook;
@@ -38,34 +40,32 @@ impl Aspect {
 
 impl StoreIdAccessor for Aspect {
     fn access(&self, id: &StoreId) -> HookResult<()> {
-        use crossbeam;
-
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
         if !accessors.iter().all(|a| is_match!(*a, HDA::StoreIdAccess(_))) {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
-        let threads : Vec<HookResult<()>> = accessors
+        accessors
             .iter()
-            .map(|accessor| {
-                crossbeam::scope(|scope| {
-                    scope.spawn(|| {
-                        match *accessor {
-                            HDA::StoreIdAccess(accessor) => accessor.access(id),
-                            _ => unreachable!(),
-                        }
-                        .map_err(|_| ()) // TODO: We're losing the error cause here
-                    })
-                })
-            })
-            .map(|i| i.join().map_err(|_| HE::new(HEK::HookExecutionError, None)))
-            .collect();
+            .fold(Ok(()), |acc, accessor| {
+                acc.and_then(|_| {
+                    let res = match accessor {
+                        &HDA::StoreIdAccess(accessor) => accessor.access(id),
+                        _ => unreachable!(),
+                    };
 
-        threads
-            .into_iter()
-            .fold(Ok(()), |acc, elem| {
-                acc.and_then(|a| {
-                    elem.map(|_| a).map_err(|_| HE::new(HEK::HookExecutionError, None))
+                    match res {
+                        Ok(res) => Ok(res),
+                        Err(e) => {
+                            if !e.is_aborting() {
+                                trace_error(&e);
+                                // ignore error if it is not aborting, as we printed it already
+                                Ok(())
+                            } else {
+                                Err(e)
+                            }
+                        }
+                    }
                 })
             })
     }
@@ -83,52 +83,63 @@ impl MutableHookDataAccessor for Aspect {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
-        for accessor in accessors {
-            match accessor {
-                HDA::MutableAccess(accessor)    => try!(accessor.access_mut(fle)),
+        // TODO: Naiive implementation.
+        // More sophisticated version would check whether there are _chunks_ of
+        // NonMutableAccess accessors and execute these chunks in parallel. We do not have
+        // performance concerns yet, so this is okay.
+        accessors.iter().fold(Ok(()), |acc, accessor| {
+            acc.and_then(|_| {
+                let res = match accessor {
+                    &HDA::MutableAccess(ref accessor)    => accessor.access_mut(fle),
+                    &HDA::NonMutableAccess(ref accessor) => accessor.access(fle),
+                    _ => unreachable!(),
+                };
 
-                // TODO: Naiive implementation.
-                // More sophisticated version would check whether there are _chunks_ of
-                // NonMutableAccess accessors and execute these chunks in parallel. We do not have
-                // performance concerns yet, so this is okay.
-                HDA::NonMutableAccess(accessor) => try!(accessor.access(fle)),
-                _ => unreachable!(),
-            }
-        }
-        Ok(())
+                match res {
+                    Ok(res) => Ok(res),
+                    Err(e) => {
+                        if !e.is_aborting() {
+                            trace_error(&e);
+                            // ignore error if it is not aborting, as we printed it already
+                            Ok(())
+                        } else {
+                            Err(e)
+                        }
+                    }
+                }
+            })
+        })
     }
 }
 
 impl NonMutableHookDataAccessor for Aspect {
     fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
-        use crossbeam;
-
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
         if !accessors.iter().all(|a| is_match!(*a, HDA::NonMutableAccess(_))) {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
-        let threads : Vec<HookResult<()>> = accessors
+        accessors
             .iter()
-            .map(|accessor| {
-                crossbeam::scope(|scope| {
-                    scope.spawn(|| {
-                        match *accessor {
-                            HDA::NonMutableAccess(accessor) => accessor.access(fle),
-                            _ => unreachable!(),
-                        }
-                        .map_err(|_| ()) // TODO: We're losing the error cause here
-                    })
-                })
-            })
-            .map(|i| i.join().map_err(|_| HE::new(HEK::HookExecutionError, None)))
-            .collect();
+            .fold(Ok(()), |acc, accessor| {
+                acc.and_then(|_| {
+                    let res = match accessor {
+                        &HDA::NonMutableAccess(accessor) => accessor.access(fle),
+                        _ => unreachable!(),
+                    };
 
-        threads
-            .into_iter()
-            .fold(Ok(()), |acc, elem| {
-                acc.and_then(|a| {
-                    elem.map(|_| a).map_err(|_| HE::new(HEK::HookExecutionError, None))
+                    match res {
+                        Ok(res) => Ok(res),
+                        Err(e) => {
+                            if !e.is_aborting() {
+                                trace_error(&e);
+                                // ignore error if it is not aborting, as we printed it already
+                                Ok(())
+                            } else {
+                                Err(e)
+                            }
+                        }
+                    }
                 })
             })
     }
