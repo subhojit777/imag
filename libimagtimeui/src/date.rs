@@ -10,8 +10,24 @@ pub struct Date {
 
 impl Date {
 
-    fn new(year: i32, month: u32, day: u32) -> Date {
-        unimplemented!()
+    pub fn new(year: i32, month: u32, day: u32) -> Date {
+        Date {
+            year: year,
+            month: month,
+            day: day,
+        }
+    }
+
+    pub fn year(&self) -> i32 {
+        self.year
+    }
+
+    pub fn month(&self) -> u32 {
+        self.month
+    }
+
+    pub fn day(&self) -> u32 {
+        self.day
     }
 
 }
