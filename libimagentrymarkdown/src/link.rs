@@ -77,5 +77,23 @@ mod test {
         assert_eq!(exp, links.pop().unwrap())
     }
 
+    #[test]
+    fn test_two_similar_links() {
+        let testtext = r#"
+Some [example text](http://example.com).
+Some more [example text](http://example.com).
+        "#;
+
+        let exp = Link {
+            title: String::from("example text"),
+            link:  String::from("http://example.com"),
+        };
+
+        let mut links = extract_links(&testtext[..]);
+        assert_eq!(2, links.len());
+        assert_eq!(exp, links.pop().unwrap());
+        assert_eq!(exp, links.pop().unwrap());
+    }
+
 }
 
