@@ -95,5 +95,28 @@ Some more [example text](http://example.com).
         assert_eq!(exp, links.pop().unwrap());
     }
 
+    #[test]
+    fn test_two_links() {
+        let testtext = r#"
+Some [example text](http://example.com).
+Some more [foo](http://example.com/foo).
+        "#;
+
+        let exp1 = Link {
+            title: String::from("example text"),
+            link:  String::from("http://example.com"),
+        };
+
+        let exp2 = Link {
+            title: String::from("foo"),
+            link:  String::from("http://example.com/foo"),
+        };
+
+        let mut links = extract_links(&testtext[..]);
+        assert_eq!(2, links.len());
+        assert_eq!(exp2, links.pop().unwrap());
+        assert_eq!(exp1, links.pop().unwrap());
+    }
+
 }
 
