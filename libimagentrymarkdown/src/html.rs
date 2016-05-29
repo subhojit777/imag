@@ -53,4 +53,30 @@ pub mod iter {
 
     }
 
+
+    /// Iterate over `(Entry, Result<HTML>)` tuples
+    pub struct WithHtmlIterator<I: Iterator<Item = Entry>> {
+        i: I
+    }
+
+    impl<I: Iterator<Item = Entry>> WithHtmlIterator<I> {
+
+        fn new(i: I) -> WithHtmlIterator<I> {
+            WithHtmlIterator { i: i }
+        }
+
+    }
+
+    impl<I: Iterator<Item = Entry>> Iterator for WithHtmlIterator<I> {
+        type Item = (Entry, Result<HTML>);
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.i.next().map(|entry| {
+                let html = to_html(&entry.get_content()[..]);
+                (entry, html)
+            })
+        }
+
+    }
+
 }
