@@ -1,6 +1,7 @@
 generate_error_module!(
     generate_error_types!(MarkdownError, MarkdownErrorKind,
-        MarkdownRenderError => "Markdown render error"
+        MarkdownRenderError => "Markdown render error",
+        LinkParsingError    => "Link parsing error"
     );
 );
 
