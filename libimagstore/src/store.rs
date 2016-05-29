@@ -338,7 +338,7 @@ impl Store {
             se
         });
 
-        let mut fle = FileLockEntry::new(self, Entry::new(id.clone()), id);
+        let mut fle = FileLockEntry::new(self, Entry::new(id));
         self.execute_hooks_for_mut_file(self.post_create_aspects.clone(), &mut fle)
             .map_err(|e| SE::new(SEK::PostHookExecuteError, Some(Box::new(e))))
             .map(|_| fle)
@@ -370,7 +370,7 @@ impl Store {
                 se.status = StoreEntryStatus::Borrowed;
                 entry
             })
-            .map(|e| FileLockEntry::new(self, e, id))
+            .map(|e| FileLockEntry::new(self, e))
             .and_then(|mut fle| {
                 self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle)
                     .map_err(|e| SE::new(SEK::HookExecutionError, Some(Box::new(e))))
@@ -480,7 +480,7 @@ impl Store {
             Ok(e) => e,
         };
 
-        let mut se = try!(hsmap.get_mut(&entry.key).ok_or(SE::new(SEK::IdNotFound, None)));
+        let mut se = try!(hsmap.get_mut(&entry.location).ok_or(SE::new(SEK::IdNotFound, None)));
 
         assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 
@@ -683,15 +683,13 @@ impl Drop for Store {
 pub struct FileLockEntry<'a> {
     store: &'a Store,
     entry: Entry,
-    key: StoreId,
 }
 
 impl<'a> FileLockEntry<'a, > {
-    fn new(store: &'a Store, entry: Entry, key: StoreId) -> FileLockEntry<'a> {
+    fn new(store: &'a Store, entry: Entry) -> FileLockEntry<'a> {
         FileLockEntry {
             store: store,
             entry: entry,
-            key: key,
         }
     }
 }
