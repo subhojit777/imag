@@ -41,4 +41,46 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
 
                     )
 
-} 
+        .subcommand(SubCommand::with_name("add")
+                    .about("create a task")
+                    .version("0.1")
+
+                    .arg(Arg::with_name("description")
+                        .long("description")
+                        .short("d")
+                        .takes_value(true)
+                        .required(true)
+                        .help("Name/Description of the new task")
+                    )
+
+                    .arg(Arg::with_name("priority")
+                        .long("priority")
+                        .short("p")
+                        .takes_value(true)
+                        .required(false)
+                        .help("One of l, m, h for low, medium and high priority")
+                    )
+
+                    .arg(Arg::with_name("project")
+                        .long("project")
+                        .takes_value(true)
+                        .required(false)
+                        .help("Name of the project the task is related to")
+                    )
+
+                    .arg(Arg::with_name("due")
+                        .long("due")
+                        .takes_value(true)
+                        .required(false)
+                        .help("Due date of the new task")
+                    )
+
+                    .arg(Arg::with_name("frequency")
+                        .long("frequency")
+                        .short("f")
+                        .takes_value(true)
+                        .required(false)
+                        .help("Frequency of the recurrence of a task")
+                    )
+
+}
