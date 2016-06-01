@@ -61,7 +61,17 @@ fn main() {
             }
         },
         Some("exec") => {
-        },
-        _ => println!("Nothing implemented yet"),
+            let subcmd = rt.cli().subcommand_matches("exec").unwrap();
+            let itr = subcmd.values_of_os("add").unwrap();
+            if subcmd.is_present("command") {
+                let string = subcmd.value_of("command").unwrap();
+                println!("{:?}", string);
+                else {
+                    panic!("Reached unreachable Code");
+                }
+            },
+                _ => println!("Nothing implemented yet"),
+        }
     }
 }
+
