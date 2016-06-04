@@ -100,8 +100,8 @@ imag-counter  imag-link  imag-notes  imag-store  imag-tag  imag-view
 ```
 
 Building all the modules may take some time, so alternatively one can build only a specific module
-by runing `$> make $module` where `$module` is one of  the `imag-$module` names, such as `counter`,
-`link`, etc.
+by runing `$> make $module` where `$module` is one of  the `imag-*` names, such as `imag-counter`,
+`imag-link`, etc.
 
 ### Running
 

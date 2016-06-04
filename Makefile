@@ -1,33 +1,13 @@
-toml = imag-$@/Cargo.toml
-bin = imag-$@/target/debug/imag-$@
+toml = $@/Cargo.toml
+bin = $@/target/debug/$@
 
 default: all
 
 .PHONY: clean
 
-all: counter link notes store tag view
+all: imag-counter imag-link imag-notes imag-store imag-tag imag-view
 
-counter: prep
-	cargo build --manifest-path $(toml)
-	cp $(bin) out/
-
-link: prep
-	cargo build --manifest-path $(toml)
-	cp $(bin) out/
-
-notes: prep
-	cargo build --manifest-path $(toml)
-	cp $(bin) out/
-
-store: prep
-	cargo build --manifest-path $(toml)
-	cp $(bin) out/
-
-tag: prep
-	cargo build --manifest-path $(toml)
-	cp $(bin) out/
-
-view: prep
+imag-%: prep
 	cargo build --manifest-path $(toml)
 	cp $(bin) out/
 
