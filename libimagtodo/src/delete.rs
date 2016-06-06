@@ -4,16 +4,16 @@
 // use std::fs::File;
 // use std::io::Read;
 
-use std::ops::Deref;
-use toml::Value;
 use uuid::Uuid;
 
 use libimagstore::store::Store;
 use libimagstore::storeid::IntoStoreId;
 use module_path::ModuleEntryPath;
 
+use error::{TodoError, TodoErrorKind};
+
 /// With the uuid we get the storeid and than we can delete the entry
-fn deleteFunc(uuid: Uuid, store : &Store) {	
+pub fn deleteFunc(uuid: Uuid, store : &Store) {	
 	// With this we can read from a .json File
 	// let mut file = File::open("text.json").unwrap();
 	// let mut data = String::new();
@@ -25,6 +25,9 @@ fn deleteFunc(uuid: Uuid, store : &Store) {
 	// With the uuid we get the storeid
 	let store_id = ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid();
 	// It deletes an entry	
-	store.delete(store_id);
+	if let Err(e) = store.delete(store_id) {
+		return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e)))).unwrap();	
+	}
+
 }
 
