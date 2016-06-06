@@ -37,9 +37,31 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                    .about("List diary entries")
                    .version("0.1"))
 
-        // TODO: Support deleting diary entries
-        // .subcommand(SubCommand::with_name("delete")
-        //            .about("Delete a diary entry")
-        //            .version("0.1")
+        .subcommand(SubCommand::with_name("delete")
+                   .about("Delete a diary entry")
+                   .version("0.1")
+                   .arg(Arg::with_name("datetime")
+                        .long("datetime")
+                        .short("d")
+                        .takes_value(true)
+                        .required(false)
+                        .help("Specify the date and time which entry should be deleted. If none is
+                        specified, the last entry is deleted. If the diary entry does not exist for
+                        this time, this fails. Format: YYYY-MM-DDT[HH[:mm[:ss]]]"))
+
+                   .arg(Arg::with_name("select")
+                        .long("select")
+                        .short("s")
+                        .takes_value(false)
+                        .required(false)
+                        .help("Use interactive selection"))
+
+                   .arg(Arg::with_name("yes")
+                        .long("yes")
+                        .short("y")
+                        .takes_value(false)
+                        .required(false)
+                        .help("Do not ask for confirmation."))
+                )
 }
 
