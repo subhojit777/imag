@@ -34,13 +34,14 @@ impl<'a> Diary<'a> {
 
     // create or get a new entry for today
     pub fn new_entry_today(&self) -> Result<Entry> {
-        let dt = Local::now();
+        let dt  = Local::now();
         let ndt = dt.naive_local();
+        let id  = DiaryId::new(String::from(self.name), ndt.year(), ndt.month(), ndt.day(), 0, 0);
+        self.new_entry_by_id(id)
+    }
 
-        // Currenty we only have support for per-day entries
-        let id = DiaryId::new(String::from(self.name), ndt.year(), ndt.month(), ndt.day(), 0, 0);
-
-        self.retrieve(id)
+    pub fn new_entry_by_id(&self, id: DiaryId) -> Result<Entry> {
+        self.retrieve(id.with_diary_name(String::from(self.name)))
     }
 
     pub fn retrieve(&self, id: DiaryId) -> Result<Entry> {
