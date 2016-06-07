@@ -10,10 +10,16 @@ extern crate libimagstore;
 extern crate libimagutil;
 
 use std::process::exit;
+use std::process::{Command, Stdio};
+use std::io::prelude::*;
+use std::io::BufReader;
+use std::fs::File;
 
 use libimagrt::runtime::Runtime;
 use libimagstore::store::FileLockEntry;
 use libimagutil::trace::trace_error;
+use std::error::Error;
+use std::env;
 
 mod ui;
 
@@ -24,6 +30,7 @@ fn main() {
     let version = &version!()[..];
     let about = "Interface with taskwarrior";
     let ui = build_ui(Runtime::get_default_cli_builder(name, version, about));
+    
     let rt = {
         let rt = Runtime::new(ui);
         if rt.is_ok() {
@@ -34,6 +41,8 @@ fn main() {
             exit(1);
         }
     };
+
+    
 
     let scmd = rt.cli().subcommand_name();
     match scmd {
@@ -61,17 +70,23 @@ fn main() {
             }
         },
         Some("exec") => {
-            let subcmd = rt.cli().subcommand_matches("exec").unwrap();
-            let itr = subcmd.values_of_os("add").unwrap();
-            if subcmd.is_present("command") {
-                let string = subcmd.value_of("command").unwrap();
-                println!("{:?}", string);
-                else {
-                    panic!("Reached unreachable Code");
-                }
+		let subcmd = rt.cli().subcommand_matches("exec").unwrap();
+		let mut string = String::from("");
+		//let args: Vec<_> = env::args().collect();
+		//println!("{:?}", args);
+		if let Some(execString) = subcmd.values_of("command") {
+			for e in execString {
+				string.push_str(e);
+				string.push_str(" ");
+			}
+		//NOW SEND "string" to taskwarrior
+		
+		} else {
+			println!("false");
+		}
             },
                 _ => println!("Nothing implemented yet"),
         }
-    }
+    
 }
 
