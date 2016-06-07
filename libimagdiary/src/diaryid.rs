@@ -62,6 +62,36 @@ impl DiaryId {
         self.minute
     }
 
+    pub fn with_diary_name(mut self, name: String) -> DiaryId {
+        self.name = name;
+        self
+    }
+
+    pub fn with_year(mut self, year: i32) -> DiaryId {
+        self.year = year;
+        self
+    }
+
+    pub fn with_month(mut self, month: u32) -> DiaryId {
+        self.month = month;
+        self
+    }
+
+    pub fn with_day(mut self, day: u32) -> DiaryId {
+        self.day = day;
+        self
+    }
+
+    pub fn with_hour(mut self, hour: u32) -> DiaryId {
+        self.hour = hour;
+        self
+    }
+
+    pub fn with_minute(mut self, minute: u32) -> DiaryId {
+        self.minute = minute;
+        self
+    }
+
 }
 
 impl IntoStoreId for DiaryId {
