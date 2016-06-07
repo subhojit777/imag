@@ -1,4 +1,4 @@
-use clap::{Arg, App, SubCommand};
+use clap::{Arg, ArgGroup, App, SubCommand};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
@@ -18,6 +18,34 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .takes_value(false)
                         .required(false)
                         .help("Do not edit after creating"))
+
+                   .arg(Arg::with_name("timed")
+                        .long("timed")
+                        .short("t")
+                        .takes_value(true)
+                        .required(false)
+                        .help("By default, one entry is created per day. With --timed=h[ourly] or
+                        --timed=m[inutely] one can create per-hour and per-minute entries (more like
+                        a microblog then"))
+
+                   .arg(Arg::with_name("hour")
+                        .long("hour")
+                        .takes_value(true)
+                        .required(false)
+                        .help("When using --timed, override the hour component"))
+                   .arg(Arg::with_name("minute")
+                        .long("minute")
+                        .takes_value(true)
+                        .required(false)
+                        .help("When using --timed, override the minute component"))
+
+                   // When using --hour or --minute, --timed must be present
+                   .group(ArgGroup::with_name("timing-hourly")
+                            .args(&["hour"])
+                            .requires("timed"))
+                   .group(ArgGroup::with_name("timing-minutely")
+                            .args(&["minute"])
+                            .requires("timed"))
                    )
 
         .subcommand(SubCommand::with_name("edit")
