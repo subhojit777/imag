@@ -94,6 +94,16 @@ impl DiaryId {
 
 }
 
+impl Default for DiaryId {
+
+    /// Create a default DiaryId which is a diaryid for a diary named "default" with
+    /// time = 0000-00-00 00:00:00
+    fn default() -> DiaryId {
+        let dt = NaiveDateTime::new(NaiveDate::from_ymd(0, 0, 0), NaiveTime::from_hms(0, 0, 0));
+        DiaryId::from_datetime(String::from("default"), dt)
+    }
+}
+
 impl IntoStoreId for DiaryId {
 
     fn into_storeid(self) -> StoreId {
