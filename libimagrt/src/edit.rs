@@ -61,7 +61,12 @@ pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> EditResult<()> {
             Ok(true)  => {
                 file.sync_data()
                     .and_then(|_| file.seek(SeekFrom::Start(0)))
-                    .and_then(|_| file.read_to_string(s))
+                    .and_then(|_| {
+                        let mut new_s = String::new();
+                        let res = file.read_to_string(&mut new_s);
+                        *s = new_s;
+                        res
+                    })
                     .map(|_| ())
                     .map_err(Box::new)
                     .map_err(|e| RuntimeErrorKind::IOError.into_error_with_cause(e))
