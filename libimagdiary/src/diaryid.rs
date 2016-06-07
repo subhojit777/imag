@@ -76,7 +76,7 @@ impl IntoStoreId for DiaryId {
 impl Into<String> for DiaryId {
 
     fn into(self) -> String {
-        format!("{}/{}/{}/{}/{}:{}",
+        format!("{}/{:0>4}/{:0>2}/{:0>2}/{:0>2}:{:0>2}",
                 self.name, self.year, self.month, self.day, self.hour, self.minute)
     }
 
