@@ -186,6 +186,8 @@ pub struct Store {
     post_update_aspects   : Arc<Mutex<Vec<Aspect>>>,
     pre_delete_aspects    : Arc<Mutex<Vec<Aspect>>>,
     post_delete_aspects   : Arc<Mutex<Vec<Aspect>>>,
+    pre_move_aspects      : Arc<Mutex<Vec<Aspect>>>,
+    post_move_aspects     : Arc<Mutex<Vec<Aspect>>>,
 
     /**
      * Internal Path->File cache map
@@ -277,6 +279,18 @@ impl Store {
                 Aspect::new(n, cfg)
             }).collect();
 
+        let pre_move_aspects = get_pre_move_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
+        let post_move_aspects = get_post_move_aspect_names(&store_config)
+            .into_iter().map(|n| {
+                let cfg = AspectConfig::get_for(&store_config, n.clone());
+                Aspect::new(n, cfg)
+            }).collect();
+
         let store = Store {
             location: location.clone(),
             configuration: store_config,
@@ -291,6 +305,8 @@ impl Store {
             post_update_aspects   : Arc::new(Mutex::new(post_update_aspects)),
             pre_delete_aspects    : Arc::new(Mutex::new(pre_delete_aspects)),
             post_delete_aspects   : Arc::new(Mutex::new(post_delete_aspects)),
+            pre_move_aspects    : Arc::new(Mutex::new(pre_move_aspects)),
+            post_move_aspects   : Arc::new(Mutex::new(post_move_aspects)),
             entries: Arc::new(RwLock::new(HashMap::new())),
         };
 
@@ -589,6 +605,94 @@ impl Store {
             .map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
             .map_err(Box::new)
             .map_err(|e| SEK::DeleteCallError.into_error_with_cause(e))
+    }
+
+    /// Save a copy of the Entry in another place
+    /// Executes the post_move_aspects for the new id
+    pub fn save_to(&self, entry: &FileLockEntry, new_id: StoreId) -> Result<()> {
+        self.save_to_other_location(entry, new_id, false)
+    }
+
+    /// Save an Entry in another place
+    /// Removes the original entry
+    /// Executes the post_move_aspects for the new id
+    pub fn save_as(&self, entry: FileLockEntry, new_id: StoreId) -> Result<()> {
+        self.save_to_other_location(&entry, new_id, true)
+    }
+
+    fn save_to_other_location(&self, entry: &FileLockEntry, new_id: StoreId, remove_old: bool)
+        -> Result<()>
+    {
+        use std::fs::copy;
+        use std::fs::remove_file;
+
+        let new_id = self.storify_id(new_id);
+        let hsmap = self.entries.write();
+        if hsmap.is_err() {
+            return Err(SE::new(SEK::LockPoisoned, None))
+                .map_err(|e| SEK::MoveCallError.into_error_with_cause(Box::new(e)))
+        }
+        if hsmap.unwrap().contains_key(&new_id) {
+            return Err(SE::new(SEK::EntryAlreadyExists, None))
+                .map_err(|e| SEK::MoveCallError.into_error_with_cause(Box::new(e)))
+        }
+
+        let old_id = entry.get_location().clone();
+
+        copy(old_id.clone(), new_id.clone())
+            .and_then(|_| {
+                if remove_old {
+                    remove_file(old_id)
+                } else {
+                    Ok(())
+                }
+            })
+            .map_err(|e| SE::new(SEK::FileError, Some(Box::new(e))))
+            .and_then(|_| self.execute_hooks_for_id(self.post_move_aspects.clone(), &new_id)
+                    .map_err(|e| SE::new(SEK::PostHookExecuteError, Some(Box::new(e)))))
+            .map_err(|e| SEK::MoveCallError.into_error_with_cause(Box::new(e)))
+    }
+
+    /// Move an entry without loading
+    pub fn move_by_id(&self, old_id: StoreId, new_id: StoreId) -> Result<()> {
+        use std::fs::rename;
+
+        let new_id = self.storify_id(new_id);
+        let old_id = self.storify_id(old_id);
+
+        if let Err(e) = self.execute_hooks_for_id(self.pre_move_aspects.clone(), &old_id) {
+            if e.is_aborting() {
+                return Err(e)
+                    .map_err(|e| SE::new(SEK::PreHookExecuteError, Some(Box::new(e))))
+                    .map_err(Box::new)
+                    .map_err(|e| SEK::MoveByIdCallError.into_error_with_cause(e))
+            } else {
+                trace_error(&e);
+            }
+        }
+
+        let hsmap = self.entries.write();
+        if hsmap.is_err() {
+            return Err(SE::new(SEK::LockPoisoned, None))
+        }
+        if hsmap.unwrap().contains_key(&old_id) {
+            return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
+        } else {
+            match rename(old_id, new_id.clone()) {
+                Err(e) => {
+                    let kind = SEK::EntryRenameError;
+                    return Err(SE::new(kind, Some(Box::new(e))));
+                },
+                _ => {
+                    debug!("Rename worked");
+                },
+            }
+        }
+
+        self.execute_hooks_for_id(self.pre_move_aspects.clone(), &new_id)
+            .map_err(|e| SE::new(SEK::PostHookExecuteError, Some(Box::new(e))))
+            .map_err(Box::new)
+            .map_err(|e| SEK::MoveByIdCallError.into_error_with_cause(e))
     }
 
     /// Gets the path where this store is on the disk

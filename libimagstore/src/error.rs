@@ -33,6 +33,7 @@ generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     GlobError               => "glob() error",
     EncodingError           => "Encoding error",
     StorePathError          => "Store Path error",
+    EntryRenameError        => "Entry rename error",
 
     CreateCallError            => "Error when calling create()",
     RetrieveCallError          => "Error when calling retrieve()",
@@ -41,8 +42,9 @@ generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     RetrieveForModuleCallError => "Error when calling retrieve_for_module()",
     UpdateCallError            => "Error when calling update()",
     RetrieveCopyCallError      => "Error when calling retrieve_copy()",
-    DeleteCallError            => "Error when calling delete()"
-
+    DeleteCallError            => "Error when calling delete()",
+    MoveCallError              => "Error when calling move()",
+    MoveByIdCallError          => "Error when calling move_by_id()"
 );
 
 generate_custom_error_types!(ParserError, ParserErrorKind, CustomErrorData,
