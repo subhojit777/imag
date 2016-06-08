@@ -92,6 +92,17 @@ impl DiaryId {
         self
     }
 
+    pub fn now(name: String) -> DiaryId {
+        use chrono::offset::local::Local;
+
+        let now = Local::now();
+        let now_date = now.date().naive_local();
+        let now_time = now.time();
+        let dt = NaiveDateTime::new(now_date, now_time);
+
+        DiaryId::new(name, dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute())
+    }
+
 }
 
 impl Default for DiaryId {
