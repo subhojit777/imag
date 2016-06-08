@@ -18,6 +18,7 @@ pub fn tag_add_arg<'a, 'b>() -> Arg<'a, 'b> {
         .short("a")
         .long("add")
         .takes_value(true)
+        .value_name("tags")
         .multiple(true)
         .help("Add tags, seperated by comma or by specifying multiple times")
 }
@@ -27,6 +28,7 @@ pub fn tag_remove_arg<'a, 'b>() -> Arg<'a, 'b> {
         .short("r")
         .long("remove")
         .takes_value(true)
+        .value_name("tags")
         .multiple(true)
         .help("Remove tags, seperated by comma or by specifying multiple times")
 }

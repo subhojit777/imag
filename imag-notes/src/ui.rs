@@ -13,7 +13,8 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .short("n")
                         .takes_value(true)
                         .required(true)
-                        .help("Create Note with this name"))
+                        .help("Create Note with this name")
+                        .value_name("NAME"))
                    .arg(Arg::with_name("edit")
                         .long("edit")
                         .short("e")
@@ -30,7 +31,8 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .short("n")
                         .takes_value(true)
                         .required(true)
-                        .help("Delete Note with this name")))
+                        .help("Delete Note with this name")
+                        .value_name("NAME")))
 
         .subcommand(SubCommand::with_name("edit")
                    .about("Edit a Note")
@@ -40,7 +42,8 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .short("n")
                         .takes_value(true)
                         .required(true)
-                        .help("Edit Note with this name"))
+                        .help("Edit Note with this name")
+                        .value_name("NAME"))
 
                    .arg(tag_argument())
                    .group(ArgGroup::with_name("editargs")
@@ -53,5 +56,3 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                    .version("0.1"))
 
 }
-
-
