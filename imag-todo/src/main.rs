@@ -1,5 +1,6 @@
 extern crate clap;
 extern crate glob;
+extern crate task_hookrs;
 #[macro_use] extern crate log;
 extern crate semver;
 extern crate toml;
@@ -11,15 +12,12 @@ extern crate libimagutil;
 
 use std::process::exit;
 use std::process::{Command, Stdio};
-use std::io::prelude::*;
-use std::io::BufReader;
-use std::fs::File;
+use std::error::Error;
 
 use libimagrt::runtime::Runtime;
-use libimagstore::store::FileLockEntry;
-use libimagutil::trace::trace_error;
-use std::error::Error;
-use std::env;
+use std::process::Output;
+use std::io::Write;
+use std::io::Read;
 
 mod ui;
 
@@ -71,21 +69,30 @@ fn main() {
         },
         Some("exec") => {
 		let subcmd = rt.cli().subcommand_matches("exec").unwrap();
-		let mut string = String::from("");
-		//let args: Vec<_> = env::args().collect();
-		//println!("{:?}", args);
-		if let Some(execString) = subcmd.values_of("command") {
-			for e in execString {
-				string.push_str(e);
-				string.push_str(" ");
+		let mut args = Vec::new();
+		if let Some(exec_string) = subcmd.values_of("command") {
+			for e in exec_string {
+				args.push(e);
 			}
-		//NOW SEND "string" to taskwarrior
-		
+			let mut tw_process = Command::new("/usr/local/bin/task").stdin(Stdio::null()).args(&args).spawn().unwrap();
+			//let erg = tw_process.args(&args).spawn().unwrap(); //{
+			//	Ok(_) => debug!("Executed command:\n"),
+			//	Err(e) => debug!("Failed to execute command: {:#?}", e),
+			//}
+			let output = tw_process.wait_with_output().unwrap();
+			let outstring = String::from_utf8(output.stdout).unwrap();
+			println!("{}", outstring);
+			//let mut s = String::new();
+    			//match tw_process.stdout.unwrap().read_to_string(&mut s) {
+       		 	//Err(err) => panic!("couldn't read taskwarrior stdout: {}",
+      	                //     err.description()),
+       		 	//Ok(_) => print!("taskwarrior responded with:\n{}", s),
+   			//}
 		} else {
-			println!("false");
+			println!("You need '--command'");
 		}
             },
-                _ => println!("Nothing implemented yet"),
+                _ => panic!("Reached unreachable Code"),
         }
     
 }
