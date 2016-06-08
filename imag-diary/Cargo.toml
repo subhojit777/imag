@@ -18,6 +18,9 @@ path = "../libimagdiary"
 [dependencies.libimagentrylist]
 path = "../libimagentrylist"
 
+[dependencies.libimagentryview]
+path = "../libimagentryview"
+
 [dependencies.libimagerror]
 path = "../libimagerror"
 

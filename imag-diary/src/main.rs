@@ -5,6 +5,7 @@ extern crate chrono;
 
 extern crate libimagdiary;
 extern crate libimagentrylist;
+extern crate libimagentryview;
 extern crate libimaginteraction;
 extern crate libimagrt;
 extern crate libimagstore;
@@ -22,12 +23,15 @@ use libimagdiary::error::DiaryError as DE;
 use libimagdiary::error::DiaryErrorKind as DEK;
 use libimagentrylist::listers::core::CoreLister;
 use libimagentrylist::lister::Lister;
+use libimagentryview::viewer::Viewer;
+use libimagentryview::builtin::plain::PlainViewer;
 use libimagrt::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagstore::storeid::StoreId;
 use libimagerror::trace::trace_error;
 use libimagtimeui::datetime::DateTime;
 use libimagtimeui::parse::Parse;
+use libimagstore::store::FileLockEntry;
 
 mod ui;
 
@@ -59,6 +63,7 @@ fn main() {
                 "edit" => edit(&rt),
                 "list" => list(&rt),
                 "diary" => diary(&rt),
+                "view" => view(&rt),
                 _        => {
                     debug!("Unknown command"); // More error handling
                 },
@@ -293,6 +298,31 @@ fn diary(rt: &Runtime) {
     unimplemented!()
 }
 
+fn view(rt: &Runtime) {
+    let diaryname = get_diary_name(rt);
+    if diaryname.is_none() {
+        warn!("No diary name");
+        exit(1);
+    }
+    let diaryname = diaryname.unwrap();
+    let diary = Diary::open(rt.store(), &diaryname[..]);
+    let show_header = rt.cli().subcommand_matches("view").unwrap().is_present("show-header");
+
+    match diary.entries() {
+        Ok(entries) => {
+            let pv = PlainViewer::new(show_header);
+            for entry in entries.into_iter().filter_map(Result::ok) {
+                let id = entry.diary_id();
+                println!("{} :\n", id);
+                pv.view_entry(&entry);
+                println!("\n---\n");
+            }
+        },
+        Err(e) => {
+            trace_error(&e);
+        },
+    }
+}
 
 fn get_diary_name(rt: &Runtime) -> Option<String> {
     use libimagdiary::config::get_default_diary_name;
