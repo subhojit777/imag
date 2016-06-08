@@ -91,5 +91,17 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .required(false)
                         .help("Do not ask for confirmation."))
                 )
+
+        .subcommand(SubCommand::with_name("view")
+                   .about("View entries, currently only supports plain viewing")
+                   .version("0.1")
+
+                   .arg(Arg::with_name("show-header")
+                        .long("header")
+                        .takes_value(false)
+                        .required(false)
+                        .help("Show the header when printing the entries"))
+                )
+
 }
 
