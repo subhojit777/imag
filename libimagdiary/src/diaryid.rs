@@ -1,4 +1,5 @@
 use std::convert::Into;
+use std::fmt::{Display, Formatter, Error as FmtError};
 
 use chrono::naive::datetime::NaiveDateTime;
 use chrono::naive::time::NaiveTime;
@@ -128,6 +129,15 @@ impl Into<String> for DiaryId {
 
     fn into(self) -> String {
         format!("{}/{:0>4}/{:0>2}/{:0>2}/{:0>2}:{:0>2}",
+                self.name, self.year, self.month, self.day, self.hour, self.minute)
+    }
+
+}
+
+impl Display for DiaryId {
+
+    fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
+        write!(fmt, "{}/{:0>4}/{:0>2}/{:0>2}/{:0>2}:{:0>2}",
                 self.name, self.year, self.month, self.day, self.hour, self.minute)
     }
 
