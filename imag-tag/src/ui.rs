@@ -8,7 +8,8 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                 .short("i")
                 .takes_value(true)
                 .required(true)
-                .help("Use this entry"))
+                .help("Use this entry")
+                .value_name("ID"))
 
         .arg(tag_add_arg())
         .arg(tag_remove_arg())
@@ -39,7 +40,8 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .short("s")
                         .takes_value(true)
                         .required(false)
-                        .help("Seperated by string"))
+                        .help("Separated by string")
+                        .value_name("SEP"))
 
                    .group(ArgGroup::with_name("list-group")
                           .args(&[
@@ -52,5 +54,3 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                    )
 
 }
-
-
