@@ -7,14 +7,16 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .short("i")
             .takes_value(true)
             .required(true)
-            .help("View this entry at this store path"))
+            .help("View this entry at this store path")
+            .value_name("ID"))
 
         .arg(Arg::with_name("version")
             .long("version")
             .short("V")
             .takes_value(true)
             .required(false)
-            .help("View this version (youngest if not specified)"))
+            .help("View this version (youngest if not specified)")
+            .value_name("VERSION"))
 
         .arg(Arg::with_name("versions")
             .long("versions")
@@ -71,21 +73,24 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .short("b")
                         .takes_value(true) // optional, which browser
                         .required(false)
-                        .help("View content in $BROWSER (fails if no env variable $BROWSER)"))
+                        .help("View content in $BROWSER (fails if no env variable $BROWSER)")
+                        .value_name("BROWSER"))
 
                    .arg(Arg::with_name("view-in-texteditor")
                         .long("editor")
                         .short("e")
                         .takes_value(true) // optional, which editor
                         .required(false)
-                        .help("View content in $EDITOR"))
+                        .help("View content in $EDITOR")
+                        .value_name("EDITOR"))
 
                    .arg(Arg::with_name("view-in-custom")
                         .long("custom")
                         .short("c")
                         .takes_value(true) // non-optional, call-string
                         .required(false)
-                        .help("View content in custom program, for example 'libreoffice %e', replace '%e' with entry path"))
+                        .help("View content in custom program, for example 'libreoffice %e', replace '%e' with entry path")
+                        .value_name("PROGRAM"))
 
                    .group(ArgGroup::with_name("viewer")
                           .args(&["view-in-stdout",
@@ -105,15 +110,15 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .short("f")
                         .takes_value(true) // "markdown" or "textile" or "restructuredtex"
                         .required(true)
-                        .help("Compile from"))
+                        .help("Compile from")
+                        .value_name("FORMAT"))
 
                    .arg(Arg::with_name("to")
                         .long("to")
                         .short("t")
                         .takes_value(true) // "html" or "HTML" or ... json maybe?
                         .required(true)
-                        .help("Compile to"))
+                        .help("Compile to")
+                        .value_name("FORMAT"))
                    )
 }
-
-
