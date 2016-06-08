@@ -102,5 +102,8 @@ impl<'a> Diary<'a> {
         }
     }
 
+    pub fn name(&self) -> &'a str {
+        &self.name
+    }
 }
 
