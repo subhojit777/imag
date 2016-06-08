@@ -630,9 +630,11 @@ impl Store {
         let hsmap = self.entries.write();
         if hsmap.is_err() {
             return Err(SE::new(SEK::LockPoisoned, None))
+                .map_err(|e| SEK::MoveCallError.into_error_with_cause(Box::new(e)))
         }
         if hsmap.unwrap().contains_key(&new_id) {
             return Err(SE::new(SEK::EntryAlreadyExists, None))
+                .map_err(|e| SEK::MoveCallError.into_error_with_cause(Box::new(e)))
         }
 
         let old_id = entry.get_location().clone();
@@ -646,7 +648,9 @@ impl Store {
                 }
             })
             .map_err(|e| SE::new(SEK::FileError, Some(Box::new(e))))
-            .and_then(|_| self.execute_hooks_for_id(self.post_move_aspects.clone(), &new_id))
+            .and_then(|_| self.execute_hooks_for_id(self.post_move_aspects.clone(), &new_id)
+                    .map_err(|e| SE::new(SEK::PostHookExecuteError, Some(Box::new(e)))))
+            .map_err(|e| SEK::MoveCallError.into_error_with_cause(Box::new(e)))
     }
 
     /// Move an entry without loading
