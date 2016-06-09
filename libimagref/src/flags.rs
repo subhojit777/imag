@@ -37,8 +37,9 @@ impl RefFlags {
         self.with_content_hashing(b)
     }
 
-    pub fn with_content_hashing(self, b: bool) -> RefFlags {
-        unimplemented!()
+    pub fn with_content_hashing(mut self, b: bool) -> RefFlags {
+        self.content_hashing = b;
+        self
     }
 
     pub fn with_permission_tracking(mut self, b: bool) -> RefFlags {
