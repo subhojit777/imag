@@ -12,18 +12,14 @@ extern crate libimagutil;
 
 use std::process::exit;
 use std::process::{Command, Stdio};
-use std::error::Error;
 
 use libimagrt::runtime::Runtime;
-use std::process::Output;
-use std::io::Write;
-use std::io::Read;
 
 mod ui;
 
 use ui::build_ui;
-
 fn main() {
+
     let name = "imag-todo";
     let version = &version!()[..];
     let about = "Interface with taskwarrior";
@@ -74,22 +70,19 @@ fn main() {
 			for e in exec_string {
 				args.push(e);
 			}
-			let mut tw_process = Command::new("/usr/local/bin/task").stdin(Stdio::null()).args(&args).spawn().unwrap();
-			//let erg = tw_process.args(&args).spawn().unwrap(); //{
-			//	Ok(_) => debug!("Executed command:\n"),
-			//	Err(e) => debug!("Failed to execute command: {:#?}", e),
-			//}
-			let output = tw_process.wait_with_output().unwrap();
-			let outstring = String::from_utf8(output.stdout).unwrap();
+			let mut tw_process = Command::new("/usr/local/bin/task").stdin(Stdio::null()).args(&args).spawn().unwrap_or_else(|e| {
+				panic!("failed to execute taskwarrior: {}", e);
+			});
+			
+			let output = tw_process.wait_with_output().unwrap_or_else(|e| {
+				panic!("failed to unwrap output: {}", e);
+			});
+			let outstring = String::from_utf8(output.stdout).unwrap_or_else(|e| {
+				panic!("failed to ececute: {}", e);
+			});
 			println!("{}", outstring);
-			//let mut s = String::new();
-    			//match tw_process.stdout.unwrap().read_to_string(&mut s) {
-       		 	//Err(err) => panic!("couldn't read taskwarrior stdout: {}",
-      	                //     err.description()),
-       		 	//Ok(_) => print!("taskwarrior responded with:\n{}", s),
-   			//}
 		} else {
-			println!("You need '--command'");
+			panic!("faild to execute: You need to exec --command");
 		}
             },
                 _ => panic!("Reached unreachable Code"),
