@@ -12,4 +12,8 @@ extern crate walkdir;
 
 module_entry_path_mod!("ref", "0.1.0");
 
-pub mod ref;
+pub mod reference;
+pub mod flags;
+pub mod error;
+pub mod result;
+
