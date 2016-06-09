@@ -53,7 +53,7 @@ impl RefFlags {
     }
 
     pub fn get_permission_tracking(&self) -> bool {
-        unimplemented!()
+        self.permission_tracking
     }
 
 }
