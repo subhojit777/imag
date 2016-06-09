@@ -18,7 +18,18 @@ impl RefFlags {
     /// Assumes that the whole TOML tree is passed. So this looks up `ref.flags` to get the flags.
     /// It assumes that this is a Map with Key = <name of the setting> and Value = boolean.
     pub fn read(v: &Value) -> Result<RefFlags> {
-        unimplemented!()
+        fn get_field(v: &Value, key: &str) -> Result<bool> {
+            match v.lookup(key) {
+                Some(&Value::Boolean(b)) => Ok(b),
+                Some(_) => Err(REK::HeaderTypeError.into()),
+                None    => Err(REK::HeaderFieldMissingError.into()),
+            }
+        }
+
+        Ok(RefFlags {
+            content_hashing:     try!(get_field(v, "ref.flags.content_hashing")),
+            permission_tracking: try!(get_field(v, "ref.flags.permission_tracking")),
+        })
     }
 
     /// Build a TOML::Value from this RefFlags object.
