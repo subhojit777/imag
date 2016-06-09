@@ -42,7 +42,7 @@ impl RefFlags {
         self
     }
 
-    pub fn with_permission_tracking(mut self, b: bool) -> RefFlags {
+    pub fn with_permission_tracking(self, b: bool) -> RefFlags {
         self.permission_tracking = b;
         self
     }
