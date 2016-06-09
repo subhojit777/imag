@@ -49,7 +49,7 @@ impl RefFlags {
 
 
     pub fn get_content_hashing(&self) -> bool {
-        unimplemented!()
+        self.content_hashing
     }
 
     pub fn get_permission_tracking(&self) -> bool {
