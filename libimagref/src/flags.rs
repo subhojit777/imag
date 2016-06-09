@@ -32,13 +32,6 @@ impl RefFlags {
         })
     }
 
-    /// Build a TOML::Value from this RefFlags object.
-    ///
-    /// Returns a Map which should be set in `ref.flags` in the header.
-    pub fn into_toml(self) -> Result<Value> {
-        unimplemented!()
-    }
-
     /// Alias for `RefFlags::content_hashing()`
     pub fn is_often_moving(mut self, b: bool) -> RefFlags {
         self.with_content_hashing(b)
@@ -60,6 +53,20 @@ impl RefFlags {
 
     pub fn get_permission_tracking(&self) -> bool {
         unimplemented!()
+    }
+
+}
+
+impl Into<Value> for RefFlags {
+
+    /// Build a TOML::Value from this RefFlags object.
+    ///
+    /// Returns a Map which should be set in `ref.flags` in the header.
+    fn into(self) -> Value {
+        let mut btm = BTreeMap::new();
+        btm.insert(String::from("content_hashing"),     Value::Boolean(self.content_hashing));
+        btm.insert(String::from("permission_tracking"), Value::Boolean(self.permission_tracking));
+        return Value::Table(btm)
     }
 
 }
