@@ -5,6 +5,10 @@ So you want to contribute to imag! Thank you, that's awesome of you!
 If you already have something in mind, go ahead with [the prerequisites
 section](#prerequisites). If you don't know what you could do, start here.
 
+All contribors agree to the
+[developer certificate of origin](#developer-certificate-of-origin)
+by contributing to imag.
+
 ## Finding an issue
 
 Finding an issue is simple: We have
