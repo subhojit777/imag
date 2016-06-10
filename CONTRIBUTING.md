@@ -9,6 +9,27 @@ All contribors agree to the
 [developer certificate of origin](#developer-certificate-of-origin)
 by contributing to imag.
 
+## Without Github
+
+If you do not want to use github for your contribution, this is completely okay
+with us. Feel free to contact [me](https://github.com/matthiasbeyer) via mail,
+feel also free to submit patches via mail (use `git format-patch` and
+`git send-email`, always add a cover letter to describe your submission).
+
+Also ensure that each commit has
+[a "Signed-off-by: " line](https://stackoverflow.com/questions/1962094/what-is-the-sign-off-feature-in-git-for).
+By adding that line, you agree to our
+[developer certificate of origin](#developer-certificate-of-origin).
+
+We do not have a mailinglist, so we do not have a process where all contributors
+can review your PR. This means that once _I am_ okay with your patchset, I will
+submit it as PR in the github repository, so more people can review it and CI
+can test it. I might come back to you if something broke in CI or someone has a
+suggestion how to improve your PR.
+I will keep you as author auf the commits.
+
+The following sections describe the way how to contribute with github.
+
 ## Finding an issue
 
 Finding an issue is simple: We have
