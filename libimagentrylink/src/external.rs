@@ -45,15 +45,7 @@ impl<'a> Link<'a> {
     /// For interal use only. Load an Link from a store id, if this is actually a Link
     fn retrieve(store: &'a Store, id: StoreId) -> Result<Option<Link<'a>>> {
         store.retrieve(id)
-            .map(|fle| {
-                if let Some(_) = Link::get_link_uri_from_filelockentry(&fle) {
-                    Some(Link {
-                        link: fle
-                    })
-                } else {
-                    None
-                }
-            })
+            .map(|fle| Link::get_link_uri_from_filelockentry(&fle).map(|_| Link { link: fle }))
             .map_err(|e| LE::new(LEK::StoreReadError, Some(Box::new(e))))
     }
 
