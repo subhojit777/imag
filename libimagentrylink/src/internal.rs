@@ -137,25 +137,19 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
 }
 
 fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
-    if links.is_err() {
-        debug!("RW action on store failed. Generating LinkError");
-        return Err(LEK::EntryHeaderReadError.into_error_with_cause(Box::new(links.unwrap_err())))
-    }
-    let links = links.unwrap();
-
-    if links.is_none() {
-        debug!("We got no value from the header!");
-        return Ok(vec![])
-    }
-    let links = links.unwrap();
-
-    let links = {
-        match links {
-            Value::Array(a) => a,
-            _ => {
-                debug!("We expected an Array for the links, but there was a non-Array!");
-                return Err(LEK::ExistingLinkTypeWrong.into());
-            },
+    let links = match links {
+        Err(e) => {
+            debug!("RW action on store failed. Generating LinkError");
+            return Err(LEK::EntryHeaderReadError.into_error_with_cause(Box::new(e)))
+        },
+        Ok(None) => {
+            debug!("We got no value from the header!");
+            return Ok(vec![])
+        },
+        Ok(Some(Value::Array(l))) => l,
+        Ok(Some(_)) => {
+            debug!("We expected an Array for the links, but there was a non-Array!");
+            return Err(LEK::ExistingLinkTypeWrong.into());
         }
     };
 
