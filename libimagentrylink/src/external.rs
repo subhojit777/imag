@@ -54,11 +54,9 @@ impl<'a> Link<'a> {
         file.get_header()
             .read("imag.content.uri")
             .ok()
-            .and_then(|opt| {
-                match opt {
-                    Some(Value::String(s)) => Url::parse(&s[..]).ok(),
-                    _ => None
-                }
+            .and_then(|opt| match opt {
+                Some(Value::String(s)) => Url::parse(&s[..]).ok(),
+                _ => None
             })
     }
 
