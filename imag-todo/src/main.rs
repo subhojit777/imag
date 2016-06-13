@@ -70,7 +70,7 @@ fn main() {
 			for e in exec_string {
 				args.push(e);
 			}
-			let mut tw_process = Command::new("/usr/local/bin/task").stdin(Stdio::null()).args(&args).spawn().unwrap_or_else(|e| {
+			let mut tw_process = Command::new("task").stdin(Stdio::null()).args(&args).spawn().unwrap_or_else(|e| {
 				panic!("failed to execute taskwarrior: {}", e);
 			});
 			
