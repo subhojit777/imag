@@ -54,6 +54,11 @@ impl<'a> Ref<'a> {
         unimplemented!()
     }
 
+    /// Alias for `!Ref::fs_link_exists()`
+    pub fn is_dangling(&self) -> bool {
+        !self.fs_link_exists()
+    }
+
     /// check whether the pointer the Ref represents is valid
     /// This includes:
     ///     - Hashsum of the file is still the same as stored in the Ref
