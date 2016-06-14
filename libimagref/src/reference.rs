@@ -54,6 +54,11 @@ impl<'a> Ref<'a> {
         unimplemented!()
     }
 
+    /// Alias for `r.fs_link_exists() && r.deref().is_file()`
+    pub fn is_ref_to_file(&self) -> bool {
+        unimplemented!()
+    }
+
     /// Alias for `!Ref::fs_link_exists()`
     pub fn is_dangling(&self) -> bool {
         !self.fs_link_exists()
