@@ -8,17 +8,34 @@ use std::ops::DerefMut;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::store::Store;
+use libimagerror::into::IntoError;
 
-use result::Result;
+use toml::Value;
+
+use error::RefErrorKind as REK;
 use flags::RefFlags;
+use result::Result;
 
 pub struct Ref<'a>(FileLockEntry<'a>);
 
 impl<'a> Ref<'a> {
 
-    /// Try to open `si` as Ref object from the store
-    pub fn open(store: &Store, si: StoreId) -> Result<Ref<'a>> {
-        unimplemented!()
+    /// Try to get `si` as Ref object from the store
+    pub fn get(store: &'a Store, si: StoreId) -> Result<Ref<'a>> {
+        match store.get(si) {
+            Err(e) => return Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
+            Ok(None) => return Err(REK::RefNotInStore.into_error()),
+            Ok(Some(fle)) => Ref::read_reference(&fle).map(|_| Ref(fle)),
+        }
+    }
+
+    fn read_reference(fle: &FileLockEntry<'a>) -> Result<PathBuf> {
+        match fle.get_header().read("ref.reference") {
+            Ok(Some(Value::String(s))) => Ok(PathBuf::from(s)),
+            Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
+            Ok(None)    => Err(REK::HeaderFieldMissingError.into_error()),
+            Err(e)      => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
+        }
     }
 
     /// Create a Ref object which refers to `pb`
