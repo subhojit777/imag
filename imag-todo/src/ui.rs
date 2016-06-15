@@ -1,7 +1,7 @@
 use clap::{Arg, App, ArgGroup, SubCommand};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
-    app
+	app
         .subcommand(SubCommand::with_name("tw-hook")
                     .about("For use in a taskwarrior hook")
                     .version("0.1")
@@ -35,8 +35,10 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                          .long("command")
                          .short("c")
                          .takes_value(true)
+			 .multiple(true)
                          .required(true)
                          .help("Args written in the string will be send directly to taskwarrior"))
-                    )
-}
 
+                    )
+
+} 

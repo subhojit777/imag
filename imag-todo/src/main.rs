@@ -1,5 +1,6 @@
 extern crate clap;
 extern crate glob;
+extern crate task_hookrs;
 #[macro_use] extern crate log;
 extern crate semver;
 extern crate toml;
@@ -10,20 +11,20 @@ extern crate libimagstore;
 extern crate libimagutil;
 
 use std::process::exit;
+use std::process::{Command, Stdio};
 
 use libimagrt::runtime::Runtime;
-use libimagstore::store::FileLockEntry;
-use libimagutil::trace::trace_error;
 
 mod ui;
 
 use ui::build_ui;
-
 fn main() {
+
     let name = "imag-todo";
     let version = &version!()[..];
     let about = "Interface with taskwarrior";
     let ui = build_ui(Runtime::get_default_cli_builder(name, version, about));
+    
     let rt = {
         let rt = Runtime::new(ui);
         if rt.is_ok() {
@@ -34,6 +35,8 @@ fn main() {
             exit(1);
         }
     };
+
+    
 
     let scmd = rt.cli().subcommand_name();
     match scmd {
@@ -61,7 +64,29 @@ fn main() {
             }
         },
         Some("exec") => {
-        },
-        _ => println!("Nothing implemented yet"),
-    }
+		let subcmd = rt.cli().subcommand_matches("exec").unwrap();
+		let mut args = Vec::new();
+		if let Some(exec_string) = subcmd.values_of("command") {
+			for e in exec_string {
+				args.push(e);
+			}
+			let mut tw_process = Command::new("task").stdin(Stdio::null()).args(&args).spawn().unwrap_or_else(|e| {
+				panic!("failed to execute taskwarrior: {}", e);
+			});
+			
+			let output = tw_process.wait_with_output().unwrap_or_else(|e| {
+				panic!("failed to unwrap output: {}", e);
+			});
+			let outstring = String::from_utf8(output.stdout).unwrap_or_else(|e| {
+				panic!("failed to ececute: {}", e);
+			});
+			println!("{}", outstring);
+		} else {
+			panic!("faild to execute: You need to exec --command");
+		}
+            },
+                _ => panic!("Reached unreachable Code"),
+        }
+    
 }
+

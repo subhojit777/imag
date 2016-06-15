@@ -10,6 +10,7 @@ log = "0.3.6"
 semver = "0.2.3"
 toml = "0.1.28"
 version = "2.0.1"
+task-hookrs = "0.1.0"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
