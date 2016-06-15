@@ -1,67 +1,56 @@
 
-
-use libimagstore::storeid::StoreIdIterator;
-use libimagstore::store::{FileLockEntry, Store};
-use libimagstore::storeid::StoreId;
-use module_path::ModuleEntryPath;
+use libimagstore::storeid::{StoreIdIterator, StoreId};
+use libimagstore::store::Store;
 use error::{TodoError, TodoErrorKind};
+use task::Task;
 
 use std::result::Result as RResult;
 
 pub type Result<T> = RResult<T, TodoError>;
 
-pub struct Read<'a> {
-	 entry: FileLockEntry<'a>,
+
+pub fn all_todos(store: &Store) -> Result<TaskIterator> {  
+     
+    store.retrieve_for_module("uuid")
+        .map(|iter| TaskIterator::new(store, iter))
+        .map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
 }
-
-pub fn all_uuids(store: &Store) -> Result<ReadIterator> {
-		store.retrieve_for_module("uuid")
-			.map(|iter| ReadIterator::new(store, iter))
-			.map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
-}
-
-
-
 
 trait FromStoreId {
-    fn from_storeid<'a>(&'a Store, StoreId) -> Result<Read<'a>>;
+    fn from_storeid<'a>(&'a Store, StoreId) -> Result<Task<'a>>;
 }
 
-impl<'a> FromStoreId for Read<'a> {
+impl<'a> FromStoreId for Task<'a> {
 
-    fn from_storeid<'b>(store: &'b Store, id: StoreId) -> Result<Read<'b>> {
-        match store.retrieve(id) {     
-        	Err(e) => Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e)))),       
-            Ok(c)  => Ok(Read { entry: c }),
-        }
+    fn from_storeid<'b>(store: &'b Store, id: StoreId) -> Result<Task<'b>> {
+    match store.retrieve(id) {	   
+        Err(e) => Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e)))),	   
+	    Ok(c)  => Ok(Task::new( c )),
+	    }
     }
-
 }
 
-
-pub struct ReadIterator<'a> {
+pub struct TaskIterator<'a> {
     store: &'a Store,
     iditer: StoreIdIterator,
 }
 
-impl<'a> ReadIterator<'a> {
+impl<'a> TaskIterator<'a> {
 
-    pub fn new(store: &'a Store, iditer: StoreIdIterator) -> ReadIterator<'a> {
-        ReadIterator {
-            store: store,
-            iditer: iditer,
-        }
+    pub fn new(store: &'a Store, iditer: StoreIdIterator) -> TaskIterator<'a> {
+	TaskIterator {
+	    store: store,
+	    iditer: iditer,
+	    }
     }
-
 }
 
-impl<'a> Iterator for ReadIterator<'a> {
-    type Item = Result<Read<'a>>;
+impl<'a> Iterator for TaskIterator<'a> {
+    type Item = Result<Task<'a>>;
 
-    fn next(&mut self) -> Option<Result<Read<'a>>> {
-        self.iditer
-            .next()
-            .map(|id| Read::from_storeid(self.store, id))
+    fn next(&mut self) -> Option<Result<Task<'a>>> {
+	self.iditer
+	    .next()
+	    .map(|id| Task::from_storeid(self.store, id))
     }
-
 }
