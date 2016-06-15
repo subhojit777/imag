@@ -82,5 +82,5 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .required(false)
                         .help("Frequency of the recurrence of a task")
                     )
-
+        )
 }
