@@ -178,8 +178,19 @@ impl<'a> Ref<'a> {
 
     /// Creates a Hash from a PathBuf by making the PathBuf absolute and then running a hash
     /// algorithm on it
-    fn hash_path(pb: &PathBuf) -> String {
-        unimplemented!()
+    fn hash_path(pb: &PathBuf) -> Result<String> {
+        use std::io::Read;
+        use crypto::sha1::Sha1;
+        use crypto::digest::Digest;
+
+        match pb.to_str() {
+            Some(s) => {
+                let mut hasher = Sha1::new();
+                hasher.input_str(s);
+                Ok(hasher.result_str())
+            },
+            None => return Err(REK::PathUTF8Error.into_error()),
+        }
     }
 
     /// check whether the pointer the Ref represents still points to a file which exists
