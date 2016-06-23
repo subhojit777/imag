@@ -2,6 +2,7 @@ generate_error_module!(
     generate_error_types!(RefError, RefErrorKind,
         StoreReadError          => "Store read error",
         StoreWriteError         => "Store write error",
+        IOError                 => "IO Error",
         HeaderTypeError         => "Header type error",
         HeaderFieldMissingError => "Header field missing error",
         HeaderFieldWriteError   => "Header field cannot be written",

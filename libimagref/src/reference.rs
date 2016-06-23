@@ -223,8 +223,31 @@ impl<'a> Ref<'a> {
     }
 
     /// Check whether the Hashsum of the referenced file is equal to the stored hashsum
-    pub fn fs_link_valid_hash(&self) -> bool {
-        unimplemented!()
+    pub fn fs_link_valid_hash(&self) -> Result<bool> {
+        let stored_hash = try!(match self.0.get_header().read("ref.content_hash") {
+            // content hash stored...
+            Ok(Some(Value::String(s))) => Ok(s),
+
+            // content hash header field has wrong type
+            Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
+
+            // content hash not stored
+            Ok(None) => Err(REK::HeaderFieldMissingError.into_error()),
+
+            // Error
+            Err(e) => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
+        });
+
+        let current_hash = try!(self.fs_file()
+            .and_then(|pb| {
+                File::open(pb)
+                    .map_err(Box::new)
+                    .map_err(|e| REK::IOError.into_error_with_cause(e))
+            })
+            .map(|mut file| hash_file_contents(&mut file))
+        );
+
+        Ok(stored_hash == current_hash)
     }
 
     /// Update the Ref by re-checking the file from FS
