@@ -268,7 +268,56 @@ impl<'a> Ref<'a> {
 
     /// Check whether there is a reference to the file at `pb`
     pub fn exists(store: &Store, pb: PathBuf) -> Result<bool> {
-        unimplemented!()
+        pb.canonicalize()
+            .map_err(Box::new)
+            .map_err(|e| REK::PathCanonicalizationError.into_error_with_cause(e))
+            .and_then(|can| {
+                Ref::hash_path(&can)
+                    .map_err(Box::new)
+                    .map_err(|e| REK::PathHashingError.into_error_with_cause(e))
+            })
+            .and_then(|hash| {
+                store.retrieve_for_module("ref").map(|iter| (hash, iter))
+                    .map_err(Box::new)
+                    .map_err(|e| REK::StoreReadError.into_error_with_cause(e))
+            })
+            .and_then(|(hash, possible_refs)| {
+                // This is kind of a manual Iterator::filter() call what we do here, but with the
+                // actual ::filter method we cannot return the error in a nice way, so we do it
+                // manually here. If you can come up with a better version of this, feel free to
+                // take this note as a todo.
+                for r in possible_refs {
+                    let contains_hash = match r.to_str() {
+                        None => { // couldn't parse StoreId -> PathBuf -> &str
+                            // TODO: How to report this?
+                            return Err(REK::TypeConversionError.into_error());
+                        },
+                        Some(s) => s.contains(&hash[..]),
+                    };
+
+                    if !contains_hash {
+                        continue;
+                    }
+
+                    match store.get(r) {
+                        Ok(Some(fle)) => {
+                            if Ref::read_reference(&fle).map(|path| path == pb).unwrap_or(false) {
+                                return Ok(true)
+                            }
+                        },
+
+                        Ok(None) => { // Something weird just happened
+                            return Err(REK::StoreReadError.into_error());
+                        },
+
+                        Err(e) => {
+                            return Err(REK::StoreReadError.into_error_with_cause(Box::new(e)));
+                        },
+                    }
+                }
+
+                Ok(false)
+            })
     }
 
     /// Re-find a referenced file
