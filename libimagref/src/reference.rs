@@ -194,8 +194,8 @@ impl<'a> Ref<'a> {
     }
 
     /// check whether the pointer the Ref represents still points to a file which exists
-    pub fn fs_link_exists(&self) -> bool {
-        unimplemented!()
+    pub fn fs_link_exists(&self) -> Result<bool> {
+        self.fs_file().map(|pathbuf| pathbuf.exists())
     }
 
     /// Alias for `r.fs_link_exists() && r.deref().is_file()`
@@ -209,8 +209,8 @@ impl<'a> Ref<'a> {
     }
 
     /// Alias for `!Ref::fs_link_exists()`
-    pub fn is_dangling(&self) -> bool {
-        !self.fs_link_exists()
+    pub fn is_dangling(&self) -> Result<bool> {
+        self.fs_link_exists().map(|b| !b)
     }
 
     /// check whether the pointer the Ref represents is valid
