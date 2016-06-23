@@ -204,8 +204,8 @@ impl<'a> Ref<'a> {
     }
 
     /// Alias for `r.fs_link_exists() && r.deref().is_dir()`
-    pub fn is_ref_to_dir(&self) -> bool {
-        unimplemented!()
+    pub fn is_ref_to_dir(&self) -> Result<bool> {
+        self.fs_file().map(|pathbuf| pathbuf.is_dir())
     }
 
     /// Alias for `!Ref::fs_link_exists()`
