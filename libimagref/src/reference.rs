@@ -5,6 +5,8 @@ use std::path::PathBuf;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::collections::BTreeMap;
+use std::fs::File;
+use std::io::Read;
 
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
@@ -13,6 +15,8 @@ use libimagstore::store::Store;
 use libimagerror::into::IntoError;
 
 use toml::Value;
+use crypto::sha1::Sha1;
+use crypto::digest::Digest;
 
 use error::RefErrorKind as REK;
 use flags::RefFlags;
@@ -43,11 +47,6 @@ impl<'a> Ref<'a> {
 
     /// Create a Ref object which refers to `pb`
     pub fn create(store: &'a Store, pb: PathBuf, flags: RefFlags) -> Result<Ref<'a>> {
-        use std::fs::File;
-        use std::io::Read;
-        use crypto::sha1::Sha1;
-        use crypto::digest::Digest;
-
         if !pb.exists() {
             return Err(REK::RefTargetDoesNotExist.into_error());
         }
@@ -64,11 +63,7 @@ impl<'a> Ref<'a> {
                 // we hash the contents of the file and return (file, hash)
                 .and_then(|mut file| {
                     let opt_contenthash = if flags.get_content_hashing() {
-                        let mut hasher = Sha1::new();
-                        let mut s = String::new();
-                        file.read_to_string(&mut s);
-                        hasher.input_str(&s[..]);
-                        Some(hasher.result_str())
+                        Some(hash_file_contents(&mut file))
                     } else {
                         None
                     };
@@ -285,3 +280,12 @@ impl<'a> DerefMut for Ref<'a> {
     }
 
 }
+
+fn hash_file_contents(f: &mut File) -> String {
+    let mut hasher = Sha1::new();
+    let mut s = String::new();
+    f.read_to_string(&mut s);
+    hasher.input_str(&s[..]);
+    hasher.result_str()
+}
+
