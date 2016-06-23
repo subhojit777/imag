@@ -239,8 +239,13 @@ impl<'a> Ref<'a> {
     }
 
     /// Get the path of the file which is reffered to by this Ref
-    pub fn fs_file(&self) -> &PathBuf {
-        unimplemented!()
+    pub fn fs_file(&self) -> Result<PathBuf> {
+        match self.0.get_header().read("ref.path") {
+            Ok(Some(Value::String(ref s))) => Ok(PathBuf::from(s)),
+            Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
+            Ok(None)    => Err(REK::HeaderFieldMissingError.into_error()),
+            Err(e)      => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
+        }
     }
 
     /// Check whether there is a reference to the file at `pb`
