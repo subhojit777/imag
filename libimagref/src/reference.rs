@@ -218,8 +218,36 @@ impl<'a> Ref<'a> {
 
     /// Check whether the file permissions of the referenced file are equal to the stored
     /// permissions
-    pub fn fs_link_valid_permissions(&self) -> bool {
-        unimplemented!()
+    pub fn fs_link_valid_permissions(&self) -> Result<bool> {
+        self.0
+            .get_header()
+            .read("ref.permissions.ro")
+            .map_err(Box::new)
+            .map_err(|e| REK::HeaderFieldReadError.into_error_with_cause(e))
+            .and_then(|ro| {
+                match ro {
+                    Some(Value::Boolean(b)) => Ok(b),
+                    Some(_)                 => Err(REK::HeaderTypeError.into_error()),
+                    None                    => Err(REK::HeaderFieldMissingError.into_error()),
+                }
+            })
+            .and_then(|ro| self.fs_file().map(|pb| (ro, pb)))
+            .and_then(|(ro, pb)| {
+                File::open(pb)
+                    .map(|file| (ro, file))
+                    .map_err(Box::new)
+                    .map_err(|e| REK::HeaderFieldReadError.into_error_with_cause(e))
+            })
+            .and_then(|(ro, file)| {
+                file
+                    .metadata()
+                    .map(|md| md.permissions())
+                    .map(|perm| perm.readonly() == ro)
+                    .map_err(Box::new)
+                    .map_err(|e| REK::RefTargetCannotReadPermissions.into_error_with_cause(e))
+            })
+            .map_err(Box::new)
+            .map_err(|e| REK::RefTargetCannotReadPermissions.into_error_with_cause(e))
     }
 
     /// Check whether the Hashsum of the referenced file is equal to the stored hashsum
