@@ -212,8 +212,13 @@ impl<'a> Ref<'a> {
     /// This includes:
     ///     - Hashsum of the file is still the same as stored in the Ref
     ///     - file permissions are still valid
-    pub fn fs_link_valid(&self) -> bool {
-        unimplemented!()
+    pub fn fs_link_valid(&self) -> Result<bool> {
+        match (self.fs_link_valid_permissions(), self.fs_link_valid_hash()) {
+            (Ok(true) , Ok(true)) => Ok(true),
+            (Ok(_)    , Ok(_))    => Ok(false),
+            (Err(e)   , _)        => Err(e),
+            (_        , Err(e))   => Err(e),
+        }
     }
 
     /// Check whether the file permissions of the referenced file are equal to the stored
