@@ -7,6 +7,7 @@ use std::ops::DerefMut;
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Read;
+use std::fs::Permissions;
 
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
@@ -216,6 +217,23 @@ impl<'a> Ref<'a> {
             .map(|mut file| hash_file_contents(&mut file))
     }
 
+    /// Get the permissions of the file which are present
+    fn get_current_permissions(&self) -> Result<Permissions> {
+        self.fs_file()
+            .and_then(|pb| {
+                File::open(pb)
+                    .map_err(Box::new)
+                    .map_err(|e| REK::HeaderFieldReadError.into_error_with_cause(e))
+            })
+            .and_then(|file| {
+                file
+                    .metadata()
+                    .map(|md| md.permissions())
+                    .map_err(Box::new)
+                    .map_err(|e| REK::RefTargetCannotReadPermissions.into_error_with_cause(e))
+            })
+    }
+
     /// check whether the pointer the Ref represents still points to a file which exists
     pub fn fs_link_exists(&self) -> Result<bool> {
         self.fs_file().map(|pathbuf| pathbuf.exists())
@@ -264,21 +282,7 @@ impl<'a> Ref<'a> {
                     None                    => Err(REK::HeaderFieldMissingError.into_error()),
                 }
             })
-            .and_then(|ro| self.fs_file().map(|pb| (ro, pb)))
-            .and_then(|(ro, pb)| {
-                File::open(pb)
-                    .map(|file| (ro, file))
-                    .map_err(Box::new)
-                    .map_err(|e| REK::HeaderFieldReadError.into_error_with_cause(e))
-            })
-            .and_then(|(ro, file)| {
-                file
-                    .metadata()
-                    .map(|md| md.permissions())
-                    .map(|perm| perm.readonly() == ro)
-                    .map_err(Box::new)
-                    .map_err(|e| REK::RefTargetCannotReadPermissions.into_error_with_cause(e))
-            })
+            .and_then(|ro| self.get_current_permissions().map(|perm| ro == perm.readonly()))
             .map_err(Box::new)
             .map_err(|e| REK::RefTargetCannotReadPermissions.into_error_with_cause(e))
     }
