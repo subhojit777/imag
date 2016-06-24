@@ -297,7 +297,24 @@ impl<'a> Ref<'a> {
     /// Update the Ref by re-checking the file from FS
     /// This errors if the file is not present or cannot be read()
     pub fn update_ref(&mut self) -> Result<()> {
-        unimplemented!()
+        let current_hash = try!(self.get_current_hash());
+        let current_perm = try!(self.get_current_permissions());
+
+        try!(self.0
+            .get_header_mut()
+            .set("ref.permissions.ro", Value::Boolean(current_perm.readonly()))
+            .map_err(Box::new)
+            .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
+        );
+
+        try!(self.0
+            .get_header_mut()
+            .set("ref.content_hash", Value::String(current_hash))
+            .map_err(Box::new)
+            .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
+        );
+
+        Ok(())
     }
 
     /// Get the path of the file which is reffered to by this Ref
