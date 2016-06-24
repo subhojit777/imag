@@ -26,7 +26,7 @@ can review your PR. This means that once _I am_ okay with your patchset, I will
 submit it as PR in the github repository, so more people can review it and CI
 can test it. I might come back to you if something broke in CI or someone has a
 suggestion how to improve your PR.
-I will keep you as author auf the commits.
+I will keep you as author of the commits.
 
 The following sections describe the way how to contribute with github.
 
