@@ -188,6 +188,34 @@ impl<'a> Ref<'a> {
         }
     }
 
+    /// Get the hash of the link target which is stored in the ref object
+    pub fn get_stored_hash(&self) -> Result<String> {
+        match self.0.get_header().read("ref.content_hash") {
+            // content hash stored...
+            Ok(Some(Value::String(s))) => Ok(s),
+
+            // content hash header field has wrong type
+            Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
+
+            // content hash not stored
+            Ok(None) => Err(REK::HeaderFieldMissingError.into_error()),
+
+            // Error
+            Err(e) => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
+        }
+    }
+
+    /// Get the hash of the link target by reading the link target and hashing the contents
+    pub fn get_current_hash(&self) -> Result<String> {
+        self.fs_file()
+            .and_then(|pb| {
+                File::open(pb)
+                    .map_err(Box::new)
+                    .map_err(|e| REK::IOError.into_error_with_cause(e))
+            })
+            .map(|mut file| hash_file_contents(&mut file))
+    }
+
     /// check whether the pointer the Ref represents still points to a file which exists
     pub fn fs_link_exists(&self) -> Result<bool> {
         self.fs_file().map(|pathbuf| pathbuf.exists())
@@ -257,29 +285,8 @@ impl<'a> Ref<'a> {
 
     /// Check whether the Hashsum of the referenced file is equal to the stored hashsum
     pub fn fs_link_valid_hash(&self) -> Result<bool> {
-        let stored_hash = try!(match self.0.get_header().read("ref.content_hash") {
-            // content hash stored...
-            Ok(Some(Value::String(s))) => Ok(s),
-
-            // content hash header field has wrong type
-            Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
-
-            // content hash not stored
-            Ok(None) => Err(REK::HeaderFieldMissingError.into_error()),
-
-            // Error
-            Err(e) => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
-        });
-
-        let current_hash = try!(self.fs_file()
-            .and_then(|pb| {
-                File::open(pb)
-                    .map_err(Box::new)
-                    .map_err(|e| REK::IOError.into_error_with_cause(e))
-            })
-            .map(|mut file| hash_file_contents(&mut file))
-        );
-
+        let stored_hash  = try!(self.get_stored_hash());
+        let current_hash = try!(self.get_current_hash());
         Ok(stored_hash == current_hash)
     }
 
