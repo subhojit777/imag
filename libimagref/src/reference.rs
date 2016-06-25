@@ -384,15 +384,58 @@ impl<'a> Ref<'a> {
     /// Re-find a referenced file
     ///
     /// This function tries to re-find a ref by searching all directories in `search_roots` recursively
-    /// for a file which matches the hash of the Ref `ref`.
+    /// for a file which matches the hash of the Ref.
     ///
     /// If `search_roots` is `None`, it starts at the filesystem root `/`.
+    ///
+    /// If the target cannot be found, this yields a RefTargetDoesNotExist error kind.
     ///
     /// # Warning
     ///
     /// This option causes heavy I/O as it recursively searches the Filesystem.
-    pub fn refind(&self, search_roots: Option<Vec<PathBuf>>) -> Option<PathBuf> {
-        unimplemented!()
+    pub fn refind(&self, search_roots: Option<Vec<PathBuf>>) -> Result<PathBuf> {
+        use itertools::Itertools;
+        use walkdir::WalkDir;
+
+        self.get_stored_hash()
+            .and_then(|stored_hash| {
+                search_roots
+                    .unwrap_or(vec![PathBuf::from("/")])
+                    .into_iter()
+                    .map(|root| {
+                        WalkDir::new(root)
+                            .follow_links(false)
+                            .into_iter()
+                            .map(|entry| {
+                                entry
+                                    .map_err(Box::new)
+                                    .map_err(|e| REK::IOError.into_error_with_cause(e))
+                                    .and_then(|entry| {
+                                        let pb = PathBuf::from(entry.path());
+                                        File::open(entry.path())
+                                            .map_err(Box::new)
+                                            .map_err(|e| REK::IOError.into_error_with_cause(e))
+                                            .map(|f| (pb, f))
+                                    })
+                                    .map(|(path, mut file)| (path, hash_file_contents(&mut file)))
+                                    .map(|(path, hash)| {
+                                        if hash == stored_hash {
+                                            Some(path)
+                                        } else {
+                                            None
+                                        }
+                                    })
+                                    .map_err(Box::new)
+                                    .map_err(|e| REK::IOError.into_error_with_cause(e))
+                            })
+                            .filter_map(|e| e.ok())
+                            .filter_map(|e| e)
+                            .next()
+                    })
+                    .flatten()
+                    .next()
+                    .ok_or(REK::RefTargetDoesNotExist.into_error())
+            })
     }
 
 }
