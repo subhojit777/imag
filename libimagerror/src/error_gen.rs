@@ -324,4 +324,48 @@ mod test {
         assert_eq!(TestErrorKind::TestErrorKindA, e.err_type());
         assert_eq!(String::from("[testerrorkind B]"), format!("{}", e.cause().unwrap()));
     }
+
+    #[test]
+    fn test_error_kind_mapping() {
+        use std::io::{Error, ErrorKind};
+        use self::error::{OkOrErr, MapErrInto};
+        use self::error::TestErrorKind;
+
+        let err : Result<(), _> = Err(Error::new(ErrorKind::Other, ""));
+        let err : Result<(), _> = err.map_err_into(TestErrorKind::TestErrorKindA);
+
+        assert!(err.is_err());
+        let err = err.unwrap_err();
+
+        match err.err_type() {
+            TestErrorKind::TestErrorKindA => assert!(true),
+            _ => assert!(false),
+        }
+    }
+
+    #[test]
+    fn test_error_kind_double_mapping() {
+        use std::io::{Error, ErrorKind};
+        use self::error::{OkOrErr, MapErrInto};
+        use self::error::TestErrorKind;
+
+        let err : Result<(), _> = Err(Error::new(ErrorKind::Other, ""));
+        let err : Result<(), _> = err.map_err_into(TestErrorKind::TestErrorKindA)
+                                     .map_err_into(TestErrorKind::TestErrorKindB);
+
+        assert!(err.is_err());
+        let err = err.unwrap_err();
+        match err.err_type() {
+            TestErrorKind::TestErrorKindB => assert!(true),
+            _ => assert!(false),
+        }
+
+        // not sure how to test that the inner error is of TestErrorKindA, actually...
+        match err.cause() {
+            Some(_) => assert!(true),
+            None    => assert!(false),
+        }
+
+    }
+
 }
