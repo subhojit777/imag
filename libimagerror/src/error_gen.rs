@@ -368,4 +368,28 @@ mod test {
 
     }
 
+    #[test]
+    fn test_error_option_good() {
+        use self::error::{OkOrErr, MapErrInto};
+        use self::error::TestErrorKind;
+
+        let something = Some(1);
+        match something.ok_or_errkind(TestErrorKind::TestErrorKindA) {
+            Ok(1) => assert!(true),
+            _     => assert!(false),
+        }
+    }
+
+    #[test]
+    fn test_error_option_bad() {
+        use self::error::{OkOrErr, MapErrInto};
+        use self::error::TestErrorKind;
+
+        let something : Option<i32> = None;
+        match something.ok_or_errkind(TestErrorKind::TestErrorKindA) {
+            Ok(_)  => assert!(false),
+            Err(e) => assert!(true),
+        }
+    }
+
 }
