@@ -5,7 +5,6 @@ use toml::Value;
 use error::RefErrorKind as REK;
 use result::Result;
 
-#[derive(Default)]
 pub struct RefFlags {
     content_hashing:       bool,
     permission_tracking:   bool,
@@ -70,5 +69,15 @@ impl Into<Value> for RefFlags {
         return Value::Table(btm)
     }
 
+}
+
+impl Default for RefFlags {
+
+    fn default() -> RefFlags {
+        RefFlags {
+            content_hashing: false,
+            permission_tracking: false,
+        }
+    }
 }
 
