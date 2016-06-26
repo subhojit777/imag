@@ -4,3 +4,23 @@ version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
+semver = "0.2.1"
+clap = "2.1.1"
+log = "0.3"
+version = "2.0.1"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimagref]
+path = "../libimagref"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagentrylist]
+path = "../libimagentrylist"
+
