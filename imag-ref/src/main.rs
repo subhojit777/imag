@@ -9,6 +9,9 @@ extern crate libimagref;
 extern crate libimagerror;
 extern crate libimagentrylist;
 
+mod ui;
+use ui::build_ui;
+
 fn main() {
     println!("Hello, world!");
 }
