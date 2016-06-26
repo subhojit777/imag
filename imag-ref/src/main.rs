@@ -33,7 +33,23 @@ fn main() {
 }
 
 fn add(rt: &Runtime) {
-    unimplemented!()
+    let cmd  = rt.cli().subcommand_matches("add").unwrap();
+    let path = cmd.value_of("path").map(PathBuf::from).unwrap(); // saved by clap
+
+    let flags = RefFlags::default()
+        .with_content_hashing(cmd.is_present("track-content"))
+        .with_permission_tracking(cmd.is_present("track-permissions"));
+
+    match Ref::create(rt.store(), path, flags) {
+        Ok(r) => {
+            debug!("Reference created: {:?}", r);
+            info!("Ok");
+        },
+        Err(e) => {
+            trace_error(&e);
+            warn!("Failed to create reference");
+        },
+    }
 }
 
 fn remove(rt: &Runtime) {
