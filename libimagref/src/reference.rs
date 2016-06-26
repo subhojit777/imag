@@ -24,6 +24,7 @@ use flags::RefFlags;
 use result::Result;
 use module_path::ModuleEntryPath;
 
+#[derive(Debug)]
 pub struct Ref<'a>(FileLockEntry<'a>);
 
 impl<'a> Ref<'a> {
