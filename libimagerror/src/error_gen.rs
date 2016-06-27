@@ -152,6 +152,37 @@ macro_rules! generate_result_helper {
 }
 
 #[macro_export]
+macro_rules! generate_option_helper {
+    (
+        $name: ident,
+        $kindname: ident
+    ) => {
+        /// Trait to replace
+        ///
+        /// ```ignore
+        /// foo.ok_or(SomeType::SomeErrorKind.into_error())
+        /// ```
+        ///
+        /// with
+        ///
+        /// ```ignore
+        /// foo.ok_or_errkind(SomeType::SomeErrorKind)
+        /// ```
+        pub trait OkOrErr<T> {
+            fn ok_or_errkind(self, kind: $kindname) -> Result<T, $name>;
+        }
+
+        impl<T> OkOrErr<T> for Option<T> {
+
+            fn ok_or_errkind(self, kind: $kindname) -> Result<T, $name> {
+                self.ok_or(kind.into_error())
+            }
+
+        }
+    }
+}
+
+#[macro_export]
 macro_rules! generate_error_types {
     (
         $name: ident,
@@ -165,6 +196,7 @@ macro_rules! generate_error_types {
                                      $($kind => $string),*);
 
         generate_result_helper!($name, $kindname);
+        generate_option_helper!($name, $kindname);
     }
 }
 
