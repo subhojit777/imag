@@ -1,6 +1,4 @@
-use libimagerror::into::IntoError;
-
-use error::{StoreError as SE, StoreErrorKind as SEK};
+use error::{MapErrInto, StoreError as SE, StoreErrorKind as SEK};
 use std::io::{Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::fs::{File, OpenOptions, create_dir_all};
@@ -40,16 +38,10 @@ impl LazyFile {
                 // We seek to the beginning of the file since we expect each
                 // access to the file to be in a different context
                 f.seek(SeekFrom::Start(0))
-                    .map_err(Box::new)
-                    .map_err(|e| SEK::FileNotCreated.into_error_with_cause(e))
+                    .map_err_into(SEK::FileNotCreated)
                     .map(|_| f)
             },
-            LazyFile::Absent(ref p) => {
-                try!(open_file(p)
-                     .map_err(Box::new)
-                     .map_err(|e| SEK::FileNotFound.into_error_with_cause(e))
-                )
-            }
+            LazyFile::Absent(ref p) => try!(open_file(p).map_err_into(SEK::FileNotFound)),
         };
         *self = LazyFile::File(file);
         if let LazyFile::File(ref mut f) = *self {
@@ -65,12 +57,7 @@ impl LazyFile {
         debug!("Creating lazy file: {:?}", self);
         let file = match *self {
             LazyFile::File(ref mut f) => return Ok(f),
-            LazyFile::Absent(ref p) => {
-                try!(create_file(p)
-                     .map_err(Box::new)
-                     .map_err(|e| SEK::FileNotFound.into_error_with_cause(e))
-                )
-            }
+            LazyFile::Absent(ref p) => try!(create_file(p).map_err_into(SEK::FileNotFound)),
         };
         *self = LazyFile::File(file);
         if let LazyFile::File(ref mut f) = *self {
