@@ -13,6 +13,7 @@ use log::LogLevelFilter;
 use configuration::Configuration;
 use error::RuntimeError;
 use error::RuntimeErrorKind;
+use error::MapErrInto;
 use logger::ImagLogger;
 
 use libimagstore::store::Store;
@@ -134,8 +135,7 @@ impl<'a> Runtime<'a> {
                 store: store,
             }
         })
-        .map_err(Box::new)
-        .map_err(|e| RuntimeErrorKind::Instantiate.into_error_with_cause(e))
+        .map_err_into(RuntimeErrorKind::Instantiate)
     }
 
     /**
