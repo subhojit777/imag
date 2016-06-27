@@ -117,6 +117,72 @@ macro_rules! generate_custom_error_types {
 }
 
 #[macro_export]
+macro_rules! generate_result_helper {
+    (
+        $name: ident,
+        $kindname: ident
+    ) => {
+        /// Trait to replace
+        ///
+        /// ```ignore
+        /// foo.map_err(Box::new).map_err(|e| SomeType::SomeErrorKind.into_error_with_cause(e))
+        /// // or:
+        /// foo.map_err(|e| SomeType::SomeErrorKind.into_error_with_cause(Box::new(e)))
+        /// ```
+        ///
+        /// with much nicer
+        ///
+        /// ```ignore
+        /// foo.map_err_into(SomeType::SomeErrorKind)
+        /// ```
+        ///
+        pub trait MapErrInto<T> {
+            fn map_err_into(self, error_kind: $kindname) -> Result<T, $name>;
+        }
+
+        impl<T, E: Error + 'static> MapErrInto<T> for Result<T, E> {
+
+            fn map_err_into(self, error_kind: $kindname) -> Result<T, $name> {
+                self.map_err(Box::new)
+                    .map_err(|e| error_kind.into_error_with_cause(e))
+            }
+
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! generate_option_helper {
+    (
+        $name: ident,
+        $kindname: ident
+    ) => {
+        /// Trait to replace
+        ///
+        /// ```ignore
+        /// foo.ok_or(SomeType::SomeErrorKind.into_error())
+        /// ```
+        ///
+        /// with
+        ///
+        /// ```ignore
+        /// foo.ok_or_errkind(SomeType::SomeErrorKind)
+        /// ```
+        pub trait OkOrErr<T> {
+            fn ok_or_errkind(self, kind: $kindname) -> Result<T, $name>;
+        }
+
+        impl<T> OkOrErr<T> for Option<T> {
+
+            fn ok_or_errkind(self, kind: $kindname) -> Result<T, $name> {
+                self.ok_or(kind.into_error())
+            }
+
+        }
+    }
+}
+
+#[macro_export]
 macro_rules! generate_error_types {
     (
         $name: ident,
@@ -128,6 +194,9 @@ macro_rules! generate_error_types {
         generate_custom_error_types!($name, $kindname,
                                      SomeNotExistingTypeWithATypeNameNoOneWillEverChoose,
                                      $($kind => $string),*);
+
+        generate_result_helper!($name, $kindname);
+        generate_option_helper!($name, $kindname);
     }
 }
 
@@ -255,4 +324,72 @@ mod test {
         assert_eq!(TestErrorKind::TestErrorKindA, e.err_type());
         assert_eq!(String::from("[testerrorkind B]"), format!("{}", e.cause().unwrap()));
     }
+
+    #[test]
+    fn test_error_kind_mapping() {
+        use std::io::{Error, ErrorKind};
+        use self::error::{OkOrErr, MapErrInto};
+        use self::error::TestErrorKind;
+
+        let err : Result<(), _> = Err(Error::new(ErrorKind::Other, ""));
+        let err : Result<(), _> = err.map_err_into(TestErrorKind::TestErrorKindA);
+
+        assert!(err.is_err());
+        let err = err.unwrap_err();
+
+        match err.err_type() {
+            TestErrorKind::TestErrorKindA => assert!(true),
+            _ => assert!(false),
+        }
+    }
+
+    #[test]
+    fn test_error_kind_double_mapping() {
+        use std::io::{Error, ErrorKind};
+        use self::error::{OkOrErr, MapErrInto};
+        use self::error::TestErrorKind;
+
+        let err : Result<(), _> = Err(Error::new(ErrorKind::Other, ""));
+        let err : Result<(), _> = err.map_err_into(TestErrorKind::TestErrorKindA)
+                                     .map_err_into(TestErrorKind::TestErrorKindB);
+
+        assert!(err.is_err());
+        let err = err.unwrap_err();
+        match err.err_type() {
+            TestErrorKind::TestErrorKindB => assert!(true),
+            _ => assert!(false),
+        }
+
+        // not sure how to test that the inner error is of TestErrorKindA, actually...
+        match err.cause() {
+            Some(_) => assert!(true),
+            None    => assert!(false),
+        }
+
+    }
+
+    #[test]
+    fn test_error_option_good() {
+        use self::error::{OkOrErr, MapErrInto};
+        use self::error::TestErrorKind;
+
+        let something = Some(1);
+        match something.ok_or_errkind(TestErrorKind::TestErrorKindA) {
+            Ok(1) => assert!(true),
+            _     => assert!(false),
+        }
+    }
+
+    #[test]
+    fn test_error_option_bad() {
+        use self::error::{OkOrErr, MapErrInto};
+        use self::error::TestErrorKind;
+
+        let something : Option<i32> = None;
+        match something.ok_or_errkind(TestErrorKind::TestErrorKindA) {
+            Ok(_)  => assert!(false),
+            Err(e) => assert!(true),
+        }
+    }
+
 }
