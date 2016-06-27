@@ -47,6 +47,9 @@ generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     MoveByIdCallError          => "Error when calling move_by_id()"
 );
 
+generate_result_helper!(StoreError, StoreErrorKind);
+generate_option_helper!(StoreError, StoreErrorKind);
+
 generate_custom_error_types!(ParserError, ParserErrorKind, CustomErrorData,
     TOMLParserErrors    => "Several TOML-Parser-Errors",
     MissingMainSection  => "Missing main section",
