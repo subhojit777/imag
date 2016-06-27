@@ -117,6 +117,41 @@ macro_rules! generate_custom_error_types {
 }
 
 #[macro_export]
+macro_rules! generate_result_helper {
+    (
+        $name: ident,
+        $kindname: ident
+    ) => {
+        /// Trait to replace
+        ///
+        /// ```ignore
+        /// foo.map_err(Box::new).map_err(|e| SomeType::SomeErrorKind.into_error_with_cause(e))
+        /// // or:
+        /// foo.map_err(|e| SomeType::SomeErrorKind.into_error_with_cause(Box::new(e)))
+        /// ```
+        ///
+        /// with much nicer
+        ///
+        /// ```ignore
+        /// foo.map_err_into(SomeType::SomeErrorKind)
+        /// ```
+        ///
+        pub trait MapErrInto<T> {
+            fn map_err_into(self, error_kind: $kindname) -> Result<T, $name>;
+        }
+
+        impl<T, E: Error + 'static> MapErrInto<T> for Result<T, E> {
+
+            fn map_err_into(self, error_kind: $kindname) -> Result<T, $name> {
+                self.map_err(Box::new)
+                    .map_err(|e| error_kind.into_error_with_cause(e))
+            }
+
+        }
+    }
+}
+
+#[macro_export]
 macro_rules! generate_error_types {
     (
         $name: ident,
@@ -128,6 +163,8 @@ macro_rules! generate_error_types {
         generate_custom_error_types!($name, $kindname,
                                      SomeNotExistingTypeWithATypeNameNoOneWillEverChoose,
                                      $($kind => $string),*);
+
+        generate_result_helper!($name, $kindname);
     }
 }
 
