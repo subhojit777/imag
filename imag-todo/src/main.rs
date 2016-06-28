@@ -18,10 +18,8 @@ use std::process::{Command, Stdio};
 use std::io::stdin;
 
 use task_hookrs::import::import;
-use task_hookrs::task::Task as TTask;
 
 use libimagrt::runtime::Runtime;
-use libimagtodo::task::Task;
 use libimagtodo::task::IntoTask;
 use libimagutil::trace::trace_error;
 
@@ -53,7 +51,7 @@ fn main() {
         Some("tw-hook") => {
             let subcmd = rt.cli().subcommand_matches("tw-hook").unwrap();
             if subcmd.is_present("add") {
-                if let Ok(ttasks) = task_hookrs::import::import(stdin()) {
+                if let Ok(ttasks) = import(stdin()) {
                     for ttask in ttasks {
                         println!("{}", match serde_json::ser::to_string(&ttask) {
                             Ok(val) => val,
@@ -62,7 +60,7 @@ fn main() {
                                 return;
                             }
                         });
-                        let task = match ttask.into_filelockentry(rt.store()) {
+                        match ttask.into_filelockentry(rt.store()) {
                             Ok(val) => val,
                             Err(e) => {
                                 trace_error(&e);
@@ -92,7 +90,7 @@ fn main() {
 			for e in exec_string {
 				args.push(e);
 			}
-			let mut tw_process = Command::new("task").stdin(Stdio::null()).args(&args).spawn().unwrap_or_else(|e| {
+			let tw_process = Command::new("task").stdin(Stdio::null()).args(&args).spawn().unwrap_or_else(|e| {
 				panic!("failed to execute taskwarrior: {}", e);
 			});
 
