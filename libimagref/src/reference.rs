@@ -38,6 +38,17 @@ impl<'a> Ref<'a> {
         }
     }
 
+    /// Get a Ref object from the store by hash.
+    ///
+    /// Returns None if the hash cannot be found.
+    pub fn get_by_hash(store: &'a Store, hash: String) -> Result<Option<Ref<'a>>> {
+        store
+            .get(ModuleEntryPath::new(hash).into_storeid())
+            .map(|opt_fle| opt_fle.map(|fle| Ref(fle)))
+            .map_err(Box::new)
+            .map_err(|e| REK::StoreReadError.into_error_with_cause(e))
+    }
+
     /// Delete this ref
     ///
     /// If the returned Result contains an error, the ref might not be deleted.
