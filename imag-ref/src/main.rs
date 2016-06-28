@@ -8,6 +8,7 @@ extern crate libimagrt;
 extern crate libimagref;
 extern crate libimagerror;
 extern crate libimagentrylist;
+extern crate libimaginteraction;
 
 mod ui;
 use ui::build_ui;
@@ -61,7 +62,23 @@ fn add(rt: &Runtime) {
 }
 
 fn remove(rt: &Runtime) {
-    unimplemented!()
+    use libimagref::error::RefErrorKind;
+    use libimagerror::into::IntoError;
+    use libimaginteraction::ask::ask_bool;
+
+    let cmd  = rt.cli().subcommand_matches("remove").unwrap();
+    let hash = cmd.value_of("hash").map(String::from).unwrap(); // saved by clap
+    let yes  = cmd.is_present("yes");
+
+    if yes || ask_bool(&format!("Delete Ref with hash '{}'", hash)[..], None) {
+        match Ref::delete_by_hash(rt.store(), hash) {
+            Err(e) => trace_error(&e),
+            Ok(_) => info!("Ok"),
+        }
+    } else {
+        info!("Aborted");
+    }
+
 }
 
 fn list(rt: &Runtime) {

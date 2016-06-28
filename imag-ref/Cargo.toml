@@ -21,6 +21,9 @@ path = "../libimagref"
 [dependencies.libimagerror]
 path = "../libimagerror"
 
+[dependencies.libimaginteraction]
+path = "../libimaginteraction"
+
 [dependencies.libimagentrylist]
 path = "../libimagentrylist"
 
