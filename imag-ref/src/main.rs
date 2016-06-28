@@ -12,6 +12,14 @@ extern crate libimagentrylist;
 mod ui;
 use ui::build_ui;
 
+use std::path::PathBuf;
+
+use libimagref::reference::Ref;
+use libimagref::flags::RefFlags;
+use libimagerror::trace::trace_error;
+use libimagrt::setup::generate_runtime_setup;
+use libimagrt::runtime::Runtime;
+
 fn main() {
     let rt = generate_runtime_setup("imag-ref",
                                     &version!()[..],
