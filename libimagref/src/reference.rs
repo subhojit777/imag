@@ -38,6 +38,16 @@ impl<'a> Ref<'a> {
         }
     }
 
+    /// Delete this ref
+    ///
+    /// If the returned Result contains an error, the ref might not be deleted.
+    pub fn delete(self, store: &'a Store) -> Result<()> {
+        store
+            .delete(self.0.get_location().clone())
+            .map_err(Box::new)
+            .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
+    }
+
     fn read_reference(fle: &FileLockEntry<'a>) -> Result<PathBuf> {
         match fle.get_header().read("ref.reference") {
             Ok(Some(Value::String(s))) => Ok(PathBuf::from(s)),
