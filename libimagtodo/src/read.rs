@@ -1,16 +1,11 @@
-
 use libimagstore::storeid::{StoreIdIterator, StoreId};
 use libimagstore::store::Store;
 use error::{TodoError, TodoErrorKind};
 use task::Task;
+use result::Result;
 
-use std::result::Result as RResult;
+pub fn get_todo_iterator(store: &Store) -> Result<TaskIterator> {
 
-pub type Result<T> = RResult<T, TodoError>;
-
-
-pub fn all_todos(store: &Store) -> Result<TaskIterator> {  
-     
     store.retrieve_for_module("uuid")
         .map(|iter| TaskIterator::new(store, iter))
         .map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
@@ -23,10 +18,10 @@ trait FromStoreId {
 impl<'a> FromStoreId for Task<'a> {
 
     fn from_storeid<'b>(store: &'b Store, id: StoreId) -> Result<Task<'b>> {
-    match store.retrieve(id) {	   
-        Err(e) => Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e)))),	   
-	    Ok(c)  => Ok(Task::new( c )),
-	    }
+        match store.retrieve(id) {
+            Err(e) => Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e)))),
+            Ok(c)  => Ok(Task::new( c )),
+        }
     }
 }
 
@@ -38,10 +33,10 @@ pub struct TaskIterator<'a> {
 impl<'a> TaskIterator<'a> {
 
     pub fn new(store: &'a Store, iditer: StoreIdIterator) -> TaskIterator<'a> {
-	TaskIterator {
-	    store: store,
-	    iditer: iditer,
-	    }
+        TaskIterator {
+            store: store,
+            iditer: iditer,
+        }
     }
 }
 
@@ -49,8 +44,8 @@ impl<'a> Iterator for TaskIterator<'a> {
     type Item = Result<Task<'a>>;
 
     fn next(&mut self) -> Option<Result<Task<'a>>> {
-	self.iditer
-	    .next()
-	    .map(|id| Task::from_storeid(self.store, id))
+        self.iditer
+            .next()
+            .map(|id| Task::from_storeid(self.store, id))
     }
 }

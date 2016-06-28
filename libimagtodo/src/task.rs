@@ -9,6 +9,7 @@ use libimagstore::storeid::IntoStoreId;
 use module_path::ModuleEntryPath;
 
 use error::{TodoError, TodoErrorKind};
+use result::Result;
 
 /// Task struct containing a `FileLockEntry`
 #[derive(Debug)]
@@ -43,10 +44,10 @@ pub trait IntoTask<'a> {
     ///     println!("Task with uuid: {}", task.flentry.get_header().get("todo.uuid"));
     /// }
     /// ```
-    fn into_filelockentry(self, store : &'a Store) -> Result<Task<'a>, TodoError>;
+    fn into_filelockentry(self, store : &'a Store) -> Result<Task<'a>>;
 }
 impl<'a> IntoTask<'a> for TTask {
-    fn into_filelockentry(self, store : &'a Store) -> Result<Task<'a>, TodoError> {
+    fn into_filelockentry(self, store : &'a Store) -> Result<Task<'a>> {
         let uuid = self.uuid();
         let store_id = ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid();
         match store.retrieve(store_id) {
