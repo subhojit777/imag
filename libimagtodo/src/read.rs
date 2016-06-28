@@ -6,7 +6,7 @@ use result::Result;
 
 pub fn get_todo_iterator(store: &Store) -> Result<TaskIterator> {
 
-    store.retrieve_for_module("uuid")
+    store.retrieve_for_module("todo/taskwarrior")
         .map(|iter| TaskIterator::new(store, iter))
         .map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
 }

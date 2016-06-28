@@ -14,7 +14,7 @@ use result::Result;
 /// Task struct containing a `FileLockEntry`
 #[derive(Debug)]
 pub struct Task<'a> {
-    flentry : FileLockEntry<'a>,
+    pub flentry : FileLockEntry<'a>,
 }
 
 impl<'a> Task<'a> {
