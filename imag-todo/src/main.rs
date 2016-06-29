@@ -16,6 +16,7 @@ extern crate libimagtodo;
 use std::process::exit;
 use std::process::{Command, Stdio};
 use std::io::stdin;
+use std::io::BufRead;
 
 use task_hookrs::import::import;
 
@@ -70,12 +71,62 @@ fn main() {
                         };
                     }
                 }
+                else {
+                    error!("No usable input");
+                    return;
+                }
             }
             else if subcmd.is_present("delete") {
-                unimplemented!();
-                //
-                // Functionality to delete Entry in the store
-                //
+                // The used hook is "on-modify". This hook gives two json-objects
+                // per usage und wants one (the second one) back.
+                let mut counter = 0;
+                let stdin = stdin();
+                for rline in stdin.lock().lines() {
+                    let mut line = match rline {
+                        Ok(l) => l,
+                        Err(e) => {
+                            error!("{}", e);
+                            return;
+                        }
+                    };
+                    line.insert(0, '[');
+                    line.push(']');
+                    if counter % 2 == 1 {
+                        if let Ok(ttasks) = import(line.as_bytes()) {
+                            for ttask in ttasks {
+                                // Only every second task is needed, the first one is the
+                                // task before the change, and the second one after
+                                // the change. The (maybe modified) second one is
+                                // expected by taskwarrior.
+                                println!("{}", match serde_json::ser::to_string(&ttask) {
+                                    Ok(val) => val,
+                                    Err(e) => {
+                                        error!("{}", e);
+                                        return;
+                                    }
+                                });
+                                match ttask.status() {
+                                    &task_hookrs::status::TaskStatus::Deleted => {
+                                        match libimagtodo::delete::delete(rt.store(), *ttask.uuid()) {
+                                            Ok(_) => { }
+                                            Err(e) => {
+                                                trace_error(&e);
+                                                error!("{}", e);
+                                                return;
+                                            }
+                                        }
+                                    }
+                                    _ => {
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            error!("No usable input");
+                        }
+                    }
+                    counter += 1;
+                }
             }
             else {
                 // Should not be possible, as one argument is required via
