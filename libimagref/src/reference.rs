@@ -211,6 +211,17 @@ impl<'a> Ref<'a> {
         }
     }
 
+    /// Get the hash from the path of the ref
+    pub fn get_path_hash(&self) -> Option<String> {
+        self.0
+            .get_location()
+            .as_path()
+            .file_name()
+            .and_then(|osstr| osstr.to_str())
+            .and_then(|s| s.split("~").next())
+            .map(String::from)
+    }
+
     /// Get the hash of the link target which is stored in the ref object
     pub fn get_stored_hash(&self) -> Result<String> {
         match self.0.get_header().read("ref.content_hash") {
