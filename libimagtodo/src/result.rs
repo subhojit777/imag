@@ -1,4 +1,4 @@
-use error::{TodoError, TodoErrorKind};
+use error::TodoError;
 
 use std::result::Result as RResult;
 

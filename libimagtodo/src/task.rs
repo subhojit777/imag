@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use std::collections::BTreeMap;
 use toml::Value;
 
@@ -68,6 +67,7 @@ impl<'a> IntoTask<'a> for TTask {
                         }
                         Ok(Some(_)) => { }
                         Err(e) => {
+                            return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
                         }
                     }
                     match header.set("todo.uuid", Value::String(format!("{}",uuid))) {
