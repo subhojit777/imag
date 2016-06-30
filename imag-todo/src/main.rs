@@ -63,7 +63,8 @@ fn main() {
                     }
                 };
                 if let Ok(ttask) = import_task(&line.as_str()) {
-                    print!("{}", match serde_json::ser::to_string(&ttask) {
+                    let uuid = *ttask.uuid();
+                    println!("{}", match serde_json::ser::to_string(&ttask) {
                         Ok(val) => val,
                         Err(e) => {
                             error!("{}", e);
@@ -71,7 +72,10 @@ fn main() {
                         }
                     });
                     match ttask.into_filelockentry(rt.store()) {
-                        Ok(val) => val,
+                        Ok(val) => {
+                            println!("Task {} stored in imag", uuid);
+                            val
+                        },
                         Err(e) => {
                             trace_error(&e);
                             error!("{}", e);
