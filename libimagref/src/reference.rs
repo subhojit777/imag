@@ -29,12 +29,17 @@ pub struct Ref<'a>(FileLockEntry<'a>);
 
 impl<'a> Ref<'a> {
 
+    /// Try to build a Ref object based on an existing FileLockEntry object
+    pub fn from_filelockentry(fle: FileLockEntry<'a>) -> Result<Ref<'a>> {
+        Ref::read_reference(&fle).map(|_| Ref(fle))
+    }
+
     /// Try to get `si` as Ref object from the store
     pub fn get(store: &'a Store, si: StoreId) -> Result<Ref<'a>> {
         match store.get(si) {
             Err(e) => return Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
             Ok(None) => return Err(REK::RefNotInStore.into_error()),
-            Ok(Some(fle)) => Ref::read_reference(&fle).map(|_| Ref(fle)),
+            Ok(Some(fle)) => Ref::from_filelockentry(fle),
         }
     }
 
