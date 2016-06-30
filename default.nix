@@ -4,7 +4,6 @@ let
   env = with pkgs.rustStable; [
     rustc
     cargo
-    pkgs.llvmPackages.lldb
   ];
 in
 
