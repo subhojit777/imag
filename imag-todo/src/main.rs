@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 use std::io::stdin;
 use std::io::BufRead;
 
-use task_hookrs::import::{import, import_task, import_tasks};
+use task_hookrs::import::{import_task, import_tasks};
 
 use libimagrt::runtime::Runtime;
 use libimagtodo::task::IntoTask;
@@ -93,7 +93,7 @@ fn main() {
                 // per usage und wants one (the second one) back.
                 let mut counter = 0;
                 let stdin = stdin();
-                let mut stdin = stdin.lock();
+                let stdin = stdin.lock();
                 if let Ok(ttasks) = import_tasks(stdin) {
                     for ttask in ttasks {
                         if counter % 2 == 1 {
