@@ -18,7 +18,7 @@ use std::process::{Command, Stdio};
 use std::io::stdin;
 use std::io::BufRead;
 
-use task_hookrs::import::import;
+use task_hookrs::import::{import, import_task, import_tasks};
 
 use libimagrt::runtime::Runtime;
 use libimagtodo::task::IntoTask;
@@ -52,24 +52,32 @@ fn main() {
         Some("tw-hook") => {
             let subcmd = rt.cli().subcommand_matches("tw-hook").unwrap();
             if subcmd.is_present("add") {
-                if let Ok(ttasks) = import(stdin()) {
-                    for ttask in ttasks {
-                        println!("{}", match serde_json::ser::to_string(&ttask) {
-                            Ok(val) => val,
-                            Err(e) => {
-                                error!("{}", e);
-                                return;
-                            }
-                        });
-                        match ttask.into_filelockentry(rt.store()) {
-                            Ok(val) => val,
-                            Err(e) => {
-                                trace_error(&e);
-                                error!("{}", e);
-                                return;
-                            }
-                        };
+                let stdin = stdin();
+                let mut stdin = stdin.lock();
+                let mut line = String::new();
+                match stdin.read_line(&mut line) {
+                    Ok(_) => { }
+                    Err(e) => {
+                        error!("{}", e);
+                        return;
                     }
+                };
+                if let Ok(ttask) = import_task(&line.as_str()) {
+                    print!("{}", match serde_json::ser::to_string(&ttask) {
+                        Ok(val) => val,
+                        Err(e) => {
+                            error!("{}", e);
+                            return;
+                        }
+                    });
+                    match ttask.into_filelockentry(rt.store()) {
+                        Ok(val) => val,
+                        Err(e) => {
+                            trace_error(&e);
+                            error!("{}", e);
+                            return;
+                        }
+                    };
                 }
                 else {
                     error!("No usable input");
@@ -118,8 +126,8 @@ fn main() {
                                     }
                                     _ => {
                                     }
-                                }
-                            }
+                                } // end match ttask.status()
+                            } // end for
                         }
                         else {
                             error!("No usable input");
@@ -212,10 +220,10 @@ fn main() {
                         error!("{}", e);
                         continue;
                     }
-                }
-            }
-            }
-            _ => unimplemented!(),
+                } // end match task
+            } // end for
         }
-    }
+        _ => unimplemented!(),
+    } // end match scmd
+} // end main
 
