@@ -7,7 +7,7 @@ use module_path::ModuleEntryPath;
 use error::{TodoError, TodoErrorKind};
 
 /// With the uuid we get the storeid and then we can delete the entry
-pub fn delete(uuid: Uuid, store : &Store) -> Result<(),TodoError> {
+pub fn delete(store : &Store, uuid: Uuid) -> Result<(),TodoError> {
 	// With the uuid we get the storeid
 	let store_id = ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid();
 	// It deletes an entry
