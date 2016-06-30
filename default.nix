@@ -5,6 +5,12 @@ let
     rustc
     cargo
   ];
+
+  dependencies = with pkgs; [
+    openssl
+    zlib
+    cmake
+  ];
 in
 
 pkgs.stdenv.mkDerivation rec {
@@ -12,7 +18,7 @@ pkgs.stdenv.mkDerivation rec {
     src = ./.;
     version = "0.0.0";
 
-    buildInputs = [ env ];
+    buildInputs = [ env dependencies ];
 
 }
 
