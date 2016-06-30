@@ -1,8 +1,7 @@
 use std::error::Error;
 use std::clone::Clone;
 use std::fmt::Error as FmtError;
-use std::fmt::{Debug, Display, Formatter};
-use std::fmt;
+use std::fmt::{Display, Formatter};
 
 /// Enum of Error Types, as of now we have two:
 /// * ConversionError: for Errors concerning conversion failures from task_hookrs::task::Task to

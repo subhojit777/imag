@@ -2,21 +2,14 @@ extern crate semver;
 extern crate uuid;
 extern crate toml;
 
-extern crate task_hookrs;
 #[macro_use] extern crate libimagstore;
+extern crate task_hookrs;
 
 module_entry_path_mod!("todo", "0.1.0");
 
-pub mod error;
-pub mod task;
 pub mod delete;
+pub mod error;
 pub mod read;
-pub mod set;
-pub mod add;
+pub mod result;
+pub mod task;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-    }
-}

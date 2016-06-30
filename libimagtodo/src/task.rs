@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::collections::BTreeMap;
 use toml::Value;
 
 use task_hookrs::task::Task as TTask;
@@ -8,11 +8,12 @@ use libimagstore::storeid::IntoStoreId;
 use module_path::ModuleEntryPath;
 
 use error::{TodoError, TodoErrorKind};
+use result::Result;
 
 /// Task struct containing a `FileLockEntry`
 #[derive(Debug)]
 pub struct Task<'a> {
-    flentry : FileLockEntry<'a>,
+    pub flentry : FileLockEntry<'a>,
 }
 
 impl<'a> Task<'a> {
@@ -42,20 +43,43 @@ pub trait IntoTask<'a> {
     ///     println!("Task with uuid: {}", task.flentry.get_header().get("todo.uuid"));
     /// }
     /// ```
-    fn into_filelockentry(self, store : &'a Store) -> Result<Task<'a>, TodoError>;
+    fn into_filelockentry(self, store : &'a Store) -> Result<Task<'a>>;
 }
 impl<'a> IntoTask<'a> for TTask {
-    fn into_filelockentry(self, store : &'a Store) -> Result<Task<'a>, TodoError> {
+    fn into_filelockentry(self, store : &'a Store) -> Result<Task<'a>> {
         let uuid = self.uuid();
         let store_id = ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid();
         match store.retrieve(store_id) {
-            Err(e)      => Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e)))),
-            Ok(mut fle)     => {
-                match fle.get_header_mut().set("todo.uuid", Value::String(format!("{}", uuid))) {
-                    Err(e) => Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e)))),
-                    Ok(_) => Ok(Task { flentry : fle })
-                }
+            Err(e) => {
+                return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
             },
+            Ok(mut fle) => {
+                {
+                    let mut header = fle.get_header_mut();
+                    match header.read("todo") {
+                        Ok(None) => {
+                            match header.set("todo", Value::Table(BTreeMap::new())) {
+                                Ok(_) => { },
+                                Err(e) => {
+                                    return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
+                                }
+                            }
+                        }
+                        Ok(Some(_)) => { }
+                        Err(e) => {
+                            return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
+                        }
+                    }
+                    match header.set("todo.uuid", Value::String(format!("{}",uuid))) {
+                        Ok(_) => { },
+                        Err(e) => {
+                            return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
+                        }
+                    }
+                }
+                // If none of the errors above have returned the function, everything is fine
+                Ok(Task { flentry : fle } )
+            }
         }
     }
 }
