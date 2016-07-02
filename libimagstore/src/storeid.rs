@@ -16,6 +16,18 @@ use store::Store;
 #[derive(Debug, Clone, PartialEq, Hash, Eq, PartialOrd, Ord)]
 pub struct StoreId(PathBuf);
 
+impl StoreId {
+
+    pub fn storified(self, store: &Store) -> StoreId {
+        debug!("Create new store id out of: {:?} and {:?}", store.path(), self);
+        let mut new_id = store.path().clone();
+        new_id.push(self);
+        debug!("Created: '{:?}'", new_id);
+        StoreId::from(new_id)
+    }
+
+}
+
 impl Into<PathBuf> for StoreId {
 
     fn into(self) -> PathBuf {
