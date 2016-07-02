@@ -9,6 +9,7 @@ use std::fmt::Error as FmtError;
 use std::result::Result as RResult;
 
 use error::StoreErrorKind as SEK;
+use error::MapErrInto;
 use store::Result;
 use store::Store;
 
@@ -24,6 +25,13 @@ impl StoreId {
         new_id.push(self);
         debug!("Created: '{:?}'", new_id);
         StoreId::from(new_id)
+    }
+
+    pub fn unstorified(self, store: &Store) -> Result<StoreId> {
+        self.strip_prefix(store.path())
+            .map(PathBuf::from)
+            .map(StoreId::from)
+            .map_err_into(SEK::StoreIdHandlingError)
     }
 
 }
