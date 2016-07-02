@@ -60,9 +60,14 @@ script:
 addons:
   apt:
     packages:
+    - cmake
     - libcurl4-openssl-dev
-    - libelf-dev
     - libdw-dev
+    - libelf-dev
+    - libzzip-dev
+    - tree
+    sources:
+    - kalakris-cmake
 after_success:
 - |
   pushd .imag-documentation &&
