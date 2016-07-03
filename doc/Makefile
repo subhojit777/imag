@@ -11,6 +11,7 @@ export MAKE_FLAGS=--no-print-directory
 export OUT=$(shell pwd)/bin
 export OUT_PDF=$(OUT)/pdf/
 export OUT_HTML=$(OUT)/html/
+export OUT_MAN=$(OUT)/man/
 
 DOCUMENT_CLASS=article
 SETTING_FONTSIZE=11pt
