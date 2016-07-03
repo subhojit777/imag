@@ -124,6 +124,11 @@ $(OUT_PDF): $(OUT)
 	@$(ECHO) "\t[MKDIR ] $@"
 	@$(MKDIR) $(OUT_PDF)
 
+# create man out directory
+$(OUT_MAN): $(OUT)
+	@$(ECHO) "\t[MKDIR ] $@"
+	@$(MKDIR) $(OUT_MAN)
+
 # cleanup task
 clean:
 	@$(ECHO) "\t[RM    ] $@"
@@ -143,6 +148,13 @@ $(TARGET_HTML): $(OUT_HTML)
 	@$(ECHO) "\t[PANDOC] html"
 	@$(PANDOC_CC_HTML)                        \
 		--template $(TEMPLATES)/default.html5 \
+		$(SRC) -o $@
+
+man: $(TARGET_MAN)
+
+$(TARGET_MAN): $(OUT_MAN)
+	@$(ECHO) "\t[PANDOC] man"
+	@$(PANDOC_CC_MAN) \
 		$(SRC) -o $@
 
 .PHONY: $(TARGET_PDF) $(TARGET_HTML)
