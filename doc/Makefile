@@ -53,6 +53,9 @@ DOCUMENT_SETTINGS_HTML=			\
 	--table-of-contents			\
 	--webtex
 
+DOCUMENT_SETTINGS_MAN=			\
+	--variable section=5			\
+
 #
 #
 #
