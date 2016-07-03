@@ -54,6 +54,7 @@ DOCUMENT_SETTINGS_HTML=			\
 	--webtex
 
 DOCUMENT_SETTINGS_MAN=			\
+	-s					\
 	--variable section=5			\
 
 #
@@ -92,6 +93,8 @@ export PANDOC_CC_PDF=$(PANDOC)        \
 			  $(DOCUMENT_SETTINGS_PDF)
 
 export PANDOC_CC_HTML=$(PANDOC) $(PANDOC_PARAMS) $(DOCUMENT_SETTINGS_HTML)
+
+export PANDOC_CC_MAN=$(PANDOC) $(PANDOC_PARAMS) $(DOCUMENT_SETTINGS_MAN)
 
 TARGET_PDF=$(OUT_PDF)/paper.pdf
 TARGET_HTML=$(OUT_HTML)/index.html
