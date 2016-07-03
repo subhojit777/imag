@@ -98,6 +98,7 @@ export PANDOC_CC_MAN=$(PANDOC) $(PANDOC_PARAMS) $(DOCUMENT_SETTINGS_MAN)
 
 TARGET_PDF=$(OUT_PDF)/paper.pdf
 TARGET_HTML=$(OUT_HTML)/index.html
+TARGET_MAN=$(OUT_MAN)/imag.5
 #
 #
 # Tasks
