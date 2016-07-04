@@ -22,5 +22,5 @@ path = "../libimagstore"
 [dependencies.libimagtodo]
 path = "../libimagtodo"
 
-[dependencies.libimagutil]
-path = "../libimagutil"
+[dependencies.libimagerror]
+path = "../libimagerror"

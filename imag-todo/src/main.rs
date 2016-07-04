@@ -10,7 +10,7 @@ extern crate task_hookrs;
 
 extern crate libimagrt;
 extern crate libimagstore;
-extern crate libimagutil;
+extern crate libimagerror;
 extern crate libimagtodo;
 
 use std::process::exit;
@@ -22,7 +22,7 @@ use task_hookrs::import::{import_task, import_tasks};
 
 use libimagrt::runtime::Runtime;
 use libimagtodo::task::IntoTask;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 
 mod ui;
 
