@@ -4,7 +4,7 @@ use std::borrow::Borrow;
 use std::ops::Deref;
 
 use semver::Version;
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Display, Debug, Formatter};
 use std::fmt::Error as FmtError;
 use std::result::Result as RResult;
 
@@ -20,6 +20,17 @@ impl Into<PathBuf> for StoreId {
 
     fn into(self) -> PathBuf {
         self.0
+    }
+
+}
+
+impl Display for StoreId {
+
+    fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
+        match self.0.to_str() {
+            Some(s) => write!(fmt, "{}", s),
+            None    => write!(fmt, "<non-UTF8-StoreId>"), // TODO: Sure here?
+        }
     }
 
 }
