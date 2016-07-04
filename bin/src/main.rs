@@ -68,17 +68,18 @@ fn get_commands() -> Vec<String> {
                         .into_iter()
                         .filter(|path| {
                             match path {
-                                &Ok(ref path) => path.path().starts_with(format!("{}/imag-", elem)),
+                                &Ok(ref p) => p.file_name()
+                                    .to_str()
+                                    .map_or(false, |filename| filename.starts_with("imag-")),
                                 &Err(_)   => false,
                             }
                         })
                         .filter_map(|x| x.ok())
-                        .map(|path| {
-                            path.path()
-                                .to_str()
-                                .map(String::from)
+                        .filter_map(|path| {
+                           path.file_name()
+                               .to_str()
+                               .map(String::from)
                         })
-                        .filter_map(|x| x)
                         .collect()
                 })
             })
