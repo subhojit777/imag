@@ -19,14 +19,15 @@ extern crate clap;
 
 extern crate libimagcounter;
 extern crate libimagrt;
+extern crate libimagerror;
 extern crate libimagutil;
 
 use std::process::exit;
 use std::str::FromStr;
 
-use libimagrt::runtime::Runtime;
+use libimagrt::setup::generate_runtime_setup;
 use libimagcounter::counter::Counter;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 use libimagutil::key_value_split::IntoKeyValue;
 
 mod create;
@@ -49,20 +50,10 @@ enum Action {
 }
 
 fn main() {
-    let name = "imag-counter";
-    let version = &version!()[..];
-    let about = "Counter tool to count things";
-    let ui = build_ui(Runtime::get_default_cli_builder(name, version, about));
-    let rt = {
-        let rt = Runtime::new(ui);
-        if rt.is_ok() {
-            rt.unwrap()
-        } else {
-            println!("Could not set up Runtime");
-            println!("{:?}", rt.unwrap_err());
-            exit(1);
-        }
-    };
+    let rt = generate_runtime_setup("imag-counter",
+                                    &version!()[..],
+                                    "Counter tool to count things",
+                                    build_ui);
 
     rt.cli()
         .subcommand_name()

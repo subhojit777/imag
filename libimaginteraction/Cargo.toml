@@ -6,7 +6,7 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 [dependencies]
 spinner = "0.4"
 interactor = "0.1"
-log = "0.3.5"
+log = "0.3"
 ansi_term = "0.7.2"
 regex = "0.1"
 lazy_static = "0.1.15"
@@ -19,4 +19,7 @@ path = "../libimagentryfilter"
 
 [dependencies.libimagutil]
 path = "../libimagutil"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
 

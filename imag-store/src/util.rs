@@ -1,4 +1,5 @@
-use std::collections::BTreeMap;
+use std::borrow::Cow;
+use std::collections::btree_map::{BTreeMap, Entry};
 use std::str::Split;
 
 use clap::ArgMatches;
@@ -21,10 +22,10 @@ pub fn build_toml_header(matches: &ArgMatches, header: EntryHeader) -> EntryHead
         for tpl in kvs {
             let (key, value) = tpl.into();
             debug!("Splitting: {:?}", key);
-            let mut split = key.split(".");
+            let mut split = key.split('.');
             let current = split.next();
             if current.is_some() {
-                insert_key_into(String::from(current.unwrap()), &mut split, value, &mut main);
+                insert_key_into(String::from(current.unwrap()), &mut split, Cow::Owned(value), &mut main);
             }
         }
 
@@ -36,9 +37,9 @@ pub fn build_toml_header(matches: &ArgMatches, header: EntryHeader) -> EntryHead
     }
 }
 
-fn insert_key_into(current: String,
-                   rest_path: &mut Split<&str>,
-                   value: String,
+fn insert_key_into<'a>(current: String,
+                   rest_path: &mut Split<char>,
+                   value: Cow<'a, str>,
                    map: &mut BTreeMap<String, Value>) {
     let next = rest_path.next();
 
@@ -47,27 +48,30 @@ fn insert_key_into(current: String,
         map.insert(current, parse_value(value));
     } else {
         debug!("Inserting into {:?} ... = {:?}", current, value);
-        if map.contains_key(&current) {
-            match map.get_mut(&current).unwrap() {
-                &mut Value::Table(ref mut t) => {
-                    insert_key_into(String::from(next.unwrap()), rest_path, value, t);
-                },
-                _ => unreachable!(),
+        match map.entry(current) {
+            Entry::Occupied(ref mut e) => {
+                match *e.get_mut() {
+                    Value::Table(ref mut t) => {
+                        insert_key_into(String::from(next.unwrap()), rest_path, value, t);
+                    },
+                    _ => unreachable!(),
+                }
+            },
+            Entry::Vacant(v) => { v.insert(Value::Table( {
+                let mut submap = BTreeMap::new();
+                insert_key_into(String::from(next.unwrap()), rest_path, value, &mut submap);
+                debug!("Inserting submap = {:?}", submap);
+                submap }));
             }
-        } else {
-            let mut submap = BTreeMap::new();
-            insert_key_into(String::from(next.unwrap()), rest_path, value, &mut submap);
-            debug!("Inserting submap = {:?}", submap);
-            map.insert(current, Value::Table(submap));
         }
     }
 }
 
-fn parse_value(value: String) -> Value {
+fn parse_value(value: Cow<str>) -> Value {
     use std::str::FromStr;
 
-    fn is_ary(v: &String) -> bool {
-        v.chars().next() == Some('[') && v.chars().last() == Some(']') && v.len() >= 3
+    fn is_ary(v: &str) -> bool {
+        v.starts_with('[') && v.ends_with(']') && v.len() >= 3
     }
 
     if value == "true" {
@@ -79,7 +83,7 @@ fn parse_value(value: String) -> Value {
     } else if is_ary(&value) {
         debug!("Building Array out of: {:?}...", value);
         let sub = &value[1..(value.len()-1)];
-        Value::Array(sub.split(",").map(|v| parse_value(String::from(v))).collect())
+        Value::Array(sub.split(',').map(|x| parse_value(Cow::from(x))).collect())
     } else {
         FromStr::from_str(&value[..])
             .map(|i: i64| {
@@ -94,7 +98,7 @@ fn parse_value(value: String) -> Value {
                     })
                     .unwrap_or_else(|_| {
                         debug!("Building String out of: {:?}...", value);
-                        Value::String(value)
+                        Value::String(value.into_owned())
                     })
             })
     }

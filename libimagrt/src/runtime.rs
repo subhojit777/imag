@@ -13,6 +13,7 @@ use log::LogLevelFilter;
 use configuration::Configuration;
 use error::RuntimeError;
 use error::RuntimeErrorKind;
+use error::MapErrInto;
 use logger::ImagLogger;
 
 use libimagstore::store::Store;
@@ -37,13 +38,13 @@ impl<'a> Runtime<'a> {
      */
     pub fn new(cli_spec: App<'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
         use std::env;
-        use std::error::Error;
 
         use libimagstore::hook::position::HookPosition;
         use libimagstore::error::StoreErrorKind;
         use libimagstorestdhook::debug::DebugHook;
-        use libimagutil::trace::trace_error;
-        use libimagutil::trace::trace_error_dbg;
+        use libimagerror::trace::trace_error;
+        use libimagerror::trace::trace_error_dbg;
+        use libimagerror::into::IntoError;
 
         use configuration::error::ConfigErrorKind;
 
@@ -55,42 +56,43 @@ impl<'a> Runtime<'a> {
         Runtime::init_logger(is_debugging, is_verbose);
 
         let rtp : PathBuf = matches.value_of("runtimepath")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| {
+            .map_or_else(|| {
                 env::var("HOME")
                     .map(PathBuf::from)
                     .map(|mut p| { p.push(".imag"); p})
                     .unwrap_or_else(|_| {
                         panic!("You seem to be $HOME-less. Please get a $HOME before using this software. We are sorry for you and hope you have some accommodation anyways.");
                     })
-            });
+            }, PathBuf::from);
         let storepath = matches.value_of("storepath")
-                                .map(PathBuf::from)
-                                .unwrap_or({
+                                .map_or_else(|| {
                                     let mut spath = rtp.clone();
                                     spath.push("store");
                                     spath
-                                });
+                                }, PathBuf::from);
 
-        let cfg = Configuration::new(&rtp);
-        let cfg = if cfg.is_err() {
-            let e = cfg.unwrap_err();
-            if e.err_type() != ConfigErrorKind::NoConfigFileFound {
-                let cause : Option<Box<Error>> = Some(Box::new(e));
-                return Err(RuntimeError::new(RuntimeErrorKind::Instantiate, cause));
+        let configpath = matches.value_of("config")
+                                .map_or_else(|| {
+                                    let mut spath = rtp.clone();
+                                    spath.push("store");
+                                    spath
+                                }, PathBuf::from);
+
+        let cfg = match Configuration::new(&configpath) {
+            Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
+                return Err(RuntimeErrorKind::Instantiate.into_error_with_cause(Box::new(e)));
             } else {
-                trace_error(&e);
+                warn!("No config file found.");
+                warn!("Continuing without configuration file");
                 None
-            }
-        } else {
-            Some(cfg.unwrap())
+            },
+
+            Ok(cfg) => Some(cfg),
         };
 
-        let store_config = {
-            match &cfg {
-                &Some(ref c) => c.store_config().map(|c| c.clone()),
-                &None => None,
-            }
+        let store_config = match cfg {
+            Some(ref c) => c.store_config().cloned(),
+            None        => None,
         };
 
         if is_debugging {
@@ -133,9 +135,7 @@ impl<'a> Runtime<'a> {
                 store: store,
             }
         })
-        .map_err(|e| {
-            RuntimeError::new(RuntimeErrorKind::Instantiate, Some(Box::new(e)))
-        })
+        .map_err_into(RuntimeErrorKind::Instantiate)
     }
 
     /**
@@ -202,23 +202,30 @@ impl<'a> Runtime<'a> {
      * Initialize the internal logger
      */
     fn init_logger(is_debugging: bool, is_verbose: bool) {
-        let lvl = if is_debugging {
-            LogLevelFilter::Debug
-        } else if is_verbose {
-            LogLevelFilter::Info
-        } else {
-            LogLevelFilter::Error
-        };
+        use std::env::var as env_var;
+        use env_logger;
 
-        log::set_logger(|max_log_lvl| {
-            max_log_lvl.set(lvl);
-            debug!("Init logger with {}", lvl);
-            Box::new(ImagLogger::new(lvl.to_log_level().unwrap()))
-        })
-        .map_err(|_| {
-            panic!("Could not setup logger");
-        })
-        .ok();
+        if env_var("IMAG_LOG_ENV").is_ok() {
+            env_logger::init().unwrap();
+        } else {
+            let lvl = if is_debugging {
+                LogLevelFilter::Debug
+            } else if is_verbose {
+                LogLevelFilter::Info
+            } else {
+                LogLevelFilter::Error
+            };
+
+            log::set_logger(|max_log_lvl| {
+                max_log_lvl.set(lvl);
+                debug!("Init logger with {}", lvl);
+                Box::new(ImagLogger::new(lvl.to_log_level().unwrap()))
+            })
+            .map_err(|_| {
+                panic!("Could not setup logger");
+            })
+            .ok();
+        }
     }
 
     /**
@@ -268,8 +275,8 @@ impl<'a> Runtime<'a> {
             .value_of("editor")
             .map(String::from)
             .or({
-                match &self.configuration {
-                    &Some(ref c) => c.editor().map(|s| s.clone()),
+                match self.configuration {
+                    Some(ref c) => c.editor().cloned(),
                     _ => None,
                 }
             })

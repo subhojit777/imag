@@ -2,6 +2,8 @@ use std::error::Error;
 use std::io::Write;
 use std::io::stderr;
 
+use ansi_term::Colour::Red;
+
 /// Print an Error type and its cause recursively
 ///
 /// The error is printed with "Error NNNN :" as prefix, where "NNNN" is a number which increases
@@ -29,8 +31,9 @@ pub fn trace_error(e: &Error) {
 /// Output is the same as for `trace_error()`, though there are only `max` levels printed.
 pub fn trace_error_maxdepth(e: &Error, max: u64) {
     let n = count_error_causes(e);
-    write!(stderr(),
-    "{}/{} Levels of errors will be printed\n", (if max > n { n } else { max }), n).ok();
+    let msg = Red.blink().paint(format!("{}/{} Levels of errors will be printed\n",
+                                        (if max > n { n } else { max }), n));
+    write!(stderr(), "{}", msg).ok();
     print_trace_maxdepth(n, e, max);
     write!(stderr(), "").ok();
 }
@@ -55,17 +58,17 @@ fn print_trace_maxdepth(idx: u64, e: &Error, max: u64) -> Option<&Error> {
     } else {
         write!(stderr(), "\n").ok();
     }
-    write!(stderr(), "ERROR[{:>4}]: {}", idx, e.description()).ok();
+    write!(stderr(), "{}: {}", Red.paint(format!("ERROR[{:>4}]", idx)), e.description()).ok();
     e.cause()
 }
 
-/// Count errors in Error::cause() recursively
+/// Count errors in `Error::cause()` recursively
 fn count_error_causes(e: &Error) -> u64 {
     1 + if e.cause().is_some() { count_error_causes(e.cause().unwrap()) } else { 0 }
 }
 
 fn print_trace_dbg(idx: u64, e: &Error) {
-    debug!("ERROR[{:>4}]: {}", idx, e.description());
+    debug!("{}: {}", Red.blink().paint(format!("ERROR[{:>4}]", idx)), e.description());
     if e.cause().is_some() {
         print_trace_dbg(idx + 1, e.cause().unwrap());
     }

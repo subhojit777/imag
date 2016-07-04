@@ -5,12 +5,18 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
 itertools = "0.4"
-log = "0.3.4"
+log = "0.3"
 toml = "0.1.27"
 semver = "0.2"
-url = "0.5.5"
+url = "1.1"
 rust-crypto = "0.2.35"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
 

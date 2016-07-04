@@ -4,15 +4,22 @@ version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
-fs2 = "0.2.2"
+fs2 = "0.2"
 glob = "0.2.11"
 lazy_static = "0.1.15"
-log = "0.3.5"
+log = "0.3"
 regex = "0.1"
 semver = "0.2"
 toml = "0.1.25"
 version = "2.0.1"
 crossbeam = "0.2.8"
+walkdir = "0.1.5"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
 
 [dev-dependencies]
 tempdir = "0.3.4"

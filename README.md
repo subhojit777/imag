@@ -1,7 +1,7 @@
 # imag
 
 Imag is a CLI PIM suite with a nice API-ish commandline interface, so you can
-integrate it in your tools of coice (Editor, MUA, RSS reader, etc etc).
+integrate it in your tools of choice (Editor, MUA, RSS reader, etc etc).
 
 ## Goal
 
@@ -89,26 +89,26 @@ provided (as the libraries are work-in-progress).
 
 ### Building
 
-To build a single module:
+One can build all the modules simply by running `make` which defaults to building all the modules
+and placing them in the `out/` directory of the project root.
+
 ```
-$> cd <imag-proj-dir>/imag-<module>
-$> cargo build
+$> make
+  ...
+$> ls out/
+imag-counter  imag-link  imag-notes  imag-store  imag-tag  imag-view
 ```
-It may be tiresome to build all the modules by hand, but one can do something
-like this:
-```
-$> for dir in \
->$(find ./ -maxdepth 1 -path "./imag-*" -name "imag-*" -type d)
->do
->pushd $dir; cargo build; popd
->done
-```
+
+Building all the modules may take some time, so alternatively one can build only a specific module
+by runing `$> make $module` where `$module` is one of  the `imag-*` names, such as `imag-counter`,
+`imag-link`, etc.
 
 ### Running
 
 To run imag, simply call `./bin/imag`. This script has a function to search for
 modules, which utilizes an environment variable called `IMAG_IS_THE_SHIT`.
 To run imag with all components:
+
 ```
 $> IMAG_IS_THE_SHIT=$(pwd) ./bin/imag
 ```

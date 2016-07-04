@@ -19,6 +19,8 @@ extern crate regex;
 extern crate toml;
 
 extern crate libimagstore;
+#[macro_use] extern crate libimagerror;
+#[macro_use] extern crate libimagutil;
 
 pub mod error;
 pub mod exec;

@@ -6,33 +6,24 @@ extern crate semver;
 extern crate libimagnotes;
 extern crate libimagrt;
 extern crate libimagentrytag;
-extern crate libimagutil;
+extern crate libimagerror;
 
 use std::process::exit;
 
 use libimagrt::edit::Edit;
 use libimagrt::runtime::Runtime;
+use libimagrt::setup::generate_runtime_setup;
 use libimagnotes::note::Note;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 
 mod ui;
 use ui::build_ui;
 
 fn main() {
-    let name = "imag-notes";
-    let version = &version!()[..];
-    let about = "Note taking helper";
-    let ui = build_ui(Runtime::get_default_cli_builder(name, version, about));
-    let rt = {
-        let rt = Runtime::new(ui);
-        if rt.is_ok() {
-            rt.unwrap()
-        } else {
-            println!("Could not set up Runtime");
-            println!("{:?}", rt.unwrap_err());
-            exit(1);
-        }
-    };
+    let rt = generate_runtime_setup("imag-notes",
+                                    &version!()[..],
+                                    "Note taking helper",
+                                    build_ui);
 
     rt.cli()
         .subcommand_name()
@@ -60,10 +51,9 @@ fn create(rt: &Runtime) {
         .map_err(|e| trace_error(&e))
         .ok();
 
-    if rt.cli().subcommand_matches("create").unwrap().is_present("edit") {
-        if !edit_entry(rt, name) {
-            exit(1);
-        }
+    if rt.cli().subcommand_matches("create").unwrap().is_present("edit") &&
+            !edit_entry(rt, name) {
+        exit(1);
     }
 }
 
@@ -79,14 +69,19 @@ fn edit(rt: &Runtime) {
 }
 
 fn edit_entry(rt: &Runtime, name: String) -> bool {
-    let note = Note::retrieve(rt.store(), name);
-    if note.is_err() {
-        trace_error(&note.unwrap_err());
-        warn!("Cannot edit nonexistent Note");
-        return false
-    }
+    let mut note = match Note::get(rt.store(), name) {
+        Ok(Some(note)) => note,
+        Ok(None) => {
+            warn!("Cannot edit nonexistent Note");
+            return false
+        },
+        Err(e) => {
+            trace_error(&e);
+            warn!("Cannot edit nonexistent Note");
+            return false
+        },
+    };
 
-    let mut note = note.unwrap();
     if let Err(e) = note.edit_content(rt) {
         trace_error(&e);
         warn!("Editing failed");

@@ -1,16 +1,69 @@
 use std::path::PathBuf;
-use glob::Paths;
+use std::path::Path;
+use std::borrow::Borrow;
+use std::ops::Deref;
+
 use semver::Version;
 use std::fmt::{Debug, Formatter};
 use std::fmt::Error as FmtError;
 use std::result::Result as RResult;
 
-use error::{StoreError, StoreErrorKind};
+use error::StoreErrorKind as SEK;
 use store::Result;
 use store::Store;
 
 /// The Index into the Store
-pub type StoreId = PathBuf;
+#[derive(Debug, Clone, PartialEq, Hash, Eq, PartialOrd, Ord)]
+pub struct StoreId(PathBuf);
+
+impl Into<PathBuf> for StoreId {
+
+    fn into(self) -> PathBuf {
+        self.0
+    }
+
+}
+
+impl Deref for StoreId {
+    type Target = PathBuf;
+
+    fn deref(&self) -> &PathBuf {
+        &self.0
+    }
+
+}
+
+impl From<PathBuf> for StoreId {
+
+    fn from(pb: PathBuf) -> StoreId {
+        StoreId(pb)
+    }
+
+}
+
+impl From<String> for StoreId {
+
+    fn from(string: String) -> StoreId {
+        StoreId(string.into())
+    }
+
+}
+
+impl AsRef<Path> for StoreId {
+
+    fn as_ref(&self) -> &Path {
+        self.0.as_ref()
+    }
+
+}
+
+impl Borrow<Path> for StoreId {
+
+    fn borrow(&self) -> &Path {
+        self.0.borrow()
+    }
+
+}
 
 /// This Trait allows you to convert various representations to a single one
 /// suitable for usage in the Store
@@ -20,24 +73,30 @@ pub trait IntoStoreId {
 
 impl IntoStoreId for PathBuf {
     fn into_storeid(self) -> StoreId {
+        StoreId(self)
+    }
+}
+
+impl IntoStoreId for StoreId {
+    fn into_storeid(self) -> StoreId {
         self
     }
 }
 
 pub fn build_entry_path(store: &Store, path_elem: &str) -> Result<PathBuf> {
     debug!("Checking path element for version");
-    if path_elem.split("~").last().map(|v| Version::parse(v).is_err()).unwrap_or(false) {
+    if path_elem.split('~').last().map_or(false, |v| Version::parse(v).is_err()) {
         debug!("Version cannot be parsed from {:?}", path_elem);
         debug!("Path does not contain version!");
-        return Err(StoreError::new(StoreErrorKind::StorePathLacksVersion, None));
+        return Err(SEK::StorePathLacksVersion.into());
     }
     debug!("Version checking succeeded");
 
     debug!("Building path from {:?}", path_elem);
     let mut path = store.path().clone();
 
-    if path_elem.chars().next() == Some('/') {
-        path.push(&path_elem[1..path_elem.len()]);
+    if path_elem.starts_with('/') {
+        path.push(&path_elem[1..]);
     } else {
         path.push(path_elem);
     }
@@ -61,6 +120,8 @@ macro_rules! module_entry_path_mod {
             use std::convert::AsRef;
             use std::path::Path;
             use std::path::PathBuf;
+
+            use $crate::storeid::StoreId;
 
             /// A Struct giving you the ability to choose store entries assigned
             /// to it.
@@ -86,7 +147,7 @@ macro_rules! module_entry_path_mod {
 
             impl $crate::storeid::IntoStoreId for ModuleEntryPath {
                 fn into_storeid(self) -> $crate::storeid::StoreId {
-                    self.0
+                    StoreId::from(self.0)
                 }
             }
         }
@@ -94,7 +155,7 @@ macro_rules! module_entry_path_mod {
 }
 
 pub struct StoreIdIterator {
-    paths: Paths,
+    iter: Box<Iterator<Item = StoreId>>,
 }
 
 impl Debug for StoreIdIterator {
@@ -107,9 +168,9 @@ impl Debug for StoreIdIterator {
 
 impl StoreIdIterator {
 
-    pub fn new(paths: Paths) -> StoreIdIterator {
+    pub fn new(iter: Box<Iterator<Item = StoreId>>) -> StoreIdIterator {
         StoreIdIterator {
-            paths: paths,
+            iter: iter,
         }
     }
 
@@ -119,7 +180,7 @@ impl Iterator for StoreIdIterator {
     type Item = StoreId;
 
     fn next(&mut self) -> Option<StoreId> {
-        self.paths.next().and_then(|o| o.ok())
+        self.iter.next()
     }
 
 }

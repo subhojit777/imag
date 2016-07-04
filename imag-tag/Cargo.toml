@@ -5,7 +5,7 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
 clap = "2.1.1"
-log = "0.3.5"
+log = "0.3"
 version = "2.0.1"
 semver = "0.2.1"
 toml = "0.1.25"
@@ -16,8 +16,8 @@ path = "../libimagstore"
 [dependencies.libimagrt]
 path = "../libimagrt"
 
-[dependencies.libimagutil]
-path = "../libimagutil"
+[dependencies.libimagerror]
+path = "../libimagerror"
 
 [dependencies.libimagentrytag]
 path = "../libimagentrytag"

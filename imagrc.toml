@@ -1,0 +1,31 @@
+# This is a example configuration file for the imag suite.
+# It is written in TOML
+
+[store]
+
+# Hooks which get executed right before the Store is closed.
+# They get the store path as StoreId passed, so they can alter the complete
+# store, so these hooks should be chosen carefully.
+store-unload-hook-aspects  = [ "debug" ]
+
+pre-create-hook-aspects    = [ "debug" ]
+post-create-hook-aspects   = [ "debug" ]
+
+pre-retrieve-hook-aspects  = [ "debug" ]
+post-retrieve-hook-aspects = [ "debug" ]
+
+pre-update-hook-aspects    = [ "debug" ]
+post-update-hook-aspects   = [ "debug" ]
+
+pre-delete-hook-aspects    = [ "debug" ]
+post-delete-hook-aspects   = [ "debug" ]
+
+[store.aspects]
+
+[[aspects.debug]]
+parallel = false
+
+[store.hooks]
+
+[[hooks.debug]]
+aspect = "debug"

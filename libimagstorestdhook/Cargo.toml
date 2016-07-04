@@ -5,8 +5,8 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
 toml = "0.1.25"
-log = "0.3.5"
-fs2 = "0.2.3"
+log = "0.3"
+fs2 = "0.2"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
@@ -14,6 +14,6 @@ path = "../libimagstore"
 [dependencies.libimagentrylink]
 path = "../libimagentrylink"
 
-[dependencies.libimagutil]
-path = "../libimagutil"
+[dependencies.libimagerror]
+path = "../libimagerror"
 

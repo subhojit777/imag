@@ -43,14 +43,15 @@ impl HookDataAccessorProvider for DebugHook {
         use libimagstore::hook::accessor::HookDataAccessor as HDA;
 
         match self.position {
-            HP::PreCreate    => HDA::StoreIdAccess(&self.accessor),
-            HP::PostCreate   => HDA::MutableAccess(&self.accessor),
-            HP::PreRetrieve  => HDA::StoreIdAccess(&self.accessor),
-            HP::PostRetrieve => HDA::MutableAccess(&self.accessor),
-            HP::PreUpdate    => HDA::MutableAccess(&self.accessor),
-            HP::PostUpdate   => HDA::MutableAccess(&self.accessor),
-            HP::PreDelete    => HDA::StoreIdAccess(&self.accessor),
+            HP::StoreUnload  |
+            HP::PreCreate    |
+            HP::PreRetrieve  |
+            HP::PreDelete    |
             HP::PostDelete   => HDA::StoreIdAccess(&self.accessor),
+            HP::PostCreate   |
+            HP::PostRetrieve |
+            HP::PreUpdate    |
+            HP::PostUpdate   => HDA::MutableAccess(&self.accessor),
         }
     }
 

@@ -1,0 +1,8 @@
+[package]
+name = "libimagerror"
+version = "0.1.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+log = "0.3"
+ansi_term = "0.7"

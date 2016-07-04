@@ -51,9 +51,9 @@ pub enum Action {
 }
 
 fn action_to_str(a: &Action) -> &'static str {
-    match a {
-        &Action::Lock   => "lock",
-        &Action::Unlock => "unlock",
+    match *a {
+        Action::Lock   => "lock",
+        Action::Unlock => "unlock",
     }
 }
 

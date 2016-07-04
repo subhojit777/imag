@@ -9,7 +9,7 @@ use libimagstore::hook::accessor::NonMutableHookDataAccessor;
 use libimagstore::hook::result::HookResult;
 use libimagstore::store::FileLockEntry;
 use libimagentrylink::internal::InternalLinker;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 
 #[derive(Debug, Clone)]
 pub struct LinkedEntriesExistHook {
@@ -57,10 +57,8 @@ impl NonMutableHookDataAccessor for LinkedEntriesExistHook {
                     path.push(link);
                     if !path.exists() {
                         warn!("File link does not exist: {:?} -> {:?}", fle.get_location(), path);
-                    } else {
-                        if !path.is_file() {
-                            warn!("File link is not a file: {:?} -> {:?}", fle.get_location(), path);
-                        }
+                    } else if !path.is_file() {
+                        warn!("File link is not a file: {:?} -> {:?}", fle.get_location(), path);
                     }
                 }
             })

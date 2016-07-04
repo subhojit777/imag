@@ -14,7 +14,7 @@ use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
 use libimagstore::storeid::build_entry_path;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 
 use error::StoreError;
 use error::StoreErrorKind;
@@ -60,30 +60,24 @@ pub fn create(rt: &Runtime) {
 
 fn create_from_cli_spec(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> Result<()> {
     let content = matches.subcommand_matches("entry")
-        .map(|entry_subcommand| {
+        .map_or_else(|| {
+            debug!("Didn't find entry subcommand, getting raw content");
+            matches.value_of("from-raw")
+                .map_or_else(String::new, string_from_raw_src)
+        }, |entry_subcommand| {
             debug!("Found entry subcommand, parsing content");
             entry_subcommand
                 .value_of("content")
-                .map(String::from)
-                .unwrap_or_else(|| {
-                    entry_subcommand
-                        .value_of("content-from")
-                        .map(|src| string_from_raw_src(src))
-                        .unwrap_or(String::new())
-                })
-        })
-        .unwrap_or_else(|| {
-            debug!("Didn't find entry subcommand, getting raw content");
-            matches.value_of("from-raw")
-                .map(|raw_src| string_from_raw_src(raw_src))
-                .unwrap_or(String::new())
+                .map_or_else(|| {
+                    entry_subcommand.value_of("content-from")
+                        .map_or_else(String::new, string_from_raw_src)
+                }, String::from)
         });
-
     debug!("Got content with len = {}", content.len());
 
     let header = matches.subcommand_matches("entry")
-        .map(|entry_matches| build_toml_header(entry_matches, EntryHeader::new()))
-        .unwrap_or(EntryHeader::new());
+        .map_or_else(EntryHeader::new,
+            |entry_matches| build_toml_header(entry_matches, EntryHeader::new()));
 
     create_with_content_and_header(rt, path, content, header)
 }
@@ -92,7 +86,7 @@ fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> Res
     let content = matches
         .value_of("from-raw")
         .ok_or(StoreError::new(StoreErrorKind::NoCommandlineCall, None))
-        .map(|raw_src| string_from_raw_src(raw_src));
+        .map(string_from_raw_src);
 
     if content.is_err() {
         return content.map(|_| ());

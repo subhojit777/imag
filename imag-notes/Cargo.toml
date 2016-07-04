@@ -6,7 +6,7 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 [dependencies]
 semver = "0.2.1"
 clap = "2.1.1"
-log = "0.3.5"
+log = "0.3"
 version = "2.0.1"
 
 [dependencies.libimagrt]
@@ -18,6 +18,6 @@ path = "../libimagnotes"
 [dependencies.libimagentrytag]
 path = "../libimagentrytag"
 
-[dependencies.libimagutil]
-path = "../libimagutil"
+[dependencies.libimagerror]
+path = "../libimagerror"
 

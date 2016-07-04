@@ -31,8 +31,8 @@ use url::Url;
 use crypto::sha1::Sha1;
 use crypto::digest::Digest;
 
-/// "Link" Type, just an abstraction over FileLockEntry to have some convenience internally.
-struct Link<'a> {
+/// "Link" Type, just an abstraction over `FileLockEntry` to have some convenience internally.
+pub struct Link<'a> {
     link: FileLockEntry<'a>
 }
 
@@ -45,28 +45,18 @@ impl<'a> Link<'a> {
     /// For interal use only. Load an Link from a store id, if this is actually a Link
     fn retrieve(store: &'a Store, id: StoreId) -> Result<Option<Link<'a>>> {
         store.retrieve(id)
-            .map(|fle| {
-                if let Some(_) = Link::get_link_uri_from_filelockentry(&fle) {
-                    Some(Link {
-                        link: fle
-                    })
-                } else {
-                    None
-                }
-            })
+            .map(|fle| Link::get_link_uri_from_filelockentry(&fle).map(|_| Link { link: fle }))
             .map_err(|e| LE::new(LEK::StoreReadError, Some(Box::new(e))))
     }
 
-    /// Get a link Url object from a FileLockEntry, ignore errors.
+    /// Get a link Url object from a `FileLockEntry`, ignore errors.
     fn get_link_uri_from_filelockentry(file: &FileLockEntry<'a>) -> Option<Url> {
         file.get_header()
             .read("imag.content.uri")
             .ok()
-            .and_then(|opt| {
-                match opt {
-                    Some(Value::String(s)) => Url::parse(&s[..]).ok(),
-                    _ => None
-                }
+            .and_then(|opt| match opt {
+                Some(Value::String(s)) => Url::parse(&s[..]).ok(),
+                _ => None
             })
     }
 
@@ -78,7 +68,7 @@ impl<'a> Link<'a> {
         match opt {
             Ok(Some(Value::String(s))) => {
                 Url::parse(&s[..])
-                     .map(|s| Some(s))
+                     .map(Some)
                      .map_err(|e| LE::new(LEK::EntryHeaderReadError, Some(Box::new(e))))
             },
             Ok(None) => Ok(None),
@@ -105,7 +95,7 @@ pub trait ExternalLinker : InternalLinker {
 }
 
 /// Check whether the StoreId starts with `/link/external/`
-fn is_link_store_id(id: &StoreId) -> bool {
+pub fn is_external_link_storeid(id: &StoreId) -> bool {
     debug!("Checking whether this is a /link/external/*: '{:?}'", id);
     id.starts_with("/link/external/")
 }
@@ -115,7 +105,7 @@ fn get_external_link_from_file(entry: &FileLockEntry) -> Result<Url> {
         .ok_or(LE::new(LEK::StoreReadError, None))
 }
 
-/// Implement ExternalLinker for Entry, hiding the fact that there is no such thing as an external
+/// Implement `ExternalLinker` for `Entry`, hiding the fact that there is no such thing as an external
 /// link in an entry, but internal links to other entries which serve as external links, as one
 /// entry in the store can only have one external link.
 impl ExternalLinker for Entry {
@@ -129,7 +119,7 @@ impl ExternalLinker for Entry {
             .map(|vect| {
                 debug!("Getting external links");
                 vect.into_iter()
-                    .filter(is_link_store_id)
+                    .filter(is_external_link_storeid)
                     .map(|id| {
                         debug!("Retrieving entry for id: '{:?}'", id);
                         match store.retrieve(id.clone()) {
@@ -156,7 +146,7 @@ impl ExternalLinker for Entry {
         for link in links { // for all links
             let hash = {
                 let mut s = Sha1::new();
-                s.input_str(&link.serialize()[..]);
+                s.input_str(&link.as_str()[..]);
                 s.result_str()
             };
             let file_id = ModuleEntryPath::new(format!("external/{}", hash)).into_storeid();
@@ -189,7 +179,7 @@ impl ExternalLinker for Entry {
                     Err(e)   => return Err(LE::new(LEK::StoreWriteError, Some(Box::new(e)))),
                 };
 
-                let v = Value::String(link.serialize());
+                let v = Value::String(link.into_string());
 
                 debug!("setting URL = '{:?}", v);
                 table.insert(String::from("url"), v);
@@ -231,7 +221,7 @@ impl ExternalLinker for Entry {
             .and_then(|links| {
                 debug!("Removing link = '{:?}' from links = {:?}", link, links);
                 let links = links.into_iter()
-                    .filter(|l| l.serialize() != link.serialize())
+                    .filter(|l| l.as_str() != link.as_str())
                     .collect();
                 self.set_external_links(store, links)
             })

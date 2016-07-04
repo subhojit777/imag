@@ -23,17 +23,18 @@ extern crate url;
 extern crate libimagentrylink;
 extern crate libimagrt;
 extern crate libimagstore;
-extern crate libimagutil;
+extern crate libimagerror;
 
 use std::process::exit;
 use std::ops::Deref;
 
 use libimagrt::runtime::Runtime;
+use libimagrt::setup::generate_runtime_setup;
 use libimagstore::error::StoreError;
 use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
-use libimagutil::trace::trace_error;
+use libimagerror::trace::trace_error;
 use libimagentrylink::external::ExternalLinker;
 use clap::ArgMatches;
 use url::Url;
@@ -43,20 +44,10 @@ mod ui;
 use ui::build_ui;
 
 fn main() {
-    let name = "imag-link";
-    let version = &version!()[..];
-    let about = "Link entries";
-    let ui = build_ui(Runtime::get_default_cli_builder(name, version, about));
-    let rt = {
-        let rt = Runtime::new(ui);
-        if rt.is_ok() {
-            rt.unwrap()
-        } else {
-            println!("Could not set up Runtime");
-            println!("{:?}", rt.unwrap_err());
-            exit(1);
-        }
-    };
+    let rt = generate_runtime_setup("imag-link",
+                                    &version!()[..],
+                                    "Link entries",
+                                    build_ui);
 
     rt.cli()
         .subcommand_name()
@@ -74,23 +65,21 @@ fn main() {
 
 fn handle_internal_linking(rt: &Runtime) {
     use libimagentrylink::internal::InternalLinker;
-    use libimagutil::trace::trace_error;
+    use libimagerror::trace::trace_error;
 
     debug!("Handle internal linking call");
     let cmd = rt.cli().subcommand_matches("internal").unwrap();
 
     if cmd.is_present("list") {
         debug!("List...");
-        for entry in cmd.value_of("list").unwrap().split(",") {
+        for entry in cmd.value_of("list").unwrap().split(',') {
             debug!("Listing for '{}'", entry);
             match get_entry_by_name(rt, entry) {
                 Ok(e) => {
                     e.get_internal_links()
                         .map(|links| {
-                            let mut i = 0;
-                            for link in links.iter().map(|l| l.to_str()).filter_map(|x| x) {
+                            for (i, link) in links.iter().map(|l| l.to_str()).filter_map(|x| x).enumerate() {
                                 println!("{: <3}: {}", i, link);
-                                i += 1;
                             }
                         })
                         .map_err(|e| trace_error(&e))
@@ -194,7 +183,7 @@ fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<FileLockEntry<'a
 }
 
 fn handle_external_linking(rt: &Runtime) {
-    use libimagutil::trace::trace_error;
+    use libimagerror::trace::trace_error;
 
     let scmd       = rt.cli().subcommand_matches("external").unwrap();
     let entry_name = scmd.value_of("id").unwrap(); // enforced by clap
@@ -275,7 +264,7 @@ fn set_links_for_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLock
         .value_of("links")
         .map(String::from)
         .unwrap()
-        .split(",")
+        .split(',')
         .map(|uri| {
             match Url::parse(uri) {
                 Err(e) => {
@@ -299,10 +288,8 @@ fn set_links_for_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLock
 fn list_links_for_entry(store: &Store, entry: &mut FileLockEntry) {
     let res = entry.get_external_links(store)
         .and_then(|links| {
-            let mut i = 0;
-            for link in links {
+            for (i, link) in links.iter().enumerate() {
                 println!("{: <3}: {}", i, link);
-                i += 1;
             }
             Ok(())
         });

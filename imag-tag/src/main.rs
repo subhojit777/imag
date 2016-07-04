@@ -7,46 +7,36 @@ extern crate toml;
 extern crate libimagstore;
 extern crate libimagrt;
 extern crate libimagentrytag;
-extern crate libimagutil;
+extern crate libimagerror;
 
 use std::process::exit;
 
 use libimagrt::runtime::Runtime;
+use libimagrt::setup::generate_runtime_setup;
 use libimagentrytag::tagable::Tagable;
+use libimagentrytag::tag::Tag;
 use libimagstore::storeid::build_entry_path;
+use libimagerror::trace::trace_error;
+use libimagentrytag::ui::{get_add_tags, get_remove_tags};
 
 mod ui;
 
 use ui::build_ui;
 
-use libimagutil::trace::trace_error;
-
 fn main() {
-    let name = "imag-store";
-    let version = &version!()[..];
-    let about = "Direct interface to the store. Use with great care!";
-    let ui = build_ui(Runtime::get_default_cli_builder(name, version, about));
-    let rt = {
-        let rt = Runtime::new(ui);
-        if rt.is_ok() {
-            rt.unwrap()
-        } else {
-            println!("Could not set up Runtime");
-            println!("{:?}", rt.unwrap_err());
-            exit(1);
-        }
-    };
+    let rt = generate_runtime_setup("imag-store",
+                                    &version!()[..],
+                                    "Direct interface to the store. Use with great care!",
+                                    build_ui);
 
     let id = rt.cli().value_of("id").unwrap(); // enforced by clap
     rt.cli()
         .subcommand_name()
         .map_or_else(
             || {
-                let add = rt.cli().value_of("add");
-                let rem = rt.cli().value_of("remove");
-                let set = rt.cli().value_of("set");
-
-                alter(&rt, id, add, rem, set);
+                let add = get_add_tags(rt.cli());
+                let rem = get_remove_tags(rt.cli());
+                alter(&rt, id, add, rem);
             },
             |name| {
                 debug!("Call: {}", name);
@@ -60,7 +50,7 @@ fn main() {
             });
 }
 
-fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Option<&str>) {
+fn alter(rt: &Runtime, id: &str, add: Option<Vec<Tag>>, rem: Option<Vec<Tag>>) {
     let path = {
         match build_entry_path(rt.store(), id) {
             Err(e) => {
@@ -72,43 +62,36 @@ fn alter(rt: &Runtime, id: &str, add: Option<&str>, rem: Option<&str>, set: Opti
     };
     debug!("path = {:?}", path);
 
-    rt.store()
-        // "id" must be present, enforced via clap spec
-        .retrieve(path)
-        .map(|mut e| {
+    match rt.store().get(path) {
+        Ok(Some(mut e)) => {
             add.map(|tags| {
-                let tags = tags.split(",");
                 for tag in tags {
-                    info!("Adding tag '{}'", tag);
-                    if let Err(e) = e.add_tag(String::from(tag)) {
+                    debug!("Adding tag '{:?}'", tag);
+                    if let Err(e) = e.add_tag(tag) {
                         trace_error(&e);
                     }
                 }
-            });
+            }); // it is okay to ignore a None here
 
             rem.map(|tags| {
-                let tags = tags.split(",");
                 for tag in tags {
-                    info!("Removing tag '{}'", tag);
-                    if let Err(e) = e.remove_tag(String::from(tag)) {
+                    debug!("Removing tag '{:?}'", tag);
+                    if let Err(e) = e.remove_tag(tag) {
                         trace_error(&e);
                     }
                 }
-            });
+            }); // it is okay to ignore a None here
+        },
 
-            set.map(|tags| {
-                info!("Setting tags '{}'", tags);
-                let tags = tags.split(",").map(String::from).collect();
-                if let Err(e) = e.set_tags(tags) {
-                    trace_error(&e);
-                }
-            });
-        })
-        .map_err(|e| {
+        Ok(None) => {
+            info!("No entry found.");
+        },
+
+        Err(e) => {
             info!("No entry.");
             trace_error(&e);
-        })
-        .ok();
+        },
+    }
 }
 
 fn list(id: &str, rt: &Runtime) {
@@ -123,14 +106,20 @@ fn list(id: &str, rt: &Runtime) {
     };
     debug!("path = {:?}", path);
 
-    let entry = rt.store().retrieve(path.clone());
-    if entry.is_err() {
-        debug!("Could not retrieve '{:?}' => {:?}", id, path);
-        warn!("Could not retrieve entry '{}'", id);
-        trace_error(&entry.unwrap_err());
-        exit(1);
-    }
-    let entry = entry.unwrap();
+    let entry = match rt.store().get(path.clone()) {
+        Ok(Some(e)) => e,
+        Ok(None) => {
+            info!("No entry found.");
+            exit(1);
+        },
+
+        Err(e) => {
+            debug!("Could not get '{:?}' => {:?}", id, path);
+            warn!("Could not get entry '{}'", id);
+            trace_error(&e);
+            exit(1);
+        },
+    };
 
     let scmd = rt.cli().subcommand_matches("list").unwrap(); // safe, we checked in main()
 

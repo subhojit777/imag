@@ -11,6 +11,7 @@ export MAKE_FLAGS=--no-print-directory
 export OUT=$(shell pwd)/bin
 export OUT_PDF=$(OUT)/pdf/
 export OUT_HTML=$(OUT)/html/
+export OUT_MAN=$(OUT)/man/
 
 DOCUMENT_CLASS=article
 SETTING_FONTSIZE=11pt
@@ -52,6 +53,10 @@ DOCUMENT_SETTINGS_HTML=			\
 	--table-of-contents			\
 	--webtex
 
+DOCUMENT_SETTINGS_MAN=			\
+	-s					\
+	--variable section=5			\
+
 #
 #
 #
@@ -89,8 +94,11 @@ export PANDOC_CC_PDF=$(PANDOC)        \
 
 export PANDOC_CC_HTML=$(PANDOC) $(PANDOC_PARAMS) $(DOCUMENT_SETTINGS_HTML)
 
+export PANDOC_CC_MAN=$(PANDOC) $(PANDOC_PARAMS) $(DOCUMENT_SETTINGS_MAN)
+
 TARGET_PDF=$(OUT_PDF)/paper.pdf
 TARGET_HTML=$(OUT_HTML)/index.html
+TARGET_MAN=$(OUT_MAN)/imag.5
 #
 #
 # Tasks
@@ -116,6 +124,11 @@ $(OUT_PDF): $(OUT)
 	@$(ECHO) "\t[MKDIR ] $@"
 	@$(MKDIR) $(OUT_PDF)
 
+# create man out directory
+$(OUT_MAN): $(OUT)
+	@$(ECHO) "\t[MKDIR ] $@"
+	@$(MKDIR) $(OUT_MAN)
+
 # cleanup task
 clean:
 	@$(ECHO) "\t[RM    ] $@"
@@ -135,6 +148,13 @@ $(TARGET_HTML): $(OUT_HTML)
 	@$(ECHO) "\t[PANDOC] html"
 	@$(PANDOC_CC_HTML)                        \
 		--template $(TEMPLATES)/default.html5 \
+		$(SRC) -o $@
+
+man: $(TARGET_MAN)
+
+$(TARGET_MAN): $(OUT_MAN)
+	@$(ECHO) "\t[PANDOC] man"
+	@$(PANDOC_CC_MAN) \
 		$(SRC) -o $@
 
 .PHONY: $(TARGET_PDF) $(TARGET_HTML)
