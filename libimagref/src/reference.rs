@@ -6,8 +6,10 @@ use std::ops::Deref;
 use std::ops::DerefMut;
 use std::collections::BTreeMap;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, Write};
+use std::fmt::{Display, Error as FmtError, Formatter};
 use std::fs::Permissions;
+use std::result::Result as RResult;
 
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
@@ -491,6 +493,20 @@ impl<'a> DerefMut for Ref<'a> {
 
     fn deref_mut(&mut self) -> &mut FileLockEntry<'a> {
         &mut self.0
+    }
+
+}
+
+impl<'a> Display for Ref<'a> {
+
+    fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
+        let path = self.fs_file()
+            .map(|pb| String::from(pb.to_str().unwrap_or("<UTF8-Error>")))
+            .unwrap_or(String::from("Could not read Path from reference object"));
+
+        let hash = self.get_stored_hash().unwrap_or(String::from("<could not read hash>"));
+
+        write!(fmt, "Ref({} -> {})", hash, path)
     }
 
 }
