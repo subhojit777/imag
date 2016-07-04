@@ -34,6 +34,7 @@ generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     EncodingError           => "Encoding error",
     StorePathError          => "Store Path error",
     EntryRenameError        => "Entry rename error",
+    StoreIdHandlingError    => "StoreId handling error",
 
     CreateCallError            => "Error when calling create()",
     RetrieveCallError          => "Error when calling retrieve()",
