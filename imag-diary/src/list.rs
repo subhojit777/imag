@@ -7,6 +7,7 @@ use libimagdiary::error::DiaryErrorKind as DEK;
 use libimagentrylist::listers::core::CoreLister;
 use libimagentrylist::lister::Lister;
 use libimagrt::runtime::Runtime;
+use libimagstore::store::Entry;
 use libimagstore::storeid::StoreId;
 use libimagerror::trace::trace_error;
 
@@ -41,7 +42,7 @@ pub fn list(rt: &Runtime) {
 
             let base = rt.store().path();
 
-            CoreLister::new(&move |e| location_to_listing_string(e.get_location(), base))
+            CoreLister::new(&move |e: &Entry| location_to_listing_string(e.get_location(), base))
                 .list(es) // TODO: Do not ignore non-ok()s
                 .map_err(|e| DE::new(DEK::IOError, Some(Box::new(e))))
         })
