@@ -344,13 +344,10 @@ impl Store {
             se
         });
 
-        id.unstorified(self)
-            .and_then(|id| {
-                let mut fle = FileLockEntry::new(self, Entry::new(id));
-                self.execute_hooks_for_mut_file(self.post_create_aspects.clone(), &mut fle)
-                    .map_err_into(SEK::PostHookExecuteError)
-                    .map(|_| fle)
-            })
+        let mut fle = FileLockEntry::new(self, Entry::new(id));
+        self.execute_hooks_for_mut_file(self.post_create_aspects.clone(), &mut fle)
+            .map_err_into(SEK::PostHookExecuteError)
+            .map(|_| fle)
             .map_err_into(SEK::CreateCallError)
     }
 
