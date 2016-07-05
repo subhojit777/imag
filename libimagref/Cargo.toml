@@ -1,0 +1,23 @@
+[package]
+name = "libimagref"
+version = "0.1.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+itertools = "0.4"
+log = "0.3"
+rust-crypto = "0.2"
+semver = "0.2"
+toml = "0.1.27"
+version = "2.0.1"
+walkdir = "0.1.5"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
