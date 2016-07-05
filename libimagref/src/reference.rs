@@ -56,12 +56,12 @@ impl<'a> Ref<'a> {
             .map_err(|e| REK::StoreReadError.into_error_with_cause(e))
     }
 
-    /// Delete this ref
+    /// Delete a ref by hash
     ///
     /// If the returned Result contains an error, the ref might not be deleted.
-    pub fn delete(self, store: &'a Store) -> Result<()> {
+    pub fn delete_by_hash(store: &'a Store, hash: String) -> Result<()> {
         store
-            .delete(self.0.get_location().clone())
+            .delete(ModuleEntryPath::new(hash).into_storeid())
             .map_err(Box::new)
             .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
     }
