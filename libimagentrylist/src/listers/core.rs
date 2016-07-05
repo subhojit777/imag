@@ -7,21 +7,21 @@ use result::Result;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Entry;
 
-pub struct CoreLister<'a> {
-    lister: &'a Fn(&Entry) -> String,
+pub struct CoreLister<T: Fn(&Entry) -> String> {
+    lister: Box<T>,
 }
 
-impl<'a> CoreLister<'a> {
+impl<T: Fn(&Entry) -> String> CoreLister<T> {
 
-    pub fn new(lister: &'a Fn(&Entry) -> String) -> CoreLister<'a> {
+    pub fn new(lister: T) -> CoreLister<T> {
         CoreLister {
-            lister: lister,
+            lister: Box::new(lister),
         }
     }
 
 }
 
-impl<'a> Lister for CoreLister<'a> {
+impl<T: Fn(&Entry) -> String> Lister for CoreLister<T> {
 
     fn list<'b, I: Iterator<Item = FileLockEntry<'b>>>(&self, entries: I) -> Result<()> {
         use error::ListError as LE;
