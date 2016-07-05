@@ -46,7 +46,7 @@ impl Display for StoreId {
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
         match self.0.to_str() {
             Some(s) => write!(fmt, "{}", s),
-            None    => write!(fmt, "<non-UTF8-StoreId>"), // TODO: Sure here?
+            None    => write!(fmt, "{}", self.0.to_string_lossy()),
         }
     }
 
