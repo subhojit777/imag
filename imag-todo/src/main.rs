@@ -94,8 +94,8 @@ fn tw_hook(rt: &Runtime) {
         let stdin         = stdin();
         let stdin         = stdin.lock();
 
-        if let Ok(ttasks) = import_tasks(stdin) {
-            for ttask in ttasks {
+        match import_tasks(stdin) {
+            Ok(ttasks) => for ttask in ttasks {
                 if counter % 2 == 1 {
                     // Only every second task is needed, the first one is the
                     // task before the change, and the second one after
@@ -124,9 +124,11 @@ fn tw_hook(rt: &Runtime) {
                     } // end match ttask.status()
                 } // end if c % 2
                 counter += 1;
-            } // end for
-        } else {
-            error!("No usable input");
+            },
+            Err(e) => {
+                trace_error(&e);
+                exit(1);
+            },
         }
     } else {
         // Should not be possible, as one argument is required via
