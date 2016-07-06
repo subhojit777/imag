@@ -12,17 +12,13 @@ use result::Result;
 
 /// Task struct containing a `FileLockEntry`
 #[derive(Debug)]
-pub struct Task<'a> {
-    pub flentry : FileLockEntry<'a>,
-}
+pub struct Task<'a>(FileLockEntry<'a>);
 
 impl<'a> Task<'a> {
 
     /// Concstructs a new `Task` with a `FileLockEntry`
-    pub fn new(fle : FileLockEntry<'a>) -> Task<'a> {
-        Task {
-            flentry : fle
-        }
+    pub fn new(fle: FileLockEntry<'a>) -> Task<'a> {
+        Task(fle)
     }
 
 }
@@ -79,7 +75,7 @@ impl<'a> IntoTask<'a> for TTask {
                 }
 
                 // If none of the errors above have returned the function, everything is fine
-                Ok(Task { flentry : fle } )
+                Ok(Task::new(fle))
             }
         }
     }
