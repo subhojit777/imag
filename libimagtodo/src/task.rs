@@ -17,18 +17,21 @@ pub struct Task<'a> {
 }
 
 impl<'a> Task<'a> {
+
     /// Concstructs a new `Task` with a `FileLockEntry`
     pub fn new(fle : FileLockEntry<'a>) -> Task<'a> {
         Task {
             flentry : fle
         }
     }
+
 }
 
 /// A trait to get a `libimagtodo::task::Task` out of the implementing object.
 /// This Task struct is merely a wrapper for a `FileLockEntry`, therefore the function name
 /// `into_filelockentry`.
 pub trait IntoTask<'a> {
+
     /// # Usage
     /// ```ignore
     /// use std::io::stdin;
@@ -44,25 +47,24 @@ pub trait IntoTask<'a> {
     /// }
     /// ```
     fn into_filelockentry(self, store : &'a Store) -> Result<Task<'a>>;
+
 }
+
 impl<'a> IntoTask<'a> for TTask {
+
     fn into_filelockentry(self, store : &'a Store) -> Result<Task<'a>> {
-        let uuid = self.uuid();
+        let uuid     = self.uuid();
         let store_id = ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid();
+
         match store.retrieve(store_id) {
-            Err(e) => {
-                return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
-            },
+            Err(e) => return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e)))),
             Ok(mut fle) => {
                 {
                     let mut header = fle.get_header_mut();
                     match header.read("todo") {
                         Ok(None) => {
-                            match header.set("todo", Value::Table(BTreeMap::new())) {
-                                Ok(_) => { },
-                                Err(e) => {
-                                    return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
-                                }
+                            if let Err(e) = header.set("todo", Value::Table(BTreeMap::new())) {
+                                return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
                             }
                         }
                         Ok(Some(_)) => { }
@@ -70,16 +72,16 @@ impl<'a> IntoTask<'a> for TTask {
                             return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
                         }
                     }
-                    match header.set("todo.uuid", Value::String(format!("{}",uuid))) {
-                        Ok(_) => { },
-                        Err(e) => {
-                            return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
-                        }
+
+                    if let Err(e) = header.set("todo.uuid", Value::String(format!("{}",uuid))) {
+                        return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
                     }
                 }
+
                 // If none of the errors above have returned the function, everything is fine
                 Ok(Task { flentry : fle } )
             }
         }
     }
+
 }
