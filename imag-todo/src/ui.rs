@@ -27,20 +27,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                            .required(true))
                     )
 
-                    .subcommand(SubCommand::with_name("exec")
-                                .about("Send a command to taskwarrior")
-                                .version("0.1")
-
-                                .arg(Arg::with_name("command")
-                                     .long("command")
-                                     .short("c")
-                                     .takes_value(true)
-                                     .multiple(true)
-                                     .required(true)
-                                     .help("Args written in the string will be send directly to taskwarrior")
-                                    )
-                               )
-
                     .subcommand(SubCommand::with_name("add")
                                 .about("create a task")
                                 .version("0.1")

@@ -46,7 +46,6 @@ fn main() {
 
     match rt.cli().subcommand_name() {
         Some("tw-hook") => tw_hook(&rt),
-        Some("exec") => exec(&rt),
         Some("list") => list(&rt),
         _ => unimplemented!(),
     } // end match scmd
@@ -133,29 +132,6 @@ fn tw_hook(rt: &Runtime) {
         // Should not be possible, as one argument is required via
         // ArgGroup
         unreachable!();
-    }
-}
-
-fn exec(rt: &Runtime) {
-    let subcmd = rt.cli().subcommand_matches("exec").unwrap();
-    let mut args = Vec::new();
-    if let Some(exec_string) = subcmd.values_of("command") {
-        for e in exec_string {
-            args.push(e);
-        }
-        let tw_process = Command::new("task").stdin(Stdio::null()).args(&args).spawn().unwrap_or_else(|e| {
-            panic!("failed to execute taskwarrior: {}", e);
-        });
-
-        let output = tw_process.wait_with_output().unwrap_or_else(|e| {
-            panic!("failed to unwrap output: {}", e);
-        });
-        let outstring = String::from_utf8(output.stdout).unwrap_or_else(|e| {
-            panic!("failed to ececute: {}", e);
-        });
-        println!("{}", outstring);
-    } else {
-        panic!("faild to execute: You need to exec --command");
     }
 }
 
