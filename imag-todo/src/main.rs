@@ -163,8 +163,7 @@ fn list(rt: &Runtime) {
 
                 if verbose {
                     args.clear();
-                    args.push(format!("uuid:{}", uuid));
-                    args.push(format!("{}", "information"));
+                    args.push(format!("uuid:{} information", uuid));
                     let tw_process = Command::new("task").stdin(Stdio::null()).args(&args).spawn()
                         .unwrap_or_else(|e| {
                             trace_error(&e);
