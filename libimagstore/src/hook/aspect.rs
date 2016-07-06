@@ -73,6 +73,10 @@ impl StoreIdAccessor for Aspect {
 
 impl MutableHookDataAccessor for Aspect {
     fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
+        if !self.cfg.as_ref().map(|c| c.allow_mutable_hooks()).unwrap_or(false) {
+            return Err(HE::new(HEK::MutableHooksNotAllowed, None));
+        }
+
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
 
         fn is_file_accessor(a: &HDA) -> bool {
