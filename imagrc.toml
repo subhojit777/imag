@@ -24,6 +24,7 @@ post-delete-hook-aspects   = [ "debug" ]
 
 [[aspects.debug]]
 parallel = false
+mutable_hooks = false
 
 [store.hooks]
 
