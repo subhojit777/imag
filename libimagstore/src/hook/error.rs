@@ -3,7 +3,8 @@ generate_error_imports!();
 
 generate_custom_error_types!(HookError, HookErrorKind, CustomData,
     HookExecutionError  => "Hook exec error",
-    AccessTypeViolation => "Hook access type violation"
+    AccessTypeViolation => "Hook access type violation",
+    MutableHooksNotAllowed => "Mutable Hooks are denied"
 );
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
