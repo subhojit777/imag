@@ -1,4 +1,6 @@
 use std::collections::BTreeMap;
+use std::ops::{Deref, DerefMut};
+
 use toml::Value;
 
 use task_hookrs::task::Task as TTask;
@@ -19,6 +21,23 @@ impl<'a> Task<'a> {
     /// Concstructs a new `Task` with a `FileLockEntry`
     pub fn new(fle: FileLockEntry<'a>) -> Task<'a> {
         Task(fle)
+    }
+
+}
+
+impl<'a> Deref for Task<'a> {
+    type Target = FileLockEntry<'a>;
+
+    fn deref(&self) -> &FileLockEntry<'a> {
+        &self.0
+    }
+
+}
+
+impl<'a> DerefMut for Task<'a> {
+
+    fn deref_mut(&mut self) -> &mut FileLockEntry<'a> {
+        &mut self.0
     }
 
 }
