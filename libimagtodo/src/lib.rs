@@ -7,7 +7,6 @@ extern crate task_hookrs;
 
 module_entry_path_mod!("todo", "0.1.0");
 
-pub mod delete;
 pub mod error;
 pub mod read;
 pub mod result;

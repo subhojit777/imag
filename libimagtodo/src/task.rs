@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::ops::{Deref, DerefMut};
 
 use toml::Value;
+use uuid::Uuid;
 
 use task_hookrs::task::Task as TTask;
 
@@ -21,6 +22,11 @@ impl<'a> Task<'a> {
     /// Concstructs a new `Task` with a `FileLockEntry`
     pub fn new(fle: FileLockEntry<'a>) -> Task<'a> {
         Task(fle)
+    }
+
+    pub fn delete_by_uuid(store: &Store, uuid: Uuid) -> Result<()> {
+        store.delete(ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid())
+            .map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
     }
 
 }
