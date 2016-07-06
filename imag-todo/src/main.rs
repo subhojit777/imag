@@ -28,7 +28,6 @@ mod ui;
 
 use ui::build_ui;
 fn main() {
-
     let name = "imag-todo";
     let version = &version!()[..];
     let about = "Interface with taskwarrior";
@@ -44,8 +43,6 @@ fn main() {
             exit(1);
         }
     };
-
-
 
     let scmd = rt.cli().subcommand_name();
     match scmd {
