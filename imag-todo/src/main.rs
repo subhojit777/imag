@@ -28,10 +28,10 @@ mod ui;
 
 use ui::build_ui;
 fn main() {
-    let name = "imag-todo";
+    let name    = "imag-todo";
     let version = &version!()[..];
-    let about = "Interface with taskwarrior";
-    let ui = build_ui(Runtime::get_default_cli_builder(name, version, about));
+    let about   = "Interface with taskwarrior";
+    let ui      = build_ui(Runtime::get_default_cli_builder(name, version, about));
 
     let rt = {
         let rt = Runtime::new(ui);
@@ -164,17 +164,21 @@ fn list(rt: &Runtime) {
                 if verbose {
                     args.clear();
                     args.push(format!("uuid:{} information", uuid));
-                    let tw_process = Command::new("task").stdin(Stdio::null()).args(&args).spawn()
+
+                    let tw_process = Command::new("task")
+                        .stdin(Stdio::null())
+                        .args(&args)
+                        .spawn()
                         .unwrap_or_else(|e| {
                             trace_error(&e);
                             panic!("failed");
                         });
-                    let output = tw_process.wait_with_output().unwrap_or_else(|e| {
-                        panic!("failed to unwrap output: {}", e);
-                    });
-                    let outstring = String::from_utf8(output.stdout).unwrap_or_else(|e| {
-                        panic!("failed to execute: {}", e);
-                    });
+                    let output = tw_process
+                        .wait_with_output()
+                        .unwrap_or_else(|e| panic!("failed to unwrap output: {}", e));
+                    let outstring = String::from_utf8(output.stdout)
+                        .unwrap_or_else(|e| panic!("failed to execute: {}", e));
+
                     println!("{}", outstring);
                 } else {
                     println!("{}", match uuid {
