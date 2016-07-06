@@ -7,7 +7,7 @@ use uuid::Uuid;
 use task_hookrs::task::Task as TTask;
 
 use libimagstore::store::{FileLockEntry, Store};
-use libimagstore::storeid::IntoStoreId;
+use libimagstore::storeid::{IntoStoreId, StoreIdIterator, StoreId};
 use module_path::ModuleEntryPath;
 
 use error::{TodoError, TodoErrorKind};
@@ -26,6 +26,12 @@ impl<'a> Task<'a> {
 
     pub fn delete_by_uuid(store: &Store, uuid: Uuid) -> Result<()> {
         store.delete(ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid())
+            .map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
+    }
+
+    pub fn all(store: &Store) -> Result<TaskIterator> {
+        store.retrieve_for_module("todo/taskwarrior")
+            .map(|iter| TaskIterator::new(store, iter))
             .map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
     }
 
@@ -106,3 +112,42 @@ impl<'a> IntoTask<'a> for TTask {
     }
 
 }
+
+trait FromStoreId {
+    fn from_storeid<'a>(&'a Store, StoreId) -> Result<Task<'a>>;
+}
+
+impl<'a> FromStoreId for Task<'a> {
+
+    fn from_storeid<'b>(store: &'b Store, id: StoreId) -> Result<Task<'b>> {
+        match store.retrieve(id) {
+            Err(e) => Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e)))),
+            Ok(c)  => Ok(Task::new( c )),
+        }
+    }
+}
+
+pub struct TaskIterator<'a> {
+    store: &'a Store,
+    iditer: StoreIdIterator,
+}
+
+impl<'a> TaskIterator<'a> {
+
+    pub fn new(store: &'a Store, iditer: StoreIdIterator) -> TaskIterator<'a> {
+        TaskIterator {
+            store: store,
+            iditer: iditer,
+        }
+    }
+
+}
+
+impl<'a> Iterator for TaskIterator<'a> {
+    type Item = Result<Task<'a>>;
+
+    fn next(&mut self) -> Option<Result<Task<'a>>> {
+        self.iditer.next().map(|id| Task::from_storeid(self.store, id))
+    }
+}
+
