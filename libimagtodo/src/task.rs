@@ -29,10 +29,14 @@ impl<'a> Task<'a> {
             .map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
     }
 
-    pub fn all(store: &Store) -> Result<TaskIterator> {
+    pub fn all_as_ids(store: &Store) -> Result<StoreIdIterator> {
         store.retrieve_for_module("todo/taskwarrior")
-            .map(|iter| TaskIterator::new(store, iter))
             .map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
+    }
+
+    pub fn all(store: &Store) -> Result<TaskIterator> {
+        Task::all_as_ids(store)
+            .map(|iter| TaskIterator::new(store, iter))
     }
 
 }
