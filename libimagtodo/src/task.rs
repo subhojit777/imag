@@ -77,13 +77,13 @@ pub trait IntoTask<'a> {
     ///     println!("Task with uuid: {}", task.flentry.get_header().get("todo.uuid"));
     /// }
     /// ```
-    fn into_filelockentry(self, store : &'a Store) -> Result<Task<'a>>;
+    fn into_task(self, store : &'a Store) -> Result<Task<'a>>;
 
 }
 
 impl<'a> IntoTask<'a> for TTask {
 
-    fn into_filelockentry(self, store : &'a Store) -> Result<Task<'a>> {
+    fn into_task(self, store : &'a Store) -> Result<Task<'a>> {
         let uuid     = self.uuid();
         let store_id = ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid();
 

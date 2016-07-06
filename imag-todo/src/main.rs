@@ -73,7 +73,7 @@ fn tw_hook(rt: &Runtime) {
             }
 
             let uuid = *ttask.uuid();
-            match ttask.into_filelockentry(rt.store()) {
+            match ttask.into_task(rt.store()) {
                 Ok(val) => {
                     println!("Task {} stored in imag", uuid);
                     val
