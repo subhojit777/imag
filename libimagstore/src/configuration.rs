@@ -193,6 +193,7 @@ pub fn get_post_move_aspect_names(value: &Option<Value>) -> Vec<String> {
 #[derive(Debug)]
 pub struct AspectConfig {
     parallel: bool,
+    mutable_hooks: bool,
     config: Value,
 }
 
@@ -200,8 +201,10 @@ impl AspectConfig {
 
     pub fn new(init: Value) -> AspectConfig {
         let parallel = AspectConfig::is_parallel(&init);
+        let muthooks = AspectConfig::allows_mutable_hooks(&init);
         AspectConfig {
             config: init,
+            mutable_hooks: muthooks,
             parallel: parallel,
         }
     }
@@ -218,6 +221,24 @@ impl AspectConfig {
                     }),
             _ => false,
         }
+    }
+
+    fn allows_mutable_hooks(init: &Value) -> bool {
+        match *init {
+            Value::Table(ref t) =>
+                t.get("mutable_hooks")
+                    .map_or(false, |value| {
+                        match *value {
+                            Value::Boolean(b) => b,
+                            _ => false,
+                        }
+                    }),
+            _ => false,
+        }
+    }
+
+    pub fn allow_mutable_hooks(&self) -> bool {
+        self.mutable_hooks
     }
 
     /// Get the aspect configuration for an aspect.
