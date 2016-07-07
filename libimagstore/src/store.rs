@@ -35,7 +35,6 @@ use hook::accessor::{ MutableHookDataAccessor,
             StoreIdAccessor};
 use hook::position::HookPosition;
 use hook::Hook;
-use libimagerror::trace::trace_error;
 
 use libimagerror::into::IntoError;
 
@@ -321,13 +320,9 @@ impl Store {
     pub fn create<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = id.into_storeid().storified(self);
         if let Err(e) = self.execute_hooks_for_id(self.pre_create_aspects.clone(), &id) {
-            if e.is_aborting() {
-                return Err(e)
-                    .map_err_into(SEK::PreHookExecuteError)
-                    .map_err_into(SEK::CreateCallError)
-            } else {
-                trace_error(&e);
-            }
+            return Err(e)
+                .map_err_into(SEK::PreHookExecuteError)
+                .map_err_into(SEK::CreateCallError)
         }
 
         let mut hsmap = match self.entries.write() {
@@ -359,13 +354,9 @@ impl Store {
     pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = id.into_storeid().storified(self);
         if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
-            if e.is_aborting() {
-                return Err(e)
-                    .map_err_into(SEK::PreHookExecuteError)
-                    .map_err_into(SEK::RetrieveCallError)
-            } else {
-                trace_error(&e);
-            }
+            return Err(e)
+                .map_err_into(SEK::PreHookExecuteError)
+                .map_err_into(SEK::RetrieveCallError)
         }
 
         self.entries
@@ -466,13 +457,9 @@ impl Store {
     /// Return the `FileLockEntry` and write to disk
     pub fn update<'a>(&'a self, mut entry: FileLockEntry<'a>) -> Result<()> {
         if let Err(e) = self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), &mut entry) {
-            if e.is_aborting() {
-                return Err(e)
-                    .map_err_into(SEK::PreHookExecuteError)
-                    .map_err_into(SEK::UpdateCallError);
-            } else {
-                trace_error(&e);
-            }
+            return Err(e)
+                .map_err_into(SEK::PreHookExecuteError)
+                .map_err_into(SEK::UpdateCallError);
         }
 
         if let Err(e) = self._update(&entry) {
@@ -533,13 +520,9 @@ impl Store {
     pub fn delete<S: IntoStoreId>(&self, id: S) -> Result<()> {
         let id = id.into_storeid().storified(self);
         if let Err(e) = self.execute_hooks_for_id(self.pre_delete_aspects.clone(), &id) {
-            if e.is_aborting() {
-                return Err(e)
-                    .map_err_into(SEK::PreHookExecuteError)
-                    .map_err_into(SEK::DeleteCallError)
-            } else {
-                trace_error(&e);
-            }
+            return Err(e)
+                .map_err_into(SEK::PreHookExecuteError)
+                .map_err_into(SEK::DeleteCallError)
         }
 
         let mut entries = match self.entries.write() {
@@ -618,13 +601,9 @@ impl Store {
         let old_id = old_id.storified(self);
 
         if let Err(e) = self.execute_hooks_for_id(self.pre_move_aspects.clone(), &old_id) {
-            if e.is_aborting() {
-                return Err(e)
-                    .map_err_into(SEK::PreHookExecuteError)
-                    .map_err_into(SEK::MoveByIdCallError)
-            } else {
-                trace_error(&e);
-            }
+            return Err(e)
+                .map_err_into(SEK::PreHookExecuteError)
+                .map_err_into(SEK::MoveByIdCallError)
         }
 
         let hsmap = self.entries.write();
