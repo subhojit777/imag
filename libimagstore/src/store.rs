@@ -35,7 +35,6 @@ use hook::accessor::{ MutableHookDataAccessor,
             StoreIdAccessor};
 use hook::position::HookPosition;
 use hook::Hook;
-use libimagerror::trace::trace_error;
 
 use libimagerror::into::IntoError;
 
