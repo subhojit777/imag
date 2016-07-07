@@ -75,7 +75,7 @@ impl<'a> BookmarkCollection<'a> {
     }
 
     pub fn delete(store: &Store, name: &str) -> Result<()> {
-        unimplemented!()
+        store.delete(ModuleEntryPath::new(name).into_storeid()).map_err_into(BEK::StoreReadError)
     }
 
     pub fn links(&self) -> Result<Vec<Url>> {
