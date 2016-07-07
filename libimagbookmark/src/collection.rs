@@ -19,6 +19,7 @@ use libimagstore::store::FileLockEntry;
 use libimagentrylink::external::ExternalLinker;
 use libimagentrylink::internal::InternalLinker;
 use libimagentrylink::internal::Link;
+use libimagerror::into::IntoError;
 use url::Url;
 
 pub struct BookmarkCollection<'a> {
@@ -58,8 +59,19 @@ impl<'a> BookmarkCollection<'a> {
             .map_err_into(BEK::StoreReadError)
     }
 
-    pub fn open(store: &Store, name: &str) -> Result<BookmarkCollection<'a>> {
-        unimplemented!()
+    pub fn get(store: &'a Store, name: &str) -> Result<BookmarkCollection<'a>> {
+        let id = ModuleEntryPath::new(name).into_storeid();
+        store.get(id)
+            .map_err_into(BEK::StoreReadError)
+            .and_then(|fle| {
+                match fle {
+                    None => Err(BEK::CollectionNotFound.into_error()),
+                    Some(e) => Ok(BookmarkCollection {
+                        fle: e,
+                        store: store,
+                    }),
+                }
+            })
     }
 
     pub fn delete(store: &Store, name: &str) -> Result<()> {
