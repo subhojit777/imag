@@ -22,6 +22,7 @@ use task_hookrs::import::{import_task, import_tasks};
 
 use libimagrt::runtime::Runtime;
 use libimagtodo::task::IntoTask;
+use libimagtodo::task::Task;
 use libimagerror::trace::trace_error;
 
 mod ui;
@@ -111,7 +112,7 @@ fn tw_hook(rt: &Runtime) {
 
                     match ttask.status() {
                         &task_hookrs::status::TaskStatus::Deleted => {
-                            match libimagtodo::delete::delete(rt.store(), *ttask.uuid()) {
+                            match Task::delete_by_uuid(rt.store(), *ttask.uuid()) {
                                 Ok(_) => println!("Deleted task {}", *ttask.uuid()),
                                 Err(e) => {
                                     trace_error(&e);
@@ -141,18 +142,18 @@ fn list(rt: &Runtime) {
     let subcmd   = rt.cli().subcommand_matches("list").unwrap();
     let mut args = Vec::new();
     let verbose  = subcmd.is_present("verbose");
-    let iter     = match libimagtodo::read::get_todo_iterator(rt.store()) {
-        Err(e) => {
+    let iter     = match Task::all(rt.store()) {
+        Ok(iter) => iter,
+        Err(e)   => {
             trace_error(&e);
             exit(1);
-        }
-        Ok(val) => val,
+        },
     };
 
     for task in iter {
         match task {
             Ok(val) => {
-                let uuid = match val.flentry.get_header().read("todo.uuid") {
+                let uuid = match val.get_header().read("todo.uuid") {
                     Ok(Some(u)) => u,
                     Ok(None)    => continue,
                     Err(e)      => {
