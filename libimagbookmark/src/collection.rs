@@ -18,9 +18,11 @@ use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::FileLockEntry;
 use libimagentrylink::external::ExternalLinker;
 use libimagentrylink::internal::InternalLinker;
-use libimagentrylink::internal::Link;
+use libimagentrylink::internal::Link as StoreLink;
 use libimagerror::into::IntoError;
 use url::Url;
+
+use link::Link;
 
 pub struct BookmarkCollection<'a> {
     fle: FileLockEntry<'a>,
@@ -82,13 +84,29 @@ impl<'a> BookmarkCollection<'a> {
         self.fle.get_external_links(&self.store).map_err_into(BEK::LinkError)
     }
 
-    pub fn link_entries(&self) -> Result<Vec<Link>> {
+    pub fn link_entries(&self) -> Result<Vec<StoreLink>> {
         use libimagentrylink::external::is_external_link_storeid;
 
         self.fle
             .get_internal_links()
             .map(|v| v.into_iter().filter(|id| is_external_link_storeid(id)).collect())
             .map_err_into(BEK::StoreReadError)
+    }
+
+    pub fn add_link(&self, l: Link) -> Result<()> {
+        unimplemented!()
+    }
+
+    pub fn get_link(&self, l: Link) -> Result<Link> {
+        unimplemented!()
+    }
+
+    pub fn get_links_matching(&self, r: Regex) -> Result<Link> {
+        unimplemented!()
+    }
+
+    pub fn remove_link(&self, l: Link) -> Result<()> {
+        unimplemented!()
     }
 
 }
