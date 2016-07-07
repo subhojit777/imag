@@ -21,8 +21,8 @@ pub fn ask_bool(s: &str, default: Option<bool>) -> bool {
 
 fn ask_bool_<R: BufRead>(s: &str, default: Option<bool>, input: &mut R) -> bool {
     lazy_static! {
-        static ref R_YES: Regex = Regex::new(r"^[Yy]$").unwrap();
-        static ref R_NO: Regex  = Regex::new(r"^[Nn]$").unwrap();
+        static ref R_YES: Regex = Regex::new(r"^[Yy](\n?)$").unwrap();
+        static ref R_NO: Regex  = Regex::new(r"^[Nn](\n?)$").unwrap();
     }
 
     loop {
@@ -176,10 +176,28 @@ mod test {
     }
 
     #[test]
+    fn test_ask_bool_nodefault_yes_nl() {
+        let question = "Is this true";
+        let default  = None;
+        let answers  = "\n\n\n\n\ny\n";
+
+        assert!(ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
+    }
+
+    #[test]
     fn test_ask_bool_nodefault_no() {
         let question = "Is this true";
         let default  = None;
         let answers  = "n";
+
+        assert!(false == ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
+    }
+
+    #[test]
+    fn test_ask_bool_nodefault_no_nl() {
+        let question = "Is this true";
+        let default  = None;
+        let answers  = "n\n";
 
         assert!(false == ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
     }
@@ -194,10 +212,28 @@ mod test {
     }
 
     #[test]
+    fn test_ask_bool_default_no_nl() {
+        let question = "Is this true";
+        let default  = Some(false);
+        let answers  = "n\n";
+
+        assert!(false == ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
+    }
+
+    #[test]
     fn test_ask_bool_default_yes() {
         let question = "Is this true";
         let default  = Some(true);
         let answers  = "y";
+
+        assert!(true == ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
+    }
+
+    #[test]
+    fn test_ask_bool_default_yes_nl() {
+        let question = "Is this true";
+        let default  = Some(true);
+        let answers  = "y\n";
 
         assert!(true == ask_bool_(question, default, &mut BufReader::new(answers.as_bytes())));
     }
