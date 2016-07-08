@@ -57,6 +57,8 @@ $endfor$
     \end{center}
 
     \newpage{}
+    \tableofcontents
+    \newpage{}
 
     $body$
 
