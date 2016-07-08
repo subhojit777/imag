@@ -114,8 +114,14 @@ impl<'a> BookmarkCollection<'a> {
             })
     }
 
-    pub fn remove_link(&self, l: Link) -> Result<()> {
-        unimplemented!()
+    pub fn remove_link(&mut self, l: Link) -> Result<()> {
+        use link::IntoUrl;
+
+        l.into_url()
+            .and_then(|url| {
+                self.remove_external_link(self.store, url).map_err_into(BEK::LinkingError)
+            })
+            .map_err_into(BEK::LinkError)
     }
 
 }
