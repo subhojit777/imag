@@ -103,10 +103,6 @@ impl<'a> BookmarkCollection<'a> {
             .map_err_into(BEK::LinkError)
     }
 
-    pub fn get_link(&self, l: Link) -> Result<Link> {
-        unimplemented!()
-    }
-
     pub fn get_links_matching(&self, r: Regex) -> Result<Link> {
         unimplemented!()
     }
