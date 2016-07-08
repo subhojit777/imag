@@ -7,6 +7,14 @@ use url::Url;
 #[derive(Debug, Clone)]
 pub struct Link(String);
 
+impl From<String> for Link {
+
+    fn from(s: String) -> Link {
+        Link(s)
+    }
+
+}
+
 impl Deref for Link {
     type Target = String;
 
