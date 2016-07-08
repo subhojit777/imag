@@ -103,7 +103,7 @@ impl<'a> BookmarkCollection<'a> {
             .map_err_into(BEK::LinkError)
     }
 
-    pub fn get_links_matching(&self, r: Regex) -> Result<Option<Link>> {
+    pub fn get_links_matching(&self, r: Regex) -> Result<Vec<Link>> {
         self.get_external_links(self.store)
             .map_err_into(BEK::LinkError)
             .map(|v| {
@@ -111,7 +111,7 @@ impl<'a> BookmarkCollection<'a> {
                     .map(Url::into_string)
                     .filter(|urlstr| r.is_match(&urlstr[..]))
                     .map(Link::from)
-                    .next()
+                    .collect()
             })
     }
 
