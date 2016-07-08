@@ -9,7 +9,6 @@ use std::ops::DerefMut;
 
 use regex::Regex;
 
-use error::BookmarkError as BE;
 use error::BookmarkErrorKind as BEK;
 use error::MapErrInto;
 use result::Result;
