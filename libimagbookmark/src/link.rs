@@ -15,6 +15,14 @@ impl From<String> for Link {
 
 }
 
+impl<'a> From<&'a str> for Link {
+
+    fn from(s: &'a str) -> Link {
+        Link(String::from(s))
+    }
+
+}
+
 impl Deref for Link {
     type Target = String;
 
