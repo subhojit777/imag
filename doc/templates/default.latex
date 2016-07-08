@@ -48,8 +48,14 @@ $endfor$
 \begin{document}
 
     \begin{center}
-        {\bf $title$}
+        {\bf imag $version$}
+
+        {\bf User Documentation}
+
+        $date$
     \end{center}
+
+    \newpage{}
 
     $body$
 
