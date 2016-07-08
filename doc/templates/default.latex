@@ -47,6 +47,7 @@ $endfor$
 
 \begin{document}
 
+    \thispagestyle{empty}
     \begin{center}
         {\bf imag $version$}
 
