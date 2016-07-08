@@ -1,4 +1,4 @@
-use std::ops::{Deref, DerefMut}
+use std::ops::{Deref, DerefMut};
 
 #[derive(Debug, Clone)]
 pub struct Link(String);
@@ -6,7 +6,7 @@ pub struct Link(String);
 impl Deref for Link {
     type Target = String;
 
-    fn deref(&self) => &String {
+    fn deref(&self) -> &String {
         &self.0
     }
 
@@ -14,7 +14,7 @@ impl Deref for Link {
 
 impl DerefMut for Link {
 
-    fn deref_mut(&mut self) => &mut String {
+    fn deref_mut(&mut self) -> &mut String {
         &mut self.0
     }
 
