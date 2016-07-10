@@ -1,16 +1,18 @@
 use std::collections::BTreeMap;
 use std::ops::{Deref, DerefMut};
+use std::io::BufRead;
 
 use toml::Value;
 use uuid::Uuid;
 
 use task_hookrs::task::Task as TTask;
+use task_hookrs::import::{import_task, import_tasks};
 
 use libimagstore::store::{FileLockEntry, Store};
 use libimagstore::storeid::{IntoStoreId, StoreIdIterator, StoreId};
 use module_path::ModuleEntryPath;
 
-use error::{TodoError, TodoErrorKind};
+use error::{TodoError, TodoErrorKind, MapErrInto};
 use result::Result;
 
 /// Task struct containing a `FileLockEntry`
@@ -22,6 +24,17 @@ impl<'a> Task<'a> {
     /// Concstructs a new `Task` with a `FileLockEntry`
     pub fn new(fle: FileLockEntry<'a>) -> Task<'a> {
         Task(fle)
+    }
+
+    pub fn import<R: BufRead>(store: &'a Store, mut r: R) -> Result<(Task<'a>, Uuid)> {
+        let mut line = String::new();
+        r.read_line(&mut line);
+        import_task(&line.as_str())
+            .map_err_into(TodoErrorKind::ImportError)
+            .and_then(|t| {
+                let uuid = t.uuid().clone();
+                t.into_task(store).map(|t| (t, uuid))
+            })
     }
 
     pub fn delete_by_uuid(store: &Store, uuid: Uuid) -> Result<()> {
