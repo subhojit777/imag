@@ -11,3 +11,7 @@ toml = "0.1.28"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
