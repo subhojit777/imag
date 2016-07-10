@@ -47,36 +47,13 @@ fn tw_hook(rt: &Runtime) {
     if subcmd.is_present("add") {
         let stdin     = stdin();
         let mut stdin = stdin.lock();
-        let mut line  = String::new();
 
-        if let Err(e) = stdin.read_line(&mut line) {
-            trace_error(&e);
-            exit(1);
-        };
-
-        if let Ok(ttask) = import_task(&line.as_str()) {
-            match serde_json::ser::to_string(&ttask) {
-                Ok(val) => println!("{}", val),
-                Err(e) => {
-                    trace_error(&e);
-                    exit(1);
-                }
+        match Task::import(rt.store(), stdin) {
+            Ok((_, uuid)) => info!("Task {} stored in imag", uuid),
+            Err(e) => {
+                trace_error(&e);
+                exit(1);
             }
-
-            let uuid = *ttask.uuid();
-            match ttask.into_task(rt.store()) {
-                Ok(val) => {
-                    println!("Task {} stored in imag", uuid);
-                    val
-                },
-                Err(e) => {
-                    trace_error(&e);
-                    exit(1);
-                }
-            };
-        } else {
-            error!("No usable input");
-            exit(1);
         }
     } else if subcmd.is_present("delete") {
         // The used hook is "on-modify". This hook gives two json-objects
