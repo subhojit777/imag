@@ -8,7 +8,7 @@ std_header() {
 ---
 [imag]
 links = []
-version = "0.1.0"
+version = "0.2.0"
 ---
 EOS
 }
@@ -18,7 +18,7 @@ retrieve() {
 }
 
 test_retrieve_nothing() {
-    local id="test-retrieve_nothing~0.1.0"
+    local id="test-retrieve_nothing~0.2.0"
 
     imag-store create -p /${id} || { err "create failed"; return 1; }
 
@@ -33,7 +33,7 @@ test_retrieve_nothing() {
 }
 
 test_retrieve_content() {
-    local id="test-retrieve_simple~0.1.0"
+    local id="test-retrieve_simple~0.2.0"
 
     imag-store create -p /${id} || { err "create failed"; return 1; }
 
@@ -49,7 +49,7 @@ test_retrieve_content() {
 }
 
 test_retrieve_header() {
-    local id="test-retrieve_simple~0.1.0"
+    local id="test-retrieve_simple~0.2.0"
 
     imag-store create -p /${id} || { err "create failed"; return 1; }
 
@@ -64,7 +64,7 @@ test_retrieve_header() {
 }
 
 test_retrieve_raw() {
-    local id="test-retrieve_simple~0.1.0"
+    local id="test-retrieve_simple~0.2.0"
 
     imag-store create -p /${id} || { err "create failed"; return 1; }
 

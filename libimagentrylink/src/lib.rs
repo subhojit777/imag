@@ -23,7 +23,7 @@ extern crate crypto;
 #[macro_use] extern crate libimagerror;
 #[macro_use] extern crate libimagutil;
 
-module_entry_path_mod!("links", "0.1.0");
+module_entry_path_mod!("links", "0.2.0");
 
 pub mod error;
 pub mod external;
