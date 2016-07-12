@@ -23,7 +23,7 @@ extern crate libimagrt;
 #[macro_use] extern crate libimagerror;
 extern crate libimagentrytag;
 
-module_entry_path_mod!("notes", "0.1.0");
+module_entry_path_mod!("notes", "0.2.0");
 
 pub mod error;
 pub mod note;

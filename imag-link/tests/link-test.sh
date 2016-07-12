@@ -8,7 +8,7 @@ default_entry() {
 ---
 [imag]
 links = []
-version = "0.1.0"
+version = "0.2.0"
 ---
 
 EOS
@@ -19,7 +19,7 @@ entry_linked_to() {
 ---
 [imag]
 links = [$1]
-version = "0.1.0"
+version = "0.2.0"
 ---
 
 EOS
@@ -31,13 +31,13 @@ mktestentry() {
 }
 
 test_link_modificates() {
-    mktestentry "test~0.1.0"
-    mktestentry "test2~0.1.0"
+    mktestentry "test~0.2.0"
+    mktestentry "test2~0.2.0"
 
-    imag-link internal add --from "test~0.1.0" --to "test2~0.1.0"
+    imag-link internal add --from "test~0.2.0" --to "test2~0.2.0"
 
-    if [[ "$(default_entry)" -eq "$(cat_entry 'test~0.1.0')" ]] ||
-       [[ "$(default_entry)" -eq "$(cat_entry 'test2~0.1.0')" ]]
+    if [[ "$(default_entry)" -eq "$(cat_entry 'test~0.2.0')" ]] ||
+       [[ "$(default_entry)" -eq "$(cat_entry 'test2~0.2.0')" ]]
     then
         err "Entry was unmodified after linking"
         return 1;
@@ -45,21 +45,21 @@ test_link_modificates() {
 }
 
 test_linking_links() {
-    mktestentry "test~0.1.0"
-    mktestentry "test2~0.1.0"
+    mktestentry "test~0.2.0"
+    mktestentry "test2~0.2.0"
 
-    imag-link internal add --from "test~0.1.0" --to "test2~0.1.0"
+    imag-link internal add --from "test~0.2.0" --to "test2~0.2.0"
 
-    if [[ "$(entry_linked_to '/test~0.1.0')" == "$(cat_entry 'test2~0.1.0')" ]];
+    if [[ "$(entry_linked_to '/test~0.2.0')" == "$(cat_entry 'test2~0.2.0')" ]];
     then
-        err "Linking to 'test~0.1.0' didn't succeed for 'test2~0.1.0'"
-        err $(cat_entry 'test2~0.1.0')
+        err "Linking to 'test~0.2.0' didn't succeed for 'test2~0.2.0'"
+        err $(cat_entry 'test2~0.2.0')
     fi
 
-    if [[ "$(entry_linked_to '/test2~0.1.0')" == "$(cat_entry 'test~0.1.0')" ]];
+    if [[ "$(entry_linked_to '/test2~0.2.0')" == "$(cat_entry 'test~0.2.0')" ]];
     then
-        err "Linking to 'test2~0.1.0' didn't succeed for 'test~0.1.0'"
-        err $(cat_entry 'test~0.1.0')
+        err "Linking to 'test2~0.2.0' didn't succeed for 'test~0.2.0'"
+        err $(cat_entry 'test~0.2.0')
     fi
 }
 
