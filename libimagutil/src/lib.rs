@@ -18,5 +18,6 @@
 extern crate regex;
 
 pub mod ismatch;
+pub mod iter;
 pub mod key_value_split;
 pub mod variants;

@@ -19,6 +19,7 @@ extern crate clap;
 extern crate toml;
 
 extern crate libimagstore;
+extern crate libimagutil;
 #[macro_use] extern crate libimagerror;
 
 pub mod cli;

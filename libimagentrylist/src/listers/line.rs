@@ -5,6 +5,7 @@ use lister::Lister;
 use result::Result;
 
 use libimagstore::store::FileLockEntry;
+use libimagutil::iter::fold_ok;
 
 pub struct LineLister<'a> {
     unknown_output: &'a str,
@@ -26,13 +27,10 @@ impl<'a> Lister for LineLister<'a> {
         use error::ListError as LE;
         use error::ListErrorKind as LEK;
 
-        entries.fold(Ok(()), |accu, entry| {
-            accu.and_then(|_| {
-                    write!(stdout(), "{:?}\n",
-                            entry.get_location().to_str().unwrap_or(self.unknown_output))
-                        .map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))
-                })
-            })
+        fold_ok(entries, |entry| {
+            write!(stdout(), "{:?}\n", entry.get_location().to_str().unwrap_or(self.unknown_output))
+                .map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))
+        })
     }
 
 }

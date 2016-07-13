@@ -37,6 +37,7 @@ use hook::position::HookPosition;
 use hook::Hook;
 
 use libimagerror::into::IntoError;
+use libimagutil::iter::fold_ok;
 
 use self::glob_store_iter::*;
 
@@ -692,13 +693,16 @@ impl Store {
                             id: &StoreId)
         -> HookResult<()>
     {
-        match aspects.lock() {
-            Err(_) => return Err(HookErrorKind::HookExecutionError.into()),
-            Ok(g) => g
-        }.iter().fold(Ok(()), |acc, aspect| {
-            debug!("[Aspect][exec]: {:?}", aspect);
-            acc.and_then(|_| (aspect as &StoreIdAccessor).access(id))
-        }).map_err(Box::new).map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
+        fold_ok(
+            match aspects.lock() {
+                Err(_) => return Err(HookErrorKind::HookExecutionError.into()),
+                Ok(g) => g
+            }.iter(),
+            |aspect| {
+                debug!("[Aspect][exec]: {:?}", aspect);
+                (aspect as &StoreIdAccessor).access(id)
+            }).map_err(Box::new)
+                .map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
     }
 
     fn execute_hooks_for_mut_file(&self,
@@ -706,13 +710,16 @@ impl Store {
                                   fle: &mut FileLockEntry)
         -> HookResult<()>
     {
-        match aspects.lock() {
-            Err(_) => return Err(HookErrorKind::HookExecutionError.into()),
-            Ok(g) => g
-        }.iter().fold(Ok(()), |acc, aspect| {
-            debug!("[Aspect][exec]: {:?}", aspect);
-            acc.and_then(|_| aspect.access_mut(fle))
-        }).map_err(Box::new).map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
+        fold_ok(
+            match aspects.lock() {
+                Err(_) => return Err(HookErrorKind::HookExecutionError.into()),
+                Ok(g) => g
+            }.iter(),
+            |aspect| {
+                debug!("[Aspect][exec]: {:?}", aspect);
+                aspect.access_mut(fle)
+            }).map_err(Box::new)
+                .map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
     }
 
 }
