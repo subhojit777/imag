@@ -1,0 +1,20 @@
+[package]
+name = "libimagbookmark"
+version = "0.1.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+log = "0.3"
+semver = "0.2"
+url = "1.1"
+regex = "0.1"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagentrylink]
+path = "../libimagentrylink"
+
