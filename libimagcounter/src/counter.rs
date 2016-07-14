@@ -16,6 +16,7 @@ use error::CounterError as CE;
 use error::CounterErrorKind as CEK;
 
 pub type CounterName = String;
+pub type CounterUnit = String;
 
 pub struct Counter<'a> {
     fle: FileLockEntry<'a>,
@@ -23,7 +24,7 @@ pub struct Counter<'a> {
 
 impl<'a> Counter<'a> {
 
-    pub fn new(store: &Store, name: CounterName, init: i64) -> Result<Counter> {
+    pub fn new(store: &Store, name: CounterName, init: i64, unit: CounterUnit) -> Result<Counter> {
         use std::ops::DerefMut;
 
         debug!("Creating new counter: '{}' with value: {}", name, init);
@@ -48,6 +49,11 @@ impl<'a> Counter<'a> {
                 }
 
                 let setres = header.set("counter.value", Value::Integer(init));
+                if setres.is_err() {
+                    return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
+                }
+
+                let setres = header.set("counter.unit", Value::String(unit));
                 if setres.is_err() {
                     return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
                 }
@@ -116,6 +122,17 @@ impl<'a> Counter<'a> {
             .and_then(|v| {
                 match v {
                     Some(Value::Integer(i)) => Ok(i),
+                    _ => Err(CE::new(CEK::HeaderTypeError, None)),
+                }
+            })
+    }
+
+    pub fn unit(&self) -> Result<CounterUnit> {
+        self.fle.get_header().read("counter.unit")
+            .map_err(|e| CE::new(CEK::StoreWriteError, Some(Box::new(e))))
+            .and_then(|u| {
+                match u {
+                    Some(Value::String(s)) => Ok(s),
                     _ => Err(CE::new(CEK::HeaderTypeError, None)),
                 }
             })
