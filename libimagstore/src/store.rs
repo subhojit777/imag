@@ -37,6 +37,7 @@ use hook::position::HookPosition;
 use hook::Hook;
 
 use libimagerror::into::IntoError;
+use libimagutil::iter::FoldResult;
 
 use self::glob_store_iter::*;
 
@@ -695,10 +696,11 @@ impl Store {
         match aspects.lock() {
             Err(_) => return Err(HookErrorKind::HookExecutionError.into()),
             Ok(g) => g
-        }.iter().fold(Ok(()), |acc, aspect| {
+        }.iter().fold_defresult(|aspect| {
             debug!("[Aspect][exec]: {:?}", aspect);
-            acc.and_then(|_| (aspect as &StoreIdAccessor).access(id))
-        }).map_err(Box::new).map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
+            (aspect as &StoreIdAccessor).access(id)
+        }).map_err(Box::new)
+            .map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
     }
 
     fn execute_hooks_for_mut_file(&self,
@@ -709,10 +711,11 @@ impl Store {
         match aspects.lock() {
             Err(_) => return Err(HookErrorKind::HookExecutionError.into()),
             Ok(g) => g
-        }.iter().fold(Ok(()), |acc, aspect| {
+        }.iter().fold_defresult(|aspect| {
             debug!("[Aspect][exec]: {:?}", aspect);
-            acc.and_then(|_| aspect.access_mut(fle))
-        }).map_err(Box::new).map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
+            aspect.access_mut(fle)
+        }).map_err(Box::new)
+            .map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
     }
 
 }

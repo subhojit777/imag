@@ -1,4 +1,5 @@
 use libimagerror::trace::trace_error;
+use libimagutil::iter::FoldResult;
 
 use store::FileLockEntry;
 use storeid::StoreId;
@@ -45,29 +46,25 @@ impl StoreIdAccessor for Aspect {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
-        accessors
-            .iter()
-            .fold(Ok(()), |acc, accessor| {
-                acc.and_then(|_| {
-                    let res = match accessor {
-                        &HDA::StoreIdAccess(accessor) => accessor.access(id),
-                        _ => unreachable!(),
-                    };
+        accessors.iter().fold_defresult(|accessor| {
+            let res = match accessor {
+                &HDA::StoreIdAccess(accessor) => accessor.access(id),
+                _ => unreachable!(),
+            };
 
-                    match res {
-                        Ok(res) => Ok(res),
-                        Err(e) => {
-                            if !e.is_aborting() {
-                                trace_error(&e);
-                                // ignore error if it is not aborting, as we printed it already
-                                Ok(())
-                            } else {
-                                Err(e)
-                            }
-                        }
+            match res {
+                Ok(res) => Ok(res),
+                Err(e) => {
+                    if !e.is_aborting() {
+                        trace_error(&e);
+                        // ignore error if it is not aborting, as we printed it already
+                        Ok(())
+                    } else {
+                        Err(e)
                     }
-                })
-            })
+                }
+            }
+        })
     }
 }
 
@@ -91,27 +88,25 @@ impl MutableHookDataAccessor for Aspect {
         // More sophisticated version would check whether there are _chunks_ of
         // NonMutableAccess accessors and execute these chunks in parallel. We do not have
         // performance concerns yet, so this is okay.
-        accessors.iter().fold(Ok(()), |acc, accessor| {
-            acc.and_then(|_| {
-                let res = match accessor {
-                    &HDA::MutableAccess(ref accessor)    => accessor.access_mut(fle),
-                    &HDA::NonMutableAccess(ref accessor) => accessor.access(fle),
-                    _ => unreachable!(),
-                };
+        accessors.iter().fold_defresult(|accessor| {
+            let res = match accessor {
+                &HDA::MutableAccess(ref accessor)    => accessor.access_mut(fle),
+                &HDA::NonMutableAccess(ref accessor) => accessor.access(fle),
+                _ => unreachable!(),
+            };
 
-                match res {
-                    Ok(res) => Ok(res),
-                    Err(e) => {
-                        if !e.is_aborting() {
-                            trace_error(&e);
-                            // ignore error if it is not aborting, as we printed it already
-                            Ok(())
-                        } else {
-                            Err(e)
-                        }
+            match res {
+                Ok(res) => Ok(res),
+                Err(e) => {
+                    if !e.is_aborting() {
+                        trace_error(&e);
+                        // ignore error if it is not aborting, as we printed it already
+                        Ok(())
+                    } else {
+                        Err(e)
                     }
                 }
-            })
+            }
         })
     }
 }
@@ -123,29 +118,25 @@ impl NonMutableHookDataAccessor for Aspect {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
-        accessors
-            .iter()
-            .fold(Ok(()), |acc, accessor| {
-                acc.and_then(|_| {
-                    let res = match accessor {
-                        &HDA::NonMutableAccess(accessor) => accessor.access(fle),
-                        _ => unreachable!(),
-                    };
+        accessors.iter().fold_defresult(|accessor| {
+            let res = match accessor {
+                &HDA::NonMutableAccess(accessor) => accessor.access(fle),
+                _ => unreachable!(),
+            };
 
-                    match res {
-                        Ok(res) => Ok(res),
-                        Err(e) => {
-                            if !e.is_aborting() {
-                                trace_error(&e);
-                                // ignore error if it is not aborting, as we printed it already
-                                Ok(())
-                            } else {
-                                Err(e)
-                            }
-                        }
+            match res {
+                Ok(res) => Ok(res),
+                Err(e) => {
+                    if !e.is_aborting() {
+                        trace_error(&e);
+                        // ignore error if it is not aborting, as we printed it already
+                        Ok(())
+                    } else {
+                        Err(e)
                     }
-                })
-            })
+                }
+            }
+        })
     }
 }
 
