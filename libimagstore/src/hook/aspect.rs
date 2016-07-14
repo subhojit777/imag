@@ -1,5 +1,5 @@
 use libimagerror::trace::trace_error;
-use libimagutil::iter::fold_ok;
+use libimagutil::iter::FoldResult;
 
 use store::FileLockEntry;
 use storeid::StoreId;
@@ -46,7 +46,7 @@ impl StoreIdAccessor for Aspect {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
-        fold_ok(accessors.iter(), |accessor| {
+        accessors.iter().fold_defresult(|accessor| {
             let res = match accessor {
                 &HDA::StoreIdAccess(accessor) => accessor.access(id),
                 _ => unreachable!(),
@@ -88,7 +88,7 @@ impl MutableHookDataAccessor for Aspect {
         // More sophisticated version would check whether there are _chunks_ of
         // NonMutableAccess accessors and execute these chunks in parallel. We do not have
         // performance concerns yet, so this is okay.
-        fold_ok(accessors.iter(), |accessor| {
+        accessors.iter().fold_defresult(|accessor| {
             let res = match accessor {
                 &HDA::MutableAccess(ref accessor)    => accessor.access_mut(fle),
                 &HDA::NonMutableAccess(ref accessor) => accessor.access(fle),
@@ -118,7 +118,7 @@ impl NonMutableHookDataAccessor for Aspect {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
-        fold_ok(accessors.iter(), |accessor| {
+        accessors.iter().fold_defresult(|accessor| {
             let res = match accessor {
                 &HDA::NonMutableAccess(accessor) => accessor.access(fle),
                 _ => unreachable!(),

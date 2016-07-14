@@ -5,7 +5,7 @@ use lister::Lister;
 use result::Result;
 
 use libimagstore::store::FileLockEntry;
-use libimagutil::iter::fold_ok;
+use libimagutil::iter::FoldResult;
 
 pub struct PathLister {
     absolute: bool,
@@ -27,7 +27,7 @@ impl Lister for PathLister {
         use error::ListError as LE;
         use error::ListErrorKind as LEK;
 
-        fold_ok(entries, |entry| {
+        entries.fold_defresult(|entry| {
             Ok(entry.get_location().clone())
                 .and_then(|pb| {
                     if self.absolute {
