@@ -1,6 +1,0 @@
-<!--
-
-## Cuecards {#sec:modules:cuecards}
-
--->
-

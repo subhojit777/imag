@@ -1,6 +1,0 @@
-<!--
-
-## Borrow {#sec:modules:borrow}
-
--->
-

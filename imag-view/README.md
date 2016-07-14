@@ -1,4 +1,1 @@
-# imag-view
-
-Simple commandline utility to print entries to the commandline output.
-
+../doc/src/04020-module-view.md

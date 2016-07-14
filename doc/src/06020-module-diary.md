@@ -1,6 +1,0 @@
-<!--
-
-## Diary {#sec:modules:diary}
-
--->
-

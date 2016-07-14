@@ -1,6 +1,0 @@
-<!--
-
-## Ledger {#sec:modules:ledger}
-
--->
-

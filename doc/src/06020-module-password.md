@@ -1,6 +1,0 @@
-<!--
-
-## Password {#sec:modules:password}
-
--->
-

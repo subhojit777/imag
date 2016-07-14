@@ -47,9 +47,18 @@ $endfor$
 
 \begin{document}
 
+    \thispagestyle{empty}
     \begin{center}
-        {\bf $title$}
+        {\bf imag $version$}
+
+        {\bf User Documentation}
+
+        $date$
     \end{center}
+
+    \newpage{}
+    \tableofcontents
+    \newpage{}
 
     $body$
 
