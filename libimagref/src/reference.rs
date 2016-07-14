@@ -511,6 +511,14 @@ impl<'a> Display for Ref<'a> {
 
 }
 
+impl<'a> Into<FileLockEntry<'a>> for Ref<'a> {
+
+    fn into(self) -> FileLockEntry<'a> {
+        self.0
+    }
+
+}
+
 fn hash_file_contents(f: &mut File) -> String {
     let mut hasher = Sha1::new();
     let mut s = String::new();
