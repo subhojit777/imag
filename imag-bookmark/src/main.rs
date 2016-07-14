@@ -83,7 +83,26 @@ fn collection(rt: &Runtime) {
 }
 
 fn list(rt: &Runtime) {
-    unimplemented!()
+    let scmd = rt.cli().subcommand_matches("list").unwrap();
+    let coll = scmd.value_of("collection").unwrap(); // enforced by clap
+
+    BookmarkCollection::get(rt.store(), coll)
+        .map(|collection| {
+            match collection.links() {
+                Ok(links) => {
+                    debug!("Listing...");
+                    for (i, link) in links.iter().enumerate() {
+                        println!("{: >3}: {}", i, link);
+                    };
+                    debug!("... ready with listing");
+                },
+                Err(e) => {
+                    trace_error(&e);
+                    exit(1);
+                },
+            }
+        });
+    info!("Ready");
 }
 
 fn remove(rt: &Runtime) {
