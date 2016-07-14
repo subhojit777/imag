@@ -9,6 +9,8 @@ extern crate libimagrt;
 extern crate libimagerror;
 extern crate libimagutil;
 
+use std::process::exit;
+
 use libimagentrytag::ui::{get_add_tags, get_remove_tags};
 use libimagentrylink::internal::Link;
 use libimagrt::runtime::Runtime;
@@ -57,7 +59,27 @@ fn add(rt: &Runtime) {
 }
 
 fn collection(rt: &Runtime) {
-    unimplemented!()
+    let scmd = rt.cli().subcommand_matches("collection").unwrap();
+
+    if scmd.is_present("add") { // adding a new collection
+        let name = scmd.value_of("add").unwrap();
+        if let Ok(_) = BookmarkCollection::new(rt.store(), name) {
+            info!("Created: {}", name);
+        } else {
+            warn!("Creating collection {} failed", name);
+            exit(1);
+        }
+    }
+
+    if scmd.is_present("remove") { // remove a collection
+        let name = scmd.value_of("remove").unwrap();
+        if let Ok(_) = BookmarkCollection::delete(rt.store(), name) {
+            info!("Deleted: {}", name);
+        } else {
+            warn!("Deleting collection {} failed", name);
+            exit(1);
+        }
+    }
 }
 
 fn list(rt: &Runtime) {
