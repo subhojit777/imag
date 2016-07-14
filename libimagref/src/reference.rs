@@ -67,7 +67,7 @@ impl<'a> Ref<'a> {
     }
 
     fn read_reference(fle: &FileLockEntry<'a>) -> Result<PathBuf> {
-        match fle.get_header().read("ref.reference") {
+        match fle.get_header().read("ref.path") {
             Ok(Some(Value::String(s))) => Ok(PathBuf::from(s)),
             Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
             Ok(None)    => Err(REK::HeaderFieldMissingError.into_error()),
