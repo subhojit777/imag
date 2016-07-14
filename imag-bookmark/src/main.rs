@@ -65,6 +65,15 @@ fn list(rt: &Runtime) {
 }
 
 fn remove(rt: &Runtime) {
-    unimplemented!()
+    let scmd = rt.cli().subcommand_matches("remove").unwrap();
+    let coll = scmd.value_of("collection").unwrap(); // enforced by clap
+
+    BookmarkCollection::get(rt.store(), coll)
+        .map(|mut collection| {
+            for url in scmd.values_of("urls").unwrap() { // enforced by clap
+                collection.remove_link(BookmarkLink::from(url)).map_err(|e| trace_error(&e));
+            }
+        });
+    info!("Ready");
 }
 
