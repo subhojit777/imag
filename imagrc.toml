@@ -20,13 +20,10 @@ post-update-hook-aspects   = [ "debug" ]
 pre-delete-hook-aspects    = [ "debug" ]
 post-delete-hook-aspects   = [ "debug" ]
 
-[store.aspects]
-
-[[aspects.debug]]
+[store.aspects.debug]
 parallel = false
-mutable_hooks = false
+mutable_hooks = true
 
-[store.hooks]
-
-[[hooks.debug]]
+[store.hooks.debug]
 aspect = "debug"
+
