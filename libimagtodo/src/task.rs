@@ -89,7 +89,13 @@ impl<'a> Task<'a> {
     /// Retrieve a task from a String. The String is expected to contain the JSON-representation of
     /// the Task to retrieve from the store (only the UUID really matters in this case)
     pub fn retrieve_from_string(store: &'a Store, s: String) -> Result<Task<'a>> {
-        unimplemented!()
+        Task::get_from_string(store, s)
+            .and_then(|opt| match opt {
+                Ok(task)    => Ok(task),
+                Err(string) => import_task(string.as_str())
+                    .map_err_into(TodoErrorKind::ImportError)
+                    .and_then(|t| t.into_task(store)),
+            })
     }
 
     pub fn delete_by_uuid(store: &Store, uuid: Uuid) -> Result<()> {
