@@ -19,6 +19,7 @@ use std::io::stdin;
 use std::io::BufRead;
 
 use task_hookrs::import::{import_task, import_tasks};
+use task_hookrs::status::TaskStatus;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
@@ -62,7 +63,7 @@ fn tw_hook(rt: &Runtime) {
         let stdin         = stdin.lock();
 
         match import_tasks(stdin) {
-            Ok(ttasks) => for (counter, ttask) in ttasks.enumerate() {
+            Ok(ttasks) => for (counter, ttask) in ttasks.iter().enumerate() {
                 if counter % 2 == 1 {
                     // Only every second task is needed, the first one is the
                     // task before the change, and the second one after
@@ -76,19 +77,15 @@ fn tw_hook(rt: &Runtime) {
                         }
                     }
 
-                    match ttask.status() {
-                        &task_hookrs::status::TaskStatus::Deleted => {
-                            match Task::delete_by_uuid(rt.store(), *ttask.uuid()) {
-                                Ok(_) => println!("Deleted task {}", *ttask.uuid()),
-                                Err(e) => {
-                                    trace_error(&e);
-                                    exit(1);
-                                }
+                    if *ttask.status() == TaskStatus::Deleted {
+                        match Task::delete_by_uuid(rt.store(), *ttask.uuid()) {
+                            Ok(_) => println!("Deleted task {}", *ttask.uuid()),
+                            Err(e) => {
+                                trace_error(&e);
+                                exit(1);
                             }
                         }
-                        _ => {
-                        }
-                    } // end match ttask.status()
+                    }
                 } // end if c % 2
             },
             Err(e) => {
