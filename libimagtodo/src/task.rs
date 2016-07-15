@@ -59,7 +59,14 @@ impl<'a> Task<'a> {
     ///
     /// For an explanation on the return values see `Task::get_from_import()`.
     pub fn get_from_string(store: &'a Store, s: String) -> Result<RResult<Task<'a>, String>> {
-        unimplemented!()
+        import_task(s.as_str())
+            .map_err_into(TodoErrorKind::ImportError)
+            .map(|t| t.uuid().clone())
+            .and_then(|uuid| Task::get_from_uuid(store, uuid))
+            .and_then(|o| match o {
+                None    => Ok(Err(s)),
+                Some(t) => Ok(Ok(t)),
+            })
     }
 
     /// Get a task from an UUID.
