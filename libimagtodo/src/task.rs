@@ -83,7 +83,9 @@ impl<'a> Task<'a> {
     /// Same as Task::get_from_import() but uses Store::retrieve() rather than Store::get(), to
     /// implicitely create the task if it does not exist.
     pub fn retrieve_from_import<R: BufRead>(store: &'a Store, mut r: R) -> Result<Task<'a>> {
-        unimplemented!()
+        let mut line = String::new();
+        r.read_line(&mut line);
+        Task::retrieve_from_string(store, line)
     }
 
     /// Retrieve a task from a String. The String is expected to contain the JSON-representation of
