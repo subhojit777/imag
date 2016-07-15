@@ -1,5 +1,3 @@
-use into::IntoError;
-
 #[macro_export]
 macro_rules! generate_error_imports {
     () => {
