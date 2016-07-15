@@ -73,7 +73,11 @@ impl<'a> Task<'a> {
     ///
     /// If there is no task with this UUID, this returns `Ok(None)`.
     pub fn get_from_uuid(store: &'a Store, uuid: Uuid) -> Result<Option<Task<'a>>> {
-        unimplemented!()
+        let store_id = ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid();
+
+        store.get(store_id)
+            .map(|o| o.map(Task::new))
+            .map_err_into(TodoErrorKind::StoreError)
     }
 
     /// Same as Task::get_from_import() but uses Store::retrieve() rather than Store::get(), to
