@@ -16,14 +16,12 @@ extern crate libimagtodo;
 use std::process::exit;
 use std::process::{Command, Stdio};
 use std::io::stdin;
-use std::io::BufRead;
 
-use task_hookrs::import::{import_task, import_tasks};
+use task_hookrs::import::import_tasks;
 use task_hookrs::status::TaskStatus;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
-use libimagtodo::task::IntoTask;
 use libimagtodo::task::Task;
 use libimagerror::trace::trace_error;
 
