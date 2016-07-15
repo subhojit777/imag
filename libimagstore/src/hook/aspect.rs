@@ -64,23 +64,15 @@ impl MutableHookDataAccessor for Aspect {
 
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
 
-        fn is_file_accessor(a: &HDA) -> bool {
-            is_match!(*a, HDA::MutableAccess(_) | HDA::NonMutableAccess(_))
-        }
-
-        if !accessors.iter().all(|a| is_file_accessor(a)) {
-            return Err(HE::new(HEK::AccessTypeViolation, None));
-        }
-
         // TODO: Naiive implementation.
         // More sophisticated version would check whether there are _chunks_ of
         // NonMutableAccess accessors and execute these chunks in parallel. We do not have
         // performance concerns yet, so this is okay.
         accessors.iter().fold_defresult(|accessor| {
             let res = match accessor {
+                &HDA::StoreIdAccess(ref accessor)    => accessor.access(fle.get_location()),
                 &HDA::MutableAccess(ref accessor)    => accessor.access_mut(fle),
                 &HDA::NonMutableAccess(ref accessor) => accessor.access(fle),
-                _ => unreachable!(),
             };
             trace_hook_errors(res)
         })
