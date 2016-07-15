@@ -16,7 +16,7 @@ use libimagrt::setup::generate_runtime_setup;
 use libimagentrytag::tagable::Tagable;
 use libimagentrytag::tag::Tag;
 use libimagstore::storeid::build_entry_path;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::{trace_error, trace_error_exit};
 use libimagentrytag::ui::{get_add_tags, get_remove_tags};
 
 mod ui;
@@ -53,10 +53,7 @@ fn main() {
 fn alter(rt: &Runtime, id: &str, add: Option<Vec<Tag>>, rem: Option<Vec<Tag>>) {
     let path = {
         match build_entry_path(rt.store(), id) {
-            Err(e) => {
-                trace_error(&e);
-                exit(1);
-            },
+            Err(e) => trace_error_exit(&e, 1),
             Ok(s) => s,
         }
     };
@@ -97,10 +94,7 @@ fn alter(rt: &Runtime, id: &str, add: Option<Vec<Tag>>, rem: Option<Vec<Tag>>) {
 fn list(id: &str, rt: &Runtime) {
     let path = {
         match build_entry_path(rt.store(), id) {
-            Err(e) => {
-                trace_error(&e);
-                exit(1);
-            },
+            Err(e) => trace_error_exit(&e, 1),
             Ok(s) => s,
         }
     };
@@ -116,8 +110,7 @@ fn list(id: &str, rt: &Runtime) {
         Err(e) => {
             debug!("Could not get '{:?}' => {:?}", id, path);
             warn!("Could not get entry '{}'", id);
-            trace_error(&e);
-            exit(1);
+            trace_error_exit(&e, 1);
         },
     };
 
@@ -135,8 +128,7 @@ fn list(id: &str, rt: &Runtime) {
 
     let tags = entry.get_tags();
     if tags.is_err() {
-        trace_error(&tags.unwrap_err());
-        exit(1);
+        trace_error_exit(&tags.unwrap_err(), 1);
     }
     let tags = tags.unwrap();
 

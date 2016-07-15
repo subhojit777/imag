@@ -10,7 +10,7 @@ use libimagcounter::counter::Counter;
 use libimagcounter::error::CounterError;
 use libimagrt::runtime::Runtime;
 use libimagutil::key_value_split::IntoKeyValue;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::{trace_error, trace_error_exit};
 
 type Result<T> = RResult<T, CounterError>;
 
@@ -47,8 +47,7 @@ pub fn interactive(rt: &Runtime) {
 
         let mut input = String::new();
         if let Err(e) = stdin().read_line(&mut input) {
-            trace_error(&e);
-            exit(1);
+            trace_error_exit(&e, 1);
         }
 
         let cont = if !input.is_empty() {

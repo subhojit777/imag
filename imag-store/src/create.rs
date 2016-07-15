@@ -14,7 +14,7 @@ use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
 use libimagstore::storeid::build_entry_path;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::trace_error_exit;
 
 use error::StoreError;
 use error::StoreErrorKind;
@@ -38,8 +38,7 @@ pub fn create(rt: &Runtime) {
 
             let path = build_entry_path(rt.store(), path.unwrap());
             if path.is_err() {
-                trace_error(&path.unwrap_err());
-                exit(1);
+                trace_error_exit(&path.unwrap_err(), 1);
             }
             let path = path.unwrap();
             debug!("path = {:?}", path);

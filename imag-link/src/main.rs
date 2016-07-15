@@ -34,7 +34,7 @@ use libimagstore::error::StoreError;
 use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::{trace_error, trace_error_exit};
 use libimagentrylink::external::ExternalLinker;
 use clap::ArgMatches;
 use url::Url;
@@ -117,8 +117,7 @@ fn handle_internal_linking(rt: &Runtime) {
             Some("add") => {
                 for mut to_entry in to {
                     if let Err(e) = to_entry.add_internal_link(&mut from) {
-                        trace_error(&e);
-                        exit(1);
+                        trace_error_exit(&e, 1);
                     }
                 }
             },
@@ -126,8 +125,7 @@ fn handle_internal_linking(rt: &Runtime) {
             Some("remove") => {
                 for mut to_entry in to {
                     if let Err(e) = to_entry.remove_internal_link(&mut from) {
-                        trace_error(&e);
-                        exit(1);
+                        trace_error_exit(&e, 1);
                     }
                 }
             },
@@ -182,14 +180,11 @@ fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<FileLockEntry<'a
 }
 
 fn handle_external_linking(rt: &Runtime) {
-    use libimagerror::trace::trace_error;
-
     let scmd       = rt.cli().subcommand_matches("external").unwrap();
     let entry_name = scmd.value_of("id").unwrap(); // enforced by clap
     let entry      = get_entry_by_name(rt, entry_name);
     if entry.is_err() {
-        trace_error(&entry.unwrap_err());
-        exit(1);
+        trace_error_exit(&entry.unwrap_err(), 1);
     }
     let mut entry = entry.unwrap();
 
@@ -226,9 +221,7 @@ fn add_link_to_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLockEn
     let link = Url::parse(link);
     if link.is_err() {
         debug!("URL parsing error...");
-        trace_error(&link.unwrap_err());
-        debug!("Exiting");
-        exit(1);
+        trace_error_exit(&link.unwrap_err(), 1);
     }
     let link = link.unwrap();
 
@@ -246,8 +239,7 @@ fn remove_link_from_entry(store: &Store, matches: &ArgMatches, entry: &mut FileL
 
     let link = Url::parse(link);
     if link.is_err() {
-        trace_error(&link.unwrap_err());
-        exit(1);
+        trace_error_exit(&link.unwrap_err(), 1);
     }
     let link = link.unwrap();
 

@@ -2,7 +2,7 @@ use std::process::exit;
 
 use libimagstore::storeid::build_entry_path;
 use libimagrt::runtime::Runtime;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::{trace_error, trace_error_exit};
 
 use retrieve::print_entry;
 
@@ -14,8 +14,7 @@ pub fn get(rt: &Runtime) {
                 .map(|id| {
                     let path = build_entry_path(rt.store(), id);
                     if path.is_err() {
-                        trace_error(&path.unwrap_err());
-                        exit(1);
+                        trace_error_exit(&path.unwrap_err(), 1);
                     }
                     let path = path.unwrap();
                     debug!("path = {:?}", path);

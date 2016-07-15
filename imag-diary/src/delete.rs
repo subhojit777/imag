@@ -4,7 +4,7 @@ use chrono::naive::datetime::NaiveDateTime;
 use libimagdiary::diary::Diary;
 use libimagdiary::diaryid::DiaryId;
 use libimagrt::runtime::Runtime;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::trace_error_exit;
 use libimagtimeui::datetime::DateTime;
 use libimagtimeui::parse::Parse;
 
@@ -40,10 +40,7 @@ pub fn delete(rt: &Runtime) {
     let to_del = match to_del {
         Some(Ok(e)) => e,
 
-        Some(Err(e)) => {
-            trace_error(&e);
-            exit(1);
-        },
+        Some(Err(e)) => trace_error_exit(&e, 1),
         None => {
             warn!("No entry");
             exit(1);
@@ -57,10 +54,7 @@ pub fn delete(rt: &Runtime) {
 
     match diary.delete_entry(to_del) {
         Ok(_) => info!("Ok"),
-        Err(e) => {
-            trace_error(&e);
-            exit(1);
-        },
+        Err(e) => trace_error_exit(&e, 1),
     }
 }
 

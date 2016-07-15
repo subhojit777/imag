@@ -30,7 +30,7 @@ use std::process::exit;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagstore::store::FileLockEntry;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::{trace_error, trace_error_exit};
 
 mod error;
 mod ui;
@@ -54,8 +54,7 @@ fn main() {
 
     if rt.cli().is_present("versions") {
         if let Err(e) = view_versions_of(entry_id, &rt) {
-            trace_error(&e);
-            exit(1); // we can afford not-executing destructors here
+            trace_error_exit(&e, 1);
         }
     } else {
         let entry_version   = rt.cli().value_of("version");
@@ -93,8 +92,7 @@ fn main() {
 
         let entry = load_entry(entry_id, entry_version, &rt);
         if entry.is_err() {
-            trace_error(&entry.unwrap_err());
-            exit(1); // we can afford not-executing destructors here
+            trace_error_exit(&entry.unwrap_err(), 1);
         }
         let entry = entry.unwrap();
 
