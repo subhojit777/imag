@@ -49,7 +49,9 @@ impl<'a> Task<'a> {
     ///
     pub fn get_from_import<R: BufRead>(store: &'a Store, mut r: R) -> Result<RResult<Task<'a>, String>>
     {
-        unimplemented!()
+        let mut line = String::new();
+        r.read_line(&mut line);
+        Task::get_from_string(store, line)
     }
 
     /// Get a task from a String. The String is expected to contain the JSON-representation of the
