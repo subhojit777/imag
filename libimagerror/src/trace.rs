@@ -31,7 +31,9 @@ pub fn trace_error(e: &Error) {
 pub fn trace_error_exit(e: &Error, code: i32) {
     use std::process::exit;
 
+    debug!("Tracing error...");
     trace_error(e);
+    debug!("Calling exit()");
     exit(code);
 }
 
