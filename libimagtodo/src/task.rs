@@ -74,11 +74,6 @@ impl<'a> Task<'a> {
         unimplemented!()
     }
 
-    /// Retrieve a task from an UUID.
-    pub fn retrieve_from_uuid(store: &'a Store, uuid: Uuid) -> Result<Task<'a>> {
-        unimplemented!()
-    }
-
     /// Call `Task::update_from_imports_with()` function with `Task::copy_information()`
     pub fn update_from_imports<R: BufRead>(store: &'a Store, mut r: R) -> Result<(Task<'a>,
                                                                                   Task<'a>)> {
