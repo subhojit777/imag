@@ -1,5 +1,4 @@
 use std::ops::DerefMut;
-use std::process::exit;
 
 use libimagrt::runtime::Runtime;
 use libimagstore::storeid::build_entry_path;

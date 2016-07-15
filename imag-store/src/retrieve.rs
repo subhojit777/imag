@@ -1,5 +1,3 @@
-use std::process::exit;
-
 use clap::ArgMatches;
 use toml::Value;
 

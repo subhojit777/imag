@@ -1,5 +1,4 @@
 use std::str::FromStr;
-use std::process::exit;
 
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error_exit;

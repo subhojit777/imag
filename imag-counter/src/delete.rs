@@ -1,5 +1,3 @@
-use std::process::exit;
-
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error_exit;
 use libimagcounter::counter::Counter;

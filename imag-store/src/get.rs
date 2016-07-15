@@ -1,5 +1,3 @@
-use std::process::exit;
-
 use libimagstore::storeid::build_entry_path;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::{trace_error, trace_error_exit};
