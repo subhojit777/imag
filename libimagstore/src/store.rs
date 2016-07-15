@@ -309,6 +309,10 @@ impl Store {
         };
 
         debug!("Store building succeeded");
+        debug!("------------------------");
+        debug!("{:?}", store);
+        debug!("------------------------");
+
         Ok(store)
     }
 
