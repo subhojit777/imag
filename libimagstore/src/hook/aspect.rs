@@ -42,7 +42,15 @@ impl Aspect {
 impl StoreIdAccessor for Aspect {
     fn access(&self, id: &StoreId) -> HookResult<()> {
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
-        if !accessors.iter().all(|a| is_match!(*a, HDA::StoreIdAccess(_))) {
+        if !accessors.iter().all(|a| {
+            let x = is_match!(*a, HDA::StoreIdAccess(_));
+            if !x {
+                warn!("Denied execution of None-StoreId-Accessing Hook");
+                debug!("Accessor: {:?}", a);
+                debug!("in StoreIdAccess-Aspect execution: {:?}", self);
+            }
+            x
+        }) {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
@@ -90,7 +98,15 @@ impl MutableHookDataAccessor for Aspect {
 impl NonMutableHookDataAccessor for Aspect {
     fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
-        if !accessors.iter().all(|a| is_match!(*a, HDA::NonMutableAccess(_))) {
+        if !accessors.iter().all(|a| {
+            let x = is_match!(*a, HDA::NonMutableAccess(_));
+            if !x {
+                warn!("Denied execution of Non-Mutable-Accessing Hook");
+                debug!("Accessor: {:?}", a);
+                debug!("in StoreIdAccess-Aspect execution: {:?}", self);
+            }
+            x
+        }) {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
