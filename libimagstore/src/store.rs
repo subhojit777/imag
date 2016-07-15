@@ -666,7 +666,9 @@ impl Store {
 
         for mut aspect in guard.deref_mut() {
             if aspect.name().clone() == aspect_name.clone() {
+                debug!("Trying to find configuration for hook: {:?}", h);
                 self.get_config_for_hook(h.name()).map(|config| h.set_config(config));
+                debug!("Trying to register hook in aspect: {:?} <- {:?}", aspect, h);
                 aspect.register_hook(h);
                 return Ok(());
             }
