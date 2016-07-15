@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use std::ops::{Deref, DerefMut};
 use std::io::BufRead;
+use std::result::Result as RResult;
 
 use toml::Value;
 use uuid::Uuid;
@@ -53,12 +54,16 @@ impl<'a> Task<'a> {
 
     /// Get a task from a String. The String is expected to contain the JSON-representation of the
     /// Task to get from the store (only the UUID really matters in this case)
-    pub fn get_from_string(store: &'a Store, s: String) -> Result<Task<'a>> {
+    ///
+    /// For an explanation on the return values see `Task::get_from_import()`.
+    pub fn get_from_string(store: &'a Store, s: String) -> Result<RResult<Task<'a>, String>> {
         unimplemented!()
     }
 
     /// Get a task from an UUID.
-    pub fn get_from_uuid(store: &'a Store, uuid: Uuid) -> Result<Task<'a>> {
+    ///
+    /// If there is no task with this UUID, this returns `Ok(None)`.
+    pub fn get_from_uuid(store: &'a Store, uuid: Uuid) -> Result<Option<Task<'a>>> {
         unimplemented!()
     }
 
