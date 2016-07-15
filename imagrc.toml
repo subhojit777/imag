@@ -12,25 +12,41 @@ implicit-create = false
 # store, so these hooks should be chosen carefully.
 store-unload-hook-aspects  = [ "debug" ]
 
-pre-create-hook-aspects    = [ "debug" ]
-post-create-hook-aspects   = [ "debug" ]
+pre-create-hook-aspects    = [ "debug", "vcs" ]
+post-create-hook-aspects   = [ "debug", "vcs" ]
 
 pre-move-hook-aspects      = [ "debug" ]
 post-move-hook-aspects     = [ "debug" ]
 
-pre-retrieve-hook-aspects  = [ "debug" ]
-post-retrieve-hook-aspects = [ "debug" ]
+pre-retrieve-hook-aspects  = [ "debug", "vcs" ]
+post-retrieve-hook-aspects = [ "debug", "vcs" ]
 
-pre-update-hook-aspects    = [ "debug" ]
-post-update-hook-aspects   = [ "debug" ]
+pre-update-hook-aspects    = [ "debug", "vcs" ]
+post-update-hook-aspects   = [ "debug", "vcs" ]
 
-pre-delete-hook-aspects    = [ "debug" ]
-post-delete-hook-aspects   = [ "debug" ]
+pre-delete-hook-aspects    = [ "debug", "vcs" ]
+post-delete-hook-aspects   = [ "debug", "vcs" ]
 
 [store.aspects.debug]
 parallel = false
 mutable_hooks = true
 
+[store.aspects.vcs]
+parallel = false
+mutable_hooks = false
+
 [store.hooks.stdhook_debug]
 aspect = "debug"
+
+[store.hooks.stdhook_git_create]
+aspect = "vcs"
+
+[store.hooks.stdhook_git_delete]
+aspect = "vcs"
+
+[store.hooks.stdhook_git_retrieve]
+aspect = "vcs"
+
+[store.hooks.stdhook_git_update]
+aspect = "vcs"
 
