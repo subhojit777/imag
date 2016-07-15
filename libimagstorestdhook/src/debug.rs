@@ -30,8 +30,9 @@ impl Hook for DebugHook {
         "stdhook_debug"
     }
 
-    fn set_config(&mut self, _: &Value) {
-        () // We are not configurable here.
+    fn set_config(&mut self, c: &Value) {
+        debug!("Trying to set configuration in debug hook: {:?}", c);
+        debug!("Ignoring configuration in debug hook, we don't need a config here");
     }
 
 }
