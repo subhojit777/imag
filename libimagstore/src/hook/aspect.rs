@@ -51,19 +51,7 @@ impl StoreIdAccessor for Aspect {
                 &HDA::StoreIdAccess(accessor) => accessor.access(id),
                 _ => unreachable!(),
             };
-
-            match res {
-                Ok(res) => Ok(res),
-                Err(e) => {
-                    if !e.is_aborting() {
-                        trace_error(&e);
-                        // ignore error if it is not aborting, as we printed it already
-                        Ok(())
-                    } else {
-                        Err(e)
-                    }
-                }
-            }
+            trace_hook_errors(res)
         })
     }
 }
@@ -94,19 +82,7 @@ impl MutableHookDataAccessor for Aspect {
                 &HDA::NonMutableAccess(ref accessor) => accessor.access(fle),
                 _ => unreachable!(),
             };
-
-            match res {
-                Ok(res) => Ok(res),
-                Err(e) => {
-                    if !e.is_aborting() {
-                        trace_error(&e);
-                        // ignore error if it is not aborting, as we printed it already
-                        Ok(())
-                    } else {
-                        Err(e)
-                    }
-                }
-            }
+            trace_hook_errors(res)
         })
     }
 }
@@ -123,20 +99,20 @@ impl NonMutableHookDataAccessor for Aspect {
                 &HDA::NonMutableAccess(accessor) => accessor.access(fle),
                 _ => unreachable!(),
             };
-
-            match res {
-                Ok(res) => Ok(res),
-                Err(e) => {
-                    if !e.is_aborting() {
-                        trace_error(&e);
-                        // ignore error if it is not aborting, as we printed it already
-                        Ok(())
-                    } else {
-                        Err(e)
-                    }
-                }
-            }
+            trace_hook_errors(res)
         })
     }
+}
+
+fn trace_hook_errors(res: HookResult<()>) -> HookResult<()> {
+    res.or_else(|e| {
+        if !e.is_aborting() {
+            trace_error(&e);
+            // ignore error if it is not aborting, as we printed it already
+            Ok(())
+        } else {
+            Err(e)
+        }
+    })
 }
 
