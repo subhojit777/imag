@@ -26,6 +26,15 @@ pub fn trace_error(e: &Error) {
     write!(stderr(), "\n").ok();
 }
 
+/// Convenience function: calls `trace_error()` with `e` and afterwards `std::process::exit()`
+/// with `code`
+pub fn trace_error_exit(e: &Error, code: i32) {
+    use std::process::exit;
+
+    trace_error(e);
+    exit(code);
+}
+
 /// Print an Error type and its cause recursively, but only `max` levels
 ///
 /// Output is the same as for `trace_error()`, though there are only `max` levels printed.
