@@ -200,6 +200,7 @@ pub struct AspectConfig {
 impl AspectConfig {
 
     pub fn new(init: Value) -> AspectConfig {
+        debug!("Trying to parse AspectConfig from: {:?}", init);
         let parallel = AspectConfig::is_parallel(&init);
         let muthooks = AspectConfig::allows_mutable_hooks(&init);
         AspectConfig {
@@ -247,11 +248,21 @@ impl AspectConfig {
     ///
     /// Returns `None` if one of the keys in the chain is not available
     pub fn get_for(v: &Option<Value>, a_name: String) -> Option<AspectConfig> {
-        match *v {
-            Some(Value::Table(ref tabl)) => tabl.get(&a_name[..])
-                .map(|asp| AspectConfig::new(asp.clone())),
+        debug!("Get aspect configuration for {:?} from {:?}", a_name, v);
+        let res = match *v {
+            Some(Value::Table(ref tabl)) => {
+                match tabl.get("aspects") {
+                    Some(&Value::Table(ref tabl)) => {
+                        tabl.get(&a_name[..]).map(|asp| AspectConfig::new(asp.clone()))
+                    },
+
+                    _ => None,
+                }
+            },
             _ => None,
-        }
+        };
+        debug!("Found aspect configuration for {:?}: {:?}", a_name, res);
+        res
     }
 
 }
