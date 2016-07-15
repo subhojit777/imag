@@ -39,7 +39,8 @@ impl<'a> Runtime<'a> {
     pub fn new(cli_spec: App<'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
         use std::env;
 
-        use libimagstore::hook::position::HookPosition;
+        use libimagstore::hook::position::HookPosition as HP;
+        use libimagstore::hook::Hook;
         use libimagstore::error::StoreErrorKind;
         use libimagstorestdhook::debug::DebugHook;
         use libimagerror::trace::trace_error;
@@ -103,21 +104,20 @@ impl<'a> Runtime<'a> {
         Store::new(storepath, store_config).map(|mut store| {
             // If we are debugging, generate hooks for all positions
             if is_debugging {
-                let hooks = vec![
-                    (DebugHook::new(HookPosition::PreCreate), HookPosition::PreCreate),
-                    (DebugHook::new(HookPosition::PostCreate), HookPosition::PostCreate),
-                    (DebugHook::new(HookPosition::PreRetrieve), HookPosition::PreRetrieve),
-                    (DebugHook::new(HookPosition::PostRetrieve), HookPosition::PostRetrieve),
-                    (DebugHook::new(HookPosition::PreUpdate), HookPosition::PreUpdate),
-                    (DebugHook::new(HookPosition::PostUpdate), HookPosition::PostUpdate),
-                    (DebugHook::new(HookPosition::PreDelete), HookPosition::PreDelete),
-                    (DebugHook::new(HookPosition::PostDelete), HookPosition::PostDelete),
+                let hooks : Vec<(Box<Hook>, &str, HP)> = vec![
+                    (Box::new(DebugHook::new(HP::PreCreate))          , "debug", HP::PreCreate),
+                    (Box::new(DebugHook::new(HP::PostCreate))         , "debug", HP::PostCreate),
+                    (Box::new(DebugHook::new(HP::PreRetrieve))        , "debug", HP::PreRetrieve),
+                    (Box::new(DebugHook::new(HP::PostRetrieve))       , "debug", HP::PostRetrieve),
+                    (Box::new(DebugHook::new(HP::PreUpdate))          , "debug", HP::PreUpdate),
+                    (Box::new(DebugHook::new(HP::PostUpdate))         , "debug", HP::PostUpdate),
+                    (Box::new(DebugHook::new(HP::PreDelete))          , "debug", HP::PreDelete),
+                    (Box::new(DebugHook::new(HP::PostDelete))         , "debug", HP::PostDelete),
                 ];
 
-                // Put all debug hooks into the aspect "debug".
-                // If it fails, trace the error and warn, but continue.
-                for (hook, position) in hooks {
-                    if let Err(e) = store.register_hook(position, &String::from("debug"), Box::new(hook)) {
+                // If hook registration fails, trace the error and warn, but continue.
+                for (hook, aspectname, position) in hooks {
+                    if let Err(e) = store.register_hook(position, &String::from(aspectname), hook) {
                         if e.err_type() == StoreErrorKind::HookRegisterError {
                             trace_error_dbg(&e);
                             warn!("Registering debug hook with store failed");
