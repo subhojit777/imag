@@ -13,6 +13,7 @@ generate_error_module!(
         PathCanonicalizationError => "Path cannot be canonicalized",
 
         TypeConversionError => "Couldn't convert types",
+        RefToDisplayError => "Cannot convert Ref to string to show it to user",
 
         RefNotInStore => "Ref/StoreId does not exist in store",
 
@@ -26,4 +27,5 @@ generate_error_module!(
 
 pub use self::error::RefError;
 pub use self::error::RefErrorKind;
+pub use self::error::MapErrInto;
 
