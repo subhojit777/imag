@@ -43,6 +43,10 @@ impl<'a> Runtime<'a> {
         use libimagstore::hook::Hook;
         use libimagstore::error::StoreErrorKind;
         use libimagstorestdhook::debug::DebugHook;
+        use libimagstorestdhook::vcs::git::create::CreateHook as GitCreateHook;
+        use libimagstorestdhook::vcs::git::delete::DeleteHook as GitDeleteHook;
+        use libimagstorestdhook::vcs::git::retrieve::RetrieveHook as GitRetrieveHook;
+        use libimagstorestdhook::vcs::git::update::UpdateHook as GitUpdateHook;
         use libimagerror::trace::trace_error;
         use libimagerror::trace::trace_error_dbg;
         use libimagerror::into::IntoError;
@@ -119,6 +123,11 @@ impl<'a> Runtime<'a> {
                     (Box::new(DebugHook::new(HP::PostUpdate))         , "debug", HP::PostUpdate),
                     (Box::new(DebugHook::new(HP::PreDelete))          , "debug", HP::PreDelete),
                     (Box::new(DebugHook::new(HP::PostDelete))         , "debug", HP::PostDelete),
+
+                    (Box::new(GitCreateHook::new(HP::PostCreate))     , "vcs",   HP::PostCreate),
+                    (Box::new(GitDeleteHook::new(HP::PreDelete))      , "vcs",   HP::PreDelete),
+                    (Box::new(GitRetrieveHook::new(HP::PostRetrieve)) , "vcs",   HP::PostRetrieve),
+                    (Box::new(GitUpdateHook::new(HP::PostUpdate))     , "vcs",   HP::PostUpdate),
                 ];
 
                 // If hook registration fails, trace the error and warn, but continue.
