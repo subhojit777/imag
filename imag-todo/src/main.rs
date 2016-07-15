@@ -58,12 +58,11 @@ fn tw_hook(rt: &Runtime) {
     } else if subcmd.is_present("delete") {
         // The used hook is "on-modify". This hook gives two json-objects
         // per usage und wants one (the second one) back.
-        let mut counter   = 0;
         let stdin         = stdin();
         let stdin         = stdin.lock();
 
         match import_tasks(stdin) {
-            Ok(ttasks) => for ttask in ttasks {
+            Ok(ttasks) => for (counter, ttask) in ttasks.enumerate() {
                 if counter % 2 == 1 {
                     // Only every second task is needed, the first one is the
                     // task before the change, and the second one after
@@ -91,7 +90,6 @@ fn tw_hook(rt: &Runtime) {
                         }
                     } // end match ttask.status()
                 } // end if c % 2
-                counter += 1;
             },
             Err(e) => {
                 trace_error(&e);
