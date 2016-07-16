@@ -32,16 +32,14 @@ use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagstore::store::FileLockEntry;
 use libimagerror::trace::{trace_error, trace_error_exit};
+use libimagentryview::builtin::stdout::StdoutViewer;
+use libimagentryview::viewer::Viewer;
 
 mod error;
 mod ui;
-mod viewer;
 
 use error::{ViewError, ViewErrorKind};
 use ui::build_ui;
-use viewer::Viewer;
-use viewer::ViewInformation;
-use viewer::stdout::StdoutViewer;
 
 type Result<T> = RResult<T, ViewError>;
 
@@ -76,22 +74,17 @@ fn main() {
 
         let viewer = {
             if scmd.is_present("view-in-stdout") {
-                Box::new(StdoutViewer::new())
             } else if scmd.is_present("view-in-ui") {
                 warn!("Viewing in UI is currently not supported, switch to stdout");
-                Box::new(StdoutViewer::new())
             } else if scmd.is_present("view-in-browser") {
                 warn!("Viewing in browser is currently not supported, switch to stdout");
-                Box::new(StdoutViewer::new())
             } else if scmd.is_present("view-in-texteditor") {
                 warn!("Viewing in texteditor is currently not supported, switch to stdout");
-                Box::new(StdoutViewer::new())
             } else if scmd.is_present("view-in-custom") {
                 warn!("Viewing in custom is currently not supported, switch to stdout");
-                Box::new(StdoutViewer::new())
-            } else {
-                Box::new(StdoutViewer::new())
             }
+
+            StdoutViewer::new(view_header, view_content)
         };
 
         let entry = load_entry(entry_id, entry_version, &rt);
@@ -100,15 +93,10 @@ fn main() {
         }
         let entry = entry.unwrap();
 
-        let view_info = ViewInformation {
-            entry:          entry,
-            view_header:    view_header,
-            view_content:   view_content,
-            view_copy:      view_copy,
-            keep_copy:      keep_copy,
-        };
-
-        viewer.view(view_info);
+        if let Err(e) = viewer.view_entry(&entry) {
+            trace_error(&e);
+            exit(1);
+        }
     }
 }
 
