@@ -3,12 +3,15 @@ use std::ops::DerefMut;
 use toml::Value;
 
 use std::collections::BTreeMap;
+use std::fmt;
+use std::fmt::Display;
 
 use libimagstore::store::Store;
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
+use libimagerror::into::IntoError;
 
 use module_path::ModuleEntryPath;
 use result::Result;
@@ -16,7 +19,15 @@ use error::CounterError as CE;
 use error::CounterErrorKind as CEK;
 
 pub type CounterName = String;
-pub type CounterUnit = String;
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct CounterUnit(pub String);
+
+impl Display for CounterUnit {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({})", self.0)
+    }
+}
 
 pub struct Counter<'a> {
     fle: FileLockEntry<'a>,
@@ -48,12 +59,8 @@ impl<'a> Counter<'a> {
                     return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
                 }
 
-                let setres = header.set("counter.value", Value::Integer(init));
-                if setres.is_err() {
-                    return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
-                }
-
-                let setres = header.set("counter.unit", Value::String(unit));
+                let setres = header.set("counter.value", Value::Integer(init))
+                    .and_then(|_| header.set("counter.unit", Value::String(unit.clone().0)));
                 if setres.is_err() {
                     return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
                 }
@@ -129,13 +136,13 @@ impl<'a> Counter<'a> {
 
     pub fn unit(&self) -> Result<CounterUnit> {
         self.fle.get_header().read("counter.unit")
-            .map_err(|e| CE::new(CEK::StoreWriteError, Some(Box::new(e))))
-            .and_then(|u| {
+            .map_err(|e| CEK::StoreWriteError.into_error_with_cause(Box::new(e)))
+            .and_then(|u| 
                 match u {
-                    Some(Value::String(s)) => Ok(s),
-                    _ => Err(CE::new(CEK::HeaderTypeError, None)),
+                    Some(Value::String(s)) => Ok(CounterUnit(s)),
+                    _ => Err(CEK::HeaderTypeError.into_error())
                 }
-            })
+            )
     }
 
     pub fn load(name: CounterName, store: &Store) -> Result<Counter> {
