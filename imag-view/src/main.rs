@@ -14,7 +14,6 @@
 )]
 
 extern crate clap;
-extern crate glob;
 #[macro_use] extern crate log;
 extern crate semver;
 extern crate toml;
