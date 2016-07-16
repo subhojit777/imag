@@ -9,4 +9,4 @@ generate_error_module!(
 
 pub use self::error::ViewError;
 pub use self::error::ViewErrorKind;
-
+pub use self::error::MapErrInto;
