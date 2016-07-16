@@ -22,6 +22,7 @@ extern crate toml;
 
 extern crate libimagrt;
 extern crate libimagstore;
+extern crate libimagentryview;
 #[macro_use] extern crate libimagerror;
 
 use std::result::Result as RResult;
