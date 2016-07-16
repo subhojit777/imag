@@ -35,7 +35,6 @@ use libimagerror::trace::{trace_error, trace_error_exit};
 use libimagentryview::builtin::stdout::StdoutViewer;
 use libimagentryview::viewer::Viewer;
 
-mod error;
 mod ui;
 
 use error::{ViewError, ViewErrorKind};
