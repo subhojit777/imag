@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use std::fmt::{Debug, Formatter, Error as FmtError};
 
 use toml::Value;
+use git2::{Repository, Error as Git2Error};
 
 use libimagstore::storeid::StoreId;
 use libimagstore::hook::Hook;
@@ -9,9 +10,12 @@ use libimagstore::hook::result::HookResult;
 use libimagstore::hook::position::HookPosition;
 use libimagstore::hook::accessor::{HookDataAccessor, HookDataAccessorProvider};
 use libimagstore::hook::accessor::StoreIdAccessor;
+use libimagerror::trace::trace_error;
 
 pub struct CreateHook<'a> {
     storepath: &'a PathBuf,
+
+    repository: Option<Repository>,
 
     position: HookPosition,
     config: Option<Value>,
@@ -20,8 +24,16 @@ pub struct CreateHook<'a> {
 impl<'a> CreateHook<'a> {
 
     pub fn new(storepath: &'a PathBuf, p: HookPosition) -> CreateHook<'a> {
+        let r = match Repository::open(storepath) {
+            Ok(r) => Some(r),
+            Err(e) => {
+                trace_error(&e);
+                None
+            },
+        };
         CreateHook {
             storepath: storepath,
+            repository: r,
             position: p,
             config: None,
         }
