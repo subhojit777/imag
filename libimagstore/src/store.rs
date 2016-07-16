@@ -327,6 +327,7 @@ impl Store {
         if let Err(e) = self.execute_hooks_for_id(self.pre_create_aspects.clone(), &id) {
             return Err(e)
                 .map_err_into(SEK::PreHookExecuteError)
+                .map_err_into(SEK::HookExecutionError)
                 .map_err_into(SEK::CreateCallError)
         }
 
@@ -347,8 +348,9 @@ impl Store {
         let mut fle = FileLockEntry::new(self, Entry::new(id));
         self.execute_hooks_for_mut_file(self.post_create_aspects.clone(), &mut fle)
             .map_err_into(SEK::PostHookExecuteError)
-            .map(|_| fle)
+            .map_err_into(SEK::HookExecutionError)
             .map_err_into(SEK::CreateCallError)
+            .map(|_| fle)
     }
 
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
@@ -361,6 +363,7 @@ impl Store {
         if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
             return Err(e)
                 .map_err_into(SEK::PreHookExecuteError)
+                .map_err_into(SEK::HookExecutionError)
                 .map_err_into(SEK::RetrieveCallError)
         }
 
@@ -376,6 +379,7 @@ impl Store {
             .map(|e| FileLockEntry::new(self, e))
             .and_then(|mut fle| {
                 self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle)
+                    .map_err_into(SEK::PostHookExecuteError)
                     .map_err_into(SEK::HookExecutionError)
                     .and(Ok(fle))
             })
@@ -464,6 +468,7 @@ impl Store {
         if let Err(e) = self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), &mut entry) {
             return Err(e)
                 .map_err_into(SEK::PreHookExecuteError)
+                .map_err_into(SEK::HookExecutionError)
                 .map_err_into(SEK::UpdateCallError);
         }
 
@@ -472,7 +477,8 @@ impl Store {
         }
 
         self.execute_hooks_for_mut_file(self.post_update_aspects.clone(), &mut entry)
-            .map_err_into(SEK::PreHookExecuteError)
+            .map_err_into(SEK::PostHookExecuteError)
+            .map_err_into(SEK::HookExecutionError)
             .map_err_into(SEK::UpdateCallError)
     }
 
@@ -527,6 +533,7 @@ impl Store {
         if let Err(e) = self.execute_hooks_for_id(self.pre_delete_aspects.clone(), &id) {
             return Err(e)
                 .map_err_into(SEK::PreHookExecuteError)
+                .map_err_into(SEK::HookExecutionError)
                 .map_err_into(SEK::DeleteCallError)
         }
 
@@ -550,7 +557,8 @@ impl Store {
         }
 
         self.execute_hooks_for_id(self.post_delete_aspects.clone(), &id)
-            .map_err_into(SEK::PreHookExecuteError)
+            .map_err_into(SEK::PostHookExecuteError)
+            .map_err_into(SEK::HookExecutionError)
             .map_err_into(SEK::DeleteCallError)
     }
 
@@ -594,7 +602,8 @@ impl Store {
             })
             .map_err_into(SEK::FileError)
             .and_then(|_| self.execute_hooks_for_id(self.post_move_aspects.clone(), &new_id)
-                    .map_err_into(SEK::PostHookExecuteError))
+                    .map_err_into(SEK::PostHookExecuteError)
+                    .map_err_into(SEK::HookExecutionError))
             .map_err_into(SEK::MoveCallError)
     }
 
@@ -608,6 +617,7 @@ impl Store {
         if let Err(e) = self.execute_hooks_for_id(self.pre_move_aspects.clone(), &old_id) {
             return Err(e)
                 .map_err_into(SEK::PreHookExecuteError)
+                .map_err_into(SEK::HookExecutionError)
                 .map_err_into(SEK::MoveByIdCallError)
         }
 
@@ -628,6 +638,7 @@ impl Store {
 
         self.execute_hooks_for_id(self.pre_move_aspects.clone(), &new_id)
             .map_err_into(SEK::PostHookExecuteError)
+            .map_err_into(SEK::HookExecutionError)
             .map_err_into(SEK::MoveByIdCallError)
     }
 
