@@ -21,21 +21,7 @@ pub fn commit_message(config: &Value, action: StoreAction) -> Option<String> {
 }
 
 pub fn abort_on_repo_init_err(cfg: Option<&Value>) -> bool {
-    cfg.map(|cfg| {
-        match cfg.lookup("abort_on_repo_init_failure") {
-            Some(&Value::Boolean(b)) => b,
-            Some(_) => {
-                warn!("Configuration error, 'abort_on_repo_init_failure' must be a Boolean (true|false).");
-                warn!("Assuming 'true' now.");
-                true
-            },
-            None => {
-                debug!("No key `abort_on_repo_init_failure' - Assuming 'true'");
-                true
-            },
-        }
-    })
-    .unwrap_or(false)
+    get_bool_cfg(cfg, "abort_on_repo_init_failure", true, true)
 }
 
 pub fn ensure_branch(cfg: Option<&Value>) -> Result<Option<String>> {
@@ -59,20 +45,24 @@ pub fn ensure_branch(cfg: Option<&Value>) -> Result<Option<String>> {
 }
 
 pub fn do_checkout_ensure_branch(cfg: Option<&Value>) -> bool {
+    get_bool_cfg(cfg, "try_checkout_ensure_branch", true, true)
+}
+
+fn get_bool_cfg(cfg: Option<&Value>, name: &str, on_fail: bool, on_unavail: bool) -> bool {
     cfg.map(|cfg| {
-        match cfg.lookup("try_checkout_ensure_branch") {
+        match cfg.lookup(name) {
             Some(&Value::Boolean(b)) => b,
             Some(_) => {
-                warn!("Configuration error, 'try_checkout_ensure_branch' must be a Boolean (true|false).");
+                warn!("Configuration error, '{}' must be a Boolean (true|false).", name);
                 warn!("Assuming 'true' now.");
-                true
+                on_fail
             },
             None => {
-                debug!("No key `try_checkout_ensure_branch' - Assuming 'true'");
-                true
+                debug!("No key '{}' - Assuming 'true'", name);
+                on_fail
             },
         }
     })
-    .unwrap_or(false)
+    .unwrap_or(on_unavail)
 }
 
