@@ -111,7 +111,7 @@ impl<'a> Runtime<'a> {
             write!(stderr(), "Store-config: {:?}\n", store_config).ok();
         }
 
-        Store::new(storepath, store_config).map(|mut store| {
+        Store::new(storepath.clone(), store_config).map(|mut store| {
             // If we are debugging, generate hooks for all positions
             if is_debugging {
                 let hooks : Vec<(Box<Hook>, &str, HP)> = vec![
@@ -124,10 +124,10 @@ impl<'a> Runtime<'a> {
                     (Box::new(DebugHook::new(HP::PreDelete))          , "debug", HP::PreDelete),
                     (Box::new(DebugHook::new(HP::PostDelete))         , "debug", HP::PostDelete),
 
-                    (Box::new(GitCreateHook::new(HP::PostCreate))     , "vcs",   HP::PostCreate),
-                    (Box::new(GitDeleteHook::new(HP::PreDelete))      , "vcs",   HP::PreDelete),
-                    (Box::new(GitRetrieveHook::new(HP::PostRetrieve)) , "vcs",   HP::PostRetrieve),
-                    (Box::new(GitUpdateHook::new(HP::PostUpdate))     , "vcs",   HP::PostUpdate),
+                    (Box::new(GitCreateHook::new(&storepath, HP::PostCreate))    , "vcs", HP::PostCreate),
+                    (Box::new(GitDeleteHook::new(&storepath, HP::PreDelete))     , "vcs", HP::PreDelete),
+                    (Box::new(GitRetrieveHook::new(&storepath, HP::PostRetrieve)), "vcs", HP::PostRetrieve),
+                    (Box::new(GitUpdateHook::new(&storepath, HP::PostUpdate))    , "vcs", HP::PostUpdate),
                 ];
 
                 // If hook registration fails, trace the error and warn, but continue.
