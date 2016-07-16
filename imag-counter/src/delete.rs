@@ -1,7 +1,5 @@
-use std::process::exit;
-
 use libimagrt::runtime::Runtime;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::trace_error_exit;
 use libimagcounter::counter::Counter;
 
 pub fn delete(rt: &Runtime) {
@@ -13,8 +11,7 @@ pub fn delete(rt: &Runtime) {
             let name = String::from(scmd.value_of("name").unwrap()); // safe because clap enforces
 
             if let Err(e) = Counter::delete(name, rt.store()) {
-                trace_error(&e);
-                exit(1);
+                trace_error_exit(&e, 1);
             }
 
             info!("Ok");

@@ -28,9 +28,7 @@ pub fn view(rt: &Runtime) {
                 println!("\n---\n");
             }
         },
-        Err(e) => {
-            trace_error(&e);
-        },
+        Err(e) => trace_error(&e),
     }
 }
 

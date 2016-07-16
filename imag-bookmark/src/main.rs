@@ -17,7 +17,7 @@ use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagbookmark::collection::BookmarkCollection;
 use libimagbookmark::link::Link as BookmarkLink;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::{trace_error, trace_error_exit};
 
 mod ui;
 
@@ -96,10 +96,7 @@ fn list(rt: &Runtime) {
                     };
                     debug!("... ready with listing");
                 },
-                Err(e) => {
-                    trace_error(&e);
-                    exit(1);
-                },
+                Err(e) => trace_error_exit(&e, 1),
             }
         });
     info!("Ready");

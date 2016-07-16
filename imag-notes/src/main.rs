@@ -14,7 +14,7 @@ use libimagrt::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagnotes::note::Note;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::{trace_error, trace_error_exit};
 
 mod ui;
 use ui::build_ui;
@@ -95,8 +95,7 @@ fn list(rt: &Runtime) {
 
     let iter = Note::all_notes(rt.store());
     if iter.is_err() {
-        trace_error(&iter.unwrap_err());
-        exit(1);
+        trace_error_exit(&iter.unwrap_err(), 1);
     }
 
     let mut iter = iter.unwrap()

@@ -27,7 +27,7 @@ use std::str::FromStr;
 
 use libimagrt::setup::generate_runtime_setup;
 use libimagcounter::counter::Counter;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::{trace_error, trace_error_exit};
 use libimagutil::key_value_split::IntoKeyValue;
 
 mod create;
@@ -75,7 +75,7 @@ fn main() {
                         Counter::load(String::from(name), rt.store())
                             .map(|mut counter| {
                                 match counter.inc() {
-                                    Err(e) => { trace_error(&e); exit(1); },
+                                    Err(e) => trace_error_exit(&e, 1),
                                     Ok(_) => info!("Ok"),
                                 }
                             })
@@ -84,7 +84,7 @@ fn main() {
                         Counter::load(String::from(name), rt.store())
                             .map(|mut counter| {
                                 match counter.dec() {
-                                    Err(e) => { trace_error(&e); exit(1); },
+                                    Err(e) => trace_error_exit(&e, 1),
                                     Ok(_) => info!("Ok"),
                                 }
                             })
@@ -93,7 +93,7 @@ fn main() {
                         Counter::load(String::from(name), rt.store())
                             .map(|mut counter| {
                                 match counter.reset() {
-                                    Err(e) => { trace_error(&e); exit(1); },
+                                    Err(e) => trace_error_exit(&e, 1),
                                     Ok(_) => info!("Ok"),
                                 }
                             })
@@ -114,7 +114,7 @@ fn main() {
                         Counter::load(String::from(key), rt.store())
                             .map(|mut counter| {
                                 match counter.set(value) {
-                                    Err(e) => { trace_error(&e); exit(1); },
+                                    Err(e) => trace_error_exit(&e, 1),
                                     Ok(_) => info!("Ok"),
                                 }
                             })
