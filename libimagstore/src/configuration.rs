@@ -11,18 +11,20 @@ use toml::Value;
 /// [store]
 /// pre-create-hook-aspects = [ "misc", "encryption", "version-control"]
 ///
-/// [[aspects.misc]]
+/// [store.aspects.misc]
 /// parallel = true
-/// [[aspects.encryption]]
-/// parallel = false
-/// [[aspects.version-control]]
+///
+/// [store.aspects.encryption]
 /// parallel = false
 ///
-/// [[hooks.gnupg]]
+/// [store.aspects.version-control]
+/// parallel = false
+///
+/// [store.hooks.gnupg]
 /// aspect = "encryption"
 /// key = "0x123456789"
 ///
-/// [[hooks.git]]
+/// [store.hooks.git]
 /// aspect = "version-control"
 /// ```
 ///
