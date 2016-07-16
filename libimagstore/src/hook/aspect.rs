@@ -58,7 +58,10 @@ impl StoreIdAccessor for Aspect {
 
 impl MutableHookDataAccessor for Aspect {
     fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
+        debug!("Checking whether mutable hooks are allowed");
+        debug!("-> config = {:?}", self.cfg);
         if !self.cfg.as_ref().map(|c| c.allow_mutable_hooks()).unwrap_or(false) {
+            debug!("Apparently mutable hooks are not allowed... failing now.");
             return Err(HE::new(HEK::MutableHooksNotAllowed, None));
         }
 

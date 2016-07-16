@@ -309,6 +309,10 @@ impl Store {
         };
 
         debug!("Store building succeeded");
+        debug!("------------------------");
+        debug!("{:?}", store);
+        debug!("------------------------");
+
         Ok(store)
     }
 
@@ -662,7 +666,9 @@ impl Store {
 
         for mut aspect in guard.deref_mut() {
             if aspect.name().clone() == aspect_name.clone() {
+                debug!("Trying to find configuration for hook: {:?}", h);
                 self.get_config_for_hook(h.name()).map(|config| h.set_config(config));
+                debug!("Trying to register hook in aspect: {:?} <- {:?}", aspect, h);
                 aspect.register_hook(h);
                 return Ok(());
             }
@@ -675,8 +681,11 @@ impl Store {
     fn get_config_for_hook(&self, name: &str) -> Option<&Value> {
         match self.configuration {
             Some(Value::Table(ref tabl)) => {
+                debug!("Trying to head 'hooks' section from {:?}", tabl);
                 tabl.get("hooks")
                     .map(|hook_section| {
+                        debug!("Found hook section:  {:?}", hook_section);
+                        debug!("Reading section key: {:?}", name);
                         match *hook_section {
                             Value::Table(ref tabl) => tabl.get(name),
                             _ => None
