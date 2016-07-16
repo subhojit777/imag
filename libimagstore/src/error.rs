@@ -6,6 +6,7 @@ pub struct CustomErrorData {}
 
 generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     ConfigurationError      => "Store Configuration Error",
+    CreateStoreDirDenied    => "Creating store directory implicitely denied",
     FileError               => "File Error",
     IoError                 => "IO Error",
     IdLocked                => "ID locked",
