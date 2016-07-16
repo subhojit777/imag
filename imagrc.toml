@@ -46,6 +46,9 @@ aspect = "vcs"
 # error and abort the store action.
 abort_on_repo_init_failure = true
 
+# Ensure to be on this branche before doing anything.
+ensure_branch = "master"
+
 [store.hooks.stdhook_git_retrieve]
 aspect = "vcs"
 
@@ -53,6 +56,9 @@ aspect = "vcs"
 # will be printed, but will not abort the store operation. `true` will print the
 # error and abort the store action.
 abort_on_repo_init_failure = true
+
+# Ensure to be on this branche before doing anything.
+ensure_branch = "master"
 
 [store.hooks.stdhook_git_delete]
 aspect = "vcs"
@@ -62,6 +68,9 @@ aspect = "vcs"
 # error and abort the store action.
 abort_on_repo_init_failure = true
 
+# Ensure to be on this branche before doing anything.
+ensure_branch = "master"
+
 [store.hooks.stdhook_git_update]
 aspect = "vcs"
 
@@ -69,4 +78,7 @@ aspect = "vcs"
 # will be printed, but will not abort the store operation. `true` will print the
 # error and abort the store action.
 abort_on_repo_init_failure = true
+
+# Ensure to be on this branche before doing anything.
+ensure_branch = "master"
 
