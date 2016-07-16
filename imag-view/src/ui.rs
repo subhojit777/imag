@@ -14,7 +14,7 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .long("version")
             .short("V")
             .takes_value(true)
-            .required(false)
+            .required(true)
             .help("View this version (youngest if not specified)")
             .value_name("VERSION"))
 
