@@ -6,4 +6,5 @@ generate_error_module!(
 
 pub use self::error::GitHookError;
 pub use self::error::GitHookErrorKind;
+pub use self::error::MapErrInto;
 
