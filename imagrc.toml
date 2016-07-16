@@ -3,6 +3,10 @@
 
 [store]
 
+# Set to false if you do not want imag to create the directory where the store
+# lives implicitely
+implicit-create = false
+
 # Hooks which get executed right before the Store is closed.
 # They get the store path as StoreId passed, so they can alter the complete
 # store, so these hooks should be chosen carefully.
