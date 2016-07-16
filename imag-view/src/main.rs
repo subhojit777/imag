@@ -66,8 +66,6 @@ fn main() {
         let entry_version   = rt.cli().value_of("version");
         let view_header     = rt.cli().is_present("view-header");
         let view_content    = rt.cli().is_present("view-content");
-        let view_copy       = rt.cli().is_present("view-copy");
-        let keep_copy       = rt.cli().is_present("keep-copy");
 
         let scmd = rt.cli().subcommand_matches("view-in");
         if scmd.is_none() {
