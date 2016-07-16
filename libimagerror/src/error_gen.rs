@@ -78,6 +78,11 @@ macro_rules! generate_custom_error_types {
                 self.err_type
             }
 
+            pub fn with_custom_data(mut self, custom: $customMemberTypeName) -> $name {
+                self.custom_data = Some(custom);
+                self
+            }
+
         }
 
         impl Into<$name> for $kindname {
