@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::fmt::{Debug, Formatter, Error as FmtError};
 
 use toml::Value;
 
@@ -9,7 +10,6 @@ use libimagstore::hook::position::HookPosition;
 use libimagstore::hook::accessor::{HookDataAccessor, HookDataAccessorProvider};
 use libimagstore::hook::accessor::StoreIdAccessor;
 
-#[derive(Debug)]
 pub struct CreateHook<'a> {
     storepath: &'a PathBuf,
 
@@ -27,6 +27,17 @@ impl<'a> CreateHook<'a> {
         }
     }
 
+}
+
+impl<'a> Debug for CreateHook<'a> {
+
+    fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
+        write!(fmt, "CreateHook(storepath={:?}, repository={}, pos={:?}, cfg={:?}",
+               self.storepath,
+               (if self.repository.is_some() { "Some(_)" } else { "None" }),
+               self.position,
+               self.config)
+    }
 }
 
 impl<'a> Hook for CreateHook<'a> {
