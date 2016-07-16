@@ -1,6 +1,9 @@
 generate_error_module!(
     generate_error_types!(ViewError, ViewErrorKind,
-        Unknown => "Unknown view error"
+        Unknown              => "Unknown view error",
+        GlobError            => "Error while glob()ing",
+        PatternError         => "Error in glob() pattern",
+        PatternBuildingError => "Could not build glob() pattern"
     );
 );
 
