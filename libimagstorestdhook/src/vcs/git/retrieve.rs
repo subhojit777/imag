@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use toml::Value;
 
 use libimagstore::storeid::StoreId;
@@ -8,15 +10,18 @@ use libimagstore::hook::accessor::{HookDataAccessor, HookDataAccessorProvider};
 use libimagstore::hook::accessor::StoreIdAccessor;
 
 #[derive(Debug)]
-pub struct RetrieveHook {
+pub struct RetrieveHook<'a> {
+    storepath: &'a PathBuf,
+
     position: HookPosition,
     config: Option<Value>,
 }
 
-impl RetrieveHook {
+impl<'a> RetrieveHook<'a> {
 
-    pub fn new(p: HookPosition) -> RetrieveHook {
+    pub fn new(storepath: &'a PathBuf, p: HookPosition) -> RetrieveHook<'a> {
         RetrieveHook {
+            storepath: storepath,
             position: p,
             config: None,
         }
@@ -24,7 +29,7 @@ impl RetrieveHook {
 
 }
 
-impl Hook for RetrieveHook {
+impl<'a> Hook for RetrieveHook<'a> {
 
     fn name(&self) -> &'static str {
         "stdhook_git_retrieve"
@@ -36,14 +41,14 @@ impl Hook for RetrieveHook {
 
 }
 
-impl HookDataAccessorProvider for RetrieveHook {
+impl<'a> HookDataAccessorProvider for RetrieveHook<'a> {
 
     fn accessor(&self) -> HookDataAccessor {
         HookDataAccessor::StoreIdAccess(self)
     }
 }
 
-impl StoreIdAccessor for RetrieveHook {
+impl<'a> StoreIdAccessor for RetrieveHook<'a> {
 
     fn access(&self, id: &StoreId) -> HookResult<()> {
         debug!("[GIT RETRIEVE HOOK]: {:?}", id);
