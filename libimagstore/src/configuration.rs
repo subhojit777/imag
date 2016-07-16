@@ -148,6 +148,32 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
     }
 }
 
+/// Checks whether the store configuration has a key "implicit-create" which maps to a boolean
+/// value. If that key is present, the boolean is returned, otherwise false is returned.
+pub fn config_implicit_store_create_allowed(config: Option<&Value>) -> bool {
+    config.map(|t| {
+        match *t {
+            Value::Table(ref t) => {
+                match t.get("implicit-create") {
+                    Some(&Value::Boolean(b)) => b,
+                    Some(_) => {
+                        warn!("Key 'implicit-create' does not contain a Boolean value");
+                        false
+                    }
+                    None => {
+                        warn!("Key 'implicit-create' in store configuration missing");
+                        false
+                    },
+                }
+            }
+            _ => {
+                warn!("Store configuration seems to be no Table");
+                false
+            },
+        }
+    }).unwrap_or(false)
+}
+
 pub fn get_store_unload_aspect_names(value: &Option<Value>) -> Vec<String> {
     get_aspect_names_for_aspect_position("store-unload-hook-aspects", value)
 }
