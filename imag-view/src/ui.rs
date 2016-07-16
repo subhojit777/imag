@@ -10,14 +10,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .help("View this entry at this store path")
             .value_name("ID"))
 
-        .arg(Arg::with_name("version")
-            .long("version")
-            .short("V")
-            .takes_value(true)
-            .required(true)
-            .help("View this version (youngest if not specified)")
-            .value_name("VERSION"))
-
         .arg(Arg::with_name("versions")
             .long("versions")
             .takes_value(false)
