@@ -11,6 +11,9 @@ store-unload-hook-aspects  = [ "debug" ]
 pre-create-hook-aspects    = [ "debug" ]
 post-create-hook-aspects   = [ "debug" ]
 
+pre-move-hook-aspects      = [ "debug" ]
+post-move-hook-aspects     = [ "debug" ]
+
 pre-retrieve-hook-aspects  = [ "debug" ]
 post-retrieve-hook-aspects = [ "debug" ]
 
