@@ -52,6 +52,11 @@ fn main() {
 
     let entry_id = rt.cli().value_of("id").unwrap(); // enforced by clap
 
+    if entry_id.contains("~") {
+        error!("The --id argument does not need the version part");
+        exit(1);
+    }
+
     if rt.cli().is_present("versions") {
         if let Err(e) = view_versions_of(entry_id, &rt) {
             trace_error(&e);
