@@ -24,6 +24,6 @@ post-delete-hook-aspects   = [ "debug" ]
 parallel = false
 mutable_hooks = true
 
-[store.hooks.debug]
+[store.hooks.stdhook_debug]
 aspect = "debug"
 
