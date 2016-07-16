@@ -1,4 +1,6 @@
 use std::convert::Into;
+use std::default::Default;
+
 generate_error_imports!();
 
 generate_custom_error_types!(HookError, HookErrorKind, CustomData,
@@ -10,6 +12,25 @@ generate_custom_error_types!(HookError, HookErrorKind, CustomData,
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
 pub struct CustomData {
     aborting: bool,
+}
+
+impl CustomData {
+
+    pub fn aborting(mut self, b: bool) -> CustomData {
+        self.aborting = b;
+        self
+    }
+
+}
+
+impl Default for CustomData {
+
+    fn default() -> CustomData {
+        CustomData {
+            aborting: true
+        }
+    }
+
 }
 
 impl HookError {
