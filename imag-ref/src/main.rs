@@ -82,6 +82,40 @@ fn remove(rt: &Runtime) {
 }
 
 fn list(rt: &Runtime) {
-    unimplemented!()
+    use std::process::exit;
+    use std::ops::Deref;
+
+    use libimagentrylist::lister::Lister;
+    use libimagentrylist::listers::core::CoreLister;
+    use libimagref::lister::RefLister;
+
+    let cmd                      = rt.cli().subcommand_matches("list").unwrap();
+    let do_check_dead            = cmd.is_present("check-dead");
+    let do_check_changed         = cmd.is_present("check-changed");
+    let do_check_changed_content = cmd.is_present("check-changed-content");
+    let do_check_changed_permiss = cmd.is_present("check-changed-permissions");
+
+    let iter = match rt.store().retrieve_for_module("ref") {
+        Ok(iter) => iter.filter_map(|id| {
+            match Ref::get(rt.store(), id) {
+                Ok(r) => Some(r),
+                Err(e) => {
+                    trace_error(&e);
+                    None
+                },
+            }
+        }),
+        Err(e) => {
+            trace_error(&e);
+            exit(1);
+        }
+    };
+
+    RefLister::new()
+        .check_dead(do_check_dead)
+        .check_changed(do_check_changed)
+        .check_changed_content(do_check_changed_content)
+        .check_changed_permiss(do_check_changed_permiss)
+        .list(iter.map(|e| e.into()));
 }
 
