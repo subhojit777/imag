@@ -137,12 +137,10 @@ impl<'a> Counter<'a> {
     pub fn unit(&self) -> Result<CounterUnit> {
         self.fle.get_header().read("counter.unit")
             .map_err(|e| CEK::StoreWriteError.into_error_with_cause(Box::new(e)))
-            .and_then(|u| 
-                match u {
-                    Some(Value::String(s)) => Ok(CounterUnit(s)),
-                    _ => Err(CEK::HeaderTypeError.into_error())
-                }
-            )
+            .and_then(|u| match u {
+                Some(Value::String(s)) => Ok(CounterUnit(s)),
+                _ => Err(CEK::HeaderTypeError.into_error())
+            })
     }
 
     pub fn load(name: CounterName, store: &Store) -> Result<Counter> {
