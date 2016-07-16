@@ -25,3 +25,7 @@ path = "../libimagutil"
 tempdir = "0.3.4"
 env_logger = "0.3"
 
+[features]
+default = []
+verify  = []
+

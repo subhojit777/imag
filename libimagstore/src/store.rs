@@ -321,6 +321,56 @@ impl Store {
         self.configuration.as_ref()
     }
 
+    /// Verify the store.
+    ///
+    /// This function is not intended to be called by normal programs but only by `imag-store`.
+    #[cfg(feature = "verify")]
+    pub fn verify(&self) -> bool {
+        info!("Header | Content length | Path");
+        info!("-------+----------------+-----");
+
+        WalkDir::new(self.location.clone())
+            .into_iter()
+            .map(|res| {
+                match res {
+                    Ok(dent) => {
+                        if dent.file_type().is_file() {
+                            match self.get(PathBuf::from(dent.path())) {
+                                Ok(Some(fle)) => {
+                                    let p           = fle.get_location();
+                                    let content_len = fle.get_content().len();
+                                    let header      = if fle.get_header().verify().is_ok() {
+                                        "ok"
+                                    } else {
+                                        "broken"
+                                    };
+
+                                    info!("{: >6} | {: >14} | {:?}", header, content_len, p.deref());
+                                },
+
+                                Ok(None) => {
+                                    info!("{: >6} | {: >14} | {:?}", "?", "couldn't load", dent.path());
+                                },
+
+                                Err(e) => {
+                                    debug!("{:?}", e);
+                                },
+                            }
+                        } else {
+                            info!("{: >6} | {: >14} | {:?}", "?", "<no file>", dent.path());
+                        }
+                    },
+
+                    Err(e) => {
+                        debug!("{:?}", e);
+                    },
+                }
+
+                true
+            })
+            .all(|b| b)
+    }
+
     /// Creates the Entry at the given location (inside the entry)
     pub fn create<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = id.into_storeid().storified(self);
