@@ -58,3 +58,21 @@ pub fn ensure_branch(cfg: Option<&Value>) -> Result<Option<String>> {
     }
 }
 
+pub fn do_checkout_ensure_branch(cfg: Option<&Value>) -> bool {
+    cfg.map(|cfg| {
+        match cfg.lookup("try_checkout_ensure_branch") {
+            Some(&Value::Boolean(b)) => b,
+            Some(_) => {
+                warn!("Configuration error, 'try_checkout_ensure_branch' must be a Boolean (true|false).");
+                warn!("Assuming 'true' now.");
+                true
+            },
+            None => {
+                debug!("No key `try_checkout_ensure_branch' - Assuming 'true'");
+                true
+            },
+        }
+    })
+    .unwrap_or(false)
+}
+
