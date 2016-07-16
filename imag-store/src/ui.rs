@@ -181,4 +181,9 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .help("Remove Store Entry with this path. Root (/) is the store itself")
                         .value_name("PATH"))
                    )
+
+       .subcommand(SubCommand::with_name("verify")
+                   .about("Verify the store")
+                   .version("0.1")
+                   )
 }

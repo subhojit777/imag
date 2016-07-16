@@ -33,6 +33,7 @@ mod get;
 mod retrieve;
 mod ui;
 mod update;
+mod verify;
 mod util;
 
 use create::create;
@@ -41,6 +42,7 @@ use get::get;
 use retrieve::retrieve;
 use ui::build_ui;
 use update::update;
+use verify::verify;
 
 fn main() {
     let rt = generate_runtime_setup("imag-store",
@@ -63,6 +65,7 @@ fn main() {
                     "get"      => get(&rt),
                     "retrieve" => retrieve(&rt),
                     "update"   => update(&rt),
+                    "verify"   => verify(&rt),
                     _ => {
                         debug!("Unknown command");
                         // More error handling

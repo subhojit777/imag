@@ -12,6 +12,8 @@ toml = "0.1.25"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
+default-features = false
+features = ["verify"]
 
 [dependencies.libimagrt]
 path = "../libimagrt"
