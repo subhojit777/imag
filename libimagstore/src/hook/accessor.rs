@@ -4,15 +4,15 @@ use hook::result::HookResult;
 use store::FileLockEntry;
 use storeid::StoreId;
 
-pub trait StoreIdAccessor : Debug + Send + Sync {
+pub trait StoreIdAccessor : Debug + Send {
     fn access(&self, &StoreId) -> HookResult<()>;
 }
 
-pub trait MutableHookDataAccessor : Debug + Send + Sync {
+pub trait MutableHookDataAccessor : Debug + Send {
     fn access_mut(&self, &mut FileLockEntry) -> HookResult<()>;
 }
 
-pub trait NonMutableHookDataAccessor : Debug + Send + Sync {
+pub trait NonMutableHookDataAccessor : Debug + Send {
     fn access(&self, &FileLockEntry) -> HookResult<()>;
 }
 
