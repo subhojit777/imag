@@ -24,6 +24,7 @@ impl Viewer for StdoutViewer {
         }
 
         if vi.view_header {
+            debug!("Going to display header: {:?}", vi.entry.get_header().header());
             println!("{}", encode_str(vi.entry.get_header().header()));
         }
 
