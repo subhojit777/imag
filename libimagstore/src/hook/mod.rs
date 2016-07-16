@@ -10,7 +10,7 @@ pub mod result;
 
 use hook::accessor::HookDataAccessorProvider;
 
-pub trait Hook : HookDataAccessorProvider + Debug + Send + Sync {
+pub trait Hook : HookDataAccessorProvider + Debug + Send {
     fn name(&self) -> &'static str;
     fn set_config(&mut self, cfg: &Value);
 }
