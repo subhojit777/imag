@@ -21,11 +21,17 @@ use error::CounterErrorKind as CEK;
 pub type CounterName = String;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub struct CounterUnit(pub String);
+pub struct CounterUnit(String);
 
 impl Display for CounterUnit {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({})", self.0)
+    }
+}
+
+impl CounterUnit {
+    pub fn new<S: Into<String>>(unit: S) -> CounterUnit {
+        CounterUnit(unit.into())
     }
 }
 

@@ -20,7 +20,7 @@ pub fn create(rt: &Runtime) {
                 .value_of("unit")
                 .unwrap_or("unit");
 
-            match Counter::new(rt.store(), String::from(name), init, CounterUnit(String::from(unit))) {
+            match Counter::new(rt.store(), String::from(name), init, CounterUnit::new(unit)) {
                 Err(e) => {
                     warn!("Could not create Counter '{}' with initial value '{} {}'", name, init, unit);
                     trace_error_exit(&e, 1);
