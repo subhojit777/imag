@@ -213,7 +213,7 @@ impl<'a> Runtime<'a> {
             } else if is_verbose {
                 LogLevelFilter::Info
             } else {
-                LogLevelFilter::Error
+                LogLevelFilter::Warn
             };
 
             log::set_logger(|max_log_lvl| {
