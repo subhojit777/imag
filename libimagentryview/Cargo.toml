@@ -4,6 +4,9 @@ version = "0.2.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
+log = "0.3"
+toml = "0.1.25"
+glob = "0.2.11"
 
 [dependencies.libimagstore]
 path = "../libimagstore"

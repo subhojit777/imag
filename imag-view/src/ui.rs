@@ -10,14 +10,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .help("View this entry at this store path")
             .value_name("ID"))
 
-        .arg(Arg::with_name("version")
-            .long("version")
-            .short("V")
-            .takes_value(true)
-            .required(true)
-            .help("View this version (youngest if not specified)")
-            .value_name("VERSION"))
-
         .arg(Arg::with_name("versions")
             .long("versions")
             .takes_value(false)
@@ -36,19 +28,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .takes_value(false)
             .required(false)
             .help("View content"))
-
-        .arg(Arg::with_name("view-copy")
-            .long("copy")
-            .takes_value(false)
-            .required(false)
-            .help("Copy before opening (copies to /tmp/) and removes the file after viewing."))
-
-        .arg(Arg::with_name("keep-copy")
-            .long("keep-copy")
-            .short("k")
-            .takes_value(false)
-            .required(false)
-            .help("If --copy was passed, keep the copy after viewing."))
 
         .subcommand(SubCommand::with_name("view-in")
                    .about("View the entry in ...")
