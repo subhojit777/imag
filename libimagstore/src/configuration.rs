@@ -286,7 +286,7 @@ fn get_aspect_names_for_aspect_position(config_name: &'static str, value: &Optio
                 _ => warn!("'{}' configuration key should contain Array, does not", config_name),
             };
         },
-        None => warn!("No store configuration"),
+        None => warn!("No store configuration, cannot get '{}'", config_name),
         _ => warn!("Configuration is not a table"),
     }
     v
