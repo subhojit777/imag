@@ -3,7 +3,6 @@ use std::str::FromStr;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error_exit;
 use libimagcounter::counter::Counter;
-use libimagcounter::counter::CounterUnit;
 
 pub fn create(rt: &Runtime) {
     rt.cli()
@@ -20,7 +19,7 @@ pub fn create(rt: &Runtime) {
                 .value_of("unit")
                 .unwrap_or("unit");
 
-            match Counter::new(rt.store(), String::from(name), init, CounterUnit::new(unit)) {
+            match Counter::new(rt.store(), String::from(name), init) {
                 Err(e) => {
                     warn!("Could not create Counter '{}' with initial value '{} {}'", name, init, unit);
                     trace_error_exit(&e, 1);

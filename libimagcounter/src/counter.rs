@@ -11,7 +11,6 @@ use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
-use libimagerror::into::IntoError;
 
 use module_path::ModuleEntryPath;
 use result::Result;
@@ -37,11 +36,12 @@ impl CounterUnit {
 
 pub struct Counter<'a> {
     fle: FileLockEntry<'a>,
+    unit: Option<CounterUnit>,
 }
 
 impl<'a> Counter<'a> {
 
-    pub fn new(store: &Store, name: CounterName, init: i64, unit: CounterUnit) -> Result<Counter> {
+    pub fn new(store: &Store, name: CounterName, init: i64) -> Result<Counter> {
         use std::ops::DerefMut;
 
         debug!("Creating new counter: '{}' with value: {}", name, init);
@@ -65,8 +65,7 @@ impl<'a> Counter<'a> {
                     return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
                 }
 
-                let setres = header.set("counter.value", Value::Integer(init))
-                    .and_then(|_| header.set("counter.unit", Value::String(unit.clone().0)));
+                let setres = header.set("counter.value", Value::Integer(init));
                 if setres.is_err() {
                     return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
                 }
@@ -75,7 +74,20 @@ impl<'a> Counter<'a> {
             lockentry
         };
 
-        Ok(Counter { fle: fle })
+        Ok(Counter { fle: fle, unit: None })
+    }
+
+    pub fn with_unit(mut self, unit: Option<CounterUnit>) -> Result<Counter<'a>> {
+        self.unit = unit;
+
+        if let Some(u) = self.unit.clone() {
+            let mut header = self.fle.deref_mut().get_header_mut();
+            let setres = header.set("counter.unit", Value::String(u.0));
+            if setres.is_err() {
+                return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
+            }
+        };
+        Ok(self)
     }
 
     pub fn inc(&mut self) -> Result<()> {
@@ -140,21 +152,19 @@ impl<'a> Counter<'a> {
             })
     }
 
-    pub fn unit(&self) -> Result<CounterUnit> {
+    pub fn unit(&self) -> Option<CounterUnit> {
         self.fle.get_header().read("counter.unit")
-            .map_err(|e| CEK::StoreWriteError.into_error_with_cause(Box::new(e)))
-            .and_then(|u| match u {
-                Some(Value::String(s)) => Ok(CounterUnit(s)),
-                _ => Err(CEK::HeaderTypeError.into_error())
+            .ok()
+            .and_then(|s| match s {
+                Some(Value::String(s)) => Some(CounterUnit::new(s)),
+                _ => None,
             })
     }
 
     pub fn load(name: CounterName, store: &Store) -> Result<Counter> {
         debug!("Loading counter: '{}'", name);
-        match store.retrieve(ModuleEntryPath::new(name).into_storeid()) {
-            Err(e) => Err(CE::new(CEK::StoreReadError, Some(Box::new(e)))),
-            Ok(c)  => Ok(Counter { fle: c }),
-        }
+        let id = ModuleEntryPath::new(name).into_storeid();
+        Counter::from_storeid(store, id)
     }
 
     pub fn delete(name: CounterName, store: &Store) -> Result<()> {
@@ -181,7 +191,11 @@ impl<'a> FromStoreId for Counter<'a> {
         debug!("Loading counter from storeid: '{:?}'", id);
         match store.retrieve(id) {
             Err(e) => Err(CE::new(CEK::StoreReadError, Some(Box::new(e)))),
-            Ok(c)  => Ok(Counter { fle: c }),
+            Ok(c)  => {
+                let mut counter = Counter { fle: c, unit: None };
+                counter.unit = counter.unit();
+                Ok(counter)
+            }
         }
     }
 

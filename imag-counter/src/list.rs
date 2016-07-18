@@ -19,8 +19,8 @@ pub fn list(rt: &Runtime) {
                             trace_error(&name.unwrap_err());
                         } else if value.is_err() {
                             trace_error(&value.unwrap_err());
-                        } else if unit.is_err() {
-                            trace_error(&unit.unwrap_err());
+                        } else if unit.is_none() {
+                            println!("{} - {}", name.unwrap(), value.unwrap());
                         } else {
                             println!("{} - {} {}", name.unwrap(), value.unwrap(), unit.unwrap());
                         }
