@@ -16,6 +16,7 @@ use module_path::ModuleEntryPath;
 use result::Result;
 use error::CounterError as CE;
 use error::CounterErrorKind as CEK;
+use error::error::MapErrInto;
 
 pub type CounterName = String;
 
@@ -84,6 +85,7 @@ impl<'a> Counter<'a> {
             let mut header = self.fle.deref_mut().get_header_mut();
             let setres = header.set("counter.unit", Value::String(u.0));
             if setres.is_err() {
+                self.unit = None;
                 return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
             }
         };
@@ -152,12 +154,17 @@ impl<'a> Counter<'a> {
             })
     }
 
-    pub fn unit(&self) -> Option<CounterUnit> {
+    pub fn unit(&self) -> Option<&CounterUnit> {
+        self.unit.as_ref()
+    }
+
+    pub fn read_unit(&self) -> Result<Option<CounterUnit>> {
         self.fle.get_header().read("counter.unit")
-            .ok()
+            .map_err_into(CEK::StoreReadError)
             .and_then(|s| match s {
-                Some(Value::String(s)) => Some(CounterUnit::new(s)),
-                _ => None,
+                Some(Value::String(s)) => Ok(Some(CounterUnit::new(s))),
+                Some(_) => Err(CE::new(CEK::HeaderTypeError, None)),
+                None => Ok(None),
             })
     }
 
@@ -193,8 +200,12 @@ impl<'a> FromStoreId for Counter<'a> {
             Err(e) => Err(CE::new(CEK::StoreReadError, Some(Box::new(e)))),
             Ok(c)  => {
                 let mut counter = Counter { fle: c, unit: None };
-                counter.unit = counter.unit();
-                Ok(counter)
+                counter.read_unit()
+                    .map_err_into(CEK::StoreReadError)
+                    .and_then(|u| {
+                        counter.unit = u;
+                        Ok(counter)   
+                    })
             }
         }
     }
