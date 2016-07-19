@@ -158,15 +158,15 @@ fn main() {
         },
 
         s => {
-            let subcommand_args = &find_args(s)[..];
+            let mut subcommand_args = find_args(s);
             if is_debug {
-                subcommand_args.push("--debug");
+                subcommand_args.push(String::from("--debug"));
             }
             match Command::new(format!("imag-{}", s))
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
-                .args(subcommand_args)
+                .args(&subcommand_args[..])
                 .spawn()
                 .and_then(|mut handle| handle.wait())
             {
