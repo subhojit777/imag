@@ -99,6 +99,10 @@ fn find_command() -> Option<String> {
     env::args().skip(1).filter(|x| !x.starts_with("-")).next()
 }
 
+fn find_flag() -> Option<String> {
+    env::args().skip(1).filter(|x| x.starts_with("-")).next()
+}
+
 fn find_args(command: &str) -> Vec<String> {
     env::args()
         .skip(1)
@@ -113,9 +117,12 @@ fn main() {
     let _         = args.next();
     let first_arg = match find_command() {
         Some(s) => s,
-        None    => {
-            help(commands);
-            exit(0);
+        None    => match find_flag() {
+            Some(s) => s,
+            None => {
+                help(commands);
+                exit(0);
+            },
         },
     };
 
