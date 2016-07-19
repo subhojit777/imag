@@ -125,6 +125,7 @@ fn main() {
             },
         },
     };
+    let is_debug = env::args().skip(1).filter(|x| x == "--debug").next().is_some();
 
     match &first_arg[..] {
         "--help" | "-h" => {
@@ -157,11 +158,15 @@ fn main() {
         },
 
         s => {
+            let subcommand_args = &find_args(s)[..];
+            if is_debug {
+                subcommand_args.push("--debug");
+            }
             match Command::new(format!("imag-{}", s))
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
-                .args(&find_args(s)[..])
+                .args(subcommand_args)
                 .spawn()
                 .and_then(|mut handle| handle.wait())
             {
