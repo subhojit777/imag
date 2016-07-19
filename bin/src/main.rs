@@ -159,7 +159,7 @@ fn main() {
 
         s => {
             let mut subcommand_args = find_args(s);
-            if is_debug && subcommand_args.iter().find(|x| *x == "debug").is_none() {
+            if is_debug && subcommand_args.iter().find(|x| *x == "--debug").is_none() {
                 subcommand_args.push(String::from("--debug"));
             }
             match Command::new(format!("imag-{}", s))
