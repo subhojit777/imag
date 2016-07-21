@@ -166,7 +166,7 @@ fn main() {
         s => {
             let mut subcommand_args = find_args(s);
             if is_debug && subcommand_args.iter().find(is_debug_flag).is_none() {
-                subcommand_args.push(String::from(DBG_FLAG));
+                subcommand_args.insert(0, String::from(DBG_FLAG));
             }
             match Command::new(format!("imag-{}", s))
                 .stdin(Stdio::inherit())
