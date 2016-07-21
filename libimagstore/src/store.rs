@@ -1,12 +1,12 @@
 use std::collections::HashMap;
-use std::fs::{File, remove_file};
+use std::fs::remove_file;
 use std::ops::Drop;
 use std::path::PathBuf;
 use std::result::Result as RResult;
 use std::sync::Arc;
 use std::sync::RwLock;
 use std::collections::BTreeMap;
-use std::io::{Seek, SeekFrom};
+use std::io::Read;
 use std::convert::From;
 use std::convert::Into;
 use std::sync::Mutex;
@@ -138,9 +138,7 @@ impl StoreEntry {
                 }
             } else {
                 // TODO:
-                let mut file = file.unwrap();
-                let entry = Entry::from_file(self.id.clone(), &mut file);
-                file.seek(SeekFrom::Start(0)).ok();
+                let entry = Entry::from_reader(self.id.clone(), file.unwrap());
                 entry
             }
         } else {
@@ -154,7 +152,6 @@ impl StoreEntry {
             let file = try!(self.file.create_file());
 
             assert_eq!(self.id, entry.location);
-            try!(file.set_len(0).map_err_into(SEK::FileError));
             file.write_all(entry.to_str().as_bytes()).map_err_into(SEK::FileError)
         } else {
             Ok(())
@@ -1424,9 +1421,8 @@ impl Entry {
         }
     }
 
-    pub fn from_file<S: IntoStoreId>(loc: S, file: &mut File) -> Result<Entry> {
+    pub fn from_reader<S: IntoStoreId>(loc: S, file: &mut Read) -> Result<Entry> {
         let text = {
-            use std::io::Read;
             let mut s = String::new();
             try!(file.read_to_string(&mut s));
             s
