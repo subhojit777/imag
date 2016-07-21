@@ -17,6 +17,8 @@ use std::process::exit;
 use std::process::{Command, Stdio};
 use std::io::stdin;
 
+use toml::Value;
+
 use task_hookrs::import::import_tasks;
 use task_hookrs::status::TaskStatus;
 
@@ -99,63 +101,54 @@ fn tw_hook(rt: &Runtime) {
 }
 
 fn list(rt: &Runtime) {
-    let subcmd   = rt.cli().subcommand_matches("list").unwrap();
-    let mut args = Vec::new();
-    let verbose  = subcmd.is_present("verbose");
-    let iter     = match Task::all(rt.store()) {
-        Ok(iter) => iter,
-        Err(e)   => {
-            trace_error(&e);
-            exit(1);
-        },
-    };
+    let subcmd  = rt.cli().subcommand_matches("list").unwrap();
+    let verbose = subcmd.is_present("verbose");
 
-    for task in iter {
-        match task {
-            Ok(val) => {
-                let uuid = match val.get_header().read("todo.uuid") {
-                    Ok(Some(u)) => u,
-                    Ok(None)    => continue,
-                    Err(e)      => {
+    let res = Task::all(rt.store())
+        .map(|iter| {
+            let uuids : Vec<_> = iter.filter_map(|t| match t {
+                Ok(v) => match v.get_header().read("todo.uuid") {
+                    Ok(Some(Value::String(ref u))) => Some(u.clone()),
+                    Ok(Some(_)) => {
+                        warn!("Header type error");
+                        None
+                    },
+                    Ok(None) => None,
+                    Err(e) => {
                         trace_error(&e);
-                        continue;
+                        None
                     }
-                };
-
-                if verbose {
-                    args.clear();
-                    args.push(format!("uuid:{} information", uuid));
-
-                    let tw_process = Command::new("task")
-                        .stdin(Stdio::null())
-                        .args(&args)
-                        .spawn()
-                        .unwrap_or_else(|e| {
-                            trace_error(&e);
-                            panic!("failed");
-                        });
-                    let output = tw_process
-                        .wait_with_output()
-                        .unwrap_or_else(|e| panic!("failed to unwrap output: {}", e));
-                    let outstring = String::from_utf8(output.stdout)
-                        .unwrap_or_else(|e| panic!("failed to execute: {}", e));
-
-                    println!("{}", outstring);
-                } else {
-                    println!("{}", match uuid {
-                        toml::Value::String(s) => s,
-                        _ => {
-                            error!("Unexpected type for todo.uuid: {}", uuid);
-                            continue;
-                        },
-                    });
+                },
+                Err(e) => {
+                    trace_error(&e);
+                    None
                 }
-            }
-            Err(e) => {
-                trace_error(&e);
-                continue;
-            }
-        } // end match task
-    } // end for
+            })
+            .collect();
+
+            let outstring = if verbose {
+                let output = Command::new("task")
+                    .stdin(Stdio::null())
+                    .args(&uuids)
+                    .spawn()
+                    .unwrap_or_else(|e| {
+                        trace_error(&e);
+                        panic!("Failed to execute `task` on the commandline. I'm dying now.");
+                    })
+                    .wait_with_output()
+                    .unwrap_or_else(|e| panic!("failed to unwrap output: {}", e));
+
+                String::from_utf8(output.stdout)
+                    .unwrap_or_else(|e| panic!("failed to execute: {}", e))
+            } else {
+                uuids.join("\n")
+            };
+
+            println!("{}", outstring);
+        });
+
+    if let Err(e) = res {
+        trace_error(&e);
+    }
 }
 
