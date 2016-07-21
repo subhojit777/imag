@@ -1,69 +1,131 @@
-use error::{MapErrInto, StoreError as SE, StoreErrorKind as SEK};
-use std::io::{Seek, SeekFrom};
-use std::path::{Path, PathBuf};
-use std::fs::{File, OpenOptions, create_dir_all};
+pub use self::fs::LazyFile;
 
-/// `LazyFile` type
-///
-/// A lazy file is either absent, but a path to it is available, or it is present.
-#[derive(Debug)]
-pub enum LazyFile {
-    Absent(PathBuf),
-    File(File)
-}
+#[cfg(test)]
+mod fs {
+    use error::StoreError as SE;
+    use std::io::Cursor;
+    use std::path::PathBuf;
 
-fn open_file<A: AsRef<Path>>(p: A) -> ::std::io::Result<File> {
-    OpenOptions::new().write(true).read(true).open(p)
-}
-
-fn create_file<A: AsRef<Path>>(p: A) -> ::std::io::Result<File> {
-    if let Some(parent) = p.as_ref().parent() {
-        debug!("Implicitely creating directory: {:?}", parent);
-        if let Err(e) = create_dir_all(parent) {
-            return Err(e);
-        }
-    }
-    OpenOptions::new().write(true).read(true).create(true).open(p)
-}
-
-impl LazyFile {
-
-    /**
-     * Get the mutable file behind a LazyFile object
-     */
-    pub fn get_file_mut(&mut self) -> Result<&mut File, SE> {
-        debug!("Getting lazy file: {:?}", self);
-        let file = match *self {
-            LazyFile::File(ref mut f) => return {
-                // We seek to the beginning of the file since we expect each
-                // access to the file to be in a different context
-                f.seek(SeekFrom::Start(0))
-                    .map_err_into(SEK::FileNotCreated)
-                    .map(|_| f)
-            },
-            LazyFile::Absent(ref p) => try!(open_file(p).map_err_into(SEK::FileNotFound)),
-        };
-        *self = LazyFile::File(file);
-        if let LazyFile::File(ref mut f) = *self {
-            return Ok(f);
-        }
-        unreachable!()
+    /// `LazyFile` type
+    ///
+    /// A lazy file is either absent, but a path to it is available, or it is present.
+    #[derive(Debug)]
+    pub enum LazyFile {
+        Absent(PathBuf),
+        File(Cursor<Vec<u8>>)
     }
 
-    /**
-     * Create a file out of this LazyFile object
-     */
-    pub fn create_file(&mut self) -> Result<&mut File, SE> {
-        debug!("Creating lazy file: {:?}", self);
-        let file = match *self {
-            LazyFile::File(ref mut f) => return Ok(f),
-            LazyFile::Absent(ref p) => try!(create_file(p).map_err_into(SEK::FileNotFound)),
-        };
-        *self = LazyFile::File(file);
-        if let LazyFile::File(ref mut f) = *self {
-            return Ok(f);
+    impl LazyFile {
+
+        /**
+         * Get the mutable file behind a LazyFile object
+         */
+        pub fn get_file_mut(&mut self) -> Result<&mut Cursor<Vec<u8>>, SE> {
+            debug!("Getting lazy file: {:?}", self);
+            let file = match *self {
+                LazyFile::File(ref mut f) => return {
+                    Ok(f)
+                },
+                LazyFile::Absent(ref p) => unreachable!(),
+            };
+            *self = LazyFile::File(file);
+            if let LazyFile::File(ref mut f) = *self {
+                return Ok(f);
+            }
+            unreachable!()
         }
-        unreachable!()
+
+        /**
+         * Create a file out of this LazyFile object
+         */
+        pub fn create_file(&mut self) -> Result<&mut Cursor<Vec<u8>>, SE> {
+            debug!("Creating lazy file: {:?}", self);
+            let file = match *self {
+                LazyFile::File(ref mut f) => return Ok(f),
+                LazyFile::Absent(ref p) => unreachable!(),
+            };
+            *self = LazyFile::File(file);
+            if let LazyFile::File(ref mut f) = *self {
+                return Ok(f);
+            }
+            unreachable!()
+        }
+    }
+}
+
+#[cfg(not(test))]
+mod fs {
+    use error::{MapErrInto, StoreError as SE, StoreErrorKind as SEK};
+    use std::io::{Seek, SeekFrom};
+    use std::path::{Path, PathBuf};
+    use std::fs::{File, OpenOptions, create_dir_all};
+
+    /// `LazyFile` type
+    ///
+    /// A lazy file is either absent, but a path to it is available, or it is present.
+    #[derive(Debug)]
+    pub enum LazyFile {
+        Absent(PathBuf),
+        File(File)
+    }
+
+    fn open_file<A: AsRef<Path>>(p: A) -> ::std::io::Result<File> {
+        OpenOptions::new().write(true).read(true).open(p)
+    }
+
+    fn create_file<A: AsRef<Path>>(p: A) -> ::std::io::Result<File> {
+        if let Some(parent) = p.as_ref().parent() {
+            debug!("Implicitely creating directory: {:?}", parent);
+            if let Err(e) = create_dir_all(parent) {
+                return Err(e);
+            }
+        }
+        OpenOptions::new().write(true).read(true).create(true).open(p)
+    }
+
+    impl LazyFile {
+
+        /**
+         * Get the mutable file behind a LazyFile object
+         */
+        pub fn get_file_mut(&mut self) -> Result<&mut File, SE> {
+            debug!("Getting lazy file: {:?}", self);
+            let file = match *self {
+                LazyFile::File(ref mut f) => return {
+                    // We seek to the beginning of the file since we expect each
+                    // access to the file to be in a different context
+                    f.seek(SeekFrom::Start(0))
+                        .map_err_into(SEK::FileNotCreated)
+                        .map(|_| f)
+                },
+                LazyFile::Absent(ref p) => try!(open_file(p).map_err_into(SEK::FileNotFound)),
+            };
+            *self = LazyFile::File(file);
+            if let LazyFile::File(ref mut f) = *self {
+                return Ok(f);
+            }
+            unreachable!()
+        }
+
+        /**
+         * Create a file out of this LazyFile object
+         */
+        pub fn create_file(&mut self) -> Result<&mut File, SE> {
+            debug!("Creating lazy file: {:?}", self);
+            let file = match *self {
+                LazyFile::File(ref mut f) => {
+                    try!(f.set_len(0).map_err_into(SEK::FileError));
+                    return Ok(f)
+                },
+                LazyFile::Absent(ref p) => try!(create_file(p).map_err_into(SEK::FileNotFound)),
+            };
+            *self = LazyFile::File(file);
+            if let LazyFile::File(ref mut f) = *self {
+                try!(f.set_len(0).map_err_into(SEK::FileError));
+                return Ok(f);
+            }
+            unreachable!()
+        }
     }
 }
 
