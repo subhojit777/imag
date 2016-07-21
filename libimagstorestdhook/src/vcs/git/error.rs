@@ -1,3 +1,7 @@
+use libimagstore::hook::error::HookError as HE;
+use libimagstore::hook::error::HookErrorKind as HEK;
+use libimagstore::hook::result::HookResult;
+
 generate_error_module!(
     generate_error_types!(GitHookError, GitHookErrorKind,
         ConfigError => "Configuration Error",
@@ -18,6 +22,14 @@ generate_error_module!(
         MkSignature => "Error while building Signature object"
     );
 );
+
+impl GitHookError {
+
+    pub fn inside_of<T>(self, h: HEK) -> HookResult<T> {
+        Err(HE::new(h, Some(Box::new(self))))
+    }
+
+}
 
 pub use self::error::GitHookError;
 pub use self::error::GitHookErrorKind;
