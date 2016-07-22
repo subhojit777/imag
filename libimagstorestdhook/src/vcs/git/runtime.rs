@@ -65,6 +65,10 @@ impl<'a> Runtime<'a> {
         res
     }
 
+    pub fn has_repository(&self) -> bool {
+        self.repository.is_some()
+    }
+
     pub fn has_config(&self) -> bool {
         self.config.is_some()
     }
