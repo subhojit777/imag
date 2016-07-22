@@ -25,7 +25,7 @@ use error::{ParserErrorKind, ParserError};
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::MapErrInto;
 use storeid::{IntoStoreId, StoreId, StoreIdIterator};
-use lazyfile::FileAbstraction;
+use file_abstraction::FileAbstraction;
 
 use hook::aspect::Aspect;
 use hook::error::HookErrorKind;

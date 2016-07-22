@@ -32,5 +32,5 @@ pub mod error;
 pub mod hook;
 pub mod store;
 mod configuration;
-mod lazyfile;
+mod file_abstraction;
 
