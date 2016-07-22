@@ -6,6 +6,7 @@ generate_error_module!(
     generate_error_types!(GitHookError, GitHookErrorKind,
         ConfigError => "Configuration Error",
         ConfigTypeError => "Configuration value type wrong",
+        RuntimeInformationSetupError => "Couldn't setup runtime information for git hook",
         RepositoryError                   => "Error while interacting with git repository",
         RepositoryBranchError             => "Error while interacting with git branch(es)",
         RepositoryBranchNameFetchingError => "Error while fetching branch name",
