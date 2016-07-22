@@ -20,7 +20,7 @@ impl<'a> Person<'a> {
     }
 }
 
-struct Runtime<'a> {
+pub struct Runtime<'a> {
     repository: Option<Repository>,
     author: Option<Person<'a>>,
     committer: Option<Person<'a>>,
