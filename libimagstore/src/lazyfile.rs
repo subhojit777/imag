@@ -6,13 +6,21 @@ mod fs {
     use std::io::Cursor;
     use std::path::PathBuf;
 
-    /// `LazyFile` type
+    use std::collections::HashMap;
+    use std::sync::Mutex;
+
+    lazy_static! {
+        static ref MAP: Mutex<HashMap<PathBuf, Cursor<Vec<u8>>>> = {
+            Mutex::new(HashMap::new())
+        };
+    }
+
+    /// `LazyFile` type, this is the Test version!
     ///
     /// A lazy file is either absent, but a path to it is available, or it is present.
     #[derive(Debug)]
     pub enum LazyFile {
         Absent(PathBuf),
-        File(Cursor<Vec<u8>>)
     }
 
     impl LazyFile {
@@ -20,35 +28,31 @@ mod fs {
         /**
          * Get the mutable file behind a LazyFile object
          */
-        pub fn get_file_mut(&mut self) -> Result<&mut Cursor<Vec<u8>>, SE> {
+        pub fn get_file_content(&mut self) -> Result<Cursor<Vec<u8>>, SE> {
             debug!("Getting lazy file: {:?}", self);
-            let file = match *self {
-                LazyFile::File(ref mut f) => return {
-                    Ok(f)
+            match *self {
+                LazyFile::Absent(ref f) => {
+                    let map = MAP.lock().unwrap();
+                    return Ok(map.get(f).unwrap().clone());
                 },
-                LazyFile::Absent(ref p) => unreachable!(),
             };
-            *self = LazyFile::File(file);
-            if let LazyFile::File(ref mut f) = *self {
-                return Ok(f);
-            }
-            unreachable!()
         }
 
-        /**
-         * Create a file out of this LazyFile object
-         */
-        pub fn create_file(&mut self) -> Result<&mut Cursor<Vec<u8>>, SE> {
-            debug!("Creating lazy file: {:?}", self);
-            let file = match *self {
-                LazyFile::File(ref mut f) => return Ok(f),
-                LazyFile::Absent(ref p) => unreachable!(),
+        pub fn write_file_content(&mut self, buf: &[u8]) -> Result<(), SE> {
+            match *self {
+                LazyFile::Absent(ref f) => {
+                    let mut map = MAP.lock().unwrap();
+                    if let Some(ref mut cur) = map.get_mut(f) {
+                        let mut vec = cur.get_mut();
+                        vec.clear();
+                        vec.extend_from_slice(buf);
+                        return Ok(());
+                    }
+                    let vec = Vec::from(buf);
+                    map.insert(f.clone(), Cursor::new(vec));
+                    return Ok(());
+                },
             };
-            *self = LazyFile::File(file);
-            if let LazyFile::File(ref mut f) = *self {
-                return Ok(f);
-            }
-            unreachable!()
         }
     }
 }
@@ -56,7 +60,7 @@ mod fs {
 #[cfg(not(test))]
 mod fs {
     use error::{MapErrInto, StoreError as SE, StoreErrorKind as SEK};
-    use std::io::{Seek, SeekFrom};
+    use std::io::{Seek, SeekFrom, Read};
     use std::path::{Path, PathBuf};
     use std::fs::{File, OpenOptions, create_dir_all};
 
@@ -86,17 +90,17 @@ mod fs {
     impl LazyFile {
 
         /**
-         * Get the mutable file behind a LazyFile object
+         * Get the content behind this file
          */
-        pub fn get_file_mut(&mut self) -> Result<&mut File, SE> {
+        pub fn get_file_content(&mut self) -> Result<&mut Read, SE> {
             debug!("Getting lazy file: {:?}", self);
             let file = match *self {
                 LazyFile::File(ref mut f) => return {
                     // We seek to the beginning of the file since we expect each
                     // access to the file to be in a different context
-                    f.seek(SeekFrom::Start(0))
-                        .map_err_into(SEK::FileNotCreated)
-                        .map(|_| f)
+                    try!(f.seek(SeekFrom::Start(0))
+                        .map_err_into(SEK::FileNotSeeked));
+                    Ok(f)
                 },
                 LazyFile::Absent(ref p) => try!(open_file(p).map_err_into(SEK::FileNotFound)),
             };
@@ -108,23 +112,25 @@ mod fs {
         }
 
         /**
-         * Create a file out of this LazyFile object
+         * Write the content of this file
          */
-        pub fn create_file(&mut self) -> Result<&mut File, SE> {
-            debug!("Creating lazy file: {:?}", self);
+        pub fn write_file_content(&mut self, buf: &[u8]) -> Result<(), SE> {
+            use std::io::Write;
             let file = match *self {
-                LazyFile::File(ref mut f) => {
-                    try!(f.set_len(0).map_err_into(SEK::FileError));
-                    return Ok(f)
+                LazyFile::File(ref mut f) => return {
+                    // We seek to the beginning of the file since we expect each
+                    // access to the file to be in a different context
+                    try!(f.seek(SeekFrom::Start(0))
+                        .map_err_into(SEK::FileNotCreated));
+                    f.write_all(buf).map_err_into(SEK::FileNotWritten)
                 },
-                LazyFile::Absent(ref p) => try!(create_file(p).map_err_into(SEK::FileNotFound)),
+                LazyFile::Absent(ref p) => try!(create_file(p).map_err_into(SEK::FileNotCreated)),
             };
             *self = LazyFile::File(file);
             if let LazyFile::File(ref mut f) = *self {
-                try!(f.set_len(0).map_err_into(SEK::FileError));
-                return Ok(f);
+                return f.write_all(buf).map_err_into(SEK::FileNotWritten);
             }
-            unreachable!()
+            unreachable!();
         }
     }
 }

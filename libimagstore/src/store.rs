@@ -129,7 +129,7 @@ impl StoreEntry {
 
     fn get_entry(&mut self) -> Result<Entry> {
         if !self.is_borrowed() {
-            let file = self.file.get_file_mut();
+            let file = self.file.get_file_content();
             if let Err(err) = file {
                 if err.err_type() == SEK::FileNotFound {
                     Ok(Entry::new(self.id.clone()))
@@ -138,7 +138,7 @@ impl StoreEntry {
                 }
             } else {
                 // TODO:
-                let entry = Entry::from_reader(self.id.clone(), file.unwrap());
+                let entry = Entry::from_reader(self.id.clone(), &mut file.unwrap());
                 entry
             }
         } else {
@@ -148,11 +148,10 @@ impl StoreEntry {
 
     fn write_entry(&mut self, entry: &Entry) -> Result<()> {
         if self.is_borrowed() {
-            use std::io::Write;
-            let file = try!(self.file.create_file());
-
             assert_eq!(self.id, entry.location);
-            file.write_all(entry.to_str().as_bytes()).map_err_into(SEK::FileError)
+            self.file.write_file_content(entry.to_str().as_bytes())
+                .map_err_into(SEK::FileError)
+                .map(|_| ())
         } else {
             Ok(())
         }
