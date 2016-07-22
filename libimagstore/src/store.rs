@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fs::remove_file;
 use std::ops::Drop;
 use std::path::PathBuf;
 use std::result::Result as RResult;
@@ -26,7 +25,7 @@ use error::{ParserErrorKind, ParserError};
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::MapErrInto;
 use storeid::{IntoStoreId, StoreId, StoreIdIterator};
-use lazyfile::LazyFile;
+use lazyfile::FileAbstraction;
 
 use hook::aspect::Aspect;
 use hook::error::HookErrorKind;
@@ -56,7 +55,7 @@ enum StoreEntryStatus {
 #[derive(Debug)]
 struct StoreEntry {
     id: StoreId,
-    file: LazyFile,
+    file: FileAbstraction,
     status: StoreEntryStatus,
 }
 
@@ -116,7 +115,7 @@ impl StoreEntry {
     fn new(id: StoreId) -> StoreEntry {
         StoreEntry {
             id: id.clone(),
-            file: LazyFile::Absent(id.into()),
+            file: FileAbstraction::Absent(id.into()),
             status: StoreEntryStatus::Present,
         }
     }
@@ -198,7 +197,6 @@ impl Store {
 
     /// Create a new Store object
     pub fn new(location: PathBuf, store_config: Option<Value>) -> Result<Store> {
-        use std::fs::create_dir_all;
         use configuration::*;
 
         debug!("Validating Store configuration");
@@ -218,7 +216,7 @@ impl Store {
             }
 
             debug!("Creating store path");
-            let c = create_dir_all(location.clone());
+            let c = FileAbstraction::create_dir_all(&location);
             if c.is_err() {
                 debug!("Failed");
                 return Err(SEK::StorePathCreate.into_error_with_cause(Box::new(c.unwrap_err())));
@@ -639,9 +637,6 @@ impl Store {
     fn save_to_other_location(&self, entry: &FileLockEntry, new_id: StoreId, remove_old: bool)
         -> Result<()>
     {
-        use std::fs::copy;
-        use std::fs::remove_file;
-
         let new_id = new_id.storified(self);
         let hsmap = self.entries.write();
         if hsmap.is_err() {
@@ -653,10 +648,10 @@ impl Store {
 
         let old_id = entry.get_location().clone();
 
-        copy(old_id.clone(), new_id.clone())
+        FileAbstraction::copy(&old_id.clone().into(), &new_id.clone().into())
             .and_then(|_| {
                 if remove_old {
-                    remove_file(old_id)
+                    FileAbstraction::remove_file(&old_id.clone().into())
                 } else {
                     Ok(())
                 }
@@ -670,7 +665,6 @@ impl Store {
 
     /// Move an entry without loading
     pub fn move_by_id(&self, old_id: StoreId, new_id: StoreId) -> Result<()> {
-        use std::fs::rename;
 
         let new_id = new_id.storified(self);
         let old_id = old_id.storified(self);
@@ -690,13 +684,23 @@ impl Store {
             if hsmap.unwrap().contains_key(&old_id) {
                 return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
             } else {
-                match rename(old_id, new_id.clone()) {
+                match FileAbstraction::rename(&old_id.clone(), &new_id) {
                     Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
                     _ => {
                         debug!("Rename worked");
                     },
                 }
-            }
+                if hsmap.unwrap().contains_key(&old_id) {
+                    return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
+                } else {
+                    match rename(old_id, new_id.clone()) {
+                        Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
+                        _ => {
+                            debug!("Rename worked");
+                        },
+                    }
+                }
+        }
 
         }
 
