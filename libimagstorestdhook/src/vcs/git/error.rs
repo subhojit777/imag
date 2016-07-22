@@ -5,6 +5,7 @@ use libimagstore::hook::result::HookResult;
 generate_error_module!(
     generate_error_types!(GitHookError, GitHookErrorKind,
         ConfigError => "Configuration Error",
+        NoConfigError => "No Configuration",
         ConfigTypeError => "Configuration value type wrong",
         RuntimeInformationSetupError => "Couldn't setup runtime information for git hook",
         RepositoryError                   => "Error while interacting with git repository",
