@@ -7,6 +7,7 @@ use libimagerror::into::IntoError;
 use libimagerror::trace::trace_error;
 use libimagstore::hook::error::CustomData;
 use libimagstore::hook::error::HookErrorKind as HEK;
+use libimagstore::hook::result::HookResult;
 
 use vcs::git::result::Result;
 use vcs::git::error::{MapErrInto, GitHookErrorKind as GHEK};
