@@ -65,5 +65,9 @@ impl<'a> Runtime<'a> {
             })
     }
 
+    pub fn repository(&self) -> Result<&Repository> {
+        self.repository.as_ref().ok_or(GHEK::MkRepo.into_error())
+    }
+
 }
 
