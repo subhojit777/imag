@@ -21,9 +21,9 @@ impl<'a> Person<'a> {
 }
 
 struct Runtime<'a> {
-    pub repository: Option<Repository>,
-    pub author: Option<Person<'a>>,
-    pub committer: Option<Person<'a>>,
+    repository: Option<Repository>,
+    author: Option<Person<'a>>,
+    committer: Option<Person<'a>>,
 }
 
 impl<'a> Runtime<'a> {
