@@ -33,6 +33,14 @@ impl GitHookError {
 
 }
 
+impl From<GitHookError> for HE {
+
+    fn from(he: GitHookError) -> HE {
+        HE::new(HEK::HookExecutionError, Some(Box::new(he)))
+    }
+
+}
+
 pub use self::error::GitHookError;
 pub use self::error::GitHookErrorKind;
 pub use self::error::MapErrInto;
