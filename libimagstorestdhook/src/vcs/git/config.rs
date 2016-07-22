@@ -8,6 +8,22 @@ use vcs::git::result::Result;
 
 use vcs::git::action::StoreAction;
 
+pub fn author_name(config: &Value) -> Result<&str> {
+    unimplemented!()
+}
+
+pub fn author_mail(config: &Value) -> Result<&str> {
+    unimplemented!()
+}
+
+pub fn committer_name(config: &Value) -> Result<&str> {
+    unimplemented!()
+}
+
+pub fn committer_mail(config: &Value) -> Result<&str> {
+    unimplemented!()
+}
+
 pub fn commit_interactive(config: &Value) -> bool {
     unimplemented!()
 }
