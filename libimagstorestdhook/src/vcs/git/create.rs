@@ -29,7 +29,6 @@ pub struct CreateHook<'a> {
     repository: Option<Repository>,
 
     position: HookPosition,
-    config: Option<Value>,
 }
 
 impl<'a> CreateHook<'a> {
@@ -46,7 +45,6 @@ impl<'a> CreateHook<'a> {
             storepath: storepath,
             repository: r,
             position: p,
-            config: None,
         }
     }
 
@@ -74,7 +72,7 @@ impl<'a> Debug for CreateHook<'a> {
                self.storepath,
                (if self.repository.is_some() { "Some(_)" } else { "None" }),
                self.position,
-               self.config)
+               self.runtime.has_config())
     }
 }
 
@@ -85,7 +83,9 @@ impl<'a> Hook for CreateHook<'a> {
     }
 
     fn set_config(&mut self, config: &Value) {
-        self.config = Some(config.clone());
+        if let Err(e) = self.runtime.set_config(config) {
+            trace_error(&e);
+        }
     }
 
 }

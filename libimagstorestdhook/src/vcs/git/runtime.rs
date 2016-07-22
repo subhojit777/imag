@@ -27,6 +27,8 @@ pub struct Runtime<'a> {
     repository: Option<Repository>,
     author: Option<Person<'a>>,
     committer: Option<Person<'a>>,
+
+    config: Option<Value>,
 }
 
 impl<'a> Runtime<'a> {
@@ -43,20 +45,38 @@ impl<'a> Runtime<'a> {
 
             author: None,
             committer: None,
+            config: None,
         }
     }
 
-    pub fn configure(&mut self, config: &Value) -> Result<()> {
-        author_name(cfg)
-            .and_then(|n| author_mail(cfg).map(|m| Person::new(n, m)))
+    pub fn set_config(&mut self, cfg: &Value) -> Result<()> {
+        let config = cfg.clone();
+        let res = author_name(&config)
+            .and_then(|n| author_mail(&config).map(|m| Person::new(n, m)))
             .and_then(|author| {
-                committer_name(cfg)
-                    .and_then(|n| committer_mail(cfg).map(|m| (author, Person::new(n, m))))
+                committer_name(&config)
+                    .and_then(|n| committer_mail(&config).map(|m| (author, Person::new(n, m))))
             })
             .map(|(author, committer)| {
                 self.author = Some(author);
                 self.committer = Some(committer);
-            })
+            });
+        self.config = Some(config);
+        res
+    }
+
+    pub fn has_config(&self) -> bool {
+        self.config.is_some()
+    }
+
+    pub fn config_value_or_err(&self) -> HookResult<&Value> {
+        self.config
+            .as_ref()
+            .ok_or(GHEK::NoConfigError.into_error())
+            .map_err_into(GHEK::ConfigError)
+            .map_err(Box::new)
+            .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e))
+            .map_err(|mut e| e.with_custom_data(CustomData::default().aborting(false)))
     }
 
     pub fn new_committer_sig(&self) -> Option<Result<Signature>> {
