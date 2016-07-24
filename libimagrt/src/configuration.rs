@@ -87,6 +87,72 @@ impl Configuration {
         }
     }
 
+    /// Override the configuration.
+    /// The `v` parameter is expected to contain 'key=value' pairs where the key is a path in the
+    /// TOML tree, the value to be an appropriate value.
+    ///
+    /// The override fails if the configuration which is about to be overridden does not exist or
+    /// the `value` part cannot be converted to the type of the configuration value.
+    ///
+    /// If `v` is empty, this is considered to be a successful `override_config()` call.
+    pub fn override_config(&mut self, v: Vec<String>) -> Result<()> {
+        use libimagutil::key_value_split::*;
+        use libimagutil::iter::*;
+        use self::error::ConfigErrorKind as CEK;
+        use libimagerror::into::IntoError;
+
+        v.into_iter()
+            .map(|s| { debug!("Trying to process '{}'", s); s })
+            .filter_map(|s| {
+                match s.into_kv() {
+                    Some(kv) => Some(kv.into()),
+                    None => {
+                        warn!("Could split at '=' - will be ignore override");
+                        None
+                    }
+                }
+            })
+            .map(|(k, v)| {
+                match self.config.lookup_mut(&k[..]) {
+                    Some(value) => {
+                        match into_value(value, v) {
+                            Some(v) => {
+                                *value = v;
+                                info!("Successfully overridden: {} = {}", k, value);
+                                Ok(())
+                            },
+                            None => Err(CEK::ConfigOverrideTypeNotMatching.into_error()),
+                        }
+                    },
+                    None => Err(CEK::ConfigOverrideKeyNotAvailable.into_error()),
+                }
+            })
+            .fold_defresult(|i| i)
+            .map_err(Box::new)
+            .map_err(|e| CEK::ConfigOverrideError.into_error_with_cause(e))
+    }
+}
+
+/// Tries to convert the String `s` into the same type as `value`.
+///
+/// Returns None if string cannot be converted.
+///
+/// Arrays and Tables are not supported and will yield `None`.
+fn into_value(value: &Value, s: String) -> Option<Value> {
+    use std::str::FromStr;
+
+    match value {
+        &Value::String(_) => Some(Value::String(s)),
+        &Value::Integer(_) => FromStr::from_str(&s[..]).ok().map(|i| Value::Integer(i)),
+        &Value::Float(_) => FromStr::from_str(&s[..]).ok().map(|f| Value::Float(f)),
+        &Value::Boolean(_) => {
+            if s == "true" { Some(Value::Boolean(true)) }
+            else if s == "false" { Some(Value::Boolean(false)) }
+            else { None }
+        }
+        &Value::Datetime(_) => Some(Value::Datetime(s)),
+        _ => None,
+    }
 }
 
 impl Deref for Configuration {
