@@ -6,7 +6,12 @@ use toml::{Parser, Value};
 
 generate_error_module!(
     generate_error_types!(ConfigError, ConfigErrorKind,
-        NoConfigFileFound   => "No config file found"
+        NoConfigFileFound   => "No config file found",
+
+        ConfigOverrideError => "Config override error",
+        ConfigOverrideKeyNotAvailable => "Key not available",
+        ConfigOverrideTypeNotMatching => "Configuration Type not matching"
+
     );
 );
 
