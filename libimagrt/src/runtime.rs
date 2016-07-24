@@ -179,6 +179,12 @@ impl<'a> Runtime<'a> {
                 .required(false)
                 .takes_value(true))
 
+            .arg(Arg::with_name("config-override")
+                 .long("override-config")
+                 .help("Override a configuration settings. Use 'key=value' pairs, where the key is a path in the TOML configuration. The value must be present in the configuration and be convertible to the type of the configuration setting. If the argument does not contain a '=', it gets ignored. Setting Arrays and Tables is not yet supported.")
+                 .required(false)
+                 .takes_value(true))
+
             .arg(Arg::with_name("runtimepath")
                 .long("rtp")
                 .help("Alternative runtimepath")
