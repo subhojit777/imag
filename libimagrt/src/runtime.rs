@@ -88,7 +88,16 @@ impl<'a> Runtime<'a> {
                 None
             },
 
-            Ok(cfg) => Some(cfg),
+            Ok(mut cfg) => {
+                if let Err(e) = cfg.override_config(get_override_specs(&matches)) {
+                    error!("Could not apply config overrides");
+                    trace_error(&e);
+
+                    // TODO: continue question (interactive)
+                }
+
+                Some(cfg)
+            }
         };
 
         let store_config = match cfg {
@@ -289,5 +298,21 @@ impl<'a> Runtime<'a> {
             .or(env::var("EDITOR").ok())
             .map(Command::new)
     }
+}
+
+fn get_override_specs(matches: &ArgMatches) -> Vec<String> {
+    matches
+        .values_of("config-override")
+        .map(|values| {
+             values
+             .filter(|s| {
+                 let b = s.contains("=");
+                 if !b { warn!("override '{}' does not contain '=' - will be ignored!", s); }
+                 b
+             })
+             .map(String::from)
+             .collect()
+        })
+        .unwrap_or(vec![])
 }
 
