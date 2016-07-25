@@ -212,6 +212,15 @@ impl Store {
 
         debug!("Building new Store object");
         if !location.exists() {
+            if !config_implicit_store_create_allowed(store_config.as_ref()) {
+                warn!("Implicitely creating store directory is denied");
+                warn!(" -> Either because configuration does not allow it");
+                warn!(" -> or because there is no configuration");
+                return Err(SEK::CreateStoreDirDenied.into_error())
+                    .map_err_into(SEK::FileError)
+                    .map_err_into(SEK::IoError);
+            }
+
             debug!("Creating store path");
             let c = create_dir_all(location.clone());
             if c.is_err() {

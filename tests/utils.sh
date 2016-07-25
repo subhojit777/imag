@@ -37,7 +37,7 @@ imag-call-binary() {
     local binary=$1; shift
     [[ -d $searchdir ]] || { err "FATAL: No directory $searchdir"; exit 1; }
     local bin=$(find $searchdir -iname $binary -type f -executable)
-    local flags="--debug --rtp $RUNTIME"
+    local flags="--config ./imagrc.toml --override-config store.implicit-create=true --debug --rtp $RUNTIME"
     out "Calling '$bin $flags $*'"
     $bin $flags $*
 }
