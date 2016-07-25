@@ -11,6 +11,8 @@ use std::io::ErrorKind;
 use walkdir::WalkDir;
 use crossbeam::*;
 
+const DBG_FLAG: &'static str = "--debug";
+
 fn help(cmds: Vec<String>) {
     println!(r#"
 
@@ -99,6 +101,14 @@ fn find_command() -> Option<String> {
     env::args().skip(1).filter(|x| !x.starts_with("-")).next()
 }
 
+fn find_flag() -> Option<String> {
+    env::args().skip(1).filter(|x| x.starts_with("-")).next()
+}
+
+fn is_debug_flag<T: AsRef<str>>(ref s: &T) -> bool {
+    s.as_ref() == DBG_FLAG
+}
+
 fn find_args(command: &str) -> Vec<String> {
     env::args()
         .skip(1)
@@ -113,11 +123,15 @@ fn main() {
     let _         = args.next();
     let first_arg = match find_command() {
         Some(s) => s,
-        None    => {
-            help(commands);
-            exit(0);
+        None    => match find_flag() {
+            Some(s) => s,
+            None => {
+                help(commands);
+                exit(0);
+            },
         },
     };
+    let is_debug = env::args().skip(1).find(is_debug_flag).is_some();
 
     match &first_arg[..] {
         "--help" | "-h" => {
@@ -150,11 +164,15 @@ fn main() {
         },
 
         s => {
+            let mut subcommand_args = find_args(s);
+            if is_debug && subcommand_args.iter().find(is_debug_flag).is_none() {
+                subcommand_args.insert(0, String::from(DBG_FLAG));
+            }
             match Command::new(format!("imag-{}", s))
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
-                .args(&find_args(s)[..])
+                .args(&subcommand_args[..])
                 .spawn()
                 .and_then(|mut handle| handle.wait())
             {
