@@ -46,9 +46,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .value_name("NAME"))
 
                    .arg(tag_argument())
-                   .group(ArgGroup::with_name("editargs")
-                          .args(&[tag_argument_name(), "name"])
-                          .required(true))
                    )
 
         .subcommand(SubCommand::with_name("list")
