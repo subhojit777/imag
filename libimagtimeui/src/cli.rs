@@ -1,4 +1,4 @@
-use clap::{Arg, ArgMatches, App, SubCommand};
+use clap::Arg;
 
 pub fn build_datetime_cli_component<'a, 'b>() -> Arg<'a, 'b> {
     Arg::with_name(datetime_arg_name())
