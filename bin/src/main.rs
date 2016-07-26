@@ -80,7 +80,7 @@ fn get_commands() -> Vec<String> {
                         .filter_map(|path| {
                            path.file_name()
                                .to_str()
-                               .map(String::from)
+                               .and_then(|s| s.splitn(2, "-").nth(1).map(|s| format!("imag {}", s)))
                         })
                         .collect()
                 })
