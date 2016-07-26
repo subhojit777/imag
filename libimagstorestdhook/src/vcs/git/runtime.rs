@@ -84,24 +84,6 @@ impl<'a> Runtime<'a> {
             .map_err(|mut e| e.with_custom_data(CustomData::default().aborting(false)))
     }
 
-    pub fn new_committer_sig(&self) -> Option<Result<Signature>> {
-        self.committer
-            .as_ref()
-            .map(|c| {
-                Signature::now(c.name, c.mail)
-                    .map_err(|e| GHEK::MkSignature.into_error_with_cause(Box::new(e)))
-            })
-    }
-
-    pub fn new_committer_sig(&self) -> Option<Result<Signature>> {
-        self.committer
-            .as_ref()
-            .map(|c| {
-                Signature::now(c.name, c.mail)
-                    .map_err(|e| GHEK::MkSignature.into_error_with_cause(Box::new(e)))
-            })
-    }
-
     pub fn repository(&self) -> Result<&Repository> {
         self.repository.as_ref().ok_or(GHEK::MkRepo.into_error())
     }
