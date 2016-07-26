@@ -12,14 +12,14 @@ use libimagstore::hook::result::HookResult;
 use vcs::git::result::Result;
 use vcs::git::error::{MapErrInto, GitHookErrorKind as GHEK};
 
-pub struct Runtime<'a> {
+pub struct Runtime {
     repository: Option<Repository>,
     config: Option<Value>,
 }
 
-impl<'a> Runtime<'a> {
+impl Runtime {
 
-    pub fn new(storepath: &PathBuf) -> Runtime<'a> {
+    pub fn new(storepath: &PathBuf) -> Runtime {
         Runtime {
             repository: match Repository::open(storepath) {
                 Ok(r) => Some(r),

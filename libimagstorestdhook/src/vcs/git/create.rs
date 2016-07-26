@@ -26,7 +26,7 @@ use vcs::git::runtime::Runtime;
 pub struct CreateHook<'a> {
     storepath: &'a PathBuf,
 
-    runtime: Runtime<'a>,
+    runtime: Runtime,
 
     position: HookPosition,
 }
