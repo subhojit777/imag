@@ -55,8 +55,12 @@ fn main() {
         Some(s) => s,
     };
 
-    let entry = match rt.store().retrieve(PathBuf::from(entry_id)) {
-        Ok(fle) => fle,
+    let entry = match rt.store().get(PathBuf::from(entry_id)) {
+        Ok(Some(fle)) => fle,
+        Ok(None) => {
+            error!("Cannot get {}, there is no such id in the store", entry_id);
+            exit(1);
+        }
         Err(e) => {
             trace_error(&e);
             exit(1); // we can afford not-executing destructors here
