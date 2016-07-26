@@ -32,7 +32,7 @@ impl RefFlags {
     }
 
     /// Alias for `RefFlags::content_hashing()`
-    pub fn is_often_moving(mut self, b: bool) -> RefFlags {
+    pub fn is_often_moving(self, b: bool) -> RefFlags {
         self.with_content_hashing(b)
     }
 
