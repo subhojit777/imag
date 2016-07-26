@@ -11,24 +11,9 @@ use libimagstore::hook::result::HookResult;
 
 use vcs::git::result::Result;
 use vcs::git::error::{MapErrInto, GitHookErrorKind as GHEK};
-use vcs::git::config::{author_name, author_mail, committer_name, committer_mail};
-
-struct Person<'a> {
-    pub name: &'a str,
-    pub mail: &'a str,
-}
-
-impl<'a> Person<'a> {
-    fn new(name: &'a str, mail: &'a str) -> Person<'a> {
-        Person { name: name, mail: mail }
-    }
-}
 
 pub struct Runtime<'a> {
     repository: Option<Repository>,
-    author: Option<Person<'a>>,
-    committer: Option<Person<'a>>,
-
     config: Option<Value>,
 }
 
@@ -44,26 +29,13 @@ impl<'a> Runtime<'a> {
                 },
             },
 
-            author: None,
-            committer: None,
             config: None,
         }
     }
 
     pub fn set_config(&mut self, cfg: &Value) -> Result<()> {
-        let config = cfg.clone();
-        let res = author_name(&config)
-            .and_then(|n| author_mail(&config).map(|m| Person::new(n, m)))
-            .and_then(|author| {
-                committer_name(&config)
-                    .and_then(|n| committer_mail(&config).map(|m| (author, Person::new(n, m))))
-            })
-            .map(|(author, committer)| {
-                self.author = Some(author);
-                self.committer = Some(committer);
-            });
-        self.config = Some(config);
-        res
+        self.config = Some(cfg.clone());
+        Ok(())
     }
 
     pub fn has_repository(&self) -> bool {
