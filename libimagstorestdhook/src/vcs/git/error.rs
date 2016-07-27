@@ -1,3 +1,5 @@
+use git2::Error as Git2Error;
+
 use libimagstore::hook::error::HookError as HE;
 use libimagstore::hook::error::HookErrorKind as HEK;
 use libimagstore::hook::result::HookResult;
@@ -8,6 +10,7 @@ generate_error_module!(
         NoConfigError => "No Configuration",
         ConfigTypeError => "Configuration value type wrong",
         RuntimeInformationSetupError => "Couldn't setup runtime information for git hook",
+        RepositoryBackendError            => "Error in the git library",
         RepositoryError                   => "Error while interacting with git repository",
         RepositoryBranchError             => "Error while interacting with git branch(es)",
         RepositoryBranchNameFetchingError => "Error while fetching branch name",
@@ -37,6 +40,14 @@ impl From<GitHookError> for HE {
 
     fn from(he: GitHookError) -> HE {
         HE::new(HEK::HookExecutionError, Some(Box::new(he)))
+    }
+
+}
+
+impl From<Git2Error> for GitHookError {
+
+    fn from(ge: Git2Error) -> GitHookError {
+        GitHookError::new(GitHookErrorKind::RepositoryBackendError, Some(Box::new(ge)))
     }
 
 }
