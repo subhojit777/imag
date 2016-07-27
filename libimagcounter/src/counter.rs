@@ -119,10 +119,7 @@ impl<'a> Counter<'a> {
     }
 
     pub fn reset(&mut self) -> Result<()> {
-        let mut header = self.fle.deref_mut().get_header_mut();
-        header.set("counter.value", Value::Integer(0))
-            .map_err(|e| CE::new(CEK::StoreWriteError, Some(Box::new(e))))
-            .map(|_| ())
+        self.set(0)
     }
 
     pub fn set(&mut self, v: i64) -> Result<()> {
