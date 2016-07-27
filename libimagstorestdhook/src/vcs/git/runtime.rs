@@ -70,16 +70,12 @@ impl Runtime {
         let head = try!(self
                         .repository()
                         .and_then(|r| {
-                            r.head().map_err_into(GHEK::HeadFetchError)
-                        })
-                        .map_err(Box::new)
-                        .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e)));
+                            r.head().map_err_into(GHEK::HeadFetchError).map_err(|e| e.into())
+                        }));
 
         // TODO: Fail if not on branch? hmmh... I'm not sure
         if head.is_branch() {
-            return Err(GHEK::NotOnBranch.into_error())
-                .map_err(Box::new)
-                .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e));
+            return Err(GHEK::NotOnBranch.into_error().into());
         }
 
         // Check out appropriate branch ... or fail
