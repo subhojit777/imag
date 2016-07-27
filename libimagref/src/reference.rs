@@ -6,7 +6,7 @@ use std::ops::Deref;
 use std::ops::DerefMut;
 use std::collections::BTreeMap;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Read;
 use std::fmt::{Display, Error as FmtError, Formatter};
 use std::fs::Permissions;
 use std::result::Result as RResult;
@@ -204,7 +204,6 @@ impl<'a> Ref<'a> {
     /// Creates a Hash from a PathBuf by making the PathBuf absolute and then running a hash
     /// algorithm on it
     fn hash_path(pb: &PathBuf) -> Result<String> {
-        use std::io::Read;
         use crypto::sha1::Sha1;
         use crypto::digest::Digest;
 

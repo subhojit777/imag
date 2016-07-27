@@ -10,7 +10,6 @@ use libimagerror::trace::trace_error;
 use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagerror::into::IntoError;
-use libimagentrylist::error::ListError as LE;
 use libimagentrylist::error::ListErrorKind as LEK;
 
 use reference::Ref;
