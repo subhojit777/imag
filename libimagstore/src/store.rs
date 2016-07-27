@@ -843,7 +843,6 @@ impl Drop for Store {
 }
 
 /// A struct that allows you to borrow an Entry
-#[derive(Debug)]
 pub struct FileLockEntry<'a> {
     store: &'a Store,
     entry: Entry,
@@ -855,6 +854,13 @@ impl<'a> FileLockEntry<'a, > {
             store: store,
             entry: entry,
         }
+    }
+}
+
+impl<'a> Debug for FileLockEntry<'a> {
+    fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FMTError> {
+        write!(fmt, "FileLockEntry(Store = {})", self.store.location.to_str()
+               .unwrap_or("Unknown Path"))
     }
 }
 
