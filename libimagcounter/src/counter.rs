@@ -11,6 +11,7 @@ use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
+use libimagerror::into::IntoError;
 
 use module_path::ModuleEntryPath;
 use result::Result;
@@ -49,7 +50,7 @@ impl<'a> Counter<'a> {
         let fle = {
             let lockentry = store.create(ModuleEntryPath::new(name.clone()).into_storeid());
             if lockentry.is_err() {
-                return Err(CE::new(CEK::StoreWriteError, Some(Box::new(lockentry.err().unwrap()))));
+                return Err(CEK::StoreWriteError.into_error())
             }
             let mut lockentry = lockentry.unwrap();
 
@@ -58,17 +59,17 @@ impl<'a> Counter<'a> {
                 let mut header = entry.get_header_mut();
                 let setres = header.set("counter", Value::Table(BTreeMap::new()));
                 if setres.is_err() {
-                    return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
+                    return Err(CEK::StoreWriteError.into_error());
                 }
 
                 let setres = header.set("counter.name", Value::String(name));
                 if setres.is_err() {
-                    return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
+                    return Err(CEK::StoreWriteError.into_error())
                 }
 
                 let setres = header.set("counter.value", Value::Integer(init));
                 if setres.is_err() {
-                    return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
+                    return Err(CEK::StoreWriteError.into_error())
                 }
             }
 
@@ -86,7 +87,7 @@ impl<'a> Counter<'a> {
             let setres = header.set("counter.unit", Value::String(u.0));
             if setres.is_err() {
                 self.unit = None;
-                return Err(CE::new(CEK::StoreWriteError, Some(Box::new(setres.unwrap_err()))));
+                return Err(CEK::StoreWriteError.into_error())
             }
         };
         Ok(self)
@@ -97,7 +98,7 @@ impl<'a> Counter<'a> {
         match header.read("counter.value") {
             Ok(Some(Value::Integer(i))) => {
                 header.set("counter.value", Value::Integer(i + 1))
-                    .map_err(|e| CE::new(CEK::StoreWriteError, Some(Box::new(e))))
+                    .map_err_into(CEK::StoreWriteError)
                     .map(|_| ())
             },
             Err(e) => Err(CE::new(CEK::StoreReadError, Some(Box::new(e)))),
@@ -110,7 +111,7 @@ impl<'a> Counter<'a> {
         match header.read("counter.value") {
             Ok(Some(Value::Integer(i))) => {
                 header.set("counter.value", Value::Integer(i - 1))
-                    .map_err(|e| CE::new(CEK::StoreWriteError, Some(Box::new(e))))
+                    .map_err_into(CEK::StoreWriteError)
                     .map(|_| ())
             },
             Err(e) => Err(CE::new(CEK::StoreReadError, Some(Box::new(e)))),
@@ -125,30 +126,22 @@ impl<'a> Counter<'a> {
     pub fn set(&mut self, v: i64) -> Result<()> {
         let mut header = self.fle.deref_mut().get_header_mut();
         header.set("counter.value", Value::Integer(v))
-            .map_err(|e| CE::new(CEK::StoreWriteError, Some(Box::new(e))))
+            .map_err_into(CEK::StoreWriteError)
             .map(|_| ())
     }
 
     pub fn name(&self) -> Result<CounterName> {
-        self.fle.get_header().read("counter.name")
-            .map_err(|e| CE::new(CEK::StoreWriteError, Some(Box::new(e))))
-            .and_then(|v| {
-                match v {
-                    Some(Value::String(s)) => Ok(s),
-                    _ => Err(CE::new(CEK::HeaderTypeError, None)),
-                }
-            })
+        self.read_header_at("counter.name", |v| match v {
+            Some(Value::String(s)) => Ok(s),
+            _ => Err(CEK::HeaderTypeError.into_error()),
+        })
     }
 
     pub fn value(&self) -> Result<i64> {
-        self.fle.get_header().read("counter.value")
-            .map_err(|e| CE::new(CEK::StoreWriteError, Some(Box::new(e))))
-            .and_then(|v| {
-                match v {
-                    Some(Value::Integer(i)) => Ok(i),
-                    _ => Err(CE::new(CEK::HeaderTypeError, None)),
-                }
-            })
+        self.read_header_at("counter.value", |v| match v {
+            Some(Value::Integer(i)) => Ok(i),
+            _ => Err(CEK::HeaderTypeError.into_error()),
+        })
     }
 
     pub fn unit(&self) -> Option<&CounterUnit> {
@@ -156,13 +149,17 @@ impl<'a> Counter<'a> {
     }
 
     pub fn read_unit(&self) -> Result<Option<CounterUnit>> {
-        self.fle.get_header().read("counter.unit")
-            .map_err_into(CEK::StoreReadError)
-            .and_then(|s| match s {
-                Some(Value::String(s)) => Ok(Some(CounterUnit::new(s))),
-                Some(_) => Err(CE::new(CEK::HeaderTypeError, None)),
-                None => Ok(None),
-            })
+        self.read_header_at("counter.unit", |s| match s {
+            Some(Value::String(s)) => Ok(Some(CounterUnit::new(s))),
+            Some(_) => Err(CEK::HeaderTypeError.into_error()),
+            None => Ok(None),
+        })
+    }
+
+    fn read_header_at<T, F>(&self, name: &str, f: F) -> Result<T> 
+        where F: FnOnce(Option<Value>) -> Result<T>
+    {
+        self.fle.get_header().read(name).map_err_into(CEK::StoreWriteError).and_then(f)
     }
 
     pub fn load(name: CounterName, store: &Store) -> Result<Counter> {
@@ -174,13 +171,13 @@ impl<'a> Counter<'a> {
     pub fn delete(name: CounterName, store: &Store) -> Result<()> {
         debug!("Deleting counter: '{}'", name);
         store.delete(ModuleEntryPath::new(name).into_storeid())
-            .map_err(|e| CE::new(CEK::StoreWriteError, Some(Box::new(e))))
+            .map_err_into(CEK::StoreWriteError)
     }
 
     pub fn all_counters(store: &Store) -> Result<CounterIterator> {
         store.retrieve_for_module("counter")
             .map(|iter| CounterIterator::new(store, iter))
-            .map_err(|e| CE::new(CEK::StoreReadError, Some(Box::new(e))))
+            .map_err_into(CEK::StoreReadError)
     }
 
 }
