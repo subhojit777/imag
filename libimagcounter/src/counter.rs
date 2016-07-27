@@ -48,11 +48,8 @@ impl<'a> Counter<'a> {
 
         debug!("Creating new counter: '{}' with value: {}", name, init);
         let fle = {
-            let lockentry = store.create(ModuleEntryPath::new(name.clone()).into_storeid());
-            if lockentry.is_err() {
-                return Err(CEK::StoreWriteError.into_error())
-            }
-            let mut lockentry = lockentry.unwrap();
+            let mut lockentry = try!(store.create(ModuleEntryPath::new(name.clone()).into_storeid())
+                .map_err_into(CEK::StoreWriteError));
 
             {
                 let mut entry  = lockentry.deref_mut();
