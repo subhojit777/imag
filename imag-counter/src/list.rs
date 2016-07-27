@@ -13,13 +13,16 @@ pub fn list(rt: &Runtime) {
                     counter.map(|c| {
                         let name    = c.name();
                         let value   = c.value();
+                        let unit    = c.unit();
 
                         if name.is_err() {
                             trace_error(&name.unwrap_err());
                         } else if value.is_err() {
                             trace_error(&value.unwrap_err());
-                        } else {
+                        } else if unit.is_none() {
                             println!("{} - {}", name.unwrap(), value.unwrap());
+                        } else {
+                            println!("{} - {} {}", name.unwrap(), value.unwrap(), unit.unwrap());
                         }
                     })
                     .map_err(|e| trace_error(&e))
