@@ -56,8 +56,12 @@ impl Runtime {
             .map_err(|mut e| e.with_custom_data(CustomData::default().aborting(false)))
     }
 
-    pub fn repository(&self) -> Result<&Repository> {
-        self.repository.as_ref().ok_or(GHEK::MkRepo.into_error())
+    pub fn repository(&self) -> HookResult<&Repository> {
+        self.repository
+            .as_ref()
+            .ok_or(GHEK::MkRepo.into_error())
+            .map_err(Box::new)
+            .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e))
     }
 
     pub fn ensure_cfg_branch_is_checked_out(&self) -> HookResult<()> {
