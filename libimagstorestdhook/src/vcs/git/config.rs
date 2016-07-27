@@ -12,7 +12,7 @@ pub fn commit_interactive(config: &Value) -> bool {
     unimplemented!()
 }
 
-pub fn commit_message(config: &Value, action: StoreAction) -> Option<String> {
+pub fn commit_message(config: &Value, action: StoreAction) -> String {
     if commit_interactive(config) {
         unimplemented!()
     } else {
