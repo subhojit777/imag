@@ -331,7 +331,7 @@ mod test {
     #[test]
     fn test_error_kind_mapping() {
         use std::io::{Error, ErrorKind};
-        use self::error::{OkOrErr, MapErrInto};
+        use self::error::MapErrInto;
         use self::error::TestErrorKind;
 
         let err : Result<(), _> = Err(Error::new(ErrorKind::Other, ""));
@@ -349,7 +349,7 @@ mod test {
     #[test]
     fn test_error_kind_double_mapping() {
         use std::io::{Error, ErrorKind};
-        use self::error::{OkOrErr, MapErrInto};
+        use self::error::MapErrInto;
         use self::error::TestErrorKind;
 
         let err : Result<(), _> = Err(Error::new(ErrorKind::Other, ""));
@@ -373,7 +373,7 @@ mod test {
 
     #[test]
     fn test_error_option_good() {
-        use self::error::{OkOrErr, MapErrInto};
+        use self::error::OkOrErr;
         use self::error::TestErrorKind;
 
         let something = Some(1);
@@ -385,7 +385,7 @@ mod test {
 
     #[test]
     fn test_error_option_bad() {
-        use self::error::{OkOrErr, MapErrInto};
+        use self::error::OkOrErr;
         use self::error::TestErrorKind;
 
         let something : Option<i32> = None;
