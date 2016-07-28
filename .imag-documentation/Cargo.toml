@@ -1,0 +1,64 @@
+[package]
+name = "imag-documentation"
+version = "0.2.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+
+[dependencies.libimagbookmark]
+path = "../libimagbookmark"
+
+[dependencies.libimagcounter]
+path = "../libimagcounter"
+
+[dependencies.libimagdiary]
+path = "../libimagdiary"
+
+[dependencies.libimagentryfilter]
+path = "../libimagentryfilter"
+
+[dependencies.libimagentrylink]
+path = "../libimagentrylink"
+
+[dependencies.libimagentrylist]
+path = "../libimagentrylist"
+
+[dependencies.libimagentrymarkdown]
+path = "../libimagentrymarkdown"
+
+[dependencies.libimagentryselect]
+path = "../libimagentryselect"
+
+[dependencies.libimagentrytag]
+path = "../libimagentrytag"
+
+[dependencies.libimagentryview]
+path = "../libimagentryview"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimaginteraction]
+path = "../libimaginteraction"
+
+[dependencies.libimagnotes]
+path = "../libimagnotes"
+
+[dependencies.libimagref]
+path = "../libimagref"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagstorestdhook]
+path = "../libimagstorestdhook"
+
+[dependencies.libimagtimeui]
+path = "../libimagtimeui"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
