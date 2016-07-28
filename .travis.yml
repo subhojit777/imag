@@ -56,7 +56,6 @@ script:
             { \
               echo -e "\n--- Running in $d ---\n" &&    \
                 travis_cargo_run_in $dir &&             \
-                tree -I "*doc*" $dir &&                 \
                 echo "--- Running test scripts ---" &&  \
                 for testsh in $(find $dir -iname "*test.sh"); do
                   run_sh_test $testsh
@@ -71,7 +70,6 @@ addons:
             - libcurl4-openssl-dev
             - libelf-dev
             - libdw-dev
-            - tree
 
 after_success:
     - travis-cargo --only stable doc-upload
