@@ -8,6 +8,7 @@ use libimagerror::trace::trace_error;
 use libimagstore::hook::error::CustomData;
 use libimagstore::hook::error::HookErrorKind as HEK;
 use libimagstore::hook::result::HookResult;
+use libimagutil::debug_result::*;
 
 use vcs::git::result::Result;
 use vcs::git::error::{MapErrInto, GitHookErrorKind as GHEK};
@@ -70,18 +71,30 @@ impl Runtime {
         let head = try!(self
                         .repository()
                         .and_then(|r| {
-                            r.head().map_err_into(GHEK::HeadFetchError).map_err(|e| e.into())
+                            debug!("Repository fetched, getting head");
+                            r.head()
+                                .map_dbg_err_str("Couldn't fetch HEAD")
+                                .map_dbg_err(|e| format!("\tbecause = {:?}", e))
+                                .map_err_into(GHEK::HeadFetchError)
+                                .map_err(|e| e.into())
                         }));
+        debug!("HEAD fetched");
 
         // TODO: Fail if not on branch? hmmh... I'm not sure
-        if head.is_branch() {
+        if !head.is_branch() {
+            debug!("HEAD is not a branch");
             return Err(GHEK::NotOnBranch.into_error().into());
         }
+        debug!("HEAD is a branch");
 
         // Check out appropriate branch ... or fail
         match ensure_branch(self.config.as_ref()) {
             Ok(Some(s)) => {
-                match head.name().map(|name| name == s) {
+                debug!("We have to ensure branch: {}", s);
+                match head.name().map(|name| {
+                    debug!("{} == {}", name, s);
+                    name == s
+                }) {
                     Some(b) => {
                         if b {
                             debug!("Branch already checked out.");
