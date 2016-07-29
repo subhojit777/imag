@@ -24,7 +24,8 @@ generate_error_module!(
         HeadFetchError                    => "Error while getting HEAD",
         NotOnBranch                       => "No Branch is checked out",
         MkRepo => "Repository creation error",
-        MkSignature => "Error while building Signature object"
+        MkSignature => "Error while building Signature object",
+        StoreIdStripError => "Couldn't strip prefix from StoreID object"
     );
 );
 
