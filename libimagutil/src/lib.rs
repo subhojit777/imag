@@ -17,6 +17,7 @@
 #[macro_use] extern crate log;
 extern crate regex;
 
+pub mod debug_result;
 pub mod ismatch;
 pub mod iter;
 pub mod key_value_split;
