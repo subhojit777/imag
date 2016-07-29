@@ -123,11 +123,6 @@ impl<'a> Runtime<'a> {
                     (Box::new(DebugHook::new(HP::PostUpdate))         , "debug", HP::PostUpdate),
                     (Box::new(DebugHook::new(HP::PreDelete))          , "debug", HP::PreDelete),
                     (Box::new(DebugHook::new(HP::PostDelete))         , "debug", HP::PostDelete),
-
-                    (Box::new(GitCreateHook::new(&storepath, HP::PostCreate))    , "vcs", HP::PostCreate),
-                    (Box::new(GitDeleteHook::new(&storepath, HP::PreDelete))     , "vcs", HP::PreDelete),
-                    (Box::new(GitRetrieveHook::new(&storepath, HP::PostRetrieve)), "vcs", HP::PostRetrieve),
-                    (Box::new(GitUpdateHook::new(&storepath, HP::PostUpdate))    , "vcs", HP::PostUpdate),
                 ];
 
                 // If hook registration fails, trace the error and warn, but continue.
@@ -140,6 +135,26 @@ impl<'a> Runtime<'a> {
                             trace_error(&e);
                         };
                     }
+                }
+            }
+
+            let sp = storepath;
+
+            let hooks : Vec<(Box<Hook>, &str, HP)> = vec![
+                (Box::new(GitCreateHook::new(sp.clone(), HP::PostCreate))    , "vcs", HP::PostCreate),
+                (Box::new(GitDeleteHook::new(sp.clone(), HP::PreDelete))     , "vcs", HP::PreDelete),
+                (Box::new(GitRetrieveHook::new(sp.clone(), HP::PostRetrieve)), "vcs", HP::PostRetrieve),
+                (Box::new(GitUpdateHook::new(sp, HP::PostUpdate))    , "vcs", HP::PostUpdate),
+            ];
+
+            for (hook, aspectname, position) in hooks {
+                if let Err(e) = store.register_hook(position, &String::from(aspectname), hook) {
+                    if e.err_type() == StoreErrorKind::HookRegisterError {
+                        trace_error_dbg(&e);
+                        warn!("Registering debug hook with store failed");
+                    } else {
+                        trace_error(&e);
+                    };
                 }
             }
 
