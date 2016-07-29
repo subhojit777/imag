@@ -68,10 +68,6 @@ impl MutableHookDataAccessor for Aspect {
     fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
         debug!("Checking whether mutable hooks are allowed");
         debug!("-> config = {:?}", self.cfg);
-        if !self.cfg.as_ref().map(|c| c.allow_mutable_hooks()).unwrap_or(false) {
-            debug!("Apparently mutable hooks are not allowed... failing now.");
-            return Err(HE::new(HEK::MutableHooksNotAllowed, None));
-        }
 
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
 
@@ -82,8 +78,15 @@ impl MutableHookDataAccessor for Aspect {
         accessors.iter().fold_defresult(|accessor| {
             let res = match accessor {
                 &HDA::StoreIdAccess(ref accessor)    => accessor.access(fle.get_location()),
-                &HDA::MutableAccess(ref accessor)    => accessor.access_mut(fle),
                 &HDA::NonMutableAccess(ref accessor) => accessor.access(fle),
+                &HDA::MutableAccess(ref accessor)    => {
+                    if !self.cfg.as_ref().map(|c| c.allow_mutable_hooks()).unwrap_or(false) {
+                        debug!("Apparently mutable hooks are not allowed... failing now.");
+                        return Err(HE::new(HEK::MutableHooksNotAllowed, None));
+                    }
+
+                    accessor.access_mut(fle)
+                },
             };
             trace_hook_errors(res)
         })
