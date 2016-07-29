@@ -9,14 +9,15 @@ use vcs::git::result::Result;
 use vcs::git::action::StoreAction;
 
 pub fn commit_interactive(config: &Value) -> bool {
-    unimplemented!()
+    warn!("Interactive committing not yet supported, using dummy commit message");
+    false
 }
 
 pub fn commit_message(config: &Value, action: StoreAction) -> String {
     if commit_interactive(config) {
         unimplemented!()
     } else {
-        unimplemented!()
+        String::from("Dummy commit")
     }
 }
 
