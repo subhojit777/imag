@@ -16,6 +16,7 @@ use libimagstore::hook::accessor::{HookDataAccessor, HookDataAccessorProvider};
 use libimagstore::hook::accessor::StoreIdAccessor;
 use libimagerror::trace::trace_error;
 use libimagerror::into::IntoError;
+use libimagutil::debug_result::*;
 
 use vcs::git::result::Result;
 use vcs::git::error::MapErrInto;
@@ -93,20 +94,20 @@ impl StoreIdAccessor for CreateHook {
 
         self.runtime
             .config_value_or_err()
-            .map_err(|e| { debug!("[GIT CREATE HOOK]: Couldn't get Value object from config"); e })
+            .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't get Value object from config")
             .and_then(|cfg| {
                 debug!("[GIT CREATE HOOK]: Getting repository");
                 self.runtime
                     .repository()
                     .map(|r| (r, cfg))
-                    .map_err(|e| { debug!("[GIT CREATE HOOK]: Couldn't fetch Repository"); e })
+                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't fetch Repository")
                     .map_err_into(GHEK::RepositoryError)
                     .map_err(|e| e.into())
             })
             .and_then(|(repo, cfg)| {
                 repo.signature()
                     .map(|s| (repo, cfg, s))
-                    .map_err(|e| { debug!("[GIT CREATE HOOK]: Couldn't fetch Signature"); e })
+                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't fetch Signature")
                     .map_err_into(GHEK::RepositorySignatureFetchingError)
                     .map_err_into(GHEK::RepositoryError)
                     .map_err(|e| e.into())
@@ -114,7 +115,7 @@ impl StoreIdAccessor for CreateHook {
             .and_then(|(repo, cfg, sig)| {
                 repo.index()
                     .map(|idx| (repo, cfg, sig, idx))
-                    .map_err(|e| { debug!("[GIT CREATE HOOK]: Couldn't fetch Index"); e })
+                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't fetch Index")
                     .map_err_into(GHEK::RepositoryIndexFetchingError)
                     .map_err_into(GHEK::RepositoryError)
                     .map_err(|e| e.into())
@@ -125,13 +126,13 @@ impl StoreIdAccessor for CreateHook {
                     .and_then(|id| idx.add_path(&id).map_err_into(GHEK::RepositoryPathAddingError))
                     .map(|_| (repo, cfg, sig, idx))
                     .map_err_into(GHEK::RepositoryError)
-                    .map_err(|e| { debug!("[GIT CREATE HOOK]: Couldn't add Path: {:?}", e); e })
+                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't add Path: {:?}")
                     .map_err(|e| e.into())
             })
             .and_then(|(repo, cfg, sig, mut idx)| {
                 idx.write_tree()
                     .map(|oid| (repo, cfg, sig, idx, oid))
-                    .map_err(|e| { debug!("[GIT CREATE HOOK]: Couldn't write Tree"); e })
+                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't write Tree")
                     .map_err_into(GHEK::RepositoryTreeWritingError)
                     .map_err_into(GHEK::RepositoryError)
                     .map_err(|e| e.into())
@@ -139,7 +140,7 @@ impl StoreIdAccessor for CreateHook {
             .and_then(|(repo, cfg, sig, idx, oid)| {
                 repo.find_tree(oid)
                     .map(|tree| (repo, cfg, sig, idx, oid, tree))
-                    .map_err(|e| { debug!("[GIT CREATE HOOK]: Couldn't find Tree"); e })
+                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't find Tree")
                     .map_err_into(GHEK::RepositoryTreeFindingError)
                     .map_err_into(GHEK::RepositoryError)
                     .map_err(|e| e.into())
@@ -148,14 +149,14 @@ impl StoreIdAccessor for CreateHook {
                 let cmtmsg = commit_message(cfg, StoreAction::Create);
                 repo.find_commit(oid)
                     .map(|cmt| (repo, sig, tree, cmt, cmtmsg))
-                    .map_err(|e| { debug!("[GIT CREATE HOOK]: Couldn't find Commit"); e })
+                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't find Commit")
                     .map_err_into(GHEK::RepositoryCommitFindingError)
                     .map_err_into(GHEK::RepositoryError)
                     .map_err(|e| e.into())
             })
             .and_then(|(repo, sig, tree, cmt, commitmsg)| {
                 repo.commit(Some("HEAD"), &sig, &sig, &commitmsg[..], &tree, &[&cmt])
-                    .map_err(|e| { debug!("[GIT CREATE HOOK]: Couldn't create Commit"); e })
+                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't create Commit")
                     .map_err_into(GHEK::RepositoryCommittingError)
                     .map_err_into(GHEK::RepositoryError)
                     .map_err(|e| e.into())
