@@ -10,16 +10,16 @@ use libimagstore::hook::accessor::{HookDataAccessor, HookDataAccessorProvider};
 use libimagstore::hook::accessor::StoreIdAccessor;
 
 #[derive(Debug)]
-pub struct RetrieveHook<'a> {
-    storepath: &'a PathBuf,
+pub struct RetrieveHook {
+    storepath: PathBuf,
 
     position: HookPosition,
     config: Option<Value>,
 }
 
-impl<'a> RetrieveHook<'a> {
+impl RetrieveHook {
 
-    pub fn new(storepath: &'a PathBuf, p: HookPosition) -> RetrieveHook<'a> {
+    pub fn new(storepath: PathBuf, p: HookPosition) -> RetrieveHook {
         RetrieveHook {
             storepath: storepath,
             position: p,
@@ -29,7 +29,7 @@ impl<'a> RetrieveHook<'a> {
 
 }
 
-impl<'a> Hook for RetrieveHook<'a> {
+impl Hook for RetrieveHook {
 
     fn name(&self) -> &'static str {
         "stdhook_git_retrieve"
@@ -41,14 +41,14 @@ impl<'a> Hook for RetrieveHook<'a> {
 
 }
 
-impl<'a> HookDataAccessorProvider for RetrieveHook<'a> {
+impl HookDataAccessorProvider for RetrieveHook {
 
     fn accessor(&self) -> HookDataAccessor {
         HookDataAccessor::StoreIdAccess(self)
     }
 }
 
-impl<'a> StoreIdAccessor for RetrieveHook<'a> {
+impl StoreIdAccessor for RetrieveHook {
 
     fn access(&self, id: &StoreId) -> HookResult<()> {
         debug!("[GIT RETRIEVE HOOK]: {:?}", id);

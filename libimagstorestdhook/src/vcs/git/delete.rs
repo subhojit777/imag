@@ -10,16 +10,16 @@ use libimagstore::hook::accessor::{HookDataAccessor, HookDataAccessorProvider};
 use libimagstore::hook::accessor::StoreIdAccessor;
 
 #[derive(Debug)]
-pub struct DeleteHook<'a> {
-    storepath: &'a PathBuf,
+pub struct DeleteHook {
+    storepath: PathBuf,
 
     position: HookPosition,
     config: Option<Value>,
 }
 
-impl<'a> DeleteHook<'a> {
+impl DeleteHook {
 
-    pub fn new(storepath: &'a PathBuf, p: HookPosition) -> DeleteHook<'a> {
+    pub fn new(storepath: PathBuf, p: HookPosition) -> DeleteHook {
         DeleteHook {
             storepath: storepath,
             position: p,
@@ -29,7 +29,7 @@ impl<'a> DeleteHook<'a> {
 
 }
 
-impl<'a> Hook for DeleteHook<'a> {
+impl Hook for DeleteHook {
 
     fn name(&self) -> &'static str {
         "stdhook_git_delete"
@@ -41,14 +41,14 @@ impl<'a> Hook for DeleteHook<'a> {
 
 }
 
-impl<'a> HookDataAccessorProvider for DeleteHook<'a> {
+impl HookDataAccessorProvider for DeleteHook {
 
     fn accessor(&self) -> HookDataAccessor {
         HookDataAccessor::StoreIdAccess(self)
     }
 }
 
-impl<'a> StoreIdAccessor for DeleteHook<'a> {
+impl StoreIdAccessor for DeleteHook {
 
     fn access(&self, id: &StoreId) -> HookResult<()> {
         debug!("[GIT DELETE HOOK]: {:?}", id);

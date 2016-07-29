@@ -23,27 +23,27 @@ use vcs::git::error::GitHookErrorKind as GHEK;
 use vcs::git::error::GitHookError as GHE;
 use vcs::git::runtime::Runtime;
 
-pub struct CreateHook<'a> {
-    storepath: &'a PathBuf,
+pub struct CreateHook {
+    storepath: PathBuf,
 
     runtime: Runtime,
 
     position: HookPosition,
 }
 
-impl<'a> CreateHook<'a> {
+impl CreateHook {
 
-    pub fn new(storepath: &'a PathBuf, p: HookPosition) -> CreateHook<'a> {
+    pub fn new(storepath: PathBuf, p: HookPosition) -> CreateHook {
         CreateHook {
+            runtime: Runtime::new(&storepath),
             storepath: storepath,
-            runtime: Runtime::new(storepath),
             position: p,
         }
     }
 
 }
 
-impl<'a> Debug for CreateHook<'a> {
+impl Debug for CreateHook {
 
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
         write!(fmt, "CreateHook(storepath={:?}, repository={}, pos={:?}, cfg={:?}",
@@ -54,7 +54,7 @@ impl<'a> Debug for CreateHook<'a> {
     }
 }
 
-impl<'a> Hook for CreateHook<'a> {
+impl Hook for CreateHook {
 
     fn name(&self) -> &'static str {
         "stdhook_git_create"
@@ -68,14 +68,14 @@ impl<'a> Hook for CreateHook<'a> {
 
 }
 
-impl<'a> HookDataAccessorProvider for CreateHook<'a> {
+impl HookDataAccessorProvider for CreateHook {
 
     fn accessor(&self) -> HookDataAccessor {
         HookDataAccessor::StoreIdAccess(self)
     }
 }
 
-impl<'a> StoreIdAccessor for CreateHook<'a> {
+impl StoreIdAccessor for CreateHook {
 
     fn access(&self, id: &StoreId) -> HookResult<()> {
         use vcs::git::action::StoreAction;
