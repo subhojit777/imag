@@ -120,11 +120,12 @@ impl StoreIdAccessor for CreateHook {
                     .map_err(|e| e.into())
             })
             .and_then(|(repo, cfg, sig, mut idx)| {
-                idx.add_path(id)
+                id.strip_prefix(&self.storepath)
+                    .map_err_into(GHEK::StoreIdStripError)
+                    .and_then(|id| idx.add_path(&id).map_err_into(GHEK::RepositoryPathAddingError))
                     .map(|_| (repo, cfg, sig, idx))
-                    .map_err(|e| { debug!("[GIT CREATE HOOK]: Couldn't add Path"); e })
-                    .map_err_into(GHEK::RepositoryPathAddingError)
                     .map_err_into(GHEK::RepositoryError)
+                    .map_err(|e| { debug!("[GIT CREATE HOOK]: Couldn't add Path: {:?}", e); e })
                     .map_err(|e| e.into())
             })
             .and_then(|(repo, cfg, sig, mut idx)| {
