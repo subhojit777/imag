@@ -47,7 +47,7 @@ aspect = "vcs"
 abort_on_repo_init_failure = true
 
 # Ensure to be on this branche before doing anything.
-ensure_branch = "master"
+ensure_branch = "refs/heads/master"
 
 # Try to checkout the ensure_branch if it isn't checked out
 try_checkout_ensure_branch = true
