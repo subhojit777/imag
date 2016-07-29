@@ -22,6 +22,7 @@ extern crate git2;
 extern crate libimagstore;
 extern crate libimagentrylink;
 #[macro_use] extern crate libimagerror;
+extern crate libimagutil;
 
 pub mod debug;
 pub mod flock;
