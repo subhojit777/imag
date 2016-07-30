@@ -30,6 +30,9 @@ let
         setspace
         babel
 
+        subfig
+        caption
+
         # optionals
         upquote
         microtype
