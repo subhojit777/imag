@@ -1,7 +1,6 @@
-use clap::{Arg, ArgGroup, App, SubCommand};
+use clap::{Arg, App, SubCommand};
 
 use libimagentrytag::ui::tag_argument;
-use libimagentrytag::ui::tag_argument_name;
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
