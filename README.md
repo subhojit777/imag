@@ -1,7 +1,20 @@
 # imag
 
-Imag is a CLI PIM suite with a nice API-ish commandline interface, so you can
-integrate it in your tools of choice (Editor, MUA, RSS reader, etc etc).
+Imag is a CLI PIM suite you can
+integrate in your tools of choice (Editor, MUA, RSS reader, etc etc).
+
+## Please contribute!
+
+We are looking work contributors!
+
+There is always a number of
+[complexity/easy tagged issues](https://github.com/matthiasbeyer/imag/issues?q=is%3Aopen+is%3Aissue+label%3Acomplexity%2Feasy)
+available in the issue tracker you can start with and we are open to questions!
+
+Feel free to open issues for asking questions, suggesting features or other
+things!
+
+Also have a look at [the CONTRIBUTING.md file](./CONTRIBUTING.md)!
 
 ## Goal
 
@@ -73,24 +86,29 @@ We try to accomplish these requirements:
 
 **This application is in _really_ early development.**
 
-We have implemented the very
-core of the system: the store library. There's also some progress on utility
-libraries for linking entries, tagging and the hook system of the store is in
-progress as well.
-There is also one commandline application: "imag-store" (the "store" subcommand)
-available by now, but this is meant for developers and  debugging purposes as it
-provides direct core-level store access.
+We have implemented the very core of the system, though some more utility work
+is to be done.
+We have the store working, a hooks API and some default hooks are in
+development.
+Basic features like tagging and linking entries is possible as well as viewing
+entries.
+Some small things are implemented, like a note-taking module, a basic diary
+module, a counter module and a bookmark module.
+These modules contain basic features and are subject to change.
+More modules are about to be implemented.
 
 Though, the very core of the system is stable and nothing prevents _you_ from
-contributing and implementing a module, though some convenience is not yet
-provided (as the libraries are work-in-progress).
+contributing and implementing a module.
 
 ## Building/Running
 
+Here goes how to try imag out.
+
 ### Building
 
-One can build all the modules simply by running `make` which defaults to building all the modules
-and placing them in the `out/` directory of the project root.
+One can build all the modules simply by running `make` which defaults to
+building all the modules and placing them in the `out/` directory of the project
+root.
 
 ```
 $> make
@@ -99,33 +117,35 @@ $> ls out/
 imag-counter  imag-link  imag-notes  imag-store  imag-tag  imag-view
 ```
 
-Building all the modules may take some time, so alternatively one can build only a specific module
-by runing `$> make $module` where `$module` is one of  the `imag-*` names, such as `imag-counter`,
-`imag-link`, etc.
+Building all the modules may take some time, so alternatively one can build only
+a specific module
+by runing `$> make $module` where `$module` is one of  the `imag-*` names, such
+as `imag-counter`, `imag-link`, etc.
 
 ### Running
 
-To run imag, simply call `./bin/imag`. This script has a function to search for
-modules, which utilizes an environment variable called `IMAG_IS_THE_SHIT`.
-To run imag with all components:
+To run imag, simply call `./out/imag`.
+If you include the `out` directory in your `$PATH`, imag is able to find the
+other imag executables. Try it out by running:
 
+```bash
+$> PATH=$PATH:$(pwd)/out imag --help
 ```
-$> IMAG_IS_THE_SHIT=$(pwd) ./bin/imag
-```
-assuming you are currently in the imag source directory. Otherwise it is
-```
-$>IMAG_IS_THE_SHIT=$IMAG_SRC $IMAG_SRC/bin/imag
-```
-if $IMAG_SOURCE points to the imag source directory.
 
-To test, simply add `--help` to one of the above commands. Imag should now be
-able to find the available commands.
+To test, simply add `--help` to one of the above commands:
+
+```bash
+$> PATH=$PATH:$(pwd)/out imag counter --help
+```
 
 ## Documentation
 
 For detailed information, please read [the documentation](./doc/) (You can
 either read the Markdown files or compile it to HTML/PDF using
 [pandoc](http://pandoc.org)).
+
+Please note that the documentation is work in progress as well and may be
+outdated.
 
 ## License
 
