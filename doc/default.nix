@@ -51,6 +51,8 @@ let
     })
 
     pkgs.lmodern
+
+    pkgs.which
   ];
 in
 
