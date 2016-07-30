@@ -28,7 +28,7 @@ use std::process::exit;
 use std::path::PathBuf;
 
 use libimagrt::setup::generate_runtime_setup;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::trace_error_exit;
 use libimagentryview::builtin::stdout::StdoutViewer;
 use libimagentryview::builtin::versions::VersionsViewer;
 use libimagentryview::viewer::Viewer;
@@ -62,8 +62,7 @@ fn main() {
             exit(1);
         }
         Err(e) => {
-            trace_error(&e);
-            exit(1); // we can afford not-executing destructors here
+            trace_error_exit(&e, 1);
         }
     };
 
@@ -85,8 +84,7 @@ fn main() {
     };
 
     if let Err(e) = res {
-        trace_error(&e);
-        exit(1);
+        trace_error_exit(&e, 1);
     }
 }
 
