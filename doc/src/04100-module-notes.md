@@ -7,10 +7,10 @@ The notes module offers:
 
 * adding, removing and settings of tags
 * listing notes, optionally filtered by
-  * tags
-  * `grep`ping through note content and listing
-    * the matches
-    * files with matches
+    * tags
+    * `grep`ping through note content and listing
+        * the matches
+        * files with matches
 * opening a note via `xdg-open` (rendered as HTML if content is written in
   a markup language)
 
