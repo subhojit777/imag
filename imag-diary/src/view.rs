@@ -24,7 +24,9 @@ pub fn view(rt: &Runtime) {
             for entry in entries.into_iter().filter_map(Result::ok) {
                 let id = entry.diary_id();
                 println!("{} :\n", id);
-                pv.view_entry(&entry);
+                if let Err(e) = pv.view_entry(&entry) {
+                    trace_error(&e);
+                };
                 println!("\n---\n");
             }
         },
