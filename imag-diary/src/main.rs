@@ -57,16 +57,11 @@ fn main() {
                 "delete" => delete(&rt),
                 "edit" => edit(&rt),
                 "list" => list(&rt),
-                "diary" => diary(&rt),
                 "view" => view(&rt),
                 _        => {
                     debug!("Unknown command"); // More error handling
                 },
             }
         });
-}
-
-fn diary(rt: &Runtime) {
-    unimplemented!()
 }
 
