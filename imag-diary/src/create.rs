@@ -34,7 +34,7 @@ pub fn create(rt: &Runtime) {
             let id = match create.value_of("timed") {
                 Some("h") | Some("hourly") => {
                     debug!("Creating hourly-timed entry");
-                    let mut time = DiaryId::now(String::from(diary.name()));
+                    let time = DiaryId::now(String::from(diary.name()));
                     let hr = create
                         .value_of("hour")
                         .map(|v| { debug!("Creating hourly entry with hour = {:?}", v); v })
