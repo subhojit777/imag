@@ -147,6 +147,13 @@ either read the Markdown files or compile it to HTML/PDF using
 Please note that the documentation is work in progress as well and may be
 outdated.
 
+## Contact
+
+You can contact [me](https://github.com/matthiasbeyer) via mail at beyermatthias
+dot de if you need to.
+
+Feel free to join our new IRC channel at freenode: #imag.
+
 ## License
 
 We chose to distribute this software under terms of GNU LGPLv2.1.
