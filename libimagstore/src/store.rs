@@ -428,7 +428,7 @@ impl Store {
                 .map_err_into(SEK::RetrieveCallError)
         }
 
-        self.entries
+        let entry = try!(self.entries
             .write()
             .map_err(|_| SE::new(SEK::LockPoisoned, None))
             .and_then(|mut es| {
@@ -437,14 +437,14 @@ impl Store {
                 se.status = StoreEntryStatus::Borrowed;
                 entry
             })
-            .map(|e| FileLockEntry::new(self, e))
-            .and_then(|mut fle| {
-                self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle)
-                    .map_err_into(SEK::PostHookExecuteError)
-                    .map_err_into(SEK::HookExecutionError)
-                    .and(Ok(fle))
-            })
+            .map_err_into(SEK::RetrieveCallError));
+
+        let mut fle = FileLockEntry::new(self, entry);
+        self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle)
+            .map_err_into(SEK::PostHookExecuteError)
+            .map_err_into(SEK::HookExecutionError)
             .map_err_into(SEK::RetrieveCallError)
+            .and(Ok(fle))
     }
 
     /// Get an entry from the store if it exists.
