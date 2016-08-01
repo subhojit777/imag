@@ -428,16 +428,18 @@ impl Store {
                 .map_err_into(SEK::RetrieveCallError)
         }
 
-        let entry = try!(self.entries
-            .write()
-            .map_err(|_| SE::new(SEK::LockPoisoned, None))
-            .and_then(|mut es| {
-                let mut se = es.entry(id.clone()).or_insert_with(|| StoreEntry::new(id.clone()));
-                let entry = se.get_entry();
-                se.status = StoreEntryStatus::Borrowed;
-                entry
-            })
-            .map_err_into(SEK::RetrieveCallError));
+        let entry = try!({
+            self.entries
+                .write()
+                .map_err(|_| SE::new(SEK::LockPoisoned, None))
+                .and_then(|mut es| {
+                    let mut se = es.entry(id.clone()).or_insert_with(|| StoreEntry::new(id.clone()));
+                    let entry = se.get_entry();
+                    se.status = StoreEntryStatus::Borrowed;
+                    entry
+                })
+                .map_err_into(SEK::RetrieveCallError)
+        });
 
         let mut fle = FileLockEntry::new(self, entry);
         self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle)
@@ -598,23 +600,25 @@ impl Store {
                 .map_err_into(SEK::DeleteCallError)
         }
 
-        let mut entries = match self.entries.write() {
-            Err(_) => return Err(SE::new(SEK::LockPoisoned, None))
-                .map_err_into(SEK::DeleteCallError),
-            Ok(e) => e,
-        };
+        {
+            let mut entries = match self.entries.write() {
+                Err(_) => return Err(SE::new(SEK::LockPoisoned, None))
+                    .map_err_into(SEK::DeleteCallError),
+                Ok(e) => e,
+            };
 
-        // if the entry is currently modified by the user, we cannot drop it
-        if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
-            return Err(SE::new(SEK::IdLocked, None))
-                .map_err_into(SEK::DeleteCallError);
-        }
+            // if the entry is currently modified by the user, we cannot drop it
+            if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
+                return Err(SE::new(SEK::IdLocked, None))
+                    .map_err_into(SEK::DeleteCallError);
+            }
 
-        // remove the entry first, then the file
-        entries.remove(&id);
-        if let Err(e) = remove_file(&id) {
-            return Err(SEK::FileError.into_error_with_cause(Box::new(e)))
-                .map_err_into(SEK::DeleteCallError);
+            // remove the entry first, then the file
+            entries.remove(&id);
+            if let Err(e) = remove_file(&id) {
+                return Err(SEK::FileError.into_error_with_cause(Box::new(e)))
+                    .map_err_into(SEK::DeleteCallError);
+            }
         }
 
         self.execute_hooks_for_id(self.post_delete_aspects.clone(), &id)
