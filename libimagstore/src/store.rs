@@ -686,19 +686,22 @@ impl Store {
                 .map_err_into(SEK::MoveByIdCallError)
         }
 
-        let hsmap = self.entries.write();
-        if hsmap.is_err() {
-            return Err(SE::new(SEK::LockPoisoned, None))
-        }
-        if hsmap.unwrap().contains_key(&old_id) {
-            return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
-        } else {
-            match rename(old_id, new_id.clone()) {
-                Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
-                _ => {
-                    debug!("Rename worked");
-                },
+        {
+            let hsmap = self.entries.write();
+            if hsmap.is_err() {
+                return Err(SE::new(SEK::LockPoisoned, None))
             }
+            if hsmap.unwrap().contains_key(&old_id) {
+                return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
+            } else {
+                match rename(old_id, new_id.clone()) {
+                    Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
+                    _ => {
+                        debug!("Rename worked");
+                    },
+                }
+            }
+
         }
 
         self.execute_hooks_for_id(self.pre_move_aspects.clone(), &new_id)
