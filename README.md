@@ -1,4 +1,4 @@
-# imag
+# imag - [imag-pim.org](http://imag-pim.org)
 
 Imag is a CLI PIM suite you can
 integrate in your tools of choice (Editor, MUA, RSS reader, etc etc).
