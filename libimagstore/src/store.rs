@@ -390,19 +390,21 @@ impl Store {
                 .map_err_into(SEK::CreateCallError)
         }
 
-        let mut hsmap = match self.entries.write() {
-            Err(_) => return Err(SEK::LockPoisoned.into_error()).map_err_into(SEK::CreateCallError),
-            Ok(s) => s,
-        };
+        {
+            let mut hsmap = match self.entries.write() {
+                Err(_) => return Err(SEK::LockPoisoned.into_error()).map_err_into(SEK::CreateCallError),
+                Ok(s) => s,
+            };
 
-        if hsmap.contains_key(&id) {
-            return Err(SEK::EntryAlreadyExists.into_error()).map_err_into(SEK::CreateCallError);
+            if hsmap.contains_key(&id) {
+                return Err(SEK::EntryAlreadyExists.into_error()).map_err_into(SEK::CreateCallError);
+            }
+            hsmap.insert(id.clone(), {
+                let mut se = StoreEntry::new(id.clone());
+                se.status = StoreEntryStatus::Borrowed;
+                se
+            });
         }
-        hsmap.insert(id.clone(), {
-            let mut se = StoreEntry::new(id.clone());
-            se.status = StoreEntryStatus::Borrowed;
-            se
-        });
 
         let mut fle = FileLockEntry::new(self, Entry::new(id));
         self.execute_hooks_for_mut_file(self.post_create_aspects.clone(), &mut fle)
