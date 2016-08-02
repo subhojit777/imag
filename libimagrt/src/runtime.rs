@@ -53,8 +53,9 @@ impl<'a> Runtime<'a> {
 
         let is_debugging = matches.is_present("debugging");
         let is_verbose   = matches.is_present("verbosity");
+        let colored      = !matches.is_present("no-color-output");
 
-        Runtime::init_logger(is_debugging, is_verbose);
+        Runtime::init_logger(is_debugging, is_verbose, colored);
 
         let rtp : PathBuf = matches.value_of("runtimepath")
             .map_or_else(|| {
@@ -178,6 +179,12 @@ impl<'a> Runtime<'a> {
                 .required(false)
                 .takes_value(false))
 
+            .arg(Arg::with_name("no-color-output")
+                .long("no-color")
+                .help("Disable color output")
+                .required(false)
+                .takes_value(false))
+
             .arg(Arg::with_name("config")
                 .long("config")
                 .help("Path to alternative config file")
@@ -212,7 +219,7 @@ impl<'a> Runtime<'a> {
     /**
      * Initialize the internal logger
      */
-    fn init_logger(is_debugging: bool, is_verbose: bool) {
+    fn init_logger(is_debugging: bool, is_verbose: bool, colored: bool) {
         use std::env::var as env_var;
         use env_logger;
 
@@ -230,7 +237,7 @@ impl<'a> Runtime<'a> {
             log::set_logger(|max_log_lvl| {
                 max_log_lvl.set(lvl);
                 debug!("Init logger with {}", lvl);
-                Box::new(ImagLogger::new(lvl.to_log_level().unwrap()))
+                Box::new(ImagLogger::new(lvl.to_log_level().unwrap()).with_color(colored))
             })
             .map_err(|_| {
                 panic!("Could not setup logger");
