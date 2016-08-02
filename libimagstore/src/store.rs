@@ -390,19 +390,21 @@ impl Store {
                 .map_err_into(SEK::CreateCallError)
         }
 
-        let mut hsmap = match self.entries.write() {
-            Err(_) => return Err(SEK::LockPoisoned.into_error()).map_err_into(SEK::CreateCallError),
-            Ok(s) => s,
-        };
+        {
+            let mut hsmap = match self.entries.write() {
+                Err(_) => return Err(SEK::LockPoisoned.into_error()).map_err_into(SEK::CreateCallError),
+                Ok(s) => s,
+            };
 
-        if hsmap.contains_key(&id) {
-            return Err(SEK::EntryAlreadyExists.into_error()).map_err_into(SEK::CreateCallError);
+            if hsmap.contains_key(&id) {
+                return Err(SEK::EntryAlreadyExists.into_error()).map_err_into(SEK::CreateCallError);
+            }
+            hsmap.insert(id.clone(), {
+                let mut se = StoreEntry::new(id.clone());
+                se.status = StoreEntryStatus::Borrowed;
+                se
+            });
         }
-        hsmap.insert(id.clone(), {
-            let mut se = StoreEntry::new(id.clone());
-            se.status = StoreEntryStatus::Borrowed;
-            se
-        });
 
         let mut fle = FileLockEntry::new(self, Entry::new(id));
         self.execute_hooks_for_mut_file(self.post_create_aspects.clone(), &mut fle)
@@ -426,23 +428,25 @@ impl Store {
                 .map_err_into(SEK::RetrieveCallError)
         }
 
-        self.entries
-            .write()
-            .map_err(|_| SE::new(SEK::LockPoisoned, None))
-            .and_then(|mut es| {
-                let mut se = es.entry(id.clone()).or_insert_with(|| StoreEntry::new(id.clone()));
-                let entry = se.get_entry();
-                se.status = StoreEntryStatus::Borrowed;
-                entry
-            })
-            .map(|e| FileLockEntry::new(self, e))
-            .and_then(|mut fle| {
-                self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle)
-                    .map_err_into(SEK::PostHookExecuteError)
-                    .map_err_into(SEK::HookExecutionError)
-                    .and(Ok(fle))
-            })
+        let entry = try!({
+            self.entries
+                .write()
+                .map_err(|_| SE::new(SEK::LockPoisoned, None))
+                .and_then(|mut es| {
+                    let mut se = es.entry(id.clone()).or_insert_with(|| StoreEntry::new(id.clone()));
+                    let entry = se.get_entry();
+                    se.status = StoreEntryStatus::Borrowed;
+                    entry
+                })
+                .map_err_into(SEK::RetrieveCallError)
+        });
+
+        let mut fle = FileLockEntry::new(self, entry);
+        self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle)
+            .map_err_into(SEK::PostHookExecuteError)
+            .map_err_into(SEK::HookExecutionError)
             .map_err_into(SEK::RetrieveCallError)
+            .and(Ok(fle))
     }
 
     /// Get an entry from the store if it exists.
@@ -596,23 +600,25 @@ impl Store {
                 .map_err_into(SEK::DeleteCallError)
         }
 
-        let mut entries = match self.entries.write() {
-            Err(_) => return Err(SE::new(SEK::LockPoisoned, None))
-                .map_err_into(SEK::DeleteCallError),
-            Ok(e) => e,
-        };
+        {
+            let mut entries = match self.entries.write() {
+                Err(_) => return Err(SE::new(SEK::LockPoisoned, None))
+                    .map_err_into(SEK::DeleteCallError),
+                Ok(e) => e,
+            };
 
-        // if the entry is currently modified by the user, we cannot drop it
-        if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
-            return Err(SE::new(SEK::IdLocked, None))
-                .map_err_into(SEK::DeleteCallError);
-        }
+            // if the entry is currently modified by the user, we cannot drop it
+            if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
+                return Err(SE::new(SEK::IdLocked, None))
+                    .map_err_into(SEK::DeleteCallError);
+            }
 
-        // remove the entry first, then the file
-        entries.remove(&id);
-        if let Err(e) = remove_file(&id) {
-            return Err(SEK::FileError.into_error_with_cause(Box::new(e)))
-                .map_err_into(SEK::DeleteCallError);
+            // remove the entry first, then the file
+            entries.remove(&id);
+            if let Err(e) = remove_file(&id) {
+                return Err(SEK::FileError.into_error_with_cause(Box::new(e)))
+                    .map_err_into(SEK::DeleteCallError);
+            }
         }
 
         self.execute_hooks_for_id(self.post_delete_aspects.clone(), &id)
@@ -680,19 +686,22 @@ impl Store {
                 .map_err_into(SEK::MoveByIdCallError)
         }
 
-        let hsmap = self.entries.write();
-        if hsmap.is_err() {
-            return Err(SE::new(SEK::LockPoisoned, None))
-        }
-        if hsmap.unwrap().contains_key(&old_id) {
-            return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
-        } else {
-            match rename(old_id, new_id.clone()) {
-                Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
-                _ => {
-                    debug!("Rename worked");
-                },
+        {
+            let hsmap = self.entries.write();
+            if hsmap.is_err() {
+                return Err(SE::new(SEK::LockPoisoned, None))
             }
+            if hsmap.unwrap().contains_key(&old_id) {
+                return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
+            } else {
+                match rename(old_id, new_id.clone()) {
+                    Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
+                    _ => {
+                        debug!("Rename worked");
+                    },
+                }
+            }
+
         }
 
         self.execute_hooks_for_id(self.pre_move_aspects.clone(), &new_id)
