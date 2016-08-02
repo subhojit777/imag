@@ -3,8 +3,13 @@ use std::io::stderr;
 
 use log::{Log, LogLevel, LogRecord, LogMetadata};
 
+use ansi_term::Style;
+use ansi_term::Colour;
+use ansi_term::ANSIString;
+
 pub struct ImagLogger {
     lvl: LogLevel,
+    color_enabled: bool,
 }
 
 impl ImagLogger {
@@ -12,6 +17,28 @@ impl ImagLogger {
     pub fn new(lvl: LogLevel) -> ImagLogger {
         ImagLogger {
             lvl: lvl,
+            color_enabled: true
+        }
+    }
+
+    pub fn with_color(mut self, b: bool) -> ImagLogger {
+        self.color_enabled = b;
+        self
+    }
+
+    fn style_or_not(&self, c: Style, s: String) -> ANSIString {
+        if self.color_enabled {
+            c.paint(s)
+        } else {
+            ANSIString::from(s)
+        }
+    }
+
+    fn color_or_not(&self, c: Colour, s: String) -> ANSIString {
+        if self.color_enabled {
+            c.paint(s)
+        } else {
+            ANSIString::from(s)
         }
     }
 
@@ -33,22 +60,22 @@ impl Log for ImagLogger {
             let loc = record.location();
             match record.metadata().level() {
                 LogLevel::Debug => {
-                    let lvl  = Cyan.paint(format!("{}", record.level()));
-                    let file = Cyan.paint(format!("{}", loc.file()));
-                    let ln   = Cyan.paint(format!("{}", loc.line()));
-                    let args = Cyan.paint(format!("{}", record.args()));
+                    let lvl  = self.color_or_not(Cyan, format!("{}", record.level()));
+                    let file = self.color_or_not(Cyan, format!("{}", loc.file()));
+                    let ln   = self.color_or_not(Cyan, format!("{}", loc.line()));
+                    let args = self.color_or_not(Cyan, format!("{}", record.args()));
 
                     writeln!(stderr(), "[imag][{: <5}][{}][{: >5}]: {}", lvl, file, ln, args).ok();
                 },
                 LogLevel::Warn | LogLevel::Error => {
-                    let lvl  = Red.blink().paint(format!("{}", record.level()));
-                    let args = Red.paint(format!("{}", record.args()));
+                    let lvl  = self.style_or_not(Red.blink(), format!("{}", record.level()));
+                    let args = self.color_or_not(Red, format!("{}", record.args()));
 
                     writeln!(stderr(), "[imag][{: <5}]: {}", lvl, args).ok();
                 },
                 LogLevel::Info => {
-                    let lvl  = Yellow.paint(format!("{}", record.level()));
-                    let args = Yellow.paint(format!("{}", record.args()));
+                    let lvl  = self.color_or_not(Yellow, format!("{}", record.level()));
+                    let args = self.color_or_not(Yellow, format!("{}", record.args()));
 
                     writeln!(stderr(), "[imag][{: <5}]: {}", lvl, args).ok();
                 },
