@@ -12,8 +12,8 @@ by contributing to imag.
 ## Without Github
 
 If you do not want to use github for your contribution, this is completely okay
-with us. Feel free to contact [me](https://github.com/matthiasbeyer) via mail,
-feel also free to submit patches via mail (use `git format-patch` and
+with us. Feel free to contact [us via our mailinglist](http://imag-pim.org/mailinglist/)
+via mail, feel also free to submit patches via mail (use `git format-patch` and
 `git send-email`, always add a cover letter to describe your submission).
 
 Also ensure that each commit has

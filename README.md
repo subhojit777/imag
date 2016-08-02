@@ -149,10 +149,11 @@ outdated.
 
 ## Contact
 
-You can contact [me](https://github.com/matthiasbeyer) via mail at beyermatthias
-dot de if you need to.
+Have a look at [our website](http://imag-pim.org) where you can find some
+information on how to get in touch and so on.
 
-Feel free to join our new IRC channel at freenode: #imag.
+Feel free to join our new IRC channel at freenode: #imag
+or our [mailinglist](http://imag-pim.org/mailinglist/).
 
 ## License
 
