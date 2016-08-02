@@ -138,24 +138,30 @@ impl StoreIdAccessor for CreateHook {
                 repo.head()
                     .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't fetch HEAD")
                     .map_err_into(GHEK::RepositoryHeadFetchingError)
-                    .and_then(|h| {
-                        h.target().ok_or(GHEK::RepositoryHeadTargetFetchingError.into_error())
-                    })
+                    .map(|h| h.target())
                     .and_then(|oid| {
-                        repo.find_commit(oid)
-                            .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't find commit")
-                            .map_dbg_err(|_| format!("\toid = {:?}", oid))
-                            .map_err_into(GHEK::RepositoryCommitFindingError)
+                        match oid {
+                            Some(oid) => {
+                                repo.find_commit(oid)
+                                    .map(|c| Some(c))
+                                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't find commit")
+                                    .map_dbg_err(|_| format!("\toid = {:?}", oid))
+                                    .map_err_into(GHEK::RepositoryCommitFindingError)
+                            },
+                            None => Ok(None),
+                        }
                     })
                     .map_err_into(GHEK::RepositoryError)
                     .map_err(|e| e.into())
                     .map(|parent| (repo, cfg, sig, idx, tree, parent))
             })
-            .and_then(|(repo, cfg, sig, idx, tree, parent)| {
-                let mut parents = vec![];
-                parents.push(parent);
+            .and_then(|(repo, cfg, sig, idx, tree, opt_parent)| {
+                let (msg, parents) = match opt_parent {
+                    None    => (String::from("Initial commit"), vec![]),
+                    Some(p) => (commit_message(&cfg, StoreAction::Create), vec![p]),
+                };
+
                 let parents = parents.iter().collect::<Vec<_>>();
-                let msg = commit_message(&cfg, StoreAction::Create);
                 repo.commit(Some("HEAD"), &sig, &sig, &msg[..], &tree, &parents)
                     .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't commit")
                     .map_err_into(GHEK::RepositoryCommittingError)
