@@ -21,6 +21,8 @@ generate_error_module!(
         RepositoryTreeFindingError        => "Error while finding repository tree",
         RepositoryCommitFindingError      => "Error while finding commit",
         RepositoryCommittingError         => "Error while committing",
+        RepositoryHeadFetchingError       => "Error while fetching HEAD",
+        RepositoryHeadTargetFetchingError => "Error while fetching target of HEAD",
         HeadFetchError                    => "Error while getting HEAD",
         NotOnBranch                       => "No Branch is checked out",
         MkRepo => "Repository creation error",
