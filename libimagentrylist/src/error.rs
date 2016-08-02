@@ -1,5 +1,6 @@
 generate_error_module!(
     generate_error_types!(ListError, ListErrorKind,
+        IOError        => "IO Error",
         FormatError    => "FormatError",
         EntryError     => "EntryError",
         IterationError => "IterationError",
