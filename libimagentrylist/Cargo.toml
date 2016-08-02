@@ -7,6 +7,7 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 clap = "2.1.1"
 log = "0.3"
 toml = "0.1.25"
+prettytable-rs = "0.6.*"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
