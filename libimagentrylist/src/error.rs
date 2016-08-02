@@ -10,4 +10,5 @@ generate_error_module!(
 
 pub use self::error::ListError;
 pub use self::error::ListErrorKind;
+pub use self::error::MapErrInto;
 
