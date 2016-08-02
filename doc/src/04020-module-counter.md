@@ -20,6 +20,7 @@ counters will be added as well.
 Here are some examples how to use the counter module:
 
 ```bash
+
 imag counter create --name example --initval 42 # or: -n example -i 42
 imag counter --inc example # or -i example
 imag counter --reset example
