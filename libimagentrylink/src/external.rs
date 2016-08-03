@@ -19,9 +19,11 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
+use libimagutil::debug_result::*;
 
 use error::LinkError as LE;
 use error::LinkErrorKind as LEK;
+use error::MapErrInto;
 use result::Result;
 use internal::InternalLinker;
 use module_path::ModuleEntryPath;
@@ -150,12 +152,12 @@ impl ExternalLinker for Entry {
 
             // retrieve the file from the store, which implicitely creates the entry if it does not
             // exist
-            let file = store.retrieve(file_id.clone());
-            if file.is_err() {
-                debug!("Failed to create or retrieve an file for this link '{:?}'", link);
-                return Err(LE::new(LEK::StoreWriteError, Some(Box::new(file.unwrap_err()))));
-            }
-            let mut file = file.unwrap();
+            let mut file = try!(store
+                .retrieve(file_id.clone())
+                .map_err_into(LEK::StoreWriteError)
+                .map_dbg_err(|_| {
+                    format!("Failed to create or retrieve an file for this link '{:?}'", link)
+                }));
 
             debug!("Generating header content!");
             {

@@ -7,6 +7,7 @@ use libimagstore::store::Result as StoreResult;
 use libimagerror::into::IntoError;
 
 use error::LinkErrorKind as LEK;
+use error::MapErrInto;
 use result::Result;
 
 use toml::Value;
