@@ -36,11 +36,10 @@ pub fn create(rt: &Runtime) {
                 exit(1);
             }
 
-            let path = build_entry_path(rt.store(), path.unwrap());
-            if path.is_err() {
-                trace_error_exit(&path.unwrap_err(), 1);
-            }
-            let path = path.unwrap();
+            let path = match build_entry_path(rt.store(), path.unwrap()) {
+                Err(e) => trace_error_exit(&e, 1),
+                Ok(p) => p,
+            };
             debug!("path = {:?}", path);
 
             if scmd.subcommand_matches("entry").is_some() {
