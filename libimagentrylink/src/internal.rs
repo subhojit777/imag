@@ -7,7 +7,6 @@ use libimagstore::store::Result as StoreResult;
 use libimagerror::into::IntoError;
 
 use error::LinkErrorKind as LEK;
-use error::MapErrInto;
 use result::Result;
 
 use toml::Value;
@@ -50,11 +49,19 @@ impl InternalLinker for Entry {
             new_links.push(link);
         }
 
-        let new_links = links_into_values(new_links);
-        if new_links.iter().any(|o| o.is_none()) {
-            return Err(LEK::InternalConversionError.into());
-        }
-        let new_links = new_links.into_iter().map(|o| o.unwrap()).collect();
+        let new_links = try!(links_into_values(new_links)
+                             .into_iter()
+                             .fold(Ok(vec![]), |acc, elem| {
+                                acc.and_then(move |mut v| {
+                                    match elem {
+                                        None => Err(LEK::InternalConversionError.into()),
+                                        Some(e) => {
+                                            v.push(e);
+                                            Ok(v)
+                                        },
+                                    }
+                                })
+                            }));
         process_rw_result(self.get_header_mut().set("imag.links", Value::Array(new_links)))
     }
 
