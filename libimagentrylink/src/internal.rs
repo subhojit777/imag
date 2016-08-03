@@ -138,14 +138,21 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
     target.get_internal_links()
         .and_then(|mut links| {
             links.push(from);
-            let links = links_into_values(links);
-            if links.iter().any(|o| o.is_none()) {
-                Err(LEK::InternalConversionError.into())
-            } else {
-                let links = links.into_iter().map(|opt| opt.unwrap()).collect();
-                process_rw_result(target.get_header_mut().set("imag.links", Value::Array(links)))
-                    .map(|_| ())
-            }
+            let links = try!(links_into_values(links)
+                             .into_iter()
+                             .fold(Ok(vec![]), |acc, elem| {
+                                acc.and_then(move |mut v| {
+                                    match elem {
+                                        None => Err(LEK::InternalConversionError.into()),
+                                        Some(e) => {
+                                            v.push(e);
+                                            Ok(v)
+                                        },
+                                    }
+                                })
+                             }));
+            process_rw_result(target.get_header_mut().set("imag.links", Value::Array(links)))
+                .map(|_| ())
         })
 }
 
