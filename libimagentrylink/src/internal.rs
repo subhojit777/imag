@@ -49,11 +49,19 @@ impl InternalLinker for Entry {
             new_links.push(link);
         }
 
-        let new_links = links_into_values(new_links);
-        if new_links.iter().any(|o| o.is_none()) {
-            return Err(LEK::InternalConversionError.into());
-        }
-        let new_links = new_links.into_iter().map(|o| o.unwrap()).collect();
+        let new_links = try!(links_into_values(new_links)
+                             .into_iter()
+                             .fold(Ok(vec![]), |acc, elem| {
+                                acc.and_then(move |mut v| {
+                                    match elem {
+                                        None => Err(LEK::InternalConversionError.into()),
+                                        Some(e) => {
+                                            v.push(e);
+                                            Ok(v)
+                                        },
+                                    }
+                                })
+                            }));
         process_rw_result(self.get_header_mut().set("imag.links", Value::Array(new_links)))
     }
 
@@ -106,17 +114,22 @@ fn links_into_values(links: Vec<StoreId>) -> Vec<Option<Value>> {
 }
 
 fn rewrite_links(header: &mut EntryHeader, links: Vec<StoreId>) -> Result<()> {
-    let links = links_into_values(links);
+    let links = try!(links_into_values(links)
+                     .into_iter()
+                     .fold(Ok(vec![]), |acc, elem| {
+                        acc.and_then(move |mut v| {
+                            match elem {
+                                None => Err(LEK::InternalConversionError.into()),
+                                Some(e) => {
+                                    v.push(e);
+                                    Ok(v)
+                                },
+                            }
+                        })
+                     }));
 
-    if links.iter().any(|o| o.is_none()) {
-        // if any type convert failed we fail as well
-        Err(LEK::InternalConversionError.into())
-    } else {
-        // I know it is ugly
-        let links = links.into_iter().map(|opt| opt.unwrap()).collect();
-        let process = header.set("imag.links", Value::Array(links));
-        process_rw_result(process).map(|_| ())
-    }
+    let process = header.set("imag.links", Value::Array(links));
+    process_rw_result(process).map(|_| ())
 }
 
 /// When Linking A -> B, the specification wants us to link back B -> A.
@@ -125,14 +138,21 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
     target.get_internal_links()
         .and_then(|mut links| {
             links.push(from);
-            let links = links_into_values(links);
-            if links.iter().any(|o| o.is_none()) {
-                Err(LEK::InternalConversionError.into())
-            } else {
-                let links = links.into_iter().map(|opt| opt.unwrap()).collect();
-                process_rw_result(target.get_header_mut().set("imag.links", Value::Array(links)))
-                    .map(|_| ())
-            }
+            let links = try!(links_into_values(links)
+                             .into_iter()
+                             .fold(Ok(vec![]), |acc, elem| {
+                                acc.and_then(move |mut v| {
+                                    match elem {
+                                        None => Err(LEK::InternalConversionError.into()),
+                                        Some(e) => {
+                                            v.push(e);
+                                            Ok(v)
+                                        },
+                                    }
+                                })
+                             }));
+            process_rw_result(target.get_header_mut().set("imag.links", Value::Array(links)))
+                .map(|_| ())
         })
 }
 
