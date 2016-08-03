@@ -10,11 +10,8 @@ pub fn delete(rt: &Runtime) {
         .map(|sub| {
             sub.value_of("id")
                 .map(|id| {
-                    let path = build_entry_path(rt.store(), id);
-                    if path.is_err() {
-                        trace_error_exit(&path.unwrap_err(), 1);
-                    }
-                    let path = path.unwrap();
+                    let path = try!(build_entry_path(rt.store(), id)
+                                    .map_err(|e| trace_error_exit(&e, 1)));
                     debug!("Deleting file at {:?}", id);
 
                     rt.store()
