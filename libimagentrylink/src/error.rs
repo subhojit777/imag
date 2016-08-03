@@ -13,4 +13,5 @@ generate_error_module!(
 
 pub use self::error::LinkError;
 pub use self::error::LinkErrorKind;
+pub use self::error::MapErrInto;
 
