@@ -83,7 +83,7 @@ fn count_error_causes(e: &Error) -> u64 {
 fn print_trace_dbg(idx: u64, e: &Error) {
     debug!("{}: {}", Red.blink().paint(format!("ERROR[{:>4}]", idx)), e.description());
     if e.cause().is_some() {
-        print_trace_dbg(idx + 1, e.cause().unwrap());
+        e.cause().map(|c| print_trace_dbg(idx + 1, c));
     }
 }
 
