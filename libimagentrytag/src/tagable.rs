@@ -7,6 +7,7 @@ use libimagstore::store::{Entry, EntryHeader, FileLockEntry};
 use libimagerror::into::IntoError;
 
 use error::TagErrorKind;
+use error::MapErrInto;
 use result::Result;
 use tag::{Tag, TagSlice};
 use util::is_tag;
