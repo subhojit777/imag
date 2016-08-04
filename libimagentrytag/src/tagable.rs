@@ -30,12 +30,7 @@ pub trait Tagable {
 impl Tagable for EntryHeader {
 
     fn get_tags(&self) -> Result<Vec<Tag>> {
-        let tags = self.read("imag.tags");
-        if tags.is_err() {
-            let kind = TagErrorKind::HeaderReadError;
-            return Err(kind.into_error_with_cause(Box::new(tags.unwrap_err())));
-        }
-        let tags = tags.unwrap();
+        let tags = try!(self.read("imag.tags").map_err_into(TagErrorKind::HeaderReadError));
 
         match tags {
             Some(Value::Array(tags)) => {
