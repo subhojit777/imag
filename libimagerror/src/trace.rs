@@ -62,10 +62,12 @@ pub fn trace_error_dbg(e: &Error) {
 /// processed.
 fn print_trace_maxdepth(idx: u64, e: &Error, max: u64) -> Option<&Error> {
     if e.cause().is_some() && idx > 0 {
-        match print_trace_maxdepth(idx - 1, e.cause().unwrap(), max) {
-            None    => write!(stderr(), "\n").ok(),
-            Some(_) => write!(stderr(), " -- caused:\n").ok(),
-        };
+        e.cause().map(|cause| {
+            match print_trace_maxdepth(idx - 1, cause, max) {
+                None    => write!(stderr(), "\n").ok(),
+                Some(_) => write!(stderr(), " -- caused:\n").ok(),
+            };
+        });
     } else {
         write!(stderr(), "\n").ok();
     }
