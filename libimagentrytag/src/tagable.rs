@@ -101,12 +101,7 @@ impl Tagable for EntryHeader {
     }
 
     fn has_tag(&self, t: TagSlice) -> Result<bool> {
-        let tags = self.read("imag.tags");
-        if tags.is_err() {
-            let kind = TagErrorKind::HeaderReadError;
-            return Err(kind.into_error_with_cause(Box::new(tags.unwrap_err())));
-        }
-        let tags = tags.unwrap();
+        let tags = try!(self.read("imag.tags").map_err_into(TagErrorKind::HeaderReadError));
 
         if !tags.iter().all(|t| is_match!(*t, Value::String(_))) {
             return Err(TagErrorKind::TagTypeError.into());
