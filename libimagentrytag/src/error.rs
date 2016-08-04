@@ -9,4 +9,5 @@ generate_error_module!(
 
 pub use self::error::TagError;
 pub use self::error::TagErrorKind;
+pub use self::error::MapErrInto;
 
