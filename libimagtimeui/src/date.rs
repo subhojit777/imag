@@ -58,20 +58,32 @@ impl Parse for Date {
                 let month = capts.name("M").and_then(|o| FromStr::from_str(o).ok());
                 let day   = capts.name("D").and_then(|o| FromStr::from_str(o).ok());
 
-                if year.is_none() {
-                    debug!("No year");
-                    return None;
-                }
-                if month.is_none() {
-                    debug!("No month");
-                    return None;
-                }
-                if day.is_none() {
-                    debug!("No day");
-                    return None;
-                }
+                let year = match year {
+                    None => {
+                        debug!("No year");
+                        return None;
+                    },
+                    Some(x) => x,
+                };
 
-                Some(Date::new(year.unwrap(), month.unwrap(), day.unwrap()))
+                let month = match month {
+                    None => {
+                        debug!("No month");
+                        return None;
+                    },
+                    Some(x) => x,
+                };
+
+                let day = match day {
+                    None => {
+                        debug!("No day");
+                        return None;
+                    },
+                    Some(x) => x,
+                };
+
+
+                Some(Date::new(year, month, day))
             })
 
     }
