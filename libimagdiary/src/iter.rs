@@ -71,12 +71,11 @@ impl<'a> Iterator for DiaryEntryIterator<'a> {
 
     fn next(&mut self) -> Option<Result<DiaryEntry<'a>>> {
         loop {
-            let next = self.iter.next();
+            let next = match self.iter.next() {
+                Some(s) => s,
+                None => return None,
+            };
             debug!("Next element: {:?}", next);
-            if next.is_none() {
-                return None;
-            }
-            let next = next.unwrap();
 
             if next.is_in_diary(self.name) {
                 debug!("Seems to be in diary: {:?}", next);
