@@ -120,13 +120,7 @@ impl Tagable for EntryHeader {
     fn has_tags(&self, tags: &[Tag]) -> Result<bool> {
         let mut result = true;
         for tag in tags {
-            let check = self.has_tag(tag);
-            if check.is_err() {
-                return Err(check.unwrap_err());
-            }
-            let check = check.unwrap();
-
-            result = result && check;
+            result = result && try!(self.has_tag(tag));
         }
 
         Ok(result)
