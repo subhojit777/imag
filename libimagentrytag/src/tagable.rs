@@ -7,6 +7,7 @@ use libimagstore::store::{Entry, EntryHeader, FileLockEntry};
 use libimagerror::into::IntoError;
 
 use error::TagErrorKind;
+use error::MapErrInto;
 use result::Result;
 use tag::{Tag, TagSlice};
 use util::is_tag;
@@ -29,12 +30,7 @@ pub trait Tagable {
 impl Tagable for EntryHeader {
 
     fn get_tags(&self) -> Result<Vec<Tag>> {
-        let tags = self.read("imag.tags");
-        if tags.is_err() {
-            let kind = TagErrorKind::HeaderReadError;
-            return Err(kind.into_error_with_cause(Box::new(tags.unwrap_err())));
-        }
-        let tags = tags.unwrap();
+        let tags = try!(self.read("imag.tags").map_err_into(TagErrorKind::HeaderReadError));
 
         match tags {
             Some(Value::Array(tags)) => {
@@ -105,12 +101,7 @@ impl Tagable for EntryHeader {
     }
 
     fn has_tag(&self, t: TagSlice) -> Result<bool> {
-        let tags = self.read("imag.tags");
-        if tags.is_err() {
-            let kind = TagErrorKind::HeaderReadError;
-            return Err(kind.into_error_with_cause(Box::new(tags.unwrap_err())));
-        }
-        let tags = tags.unwrap();
+        let tags = try!(self.read("imag.tags").map_err_into(TagErrorKind::HeaderReadError));
 
         if !tags.iter().all(|t| is_match!(*t, Value::String(_))) {
             return Err(TagErrorKind::TagTypeError.into());
@@ -129,13 +120,7 @@ impl Tagable for EntryHeader {
     fn has_tags(&self, tags: &[Tag]) -> Result<bool> {
         let mut result = true;
         for tag in tags {
-            let check = self.has_tag(tag);
-            if check.is_err() {
-                return Err(check.unwrap_err());
-            }
-            let check = check.unwrap();
-
-            result = result && check;
+            result = result && try!(self.has_tag(tag));
         }
 
         Ok(result)
