@@ -205,10 +205,10 @@ impl FromStoreId for DiaryId {
         debug!("Year  = {:?}", year);
         debug!("Name  = {:?}", name);
 
-        let day    = if day.is_none()    { return None; } else { day.unwrap() };
-        let month  = if month.is_none()  { return None; } else { month.unwrap() };
-        let year   = if year.is_none()   { return None; } else { year.unwrap() };
-        let name   = if name.is_none()   { return None; } else { name.unwrap() };
+        let day    = match day   { None => return None, Some(day)   => day };
+        let month  = match month { None => return None, Some(month) => month };
+        let year   = match year  { None => return None, Some(year)  => year };
+        let name   = match name  { None => return None, Some(name)  => name };
 
         Some(DiaryId::new(name, year, month, day, hour, minute))
     }

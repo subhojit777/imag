@@ -71,21 +71,21 @@ impl<'a> Iterator for DiaryEntryIterator<'a> {
 
     fn next(&mut self) -> Option<Result<DiaryEntry<'a>>> {
         loop {
-            let next = self.iter.next();
+            let next = match self.iter.next() {
+                Some(s) => s,
+                None => return None,
+            };
             debug!("Next element: {:?}", next);
-            if next.is_none() {
-                return None;
-            }
-            let next = next.unwrap();
 
             if next.is_in_diary(self.name) {
                 debug!("Seems to be in diary: {:?}", next);
-                let id = DiaryId::from_storeid(&next);
-                if id.is_none() {
-                    debug!("Couldn't parse {:?} into DiaryId", next);
-                    continue;
-                }
-                let id = id.unwrap();
+                let id = match DiaryId::from_storeid(&next) {
+                    Some(i) => i,
+                    None => {
+                        debug!("Couldn't parse {:?} into DiaryId", next);
+                        continue;
+                    }
+                };
                 debug!("Success parsing id = {:?}", id);
 
                 let y = match self.year  { None => true, Some(y) => y == id.year() };
