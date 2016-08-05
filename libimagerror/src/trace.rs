@@ -62,10 +62,12 @@ pub fn trace_error_dbg(e: &Error) {
 /// processed.
 fn print_trace_maxdepth(idx: u64, e: &Error, max: u64) -> Option<&Error> {
     if e.cause().is_some() && idx > 0 {
-        match print_trace_maxdepth(idx - 1, e.cause().unwrap(), max) {
-            None    => write!(stderr(), "\n").ok(),
-            Some(_) => write!(stderr(), " -- caused:\n").ok(),
-        };
+        e.cause().map(|cause| {
+            match print_trace_maxdepth(idx - 1, cause, max) {
+                None    => write!(stderr(), "\n").ok(),
+                Some(_) => write!(stderr(), " -- caused:\n").ok(),
+            };
+        });
     } else {
         write!(stderr(), "\n").ok();
     }
@@ -75,13 +77,13 @@ fn print_trace_maxdepth(idx: u64, e: &Error, max: u64) -> Option<&Error> {
 
 /// Count errors in `Error::cause()` recursively
 fn count_error_causes(e: &Error) -> u64 {
-    1 + if e.cause().is_some() { count_error_causes(e.cause().unwrap()) } else { 0 }
+    1 + e.cause().map(|c| count_error_causes(c)).unwrap_or(0)
 }
 
 fn print_trace_dbg(idx: u64, e: &Error) {
     debug!("{}: {}", Red.blink().paint(format!("ERROR[{:>4}]", idx)), e.description());
     if e.cause().is_some() {
-        print_trace_dbg(idx + 1, e.cause().unwrap());
+        e.cause().map(|c| print_trace_dbg(idx + 1, c));
     }
 }
 
