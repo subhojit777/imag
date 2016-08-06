@@ -60,44 +60,9 @@ fn tw_hook(rt: &Runtime) {
         // The used hook is "on-modify". This hook gives two json-objects
         // per usage und wants one (the second one) back.
         let stdin         = stdin();
-        let stdin         = stdin.lock();
-
-        match import_tasks(stdin) {
-            Ok(ttasks) => for (counter, ttask) in ttasks.iter().enumerate() {
-                if counter % 2 == 1 {
-                    // Only every second task is needed, the first one is the
-                    // task before the change, and the second one after
-                    // the change. The (maybe modified) second one is
-                    // expected by taskwarrior.
-                    match serde_json::ser::to_string(&ttask) {
-                        Ok(val) => println!("{}", val),
-                        Err(e) => {
-                            trace_error(&e);
-                            exit(1);
-                        }
-                    }
-
-                    // Taskwarrior does not have the concept of deleted tasks, but only modified
-                    // ones.
-                    //
-                    // Here we check if the status of a task is deleted and if yes, we delete it
-                    // from the store.
-                    if *ttask.status() == TaskStatus::Deleted {
-                        match Task::delete_by_uuid(rt.store(), *ttask.uuid()) {
-                            Ok(_) => println!("Deleted task {}", *ttask.uuid()),
-                            Err(e) => {
-                                trace_error(&e);
-                                exit(1);
-                            }
-                        }
-                    }
-                } // end if c % 2
-            },
-            Err(e) => {
-                trace_error(&e);
-                exit(1);
-            },
-        }
+        Task::delete_by_imports(rt.store(), stdin.lock())
+            .map_err(|e| trace_error(&e))
+            .ok();
     } else {
         // Should not be possible, as one argument is required via
         // ArgGroup
