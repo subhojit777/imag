@@ -3,7 +3,8 @@ generate_error_module!(
         Unknown              => "Unknown view error",
         GlobError            => "Error while glob()ing",
         PatternError         => "Error in glob() pattern",
-        PatternBuildingError => "Could not build glob() pattern"
+        PatternBuildingError => "Could not build glob() pattern",
+        ViewError            => "Failed to start viewer"
     );
 );
 
