@@ -27,14 +27,14 @@ impl<'a> Task<'a> {
         Task(fle)
     }
 
-    pub fn import<R: BufRead>(store: &'a Store, mut r: R) -> Result<(Task<'a>, Uuid)> {
+    pub fn import<R: BufRead>(store: &'a Store, mut r: R) -> Result<(Task<'a>, String, Uuid)> {
         let mut line = String::new();
         r.read_line(&mut line);
         import_task(&line.as_str())
             .map_err_into(TodoErrorKind::ImportError)
             .and_then(|t| {
                 let uuid = t.uuid().clone();
-                t.into_task(store).map(|t| (t, uuid))
+                t.into_task(store).map(|t| (t, line, uuid))
             })
     }
 
