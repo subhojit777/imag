@@ -4,7 +4,7 @@ name = "imag-todo"
 version = "0.1.0"
 
 [dependencies]
-clap = "2.4.3"
+clap = "2.*"
 glob = "0.2.11"
 log = "0.3.6"
 semver = "0.2.3"
