@@ -7,7 +7,6 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 log = "0.3"
 toml = "0.1.25"
 glob = "0.2.11"
-tempfile = "2.1.4"
 
 [dependencies.libimagrt]
 path = "../libimagrt"

@@ -17,7 +17,6 @@
 #[macro_use] extern crate log;
 extern crate glob;
 extern crate toml;
-extern crate tempfile;
 
 extern crate libimagstore;
 extern crate libimagrt;
