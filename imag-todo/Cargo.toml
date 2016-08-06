@@ -9,7 +9,7 @@ glob = "0.2.11"
 log = "0.3.6"
 semver = "0.2.3"
 serde_json = "0.7.3"
-task-hookrs = { git = "https://github.com/mario-kr/task-hookrs.git" }
+task-hookrs = "0.2.0"
 toml = "0.1.28"
 version = "2.0.1"
 
