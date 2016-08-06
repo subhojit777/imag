@@ -5,7 +5,7 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
 log = "0.3"
-toml = "0.1.25"
+toml = "0.2.*"
 glob = "0.2.11"
 
 [dependencies.libimagstore]

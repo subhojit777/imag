@@ -7,7 +7,7 @@ authors = ["mario <mario-krehl@gmx.de>"]
 semver = "0.2"
 task-hookrs = "0.2"
 uuid = "0.2.0"
-toml = "0.1.28"
+toml = "0.2.*"
 log = "0.3.6"
 serde_json = "0.7.3"
 

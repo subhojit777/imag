@@ -8,7 +8,7 @@ itertools = "0.4"
 log = "0.3"
 rust-crypto = "0.2"
 semver = "0.2"
-toml = "0.1.27"
+toml = "0.2.*"
 version = "2.0.1"
 walkdir = "0.1.5"
 

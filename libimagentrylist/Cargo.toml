@@ -6,7 +6,7 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 [dependencies]
 clap = "2.*"
 log = "0.3"
-toml = "0.1.25"
+toml = "0.2.*"
 prettytable-rs = "0.6.*"
 
 [dependencies.libimagstore]
