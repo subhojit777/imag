@@ -50,7 +50,7 @@ fn tw_hook(rt: &Runtime) {
         let stdin = stdin.lock(); // implements BufRead which is required for `Task::import()`
 
         match Task::import(rt.store(), stdin) {
-            Ok((_, line, uuid)) => info!("{}\nTask {} stored in imag", line, uuid),
+            Ok((_, line, uuid)) => println!("{}\nTask {} stored in imag", line, uuid),
             Err(e) => {
                 trace_error(&e);
                 exit(1);
