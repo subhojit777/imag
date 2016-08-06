@@ -13,8 +13,9 @@ use std::io::ErrorKind;
 
 use walkdir::WalkDir;
 use crossbeam::*;
+use clap::{Arg, SubCommand};
 
-const DBG_FLAG: &'static str = "--debug";
+use libimagrt::runtime::Runtime;
 
 fn help(cmds: Vec<String>) {
     println!(r#"
@@ -100,88 +101,86 @@ fn get_commands() -> Vec<String> {
     execs
 }
 
-fn find_command() -> Option<String> {
-    env::args().skip(1).filter(|x| !x.starts_with("-")).next()
-}
-
-fn find_flag() -> Option<String> {
-    env::args().skip(1).filter(|x| x.starts_with("-")).next()
-}
-
-fn is_debug_flag<T: AsRef<str>>(ref s: &T) -> bool {
-    s.as_ref() == DBG_FLAG
-}
-
-fn find_args(command: &str) -> Vec<String> {
-    env::args()
-        .skip(1)
-        .position(|e| e == command)
-        .map(|pos| env::args().skip(pos + 2).collect::<Vec<String>>())
-        .unwrap_or(vec![])
-}
-
 fn main() {
-    let commands  = get_commands();
-    let mut args  = env::args();
-    let _         = args.next();
-    let first_arg = match find_command() {
-        Some(s) => s,
-        None    => match find_flag() {
-            Some(s) => s,
-            None => {
-                help(commands);
-                exit(0);
-            },
-        },
-    };
-    let is_debug = env::args().skip(1).find(is_debug_flag).is_some();
+    let appname = "imag";
+    let version = &version!();
+    let about   = "imag - the PIM suite for the commandline";
+    let mut app = Runtime::get_default_cli_builder(appname, version, about);
 
-    match &first_arg[..] {
-        "--help" | "-h" => {
-            help(commands);
-            exit(0);
-        },
+    let commands = get_commands();
 
-        "--version"  => println!("imag {}", &version!()[..]),
+    for command in commands.iter() {
+        let s = SubCommand::with_name(&command[..]);
+        app = app.subcommand(s)
+    }
 
-        "--versions" => {
-            let mut result = vec![];
-            for command in commands.iter() {
-                result.push(crossbeam::scope(|scope| {
-                    scope.spawn(|| {
-                        let v = Command::new(command).arg("--version").output();
-                        match v {
-                            Ok(v) => match String::from_utf8(v.stdout) {
-                                Ok(s) => format!("{} -> {}", command, s),
-                                Err(e) => format!("Failed calling {} -> {:?}", command, e),
-                            },
+    let app = app.arg(Arg::with_name("version")
+                      .long("version")
+                      .takes_value(false)
+                      .required(false)
+                      .multiple(false)
+                      .help("Get the version of imag"))
+                 .arg(Arg::with_name("versions")
+                      .long("versions")
+                      .takes_value(false)
+                      .required(false)
+                      .multiple(false)
+                      .help("Get the versions of the imag commands"));
+
+    let matches = app.get_matches();
+
+    if matches.is_present("version") {
+        println!("imag {}", &version!()[..]);
+        exit(0);
+    }
+
+    if matches.is_present("versions") {
+        let mut result = vec![];
+        for command in commands.iter() {
+            result.push(crossbeam::scope(|scope| {
+                scope.spawn(|| {
+                    let v = Command::new(command).arg("--version").output();
+                    match v {
+                        Ok(v) => match String::from_utf8(v.stdout) {
+                            Ok(s) => format!("{} -> {}", command, s),
                             Err(e) => format!("Failed calling {} -> {:?}", command, e),
-                        }
-                    })
-                }))
+                        },
+                        Err(e) => format!("Failed calling {} -> {:?}", command, e),
+                    }
+                })
+            }))
+        }
+
+        for versionstring in result.into_iter().map(|handle| handle.join()) {
+            println!("{}", versionstring);
+        }
+    }
+
+    matches.subcommand_name()
+        .map(|subcommand| {
+
+            let mut subcommand_args = vec![];
+
+            for arg in Runtime::arg_names() {
+                matches.value_of(arg)
+                    .map(|value| {
+                        subcommand_args.push(arg);
+                        subcommand_args.push(value);
+                    });
             }
 
-            for versionstring in result.into_iter().map(|handle| handle.join()) {
-                println!("{}", versionstring);
-            }
-        },
-
-        s => {
-            let mut subcommand_args = find_args(s);
-            if is_debug && subcommand_args.iter().find(is_debug_flag).is_none() {
-                subcommand_args.insert(0, String::from(DBG_FLAG));
-            }
-            match Command::new(format!("imag-{}", s))
+            match Command::new(format!("imag-{}", subcommand))
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
+                .arg(subcommand)
                 .args(&subcommand_args[..])
                 .spawn()
                 .and_then(|mut handle| handle.wait())
             {
                 Ok(exit_status) => {
                     if !exit_status.success() {
-                        println!("{} exited with non-zero exit code", s);
+                        println!("{} exited with non-zero exit code", subcommand);
                         exit(exit_status.code().unwrap_or(42));
                     }
                 },
@@ -189,11 +188,11 @@ fn main() {
                 Err(e) => {
                     match e.kind() {
                         ErrorKind::NotFound => {
-                            println!("No such command: 'imag-{}'", s);
+                            println!("No such command: 'imag-{}'", subcommand);
                             exit(2);
                         },
                         ErrorKind::PermissionDenied => {
-                            println!("No permission to execute: 'imag-{}'", s);
+                            println!("No permission to execute: 'imag-{}'", subcommand);
                             exit(1);
                         },
                         _ => {
@@ -203,7 +202,5 @@ fn main() {
                     }
                 }
             }
-
-        },
-    }
+        });
 }
