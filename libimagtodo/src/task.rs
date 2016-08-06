@@ -135,8 +135,6 @@ impl<'a> DerefMut for Task<'a> {
 }
 
 /// A trait to get a `libimagtodo::task::Task` out of the implementing object.
-/// This Task struct is merely a wrapper for a `FileLockEntry`, therefore the function name
-/// `into_filelockentry`.
 pub trait IntoTask<'a> {
 
     /// # Usage
