@@ -2,6 +2,7 @@ extern crate semver;
 extern crate uuid;
 extern crate toml;
 #[macro_use] extern crate log;
+extern crate serde_json;
 
 #[macro_use] extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
