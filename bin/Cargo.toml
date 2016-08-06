@@ -9,3 +9,6 @@ walkdir = "0.1.5"
 crossbeam = "0.2.9"
 clap = "2.*"
 
+[dependencies.libimagrt]
+path = "../libimagrt"
+

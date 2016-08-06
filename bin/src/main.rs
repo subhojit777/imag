@@ -3,6 +3,8 @@ extern crate clap;
 #[macro_use] extern crate version;
 extern crate walkdir;
 
+extern crate libimagrt;
+
 use std::env;
 use std::process::exit;
 use std::process::Command;
