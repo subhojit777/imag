@@ -7,4 +7,5 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 version = "2.0"
 walkdir = "0.1.5"
 crossbeam = "0.2.9"
+clap = "2.*"
 

@@ -1,4 +1,5 @@
 extern crate crossbeam;
+extern crate clap;
 #[macro_use] extern crate version;
 extern crate walkdir;
 
