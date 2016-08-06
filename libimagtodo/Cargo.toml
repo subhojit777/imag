@@ -5,7 +5,7 @@ authors = ["mario <mario-krehl@gmx.de>"]
 
 [dependencies]
 semver = "0.2"
-task-hookrs = { git = "https://github.com/mario-kr/task-hookrs.git" }
+task-hookrs = "0.2"
 uuid = "0.2.0"
 toml = "0.1.28"
 
