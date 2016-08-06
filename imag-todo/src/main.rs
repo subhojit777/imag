@@ -39,6 +39,9 @@ fn main() {
     match rt.cli().subcommand_name() {
         Some("tw-hook") => tw_hook(&rt),
         Some("list") => list(&rt),
+        None => {
+            warn!("No command");
+        },
         _ => unreachable!(),
     } // end match scmd
 } // end main
