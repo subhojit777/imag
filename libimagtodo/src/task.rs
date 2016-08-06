@@ -100,6 +100,43 @@ impl<'a> Task<'a> {
             })
     }
 
+    pub fn delete_by_imports<R: BufRead>(store: &Store, r: R) -> Result<()> {
+        use serde_json::ser::to_string as serde_to_string;
+        use task_hookrs::status::TaskStatus;
+
+        for (counter, res_ttask) in import_tasks(r).into_iter().enumerate() {
+            match res_ttask {
+                Ok(ttask) => {
+                    if counter % 2 == 1 {
+                        // Only every second task is needed, the first one is the
+                        // task before the change, and the second one after
+                        // the change. The (maybe modified) second one is
+                        // expected by taskwarrior.
+                        match serde_to_string(&ttask).map_err_into(TodoErrorKind::ImportError) {
+                            // use println!() here, as we talk with TW
+                            Ok(val) => println!("{}", val),
+                            Err(e)  => return Err(e),
+                        }
+
+                        // Taskwarrior does not have the concept of deleted tasks, but only modified
+                        // ones.
+                        //
+                        // Here we check if the status of a task is deleted and if yes, we delete it
+                        // from the store.
+                        if *ttask.status() == TaskStatus::Deleted {
+                            match Task::delete_by_uuid(store, *ttask.uuid()) {
+                                Ok(_)  => info!("Deleted task {}", *ttask.uuid()),
+                                Err(e) => return Err(e),
+                            }
+                        }
+                    } // end if c % 2
+                },
+                Err(e) => return Err(e).map_err_into(TodoErrorKind::ImportError),
+            }
+        }
+        Ok(())
+    }
+
     pub fn delete_by_uuid(store: &Store, uuid: Uuid) -> Result<()> {
         store.delete(ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid())
             .map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
