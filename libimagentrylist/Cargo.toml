@@ -4,7 +4,7 @@ version = "0.2.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
-clap = "2.1.1"
+clap = "2.*"
 log = "0.3"
 toml = "0.1.25"
 prettytable-rs = "0.6.*"
