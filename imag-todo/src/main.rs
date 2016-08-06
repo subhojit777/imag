@@ -47,7 +47,7 @@ fn tw_hook(rt: &Runtime) {
     let subcmd = rt.cli().subcommand_matches("tw-hook").unwrap();
     if subcmd.is_present("add") {
         let stdin = stdin();
-        let stdin = stdin.lock();
+        let stdin = stdin.lock(); // implements BufRead which is required for `Task::import()`
 
         match Task::import(rt.store(), stdin) {
             Ok((_, uuid)) => info!("Task {} stored in imag", uuid),
