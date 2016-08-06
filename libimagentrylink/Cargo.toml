@@ -6,7 +6,7 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 [dependencies]
 itertools = "0.4"
 log = "0.3"
-toml = "0.1.27"
+toml = "0.2.*"
 semver = "0.2"
 url = "1.1"
 rust-crypto = "0.2.35"
