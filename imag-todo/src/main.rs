@@ -151,7 +151,7 @@ fn list(rt: &Runtime) {
                 uuids.join("\n")
             };
 
-            /// and then print that
+            // and then print that
             println!("{}", outstring);
         });
 
