@@ -77,6 +77,11 @@ fn tw_hook(rt: &Runtime) {
                         }
                     }
 
+                    // Taskwarrior does not have the concept of deleted tasks, but only modified
+                    // ones.
+                    //
+                    // Here we check if the status of a task is deleted and if yes, we delete it
+                    // from the store.
                     if *ttask.status() == TaskStatus::Deleted {
                         match Task::delete_by_uuid(rt.store(), *ttask.uuid()) {
                             Ok(_) => println!("Deleted task {}", *ttask.uuid()),
