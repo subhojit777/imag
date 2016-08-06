@@ -4,7 +4,7 @@ version = "0.2.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
-clap = "2.1.1"
+clap = "2.1*"
 lazy_static = "0.1"
 log = "0.3"
 chrono = "0.2"
