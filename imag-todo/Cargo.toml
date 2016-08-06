@@ -1,0 +1,26 @@
+[package]
+authors = ["mario <mario-krehl@gmx.de>"]
+name = "imag-todo"
+version = "0.1.0"
+
+[dependencies]
+clap = "2.4.3"
+glob = "0.2.11"
+log = "0.3.6"
+semver = "0.2.3"
+serde_json = "0.7.4"
+task-hookrs = "0.2.0"
+toml = "0.1.28"
+version = "2.0.1"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagtodo]
+path = "../libimagtodo"
+
+[dependencies.libimagerror]
+path = "../libimagerror"

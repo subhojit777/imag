@@ -1,0 +1,19 @@
+[package]
+name = "libimagtodo"
+version = "0.1.0"
+authors = ["mario <mario-krehl@gmx.de>"]
+
+[dependencies]
+semver = "0.2"
+task-hookrs = "0.2"
+uuid = "0.2.0"
+toml = "0.1.28"
+log = "0.3.6"
+serde_json = "0.7.3"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
