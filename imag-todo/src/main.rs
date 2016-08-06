@@ -109,8 +109,9 @@ fn list(rt: &Runtime) {
     let subcmd  = rt.cli().subcommand_matches("list").unwrap();
     let verbose = subcmd.is_present("verbose");
 
-    let res = Task::all(rt.store())
-        .map(|iter| {
+    let res = Task::all(rt.store()) // get all tasks
+        .map(|iter| { // and if this succeeded
+            // filter out the ones were we can read the uuid
             let uuids : Vec<_> = iter.filter_map(|t| match t {
                 Ok(v) => match v.get_header().read("todo.uuid") {
                     Ok(Some(Value::String(ref u))) => Some(u.clone()),
@@ -131,7 +132,8 @@ fn list(rt: &Runtime) {
             })
             .collect();
 
-            let outstring = if verbose {
+            // compose a `task` call with them, ...
+            let outstring = if verbose { // ... if verbose
                 let output = Command::new("task")
                     .stdin(Stdio::null())
                     .args(&uuids)
@@ -145,10 +147,11 @@ fn list(rt: &Runtime) {
 
                 String::from_utf8(output.stdout)
                     .unwrap_or_else(|e| panic!("failed to execute: {}", e))
-            } else {
+            } else { // ... else just join them
                 uuids.join("\n")
             };
 
+            /// and then print that
             println!("{}", outstring);
         });
 
