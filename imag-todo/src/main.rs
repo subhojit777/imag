@@ -19,9 +19,6 @@ use std::io::stdin;
 
 use toml::Value;
 
-use task_hookrs::import::import_tasks;
-use task_hookrs::status::TaskStatus;
-
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagtodo::task::Task;
