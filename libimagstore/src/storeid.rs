@@ -14,7 +14,10 @@ use store::Store;
 
 /// The Index into the Store
 #[derive(Debug, Clone, PartialEq, Hash, Eq, PartialOrd, Ord)]
-pub struct StoreId(PathBuf);
+pub struct StoreId {
+    store_location: PathBuf,
+    id: PathBuf,
+}
 
 impl StoreId {
 
