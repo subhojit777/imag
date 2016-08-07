@@ -95,14 +95,6 @@ impl AsRef<Path> for StoreId {
 
 }
 
-impl Borrow<Path> for StoreId {
-
-    fn borrow(&self) -> &Path {
-        self.id.borrow()
-    }
-
-}
-
 /// This Trait allows you to convert various representations to a single one
 /// suitable for usage in the Store
 pub trait IntoStoreId {
