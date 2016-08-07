@@ -15,8 +15,8 @@ use store::Store;
 /// The Index into the Store
 #[derive(Debug, Clone, PartialEq, Hash, Eq, PartialOrd, Ord)]
 pub struct StoreId {
-    store_location: PathBuf,
-    id: PathBuf,
+    base: Option<PathBuf>,
+    id:   PathBuf,
 }
 
 impl StoreId {
@@ -28,7 +28,7 @@ impl StoreId {
         } else {
             debug!("Create new store id out of: {:?} and {:?}", store.path(), self.id);
 
-            let new_id = StoreId { store_location: store.path().clone(), self.id };
+            let new_id = StoreId { base: Some(store.path().clone()), self.id };
 
             debug!("Created: '{:?}'", new_id);
             new_id
@@ -53,7 +53,7 @@ impl StoreId {
 impl Into<PathBuf> for StoreId {
 
     fn into(self) -> PathBuf {
-        let mut base = self.store_location;
+        let mut base = self.base.unwrap_or(PathBuf::from("/"));
         base.push(self.id);
         base
     }
