@@ -37,7 +37,6 @@ script:
               travis-cargo -q build &&
               travis-cargo -q test &&
               travis-cargo -q bench &&
-              travis-cargo --only stable doc &&
               cd -
             } || exit 1
         }
