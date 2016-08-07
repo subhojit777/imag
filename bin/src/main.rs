@@ -125,9 +125,22 @@ fn main() {
                       .takes_value(false)
                       .required(false)
                       .multiple(false)
-                      .help("Get the versions of the imag commands"));
+                      .help("Get the versions of the imag commands"))
+                 .arg(Arg::with_name("help")
+                      .long("help")
+                      .short("h")
+                      .takes_value(false)
+                      .required(false)
+                      .multiple(false)
+                      .help("Show help"));
+
 
     let matches = app.get_matches();
+
+    if matches.is_present("help") {
+        help(get_commands());
+        exit(0);
+    }
 
     if matches.is_present("version") {
         println!("imag {}", &version!()[..]);
