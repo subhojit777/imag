@@ -98,7 +98,7 @@ impl AsRef<Path> for StoreId {
 impl Borrow<Path> for StoreId {
 
     fn borrow(&self) -> &Path {
-        self.0.borrow()
+        self.id.borrow()
     }
 
 }
