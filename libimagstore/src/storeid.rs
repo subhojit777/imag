@@ -40,7 +40,9 @@ impl StoreId {
 impl Into<PathBuf> for StoreId {
 
     fn into(self) -> PathBuf {
-        self.0
+        let mut base = self.store_location;
+        base.push(self.id);
+        base
     }
 
 }
