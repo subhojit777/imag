@@ -35,7 +35,13 @@ script:
             cd "$1" &&
             {
               travis-cargo -q build &&
-              travis-cargo -q test &&
+              {
+                if [[ $(echo "$1" | grep lib) ]]; then
+                  travis-cargo -q test
+                else
+                  true
+                fi
+              } &&
               cd -
             } || exit 1
         }
