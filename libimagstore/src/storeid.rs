@@ -71,14 +71,6 @@ impl Display for StoreId {
 
 }
 
-impl From<PathBuf> for StoreId {
-
-    fn from(pb: PathBuf) -> StoreId {
-        StoreId(pb)
-    }
-
-}
-
 /// This Trait allows you to convert various representations to a single one
 /// suitable for usage in the Store
 pub trait IntoStoreId {
