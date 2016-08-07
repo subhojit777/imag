@@ -77,12 +77,6 @@ pub trait IntoStoreId {
     fn into_storeid(self) -> StoreId;
 }
 
-impl IntoStoreId for PathBuf {
-    fn into_storeid(self) -> StoreId {
-        StoreId(self)
-    }
-}
-
 impl IntoStoreId for StoreId {
     fn into_storeid(self) -> StoreId {
         self
