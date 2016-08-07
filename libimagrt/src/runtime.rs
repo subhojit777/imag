@@ -166,54 +166,99 @@ impl<'a> Runtime<'a> {
             .version(version)
             .author("Matthias Beyer <mail@beyermatthias.de>")
             .about(about)
-            .arg(Arg::with_name("verbosity")
+            .arg(Arg::with_name(Runtime::arg_verbosity_name())
                 .short("v")
                 .long("verbose")
                 .help("Enables verbosity")
                 .required(false)
                 .takes_value(false))
 
-            .arg(Arg::with_name("debugging")
+            .arg(Arg::with_name(Runtime::arg_debugging_name())
                 .long("debug")
                 .help("Enables debugging output")
                 .required(false)
                 .takes_value(false))
 
-            .arg(Arg::with_name("no-color-output")
+            .arg(Arg::with_name(Runtime::arg_no_color_output_name())
                 .long("no-color")
                 .help("Disable color output")
                 .required(false)
                 .takes_value(false))
 
-            .arg(Arg::with_name("config")
+            .arg(Arg::with_name(Runtime::arg_config_name())
                 .long("config")
                 .help("Path to alternative config file")
                 .required(false)
                 .takes_value(true))
 
-            .arg(Arg::with_name("config-override")
+            .arg(Arg::with_name(Runtime::arg_config_override_name())
                  .long("override-config")
                  .help("Override a configuration settings. Use 'key=value' pairs, where the key is a path in the TOML configuration. The value must be present in the configuration and be convertible to the type of the configuration setting. If the argument does not contain a '=', it gets ignored. Setting Arrays and Tables is not yet supported.")
                  .required(false)
                  .takes_value(true))
 
-            .arg(Arg::with_name("runtimepath")
+            .arg(Arg::with_name(Runtime::arg_runtimepath_name())
                 .long("rtp")
                 .help("Alternative runtimepath")
                 .required(false)
                 .takes_value(true))
 
-            .arg(Arg::with_name("storepath")
+            .arg(Arg::with_name(Runtime::arg_storepath_name())
                 .long("store")
                 .help("Alternative storepath. Must be specified as full path, can be outside of the RTP")
                 .required(false)
                 .takes_value(true))
 
-            .arg(Arg::with_name("editor")
+            .arg(Arg::with_name(Runtime::arg_editor_name())
                 .long("editor")
                 .help("Set editor")
                 .required(false)
                 .takes_value(true))
+    }
+
+    pub fn arg_names() -> Vec<&'static str> {
+        vec![
+            Runtime::arg_verbosity_name(),
+            Runtime::arg_debugging_name(),
+            Runtime::arg_no_color_output_name(),
+            Runtime::arg_config_name(),
+            Runtime::arg_config_override_name(),
+            Runtime::arg_runtimepath_name(),
+            Runtime::arg_storepath_name(),
+            Runtime::arg_editor_name(),
+        ]
+    }
+
+    pub fn arg_verbosity_name() -> &'static str {
+        "verbosity"
+    }
+
+    pub fn arg_debugging_name() -> &'static str {
+        "debugging"
+    }
+
+    pub fn arg_no_color_output_name() -> &'static str {
+        "no-color-output"
+    }
+
+    pub fn arg_config_name() -> &'static str {
+        "config"
+    }
+
+    pub fn arg_config_override_name() -> &'static str {
+        "config-override"
+    }
+
+    pub fn arg_runtimepath_name() -> &'static str {
+        "runtimepath"
+    }
+
+    pub fn arg_storepath_name() -> &'static str {
+        "storepath"
+    }
+
+    pub fn arg_editor_name() -> &'static str {
+        "editor"
     }
 
     /**
