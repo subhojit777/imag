@@ -102,40 +102,34 @@ fn get_commands() -> Vec<String> {
 }
 
 fn main() {
-    let appname = "imag";
-    let version = &version!();
-    let about   = "imag - the PIM suite for the commandline";
-    let mut app = Runtime::get_default_cli_builder(appname, version, about);
-
+    let appname  = "imag";
+    let version  = &version!();
+    let about    = "imag - the PIM suite for the commandline";
     let commands = get_commands();
-
-    for command in commands.iter() {
-        let s = SubCommand::with_name(&command[..]);
-        app = app.subcommand(s)
-    }
-
-    let app = app.arg(Arg::with_name("version")
-                      .long("version")
-                      .takes_value(false)
-                      .required(false)
-                      .multiple(false)
-                      .help("Get the version of imag"))
-                 .arg(Arg::with_name("versions")
-                      .long("versions")
-                      .takes_value(false)
-                      .required(false)
-                      .multiple(false)
-                      .help("Get the versions of the imag commands"))
-                 .arg(Arg::with_name("help")
-                      .long("help")
-                      .short("h")
-                      .takes_value(false)
-                      .required(false)
-                      .multiple(false)
-                      .help("Show help"));
-
-
-    let matches = app.get_matches();
+    let r        = Runtime::get_default_cli_builder(appname, version, about);
+    let matches  = commands
+        .iter()
+        .fold(r, |app, cmd| app.subcommand(SubCommand::with_name(cmd)))
+        .arg(Arg::with_name("version")
+             .long("version")
+             .takes_value(false)
+             .required(false)
+             .multiple(false)
+             .help("Get the version of imag"))
+        .arg(Arg::with_name("versions")
+             .long("versions")
+             .takes_value(false)
+             .required(false)
+             .multiple(false)
+             .help("Get the versions of the imag commands"))
+        .arg(Arg::with_name("help")
+             .long("help")
+             .short("h")
+             .takes_value(false)
+             .required(false)
+             .multiple(false)
+             .help("Show help"))
+        .get_matches();
 
     if matches.is_present("help") {
         help(get_commands());
