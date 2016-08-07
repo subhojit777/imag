@@ -50,9 +50,9 @@ impl Into<PathBuf> for StoreId {
 impl Display for StoreId {
 
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
-        match self.0.to_str() {
+        match self.id.to_str() {
             Some(s) => write!(fmt, "{}", s),
-            None    => write!(fmt, "{}", self.0.to_string_lossy()),
+            None    => write!(fmt, "{}", self.id.to_string_lossy()),
         }
     }
 
