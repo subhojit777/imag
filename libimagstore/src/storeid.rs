@@ -35,6 +35,19 @@ impl StoreId {
         }
     }
 
+    pub fn exists(&self) -> bool {
+        let pb : PathBuf = self.clone().into();
+        pb.exists()
+    }
+
+    pub fn is_file(&self) -> bool {
+        true
+    }
+
+    pub fn is_dir(&self) -> bool {
+        false
+    }
+
 }
 
 impl Into<PathBuf> for StoreId {
@@ -54,15 +67,6 @@ impl Display for StoreId {
             Some(s) => write!(fmt, "{}", s),
             None    => write!(fmt, "{}", self.id.to_string_lossy()),
         }
-    }
-
-}
-
-impl Deref for StoreId {
-    type Target = PathBuf;
-
-    fn deref(&self) -> &PathBuf {
-        &self.0
     }
 
 }
