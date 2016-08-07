@@ -87,14 +87,6 @@ impl From<String> for StoreId {
 
 }
 
-impl AsRef<Path> for StoreId {
-
-    fn as_ref(&self) -> &Path {
-        self.id.as_ref()
-    }
-
-}
-
 /// This Trait allows you to convert various representations to a single one
 /// suitable for usage in the Store
 pub trait IntoStoreId {
