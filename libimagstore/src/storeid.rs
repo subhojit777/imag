@@ -21,6 +21,10 @@ pub struct StoreId {
 
 impl StoreId {
 
+    pub fn new(base: Option<PathBuf>, id: PathBuf) -> StoreId {
+        StoreId { base: base, id: id }
+    }
+
     pub fn storified(self, store: &Store) -> StoreId {
         if self.starts_with(store.path()) {
             debug!("Not storifying {:?}, because it is already.", self);
