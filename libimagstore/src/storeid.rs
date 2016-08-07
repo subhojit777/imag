@@ -79,14 +79,6 @@ impl From<PathBuf> for StoreId {
 
 }
 
-impl From<String> for StoreId {
-
-    fn from(string: String) -> StoreId {
-        StoreId(string.into())
-    }
-
-}
-
 /// This Trait allows you to convert various representations to a single one
 /// suitable for usage in the Store
 pub trait IntoStoreId {
