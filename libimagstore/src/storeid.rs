@@ -151,7 +151,7 @@ macro_rules! module_entry_path_mod {
 
             impl $crate::storeid::IntoStoreId for ModuleEntryPath {
                 fn into_storeid(self) -> $crate::storeid::StoreId {
-                    StoreId::from(self.0)
+                    StoreId::new(None, self.0)
                 }
             }
         }
