@@ -26,11 +26,12 @@ impl StoreId {
             debug!("Not storifying {:?}, because it is already.", self);
             self
         } else {
-            debug!("Create new store id out of: {:?} and {:?}", store.path(), self);
-            let mut new_id = store.path().clone();
-            new_id.push(self);
+            debug!("Create new store id out of: {:?} and {:?}", store.path(), self.id);
+
+            let new_id = StoreId { store_location: store.path().clone(), self.id };
+
             debug!("Created: '{:?}'", new_id);
-            StoreId::from(new_id)
+            new_id
         }
     }
 
