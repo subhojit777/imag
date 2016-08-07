@@ -36,7 +36,6 @@ script:
             {
               travis-cargo -q build &&
               travis-cargo -q test &&
-              travis-cargo -q bench &&
               cd -
             } || exit 1
         }
