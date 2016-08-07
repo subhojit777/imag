@@ -90,7 +90,7 @@ impl From<String> for StoreId {
 impl AsRef<Path> for StoreId {
 
     fn as_ref(&self) -> &Path {
-        self.0.as_ref()
+        self.id.as_ref()
     }
 
 }
