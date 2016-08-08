@@ -34,10 +34,13 @@ script:
             [[ -d "$1" ]] &&
             cd "$1" &&
             {
-              travis-cargo -q build &&
-              travis-cargo -q test &&
-              travis-cargo -q bench &&
-              travis-cargo --only stable doc &&
+              {
+                if [[ $(echo "$1" | grep lib) ]]; then
+                  travis-cargo -q test
+                else
+                  travis-cargo -q build
+                fi
+              } &&
               cd -
             } || exit 1
         }
