@@ -518,11 +518,3 @@ impl<'a> Into<FileLockEntry<'a>> for Ref<'a> {
 
 }
 
-fn hash_file_contents(f: &mut File) -> String {
-    let mut hasher = Sha1::new();
-    let mut s = String::new();
-    f.read_to_string(&mut s);
-    hasher.input_str(&s[..]);
-    hasher.result_str()
-}
-
