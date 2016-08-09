@@ -1,6 +1,17 @@
 [package]
 name = "libimagmail"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
+log = "0.3"
+mailparse = "0.2.0"
+semver = "0.2"
+toml = "0.2.*"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
