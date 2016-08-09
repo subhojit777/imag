@@ -2,8 +2,8 @@ use std::ops::Deref;
 use std::ops::DerefMut;
 
 use libimagstore::store::FileLockEntry;
-use libimagrt::edit::Edit;
-use libimagrt::edit::EditResult;
+use libimagentryedit::edit::Edit;
+use libimagentryedit::result::Result as EditResult;
 use libimagrt::runtime::Runtime;
 
 use diaryid::DiaryId;

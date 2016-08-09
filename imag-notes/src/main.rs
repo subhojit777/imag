@@ -5,12 +5,13 @@ extern crate semver;
 
 extern crate libimagnotes;
 extern crate libimagrt;
+extern crate libimagentryedit;
 extern crate libimagentrytag;
 extern crate libimagerror;
 
 use std::process::exit;
 
-use libimagrt::edit::Edit;
+use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagnotes::note::Note;

@@ -4,7 +4,8 @@ use std::ops::Deref;
 use toml::Value;
 
 use libimagrt::runtime::Runtime;
-use libimagrt::edit::{Edit, EditResult};
+use libimagentryedit::edit::Edit;
+use libimagentryedit::result::Result as EditResult;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;

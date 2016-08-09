@@ -15,6 +15,9 @@ path = "../libimagrt"
 [dependencies.libimagnotes]
 path = "../libimagnotes"
 
+[dependencies.libimagentryedit]
+path = "../libimagentryedit"
+
 [dependencies.libimagentrytag]
 path = "../libimagentrytag"
 
