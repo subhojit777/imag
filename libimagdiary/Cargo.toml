@@ -24,3 +24,6 @@ path = "../libimagutil"
 [dependencies.libimagrt]
 path = "../libimagrt"
 
+[dependencies.libimagentryedit]
+path = "../libimagentryedit"
+

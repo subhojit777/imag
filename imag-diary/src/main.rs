@@ -19,6 +19,7 @@ extern crate clap;
 extern crate chrono;
 
 extern crate libimagdiary;
+extern crate libimagentryedit;
 extern crate libimagentrylist;
 extern crate libimagentryview;
 extern crate libimaginteraction;

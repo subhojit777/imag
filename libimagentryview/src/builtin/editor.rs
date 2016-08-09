@@ -1,6 +1,6 @@
 use libimagstore::store::Entry;
 use libimagrt::runtime::Runtime;
-use libimagrt::edit::edit_in_tmpfile;
+use libimagentryedit::edit::edit_in_tmpfile;
 
 use viewer::Viewer;
 use result::Result;

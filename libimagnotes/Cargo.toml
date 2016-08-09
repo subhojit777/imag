@@ -17,6 +17,9 @@ path = "../libimagerror"
 [dependencies.libimagrt]
 path = "../libimagrt"
 
+[dependencies.libimagentryedit]
+path = "../libimagentryedit"
+
 [dependencies.libimagentrytag]
 path = "../libimagentrytag"
 

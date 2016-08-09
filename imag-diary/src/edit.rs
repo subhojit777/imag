@@ -5,7 +5,7 @@ use libimagdiary::diary::Diary;
 use libimagdiary::diaryid::DiaryId;
 use libimagdiary::error::DiaryError as DE;
 use libimagdiary::error::DiaryErrorKind as DEK;
-use libimagrt::edit::Edit;
+use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error;
 use libimagtimeui::datetime::DateTime;

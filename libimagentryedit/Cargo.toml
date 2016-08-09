@@ -1,22 +1,17 @@
 [package]
-name = "libimagentryview"
+name = "libimagentryedit"
 version = "0.2.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
-log = "0.3"
-toml = "0.2.*"
-glob = "0.2.11"
+tempfile = "2.1.1"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
 
 [dependencies.libimagrt]
 path = "../libimagrt"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagentryedit]
-path = "../libimagentryedit"
 
