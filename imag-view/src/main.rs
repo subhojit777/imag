@@ -34,8 +34,10 @@ use libimagentryview::builtin::versions::VersionsViewer;
 use libimagentryview::viewer::Viewer;
 
 mod ui;
+mod editor;
 
 use ui::build_ui;
+use editor::Editor;
 
 fn main() {
     let rt = generate_runtime_setup( "imag-view",
@@ -75,7 +77,10 @@ fn main() {
         } else if scmd.is_present("view-in-browser") {
             warn!("Viewing in browser is currently not supported, switch to stdout");
         } else if scmd.is_present("view-in-texteditor") {
-            warn!("Viewing in texteditor is currently not supported, switch to stdout");
+            if let Err(e) = Editor::new(&rt, &entry).show() {
+                error!("Cannot view in editor: {}", e);
+                trace_error_exit(&e, 1);
+            }
         } else if scmd.is_present("view-in-custom") {
             warn!("Viewing in custom is currently not supported, switch to stdout");
         }
