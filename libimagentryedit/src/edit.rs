@@ -1,23 +1,21 @@
 use std::ops::DerefMut;
 
-use runtime::Runtime;
-use error::RuntimeError;
-use error::RuntimeErrorKind;
-
-use libimagstore::store::FileLockEntry;
-use libimagstore::store::Entry;
-
 use libimagerror::into::IntoError;
+use libimagrt::runtime::Runtime;
+use libimagstore::store::Entry;
+use libimagstore::store::FileLockEntry;
 
-pub type EditResult<T> = Result<T, RuntimeError>;
+use result::Result;
+use error::EditErrorKind;
+use error::MapErrInto;
 
 pub trait Edit {
-    fn edit_content(&mut self, rt: &Runtime) -> EditResult<()>;
+    fn edit_content(&mut self, rt: &Runtime) -> Result<()>;
 }
 
 impl Edit for String {
 
-    fn edit_content(&mut self, rt: &Runtime) -> EditResult<()> {
+    fn edit_content(&mut self, rt: &Runtime) -> Result<()> {
         edit_in_tmpfile(rt, self).map(|_| ())
     }
 
@@ -25,7 +23,7 @@ impl Edit for String {
 
 impl Edit for Entry {
 
-    fn edit_content(&mut self, rt: &Runtime) -> EditResult<()> {
+    fn edit_content(&mut self, rt: &Runtime) -> Result<()> {
         edit_in_tmpfile(rt, self.get_content_mut())
             .map(|_| ())
     }
@@ -34,25 +32,25 @@ impl Edit for Entry {
 
 impl<'a> Edit for FileLockEntry<'a> {
 
-    fn edit_content(&mut self, rt: &Runtime) -> EditResult<()> {
+    fn edit_content(&mut self, rt: &Runtime) -> Result<()> {
         self.deref_mut().edit_content(rt)
     }
 
 }
 
-pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> EditResult<()> {
+pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> Result<()> {
     use tempfile::NamedTempFile;
     use std::io::Seek;
     use std::io::Read;
     use std::io::SeekFrom;
     use std::io::Write;
 
-    let file      = try!(NamedTempFile::new());
+    let file      = try!(NamedTempFile::new().map_err_into(EditErrorKind::IOError));
     let file_path = file.path();
-    let mut file  = try!(file.reopen());
+    let mut file  = try!(file.reopen().map_err_into(EditErrorKind::IOError));
 
-    try!(file.write_all(&s.clone().into_bytes()[..]));
-    try!(file.sync_data());
+    try!(file.write_all(&s.clone().into_bytes()[..]).map_err_into(EditErrorKind::IOError));
+    try!(file.sync_data().map_err_into(EditErrorKind::IOError));
 
     if let Some(mut editor) = rt.editor() {
         let exit_status = editor.arg(file_path).status();
@@ -68,13 +66,12 @@ pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> EditResult<()> {
                         res
                     })
                     .map(|_| ())
-                    .map_err(Box::new)
-                    .map_err(|e| RuntimeErrorKind::IOError.into_error_with_cause(e))
+                    .map_err_into(EditErrorKind::IOError)
             },
-            Ok(false) => Err(RuntimeErrorKind::ProcessExitFailure.into()),
-            Err(e)    => Err(RuntimeErrorKind::IOError.into_error_with_cause(e)),
+            Ok(false) => Err(EditErrorKind::ProcessExitFailure.into()),
+            Err(e)    => Err(EditErrorKind::IOError.into_error_with_cause(e)),
         }
     } else {
-        Err(RuntimeErrorKind::Instantiate.into())
+        Err(EditErrorKind::InstantiateError.into())
     }
 }
