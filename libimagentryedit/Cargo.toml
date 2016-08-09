@@ -4,3 +4,14 @@ version = "0.2.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
+tempfile = "2.1.1"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
