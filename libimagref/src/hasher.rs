@@ -37,9 +37,9 @@ impl Hasher for DefaultHasher {
         "default"
     }
 
-    fn create_hash<R: Read>(&mut self, _: &PathBuf, contents: &mut R) -> Result<String> {
+    fn create_hash<R: Read>(&mut self, _: &PathBuf, c: &mut R) -> Result<String> {
         let mut s = String::new();
-        try!(contents.read_to_string(&mut s).map_err_into(REK::IOError));
+        try!(c.read_to_string(&mut s).map_err_into(REK::UTF8Error).map_err_into(REK::IOError));
         self.hasher.input_str(&s[..]);
         Ok(self.hasher.result_str())
     }
