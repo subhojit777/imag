@@ -1,9 +1,8 @@
+use filters::filter::Filter;
 use regex::Regex;
 use regex::Error as RError;
 
 use libimagstore::store::Entry;
-
-use filter::Filter;
 
 pub trait IntoRegex {
 

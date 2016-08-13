@@ -1,6 +1,5 @@
+use filters::filter::Filter;
 use libimagstore::store::Entry;
-
-use filter::Filter;
 
 pub struct ContentLengthIsUnder {
     val: usize

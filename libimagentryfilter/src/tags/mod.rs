@@ -2,7 +2,7 @@ use libimagstore::store::Entry;
 use libimagentrytag::tagable::Tagable;
 use libimagentrytag::tag::Tag;
 
-use filter::Filter;
+use filters::filter::Filter;
 
 /// Check whether an Entry has a certain tag
 pub struct HasTag {

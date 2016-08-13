@@ -1,7 +1,7 @@
 use libimagstore::store::Entry;
 
 use builtin::header::field_path::FieldPath;
-use filter::Filter;
+use filters::filter::Filter;
 
 pub struct FieldExists {
     header_field_path: FieldPath,

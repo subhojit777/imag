@@ -1,6 +1,6 @@
 use libimagstore::store::Entry;
 
-use filter::Filter;
+use filters::filter::Filter;
 
 pub struct Not {
     a: Box<Filter>

@@ -4,7 +4,7 @@ use libimagstore::store::Entry;
 
 use builtin::header::version::gt::VersionGt;
 use builtin::header::version::lt::VersionLt;
-use filter::Filter;
+use filters::filter::Filter;
 use ops::and::And;
 use ops::not::Not;
 
