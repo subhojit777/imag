@@ -15,10 +15,11 @@
 
 #[macro_use] extern crate log;
 
+extern crate filters;
 extern crate itertools;
 extern crate regex;
-extern crate toml;
 extern crate semver;
+extern crate toml;
 
 extern crate libimagstore;
 extern crate libimagentrytag;
@@ -28,7 +29,6 @@ extern crate libimagentrytag;
 
 pub mod cli;
 pub mod builtin;
-pub mod filter;
 pub mod ops;
 
 // extended functionality of the crate
