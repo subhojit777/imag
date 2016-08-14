@@ -20,7 +20,7 @@ impl VersionInRange {
 
 }
 
-impl Filter for VersionInRange {
+impl Filter<Entry> for VersionInRange {
 
     fn filter(&self, e: &Entry) -> bool {
         self.and.filter(e)
@@ -40,7 +40,7 @@ impl VersionOutOfRange {
 
 }
 
-impl Filter for VersionOutOfRange {
+impl Filter<Entry> for VersionOutOfRange {
 
     fn filter(&self, e: &Entry) -> bool {
         self.not.filter(e)

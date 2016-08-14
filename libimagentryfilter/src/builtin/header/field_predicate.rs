@@ -26,7 +26,7 @@ impl<P: Predicate> FieldPredicate<P> {
 
 }
 
-impl<P: Predicate> Filter for FieldPredicate<P> {
+impl<P: Predicate> Filter<Entry> for FieldPredicate<P> {
 
     fn filter(&self, e: &Entry) -> bool {
         e.get_header()

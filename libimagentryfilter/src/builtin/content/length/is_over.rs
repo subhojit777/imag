@@ -15,7 +15,7 @@ impl ContentLengthIsOver {
 
 }
 
-impl Filter for ContentLengthIsOver {
+impl Filter<Entry> for ContentLengthIsOver {
 
     fn filter(&self, e: &Entry) -> bool {
         e.get_content().len() > self.val

@@ -50,7 +50,7 @@ impl FieldLt {
 
 }
 
-impl Filter for FieldLt {
+impl Filter<Entry> for FieldLt {
 
     fn filter(&self, e: &Entry) -> bool {
         self.filter.filter(e)

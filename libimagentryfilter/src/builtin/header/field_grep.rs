@@ -38,7 +38,7 @@ impl FieldGrep {
 
 }
 
-impl Filter for FieldGrep {
+impl Filter<Entry> for FieldGrep {
 
     fn filter(&self, e: &Entry) -> bool {
         self.filter.filter(e)

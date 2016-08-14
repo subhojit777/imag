@@ -19,7 +19,7 @@ impl FieldIsEmpty {
 
 }
 
-impl Filter for FieldIsEmpty {
+impl Filter<Entry> for FieldIsEmpty {
 
     fn filter(&self, e: &Entry) -> bool {
         e.get_header()

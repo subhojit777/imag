@@ -34,7 +34,7 @@ impl FieldEq {
 
 }
 
-impl Filter for FieldEq {
+impl Filter<Entry> for FieldEq {
 
     fn filter(&self, e: &Entry) -> bool {
         self.filter.filter(e)

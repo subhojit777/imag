@@ -17,7 +17,7 @@ impl VersionEq {
 
 }
 
-impl Filter for VersionEq {
+impl Filter<Entry> for VersionEq {
 
     fn filter(&self, e: &Entry) -> bool {
         e.get_header()

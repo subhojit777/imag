@@ -59,7 +59,7 @@ impl FieldIsType {
 
 }
 
-impl Filter for FieldIsType {
+impl Filter<Entry> for FieldIsType {
 
     fn filter(&self, e: &Entry) -> bool {
         self.filter.filter(e)

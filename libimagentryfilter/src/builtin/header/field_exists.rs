@@ -17,7 +17,7 @@ impl FieldExists {
 
 }
 
-impl Filter for FieldExists {
+impl Filter<Entry> for FieldExists {
 
     fn filter(&self, e: &Entry) -> bool {
         e.get_header().read(&self.header_field_path[..]).is_ok()

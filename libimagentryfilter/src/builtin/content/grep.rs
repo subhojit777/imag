@@ -43,7 +43,7 @@ impl ContentGrep {
 
 }
 
-impl Filter for ContentGrep {
+impl Filter<Entry> for ContentGrep {
 
     fn filter(&self, e: &Entry) -> bool {
         self.regex.captures(&e.get_content()[..]).is_some()
