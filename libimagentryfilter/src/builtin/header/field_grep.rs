@@ -6,7 +6,7 @@ use libimagstore::store::Entry;
 use builtin::header::field_path::FieldPath;
 use builtin::header::field_predicate::FieldPredicate;
 use builtin::header::field_predicate::Predicate;
-use filter::Filter;
+use filters::filter::Filter;
 
 struct EqGrep{
     regex: Regex
@@ -38,7 +38,7 @@ impl FieldGrep {
 
 }
 
-impl Filter for FieldGrep {
+impl Filter<Entry> for FieldGrep {
 
     fn filter(&self, e: &Entry) -> bool {
         self.filter.filter(e)

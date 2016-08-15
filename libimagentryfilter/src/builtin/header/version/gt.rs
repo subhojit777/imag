@@ -3,7 +3,7 @@ use toml::Value;
 
 use libimagstore::store::Entry;
 
-use filter::Filter;
+use filters::filter::Filter;
 
 pub struct VersionGt {
     version: Version,
@@ -17,7 +17,7 @@ impl VersionGt {
 
 }
 
-impl Filter for VersionGt {
+impl Filter<Entry> for VersionGt {
 
     fn filter(&self, e: &Entry) -> bool {
         e.get_header()

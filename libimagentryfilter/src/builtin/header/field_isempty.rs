@@ -1,7 +1,7 @@
 use libimagstore::store::Entry;
 
 use builtin::header::field_path::FieldPath;
-use filter::Filter;
+use filters::filter::Filter;
 
 use toml::Value;
 
@@ -19,7 +19,7 @@ impl FieldIsEmpty {
 
 }
 
-impl Filter for FieldIsEmpty {
+impl Filter<Entry> for FieldIsEmpty {
 
     fn filter(&self, e: &Entry) -> bool {
         e.get_header()

@@ -1,6 +1,6 @@
 use libimagstore::store::Entry;
 
-use filter::Filter;
+use filters::filter::Filter;
 
 pub struct BoolFilter(bool);
 
@@ -12,7 +12,7 @@ impl BoolFilter {
 
 }
 
-impl Filter for BoolFilter {
+impl Filter<Entry> for BoolFilter {
 
     fn filter(&self, _: &Entry) -> bool {
         self.0

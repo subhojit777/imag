@@ -1,9 +1,8 @@
+use filters::filter::Filter;
 use regex::Regex;
 use regex::Error as RError;
 
 use libimagstore::store::Entry;
-
-use filter::Filter;
 
 pub trait IntoRegex {
 
@@ -44,7 +43,7 @@ impl ContentGrep {
 
 }
 
-impl Filter for ContentGrep {
+impl Filter<Entry> for ContentGrep {
 
     fn filter(&self, e: &Entry) -> bool {
         self.regex.captures(&e.get_content()[..]).is_some()

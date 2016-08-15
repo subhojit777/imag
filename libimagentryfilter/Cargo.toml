@@ -5,11 +5,12 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 [dependencies]
 clap = "2.*"
+filters = "0.1.*"
 itertools = "0.4"
 log = "0.3"
 regex = "0.1"
-toml = "0.2.*"
 semver = "0.2.1"
+toml = "0.2.*"
 
 [dependencies.libimagstore]
 path = "../libimagstore"

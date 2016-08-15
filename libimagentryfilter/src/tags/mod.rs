@@ -2,7 +2,7 @@ use libimagstore::store::Entry;
 use libimagentrytag::tagable::Tagable;
 use libimagentrytag::tag::Tag;
 
-use filter::Filter;
+use filters::filter::Filter;
 
 /// Check whether an Entry has a certain tag
 pub struct HasTag {
@@ -19,7 +19,7 @@ impl HasTag {
 
 }
 
-impl Filter for HasTag {
+impl Filter<Entry> for HasTag {
 
     fn filter(&self, e: &Entry) -> bool {
         e.has_tag(&self.tag).ok().unwrap_or(false)
@@ -43,7 +43,7 @@ impl HasAllTags {
 
 }
 
-impl Filter for HasAllTags {
+impl Filter<Entry> for HasAllTags {
 
     fn filter(&self, e: &Entry) -> bool {
         e.has_tags(&self.tags).ok().unwrap_or(false)
@@ -67,7 +67,7 @@ impl HasAnyTags {
 
 }
 
-impl Filter for HasAnyTags {
+impl Filter<Entry> for HasAnyTags {
 
     fn filter(&self, e: &Entry) -> bool {
         self.tags.iter().any(|tag| e.has_tag(tag).ok().unwrap_or(false))

@@ -1,7 +1,7 @@
 use libimagstore::store::Entry;
 
 use builtin::header::field_path::FieldPath;
-use filter::Filter;
+use filters::filter::Filter;
 
 use toml::Value;
 
@@ -26,7 +26,7 @@ impl<P: Predicate> FieldPredicate<P> {
 
 }
 
-impl<P: Predicate> Filter for FieldPredicate<P> {
+impl<P: Predicate> Filter<Entry> for FieldPredicate<P> {
 
     fn filter(&self, e: &Entry) -> bool {
         e.get_header()

@@ -1,7 +1,7 @@
 use libimagstore::store::Entry;
 
 use builtin::header::field_path::FieldPath;
-use filter::Filter;
+use filters::filter::Filter;
 
 pub struct FieldExists {
     header_field_path: FieldPath,
@@ -17,7 +17,7 @@ impl FieldExists {
 
 }
 
-impl Filter for FieldExists {
+impl Filter<Entry> for FieldExists {
 
     fn filter(&self, e: &Entry) -> bool {
         e.get_header().read(&self.header_field_path[..]).is_ok()

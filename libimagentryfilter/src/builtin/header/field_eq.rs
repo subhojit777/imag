@@ -3,7 +3,7 @@ use libimagstore::store::Entry;
 use builtin::header::field_path::FieldPath;
 use builtin::header::field_predicate::FieldPredicate;
 use builtin::header::field_predicate::Predicate;
-use filter::Filter;
+use filters::filter::Filter;
 
 use toml::Value;
 
@@ -34,7 +34,7 @@ impl FieldEq {
 
 }
 
-impl Filter for FieldEq {
+impl Filter<Entry> for FieldEq {
 
     fn filter(&self, e: &Entry) -> bool {
         self.filter.filter(e)

@@ -4,23 +4,23 @@ use libimagstore::store::Entry;
 
 use builtin::header::version::gt::VersionGt;
 use builtin::header::version::lt::VersionLt;
-use filter::Filter;
-use ops::and::And;
-use ops::not::Not;
+use filters::filter::Filter;
+use filters::ops::and::And;
+use filters::ops::not::Not;
 
 pub struct VersionInRange {
-    and: And,
+    and: And<VersionGt, VersionLt>,
 }
 
 impl VersionInRange {
 
     pub fn new(lowerbound: Version, upperbound: Version) -> VersionInRange {
-        VersionInRange { and: VersionGt::new(lowerbound).and(Box::new(VersionLt::new(upperbound))) }
+        VersionInRange { and: VersionGt::new(lowerbound).and(VersionLt::new(upperbound)) }
     }
 
 }
 
-impl Filter for VersionInRange {
+impl Filter<Entry> for VersionInRange {
 
     fn filter(&self, e: &Entry) -> bool {
         self.and.filter(e)
@@ -29,7 +29,7 @@ impl Filter for VersionInRange {
 }
 
 pub struct VersionOutOfRange {
-    not: Not
+    not: Not<VersionInRange>
 }
 
 impl VersionOutOfRange {
@@ -40,7 +40,7 @@ impl VersionOutOfRange {
 
 }
 
-impl Filter for VersionOutOfRange {
+impl Filter<Entry> for VersionOutOfRange {
 
     fn filter(&self, e: &Entry) -> bool {
         self.not.filter(e)

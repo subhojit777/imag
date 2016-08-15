@@ -1,6 +1,5 @@
+use filters::filter::Filter;
 use libimagstore::store::Entry;
-
-use filter::Filter;
 
 pub struct ContentLengthIsOver {
     val: usize
@@ -16,7 +15,7 @@ impl ContentLengthIsOver {
 
 }
 
-impl Filter for ContentLengthIsOver {
+impl Filter<Entry> for ContentLengthIsOver {
 
     fn filter(&self, e: &Entry) -> bool {
         e.get_content().len() > self.val
