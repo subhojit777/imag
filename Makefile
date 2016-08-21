@@ -3,21 +3,35 @@ bin = $@/target/debug/$@
 
 doc-crate-toml=./.imag-documentation/Cargo.toml
 
-default: all
+ECHO=$(shell which echo) -e
+CARGO=$(shell which cargo)
 
-.PHONY: clean
+BINS=$(shell find -maxdepth 1 -name "imag-*" -type d)
+LIBS=$(shell find -maxdepth 1 -name "libimag*" -type d)
 
-all: imag-counter imag-link imag-notes imag-store imag-tag imag-view
+BIN_TARGETS=$(patsubst imag-%,,$(BINS))
+LIB_TARGETS=$(LIBS)
+LIB_TARGETS_TEST=$(foreach x,$(subst ./,,$(LIBS)),test-$(x))
+TARGETS=$(BIN_TARGETS) $(LIB_TARGETS)
 
-imag-%: prep
-	cargo build --manifest-path $(toml)
-	cp $(bin) out/
+all: $(TARGETS)
+	@$(ECHO) "\t[ALL   ]"
 
-lib-doc:
-	cargo build --manifest-path $(doc-crate-toml)
+bin: $(BIN_TARGETS)
+	@$(ECHO) "\t[ALLBIN]"
 
-prep:
-	mkdir -p out/
+lib: $(LIB_TARGETS)
+	@$(ECHO) "\t[ALLLIB]"
 
-clean:
-	rm -rf out/
+lib-test: $(LIB_TARGETS_TEST)
+
+$(TARGETS): %: .FORCE
+	@$(ECHO) "\t[CARGO ]:\t$@"
+	@$(CARGO) build --manifest-path ./$@/Cargo.toml
+
+$(LIB_TARGETS_TEST): %: .FORCE
+	@$(ECHO) "\t[TEST  ]:\t$@"
+	@$(CARGO) test --manifest-path ./$(subst test-,,$@)/Cargo.toml
+
+.FORCE:
+
