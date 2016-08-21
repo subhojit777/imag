@@ -13,6 +13,7 @@ BIN_TARGETS=$(patsubst imag-%,,$(BINS))
 LIB_TARGETS=$(LIBS)
 LIB_TARGETS_TEST=$(foreach x,$(subst ./,,$(LIBS)),test-$(x))
 TARGETS=$(BIN_TARGETS) $(LIB_TARGETS)
+CLEAN_TARGETS=$(foreach x,$(TARGETS),$(x)-clean)
 
 all: $(TARGETS)
 	@$(ECHO) "\t[ALL   ]"
@@ -25,6 +26,9 @@ lib: $(LIB_TARGETS)
 
 lib-test: $(LIB_TARGETS_TEST)
 
+clean: $(CLEAN_TARGETS)
+	@$(ECHO) "\t[CLEAN ]"
+
 $(TARGETS): %: .FORCE
 	@$(ECHO) "\t[CARGO ]:\t$@"
 	@$(CARGO) build --manifest-path ./$@/Cargo.toml
@@ -32,6 +36,10 @@ $(TARGETS): %: .FORCE
 $(LIB_TARGETS_TEST): %: .FORCE
 	@$(ECHO) "\t[TEST  ]:\t$@"
 	@$(CARGO) test --manifest-path ./$(subst test-,,$@)/Cargo.toml
+
+$(CLEAN_TARGETS): %: .FORCE
+	@$(ECHO) "\t[CLEAN]:\t$(subst -clean,,$@)"
+	@$(CARGO) clean --manifest-path ./$(subst -clean,,$@)/Cargo.toml
 
 .FORCE:
 
