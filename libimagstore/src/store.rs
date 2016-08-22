@@ -609,7 +609,7 @@ impl Store {
 
             // remove the entry first, then the file
             entries.remove(&id);
-            if let Err(e) = remove_file(&id) {
+            if let Err(e) = FileAbstraction::remove_file(&id) {
                 return Err(SEK::FileError.into_error_with_cause(Box::new(e)))
                     .map_err_into(SEK::DeleteCallError);
             }
@@ -681,7 +681,8 @@ impl Store {
             if hsmap.is_err() {
                 return Err(SE::new(SEK::LockPoisoned, None))
             }
-            if hsmap.unwrap().contains_key(&old_id) {
+            let hsmap = hsmap.unwrap();
+            if hsmap.contains_key(&old_id) {
                 return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
             } else {
                 match FileAbstraction::rename(&old_id.clone(), &new_id) {
@@ -690,10 +691,10 @@ impl Store {
                         debug!("Rename worked");
                     },
                 }
-                if hsmap.unwrap().contains_key(&old_id) {
+                if hsmap.contains_key(&old_id) {
                     return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
                 } else {
-                    match rename(old_id, new_id.clone()) {
+                    match FileAbstraction::rename(&old_id, &new_id) {
                         Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
                         _ => {
                             debug!("Rename worked");
