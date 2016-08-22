@@ -26,16 +26,9 @@ impl StoreId {
     }
 
     pub fn storified(self, store: &Store) -> StoreId {
-        if self.starts_with(store.path()) {
-            debug!("Not storifying {:?}, because it is already.", self);
-            self
-        } else {
-            debug!("Create new store id out of: {:?} and {:?}", store.path(), self.id);
-
-            let new_id = StoreId { base: Some(store.path().clone()), self.id };
-
-            debug!("Created: '{:?}'", new_id);
-            new_id
+        StoreId {
+            base: Some(store.path().clone()),
+            id: self.id
         }
     }
 
