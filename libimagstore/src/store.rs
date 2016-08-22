@@ -65,14 +65,17 @@ pub enum StoreObject {
 }
 
 pub struct Walk {
+    store_path: PathBuf,
     dirwalker: WalkDirIter,
 }
 
 impl Walk {
 
     fn new(mut store_path: PathBuf, mod_name: &str) -> Walk {
+        let pb = store_path.clone();
         store_path.push(mod_name);
         Walk {
+            store_path: pb,
             dirwalker: WalkDir::new(store_path).into_iter(),
         }
     }
@@ -95,7 +98,9 @@ impl Iterator for Walk {
                 Ok(next) => if next.file_type().is_dir() {
                                 return Some(StoreObject::Collection(next.path().to_path_buf()))
                             } else if next.file_type().is_file() {
-                                return Some(StoreObject::Id(next.path().to_path_buf().into()))
+                                let n   = next.path().to_path_buf();
+                                let sid = StoreId::new(Some(self.store_path.clone()), n);
+                                return Some(StoreObject::Id(sid))
                             },
                 Err(e) => {
                     warn!("Error in Walker");
