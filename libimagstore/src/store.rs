@@ -495,7 +495,7 @@ impl Store {
                 .map_err_into(SEK::GetAllVersionsCallError),
             Ok(Some(pattern)) => {
                 glob(&pattern[..])
-                    .map(|paths| GlobStoreIdIterator::new(paths).into())
+                    .map(|paths| GlobStoreIdIterator::new(paths, self.path().clone()).into())
                     .map_err_into(SEK::GlobError)
                     .map_err_into(SEK::GetAllVersionsCallError)
             }
@@ -515,7 +515,7 @@ impl Store {
                 debug!("glob()ing with '{}'", path);
                 glob(&path[..]).map_err_into(SEK::GlobError)
             })
-            .map(|paths| GlobStoreIdIterator::new(paths).into())
+            .map(|paths| GlobStoreIdIterator::new(paths, self.path().clone()).into())
             .map_err_into(SEK::GlobError)
             .map_err_into(SEK::RetrieveForModuleCallError)
     }
@@ -836,7 +836,7 @@ impl Drop for Store {
      * TODO: Unlock them
      */
     fn drop(&mut self) {
-        let store_id = StoreId::from(self.location.clone());
+        let store_id = StoreId::new(Some(self.location.clone()), PathBuf::from("."));
         if let Err(e) = self.execute_hooks_for_id(self.store_unload_aspects.clone(), &store_id) {
             debug!("Store-load hooks execution failed. Cannot create store object.");
             warn!("Store Unload Hook error: {:?}", e);
@@ -1495,11 +1495,13 @@ impl Entry {
 mod glob_store_iter {
     use std::fmt::{Debug, Formatter};
     use std::fmt::Error as FmtError;
+    use std::path::PathBuf;
     use glob::Paths;
     use storeid::StoreId;
     use storeid::StoreIdIterator;
 
     pub struct GlobStoreIdIterator {
+        store_path: PathBuf,
         paths: Paths,
     }
 
@@ -1521,8 +1523,9 @@ mod glob_store_iter {
 
     impl GlobStoreIdIterator {
 
-        pub fn new(paths: Paths) -> GlobStoreIdIterator {
+        pub fn new(paths: Paths, store_path: PathBuf) -> GlobStoreIdIterator {
             GlobStoreIdIterator {
+                store_path: store_path,
                 paths: paths,
             }
         }
@@ -1533,15 +1536,23 @@ mod glob_store_iter {
         type Item = StoreId;
 
         fn next(&mut self) -> Option<StoreId> {
-            self.paths.next().and_then(|o| {
-                match o {
-                    Ok(o) => Some(o),
-                    Err(e) => {
-                        debug!("GlobStoreIdIterator error: {:?}", e);
-                        None
-                    },
-                }
-            }).map(|p| StoreId::from(p))
+            self.paths
+                .next()
+                .and_then(|o| {
+                    match o {
+                        Ok(o) => Some(o),
+                        Err(e) => {
+                            debug!("GlobStoreIdIterator error: {:?}", e);
+                            None
+                        },
+                    }
+                }).and_then(|p| {
+                    p.strip_prefix(&self.store_path)
+                        .ok()
+                        .map(|p| {
+                            StoreId::new(Some(self.store_path.clone()), PathBuf::from(p))
+                        })
+                })
         }
 
     }
