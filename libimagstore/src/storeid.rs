@@ -1,7 +1,4 @@
 use std::path::PathBuf;
-use std::path::Path;
-use std::borrow::Borrow;
-use std::ops::Deref;
 
 use semver::Version;
 use std::fmt::{Display, Debug, Formatter};
