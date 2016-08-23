@@ -6,7 +6,6 @@ use std::ops::Deref;
 use std::ops::DerefMut;
 use std::collections::BTreeMap;
 use std::fs::File;
-use std::io::Read;
 use std::fmt::{Display, Error as FmtError, Formatter};
 use std::fs::Permissions;
 use std::result::Result as RResult;
@@ -18,12 +17,11 @@ use libimagstore::store::Store;
 use libimagerror::into::IntoError;
 
 use toml::Value;
-use crypto::sha1::Sha1;
-use crypto::digest::Digest;
 
 use error::RefErrorKind as REK;
 use flags::RefFlags;
 use result::Result;
+use hasher::*;
 use module_path::ModuleEntryPath;
 
 #[derive(Debug)]
@@ -75,8 +73,9 @@ impl<'a> Ref<'a> {
         }
     }
 
-    /// Create a Ref object which refers to `pb`
-    pub fn create(store: &'a Store, pb: PathBuf, flags: RefFlags) -> Result<Ref<'a>> {
+    pub fn create_with_hasher<H: Hasher>(store: &'a Store, pb: PathBuf, flags: RefFlags, mut h: H)
+        -> Result<Ref<'a>>
+    {
         if !pb.exists() {
             return Err(REK::RefTargetDoesNotExist.into_error());
         }
@@ -93,7 +92,7 @@ impl<'a> Ref<'a> {
                 // we hash the contents of the file and return (file, hash)
                 .and_then(|mut file| {
                     let opt_contenthash = if flags.get_content_hashing() {
-                        Some(hash_file_contents(&mut file))
+                        Some(try!(h.create_hash(&pb, &mut file)))
                     } else {
                         None
                     };
@@ -201,6 +200,11 @@ impl<'a> Ref<'a> {
         Ok(Ref(fle))
     }
 
+    /// Create a Ref object which refers to `pb`
+    pub fn create(store: &'a Store, pb: PathBuf, flags: RefFlags) -> Result<Ref<'a>> {
+        Ref::create_with_hasher(store, pb, flags, DefaultHasher::new())
+    }
+
     /// Creates a Hash from a PathBuf by making the PathBuf absolute and then running a hash
     /// algorithm on it
     fn hash_path(pb: &PathBuf) -> Result<String> {
@@ -247,13 +251,20 @@ impl<'a> Ref<'a> {
 
     /// Get the hash of the link target by reading the link target and hashing the contents
     pub fn get_current_hash(&self) -> Result<String> {
+        self.get_current_hash_with_hasher(DefaultHasher::new())
+    }
+
+    /// Get the hash of the link target by reading the link target and hashing the contents with the
+    /// custom hasher
+    pub fn get_current_hash_with_hasher<H: Hasher>(&self, mut h: H) -> Result<String> {
         self.fs_file()
             .and_then(|pb| {
-                File::open(pb)
+                File::open(pb.clone())
+                    .map(|f| (pb, f))
                     .map_err(Box::new)
                     .map_err(|e| REK::IOError.into_error_with_cause(e))
             })
-            .map(|mut file| hash_file_contents(&mut file))
+            .and_then(|(path, mut file)| h.create_hash(&path, &mut file))
     }
 
     /// Get the permissions of the file which are present
@@ -433,6 +444,12 @@ impl<'a> Ref<'a> {
     ///
     /// This option causes heavy I/O as it recursively searches the Filesystem.
     pub fn refind(&self, search_roots: Option<Vec<PathBuf>>) -> Result<PathBuf> {
+        self.refind_with_hasher(search_roots, DefaultHasher::new())
+    }
+
+    pub fn refind_with_hasher<H: Hasher>(&self, search_roots: Option<Vec<PathBuf>>, mut h: H)
+        -> Result<PathBuf>
+    {
         use itertools::Itertools;
         use walkdir::WalkDir;
 
@@ -456,7 +473,7 @@ impl<'a> Ref<'a> {
                                             .map_err(|e| REK::IOError.into_error_with_cause(e))
                                             .map(|f| (pb, f))
                                     })
-                                    .map(|(path, mut file)| (path, hash_file_contents(&mut file)))
+                                    .and_then(|(p, mut f)|  h.create_hash(&p, &mut f).map(|h| (p, h)))
                                     .map(|(path, hash)| {
                                         if hash == stored_hash {
                                             Some(path)
@@ -516,13 +533,5 @@ impl<'a> Into<FileLockEntry<'a>> for Ref<'a> {
         self.0
     }
 
-}
-
-fn hash_file_contents(f: &mut File) -> String {
-    let mut hasher = Sha1::new();
-    let mut s = String::new();
-    f.read_to_string(&mut s);
-    hasher.input_str(&s[..]);
-    hasher.result_str()
 }
 

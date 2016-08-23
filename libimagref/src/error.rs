@@ -3,6 +3,7 @@ generate_error_module!(
         StoreReadError          => "Store read error",
         StoreWriteError         => "Store write error",
         IOError                 => "IO Error",
+        UTF8Error               => "UTF8 Error",
         HeaderTypeError         => "Header type error",
         HeaderFieldMissingError => "Header field missing error",
         HeaderFieldWriteError   => "Header field cannot be written",

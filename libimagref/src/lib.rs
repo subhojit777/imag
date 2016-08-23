@@ -29,6 +29,8 @@ module_entry_path_mod!("ref", "0.2.0");
 
 pub mod error;
 pub mod flags;
+pub mod hasher;
+pub mod hashers;
 pub mod lister;
 pub mod reference;
 pub mod result;
