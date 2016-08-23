@@ -1,4 +1,3 @@
-use std::convert::Into;
 use std::default::Default;
 
 generate_error_imports!();
