@@ -1,3 +1,19 @@
+[package]
+name = "imag"
+version = "0.2.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+description = "Personal information management (PIM) suite"
+keywords = ["pim", "personal", "information", "management", "suite"]
+readme        = "./README.md"
+license       = "LGPL-2.1"
+
+website = "http://imag-pim.org"
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository = "https://github.com/matthiasbeyer/imag"
+
+[dependencies]
+
 [workspace]
 members = [
     "bin",
@@ -36,3 +52,4 @@ members = [
     "libimagtodo",
     "libimagutil",
 ]
+
