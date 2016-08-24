@@ -21,12 +21,11 @@ Also ensure that each commit has
 By adding that line, you agree to our
 [developer certificate of origin](#developer-certificate-of-origin).
 
-We do not have a mailinglist, so we do not have a process where all contributors
-can review your PR. This means that once _I am_ okay with your patchset, I will
+Once _I am_ okay with your patchset, I will
 submit it as PR in the github repository, so more people can review it and CI
-can test it. I might come back to you if something broke in CI or someone has a
-suggestion how to improve your PR.
-I will keep you as author of the commits.
+can test it (the mailinglist is not yet used as much as github). I might come
+back to you if something broke in CI or someone has a suggestion how to improve
+your PR.  I will keep you as author of the commits.
 
 The following sections describe the way how to contribute with github.
 
