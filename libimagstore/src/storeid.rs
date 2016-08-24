@@ -5,6 +5,8 @@ use std::fmt::{Display, Debug, Formatter};
 use std::fmt::Error as FmtError;
 use std::result::Result as RResult;
 
+use libimagerror::into::IntoError;
+
 use error::StoreErrorKind as SEK;
 use store::Result;
 use store::Store;
@@ -40,6 +42,19 @@ impl StoreId {
 
     pub fn is_dir(&self) -> bool {
         false
+    }
+
+    pub fn to_str(&self) -> Result<String> {
+        if self.base.is_some() {
+            let mut base = self.base.as_ref().cloned().unwrap();
+            base.push(self.id.clone());
+            base
+        } else {
+            self.id.clone()
+        }
+        .to_str()
+        .map(String::from)
+        .ok_or(SEK::StoreIdHandlingError.into_error())
     }
 
 }
