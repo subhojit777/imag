@@ -21,12 +21,11 @@ Also ensure that each commit has
 By adding that line, you agree to our
 [developer certificate of origin](#developer-certificate-of-origin).
 
-We do not have a mailinglist, so we do not have a process where all contributors
-can review your PR. This means that once _I am_ okay with your patchset, I will
+Once _I am_ okay with your patchset, I will
 submit it as PR in the github repository, so more people can review it and CI
-can test it. I might come back to you if something broke in CI or someone has a
-suggestion how to improve your PR.
-I will keep you as author of the commits.
+can test it (the mailinglist is not yet used as much as github). I might come
+back to you if something broke in CI or someone has a suggestion how to improve
+your PR.  I will keep you as author of the commits.
 
 The following sections describe the way how to contribute with github.
 
@@ -44,10 +43,15 @@ file issues about them or even better: Write a pull request to fix them!
 
 * cargo and rust compiler in current version (stable)
 
-That's it so far, you don't need no additional dependencies. Note that this
-software is targeted towards commandline linux users and we do not aim to be
-portable to Windows or Mac OSX (though I wouldn't mind merging patches for OS X
-compatibility).
+Dependencies are listed in the [default.nix
+file](http://git.imag-pim.org/imag/tree/default.nix),
+though you do not have to have `nix` installed to build imag.
+
+`make` (better: `gnu make`) can be helpful to automate the build process.
+
+Note that this software is targeted towards commandline linux users and we do
+not aim to be portable to Windows or Mac OSX (though I wouldn't mind merging
+patches for OS X compatibility).
 
 * If you want to build the documentation (you don't have to)
   * pandoc
@@ -78,9 +82,9 @@ Not all of your commits have to be buildable. But your PR has to be.
 ## PR guidelines:
 
 We'd like to have one PR per module change. This means you _should_ only change
-one imag module in one commit (library plus belonging binary is okay). As this
-is not always possible, we do not enforce this, though we might ask you to split
-your PR into two smaller ones.
+one imag module in one commit or PR (library plus belonging binary is okay).
+As this is not always possible, we do not enforce this, though we might ask you
+to split your commits/PR into two smaller ones.
 
 Use feature branches. If you could name them "<module name>/<what you do>",
 for example "libimagstore/add-debugging-calls", that would be awesome.
@@ -118,7 +122,8 @@ ask questions as well!
 
 ## Contact
 
-Feel free to reach out via mail.
+Feel free to reach out via mail/[mailinglist](http://imag-pim.org/mailinglist/)
+or [IRC](irc://irc.freenode.net/#imag).
 
 ## More information about the structure of this project
 
