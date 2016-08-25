@@ -31,8 +31,13 @@ pub fn get_id(matches: &ArgMatches) -> Option<Vec<StoreId>> {
         .map(|vals| {
             vals.into_iter()
                 .map(String::from)
-                 .map(StoreId::from)
-                 .collect()
+                .map(PathBuf::from)
+                .map(|p| StoreId::new_baseless(p)) /* TODO: Do not hide error here */
+                .filter_map(|res| match res {
+                    Err(e) => { trace_error(&e); None },
+                    Ok(o) => Some(o),
+                })
+                .collect()
         })
 }
 
@@ -46,7 +51,15 @@ pub fn get_or_select_id(matches: &ArgMatches, store_path: &PathBuf) -> Option<Ve
                 None
             },
 
-            Ok(p) => Some(vec![StoreId::from(p)]),
+            Ok(p) => {
+                match StoreId::new_baseless(p) {
+                    Err(e) => {
+                        trace_error(&e);
+                        None
+                    },
+                    Ok(id) => Some(vec![id]),
+                }
+            },
         }
     })
 }
