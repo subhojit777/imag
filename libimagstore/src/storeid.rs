@@ -35,6 +35,11 @@ impl StoreId {
         }
     }
 
+    pub fn without_base(mut self) -> StoreId {
+        self.base = None;
+        self
+    }
+
     pub fn storified(self, store: &Store) -> StoreId {
         StoreId {
             base: Some(store.path().clone()),
