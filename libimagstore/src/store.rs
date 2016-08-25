@@ -614,7 +614,7 @@ impl Store {
 
             // remove the entry first, then the file
             entries.remove(&id);
-            if let Err(e) = FileAbstraction::remove_file(&id) {
+            if let Err(e) = FileAbstraction::remove_file(&id.clone().into()) {
                 return Err(SEK::FileError.into_error_with_cause(Box::new(e)))
                     .map_err_into(SEK::DeleteCallError);
             }
