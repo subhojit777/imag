@@ -51,8 +51,9 @@ impl<'a> DerefMut for BookmarkCollection<'a> {
 impl<'a> BookmarkCollection<'a> {
 
     pub fn new(store: &'a Store, name: &str) -> Result<BookmarkCollection<'a>> {
-        let id = ModuleEntryPath::new(name).into_storeid();
-        store.create(id)
+        ModuleEntryPath::new(name)
+            .into_storeid()
+            .and_then(|id| store.create(id))
             .map(|fle| {
                 BookmarkCollection {
                     fle: fle,
@@ -63,8 +64,9 @@ impl<'a> BookmarkCollection<'a> {
     }
 
     pub fn get(store: &'a Store, name: &str) -> Result<BookmarkCollection<'a>> {
-        let id = ModuleEntryPath::new(name).into_storeid();
-        store.get(id)
+        ModuleEntryPath::new(name)
+            .into_storeid()
+            .and_then(|id| store.get(id))
             .map_err_into(BEK::StoreReadError)
             .and_then(|fle| {
                 match fle {
@@ -78,7 +80,10 @@ impl<'a> BookmarkCollection<'a> {
     }
 
     pub fn delete(store: &Store, name: &str) -> Result<()> {
-        store.delete(ModuleEntryPath::new(name).into_storeid()).map_err_into(BEK::StoreReadError)
+        ModuleEntryPath::new(name)
+            .into_storeid()
+            .and_then(|id| store.delete(id))
+            .map_err_into(BEK::StoreReadError)
     }
 
     pub fn links(&self) -> Result<Vec<Url>> {
