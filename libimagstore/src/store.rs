@@ -682,15 +682,17 @@ impl Store {
         }
 
         {
-            let hsmap = self.entries.write();
-            if hsmap.is_err() {
-                return Err(SE::new(SEK::LockPoisoned, None))
-            }
-            let hsmap = hsmap.unwrap();
+            let hsmap = match self.entries.write() {
+                Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+                Ok(m)  => m,
+            };
+
             if hsmap.contains_key(&old_id) {
                 return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
             } else {
-                match FileAbstraction::rename(&old_id.clone(), &new_id) {
+                let old_id_pb = old_id.clone().into();
+                let new_id_pb = new_id.clone().into();
+                match FileAbstraction::rename(&old_id_pb, &new_id_pb) {
                     Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
                     Ok(_) => {
                         debug!("Rename worked");
