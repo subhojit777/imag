@@ -1510,6 +1510,11 @@ mod glob_store_iter {
     use storeid::StoreId;
     use storeid::StoreIdIterator;
 
+    use error::StoreErrorKind as SEK;
+    use error::MapErrInto;
+
+    use libimagerror::trace::trace_error;
+
     pub struct GlobStoreIdIterator {
         store_path: PathBuf,
         paths: Paths,
@@ -1549,19 +1554,12 @@ mod glob_store_iter {
             self.paths
                 .next()
                 .and_then(|o| {
-                    match o {
-                        Ok(o) => Some(o),
-                        Err(e) => {
+                    o.map_err_into(SEK::StoreIdHandlingError)
+                        .and_then(|p| StoreId::new(Some(self.store_path.clone()), p))
+                        .map_err(|e| {
                             debug!("GlobStoreIdIterator error: {:?}", e);
-                            None
-                        },
-                    }
-                }).and_then(|p| {
-                    p.strip_prefix(&self.store_path)
-                        .ok()
-                        .map(|p| {
-                            StoreId::new(Some(self.store_path.clone()), PathBuf::from(p))
-                        })
+                            trace_error(&e);
+                        }).ok()
                 })
         }
 
