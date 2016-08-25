@@ -45,8 +45,8 @@ impl<'a> Diary<'a> {
     }
 
     pub fn retrieve(&self, id: DiaryId) -> Result<Entry> {
-        self.store
-            .retrieve(id.into_storeid())
+        id.into_storeid()
+            .and_then(|id| self.store.retrieve(id))
             .map(|fle| Entry::new(fle))
             .map_err(|e| DE::new(DEK::StoreWriteError, Some(Box::new(e))))
     }
