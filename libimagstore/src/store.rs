@@ -1,12 +1,11 @@
 use std::collections::HashMap;
-use std::fs::{File, remove_file};
 use std::ops::Drop;
 use std::path::PathBuf;
 use std::result::Result as RResult;
 use std::sync::Arc;
 use std::sync::RwLock;
 use std::collections::BTreeMap;
-use std::io::{Seek, SeekFrom};
+use std::io::Read;
 use std::convert::From;
 use std::convert::Into;
 use std::sync::Mutex;
@@ -26,7 +25,7 @@ use error::{ParserErrorKind, ParserError};
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::MapErrInto;
 use storeid::{IntoStoreId, StoreId, StoreIdIterator};
-use lazyfile::LazyFile;
+use file_abstraction::FileAbstraction;
 
 use hook::aspect::Aspect;
 use hook::error::HookErrorKind;
@@ -56,7 +55,7 @@ enum StoreEntryStatus {
 #[derive(Debug)]
 struct StoreEntry {
     id: StoreId,
-    file: LazyFile,
+    file: FileAbstraction,
     status: StoreEntryStatus,
 }
 
@@ -116,7 +115,7 @@ impl StoreEntry {
     fn new(id: StoreId) -> StoreEntry {
         StoreEntry {
             id: id.clone(),
-            file: LazyFile::Absent(id.into()),
+            file: FileAbstraction::Absent(id.into()),
             status: StoreEntryStatus::Present,
         }
     }
@@ -129,7 +128,7 @@ impl StoreEntry {
 
     fn get_entry(&mut self) -> Result<Entry> {
         if !self.is_borrowed() {
-            let file = self.file.get_file_mut();
+            let file = self.file.get_file_content();
             if let Err(err) = file {
                 if err.err_type() == SEK::FileNotFound {
                     Ok(Entry::new(self.id.clone()))
@@ -138,9 +137,7 @@ impl StoreEntry {
                 }
             } else {
                 // TODO:
-                let mut file = file.unwrap();
-                let entry = Entry::from_file(self.id.clone(), &mut file);
-                file.seek(SeekFrom::Start(0)).ok();
+                let entry = Entry::from_reader(self.id.clone(), &mut file.unwrap());
                 entry
             }
         } else {
@@ -150,12 +147,10 @@ impl StoreEntry {
 
     fn write_entry(&mut self, entry: &Entry) -> Result<()> {
         if self.is_borrowed() {
-            use std::io::Write;
-            let file = try!(self.file.create_file());
-
             assert_eq!(self.id, entry.location);
-            try!(file.set_len(0).map_err_into(SEK::FileError));
-            file.write_all(entry.to_str().as_bytes()).map_err_into(SEK::FileError)
+            self.file.write_file_content(entry.to_str().as_bytes())
+                .map_err_into(SEK::FileError)
+                .map(|_| ())
         } else {
             Ok(())
         }
@@ -202,7 +197,6 @@ impl Store {
 
     /// Create a new Store object
     pub fn new(location: PathBuf, store_config: Option<Value>) -> Result<Store> {
-        use std::fs::create_dir_all;
         use configuration::*;
 
         debug!("Validating Store configuration");
@@ -222,7 +216,7 @@ impl Store {
             }
 
             debug!("Creating store path");
-            let c = create_dir_all(location.clone());
+            let c = FileAbstraction::create_dir_all(&location);
             if c.is_err() {
                 debug!("Failed");
                 return Err(SEK::StorePathCreate.into_error_with_cause(Box::new(c.unwrap_err())));
@@ -615,7 +609,7 @@ impl Store {
 
             // remove the entry first, then the file
             entries.remove(&id);
-            if let Err(e) = remove_file(&id) {
+            if let Err(e) = FileAbstraction::remove_file(&id) {
                 return Err(SEK::FileError.into_error_with_cause(Box::new(e)))
                     .map_err_into(SEK::DeleteCallError);
             }
@@ -643,9 +637,6 @@ impl Store {
     fn save_to_other_location(&self, entry: &FileLockEntry, new_id: StoreId, remove_old: bool)
         -> Result<()>
     {
-        use std::fs::copy;
-        use std::fs::remove_file;
-
         let new_id = new_id.storified(self);
         let hsmap = self.entries.write();
         if hsmap.is_err() {
@@ -657,10 +648,10 @@ impl Store {
 
         let old_id = entry.get_location().clone();
 
-        copy(old_id.clone(), new_id.clone())
+        FileAbstraction::copy(&old_id.clone().into(), &new_id.clone().into())
             .and_then(|_| {
                 if remove_old {
-                    remove_file(old_id)
+                    FileAbstraction::remove_file(&old_id.clone().into())
                 } else {
                     Ok(())
                 }
@@ -674,7 +665,6 @@ impl Store {
 
     /// Move an entry without loading
     pub fn move_by_id(&self, old_id: StoreId, new_id: StoreId) -> Result<()> {
-        use std::fs::rename;
 
         let new_id = new_id.storified(self);
         let old_id = old_id.storified(self);
@@ -691,16 +681,27 @@ impl Store {
             if hsmap.is_err() {
                 return Err(SE::new(SEK::LockPoisoned, None))
             }
-            if hsmap.unwrap().contains_key(&old_id) {
+            let hsmap = hsmap.unwrap();
+            if hsmap.contains_key(&old_id) {
                 return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
             } else {
-                match rename(old_id, new_id.clone()) {
+                match FileAbstraction::rename(&old_id.clone(), &new_id) {
                     Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
                     _ => {
                         debug!("Rename worked");
                     },
                 }
-            }
+                if hsmap.contains_key(&old_id) {
+                    return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
+                } else {
+                    match FileAbstraction::rename(&old_id, &new_id) {
+                        Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
+                        _ => {
+                            debug!("Rename worked");
+                        },
+                    }
+                }
+        }
 
         }
 
@@ -1424,9 +1425,8 @@ impl Entry {
         }
     }
 
-    pub fn from_file<S: IntoStoreId>(loc: S, file: &mut File) -> Result<Entry> {
+    pub fn from_reader<S: IntoStoreId>(loc: S, file: &mut Read) -> Result<Entry> {
         let text = {
-            use std::io::Read;
             let mut s = String::new();
             try!(file.read_to_string(&mut s));
             s
