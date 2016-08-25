@@ -227,7 +227,7 @@ mod test {
     fn correct_path() {
         let p = module_path::ModuleEntryPath::new("test");
 
-        assert_eq!(p.into_storeid().to_str().unwrap(), "test/test~0.2.0-alpha+leet1337");
+        assert_eq!(p.into_storeid().unwrap().to_str().unwrap(), "test/test~0.2.0-alpha+leet1337");
     }
 
 }
