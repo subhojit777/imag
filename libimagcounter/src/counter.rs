@@ -48,8 +48,10 @@ impl<'a> Counter<'a> {
 
         debug!("Creating new counter: '{}' with value: {}", name, init);
         let fle = {
-            let mut lockentry = try!(store.create(ModuleEntryPath::new(name.clone()).into_storeid())
-                .map_err_into(CEK::StoreWriteError));
+            let id = try!(ModuleEntryPath::new(name.clone())
+                          .into_storeid()
+                          .map_err_into(CEK::StoreWriteError));
+            let mut lockentry = try!(store.create(id).map_err_into(CEK::StoreWriteError));
 
             {
                 let mut entry  = lockentry.deref_mut();
@@ -153,7 +155,7 @@ impl<'a> Counter<'a> {
         })
     }
 
-    fn read_header_at<T, F>(&self, name: &str, f: F) -> Result<T> 
+    fn read_header_at<T, F>(&self, name: &str, f: F) -> Result<T>
         where F: FnOnce(Option<Value>) -> Result<T>
     {
         self.fle.get_header().read(name).map_err_into(CEK::StoreWriteError).and_then(f)
@@ -161,14 +163,18 @@ impl<'a> Counter<'a> {
 
     pub fn load(name: CounterName, store: &Store) -> Result<Counter> {
         debug!("Loading counter: '{}'", name);
-        let id = ModuleEntryPath::new(name).into_storeid();
+        let id = try!(ModuleEntryPath::new(name)
+                      .into_storeid()
+                      .map_err_into(CEK::StoreWriteError));
         Counter::from_storeid(store, id)
     }
 
     pub fn delete(name: CounterName, store: &Store) -> Result<()> {
         debug!("Deleting counter: '{}'", name);
-        store.delete(ModuleEntryPath::new(name).into_storeid())
-            .map_err_into(CEK::StoreWriteError)
+        let id = try!(ModuleEntryPath::new(name)
+                      .into_storeid()
+                      .map_err_into(CEK::StoreWriteError));
+        store.delete(id).map_err_into(CEK::StoreWriteError)
     }
 
     pub fn all_counters(store: &Store) -> Result<CounterIterator> {
@@ -195,7 +201,7 @@ impl<'a> FromStoreId for Counter<'a> {
                     .map_err_into(CEK::StoreReadError)
                     .and_then(|u| {
                         counter.unit = u;
-                        Ok(counter)   
+                        Ok(counter)
                     })
             }
         }
