@@ -388,7 +388,7 @@ impl Store {
 
     /// Creates the Entry at the given location (inside the entry)
     pub fn create<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
-        let id = id.into_storeid().storified(self);
+        let id = try!(id.into_storeid()).with_base(self.path().clone());
         if let Err(e) = self.execute_hooks_for_id(self.pre_create_aspects.clone(), &id) {
             return Err(e)
                 .map_err_into(SEK::PreHookExecuteError)
@@ -426,7 +426,7 @@ impl Store {
     /// Implicitely creates a entry in the store if there is no entry with the id `id`. For a
     /// non-implicitely-create look at `Store::get`.
     pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
-        let id = id.into_storeid().storified(self);
+        let id = try!(id.into_storeid()).with_base(self.path().clone());
         if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
             return Err(e)
                 .map_err_into(SEK::PreHookExecuteError)
@@ -459,8 +459,9 @@ impl Store {
     ///
     /// This executes the {pre,post}_retrieve_aspects hooks.
     pub fn get<'a, S: IntoStoreId + Clone>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>> {
-        if !id.clone().into_storeid().storified(self).exists() {
-            debug!("Does not exist: {:?}", id.clone().into_storeid());
+        let id_copy = try!(id.clone().into_storeid()).with_base(self.path().clone());
+        if !id_copy.exists() {
+            debug!("Does not exist: {:?}", id_copy);
             return Ok(None);
         }
         self.retrieve(id).map(Some).map_err_into(SEK::GetCallError)
@@ -472,7 +473,7 @@ impl Store {
     {
         // get PathBuf component from storeid, but not version component
         fn path_component<S: IntoStoreId>(id: S) -> Result<PathBuf> {
-            let p : PathBuf = id.into_storeid().into();
+            let p : PathBuf = try!(id.into_storeid()).into();
             match p.to_str() {
                 Some(s) => {
                     let mut split       = s.split("~");
@@ -579,7 +580,7 @@ impl Store {
     /// Retrieve a copy of a given entry, this cannot be used to mutate
     /// the one on disk
     pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
-        let id = id.into_storeid().storified(self);
+        let id = try!(id.into_storeid()).with_base(self.path().clone());
         let entries = match self.entries.write() {
             Err(_) => {
                 return Err(SE::new(SEK::LockPoisoned, None))
@@ -598,7 +599,7 @@ impl Store {
 
     /// Delete an entry
     pub fn delete<S: IntoStoreId>(&self, id: S) -> Result<()> {
-        let id = id.into_storeid().storified(self);
+        let id = try!(id.into_storeid()).with_base(self.path().clone());
         if let Err(e) = self.execute_hooks_for_id(self.pre_delete_aspects.clone(), &id) {
             return Err(e)
                 .map_err_into(SEK::PreHookExecuteError)
@@ -649,7 +650,7 @@ impl Store {
     fn save_to_other_location(&self, entry: &FileLockEntry, new_id: StoreId, remove_old: bool)
         -> Result<()>
     {
-        let new_id = new_id.storified(self);
+        let new_id = new_id.with_base(self.path().clone());
         let hsmap = self.entries.write();
         if hsmap.is_err() {
             return Err(SE::new(SEK::LockPoisoned, None)).map_err_into(SEK::MoveCallError)
@@ -678,8 +679,8 @@ impl Store {
     /// Move an entry without loading
     pub fn move_by_id(&self, old_id: StoreId, new_id: StoreId) -> Result<()> {
 
-        let new_id = new_id.storified(self);
-        let old_id = old_id.storified(self);
+        let new_id = new_id.with_base(self.path().clone());
+        let old_id = old_id.with_base(self.path().clone());
 
         if let Err(e) = self.execute_hooks_for_id(self.pre_move_aspects.clone(), &old_id) {
             return Err(e)
@@ -1471,7 +1472,7 @@ impl Entry {
 
         debug!("Header and content found. Yay! Building Entry object now");
         Ok(Entry {
-            location: loc.into_storeid(),
+            location: try!(loc.into_storeid()),
             header: try!(EntryHeader::parse(header)),
             content: content.into(),
         })
