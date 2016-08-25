@@ -5,6 +5,7 @@ use libimagerror::into::IntoError;
 use viewer::Viewer;
 use result::Result;
 use error::ViewErrorKind as VEK;
+use error::MapErrInto;
 
 pub struct VersionsViewer<'a> {
     store: &'a Store,
@@ -27,27 +28,28 @@ impl<'a> Viewer for VersionsViewer<'a> {
 
         entr.get_location()
             .clone()
-            .storified(self.store)
+            .with_base(self.store.path().clone())
             .to_str()
-            .and_then(|s| s.split("~").next())
-            .map(|component| {
-                glob(&format!("{}~*", component)[..])
-                    .map_err(|_| VEK::PatternError.into_error())
+            .map_err_into(VEK::ViewError)
+            .and_then(|s| {
+                s.split("~")
+                    .next()
+                    .ok_or(VEK::PatternError.into_error())
+                    .map(|s| format!("{}~*", s))
+                    .and_then(|pat| glob(&pat[..]).map_err(|_| VEK::PatternError.into_error()))
                     .and_then(|paths| {
                         for entry in paths {
-                            let p = match entry {
-                                Err(_) => return Err(VEK::GlobError.into_error()),
-                                Ok(p) => p,
-                            };
-                            let p = p.file_name()
-                                .and_then(|s| s.to_str())
-                                .unwrap(); // TODO
-                            println!("{}", p);
+                            println!("{}",
+                                try!(entry
+                                     .map_err(|_| VEK::GlobError.into_error()))
+                                     .file_name()
+                                     .and_then(|s| s.to_str())
+                                     .unwrap() // TODO
+                                );
                         };
                         Ok(())
                     })
             })
-            .unwrap_or(Err(VEK::PatternBuildingError.into_error()))
     }
 
 }
