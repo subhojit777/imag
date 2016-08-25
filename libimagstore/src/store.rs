@@ -1583,6 +1583,7 @@ mod test {
     use std::collections::BTreeMap;
     use super::EntryHeader;
     use super::Token;
+    use storeid::StoreId;
 
     use toml::Value;
 
@@ -1713,7 +1714,7 @@ Hai";
         use super::Entry;
         use std::path::PathBuf;
         println!("{}", TEST_ENTRY);
-        let entry = Entry::from_str(PathBuf::from("/test/foo~1.3"),
+        let entry = Entry::from_str(StoreId::new_baseless(PathBuf::from("test/foo~1.3")).unwrap(),
                                     TEST_ENTRY).unwrap();
 
         assert_eq!(entry.content, "Hai");
@@ -1724,7 +1725,7 @@ Hai";
         use super::Entry;
         use std::path::PathBuf;
         println!("{}", TEST_ENTRY);
-        let entry = Entry::from_str(PathBuf::from("/test/foo~1.3"),
+        let entry = Entry::from_str(StoreId::new_baseless(PathBuf::from("test/foo~1.3")).unwrap(),
                                     TEST_ENTRY).unwrap();
         let string = entry.to_str();
 
