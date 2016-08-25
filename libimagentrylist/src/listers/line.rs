@@ -28,8 +28,8 @@ impl<'a> Lister for LineLister<'a> {
         use error::ListErrorKind as LEK;
 
         entries.fold_defresult(|entry| {
-            write!(stdout(), "{:?}\n", entry.get_location().to_str().unwrap_or(self.unknown_output))
-                .map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))
+            let s = entry.get_location().to_str().unwrap_or(String::from(self.unknown_output));
+            write!(stdout(), "{:?}\n", s).map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))
         })
     }
 
