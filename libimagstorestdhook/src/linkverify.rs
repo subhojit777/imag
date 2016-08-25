@@ -53,8 +53,7 @@ impl NonMutableHookDataAccessor for LinkedEntriesExistHook {
         let _ = fle.get_internal_links()
             .map(|links| {
                 for link in links {
-                    let mut path = self.store_location.clone();
-                    path.push(link);
+                    let path : PathBuf = link.into();
                     if !path.exists() {
                         warn!("File link does not exist: {:?} -> {:?}", fle.get_location(), path);
                     } else if !path.is_file() {
