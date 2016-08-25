@@ -21,11 +21,15 @@ pub struct StoreId {
 impl StoreId {
 
     pub fn new(base: Option<PathBuf>, id: PathBuf) -> Result<StoreId> {
+        StoreId::new_baseless(id).map(|mut sid| { sid.base = base; sid })
+    }
+
+    pub fn new_baseless(id: PathBuf) -> Result<StoreId> {
         if id.is_absolute() {
             Err(SEK::StoreIdLocalPartAbsoluteError.into_error())
         } else {
             Ok(StoreId {
-                base: base,
+                base: None,
                 id: id
             })
         }
