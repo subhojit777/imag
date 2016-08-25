@@ -36,6 +36,7 @@ use hook::position::HookPosition;
 use hook::Hook;
 
 use libimagerror::into::IntoError;
+use libimagerror::trace::trace_error;
 use libimagutil::iter::FoldResult;
 
 use self::glob_store_iter::*;
@@ -99,7 +100,13 @@ impl Iterator for Walk {
                                 return Some(StoreObject::Collection(next.path().to_path_buf()))
                             } else if next.file_type().is_file() {
                                 let n   = next.path().to_path_buf();
-                                let sid = StoreId::new(Some(self.store_path.clone()), n);
+                                let sid = match StoreId::new(Some(self.store_path.clone()), n) {
+                                    Err(e) => {
+                                        trace_error(&e);
+                                        continue;
+                                    },
+                                    Ok(o) => o,
+                                };
                                 return Some(StoreObject::Id(sid))
                             },
                 Err(e) => {
