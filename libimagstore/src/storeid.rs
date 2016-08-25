@@ -40,6 +40,11 @@ impl StoreId {
         self
     }
 
+    pub fn with_base(mut self, base: PathBuf) -> Self {
+        self.base = Some(base);
+        self
+    }
+
     pub fn storified(self, store: &Store) -> StoreId {
         StoreId {
             base: Some(store.path().clone()),
