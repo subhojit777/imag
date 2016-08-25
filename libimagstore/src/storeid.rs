@@ -99,12 +99,12 @@ impl Display for StoreId {
 /// This Trait allows you to convert various representations to a single one
 /// suitable for usage in the Store
 pub trait IntoStoreId {
-    fn into_storeid(self) -> StoreId;
+    fn into_storeid(self) -> Result<StoreId>;
 }
 
 impl IntoStoreId for StoreId {
-    fn into_storeid(self) -> StoreId {
-        self
+    fn into_storeid(self) -> Result<StoreId> {
+        Ok(self)
     }
 }
 
@@ -147,6 +147,7 @@ macro_rules! module_entry_path_mod {
             use std::path::PathBuf;
 
             use $crate::storeid::StoreId;
+            use $crate::store::Result;
 
             /// A Struct giving you the ability to choose store entries assigned
             /// to it.
@@ -171,7 +172,7 @@ macro_rules! module_entry_path_mod {
             }
 
             impl $crate::storeid::IntoStoreId for ModuleEntryPath {
-                fn into_storeid(self) -> $crate::storeid::StoreId {
+                fn into_storeid(self) -> Result<$crate::storeid::StoreId> {
                     StoreId::new(None, self.0)
                 }
             }
