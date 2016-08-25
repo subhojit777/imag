@@ -4,6 +4,7 @@ use semver::Version;
 use std::fmt::{Display, Debug, Formatter};
 use std::fmt::Error as FmtError;
 use std::result::Result as RResult;
+use std::path::Components;
 
 use libimagerror::into::IntoError;
 
@@ -76,6 +77,14 @@ impl StoreId {
         .to_str()
         .map(String::from)
         .ok_or(SEK::StoreIdHandlingError.into_error())
+    }
+
+    /// Returns the components of the `id` part of the StoreId object.
+    ///
+    /// Can be used to check whether a StoreId points to an entry in a specific collection of
+    /// StoreIds.
+    pub fn components(&self) -> Components {
+        self.id.components()
     }
 
 }
