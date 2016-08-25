@@ -91,8 +91,16 @@ pub trait ExternalLinker : InternalLinker {
 
 /// Check whether the StoreId starts with `/link/external/`
 pub fn is_external_link_storeid(id: &StoreId) -> bool {
-    debug!("Checking whether this is a /link/external/*: '{:?}'", id);
-    id.parent().map(|par| par.ends_with("/link/external")).unwrap_or(false)
+    use std::path::Component;
+
+    debug!("Checking whether this is a link/external/*: '{:?}'", id);
+    id.components()
+        .take(2)
+        .zip(&["link", "external"])
+        .map(|(c, pred)| match c {
+            Component::Normal(ref s) => s.to_str().map(|ref s| s == pred).unwrap_or(false),
+            _ => false
+        }).all(|x| x)
 }
 
 fn get_external_link_from_file(entry: &FileLockEntry) -> Result<Url> {
@@ -144,7 +152,13 @@ impl ExternalLinker for Entry {
                 s.input_str(&link.as_str()[..]);
                 s.result_str()
             };
-            let file_id = ModuleEntryPath::new(format!("external/{}", hash)).into_storeid();
+            let file_id = try!(
+                ModuleEntryPath::new(format!("external/{}", hash)).into_storeid()
+                    .map_err_into(LEK::StoreWriteError)
+                    .map_dbg_err(|_| {
+                        format!("Failed to build StoreId for this hash '{:?}'", hash)
+                    })
+                );
 
             debug!("Link    = '{:?}'", link);
             debug!("Hash    = '{:?}'", hash);
