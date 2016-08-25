@@ -20,8 +20,15 @@ pub struct StoreId {
 
 impl StoreId {
 
-    pub fn new(base: Option<PathBuf>, id: PathBuf) -> StoreId {
-        StoreId { base: base, id: id }
+    pub fn new(base: Option<PathBuf>, id: PathBuf) -> Result<StoreId> {
+        if id.is_absolute() {
+            Err(SEK::StoreIdLocalPartAbsoluteError.into_error())
+        } else {
+            Ok(StoreId {
+                base: base,
+                id: id
+            })
+        }
     }
 
     pub fn storified(self, store: &Store) -> StoreId {
