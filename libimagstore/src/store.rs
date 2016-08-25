@@ -687,21 +687,11 @@ impl Store {
             } else {
                 match FileAbstraction::rename(&old_id.clone(), &new_id) {
                     Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
-                    _ => {
+                    Ok(_) => {
                         debug!("Rename worked");
-                    },
-                }
-                if hsmap.contains_key(&old_id) {
-                    return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
-                } else {
-                    match FileAbstraction::rename(&old_id, &new_id) {
-                        Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
-                        _ => {
-                            debug!("Rename worked");
-                        },
                     }
                 }
-        }
+            }
 
         }
 
