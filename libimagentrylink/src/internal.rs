@@ -7,6 +7,7 @@ use libimagstore::store::Result as StoreResult;
 use libimagerror::into::IntoError;
 
 use error::LinkErrorKind as LEK;
+use error::MapErrInto;
 use result::Result;
 
 use toml::Value;
@@ -99,9 +100,15 @@ impl InternalLinker for Entry {
 }
 
 fn links_into_values(links: Vec<StoreId>) -> Vec<Option<Value>> {
+    use libimagutil::debug_result::InfoResult;
+
     links
         .into_iter()
-        .map(|s| s.to_str().map(String::from))
+        .map(|s| {
+            s.to_str()
+                .map_dbg_err(|e| format!("Failed to translate StoreId to String: {:?}", e))
+                .ok()
+        })
         .unique()
         .map(|elem| elem.map(Value::String))
         .sorted_by(|a, b| {
@@ -157,6 +164,8 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
 }
 
 fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
+    use std::path::PathBuf;
+
     let links = match links {
         Err(e) => {
             debug!("RW action on store failed. Generating LinkError");
@@ -179,14 +188,15 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
         return Err(LEK::ExistingLinkTypeWrong.into());
     }
 
-    let links : Vec<Link> = links.into_iter()
+    let links : Vec<Link> = try!(links.into_iter()
         .map(|link| {
             match link {
-                Value::String(s) => StoreId::from(s),
+                Value::String(s) => StoreId::new_baseless(PathBuf::from(s))
+                    .map_err_into(LEK::StoreIdError),
                 _ => unreachable!(),
             }
         })
-        .collect();
+        .collect());
 
     debug!("Ok, the RW action was successful, returning link vector now!");
     Ok(links)
