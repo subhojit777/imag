@@ -838,11 +838,19 @@ impl Drop for Store {
      * TODO: Unlock them
      */
     fn drop(&mut self) {
-        let store_id = StoreId::new(Some(self.location.clone()), PathBuf::from("."));
-        if let Err(e) = self.execute_hooks_for_id(self.store_unload_aspects.clone(), &store_id) {
-            debug!("Store-load hooks execution failed. Cannot create store object.");
-            warn!("Store Unload Hook error: {:?}", e);
-        }
+        match StoreId::new(Some(self.location.clone()), PathBuf::from(".")) {
+            Err(e) => {
+                trace_error(&e);
+                warn!("Cannot construct StoreId for Store to execute hooks!");
+                warn!("Will close Store without executing hooks!");
+            },
+            Ok(store_id) => {
+                if let Err(e) = self.execute_hooks_for_id(self.store_unload_aspects.clone(), &store_id) {
+                    debug!("Store-load hooks execution failed. Cannot create store object.");
+                    warn!("Store Unload Hook error: {:?}", e);
+                }
+            },
+        };
 
         debug!("Dropping store");
     }
