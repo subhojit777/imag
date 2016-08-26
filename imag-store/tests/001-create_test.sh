@@ -4,7 +4,7 @@ source $(dirname ${BASH_SOURCE[0]})/../../tests/utils.sh
 source $(dirname ${BASH_SOURCE[0]})/utils.sh
 
 test_call() {
-    imag-store create -p /test-call~0.2.0
+    imag-store create -p test-call~0.2.0
     if [[ ! $? -eq 0 ]]; then
         err "Return value should be zero, was non-zero"
         return 1;
@@ -12,7 +12,7 @@ test_call() {
 }
 
 test_call_id() {
-    imag-store create -i /test-call~0.2.0
+    imag-store create -i test-call~0.2.0
     if [[ ! $? -eq 0 ]]; then
         err "Return value should be zero, was non-zero"
         return 1;
@@ -28,7 +28,7 @@ test_call_no_id() {
 }
 
 test_mkstore() {
-    imag-store create -p /test-mkstore~0.2.0 || { err "Calling imag failed"; return 1; }
+    imag-store create -p test-mkstore~0.2.0 || { err "Calling imag failed"; return 1; }
     if [[ -d ${STORE} ]]; then
         out "Store exists."
     else
@@ -48,7 +48,7 @@ version = "0.2.0"
 EOS
 )
 
-    imag-store create -p /test-std-header~0.2.0
+    imag-store create -p test-std-header~0.2.0
     local result=$(cat ${STORE}/test-std-header~0.2.0)
     if [[ "$expected" == "$result" ]]; then
         out "Expected store entry == result"
@@ -72,7 +72,7 @@ zzz = "z"
 EOS
 )
 
-    imag-store create -p /test-std-header-plus-custom~0.2.0 entry -h zzz.zzz=z
+    imag-store create -p test-std-header-plus-custom~0.2.0 entry -h zzz.zzz=z
     local result=$(cat ${STORE}/test-std-header-plus-custom~0.2.0)
     if [[ "$expected" == "$result" ]]; then
         out "Expected store entry == result"
@@ -100,7 +100,7 @@ EOS
 )
 
     local filename="test-std-header-plus-custom-multiheader~0.2.0"
-    imag-store create -p /$filename entry -h zzz.zzz=z foo.bar=baz
+    imag-store create -p $filename entry -h zzz.zzz=z foo.bar=baz
     local result=$(cat ${STORE}/$filename)
     if [[ "$expected" == "$result" ]]; then
         out "Expected store entry == result"
@@ -127,7 +127,7 @@ EOS
 )
 
     local filename="test-std-header-plus-custom-mutliheader-same-section~0.2.0"
-    imag-store create -p /$filename entry -h zzz.zzz=z zzz.bar=baz
+    imag-store create -p $filename entry -h zzz.zzz=z zzz.bar=baz
     local result=$(cat ${STORE}/$filename)
     if [[ "$expected" == "$result" ]]; then
         out "Expected store entry == result"
@@ -152,7 +152,7 @@ EOS
 )
 
     local name="test-std-header-plus-custom-and-content~0.2.0"
-    imag-store create -p /$name entry -h zzz.zzz=z -c content
+    imag-store create -p $name entry -h zzz.zzz=z -c content
     local result=$(cat ${STORE}/$name)
     if [[ "$expected" == "$result" ]]; then
         out "Expected store entry == result"

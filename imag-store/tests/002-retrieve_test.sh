@@ -20,7 +20,7 @@ retrieve() {
 test_retrieve_nothing() {
     local id="test-retrieve_nothing~0.2.0"
 
-    imag-store create -p /${id} || { err "create failed"; return 1; }
+    imag-store create -p ${id} || { err "create failed"; return 1; }
 
     out "Going to test the retrieve functionality now"
     local zero_out="$(retrieve --id /${id})"
@@ -35,7 +35,7 @@ test_retrieve_nothing() {
 test_retrieve_content() {
     local id="test-retrieve_simple~0.2.0"
 
-    imag-store create -p /${id} || { err "create failed"; return 1; }
+    imag-store create -p ${id} || { err "create failed"; return 1; }
 
     out "Going to test the retrieve functionality now"
 
@@ -51,7 +51,7 @@ test_retrieve_content() {
 test_retrieve_header() {
     local id="test-retrieve_simple~0.2.0"
 
-    imag-store create -p /${id} || { err "create failed"; return 1; }
+    imag-store create -p ${id} || { err "create failed"; return 1; }
 
     out "Going to test the retrieve functionality now"
     local header_out="$(retrieve --id /${id} --header)"
@@ -66,10 +66,10 @@ test_retrieve_header() {
 test_retrieve_raw() {
     local id="test-retrieve_simple~0.2.0"
 
-    imag-store create -p /${id} || { err "create failed"; return 1; }
+    imag-store create -p ${id} || { err "create failed"; return 1; }
 
     out "Going to test the retrieve functionality now"
-    local both_out="$(retrieve --id /${id} --raw)"
+    local both_out="$(retrieve --id ${id} --raw)"
     out "Retrieving for both_out finished"
 
     if [[ "$both_out" != "$(std_header)" ]]; then
