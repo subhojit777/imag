@@ -13,7 +13,7 @@ use std::io::ErrorKind;
 
 use walkdir::WalkDir;
 use crossbeam::*;
-use clap::{Arg, SubCommand};
+use clap::{Arg, AppSettings, SubCommand};
 
 use libimagrt::runtime::Runtime;
 
@@ -129,6 +129,8 @@ fn main() {
              .required(false)
              .multiple(false)
              .help("Show help"))
+        .subcommand(SubCommand::with_name("help").help("Show help"))
+        .settings(&[AppSettings::AllowExternalSubcommands])
         .get_matches();
 
     if matches.is_present("help") {
