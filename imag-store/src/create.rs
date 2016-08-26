@@ -13,8 +13,6 @@ use clap::ArgMatches;
 use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
-use libimagstore::storeid::build_entry_path;
-use libimagerror::trace::trace_error_exit;
 
 use error::StoreError;
 use error::StoreErrorKind;
@@ -36,10 +34,7 @@ pub fn create(rt: &Runtime) {
                 exit(1);
             }
 
-            let path = match build_entry_path(rt.store(), path.unwrap()) {
-                Err(e) => trace_error_exit(&e, 1),
-                Ok(p) => p,
-            };
+            let path = PathBuf::from(path.unwrap());
             debug!("path = {:?}", path);
 
             if scmd.subcommand_matches("entry").is_some() {
@@ -111,7 +106,7 @@ fn create_with_content_and_header(rt: &Runtime,
                                   content: String,
                                   header: EntryHeader) -> Result<()>
 {
-    debug!("Creating entry with content");
+    debug!("Creating entry with content at {:?}", path);
     rt.store()
         .create(PathBuf::from(path))
         .map(|mut element| {

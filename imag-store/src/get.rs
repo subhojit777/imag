@@ -1,6 +1,8 @@
-use libimagstore::storeid::build_entry_path;
+use std::path::PathBuf;
+
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::{trace_error, trace_error_exit};
+use libimagstore::storeid::StoreId;
 
 use retrieve::print_entry;
 
@@ -10,7 +12,8 @@ pub fn get(rt: &Runtime) {
         .map(|scmd| {
             scmd.value_of("id")
                 .map(|id| {
-                    let path = match build_entry_path(rt.store(), id) {
+                    let path = PathBuf::from(id);
+                    let path = match StoreId::new(Some(rt.store().path().clone()), path) {
                         Err(e) => trace_error_exit(&e, 1),
                         Ok(p) => p,
                     };
