@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use semver::Version;
 use std::fmt::{Display, Debug, Formatter};
 use std::fmt::Error as FmtError;
 use std::result::Result as RResult;
@@ -120,27 +119,6 @@ impl IntoStoreId for StoreId {
     fn into_storeid(self) -> Result<StoreId> {
         Ok(self)
     }
-}
-
-pub fn build_entry_path(store: &Store, path_elem: &str) -> Result<PathBuf> {
-    debug!("Checking path element for version");
-    if path_elem.split('~').last().map_or(false, |v| Version::parse(v).is_err()) {
-        debug!("Version cannot be parsed from {:?}", path_elem);
-        debug!("Path does not contain version!");
-        return Err(SEK::StorePathLacksVersion.into());
-    }
-    debug!("Version checking succeeded");
-
-    debug!("Building path from {:?}", path_elem);
-    let mut path = store.path().clone();
-
-    if path_elem.starts_with('/') {
-        path.push(&path_elem[1..]);
-    } else {
-        path.push(path_elem);
-    }
-
-    Ok(path)
 }
 
 #[macro_export]
