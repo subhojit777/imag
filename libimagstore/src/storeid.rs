@@ -121,6 +121,12 @@ impl IntoStoreId for StoreId {
     }
 }
 
+impl IntoStoreId for PathBuf {
+    fn into_storeid(self) -> Result<StoreId> {
+        StoreId::new_baseless(self)
+    }
+}
+
 #[macro_export]
 macro_rules! module_entry_path_mod {
     ($name:expr, $version:expr) => (
