@@ -106,43 +106,61 @@ Here goes how to try imag out.
 
 ### Building
 
-One can build all the modules simply by running `make` which defaults to
-building all the modules and placing them in the `out/` directory of the project
-root.
+By now, there are several targets in the Makefile, fulfilling following roles:
+* `all` Is the default and builds every crate in debug mode. This is the same as
+  traversing every directory yourself and calling `cargo build` in it.
+  To build a single crate, call `make <crate>`, for example
+  `make imag-store`
+* `release`, as the name implies, builds every crate in release mode. Following
+  the example above, to build `imag-store` in release mode, call
+  `make imag-store-release`.
+* `install` will install all binary crates to the default installation root (see
+  `man cargo-install`). To install a single module, run `make <module>-install`,
+  again, for example: `make imag-store-install`
+* `bin`/`lib` are separate targets for either building all binaries or
+  libraries.
+* `lib-test` runs `cargo test` for all libraries. For testing a single library,
+  run `make test-libimagstore` for example.
+* `clean` will run `cargo clean` in every crate. Again, for cleaning a single
+  crate, use `make imag-store-clean` for example.
 
-```
-$> make
-  ...
-$> ls out/
-imag-counter  imag-link  imag-notes  imag-store  imag-tag  imag-view
-```
-
-Building all the modules may take some time, so alternatively one can build only
-a specific module
-by runing `$> make $module` where `$module` is one of  the `imag-*` names, such
-as `imag-counter`, `imag-link`, etc.
+**There is currently no target for the `imag` binary itself. Please
+build/install it yourself using `cargo build --manifest-path ./bin/Cargo.toml`**
 
 ### Running
 
-To run imag, simply call `./out/imag`.
-If you include the `out` directory in your `$PATH`, imag is able to find the
-other imag executables. Try it out by running:
+To test out a single module, simply using `cargo run -- <options>` in the
+respective directory will do the trick. For using it "normally", install the
+binaries as described above, as well as the imag-binary:
+```
+$> make install
+$> cargo install --path ./bin
+```
+The installation root of the binaries (a.k.a. where they are installed to), may
+not yet be in your $PATH. To see, where this installation root is, check out
+`man cargo-install`. To change the $PATH in bash:
 
 ```bash
-$> PATH=$PATH:$(pwd)/out imag --help
+$> PATH=$PATH:~/.cargo/bin
+$> imag --help
 ```
 
 To test, simply add `--help` to one of the above commands:
 
 ```bash
-$> PATH=$PATH:$(pwd)/out imag counter --help
+$> imag counter --help
 ```
+
+Please note that $PATH will be reset in a new shell. To make these changes
+permanent, see the User Guide of your shell.
 
 ## Documentation
 
 For detailed information, please read [the documentation](./doc/) (You can
 either read the Markdown files or compile it to HTML/PDF using
 [pandoc](http://pandoc.org)).
+Developer documentation is also available
+[online on github.io](https://matthiasbeyer.github.io/imag/imag_documentation/index.html).
 
 Please note that the documentation is work in progress as well and may be
 outdated.
