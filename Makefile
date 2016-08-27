@@ -13,40 +13,56 @@ BIN_TARGETS=$(patsubst imag-%,,$(BINS))
 LIB_TARGETS=$(LIBS)
 LIB_TARGETS_TEST=$(foreach x,$(subst ./,,$(LIBS)),test-$(x))
 TARGETS=$(BIN_TARGETS) $(LIB_TARGETS)
+RELEASE_TARGETS=$(foreach x,$(TARGETS),$(x)-release)
+INSTALL_TARGETS=$(foreach x,$(BIN_TARGETS),$(x)-install)
 UPDATE_TARGETS=$(foreach x,$(TARGETS),$(x)-update)
 CLEAN_TARGETS=$(foreach x,$(TARGETS),$(x)-clean)
 
 all: $(TARGETS)
-	@$(ECHO) "\t[ALL   ]"
+	@$(ECHO) "\t[ALL    ]"
+
+release: $(RELEASE_TARGETS)
+	@$(ECHO) "\t[RELEASE]"
 
 bin: $(BIN_TARGETS)
-	@$(ECHO) "\t[ALLBIN]"
+	@$(ECHO) "\t[ALLBIN ]"
 
 lib: $(LIB_TARGETS)
-	@$(ECHO) "\t[ALLLIB]"
+	@$(ECHO) "\t[ALLLIB ]"
 
 lib-test: $(LIB_TARGETS_TEST)
 
+install: $(INSTALL_TARGETS)
+	@$(ECHO) "\t[INSTALL]"
+
 update: $(UPDATE_TARGETS)
-	@$(ECHO) "\t[UPDATE]"
+	@$(ECHO) "\t[UPDATE ]"
 
 clean: $(CLEAN_TARGETS)
-	@$(ECHO) "\t[CLEAN ]"
+	@$(ECHO) "\t[CLEAN  ]"
 
 $(TARGETS): %: .FORCE
-	@$(ECHO) "\t[CARGO ]:\t$@"
+	@$(ECHO) "\t[CARGO  ]:\t$@"
 	@$(CARGO) build --manifest-path ./$@/Cargo.toml
 
+$(RELEASE_TARGETS): %: .FORCE
+	@$(ECHO) "\t[RELEASE]:\t$(subst -release,,$@)"
+	@$(CARGO) build --release --manifest-path ./$(subst -release,,$@)/Cargo.toml
+
 $(LIB_TARGETS_TEST): %: .FORCE
-	@$(ECHO) "\t[TEST  ]:\t$@"
+	@$(ECHO) "\t[TEST   ]:\t$@"
 	@$(CARGO) test --manifest-path ./$(subst test-,,$@)/Cargo.toml
 
+$(INSTALL_TARGETS): %: .FORCE
+	@$(ECHO) "\t[INSTALL]:\t$(subst -install,,$@)"
+	@$(CARGO) install --force --path ./$(subst -install,,$@)
+
 $(UPDATE_TARGETS): %: .FORCE
-	@$(ECHO) "\t[UPDATE]:\t$(subst -update,,$@)"
+	@$(ECHO) "\t[UPDATE ]:\t$(subst -update,,$@)"
 	@$(CARGO) update --manifest-path ./$(subst -update,,$@)/Cargo.toml
 
 $(CLEAN_TARGETS): %: .FORCE
-	@$(ECHO) "\t[CLEAN]:\t$(subst -clean,,$@)"
+	@$(ECHO) "\t[CLEAN  ]:\t$(subst -clean,,$@)"
 	@$(CARGO) clean --manifest-path ./$(subst -clean,,$@)/Cargo.toml
 
 .FORCE:
