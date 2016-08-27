@@ -13,12 +13,16 @@ BIN_TARGETS=$(patsubst imag-%,,$(BINS))
 LIB_TARGETS=$(LIBS)
 LIB_TARGETS_TEST=$(foreach x,$(subst ./,,$(LIBS)),test-$(x))
 TARGETS=$(BIN_TARGETS) $(LIB_TARGETS)
+RELEASE_TARGETS=$(foreach x,$(TARGETS),$(x)-release)
 INSTALL_TARGETS=$(foreach x,$(BIN_TARGETS),$(x)-install)
 UPDATE_TARGETS=$(foreach x,$(TARGETS),$(x)-update)
 CLEAN_TARGETS=$(foreach x,$(TARGETS),$(x)-clean)
 
 all: $(TARGETS)
 	@$(ECHO) "\t[ALL   ]"
+
+release: $(RELEASE_TARGETS)
+	@$(ECHO) "\t[RELEASE]
 
 bin: $(BIN_TARGETS)
 	@$(ECHO) "\t[ALLBIN]"
@@ -40,6 +44,10 @@ clean: $(CLEAN_TARGETS)
 $(TARGETS): %: .FORCE
 	@$(ECHO) "\t[CARGO ]:\t$@"
 	@$(CARGO) build --manifest-path ./$@/Cargo.toml
+
+$(RELEASE_TARGETS): %: .FORCE
+	@$(ECHO) "\t[RELEASE]:\t$(subst -release,,$@)"
+	@$(CARGO) build --release --manifest-path ./$(subst -release,,$@)/Cargo.toml
 
 $(LIB_TARGETS_TEST): %: .FORCE
 	@$(ECHO) "\t[TEST  ]:\t$@"
