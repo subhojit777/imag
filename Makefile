@@ -13,6 +13,7 @@ BIN_TARGETS=$(patsubst imag-%,,$(BINS))
 LIB_TARGETS=$(LIBS)
 LIB_TARGETS_TEST=$(foreach x,$(subst ./,,$(LIBS)),test-$(x))
 TARGETS=$(BIN_TARGETS) $(LIB_TARGETS)
+INSTALL_TARGETS=$(foreach x,$(BIN_TARGETS),$(x)-install)
 UPDATE_TARGETS=$(foreach x,$(TARGETS),$(x)-update)
 CLEAN_TARGETS=$(foreach x,$(TARGETS),$(x)-clean)
 
@@ -27,6 +28,9 @@ lib: $(LIB_TARGETS)
 
 lib-test: $(LIB_TARGETS_TEST)
 
+install: $(INSTALL_TARGETS)
+	@$(ECHO) "\t[INSTALL]"
+
 update: $(UPDATE_TARGETS)
 	@$(ECHO) "\t[UPDATE]"
 
@@ -40,6 +44,10 @@ $(TARGETS): %: .FORCE
 $(LIB_TARGETS_TEST): %: .FORCE
 	@$(ECHO) "\t[TEST  ]:\t$@"
 	@$(CARGO) test --manifest-path ./$(subst test-,,$@)/Cargo.toml
+
+$(INSTALL_TARGETS): %: .FORCE
+	@$(ECHO) "\t[INSTALL]:\t$(subst -install,,$@)"
+	@$(CARGO) install --force --path ./$(subst -install,,$@)
 
 $(UPDATE_TARGETS): %: .FORCE
 	@$(ECHO) "\t[UPDATE]:\t$(subst -update,,$@)"
