@@ -20,5 +20,7 @@ extern crate libimagstore;
 #[macro_use]
 extern crate libimagerror;
 
+pub mod error;
+pub mod result;
 pub mod ui;
 
