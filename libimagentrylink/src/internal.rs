@@ -54,13 +54,11 @@ impl InternalLinker for Entry {
                              .into_iter()
                              .fold(Ok(vec![]), |acc, elem| {
                                 acc.and_then(move |mut v| {
-                                    match elem {
-                                        None => Err(LEK::InternalConversionError.into()),
-                                        Some(e) => {
+                                    elem.map_err_into(LEK::InternalConversionError)
+                                        .map(|e| {
                                             v.push(e);
-                                            Ok(v)
-                                        },
-                                    }
+                                            v
+                                        })
                                 })
                             }));
         process_rw_result(self.get_header_mut().set("imag.links", Value::Array(new_links)))
@@ -99,23 +97,17 @@ impl InternalLinker for Entry {
 
 }
 
-fn links_into_values(links: Vec<StoreId>) -> Vec<Option<Value>> {
-    use libimagutil::debug_result::InfoResult;
-
+fn links_into_values(links: Vec<StoreId>) -> Vec<Result<Value>> {
     links
         .into_iter()
-        .map(|s| {
-            s.to_str()
-                .map_dbg_err(|e| format!("Failed to translate StoreId to String: {:?}", e))
-                .ok()
-        })
         .unique()
+        .map(|s| s.to_str().map_err_into(LEK::InternalConversionError))
         .map(|elem| elem.map(Value::String))
         .sorted_by(|a, b| {
             match (a, b) {
-                (&Some(Value::String(ref a)), &Some(Value::String(ref b))) => Ord::cmp(a, b),
-                (&None, _) | (_, &None) => Ordering::Equal,
-                _                                              => unreachable!()
+                (&Ok(Value::String(ref a)), &Ok(Value::String(ref b))) => Ord::cmp(a, b),
+                (&Err(_), _) | (_, &Err(_)) => Ordering::Equal,
+                _ => unreachable!()
             }
         })
 }
@@ -125,13 +117,11 @@ fn rewrite_links(header: &mut EntryHeader, links: Vec<StoreId>) -> Result<()> {
                      .into_iter()
                      .fold(Ok(vec![]), |acc, elem| {
                         acc.and_then(move |mut v| {
-                            match elem {
-                                None => Err(LEK::InternalConversionError.into()),
-                                Some(e) => {
+                            elem.map_err_into(LEK::InternalConversionError)
+                                .map(|e| {
                                     v.push(e);
-                                    Ok(v)
-                                },
-                            }
+                                    v
+                                })
                         })
                      }));
 
@@ -149,13 +139,11 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
                              .into_iter()
                              .fold(Ok(vec![]), |acc, elem| {
                                 acc.and_then(move |mut v| {
-                                    match elem {
-                                        None => Err(LEK::InternalConversionError.into()),
-                                        Some(e) => {
+                                    elem.map_err_into(LEK::InternalConversionError)
+                                        .map(|e| {
                                             v.push(e);
-                                            Ok(v)
-                                        },
-                                    }
+                                            v
+                                        })
                                 })
                              }));
             process_rw_result(target.get_header_mut().set("imag.links", Value::Array(links)))
