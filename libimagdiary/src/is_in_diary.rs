@@ -18,7 +18,7 @@ impl IsInDiary for Entry {
 impl IsInDiary for StoreId {
 
     fn is_in_diary(&self, name: &str) -> bool {
-        self.to_str().map(|s| s.contains(name)).unwrap_or(false)
+        self.is_in_collection(&["diary", name])
     }
 
 }
