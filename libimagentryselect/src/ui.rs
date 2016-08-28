@@ -3,7 +3,11 @@ use std::path::PathBuf;
 use clap::{Arg, ArgMatches};
 
 use libimagstore::storeid::StoreId;
-use libimagerror::trace::trace_error;
+use libimagerror::into::IntoError;
+
+use result::Result;
+use error::MapErrInto;
+use error::EntrySelectErrorKind as ESEK;
 
 pub fn id_argument<'a, 'b>() -> Arg<'a, 'b> {
     Arg::with_name(id_argument_name())
@@ -26,41 +30,35 @@ pub fn id_argument_long() -> &'static str {
     "id"
 }
 
-pub fn get_id(matches: &ArgMatches) -> Option<Vec<StoreId>> {
-    matches.values_of(id_argument_name())
-        .map(|vals| {
+pub fn get_id(matches: &ArgMatches) -> Result<Vec<StoreId>> {
+    matches
+        .values_of(id_argument_name())
+        .ok_or(ESEK::IdMissingError.into_error())
+        .map_err_into(ESEK::CLIError)
+        .and_then(|vals| {
             vals.into_iter()
-                .map(String::from)
-                .map(PathBuf::from)
-                .map(|p| StoreId::new_baseless(p)) /* TODO: Do not hide error here */
-                .filter_map(|res| match res {
-                    Err(e) => { trace_error(&e); None },
-                    Ok(o) => Some(o),
+                .fold(Ok(vec![]), |acc, elem| {
+                    acc.and_then(|mut v| {
+                        let elem = StoreId::new_baseless(PathBuf::from(String::from(elem)));
+                        let elem = try!(elem.map_err_into(ESEK::StoreIdParsingError));
+                        v.push(elem);
+                        Ok(v)
+                    })
                 })
-                .collect()
         })
 }
 
-pub fn get_or_select_id(matches: &ArgMatches, store_path: &PathBuf) -> Option<Vec<StoreId>> {
+pub fn get_or_select_id(matches: &ArgMatches, store_path: &PathBuf) -> Result<Vec<StoreId>> {
     use interactor::{pick_file, default_menu_cmd};
 
-    get_id(matches).or_else(|| {
-        match pick_file(default_menu_cmd, store_path.clone()) {
-            Err(e) => {
-                trace_error(&e);
-                None
-            },
-
-            Ok(p) => {
-                match StoreId::new_baseless(p) {
-                    Err(e) => {
-                        trace_error(&e);
-                        None
-                    },
-                    Ok(id) => Some(vec![id]),
-                }
-            },
-        }
-    })
+    match get_id(matches).map_err_into(ESEK::IdSelectingError) {
+        Ok(v) => Ok(v),
+        Err(_) => {
+            let path = store_path.clone();
+            let p  = try!(pick_file(default_menu_cmd, path).map_err_into(ESEK::IdSelectingError));
+            let id = try!(StoreId::new_baseless(p).map_err_into(ESEK::StoreIdParsingError));
+            Ok(vec![id])
+        },
+    }
 }
 
