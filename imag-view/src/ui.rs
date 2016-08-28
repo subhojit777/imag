@@ -10,12 +10,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .help("View this entry at this store path")
             .value_name("ID"))
 
-        .arg(Arg::with_name("versions")
-            .long("versions")
-            .takes_value(false)
-            .required(false)
-            .help("Only print available versions for this file"))
-
         .arg(Arg::with_name("view-header")
             .long("header")
             .short("h")

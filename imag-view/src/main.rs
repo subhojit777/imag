@@ -30,7 +30,6 @@ use std::path::PathBuf;
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::trace_error_exit;
 use libimagentryview::builtin::stdout::StdoutViewer;
-use libimagentryview::builtin::versions::VersionsViewer;
 use libimagentryview::viewer::Viewer;
 
 mod ui;
@@ -66,9 +65,7 @@ fn main() {
         }
     };
 
-    let res = if rt.cli().is_present("versions") {
-        VersionsViewer::new(rt.store()).view_entry(&entry)
-    } else {
+    let res = {
         if scmd.is_present("view-in-stdout") {
         } else if scmd.is_present("view-in-ui") {
             warn!("Viewing in UI is currently not supported, switch to stdout");
