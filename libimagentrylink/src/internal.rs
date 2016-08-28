@@ -101,7 +101,7 @@ fn links_into_values(links: Vec<StoreId>) -> Vec<Result<Value>> {
     links
         .into_iter()
         .unique()
-        .map(|s| s.to_str().map_err_into(LEK::InternalConversionError))
+        .map(|s| s.without_base().to_str().map_err_into(LEK::InternalConversionError))
         .map(|elem| elem.map(Value::String))
         .sorted_by(|a, b| {
             match (a, b) {
