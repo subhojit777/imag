@@ -8,7 +8,6 @@ cache: cargo
 matrix:
   allow_failures:
   - rust: nightly
-  - rust: beta
 before_install:
 - |
   c=$(git diff $(git merge-base master $TRAVIS_COMMIT)..$TRAVIS_COMMIT --name-only | cut -d "/" -f 1 | uniq)
