@@ -124,6 +124,29 @@ impl StoreId {
         &self.id
     }
 
+    /// Check whether a StoreId points to an entry in a specific collection.
+    ///
+    /// A "collection" here is simply a directory. So `foo/bar/baz` is an entry which is in
+    /// collection ["foo", "bar", "baz"], but also in ["foo", "bar"] and ["foo"].
+    ///
+    /// # Warning
+    ///
+    /// The collection specification _has_ to start with the module name. Otherwise this function
+    /// may return false negatives.
+    ///
+    pub fn is_in_collection(&self, colls: &[&str]) -> bool {
+        use std::path::Component;
+
+        self.id
+            .components()
+            .zip(colls)
+            .map(|(component, pred_coll)| match component {
+                Component::Normal(ref s) => s.to_str().map(|ref s| s == pred_coll).unwrap_or(false),
+                _ => false
+            })
+            .all(|x| x)
+    }
+
     pub fn local_push<P: AsRef<Path>>(&mut self, path: P) {
         self.id.push(path)
     }
@@ -343,6 +366,26 @@ mod test {
         assert!(pb.is_ok());
 
         assert_eq!(pb.unwrap(), PathBuf::from("/tmp/test"));
+    }
+
+    #[test]
+    fn storeid_in_collection() {
+        let p = module_path::ModuleEntryPath::new("1/2/3/4/5/6/7/8/9/0").into_storeid().unwrap();
+
+        assert!(p.is_in_collection(&["test", "1"]));
+        assert!(p.is_in_collection(&["test", "1", "2"]));
+        assert!(p.is_in_collection(&["test", "1", "2", "3"]));
+        assert!(p.is_in_collection(&["test", "1", "2", "3", "4"]));
+        assert!(p.is_in_collection(&["test", "1", "2", "3", "4", "5"]));
+        assert!(p.is_in_collection(&["test", "1", "2", "3", "4", "5", "6"]));
+        assert!(p.is_in_collection(&["test", "1", "2", "3", "4", "5", "6", "7"]));
+        assert!(p.is_in_collection(&["test", "1", "2", "3", "4", "5", "6", "7", "8"]));
+        assert!(p.is_in_collection(&["test", "1", "2", "3", "4", "5", "6", "7", "8", "9"]));
+        assert!(p.is_in_collection(&["test", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]));
+
+        assert!(!p.is_in_collection(&["test", "0", "2", "3", "4", "5", "6", "7", "8", "9", "0"]));
+        assert!(!p.is_in_collection(&["test", "1", "2", "3", "4", "5", "6", "8"]));
+        assert!(!p.is_in_collection(&["test", "1", "2", "3", "leet", "5", "6", "7"]));
     }
 
 }
