@@ -24,6 +24,7 @@ extern crate libimagentrylink;
 extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagerror;
+extern crate libimagutil;
 
 use std::process::exit;
 use std::ops::Deref;
@@ -36,6 +37,7 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagerror::trace::{trace_error, trace_error_exit};
 use libimagentrylink::external::ExternalLinker;
+use libimagutil::warn_result::*;
 use clap::ArgMatches;
 use url::Url;
 
@@ -77,7 +79,16 @@ fn handle_internal_linking(rt: &Runtime) {
                 Ok(Some(e)) => {
                     e.get_internal_links()
                         .map(|links| {
-                            for (i, link) in links.iter().map(|l| l.to_str().ok()).filter_map(|x| x).enumerate() {
+                            let i = links
+                                .iter()
+                                .filter_map(|l| {
+                                    l.to_str()
+                                        .map_warn_err(|e| format!("Failed to convert StoreId to string: {:?}", e))
+                                        .ok()
+                                })
+                                .enumerate();
+
+                            for (i, link) in i {
                                 println!("{: <3}: {}", i, link);
                             }
                         })
