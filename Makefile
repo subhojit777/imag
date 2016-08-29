@@ -21,10 +21,30 @@ CLEAN_TARGETS=$(foreach x,$(TARGETS),$(x)-clean)
 all: $(TARGETS)
 	@$(ECHO) "\t[ALL    ]"
 
-release: $(RELEASE_TARGETS)
+imag-bin:
+	@$(ECHO) "\t[IMAG   ][BUILD  ]"
+	@$(CARGO) build --manifest-path ./bin/Cargo.toml
+
+imag-bin-release:
+	@$(ECHO) "\t[IMAG   ][RELEASE]"
+	@$(CARGO) release --manifest-path ./bin/Cargo.toml
+
+imag-bin-update:
+	@$(ECHO) "\t[IMAG   ][UPDATE ]"
+	@$(CARGO) update --manifest-path ./bin/Cargo.toml
+
+imag-bin-install:
+	@$(ECHO) "\t[IMAG   ][INSTALL]"
+	@$(CARGO) install --path ./bin/Cargo.toml
+
+imag-bin-clean:
+	@$(ECHO) "\t[IMAG   ][CLEAN  ]"
+	@$(CARGO) clean --manifest-path ./bin/Cargo.toml
+
+release: $(RELEASE_TARGETS) imag-bin-release
 	@$(ECHO) "\t[RELEASE]"
 
-bin: $(BIN_TARGETS)
+bin: $(BIN_TARGETS) imag-bin
 	@$(ECHO) "\t[ALLBIN ]"
 
 lib: $(LIB_TARGETS)
@@ -38,7 +58,7 @@ install: $(INSTALL_TARGETS)
 update: $(UPDATE_TARGETS)
 	@$(ECHO) "\t[UPDATE ]"
 
-clean: $(CLEAN_TARGETS)
+clean: $(CLEAN_TARGETS) imag-bin-clean
 	@$(ECHO) "\t[CLEAN  ]"
 
 $(TARGETS): %: .FORCE
@@ -53,7 +73,7 @@ $(LIB_TARGETS_TEST): %: .FORCE
 	@$(ECHO) "\t[TEST   ]:\t$@"
 	@$(CARGO) test --manifest-path ./$(subst test-,,$@)/Cargo.toml
 
-$(INSTALL_TARGETS): %: .FORCE
+$(INSTALL_TARGETS): %: .FORCE imag-bin-install
 	@$(ECHO) "\t[INSTALL]:\t$(subst -install,,$@)"
 	@$(CARGO) install --force --path ./$(subst -install,,$@)
 

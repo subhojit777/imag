@@ -128,9 +128,9 @@ By now, there are several targets in the Makefile, fulfilling following roles:
   run `make test-libimagstore` for example.
 * `clean` will run `cargo clean` in every crate. Again, for cleaning a single
   crate, use `make imag-store-clean` for example.
-
-**There is currently no target for the `imag` binary itself. Please
-build/install it yourself using `cargo build --manifest-path ./bin/Cargo.toml`**
+* to build _only_ the `imag` binary, use the target `imag-bin`
+  (`imag-bin-release` for release build, `imag-bin-update` for
+  `cargo update`ing, `imag-bin-clean` for `cargo clean`ing).
 
 ### Running
 
@@ -139,7 +139,6 @@ respective directory will do the trick. For using it "normally", install the
 binaries as described above, as well as the imag-binary:
 ```
 $> make install
-$> cargo install --path ./bin
 ```
 The installation root of the binaries (a.k.a. where they are installed to), may
 not yet be in your $PATH. To see, where this installation root is, check out
