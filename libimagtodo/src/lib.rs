@@ -22,7 +22,7 @@ extern crate serde_json;
 #[macro_use] extern crate libimagerror;
 extern crate task_hookrs;
 
-module_entry_path_mod!("todo", "0.1.0");
+module_entry_path_mod!("todo");
 
 pub mod error;
 pub mod result;

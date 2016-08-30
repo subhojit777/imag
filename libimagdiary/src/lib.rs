@@ -28,7 +28,7 @@ extern crate itertools;
 extern crate libimagentryedit;
 extern crate libimagrt;
 
-module_entry_path_mod!("diary", "0.2.0");
+module_entry_path_mod!("diary");
 
 pub mod config;
 pub mod error;

@@ -25,7 +25,7 @@ extern crate walkdir;
 #[macro_use] extern crate libimagutil;
 extern crate libimagentrylist;
 
-module_entry_path_mod!("ref", "0.2.0");
+module_entry_path_mod!("ref");
 
 pub mod error;
 pub mod flags;

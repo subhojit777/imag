@@ -129,7 +129,7 @@ impl IntoStoreId for PathBuf {
 
 #[macro_export]
 macro_rules! module_entry_path_mod {
-    ($name:expr, $version:expr) => (
+    ($name:expr) => (
         #[deny(missing_docs,
                 missing_copy_implementations,
                 trivial_casts, trivial_numeric_casts,
@@ -210,7 +210,7 @@ mod test {
 
     use storeid::IntoStoreId;
 
-    module_entry_path_mod!("test", "0.2.0-alpha+leet1337");
+    module_entry_path_mod!("test");
 
     #[test]
     fn correct_path() {

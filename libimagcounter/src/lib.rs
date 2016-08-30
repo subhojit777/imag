@@ -19,7 +19,7 @@ extern crate toml;
 #[macro_use] extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
 
-module_entry_path_mod!("counter", "0.2.0");
+module_entry_path_mod!("counter");
 
 pub mod counter;
 pub mod error;
