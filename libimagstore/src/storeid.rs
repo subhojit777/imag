@@ -139,7 +139,6 @@ macro_rules! module_entry_path_mod {
                 unused_imports)]
         /// A helper module to create valid module entry paths
         pub mod module_path {
-            use semver::Version;
             use std::convert::AsRef;
             use std::path::Path;
             use std::path::PathBuf;
@@ -159,12 +158,9 @@ macro_rules! module_entry_path_mod {
                     let mut path = PathBuf::new();
                     path.push(format!("{}", $name));
                     path.push(pa.as_ref().clone());
-                    let version = Version::parse($version).unwrap();
                     let name = pa.as_ref().file_name().unwrap()
                         .to_str().unwrap();
-                    path.set_file_name(format!("{}~{}",
-                                               name,
-                                               version));
+                    path.set_file_name(name);
                     ModuleEntryPath(path)
                 }
             }
@@ -220,7 +216,7 @@ mod test {
     fn correct_path() {
         let p = module_path::ModuleEntryPath::new("test");
 
-        assert_eq!(p.into_storeid().unwrap().to_str().unwrap(), "test/test~0.2.0-alpha+leet1337");
+        assert_eq!(p.into_storeid().unwrap().to_str().unwrap(), "test/test");
     }
 
 }
