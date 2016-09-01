@@ -1,6 +1,7 @@
 extern crate crossbeam;
 extern crate clap;
 #[macro_use] extern crate version;
+#[macro_use] extern crate log;
 extern crate walkdir;
 
 extern crate libimagrt;
