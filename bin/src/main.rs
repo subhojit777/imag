@@ -14,9 +14,10 @@ use std::io::ErrorKind;
 
 use walkdir::WalkDir;
 use crossbeam::*;
-use clap::{Arg, AppSettings, SubCommand};
+use clap::{Arg, App, AppSettings, SubCommand};
 
 use libimagrt::runtime::Runtime;
+use libimagrt::setup::generate_runtime_setup;
 
 fn help(cmds: Vec<String>) {
     println!(r#"
@@ -102,15 +103,10 @@ fn get_commands() -> Vec<String> {
     execs
 }
 
-fn main() {
-    let appname  = "imag";
-    let version  = &version!();
-    let about    = "imag - the PIM suite for the commandline";
-    let commands = get_commands();
-    let r        = Runtime::get_default_cli_builder(appname, version, about);
-    let matches  = commands
+pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
+    get_commands()
         .iter()
-        .fold(r, |app, cmd| app.subcommand(SubCommand::with_name(cmd)))
+        .fold(app, |app, cmd| app.subcommand(SubCommand::with_name(cmd)))
         .arg(Arg::with_name("version")
              .long("version")
              .takes_value(false)
@@ -132,21 +128,32 @@ fn main() {
              .help("Show help"))
         .subcommand(SubCommand::with_name("help").help("Show help"))
         .settings(&[AppSettings::AllowExternalSubcommands])
-        .get_matches();
+}
 
+fn main() {
+    let appname  = "imag";
+    let version  = &version!();
+    let about    = "imag - the PIM suite for the commandline";
+    let rt       = generate_runtime_setup(appname, version, about, build_ui);
+    let matches  = rt.cli();
+
+    debug!("matches: {:?}", matches);
     if matches.is_present("help") {
+        debug!("Calling help()");
         help(get_commands());
         exit(0);
     }
 
     if matches.is_present("version") {
+        debug!("Showing version");
         println!("imag {}", &version!()[..]);
         exit(0);
     }
 
     if matches.is_present("versions") {
+        debug!("Showing versions");
         let mut result = vec![];
-        for command in commands.iter() {
+        for command in get_commands().iter() {
             result.push(crossbeam::scope(|scope| {
                 scope.spawn(|| {
                     let v = Command::new(command).arg("--version").output();
