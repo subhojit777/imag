@@ -186,6 +186,8 @@ fn main() {
                     });
             }
 
+            debug!("Calling 'imag-{}' with args: {:?}", subcommand, subcommand_args);
+
             match Command::new(format!("imag-{}", subcommand))
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::inherit())
@@ -196,12 +198,15 @@ fn main() {
             {
                 Ok(exit_status) => {
                     if !exit_status.success() {
+                        debug!("{} exited with non-zero exit code: {:?}", subcommand, exit_status);
                         println!("{} exited with non-zero exit code", subcommand);
                         exit(exit_status.code().unwrap_or(42));
                     }
+                    debug!("Successful exit!");
                 },
 
                 Err(e) => {
+                    debug!("Error calling the subcommand");
                     match e.kind() {
                         ErrorKind::NotFound => {
                             println!("No such command: 'imag-{}'", subcommand);
