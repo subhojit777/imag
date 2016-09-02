@@ -86,26 +86,11 @@ impl StoreId {
         self.id.components()
     }
 
-    /// Check whether a StoreId points to an entry in a specific collection.
+    /// Convenience function over PathBuf::starts_with().
     ///
-    /// A "collection" here is simply a directory. So `foo/bar/baz` is an entry which is in
-    /// collection ["foo", "bar"].
-    ///
-    /// # Warning
-    ///
-    /// The collection specification _has_ to start with the module name. Otherwise this function
-    /// may return false negatives.
-    ///
-    pub fn is_in_collection(&self, colls: &[&str]) -> bool {
-        use std::path::Component;
-
-        self.id
-            .components()
-            .zip(colls)
-            .all(|(component, pred_coll)| match component {
-                Component::Normal(ref s) => s.to_str().map(|ref s| s == pred_coll).unwrap_or(false),
-                _ => false
-            }) && colls.last().map(|last| !self.id.ends_with(last)).unwrap_or(false)
+    /// This function calls `PathBuf::starts_with()` on the _local_ part of `self`.
+    pub fn is_in_collection(&self, collspec: &PathBuf) -> bool {
+        self.id.starts_with(collspec)
     }
 
 }
