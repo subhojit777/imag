@@ -467,50 +467,6 @@ impl Store {
         self.retrieve(id).map(Some).map_err_into(SEK::GetCallError)
     }
 
-    /// Same as `Store::get()` but also tries older versions of the entry, returning an iterator
-    /// over all versions of the entry.
-    pub fn get_all_versions<'a, S: IntoStoreId>(&'a self, id: S) -> Result<StoreIdIterator>
-    {
-        // get PathBuf component from storeid, but not version component
-        fn path_component<S: IntoStoreId>(id: S) -> Result<PathBuf> {
-            let p : PathBuf = try!(id.into_storeid()).into();
-            match p.to_str() {
-                Some(s) => {
-                    let mut split       = s.split("~");
-                    let path_element    = match split.next() {
-                        Some(s) => s,
-                        None => return Err(SE::new(SEK::StorePathError, None))
-                            .map_err_into(SEK::GetAllVersionsCallError),
-                    };
-
-                    Ok(PathBuf::from(path_element))
-                },
-
-                None => Err(SE::new(SEK::StorePathError, None))
-                    .map_err_into(SEK::GetAllVersionsCallError),
-            }
-        }
-
-        fn build_glob_pattern(mut pb: PathBuf) -> Option<String> {
-            pb.push("~*.*.*");
-            pb.to_str().map(String::from)
-        }
-
-        match path_component(id).map(build_glob_pattern) {
-            Err(e) => Err(SEK::StorePathError.into_error_with_cause(Box::new(e)))
-                .map_err_into(SEK::GetAllVersionsCallError),
-            Ok(None) => Err(SE::new(SEK::StorePathError, None))
-                .map_err_into(SEK::GetAllVersionsCallError),
-            Ok(Some(pattern)) => {
-                glob(&pattern[..])
-                    .map(|paths| GlobStoreIdIterator::new(paths, self.path().clone()).into())
-                    .map_err_into(SEK::GlobError)
-                    .map_err_into(SEK::GetAllVersionsCallError)
-            }
-        }
-
-    }
-
     /// Iterate over all StoreIds for one module name
     pub fn retrieve_for_module(&self, mod_name: &str) -> Result<StoreIdIterator> {
         let mut path = self.path().clone();
