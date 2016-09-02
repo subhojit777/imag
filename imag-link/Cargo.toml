@@ -23,3 +23,6 @@ path = "../libimagentrylink"
 [dependencies.libimagerror]
 path = "../libimagerror"
 
+[dependencies.libimagutil]
+path = "../libimagutil"
+
