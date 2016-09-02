@@ -91,8 +91,10 @@ pub trait ExternalLinker : InternalLinker {
 
 /// Check whether the StoreId starts with `/link/external/`
 pub fn is_external_link_storeid(id: &StoreId) -> bool {
+    use std::path::PathBuf;
+
     debug!("Checking whether this is a link/external/*: '{:?}'", id);
-    id.is_in_collection(&["link", "external"])
+    id.is_in_collection(&PathBuf::from("link/external"))
 }
 
 fn get_external_link_from_file(entry: &FileLockEntry) -> Result<Url> {
