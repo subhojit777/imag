@@ -104,9 +104,8 @@ fn get_commands() -> Vec<String> {
 }
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
-    get_commands()
-        .iter()
-        .fold(app, |app, cmd| app.subcommand(SubCommand::with_name(cmd)))
+    app
+        .settings(&[AppSettings::AllowExternalSubcommands])
         .arg(Arg::with_name("version")
              .long("version")
              .takes_value(false)
@@ -127,7 +126,10 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
              .multiple(false)
              .help("Show help"))
         .subcommand(SubCommand::with_name("help").help("Show help"))
-        .settings(&[AppSettings::AllowExternalSubcommands])
+        .subcommands(get_commands()
+            .iter()
+            .map(|cmd| SubCommand::with_name(cmd))
+        )
 }
 
 fn main() {
@@ -173,19 +175,9 @@ fn main() {
         }
     }
 
-    matches.subcommand_name()
-        .map(|subcommand| {
-
-            let mut subcommand_args = vec![];
-
-            for arg in Runtime::arg_names() {
-                matches.value_of(arg)
-                    .map(|value| {
-                        subcommand_args.push(arg);
-                        subcommand_args.push(value);
-                    });
-            }
-
+    match matches.subcommand() {
+        (subcommand, Some(scmd)) => {
+            let subcommand_args : Vec<&str> = scmd.values_of(subcommand).unwrap().collect();
             debug!("Calling 'imag-{}' with args: {:?}", subcommand, subcommand_args);
 
             match Command::new(format!("imag-{}", subcommand))
@@ -223,5 +215,10 @@ fn main() {
                     }
                 }
             }
-        });
+        },
+        // clap ensures we have valid input by exiting if not.
+        // The above case is a catch-all for subcommands,
+        // so nothing else needs to be expexted.
+        _ => unreachable!(),
+    }
 }
