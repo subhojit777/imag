@@ -190,7 +190,6 @@ fn main() {
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
-                .arg(subcommand)
                 .args(&subcommand_args[..])
                 .spawn()
                 .and_then(|mut handle| handle.wait())
