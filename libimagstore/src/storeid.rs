@@ -102,11 +102,10 @@ impl StoreId {
         self.id
             .components()
             .zip(colls)
-            .map(|(component, pred_coll)| match component {
+            .all(|(component, pred_coll)| match component {
                 Component::Normal(ref s) => s.to_str().map(|ref s| s == pred_coll).unwrap_or(false),
                 _ => false
-            })
-            .all(|x| x) && colls.last().map(|last| !self.id.ends_with(last)).unwrap_or(false)
+            }) && colls.last().map(|last| !self.id.ends_with(last)).unwrap_or(false)
     }
 
 }
