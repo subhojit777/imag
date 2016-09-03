@@ -13,3 +13,6 @@ log = "0.3"
 [dependencies.libimagrt]
 path = "../libimagrt"
 
+[dependencies.libimagerror]
+path = "../libimagerror"
+

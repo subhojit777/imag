@@ -5,6 +5,7 @@ extern crate clap;
 extern crate walkdir;
 
 extern crate libimagrt;
+extern crate libimagerror;
 
 use std::env;
 use std::process::exit;
@@ -14,10 +15,10 @@ use std::io::ErrorKind;
 
 use walkdir::WalkDir;
 use crossbeam::*;
-use clap::{Arg, App, AppSettings, SubCommand};
+use clap::{Arg, AppSettings, SubCommand};
 
 use libimagrt::runtime::Runtime;
-use libimagrt::setup::generate_runtime_setup;
+use libimagerror::trace::trace_error;
 
 fn help_text(cmds: Vec<String>) -> String {
     let text = format!(r#"
@@ -105,8 +106,14 @@ fn get_commands() -> Vec<String> {
     execs
 }
 
-pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
-    app
+
+fn main() {
+    let appname  = "imag";
+    let version  = &version!();
+    let about    = "imag - the PIM suite for the commandline";
+    let commands = get_commands();
+    let helptext = help_text(commands);
+    let app      = Runtime::get_default_cli_builder(appname, version, about)
         .settings(&[AppSettings::AllowExternalSubcommands])
         .arg(Arg::with_name("version")
              .long("version")
@@ -121,15 +128,14 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
              .multiple(false)
              .help("Get the versions of the imag commands"))
         .subcommand(SubCommand::with_name("help").help("Show help"))
-        .help(help_text(get_commands()))
-}
-
-fn main() {
-    let appname  = "imag";
-    let version  = &version!();
-    let about    = "imag - the PIM suite for the commandline";
-    let rt       = generate_runtime_setup(appname, version, about, build_ui);
-    let matches  = rt.cli();
+        .help(helptext.as_str());
+    let rt = Runtime::new(app)
+        .unwrap_or_else(|e| {
+            println!("Runtime couldn't be setup. Exiting");
+            trace_error(&e);
+            exit(1);
+        });
+    let matches = rt.cli();
 
     debug!("matches: {:?}", matches);
 
