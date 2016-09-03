@@ -19,8 +19,8 @@ use clap::{Arg, App, AppSettings, SubCommand};
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 
-fn help(cmds: Vec<String>) {
-    println!(r#"
+fn help_text(cmds: Vec<String>) -> String {
+    let text = format!(r#"
 
      _
     (_)_ __ ___   __ _  __ _
@@ -39,13 +39,8 @@ fn help(cmds: Vec<String>) {
     modules can be used independently.
 
     Available commands:
-    "#);
 
-    for cmd in cmds.iter() {
-        println!("\t{}", cmd);
-    }
-
-    println!(r#"
+    {imagbins}
 
     Call a command with 'imag <command> <args>'
     Each command can be called with "--help" to get the respective helptext.
@@ -55,8 +50,15 @@ fn help(cmds: Vec<String>) {
 
     imag is free software. It is released under the terms of LGPLv2.1
 
-    (c) 2016 Matthias Beyer and contributors"#);
+    (c) 2016 Matthias Beyer and contributors"#, imagbins = cmds.into_iter()
+        .map(|cmd| format!("\t{}\n", cmd))
+        .fold(String::new(), |s, c| {
+            let s = s + c.as_str();
+            s
+        }));
+    text
 }
+
 
 fn get_commands() -> Vec<String> {
     let path = env::var("PATH");
@@ -118,14 +120,8 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
              .required(false)
              .multiple(false)
              .help("Get the versions of the imag commands"))
-        .arg(Arg::with_name("help")
-             .long("help")
-             .short("h")
-             .takes_value(false)
-             .required(false)
-             .multiple(false)
-             .help("Show help"))
         .subcommand(SubCommand::with_name("help").help("Show help"))
+        .help(help_text(get_commands()))
 }
 
 fn main() {
@@ -136,11 +132,6 @@ fn main() {
     let matches  = rt.cli();
 
     debug!("matches: {:?}", matches);
-    if matches.is_present("help") {
-        debug!("Calling help()");
-        help(get_commands());
-        exit(0);
-    }
 
     if matches.is_present("version") {
         debug!("Showing version");
