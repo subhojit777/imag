@@ -126,10 +126,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
              .multiple(false)
              .help("Show help"))
         .subcommand(SubCommand::with_name("help").help("Show help"))
-        .subcommands(get_commands()
-            .iter()
-            .map(|cmd| SubCommand::with_name(cmd))
-        )
 }
 
 fn main() {
@@ -177,7 +173,7 @@ fn main() {
 
     match matches.subcommand() {
         (subcommand, Some(scmd)) => {
-            let subcommand_args : Vec<&str> = scmd.values_of(subcommand).unwrap().collect();
+            let subcommand_args : Vec<&str> = scmd.values_of("").unwrap().collect();
             debug!("Calling 'imag-{}' with args: {:?}", subcommand, subcommand_args);
 
             match Command::new(format!("imag-{}", subcommand))
@@ -202,6 +198,7 @@ fn main() {
                     match e.kind() {
                         ErrorKind::NotFound => {
                             println!("No such command: 'imag-{}'", subcommand);
+                            println!("See 'imag --help' for available subcommands");
                             exit(2);
                         },
                         ErrorKind::PermissionDenied => {
