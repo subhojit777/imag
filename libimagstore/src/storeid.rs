@@ -228,24 +228,23 @@ mod test {
 
     #[test]
     fn storeid_in_collection() {
+        use std::path::PathBuf;
         let p = module_path::ModuleEntryPath::new("1/2/3/4/5/6/7/8/9/0").into_storeid().unwrap();
 
-        assert!(p.is_in_collection(&["test", "1"]));
-        assert!(p.is_in_collection(&["test", "1", "2"]));
-        assert!(p.is_in_collection(&["test", "1", "2", "3"]));
-        assert!(p.is_in_collection(&["test", "1", "2", "3", "4"]));
-        assert!(p.is_in_collection(&["test", "1", "2", "3", "4", "5"]));
-        assert!(p.is_in_collection(&["test", "1", "2", "3", "4", "5", "6"]));
-        assert!(p.is_in_collection(&["test", "1", "2", "3", "4", "5", "6", "7"]));
-        assert!(p.is_in_collection(&["test", "1", "2", "3", "4", "5", "6", "7", "8"]));
-        assert!(p.is_in_collection(&["test", "1", "2", "3", "4", "5", "6", "7", "8", "9"]));
+        assert!(p.is_in_collection(&PathBuf::from("test/1")));
+        assert!(p.is_in_collection(&PathBuf::from("test/1/2")));
+        assert!(p.is_in_collection(&PathBuf::from("test/1/2/3")));
+        assert!(p.is_in_collection(&PathBuf::from("test/1/2/3/4")));
+        assert!(p.is_in_collection(&PathBuf::from("test/1/2/3/4/5")));
+        assert!(p.is_in_collection(&PathBuf::from("test/1/2/3/4/5/6")));
+        assert!(p.is_in_collection(&PathBuf::from("test/1/2/3/4/5/6/7")));
+        assert!(p.is_in_collection(&PathBuf::from("test/1/2/3/4/5/6/7/8")));
+        assert!(p.is_in_collection(&PathBuf::from("test/1/2/3/4/5/6/7/8/9")));
+        assert!(p.is_in_collection(&PathBuf::from("test/1/2/3/4/5/6/7/8/9/0")));
 
-        // "0" is the filename, not a collection
-        assert!(!p.is_in_collection(&["test", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]));
-
-        assert!(!p.is_in_collection(&["test", "0", "2", "3", "4", "5", "6", "7", "8", "9", "0"]));
-        assert!(!p.is_in_collection(&["test", "1", "2", "3", "4", "5", "6", "8"]));
-        assert!(!p.is_in_collection(&["test", "1", "2", "3", "leet", "5", "6", "7"]));
+        assert!(!p.is_in_collection(&PathBuf::from("test/0/2/3/4/5/6/7/8/9/0")));
+        assert!(!p.is_in_collection(&PathBuf::from("test/1/2/3/4/5/6/8")));
+        assert!(!p.is_in_collection(&PathBuf::from("test/1/2/3/leet/5/6/7")));
     }
 
 }
