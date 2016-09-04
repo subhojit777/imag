@@ -207,9 +207,8 @@ impl<'a> IntoTask<'a> for TTask {
                     .and_then(|mut fle| {
                         {
                             let mut hdr = fle.get_header_mut();
-                            if try!(hdr.read("todo").map_err_into(TodoErrorKind::StoreError))
-                                .is_none()
-                            {
+                            let read = hdr.read("todo").map_err_into(TodoErrorKind::StoreError);
+                            if try!(read).is_none() {
                                 try!(hdr
                                     .set("todo", Value::Table(BTreeMap::new()))
                                     .map_err_into(TodoErrorKind::StoreError));
