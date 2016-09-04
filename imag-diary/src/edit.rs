@@ -15,12 +15,11 @@ use libimagtimeui::parse::Parse;
 use util::get_diary_name;
 
 pub fn edit(rt: &Runtime) {
-    let diaryname = get_diary_name(rt);
-    if diaryname.is_none() {
+    let diaryname = get_diary_name(rt).unwrap_or_else(|| {
         warn!("No diary name");
         exit(1);
-    }
-    let diaryname = diaryname.unwrap();
+    });
+
     let diary = Diary::open(rt.store(), &diaryname[..]);
 
     let datetime : Option<NaiveDateTime> = rt
