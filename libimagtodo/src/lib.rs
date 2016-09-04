@@ -20,6 +20,7 @@ extern crate serde_json;
 
 #[macro_use] extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
+extern crate libimagutil;
 extern crate task_hookrs;
 
 module_entry_path_mod!("todo");
