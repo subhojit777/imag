@@ -92,7 +92,7 @@ pub trait ExternalLinker : InternalLinker {
 /// Check whether the StoreId starts with `/link/external/`
 pub fn is_external_link_storeid(id: &StoreId) -> bool {
     debug!("Checking whether this is a link/external/*: '{:?}'", id);
-    id.is_in_collection(&["link", "external"])
+    id.local().starts_with("link/external")
 }
 
 fn get_external_link_from_file(entry: &FileLockEntry) -> Result<Url> {

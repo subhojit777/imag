@@ -18,7 +18,7 @@ impl IsInDiary for Entry {
 impl IsInDiary for StoreId {
 
     fn is_in_diary(&self, name: &str) -> bool {
-        self.is_in_collection(&["diary", name])
+        self.local().starts_with(format!("diary/{}", name))
     }
 
 }
