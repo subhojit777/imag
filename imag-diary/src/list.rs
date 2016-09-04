@@ -1,8 +1,8 @@
 use std::process::exit;
 
 use libimagdiary::diary::Diary;
-use libimagdiary::error::DiaryError as DE;
 use libimagdiary::error::DiaryErrorKind as DEK;
+use libimagdiary::error::MapErrInto;
 use libimagentrylist::listers::core::CoreLister;
 use libimagentrylist::lister::Lister;
 use libimagrt::runtime::Runtime;
@@ -40,7 +40,7 @@ pub fn list(rt: &Runtime) {
 
             CoreLister::new(&entry_to_location_listing_string)
                 .list(es) // TODO: Do not ignore non-ok()s
-                .map_err(|e| DE::new(DEK::IOError, Some(Box::new(e))))
+                .map_err_into(DEK::IOError)
         })
         .map(|_| debug!("Ok"))
         .map_err(|e| trace_error(&e))
