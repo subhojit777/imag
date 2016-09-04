@@ -30,11 +30,9 @@ use task_hookrs::import::{import_task, import_tasks};
 
 use libimagstore::store::{FileLockEntry, Store};
 use libimagstore::storeid::{IntoStoreId, StoreIdIterator, StoreId};
-use libimagerror::trace::MapErrTrace;
-use libimagutil::debug_result::DebugResult;
 use module_path::ModuleEntryPath;
 
-use error::{TodoError, TodoErrorKind, MapErrInto};
+use error::{TodoErrorKind as TEK, MapErrInto};
 use result::Result;
 
 /// Task struct containing a `FileLockEntry`
@@ -52,9 +50,7 @@ impl<'a> Task<'a> {
         let mut line = String::new();
         r.read_line(&mut line);
         import_task(&line.as_str())
-            .map_err_into(TodoErrorKind::ImportError)
-            .map_dbg_err_str("Error while importing task")
-            .map_err_dbg_trace()
+            .map_err_into(TEK::ImportError)
             .and_then(|t| {
                 let uuid = t.uuid().clone();
                 t.into_task(store).map(|t| (t, line, uuid))
@@ -70,7 +66,8 @@ impl<'a> Task<'a> {
     /// * Ok(Err(String)) - where the String is the String read from the `r` parameter
     /// * Err(_)          - where the error is an error that happened during evaluation
     ///
-    pub fn get_from_import<R: BufRead>(store: &'a Store, mut r: R) -> Result<RResult<Task<'a>, String>>
+    pub fn get_from_import<R>(store: &'a Store, mut r: R) -> Result<RResult<Task<'a>, String>>
+        where R: BufRead
     {
         let mut line = String::new();
         r.read_line(&mut line);
@@ -83,9 +80,7 @@ impl<'a> Task<'a> {
     /// For an explanation on the return values see `Task::get_from_import()`.
     pub fn get_from_string(store: &'a Store, s: String) -> Result<RResult<Task<'a>, String>> {
         import_task(s.as_str())
-            .map_err_into(TodoErrorKind::ImportError)
-            .map_dbg_err_str("Error while importing task")
-            .map_err_dbg_trace()
+            .map_err_into(TEK::ImportError)
             .map(|t| t.uuid().clone())
             .and_then(|uuid| Task::get_from_uuid(store, uuid))
             .and_then(|o| match o {
@@ -102,7 +97,7 @@ impl<'a> Task<'a> {
             .into_storeid()
             .and_then(|store_id| store.get(store_id))
             .map(|o| o.map(Task::new))
-            .map_err_into(TodoErrorKind::StoreError)
+            .map_err_into(TEK::StoreError)
     }
 
     /// Same as Task::get_from_import() but uses Store::retrieve() rather than Store::get(), to
@@ -120,9 +115,7 @@ impl<'a> Task<'a> {
             .and_then(|opt| match opt {
                 Ok(task)    => Ok(task),
                 Err(string) => import_task(string.as_str())
-                    .map_err_into(TodoErrorKind::ImportError)
-                    .map_dbg_err_str("Error while importing task")
-                    .map_err_dbg_trace()
+                    .map_err_into(TEK::ImportError)
                     .and_then(|t| t.into_task(store)),
             })
     }
@@ -139,7 +132,7 @@ impl<'a> Task<'a> {
                         // task before the change, and the second one after
                         // the change. The (maybe modified) second one is
                         // expected by taskwarrior.
-                        match serde_to_string(&ttask).map_err_into(TodoErrorKind::ImportError) {
+                        match serde_to_string(&ttask).map_err_into(TEK::ImportError) {
                             // use println!() here, as we talk with TW
                             Ok(val) => println!("{}", val),
                             Err(e)  => return Err(e),
@@ -158,7 +151,7 @@ impl<'a> Task<'a> {
                         }
                     } // end if c % 2
                 },
-                Err(e) => return Err(e).map_err_into(TodoErrorKind::ImportError),
+                Err(e) => return Err(e).map_err_into(TEK::ImportError),
             }
         }
         Ok(())
@@ -168,12 +161,12 @@ impl<'a> Task<'a> {
         ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
             .into_storeid()
             .and_then(|id| store.delete(id))
-            .map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
+            .map_err_into(TEK::StoreError)
     }
 
     pub fn all_as_ids(store: &Store) -> Result<StoreIdIterator> {
         store.retrieve_for_module("todo/taskwarrior")
-            .map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
+            .map_err_into(TEK::StoreError)
     }
 
     pub fn all(store: &Store) -> Result<TaskIterator> {
@@ -226,7 +219,6 @@ impl<'a> IntoTask<'a> for TTask {
     fn into_task(self, store : &'a Store) -> Result<Task<'a>> {
         use toml_query::read::TomlValueReadExt;
         use toml_query::set::TomlValueSetExt;
-        use libimagerror::into::IntoError;
 
         // Helper for toml_query::read::TomlValueReadExt::read() return value, which does only
         // return Result<T> instead of Result<Option<T>>, which is a real inconvenience.
@@ -238,29 +230,21 @@ impl<'a> IntoTask<'a> for TTask {
         let uuid     = self.uuid();
         ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
             .into_storeid()
-            .map_err_into(TodoErrorKind::StoreIdError)
+            .map_err_into(TEK::StoreIdError)
             .and_then(|id| {
                 store.retrieve(id)
-                    .map_err_into(TodoErrorKind::StoreError)
+                    .map_err_into(TEK::StoreError)
                     .and_then(|mut fle| {
                         {
                             let mut hdr = fle.get_header_mut();
-                            let todo_query = String::from("todo");
-
-                            if let Err(e) = hdr.read(&todo_query) {
-                                if no_identifier(&e) {
-                                    try!(hdr
-                                        .set(&String::from("todo"), Value::Table(BTreeMap::new()))
-                                        .map_err_into(TodoErrorKind::StoreError));
-                                } else {
-                                    let e = Box::new(e);
-                                    return Err(TodoErrorKind::StoreError.into_error_with_cause(e))
-                                }
+                            if try!(hdr.read("todo").map_err_into(TEK::StoreError)).is_none() {
+                                try!(hdr
+                                    .set("todo", Value::Table(BTreeMap::new()))
+                                    .map_err_into(TEK::StoreError));
                             }
 
-                            try!(hdr.set(&String::from("todo.uuid"),
-                                         Value::String(format!("{}", uuid)))
-                                 .map_err_into(TodoErrorKind::StoreError));
+                            try!(hdr.set("todo.uuid", Value::String(format!("{}",uuid)))
+                                 .map_err_into(TEK::StoreError));
                         }
 
                         // If none of the errors above have returned the function, everything is fine
@@ -278,10 +262,9 @@ trait FromStoreId {
 impl<'a> FromStoreId for Task<'a> {
 
     fn from_storeid<'b>(store: &'b Store, id: StoreId) -> Result<Task<'b>> {
-        match store.retrieve(id) {
-            Err(e) => Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e)))),
-            Ok(c)  => Ok(Task::new( c )),
-        }
+        store.retrieve(id)
+            .map_err_into(TEK::StoreError)
+            .map(Task::new)
     }
 }
 
