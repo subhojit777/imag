@@ -52,9 +52,10 @@ pub fn delete(rt: &Runtime) {
         return;
     }
 
-    match diary.delete_entry(to_del) {
-        Ok(_) => info!("Ok"),
-        Err(e) => trace_error_exit(&e, 1),
+    if let Err(e) = diary.delete_entry(to_del) {
+        trace_error_exit(&e, 1)
     }
+
+    info!("Ok!");
 }
 
