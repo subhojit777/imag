@@ -18,7 +18,7 @@ retrieve() {
 }
 
 test_retrieve_nothing() {
-    local id="test-retrieve_nothing~0.2.0"
+    local id="test-retrieve_nothing"
 
     imag-store create -p ${id} || { err "create failed"; return 1; }
 
@@ -33,7 +33,7 @@ test_retrieve_nothing() {
 }
 
 test_retrieve_content() {
-    local id="test-retrieve_simple~0.2.0"
+    local id="test-retrieve_simple"
 
     imag-store create -p ${id} || { err "create failed"; return 1; }
 
@@ -49,12 +49,12 @@ test_retrieve_content() {
 }
 
 test_retrieve_header() {
-    local id="test-retrieve_simple~0.2.0"
+    local id="test-retrieve_simple"
 
     imag-store create -p ${id} || { err "create failed"; return 1; }
 
     out "Going to test the retrieve functionality now"
-    local header_out="$(retrieve --id /${id} --header)"
+    local header_out="$(retrieve --id ${id} --header)"
     out "Retrieving for header_out finished"
 
     if [[ ! "$header_out" != "$(std_header)" ]]; then
@@ -64,7 +64,7 @@ test_retrieve_header() {
 }
 
 test_retrieve_raw() {
-    local id="test-retrieve_simple~0.2.0"
+    local id="test-retrieve_simple"
 
     imag-store create -p ${id} || { err "create failed"; return 1; }
 

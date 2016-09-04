@@ -12,7 +12,7 @@ delete() {
 }
 
 test_delete_simple() {
-    local name="test~0.2.0"
+    local name="test"
 
     create -p $name
     delete --id $name
