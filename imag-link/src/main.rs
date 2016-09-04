@@ -208,7 +208,7 @@ fn handle_external_linking(rt: &Runtime) {
     }
     let entry = entry.unwrap();
     if entry.is_none() {
-        warn!("Entry nt found: {:?}", entry_name);
+        warn!("Entry not found: {:?}", entry_name);
         return;
     }
     let mut entry = entry.unwrap();
