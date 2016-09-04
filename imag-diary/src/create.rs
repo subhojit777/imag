@@ -13,13 +13,11 @@ use libimagdiary::result::Result;
 use util::get_diary_name;
 
 pub fn create(rt: &Runtime) {
-
-    let diaryname = get_diary_name(rt);
-    if diaryname.is_none() {
-        warn!("No diary selected. Use either the configuration file or the commandline option");
-        exit(1);
-    }
-    let diaryname = diaryname.unwrap();
+    let diaryname = get_diary_name(rt)
+        .unwrap_or_else(|| {
+            warn!("No diary selected. Use either the configuration file or the commandline option");
+            exit(1)
+        });
 
     let prevent_edit = rt.cli().subcommand_matches("create").unwrap().is_present("no-edit");
 
