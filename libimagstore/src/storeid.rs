@@ -62,6 +62,17 @@ impl StoreId {
         self
     }
 
+    /// Transform the StoreId object into a PathBuf, error if the base of the StoreId is not
+    /// specified.
+    pub fn into_pathbuf(self) -> Result<PathBuf> {
+        self.base
+            .ok_or(SEK::StoreIdHasNoBaseError.into_error())
+            .map(|mut base| {
+                base.push(self.id);
+                base
+            })
+    }
+
     pub fn exists(&self) -> bool {
         let pb : PathBuf = self.clone().into();
         pb.exists()
