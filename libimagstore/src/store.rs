@@ -2148,3 +2148,96 @@ Hai";
 
 }
 
+#[cfg(test)]
+mod store_tests {
+    use std::path::PathBuf;
+
+    use super::Store;
+
+    fn get_store() -> Store {
+        Store::new(PathBuf::from("/"), None).unwrap()
+    }
+
+    #[test]
+    fn test_store_instantiation() {
+        let store = get_store();
+
+        assert_eq!(store.location, PathBuf::from("/"));
+        assert!(store.entries.read().unwrap().is_empty());
+
+        assert!(store.store_unload_aspects.lock().unwrap().is_empty());
+
+        assert!(store.pre_create_aspects.lock().unwrap().is_empty());
+        assert!(store.post_create_aspects.lock().unwrap().is_empty());
+        assert!(store.pre_retrieve_aspects.lock().unwrap().is_empty());
+        assert!(store.post_retrieve_aspects.lock().unwrap().is_empty());
+        assert!(store.pre_update_aspects.lock().unwrap().is_empty());
+        assert!(store.post_update_aspects.lock().unwrap().is_empty());
+        assert!(store.pre_delete_aspects.lock().unwrap().is_empty());
+        assert!(store.post_delete_aspects.lock().unwrap().is_empty());
+        assert!(store.pre_move_aspects.lock().unwrap().is_empty());
+        assert!(store.post_move_aspects.lock().unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_store_create() {
+        let store = get_store();
+
+        for n in 1..100 {
+            let s = format!("test-{}", n);
+            let entry = store.create(PathBuf::from(s.clone())).unwrap();
+            assert!(entry.verify().is_ok());
+            let loc = entry.get_location().clone().into_pathbuf().unwrap();
+            assert!(loc.starts_with("/"));
+            assert!(loc.ends_with(s));
+        }
+    }
+
+    #[test]
+    fn test_store_create_delete_get() {
+        let store = get_store();
+
+        for n in 1..100 {
+            let s = format!("test-{}", n);
+            let entry = store.create(PathBuf::from(s.clone())).unwrap();
+            assert!(entry.verify().is_ok());
+            let loc = entry.get_location().clone().into_pathbuf().unwrap();
+            assert!(loc.starts_with("/"));
+            assert!(loc.ends_with(s));
+        }
+
+        for n in 1..100 {
+            if n % 2 == 0 { continue; }
+            let s = format!("test-{}", n);
+            assert!(store.delete(PathBuf::from(s)).is_ok())
+        }
+
+        for n in 1..100 {
+            if n % 2 != 0 { continue; }
+            let s = format!("test-{}", n);
+            assert!(store.get(PathBuf::from(s)).is_ok())
+        }
+    }
+
+    #[test]
+    fn test_store_create_twice() {
+        use error::StoreErrorKind as SEK;
+
+        let store = get_store();
+
+        for n in 1..100 {
+            let s = format!("test-{}", n % 50);
+            store.create(PathBuf::from(s.clone()))
+                .map_err(|e| assert!(is_match!(e.err_type(), SEK::CreateCallError) && n >= 50))
+                .ok()
+                .map(|entry| {
+                    assert!(entry.verify().is_ok());
+                    let loc = entry.get_location().clone().into_pathbuf().unwrap();
+                    assert!(loc.starts_with("/"));
+                    assert!(loc.ends_with(s));
+                });
+        }
+    }
+
+}
+
