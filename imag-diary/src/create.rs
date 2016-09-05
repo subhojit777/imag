@@ -9,15 +9,13 @@ use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error;
 use libimagdiary::entry::Entry;
 use libimagdiary::result::Result;
+use libimagutil::warn_exit::warn_exit;
 
 use util::get_diary_name;
 
 pub fn create(rt: &Runtime) {
     let diaryname = get_diary_name(rt)
-        .unwrap_or_else(|| {
-            warn!("No diary selected. Use either the configuration file or the commandline option");
-            exit(1)
-        });
+        .unwrap_or_else( || warn_exit("No diary selected. Use either the configuration file or the commandline option", 1));
 
     let prevent_edit = rt.cli().subcommand_matches("create").unwrap().is_present("no-edit");
 
@@ -78,10 +76,7 @@ pub fn create(rt: &Runtime) {
                     exit(1);
                 },
 
-                None => {
-                    warn!("Unexpected error, cannot continue");
-                    exit(1);
-                },
+                None => warn_exit("Unexpected error, cannot continue", 1)
             };
 
             diary.new_entry_by_id(id)

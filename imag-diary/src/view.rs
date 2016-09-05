@@ -1,19 +1,14 @@
-use std::process::exit;
-
 use libimagdiary::diary::Diary;
 use libimagentryview::viewer::Viewer;
 use libimagentryview::builtin::plain::PlainViewer;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error;
+use libimagutil::warn_exit::warn_exit;
 
 use util::get_diary_name;
 
 pub fn view(rt: &Runtime) {
-    let diaryname = get_diary_name(rt).unwrap_or_else(|| {
-        warn!("No diary name");
-        exit(1);
-    });
-
+    let diaryname = get_diary_name(rt).unwrap_or_else(|| warn_exit("No diary name", 1));
     let diary = Diary::open(rt.store(), &diaryname[..]);
     let show_header = rt.cli().subcommand_matches("view").unwrap().is_present("show-header");
 
