@@ -10,6 +10,7 @@ use libimagcounter::counter::Counter;
 use libimagcounter::error::CounterError;
 use libimagrt::runtime::Runtime;
 use libimagutil::key_value_split::IntoKeyValue;
+use libimagutil::warn_exit::warn_exit;
 use libimagerror::trace::{trace_error, trace_error_exit};
 
 type Result<T> = RResult<T, CounterError>;
@@ -17,8 +18,7 @@ type Result<T> = RResult<T, CounterError>;
 pub fn interactive(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("interactive");
     if scmd.is_none() {
-        debug!("No subcommand");
-        exit(1);
+        warn_exit("No subcommand", 1);
     }
     let scmd = scmd.unwrap();
     debug!("Found 'interactive' command");
@@ -130,8 +130,7 @@ impl<'a> Display for Binding<'a> {
 fn compute_pair<'a>(rt: &'a Runtime, spec: &str) -> Result<(char, Binding<'a>)> {
     let kv = String::from(spec).into_kv();
     if kv.is_none() {
-        debug!("Key-Value parsing failed!");
-        exit(1);
+        warn_exit("Key-Value parsing failed!", 1);
     }
     let kv = kv.unwrap();
 
