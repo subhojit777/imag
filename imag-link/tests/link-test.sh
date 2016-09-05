@@ -31,13 +31,13 @@ mktestentry() {
 }
 
 test_link_modificates() {
-    mktestentry "test~0.2.0"
-    mktestentry "test2~0.2.0"
+    mktestentry "test"
+    mktestentry "test2"
 
-    imag-link internal add --from "test~0.2.0" --to "test2~0.2.0"
+    imag-link internal add --from "test" --to "test2"
 
-    if [[ "$(default_entry)" -eq "$(cat_entry 'test~0.2.0')" ]] ||
-       [[ "$(default_entry)" -eq "$(cat_entry 'test2~0.2.0')" ]]
+    if [[ "$(default_entry)" -eq "$(cat_entry 'test')" ]] ||
+       [[ "$(default_entry)" -eq "$(cat_entry 'test2')" ]]
     then
         err "Entry was unmodified after linking"
         return 1;
@@ -45,21 +45,21 @@ test_link_modificates() {
 }
 
 test_linking_links() {
-    mktestentry "test~0.2.0"
-    mktestentry "test2~0.2.0"
+    mktestentry "test"
+    mktestentry "test2"
 
-    imag-link internal add --from "test~0.2.0" --to "test2~0.2.0"
+    imag-link internal add --from "test" --to "test2"
 
-    if [[ "$(entry_linked_to '/test~0.2.0')" == "$(cat_entry 'test2~0.2.0')" ]];
+    if [[ "$(entry_linked_to '/test')" == "$(cat_entry 'test2')" ]];
     then
-        err "Linking to 'test~0.2.0' didn't succeed for 'test2~0.2.0'"
-        err $(cat_entry 'test2~0.2.0')
+        err "Linking to 'test' didn't succeed for 'test2'"
+        err $(cat_entry 'test2')
     fi
 
-    if [[ "$(entry_linked_to '/test2~0.2.0')" == "$(cat_entry 'test~0.2.0')" ]];
+    if [[ "$(entry_linked_to '/test2')" == "$(cat_entry 'test')" ]];
     then
-        err "Linking to 'test2~0.2.0' didn't succeed for 'test~0.2.0'"
-        err $(cat_entry 'test~0.2.0')
+        err "Linking to 'test2' didn't succeed for 'test'"
+        err $(cat_entry 'test')
     fi
 }
 
