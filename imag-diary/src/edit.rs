@@ -3,23 +3,23 @@ use chrono::naive::datetime::NaiveDateTime;
 
 use libimagdiary::diary::Diary;
 use libimagdiary::diaryid::DiaryId;
-use libimagdiary::error::DiaryError as DE;
 use libimagdiary::error::DiaryErrorKind as DEK;
+use libimagdiary::error::MapErrInto;
 use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error;
+use libimagerror::into::IntoError;
 use libimagtimeui::datetime::DateTime;
 use libimagtimeui::parse::Parse;
 
 use util::get_diary_name;
 
 pub fn edit(rt: &Runtime) {
-    let diaryname = get_diary_name(rt);
-    if diaryname.is_none() {
+    let diaryname = get_diary_name(rt).unwrap_or_else(|| {
         warn!("No diary name");
         exit(1);
-    }
-    let diaryname = diaryname.unwrap();
+    });
+
     let diary = Diary::open(rt.store(), &diaryname[..]);
 
     let datetime : Option<NaiveDateTime> = rt
@@ -36,10 +36,10 @@ pub fn edit(rt: &Runtime) {
     };
 
     match to_edit {
-        Some(Ok(mut e)) => e.edit_content(rt).map_err(|e| DE::new(DEK::IOError, Some(Box::new(e)))),
+        Some(Ok(mut e)) => e.edit_content(rt).map_err_into(DEK::IOError),
 
         Some(Err(e)) => Err(e),
-        None => Err(DE::new(DEK::EntryNotInDiary, None)),
+        None => Err(DEK::EntryNotInDiary.into_error()),
     }
     .map_err(|e| trace_error(&e)).ok();
 }

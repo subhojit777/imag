@@ -13,4 +13,5 @@ generate_error_module!(
 
 pub use self::error::DiaryError;
 pub use self::error::DiaryErrorKind;
+pub use self::error::MapErrInto;
 
