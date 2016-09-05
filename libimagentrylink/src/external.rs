@@ -47,7 +47,7 @@ impl<'a> Link<'a> {
     /// Get a link Url object from a `FileLockEntry`, ignore errors.
     fn get_link_uri_from_filelockentry(file: &FileLockEntry<'a>) -> Option<Url> {
         file.get_header()
-            .read("imag.content.uri")
+            .read("imag.content.url")
             .ok()
             .and_then(|opt| match opt {
                 Some(Value::String(s)) => Url::parse(&s[..]).ok(),
@@ -58,7 +58,7 @@ impl<'a> Link<'a> {
     pub fn get_url(&self) -> Result<Option<Url>> {
         let opt = self.link
             .get_header()
-            .read("imag.content.uri");
+            .read("imag.content.url");
 
         match opt {
             Ok(Some(Value::String(s))) => {
