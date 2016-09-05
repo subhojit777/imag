@@ -44,6 +44,7 @@ generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     StoreIdHandlingError    => "StoreId handling error",
     StoreIdLocalPartAbsoluteError => "StoreId 'id' part is absolute (starts with '/') which is not allowed",
     StoreIdBuildFromFullPathError => "Building StoreId from full file path failed",
+    StoreIdHasNoBaseError   => "StoreId has no 'base' part",
 
     CreateCallError            => "Error when calling create()",
     RetrieveCallError          => "Error when calling retrieve()",
