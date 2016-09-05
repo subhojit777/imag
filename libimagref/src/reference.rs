@@ -168,13 +168,17 @@ impl<'a> Ref<'a> {
         };
 
         for tpl in [
-                Some(("ref",             Value::Table(BTreeMap::new()))),
-                Some(("ref.permissions", Value::Table(BTreeMap::new()))),
+                Some((String::from("ref"),              Value::Table(BTreeMap::new()))),
+                Some((String::from("ref.permissions"),  Value::Table(BTreeMap::new()))),
+                Some((String::from("ref.path"),         Value::String(canonical_path))),
+                Some((String::from("ref.content_hash"), Value::Table(BTreeMap::new()))),
 
-                Some(("ref.path", Value::String(canonical_path))),
-
-                content_hash.map(|h| ("ref.content_hash", Value::String(h))),
-                permissions.map(|p| ("ref.permissions.ro", Value::Boolean(p.readonly()))),
+                content_hash.map(|hash| {
+                    (format!("ref.content_hash.{}", h.hash_name()), Value::String(hash))
+                }),
+                permissions.map(|p| {
+                    (String::from("ref.permissions.ro"), Value::Boolean(p.readonly()))
+                }),
             ].into_iter()
         {
             match tpl {
@@ -235,7 +239,13 @@ impl<'a> Ref<'a> {
 
     /// Get the hash of the link target which is stored in the ref object
     pub fn get_stored_hash(&self) -> Result<String> {
-        match self.0.get_header().read("ref.content_hash") {
+        self.get_stored_hash_with_hasher(&DefaultHasher::new())
+    }
+
+    /// Get the hahs of the link target which is stored in the ref object, which is hashed with a
+    /// custom Hasher instance.
+    pub fn get_stored_hash_with_hasher<H: Hasher>(&self, h: &H) -> Result<String> {
+        match self.0.get_header().read(&format!("ref.content_hash.{}", h.hash_name())[..]) {
             // content hash stored...
             Ok(Some(Value::String(s))) => Ok(s),
 
@@ -348,7 +358,13 @@ impl<'a> Ref<'a> {
     /// Update the Ref by re-checking the file from FS
     /// This errors if the file is not present or cannot be read()
     pub fn update_ref(&mut self) -> Result<()> {
-        let current_hash = try!(self.get_current_hash());
+        self.update_ref_with_hasher(&DefaultHasher::new())
+    }
+
+    /// Update the Ref by re-checking the file from FS using the passed Hasher instance
+    /// This errors if the file is not present or cannot be read()
+    pub fn update_ref_with_hasher<H: Hasher>(&mut self, h: &H) -> Result<()> {
+        let current_hash = try!(self.get_current_hash()); // uses the default hasher
         let current_perm = try!(self.get_current_permissions());
 
         try!(self.0
@@ -360,7 +376,7 @@ impl<'a> Ref<'a> {
 
         try!(self.0
             .get_header_mut()
-            .set("ref.content_hash", Value::String(current_hash))
+            .set(&format!("ref.content_hash.{}", h.hash_name())[..], Value::String(current_hash))
             .map_err(Box::new)
             .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
         );
