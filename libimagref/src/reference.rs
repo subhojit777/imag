@@ -168,13 +168,17 @@ impl<'a> Ref<'a> {
         };
 
         for tpl in [
-                Some(("ref",             Value::Table(BTreeMap::new()))),
-                Some(("ref.permissions", Value::Table(BTreeMap::new()))),
+                Some((String::from("ref"),              Value::Table(BTreeMap::new()))),
+                Some((String::from("ref.permissions"),  Value::Table(BTreeMap::new()))),
+                Some((String::from("ref.path"),         Value::String(canonical_path))),
+                Some((String::from("ref.content_hash"), Value::Table(BTreeMap::new()))),
 
-                Some(("ref.path", Value::String(canonical_path))),
-
-                content_hash.map(|h| ("ref.content_hash", Value::String(h))),
-                permissions.map(|p| ("ref.permissions.ro", Value::Boolean(p.readonly()))),
+                content_hash.map(|hash| {
+                    (format!("ref.content_hash.{}", h.hash_name()), Value::String(hash))
+                }),
+                permissions.map(|p| {
+                    (String::from("ref.permissions.ro"), Value::Boolean(p.readonly()))
+                }),
             ].into_iter()
         {
             match tpl {
