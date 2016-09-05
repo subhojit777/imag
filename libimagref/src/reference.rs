@@ -239,8 +239,13 @@ impl<'a> Ref<'a> {
 
     /// Get the hash of the link target which is stored in the ref object
     pub fn get_stored_hash(&self) -> Result<String> {
-        let hasher_name = DefaultHasher::new().hash_name();
-        match self.0.get_header().read(&format!("ref.content_hash.{}", hasher_name)[..]) {
+        self.get_stored_hash_with_hasher(&DefaultHasher::new())
+    }
+
+    /// Get the hahs of the link target which is stored in the ref object, which is hashed with a
+    /// custom Hasher instance.
+    pub fn get_stored_hash_with_hasher<H: Hasher>(&self, h: &H) -> Result<String> {
+        match self.0.get_header().read(&format!("ref.content_hash.{}", h.hash_name())[..]) {
             // content hash stored...
             Ok(Some(Value::String(s))) => Ok(s),
 
