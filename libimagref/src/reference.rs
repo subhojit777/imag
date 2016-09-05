@@ -352,7 +352,7 @@ impl<'a> Ref<'a> {
     /// Update the Ref by re-checking the file from FS
     /// This errors if the file is not present or cannot be read()
     pub fn update_ref(&mut self) -> Result<()> {
-        let current_hash = try!(self.get_current_hash());
+        let current_hash = try!(self.get_current_hash()); // uses the default hasher
         let current_perm = try!(self.get_current_permissions());
 
         try!(self.0
@@ -362,9 +362,11 @@ impl<'a> Ref<'a> {
             .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
         );
 
+        let hasher_name  = DefaultHasher::new().hash_name();
+
         try!(self.0
             .get_header_mut()
-            .set("ref.content_hash", Value::String(current_hash))
+            .set(&format!("ref.content_hash.{}", hasher_name)[..], Value::String(current_hash))
             .map_err(Box::new)
             .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
         );
