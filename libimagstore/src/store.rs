@@ -1522,11 +1522,7 @@ mod glob_store_iter {
                 .and_then(|o| {
                     debug!("GlobStoreIdIterator::next() => {:?}", o);
                     o.map_err_into(SEK::StoreIdHandlingError)
-                        .and_then(|p| {
-                            let p = try!(p.strip_prefix(&self.store_path)
-                                .map_err_into(SEK::StoreIdHandlingError));
-                            StoreId::new(Some(self.store_path.clone()), PathBuf::from(p))
-                        })
+                        .and_then(|p| StoreId::from_full_path(&self.store_path, p))
                         .map_err(|e| {
                             debug!("GlobStoreIdIterator error: {:?}", e);
                             trace_error(&e);
