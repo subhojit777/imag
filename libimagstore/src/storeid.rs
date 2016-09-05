@@ -103,16 +103,6 @@ impl StoreId {
 
 }
 
-impl Into<PathBuf> for StoreId {
-
-    fn into(self) -> PathBuf {
-        let mut base = self.base.unwrap_or(PathBuf::from("/"));
-        base.push(self.id);
-        base
-    }
-
-}
-
 impl Display for StoreId {
 
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
