@@ -2239,5 +2239,22 @@ mod store_tests {
         }
     }
 
+    #[test]
+    fn test_store_create_in_hm() {
+        use storeid::StoreId;
+
+        let store = get_store();
+
+        for n in 1..100 {
+            let pb = StoreId::new_baseless(PathBuf::from(format!("test-{}", n))).unwrap();
+
+            assert!(store.entries.read().unwrap().get(&pb).is_none());
+            assert!(store.create(pb.clone()).is_ok());
+
+            let pb = pb.with_base(store.path().clone());
+            assert!(store.entries.read().unwrap().get(&pb).is_some());
+        }
+    }
+
 }
 
