@@ -50,7 +50,10 @@ impl<'a> Link<'a> {
             .read("imag.content.url")
             .ok()
             .and_then(|opt| match opt {
-                Some(Value::String(s)) => Url::parse(&s[..]).ok(),
+                Some(Value::String(s)) => {
+                    debug!("Found url, parsing: {:?}", s);
+                    Url::parse(&s[..]).ok()
+                },
                 _ => None
             })
     }
@@ -118,7 +121,12 @@ impl ExternalLinker for Entry {
                     .map(|id| {
                         debug!("Retrieving entry for id: '{:?}'", id);
                         match store.retrieve(id.clone()) {
-                            Ok(f) => get_external_link_from_file(&f),
+                            Ok(f) => {
+                                debug!("Store::retrieve({:?}) succeeded", id);
+                                debug!("getting external link from file now");
+                                get_external_link_from_file(&f)
+                                    .map_err(|e| { debug!("URL -> Err = {:?}", e); e })
+                            },
                             Err(e) => {
                                 debug!("Retrieving entry for id: '{:?}' failed", id);
                                 Err(LE::new(LEK::StoreReadError, Some(Box::new(e))))
