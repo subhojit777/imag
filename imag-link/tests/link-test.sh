@@ -36,8 +36,8 @@ test_link_modificates() {
 
     imag-link internal add --from "test" --to "test2"
 
-    if [[ "$(default_entry)" -eq "$(cat_entry 'test')" ]] ||
-       [[ "$(default_entry)" -eq "$(cat_entry 'test2')" ]]
+    if [ "$(default_entry)" == "$(cat_entry 'test')" ] ||
+       [ "$(default_entry)" == "$(cat_entry 'test2')" ]
     then
         err "Entry was unmodified after linking"
         return 1;
