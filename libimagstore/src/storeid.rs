@@ -1,3 +1,5 @@
+use std::ops::Deref;
+use std::path::Path;
 use std::path::PathBuf;
 
 use std::fmt::{Display, Debug, Formatter};
@@ -8,6 +10,7 @@ use std::path::Components;
 use libimagerror::into::IntoError;
 
 use error::StoreErrorKind as SEK;
+use error::MapErrInto;
 use store::Result;
 use store::Store;
 
@@ -22,6 +25,21 @@ impl StoreId {
 
     pub fn new(base: Option<PathBuf>, id: PathBuf) -> Result<StoreId> {
         StoreId::new_baseless(id).map(|mut sid| { sid.base = base; sid })
+    }
+
+    /// Try to create a StoreId object from a filesystem-absolute path.
+    ///
+    /// Automatically creates a StoreId object which has a `base` set to `store_part` if stripping
+    /// the `store_part` from the `full_path` succeeded.
+    ///
+    /// Returns a `StoreErrorKind::StoreIdBuildFromFullPathError` if stripping failes.
+    pub fn from_full_path<D>(store_part: &PathBuf, full_path: D) -> Result<StoreId>
+        where D: Deref<Target = Path>
+    {
+        let p = try!(
+            full_path.strip_prefix(store_part).map_err_into(SEK::StoreIdBuildFromFullPathError)
+        );
+        StoreId::new(Some(store_part.clone()), PathBuf::from(p))
     }
 
     pub fn new_baseless(id: PathBuf) -> Result<StoreId> {
