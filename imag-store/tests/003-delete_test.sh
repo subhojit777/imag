@@ -12,10 +12,10 @@ delete() {
 }
 
 test_delete_simple() {
-    local name="test~0.2.0"
+    local name="test"
 
-    create -p /$name
-    delete --id /$name
+    create -p $name
+    delete --id $name
 
     local n=$($(find ${STORE}/ -type f | wc -l))
     if [[ $n -eq 0 ]]; then

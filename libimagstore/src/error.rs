@@ -42,6 +42,7 @@ generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     StorePathError          => "Store Path error",
     EntryRenameError        => "Entry rename error",
     StoreIdHandlingError    => "StoreId handling error",
+    StoreIdLocalPartAbsoluteError => "StoreId 'id' part is absolute (starts with '/') which is not allowed",
 
     CreateCallError            => "Error when calling create()",
     RetrieveCallError          => "Error when calling retrieve()",

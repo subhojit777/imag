@@ -9,6 +9,7 @@ use chrono::Timelike;
 
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
+use libimagstore::store::Result as StoreResult;
 
 use module_path::ModuleEntryPath;
 
@@ -118,7 +119,7 @@ impl Default for DiaryId {
 
 impl IntoStoreId for DiaryId {
 
-    fn into_storeid(self) -> StoreId {
+    fn into_storeid(self) -> StoreResult<StoreId> {
         let s : String = self.into();
         ModuleEntryPath::new(s).into_storeid()
     }

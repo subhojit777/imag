@@ -19,6 +19,7 @@ use libimagerror::into::IntoError;
 use toml::Value;
 
 use error::RefErrorKind as REK;
+use error::MapErrInto;
 use flags::RefFlags;
 use result::Result;
 use hasher::*;
@@ -47,8 +48,9 @@ impl<'a> Ref<'a> {
     ///
     /// Returns None if the hash cannot be found.
     pub fn get_by_hash(store: &'a Store, hash: String) -> Result<Option<Ref<'a>>> {
-        store
-            .get(ModuleEntryPath::new(hash).into_storeid())
+        ModuleEntryPath::new(hash)
+            .into_storeid()
+            .and_then(|id| store.get(id))
             .map(|opt_fle| opt_fle.map(|fle| Ref(fle)))
             .map_err(Box::new)
             .map_err(|e| REK::StoreReadError.into_error_with_cause(e))
@@ -58,8 +60,9 @@ impl<'a> Ref<'a> {
     ///
     /// If the returned Result contains an error, the ref might not be deleted.
     pub fn delete_by_hash(store: &'a Store, hash: String) -> Result<()> {
-        store
-            .delete(ModuleEntryPath::new(hash).into_storeid())
+        ModuleEntryPath::new(hash)
+            .into_storeid()
+            .and_then(|id| store.delete(id))
             .map_err(Box::new)
             .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
     }
@@ -223,10 +226,8 @@ impl<'a> Ref<'a> {
 
     /// Get the hash from the path of the ref
     pub fn get_path_hash(&self) -> Option<String> {
-        self.0
-            .get_location()
-            .as_path()
-            .file_name()
+        let pb : PathBuf = self.0.get_location().clone().into();
+        pb.file_name()
             .and_then(|osstr| osstr.to_str())
             .and_then(|s| s.split("~").next())
             .map(String::from)
@@ -398,13 +399,9 @@ impl<'a> Ref<'a> {
                 // manually here. If you can come up with a better version of this, feel free to
                 // take this note as a todo.
                 for r in possible_refs {
-                    let contains_hash = match r.to_str() {
-                        None => { // couldn't parse StoreId -> PathBuf -> &str
-                            // TODO: How to report this?
-                            return Err(REK::TypeConversionError.into_error());
-                        },
-                        Some(s) => s.contains(&hash[..]),
-                    };
+                    let contains_hash = try!(r.to_str()
+                        .map_err_into(REK::TypeConversionError)
+                        .map(|s| s.contains(&hash[..])));
 
                     if !contains_hash {
                         continue;

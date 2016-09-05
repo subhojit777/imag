@@ -2,6 +2,7 @@ generate_error_module!(
     generate_error_types!(TodoError, TodoErrorKind,
         ConversionError     => "Conversion Error",
         StoreError          => "Store Error",
+        StoreIdError        => "Store Id handling error",
         ImportError         => "Error importing"
     );
 );

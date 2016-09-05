@@ -19,6 +19,7 @@ use module_path::ModuleEntryPath;
 use result::Result;
 use error::NoteError as NE;
 use error::NoteErrorKind as NEK;
+use error::MapErrInto;
 
 #[derive(Debug)]
 pub struct Note<'a> {
@@ -32,11 +33,10 @@ impl<'a> Note<'a> {
 
         debug!("Creating new Note: '{}'", name);
         let fle = {
-            let lockentry = store.create(ModuleEntryPath::new(name.clone()).into_storeid());
-            if lockentry.is_err() {
-                return Err(NE::new(NEK::StoreWriteError, Some(Box::new(lockentry.unwrap_err()))));
-            }
-            let mut lockentry = lockentry.unwrap();
+            let mut lockentry = try!(ModuleEntryPath::new(name.clone())
+                .into_storeid()
+                .and_then(|id| store.create(id))
+                .map_err_into(NEK::StoreWriteError));
 
             {
                 let mut entry  = lockentry.deref_mut();
@@ -93,24 +93,26 @@ impl<'a> Note<'a> {
     }
 
     pub fn delete(store: &Store, name: String) -> Result<()> {
-        store.delete(ModuleEntryPath::new(name).into_storeid())
-            .map_err(|e| NE::new(NEK::StoreWriteError, Some(Box::new(e))))
+        ModuleEntryPath::new(name)
+            .into_storeid()
+            .and_then(|id| store.delete(id))
+            .map_err_into(NEK::StoreWriteError)
     }
 
     pub fn retrieve(store: &Store, name: String) -> Result<Note> {
-        store.retrieve(ModuleEntryPath::new(name).into_storeid())
-            .map_err(|e| NE::new(NEK::StoreWriteError, Some(Box::new(e))))
+        ModuleEntryPath::new(name)
+            .into_storeid()
+            .and_then(|id| store.retrieve(id))
+            .map_err_into(NEK::StoreWriteError)
             .map(|entry| Note { entry: entry })
     }
 
     pub fn get(store: &Store, name: String) -> Result<Option<Note>> {
-        use libimagerror::into::IntoError;
-
-        match store.get(ModuleEntryPath::new(name).into_storeid()) {
-            Ok(Some(entry)) => Ok(Some(Note { entry: entry })),
-            Ok(None) => Ok(None),
-            Err(e) => Err(NEK::StoreWriteError.into_error_with_cause(Box::new(e))),
-        }
+        ModuleEntryPath::new(name)
+            .into_storeid()
+            .and_then(|id| store.get(id))
+            .map_err_into(NEK::StoreWriteError)
+            .map(|o| o.map(|entry| Note { entry: entry }))
     }
 
     pub fn all_notes(store: &Store) -> Result<NoteIterator> {

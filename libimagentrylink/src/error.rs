@@ -7,7 +7,8 @@ generate_error_module!(
         InternalConversionError => "Error while converting values internally",
         InvalidUri              => "URI is not valid",
         StoreReadError          => "Store read error",
-        StoreWriteError         => "Store write error"
+        StoreWriteError         => "Store write error",
+        StoreIdError            => "StoreId handling error"
     );
 );
 

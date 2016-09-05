@@ -7,6 +7,7 @@ use libimagstore::store::Result as StoreResult;
 use libimagerror::into::IntoError;
 
 use error::LinkErrorKind as LEK;
+use error::MapErrInto;
 use result::Result;
 
 use toml::Value;
@@ -53,13 +54,11 @@ impl InternalLinker for Entry {
                              .into_iter()
                              .fold(Ok(vec![]), |acc, elem| {
                                 acc.and_then(move |mut v| {
-                                    match elem {
-                                        None => Err(LEK::InternalConversionError.into()),
-                                        Some(e) => {
+                                    elem.map_err_into(LEK::InternalConversionError)
+                                        .map(|e| {
                                             v.push(e);
-                                            Ok(v)
-                                        },
-                                    }
+                                            v
+                                        })
                                 })
                             }));
         process_rw_result(self.get_header_mut().set("imag.links", Value::Array(new_links)))
@@ -98,17 +97,17 @@ impl InternalLinker for Entry {
 
 }
 
-fn links_into_values(links: Vec<StoreId>) -> Vec<Option<Value>> {
+fn links_into_values(links: Vec<StoreId>) -> Vec<Result<Value>> {
     links
         .into_iter()
-        .map(|s| s.to_str().map(String::from))
         .unique()
+        .map(|s| s.without_base().to_str().map_err_into(LEK::InternalConversionError))
         .map(|elem| elem.map(Value::String))
         .sorted_by(|a, b| {
             match (a, b) {
-                (&Some(Value::String(ref a)), &Some(Value::String(ref b))) => Ord::cmp(a, b),
-                (&None, _) | (_, &None) => Ordering::Equal,
-                _                                              => unreachable!()
+                (&Ok(Value::String(ref a)), &Ok(Value::String(ref b))) => Ord::cmp(a, b),
+                (&Err(_), _) | (_, &Err(_)) => Ordering::Equal,
+                _ => unreachable!()
             }
         })
 }
@@ -118,13 +117,11 @@ fn rewrite_links(header: &mut EntryHeader, links: Vec<StoreId>) -> Result<()> {
                      .into_iter()
                      .fold(Ok(vec![]), |acc, elem| {
                         acc.and_then(move |mut v| {
-                            match elem {
-                                None => Err(LEK::InternalConversionError.into()),
-                                Some(e) => {
+                            elem.map_err_into(LEK::InternalConversionError)
+                                .map(|e| {
                                     v.push(e);
-                                    Ok(v)
-                                },
-                            }
+                                    v
+                                })
                         })
                      }));
 
@@ -142,13 +139,11 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
                              .into_iter()
                              .fold(Ok(vec![]), |acc, elem| {
                                 acc.and_then(move |mut v| {
-                                    match elem {
-                                        None => Err(LEK::InternalConversionError.into()),
-                                        Some(e) => {
+                                    elem.map_err_into(LEK::InternalConversionError)
+                                        .map(|e| {
                                             v.push(e);
-                                            Ok(v)
-                                        },
-                                    }
+                                            v
+                                        })
                                 })
                              }));
             process_rw_result(target.get_header_mut().set("imag.links", Value::Array(links)))
@@ -157,6 +152,8 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
 }
 
 fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
+    use std::path::PathBuf;
+
     let links = match links {
         Err(e) => {
             debug!("RW action on store failed. Generating LinkError");
@@ -179,14 +176,15 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
         return Err(LEK::ExistingLinkTypeWrong.into());
     }
 
-    let links : Vec<Link> = links.into_iter()
+    let links : Vec<Link> = try!(links.into_iter()
         .map(|link| {
             match link {
-                Value::String(s) => StoreId::from(s),
+                Value::String(s) => StoreId::new_baseless(PathBuf::from(s))
+                    .map_err_into(LEK::StoreIdError),
                 _ => unreachable!(),
             }
         })
-        .collect();
+        .collect());
 
     debug!("Ok, the RW action was successful, returning link vector now!");
     Ok(links)

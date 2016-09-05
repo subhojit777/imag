@@ -13,8 +13,9 @@ use clap::ArgMatches;
 use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
-use libimagstore::storeid::build_entry_path;
+use libimagstore::storeid::StoreId;
 use libimagerror::trace::trace_error_exit;
+use libimagutil::debug_result::*;
 
 use error::StoreError;
 use error::StoreErrorKind;
@@ -36,13 +37,15 @@ pub fn create(rt: &Runtime) {
                 exit(1);
             }
 
-            let path = match build_entry_path(rt.store(), path.unwrap()) {
+            let store_path = rt.store().path().clone();
+            let path = match StoreId::new(Some(store_path), PathBuf::from(path.unwrap())) {
                 Err(e) => trace_error_exit(&e, 1),
-                Ok(p) => p,
+                Ok(o) => o,
             };
             debug!("path = {:?}", path);
 
             if scmd.subcommand_matches("entry").is_some() {
+                debug!("Creating entry from CLI specification");
                 create_from_cli_spec(rt, scmd, &path)
                     .or_else(|_| create_from_source(rt, scmd, &path))
                     .or_else(|_| create_with_content_and_header(rt,
@@ -50,13 +53,17 @@ pub fn create(rt: &Runtime) {
                                                                 String::new(),
                                                                 EntryHeader::new()))
             } else {
+                debug!("Creating entry");
                 create_with_content_and_header(rt, &path, String::new(), EntryHeader::new())
             }
-            .unwrap_or_else(|e| debug!("Error building Entry: {:?}", e))
+            .unwrap_or_else(|e| {
+                error!("Error building Entry");
+                trace_error_exit(&e, 1);
+            })
         });
 }
 
-fn create_from_cli_spec(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> Result<()> {
+fn create_from_cli_spec(rt: &Runtime, matches: &ArgMatches, path: &StoreId) -> Result<()> {
     let content = matches.subcommand_matches("entry")
         .map_or_else(|| {
             debug!("Didn't find entry subcommand, getting raw content");
@@ -80,7 +87,7 @@ fn create_from_cli_spec(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> R
     create_with_content_and_header(rt, path, content, header)
 }
 
-fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> Result<()> {
+fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &StoreId) -> Result<()> {
     let content = matches
         .value_of("from-raw")
         .ok_or(StoreError::new(StoreErrorKind::NoCommandlineCall, None))
@@ -93,9 +100,11 @@ fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> Res
     debug!("Content with len = {}", content.len());
 
     Entry::from_str(path.clone(), &content[..])
+        .map_dbg_err(|e| format!("Error building entry: {:?}", e))
         .and_then(|new_e| {
             let r = rt.store()
                 .create(path.clone())
+                .map_dbg_err(|e| format!("Error in Store::create(): {:?}", e))
                 .map(|mut old_e| {
                     *old_e.deref_mut() = new_e;
                 });
@@ -103,17 +112,19 @@ fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &PathBuf) -> Res
             debug!("Entry build");
             r
         })
+        .map_dbg_err(|e| format!("Error storing entry: {:?}", e))
         .map_err(|serr| StoreError::new(StoreErrorKind::BackendError, Some(Box::new(serr))))
 }
 
 fn create_with_content_and_header(rt: &Runtime,
-                                  path: &PathBuf,
+                                  path: &StoreId,
                                   content: String,
                                   header: EntryHeader) -> Result<()>
 {
-    debug!("Creating entry with content");
+    debug!("Creating entry with content at {:?}", path);
     rt.store()
-        .create(PathBuf::from(path))
+        .create(path.clone())
+        .map_dbg_err(|e| format!("Error in Store::create(): {:?}", e))
         .map(|mut element| {
             {
                 let mut e_content = element.get_content_mut();

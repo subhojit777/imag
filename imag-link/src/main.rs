@@ -24,6 +24,7 @@ extern crate libimagentrylink;
 extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagerror;
+extern crate libimagutil;
 
 use std::process::exit;
 use std::ops::Deref;
@@ -36,6 +37,7 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagerror::trace::{trace_error, trace_error_exit};
 use libimagentrylink::external::ExternalLinker;
+use libimagutil::warn_result::*;
 use clap::ArgMatches;
 use url::Url;
 
@@ -74,16 +76,30 @@ fn handle_internal_linking(rt: &Runtime) {
         for entry in cmd.value_of("list").unwrap().split(',') {
             debug!("Listing for '{}'", entry);
             match get_entry_by_name(rt, entry) {
-                Ok(e) => {
+                Ok(Some(e)) => {
                     e.get_internal_links()
                         .map(|links| {
-                            for (i, link) in links.iter().map(|l| l.to_str()).filter_map(|x| x).enumerate() {
+                            let i = links
+                                .iter()
+                                .filter_map(|l| {
+                                    l.to_str()
+                                        .map_warn_err(|e| format!("Failed to convert StoreId to string: {:?}", e))
+                                        .ok()
+                                })
+                                .enumerate();
+
+                            for (i, link) in i {
                                 println!("{: <3}: {}", i, link);
                             }
                         })
                         .map_err(|e| trace_error(&e))
                         .ok();
                 },
+
+                Ok(None) => {
+                    warn!("Entry not found: {:?}", entry);
+                    break;
+                }
 
                 Err(e) => {
                     trace_error(&e);
@@ -148,7 +164,8 @@ fn get_from_entry<'a>(rt: &'a Runtime) -> Option<FileLockEntry<'a>> {
                     debug!("We couldn't get the entry from name: '{:?}'", from_name);
                     trace_error(&e); None
                 },
-                Ok(e) => Some(e),
+                Ok(Some(e)) => Some(e),
+                Ok(None)    => None,
             }
 
         })
@@ -166,17 +183,20 @@ fn get_to_entries<'a>(rt: &'a Runtime) -> Option<Vec<FileLockEntry<'a>>> {
             for entry in values.map(|v| get_entry_by_name(rt, v)) {
                 match entry {
                     Err(e) => trace_error(&e),
-                    Ok(e) => v.push(e),
+                    Ok(Some(e)) => v.push(e),
+                    Ok(None) => warn!("Entry not found: {:?}", v),
                 }
             }
             v
         })
 }
 
-fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<FileLockEntry<'a>, StoreError> {
-    use libimagstore::storeid::build_entry_path;
-    build_entry_path(rt.store(), name)
-        .and_then(|path| rt.store().retrieve(path))
+fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<Option<FileLockEntry<'a>>, StoreError> {
+    use std::path::PathBuf;
+    use libimagstore::storeid::StoreId;
+
+    StoreId::new(Some(rt.store().path().clone()), PathBuf::from(name))
+        .and_then(|id| rt.store().get(id))
 }
 
 fn handle_external_linking(rt: &Runtime) {
@@ -185,6 +205,11 @@ fn handle_external_linking(rt: &Runtime) {
     let entry      = get_entry_by_name(rt, entry_name);
     if entry.is_err() {
         trace_error_exit(&entry.unwrap_err(), 1);
+    }
+    let entry = entry.unwrap();
+    if entry.is_none() {
+        warn!("Entry not found: {:?}", entry_name);
+        return;
     }
     let mut entry = entry.unwrap();
 

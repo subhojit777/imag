@@ -36,6 +36,7 @@ use hook::position::HookPosition;
 use hook::Hook;
 
 use libimagerror::into::IntoError;
+use libimagerror::trace::trace_error;
 use libimagutil::iter::FoldResult;
 
 use self::glob_store_iter::*;
@@ -65,14 +66,17 @@ pub enum StoreObject {
 }
 
 pub struct Walk {
+    store_path: PathBuf,
     dirwalker: WalkDirIter,
 }
 
 impl Walk {
 
     fn new(mut store_path: PathBuf, mod_name: &str) -> Walk {
+        let pb = store_path.clone();
         store_path.push(mod_name);
         Walk {
+            store_path: pb,
             dirwalker: WalkDir::new(store_path).into_iter(),
         }
     }
@@ -95,7 +99,15 @@ impl Iterator for Walk {
                 Ok(next) => if next.file_type().is_dir() {
                                 return Some(StoreObject::Collection(next.path().to_path_buf()))
                             } else if next.file_type().is_file() {
-                                return Some(StoreObject::Id(next.path().to_path_buf().into()))
+                                let n   = next.path().to_path_buf();
+                                let sid = match StoreId::new(Some(self.store_path.clone()), n) {
+                                    Err(e) => {
+                                        trace_error(&e);
+                                        continue;
+                                    },
+                                    Ok(o) => o,
+                                };
+                                return Some(StoreObject::Id(sid))
                             },
                 Err(e) => {
                     warn!("Error in Walker");
@@ -376,7 +388,7 @@ impl Store {
 
     /// Creates the Entry at the given location (inside the entry)
     pub fn create<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
-        let id = id.into_storeid().storified(self);
+        let id = try!(id.into_storeid()).with_base(self.path().clone());
         if let Err(e) = self.execute_hooks_for_id(self.pre_create_aspects.clone(), &id) {
             return Err(e)
                 .map_err_into(SEK::PreHookExecuteError)
@@ -414,7 +426,7 @@ impl Store {
     /// Implicitely creates a entry in the store if there is no entry with the id `id`. For a
     /// non-implicitely-create look at `Store::get`.
     pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
-        let id = id.into_storeid().storified(self);
+        let id = try!(id.into_storeid()).with_base(self.path().clone());
         if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
             return Err(e)
                 .map_err_into(SEK::PreHookExecuteError)
@@ -447,55 +459,12 @@ impl Store {
     ///
     /// This executes the {pre,post}_retrieve_aspects hooks.
     pub fn get<'a, S: IntoStoreId + Clone>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>> {
-        if !id.clone().into_storeid().storified(self).exists() {
-            debug!("Does not exist: {:?}", id.clone().into_storeid());
+        let id_copy = try!(id.clone().into_storeid()).with_base(self.path().clone());
+        if !id_copy.exists() {
+            debug!("Does not exist: {:?}", id_copy);
             return Ok(None);
         }
         self.retrieve(id).map(Some).map_err_into(SEK::GetCallError)
-    }
-
-    /// Same as `Store::get()` but also tries older versions of the entry, returning an iterator
-    /// over all versions of the entry.
-    pub fn get_all_versions<'a, S: IntoStoreId>(&'a self, id: S) -> Result<StoreIdIterator>
-    {
-        // get PathBuf component from storeid, but not version component
-        fn path_component<S: IntoStoreId>(id: S) -> Result<PathBuf> {
-            let p : PathBuf = id.into_storeid().into();
-            match p.to_str() {
-                Some(s) => {
-                    let mut split       = s.split("~");
-                    let path_element    = match split.next() {
-                        Some(s) => s,
-                        None => return Err(SE::new(SEK::StorePathError, None))
-                            .map_err_into(SEK::GetAllVersionsCallError),
-                    };
-
-                    Ok(PathBuf::from(path_element))
-                },
-
-                None => Err(SE::new(SEK::StorePathError, None))
-                    .map_err_into(SEK::GetAllVersionsCallError),
-            }
-        }
-
-        fn build_glob_pattern(mut pb: PathBuf) -> Option<String> {
-            pb.push("~*.*.*");
-            pb.to_str().map(String::from)
-        }
-
-        match path_component(id).map(build_glob_pattern) {
-            Err(e) => Err(SEK::StorePathError.into_error_with_cause(Box::new(e)))
-                .map_err_into(SEK::GetAllVersionsCallError),
-            Ok(None) => Err(SE::new(SEK::StorePathError, None))
-                .map_err_into(SEK::GetAllVersionsCallError),
-            Ok(Some(pattern)) => {
-                glob(&pattern[..])
-                    .map(|paths| GlobStoreIdIterator::new(paths).into())
-                    .map_err_into(SEK::GlobError)
-                    .map_err_into(SEK::GetAllVersionsCallError)
-            }
-        }
-
     }
 
     /// Iterate over all StoreIds for one module name
@@ -510,7 +479,7 @@ impl Store {
                 debug!("glob()ing with '{}'", path);
                 glob(&path[..]).map_err_into(SEK::GlobError)
             })
-            .map(|paths| GlobStoreIdIterator::new(paths).into())
+            .map(|paths| GlobStoreIdIterator::new(paths, self.path().clone()).into())
             .map_err_into(SEK::GlobError)
             .map_err_into(SEK::RetrieveForModuleCallError)
     }
@@ -567,7 +536,7 @@ impl Store {
     /// Retrieve a copy of a given entry, this cannot be used to mutate
     /// the one on disk
     pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
-        let id = id.into_storeid().storified(self);
+        let id = try!(id.into_storeid()).with_base(self.path().clone());
         let entries = match self.entries.write() {
             Err(_) => {
                 return Err(SE::new(SEK::LockPoisoned, None))
@@ -586,7 +555,7 @@ impl Store {
 
     /// Delete an entry
     pub fn delete<S: IntoStoreId>(&self, id: S) -> Result<()> {
-        let id = id.into_storeid().storified(self);
+        let id = try!(id.into_storeid()).with_base(self.path().clone());
         if let Err(e) = self.execute_hooks_for_id(self.pre_delete_aspects.clone(), &id) {
             return Err(e)
                 .map_err_into(SEK::PreHookExecuteError)
@@ -609,7 +578,7 @@ impl Store {
 
             // remove the entry first, then the file
             entries.remove(&id);
-            if let Err(e) = FileAbstraction::remove_file(&id) {
+            if let Err(e) = FileAbstraction::remove_file(&id.clone().into()) {
                 return Err(SEK::FileError.into_error_with_cause(Box::new(e)))
                     .map_err_into(SEK::DeleteCallError);
             }
@@ -637,7 +606,7 @@ impl Store {
     fn save_to_other_location(&self, entry: &FileLockEntry, new_id: StoreId, remove_old: bool)
         -> Result<()>
     {
-        let new_id = new_id.storified(self);
+        let new_id = new_id.with_base(self.path().clone());
         let hsmap = self.entries.write();
         if hsmap.is_err() {
             return Err(SE::new(SEK::LockPoisoned, None)).map_err_into(SEK::MoveCallError)
@@ -666,8 +635,8 @@ impl Store {
     /// Move an entry without loading
     pub fn move_by_id(&self, old_id: StoreId, new_id: StoreId) -> Result<()> {
 
-        let new_id = new_id.storified(self);
-        let old_id = old_id.storified(self);
+        let new_id = new_id.with_base(self.path().clone());
+        let old_id = old_id.with_base(self.path().clone());
 
         if let Err(e) = self.execute_hooks_for_id(self.pre_move_aspects.clone(), &old_id) {
             return Err(e)
@@ -677,15 +646,17 @@ impl Store {
         }
 
         {
-            let hsmap = self.entries.write();
-            if hsmap.is_err() {
-                return Err(SE::new(SEK::LockPoisoned, None))
-            }
-            let hsmap = hsmap.unwrap();
+            let hsmap = match self.entries.write() {
+                Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+                Ok(m)  => m,
+            };
+
             if hsmap.contains_key(&old_id) {
                 return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
             } else {
-                match FileAbstraction::rename(&old_id.clone(), &new_id) {
+                let old_id_pb = old_id.clone().into();
+                let new_id_pb = new_id.clone().into();
+                match FileAbstraction::rename(&old_id_pb, &new_id_pb) {
                     Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
                     Ok(_) => {
                         debug!("Rename worked");
@@ -831,11 +802,19 @@ impl Drop for Store {
      * TODO: Unlock them
      */
     fn drop(&mut self) {
-        let store_id = StoreId::from(self.location.clone());
-        if let Err(e) = self.execute_hooks_for_id(self.store_unload_aspects.clone(), &store_id) {
-            debug!("Store-load hooks execution failed. Cannot create store object.");
-            warn!("Store Unload Hook error: {:?}", e);
-        }
+        match StoreId::new(Some(self.location.clone()), PathBuf::from(".")) {
+            Err(e) => {
+                trace_error(&e);
+                warn!("Cannot construct StoreId for Store to execute hooks!");
+                warn!("Will close Store without executing hooks!");
+            },
+            Ok(store_id) => {
+                if let Err(e) = self.execute_hooks_for_id(self.store_unload_aspects.clone(), &store_id) {
+                    debug!("Store-load hooks execution failed. Cannot create store object.");
+                    warn!("Store Unload Hook error: {:?}", e);
+                }
+            },
+        };
 
         debug!("Dropping store");
     }
@@ -1449,7 +1428,7 @@ impl Entry {
 
         debug!("Header and content found. Yay! Building Entry object now");
         Ok(Entry {
-            location: loc.into_storeid(),
+            location: try!(loc.into_storeid()),
             header: try!(EntryHeader::parse(header)),
             content: content.into(),
         })
@@ -1490,11 +1469,18 @@ impl Entry {
 mod glob_store_iter {
     use std::fmt::{Debug, Formatter};
     use std::fmt::Error as FmtError;
+    use std::path::PathBuf;
     use glob::Paths;
     use storeid::StoreId;
     use storeid::StoreIdIterator;
 
+    use error::StoreErrorKind as SEK;
+    use error::MapErrInto;
+
+    use libimagerror::trace::trace_error;
+
     pub struct GlobStoreIdIterator {
+        store_path: PathBuf,
         paths: Paths,
     }
 
@@ -1516,8 +1502,9 @@ mod glob_store_iter {
 
     impl GlobStoreIdIterator {
 
-        pub fn new(paths: Paths) -> GlobStoreIdIterator {
+        pub fn new(paths: Paths, store_path: PathBuf) -> GlobStoreIdIterator {
             GlobStoreIdIterator {
+                store_path: store_path,
                 paths: paths,
             }
         }
@@ -1528,15 +1515,16 @@ mod glob_store_iter {
         type Item = StoreId;
 
         fn next(&mut self) -> Option<StoreId> {
-            self.paths.next().and_then(|o| {
-                match o {
-                    Ok(o) => Some(o),
-                    Err(e) => {
-                        debug!("GlobStoreIdIterator error: {:?}", e);
-                        None
-                    },
-                }
-            }).map(|p| StoreId::from(p))
+            self.paths
+                .next()
+                .and_then(|o| {
+                    o.map_err_into(SEK::StoreIdHandlingError)
+                        .and_then(|p| StoreId::new(Some(self.store_path.clone()), p))
+                        .map_err(|e| {
+                            debug!("GlobStoreIdIterator error: {:?}", e);
+                            trace_error(&e);
+                        }).ok()
+                })
         }
 
     }
@@ -1551,6 +1539,7 @@ mod test {
     use std::collections::BTreeMap;
     use super::EntryHeader;
     use super::Token;
+    use storeid::StoreId;
 
     use toml::Value;
 
@@ -1681,7 +1670,7 @@ Hai";
         use super::Entry;
         use std::path::PathBuf;
         println!("{}", TEST_ENTRY);
-        let entry = Entry::from_str(PathBuf::from("/test/foo~1.3"),
+        let entry = Entry::from_str(StoreId::new_baseless(PathBuf::from("test/foo~1.3")).unwrap(),
                                     TEST_ENTRY).unwrap();
 
         assert_eq!(entry.content, "Hai");
@@ -1692,7 +1681,7 @@ Hai";
         use super::Entry;
         use std::path::PathBuf;
         println!("{}", TEST_ENTRY);
-        let entry = Entry::from_str(PathBuf::from("/test/foo~1.3"),
+        let entry = Entry::from_str(StoreId::new_baseless(PathBuf::from("test/foo~1.3")).unwrap(),
                                     TEST_ENTRY).unwrap();
         let string = entry.to_str();
 

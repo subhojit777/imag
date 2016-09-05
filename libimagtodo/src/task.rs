@@ -73,9 +73,9 @@ impl<'a> Task<'a> {
     ///
     /// If there is no task with this UUID, this returns `Ok(None)`.
     pub fn get_from_uuid(store: &'a Store, uuid: Uuid) -> Result<Option<Task<'a>>> {
-        let store_id = ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid();
-
-        store.get(store_id)
+        ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
+            .into_storeid()
+            .and_then(|store_id| store.get(store_id))
             .map(|o| o.map(Task::new))
             .map_err_into(TodoErrorKind::StoreError)
     }
@@ -138,7 +138,9 @@ impl<'a> Task<'a> {
     }
 
     pub fn delete_by_uuid(store: &Store, uuid: Uuid) -> Result<()> {
-        store.delete(ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid())
+        ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
+            .into_storeid()
+            .and_then(|id| store.delete(id))
             .map_err(|e| TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
     }
 
@@ -196,34 +198,30 @@ impl<'a> IntoTask<'a> for TTask {
 
     fn into_task(self, store : &'a Store) -> Result<Task<'a>> {
         let uuid     = self.uuid();
-        let store_id = ModuleEntryPath::new(format!("taskwarrior/{}", uuid)).into_storeid();
-
-        match store.retrieve(store_id) {
-            Err(e) => return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e)))),
-            Ok(mut fle) => {
-                {
-                    let mut header = fle.get_header_mut();
-                    match header.read("todo") {
-                        Ok(None) => {
-                            if let Err(e) = header.set("todo", Value::Table(BTreeMap::new())) {
-                                return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
+        ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
+            .into_storeid()
+            .map_err_into(TodoErrorKind::StoreIdError)
+            .and_then(|id| {
+                store.retrieve(id)
+                    .map_err_into(TodoErrorKind::StoreError)
+                    .and_then(|mut fle| {
+                        {
+                            let mut hdr = fle.get_header_mut();
+                            let read = hdr.read("todo").map_err_into(TodoErrorKind::StoreError);
+                            if try!(read).is_none() {
+                                try!(hdr
+                                    .set("todo", Value::Table(BTreeMap::new()))
+                                    .map_err_into(TodoErrorKind::StoreError));
                             }
-                        }
-                        Ok(Some(_)) => { }
-                        Err(e) => {
-                            return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
-                        }
-                    }
 
-                    if let Err(e) = header.set("todo.uuid", Value::String(format!("{}",uuid))) {
-                        return Err(TodoError::new(TodoErrorKind::StoreError, Some(Box::new(e))))
-                    }
-                }
+                            try!(hdr.set("todo.uuid", Value::String(format!("{}",uuid)))
+                                 .map_err_into(TodoErrorKind::StoreError));
+                        }
 
-                // If none of the errors above have returned the function, everything is fine
-                Ok(Task::new(fle))
-            }
-        }
+                        // If none of the errors above have returned the function, everything is fine
+                        Ok(Task::new(fle))
+                    })
+            })
     }
 
 }

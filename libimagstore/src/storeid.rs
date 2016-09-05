@@ -1,12 +1,11 @@
 use std::path::PathBuf;
-use std::path::Path;
-use std::borrow::Borrow;
-use std::ops::Deref;
 
-use semver::Version;
 use std::fmt::{Display, Debug, Formatter};
 use std::fmt::Error as FmtError;
 use std::result::Result as RResult;
+use std::path::Components;
+
+use libimagerror::into::IntoError;
 
 use error::StoreErrorKind as SEK;
 use store::Result;
@@ -14,21 +13,82 @@ use store::Store;
 
 /// The Index into the Store
 #[derive(Debug, Clone, PartialEq, Hash, Eq, PartialOrd, Ord)]
-pub struct StoreId(PathBuf);
+pub struct StoreId {
+    base: Option<PathBuf>,
+    id:   PathBuf,
+}
 
 impl StoreId {
 
-    pub fn storified(self, store: &Store) -> StoreId {
-        if self.starts_with(store.path()) {
-            debug!("Not storifying {:?}, because it is already.", self);
-            self
+    pub fn new(base: Option<PathBuf>, id: PathBuf) -> Result<StoreId> {
+        StoreId::new_baseless(id).map(|mut sid| { sid.base = base; sid })
+    }
+
+    pub fn new_baseless(id: PathBuf) -> Result<StoreId> {
+        if id.is_absolute() {
+            Err(SEK::StoreIdLocalPartAbsoluteError.into_error())
         } else {
-            debug!("Create new store id out of: {:?} and {:?}", store.path(), self);
-            let mut new_id = store.path().clone();
-            new_id.push(self);
-            debug!("Created: '{:?}'", new_id);
-            StoreId::from(new_id)
+            Ok(StoreId {
+                base: None,
+                id: id
+            })
         }
+    }
+
+    pub fn without_base(mut self) -> StoreId {
+        self.base = None;
+        self
+    }
+
+    pub fn with_base(mut self, base: PathBuf) -> Self {
+        self.base = Some(base);
+        self
+    }
+
+    pub fn storified(self, store: &Store) -> StoreId {
+        StoreId {
+            base: Some(store.path().clone()),
+            id: self.id
+        }
+    }
+
+    pub fn exists(&self) -> bool {
+        let pb : PathBuf = self.clone().into();
+        pb.exists()
+    }
+
+    pub fn is_file(&self) -> bool {
+        true
+    }
+
+    pub fn is_dir(&self) -> bool {
+        false
+    }
+
+    pub fn to_str(&self) -> Result<String> {
+        if self.base.is_some() {
+            let mut base = self.base.as_ref().cloned().unwrap();
+            base.push(self.id.clone());
+            base
+        } else {
+            self.id.clone()
+        }
+        .to_str()
+        .map(String::from)
+        .ok_or(SEK::StoreIdHandlingError.into_error())
+    }
+
+    /// Returns the components of the `id` part of the StoreId object.
+    ///
+    /// Can be used to check whether a StoreId points to an entry in a specific collection of
+    /// StoreIds.
+    pub fn components(&self) -> Components {
+        self.id.components()
+    }
+
+    /// Get the _local_ part of a StoreId object, as in "the part from the store root to the entry".
+    pub fn local(&self) -> &PathBuf {
+        &self.id
     }
 
 }
@@ -36,7 +96,9 @@ impl StoreId {
 impl Into<PathBuf> for StoreId {
 
     fn into(self) -> PathBuf {
-        self.0
+        let mut base = self.base.unwrap_or(PathBuf::from("/"));
+        base.push(self.id);
+        base
     }
 
 }
@@ -44,51 +106,10 @@ impl Into<PathBuf> for StoreId {
 impl Display for StoreId {
 
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
-        match self.0.to_str() {
+        match self.id.to_str() {
             Some(s) => write!(fmt, "{}", s),
-            None    => write!(fmt, "{}", self.0.to_string_lossy()),
+            None    => write!(fmt, "{}", self.id.to_string_lossy()),
         }
-    }
-
-}
-
-impl Deref for StoreId {
-    type Target = PathBuf;
-
-    fn deref(&self) -> &PathBuf {
-        &self.0
-    }
-
-}
-
-impl From<PathBuf> for StoreId {
-
-    fn from(pb: PathBuf) -> StoreId {
-        StoreId(pb)
-    }
-
-}
-
-impl From<String> for StoreId {
-
-    fn from(string: String) -> StoreId {
-        StoreId(string.into())
-    }
-
-}
-
-impl AsRef<Path> for StoreId {
-
-    fn as_ref(&self) -> &Path {
-        self.0.as_ref()
-    }
-
-}
-
-impl Borrow<Path> for StoreId {
-
-    fn borrow(&self) -> &Path {
-        self.0.borrow()
     }
 
 }
@@ -96,45 +117,24 @@ impl Borrow<Path> for StoreId {
 /// This Trait allows you to convert various representations to a single one
 /// suitable for usage in the Store
 pub trait IntoStoreId {
-    fn into_storeid(self) -> StoreId;
-}
-
-impl IntoStoreId for PathBuf {
-    fn into_storeid(self) -> StoreId {
-        StoreId(self)
-    }
+    fn into_storeid(self) -> Result<StoreId>;
 }
 
 impl IntoStoreId for StoreId {
-    fn into_storeid(self) -> StoreId {
-        self
+    fn into_storeid(self) -> Result<StoreId> {
+        Ok(self)
     }
 }
 
-pub fn build_entry_path(store: &Store, path_elem: &str) -> Result<PathBuf> {
-    debug!("Checking path element for version");
-    if path_elem.split('~').last().map_or(false, |v| Version::parse(v).is_err()) {
-        debug!("Version cannot be parsed from {:?}", path_elem);
-        debug!("Path does not contain version!");
-        return Err(SEK::StorePathLacksVersion.into());
+impl IntoStoreId for PathBuf {
+    fn into_storeid(self) -> Result<StoreId> {
+        StoreId::new_baseless(self)
     }
-    debug!("Version checking succeeded");
-
-    debug!("Building path from {:?}", path_elem);
-    let mut path = store.path().clone();
-
-    if path_elem.starts_with('/') {
-        path.push(&path_elem[1..]);
-    } else {
-        path.push(path_elem);
-    }
-
-    Ok(path)
 }
 
 #[macro_export]
 macro_rules! module_entry_path_mod {
-    ($name:expr, $version:expr) => (
+    ($name:expr) => (
         #[deny(missing_docs,
                 missing_copy_implementations,
                 trivial_casts, trivial_numeric_casts,
@@ -144,12 +144,12 @@ macro_rules! module_entry_path_mod {
                 unused_imports)]
         /// A helper module to create valid module entry paths
         pub mod module_path {
-            use semver::Version;
             use std::convert::AsRef;
             use std::path::Path;
             use std::path::PathBuf;
 
             use $crate::storeid::StoreId;
+            use $crate::store::Result;
 
             /// A Struct giving you the ability to choose store entries assigned
             /// to it.
@@ -163,19 +163,16 @@ macro_rules! module_entry_path_mod {
                     let mut path = PathBuf::new();
                     path.push(format!("{}", $name));
                     path.push(pa.as_ref().clone());
-                    let version = Version::parse($version).unwrap();
                     let name = pa.as_ref().file_name().unwrap()
                         .to_str().unwrap();
-                    path.set_file_name(format!("{}~{}",
-                                               name,
-                                               version));
+                    path.set_file_name(name);
                     ModuleEntryPath(path)
                 }
             }
 
             impl $crate::storeid::IntoStoreId for ModuleEntryPath {
-                fn into_storeid(self) -> $crate::storeid::StoreId {
-                    StoreId::from(self.0)
+                fn into_storeid(self) -> Result<$crate::storeid::StoreId> {
+                    StoreId::new(None, self.0)
                 }
             }
         }
@@ -218,13 +215,13 @@ mod test {
 
     use storeid::IntoStoreId;
 
-    module_entry_path_mod!("test", "0.2.0-alpha+leet1337");
+    module_entry_path_mod!("test");
 
     #[test]
     fn correct_path() {
         let p = module_path::ModuleEntryPath::new("test");
 
-        assert_eq!(p.into_storeid().to_str().unwrap(), "test/test~0.2.0-alpha+leet1337");
+        assert_eq!(p.into_storeid().unwrap().to_str().unwrap(), "test/test");
     }
 
 }

@@ -18,27 +18,23 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::store::Entry;
 
 trait EntryFlock {
-    fn lock(&self, store_location: &PathBuf) -> IoResult<()>;
-    fn unlock(&self, store_location: &PathBuf) -> IoResult<()>;
+    fn lock(&self) -> IoResult<()>;
+    fn unlock(&self) -> IoResult<()>;
 }
 
 impl EntryFlock for Entry {
 
-    fn lock(&self, store_location: &PathBuf) -> IoResult<()> {
+    fn lock(&self) -> IoResult<()> {
         use std::fs::File;
 
-        let mut location = store_location.clone();
-        location.push(self.get_location());
-
+        let location : PathBuf = self.get_location().clone().into();
         File::open(location).and_then(|file| file.lock_exclusive())
     }
 
-    fn unlock(&self, store_location: &PathBuf) -> IoResult<()> {
+    fn unlock(&self) -> IoResult<()> {
         use std::fs::File;
 
-        let mut location = store_location.clone();
-        location.push(self.get_location());
-
+        let location : PathBuf = self.get_location().clone().into();
         File::open(location).and_then(|file| file.unlock())
     }
 
@@ -60,15 +56,13 @@ fn action_to_str(a: &Action) -> &'static str {
 #[derive(Debug, Clone)]
 pub struct FlockUpdateHook {
     action: Action,
-    store_location: PathBuf,
 }
 
 impl FlockUpdateHook {
 
-    pub fn new(action: Action, store_location: PathBuf) -> FlockUpdateHook {
+    pub fn new(action: Action) -> FlockUpdateHook {
         FlockUpdateHook {
             action: action,
-            store_location: store_location,
         }
     }
 
@@ -107,7 +101,7 @@ impl MutableHookDataAccessor for FlockUpdateHook {
 
     fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
         debug!("[FLOCK HOOK][{}] {:?}", action_to_str(&self.action), fle.get_location());
-        fle.lock(&self.store_location)
+        fle.lock()
             .map_err(|e| HookError::new(HookErrorKind::HookExecutionError, Some(Box::new(e))))
             .map(|_| ())
     }
@@ -118,7 +112,7 @@ impl NonMutableHookDataAccessor for FlockUpdateHook {
 
     fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
         debug!("[FLOCK HOOK][{}] {:?}", action_to_str(&self.action), fle.get_location());
-        fle.unlock(&self.store_location)
+        fle.unlock()
             .map_err(|e| HookError::new(HookErrorKind::HookExecutionError, Some(Box::new(e))))
             .map(|_| ())
     }

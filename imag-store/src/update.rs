@@ -1,8 +1,9 @@
 use std::ops::DerefMut;
+use std::path::PathBuf;
 
 use libimagrt::runtime::Runtime;
-use libimagstore::storeid::build_entry_path;
 use libimagerror::trace::trace_error_exit;
+use libimagstore::storeid::StoreId;
 
 use util::build_toml_header;
 
@@ -12,7 +13,8 @@ pub fn update(rt: &Runtime) {
         .map(|scmd| {
             scmd.value_of("id")
                 .map(|id| {
-                    let path = match build_entry_path(rt.store(), id) {
+                    let path = PathBuf::from(id);
+                    let path = match StoreId::new(Some(rt.store().path().clone()), path) {
                         Err(e) => trace_error_exit(&e, 1),
                         Ok(p) => p,
                     };

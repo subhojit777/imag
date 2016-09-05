@@ -21,7 +21,7 @@ extern crate regex;
 #[macro_use] extern crate libimagerror;
 extern crate libimagentrylink;
 
-module_entry_path_mod!("bookmark", "0.1.0");
+module_entry_path_mod!("bookmark");
 
 pub mod collection;
 pub mod error;

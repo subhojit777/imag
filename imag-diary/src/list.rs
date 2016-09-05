@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use std::process::exit;
 
 use libimagdiary::diary::Diary;
@@ -8,7 +7,6 @@ use libimagentrylist::listers::core::CoreLister;
 use libimagentrylist::lister::Lister;
 use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
-use libimagstore::storeid::StoreId;
 use libimagerror::trace::trace_error;
 
 use util::get_diary_name;
@@ -21,11 +19,11 @@ pub fn list(rt: &Runtime) {
     }
     let diaryname = diaryname.unwrap();
 
-    fn location_to_listing_string(id: &StoreId, base: &PathBuf) -> String {
-        id.strip_prefix(base)
+    fn entry_to_location_listing_string(e: &Entry) -> String {
+        e.get_location().clone()
+            .without_base()
+            .to_str()
             .map_err(|e| trace_error(&e))
-            .ok()
-            .and_then(|p| p.to_str().map(String::from))
             .unwrap_or(String::from("<<Path Parsing Error>>"))
     }
 
@@ -40,9 +38,7 @@ pub fn list(rt: &Runtime) {
                 a.ok()
             }).map(|e| e.into());
 
-            let base = rt.store().path();
-
-            CoreLister::new(&move |e: &Entry| location_to_listing_string(e.get_location(), base))
+            CoreLister::new(&entry_to_location_listing_string)
                 .list(es) // TODO: Do not ignore non-ok()s
                 .map_err(|e| DE::new(DEK::IOError, Some(Box::new(e))))
         })
