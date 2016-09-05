@@ -1503,6 +1503,8 @@ mod glob_store_iter {
     impl GlobStoreIdIterator {
 
         pub fn new(paths: Paths, store_path: PathBuf) -> GlobStoreIdIterator {
+            debug!("Create a GlobStoreIdIterator(store_path = {:?}, /* ... */)", store_path);
+
             GlobStoreIdIterator {
                 store_path: store_path,
                 paths: paths,
@@ -1518,8 +1520,13 @@ mod glob_store_iter {
             self.paths
                 .next()
                 .and_then(|o| {
+                    debug!("GlobStoreIdIterator::next() => {:?}", o);
                     o.map_err_into(SEK::StoreIdHandlingError)
-                        .and_then(|p| StoreId::new(Some(self.store_path.clone()), p))
+                        .and_then(|p| {
+                            let p = try!(p.strip_prefix(&self.store_path)
+                                .map_err_into(SEK::StoreIdHandlingError));
+                            StoreId::new(Some(self.store_path.clone()), PathBuf::from(p))
+                        })
                         .map_err(|e| {
                             debug!("GlobStoreIdIterator error: {:?}", e);
                             trace_error(&e);
