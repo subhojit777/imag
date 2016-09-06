@@ -9,38 +9,69 @@ use libimagstore::hook::accessor::StoreIdAccessor;
 use libimagstore::hook::accessor::MutableHookDataAccessor;
 use libimagstore::hook::accessor::NonMutableHookDataAccessor;
 use libimagstore::hook::result::HookResult;
-use libimagstore::hook::error::{HookError, HookErrorKind, MapErrInto};
+use libimagstore::hook::error::{HookError, HookErrorKind};
 use libimagstore::storeid::StoreId;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Entry;
 
+mod error {
+    generate_error_imports!();
+    generate_error_types!(FlockError, FlockErrorKind,
+        IOError                    => "IO Error",
+        StoreIdPathBufConvertError => "Error while converting StoreId to PathBuf",
+        FileOpenError              => "Error on File::open()",
+        LockError                  => "Error while lock()ing",
+        UnlockError                => "Error while unlock()ing"
+    );
+}
+use self::error::FlockError as FE;
+use self::error::FlockErrorKind as FEK;
+use self::error::MapErrInto;
+
 trait EntryFlock {
-    fn lock(&self) -> HookResult<()>;
-    fn unlock(&self) -> HookResult<()>;
+    fn lock(&self) -> Result<(), FE>;
+    fn unlock(&self) -> Result<(), FE>;
 }
 
 impl EntryFlock for Entry {
 
-    fn lock(&self) -> HookResult<()> {
+    fn lock(&self) -> Result<(), FE> {
         use std::fs::File;
 
         self.get_location()
             .clone()
             .into_pathbuf()
-            .map_err_into(HookErrorKind::HookExecutionError)
-            .and_then(|loc| File::open(loc).map_err_into(HookErrorKind::HookExecutionError))
-            .and_then(|file| file.lock_exclusive().map_err_into(HookErrorKind::HookExecutionError))
+            .map_err_into(FEK::StoreIdPathBufConvertError)
+            .and_then(|loc| {
+                File::open(loc)
+                    .map_err_into(FEK::FileOpenError)
+                    .map_err_into(FEK::IOError)
+            })
+            .and_then(|file| {
+                file.lock_exclusive()
+                    .map_err_into(FEK::LockError)
+                    .map_err_into(FEK::IOError)
+            })
     }
 
-    fn unlock(&self) -> HookResult<()> {
+    fn unlock(&self) -> Result<(), FE> {
         use std::fs::File;
 
         self.get_location()
             .clone()
             .into_pathbuf()
-            .map_err_into(HookErrorKind::HookExecutionError)
-            .and_then(|loc| File::open(loc).map_err_into(HookErrorKind::HookExecutionError))
-            .and_then(|file| file.unlock().map_err_into(HookErrorKind::HookExecutionError))
+            .map_err_into(FEK::StoreIdPathBufConvertError)
+            .and_then(|loc| {
+                File::open(loc)
+                    .map_err_into(FEK::FileOpenError)
+                    .map_err_into(FEK::IOError)
+            })
+            .and_then(|file| {
+                file.unlock()
+                    .map_err_into(FEK::UnlockError)
+                    .map_err_into(FEK::LockError)
+                    .map_err_into(FEK::IOError)
+            })
     }
 
 }
