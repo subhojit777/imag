@@ -8,6 +8,7 @@ semver = "0.2.1"
 clap = "2.*"
 log = "0.3"
 version = "2.0.1"
+itertools = "0.4"
 
 [dependencies.libimagrt]
 path = "../libimagrt"
@@ -23,4 +24,7 @@ path = "../libimagentrytag"
 
 [dependencies.libimagerror]
 path = "../libimagerror"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
 
