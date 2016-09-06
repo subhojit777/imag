@@ -100,8 +100,13 @@ impl InternalLinker for Entry {
 fn links_into_values(links: Vec<StoreId>) -> Vec<Result<Value>> {
     links
         .into_iter()
-        .unique()
         .map(|s| s.without_base().to_str().map_err_into(LEK::InternalConversionError))
+        .unique_by(|entry| {
+            match entry {
+                &Ok(ref e) => Some(e.clone()),
+                &Err(_) => None,
+            }
+        })
         .map(|elem| elem.map(Value::String))
         .sorted_by(|a, b| {
             match (a, b) {
