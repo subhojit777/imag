@@ -8,6 +8,8 @@ generate_custom_error_types!(HookError, HookErrorKind, CustomData,
     MutableHooksNotAllowed => "Mutable Hooks are denied"
 );
 
+generate_result_helper!(HookError, HookErrorKind);
+
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
 pub struct CustomData {
     aborting: bool,
