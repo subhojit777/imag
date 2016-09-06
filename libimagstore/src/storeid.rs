@@ -12,7 +12,6 @@ use libimagerror::into::IntoError;
 use error::StoreErrorKind as SEK;
 use error::MapErrInto;
 use store::Result;
-use store::Store;
 
 /// The Index into the Store
 #[derive(Debug, Clone, PartialEq, Hash, Eq, PartialOrd, Ord)]
@@ -61,13 +60,6 @@ impl StoreId {
     pub fn with_base(mut self, base: PathBuf) -> Self {
         self.base = Some(base);
         self
-    }
-
-    pub fn storified(self, store: &Store) -> StoreId {
-        StoreId {
-            base: Some(store.path().clone()),
-            id: self.id
-        }
     }
 
     pub fn exists(&self) -> bool {
