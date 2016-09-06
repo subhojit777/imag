@@ -11,6 +11,8 @@ use task_hookrs::import::{import_task, import_tasks};
 
 use libimagstore::store::{FileLockEntry, Store};
 use libimagstore::storeid::{IntoStoreId, StoreIdIterator, StoreId};
+use libimagerror::trace::MapErrTrace;
+use libimagutil::debug_result::DebugResult;
 use module_path::ModuleEntryPath;
 
 use error::{TodoError, TodoErrorKind, MapErrInto};
@@ -32,6 +34,8 @@ impl<'a> Task<'a> {
         r.read_line(&mut line);
         import_task(&line.as_str())
             .map_err_into(TodoErrorKind::ImportError)
+            .map_dbg_err_str("Error while importing task")
+            .map_err_dbg_trace()
             .and_then(|t| {
                 let uuid = t.uuid().clone();
                 t.into_task(store).map(|t| (t, line, uuid))
@@ -61,6 +65,8 @@ impl<'a> Task<'a> {
     pub fn get_from_string(store: &'a Store, s: String) -> Result<RResult<Task<'a>, String>> {
         import_task(s.as_str())
             .map_err_into(TodoErrorKind::ImportError)
+            .map_dbg_err_str("Error while importing task")
+            .map_err_dbg_trace()
             .map(|t| t.uuid().clone())
             .and_then(|uuid| Task::get_from_uuid(store, uuid))
             .and_then(|o| match o {
@@ -96,6 +102,8 @@ impl<'a> Task<'a> {
                 Ok(task)    => Ok(task),
                 Err(string) => import_task(string.as_str())
                     .map_err_into(TodoErrorKind::ImportError)
+                    .map_dbg_err_str("Error while importing task")
+                    .map_err_dbg_trace()
                     .and_then(|t| t.into_task(store)),
             })
     }
