@@ -1,6 +1,7 @@
 use toml::Value;
 
 use fs2::FileExt;
+use std::fs::File;
 
 use libimagstore::hook::Hook;
 use libimagstore::hook::accessor::HookDataAccessor as HDA;
@@ -33,20 +34,20 @@ trait EntryFlock {
     fn unlock(&self) -> Result<(), FE>;
 }
 
+fn open_file(id: StoreId) -> Result<File, FE> {
+    id.into_pathbuf()
+        .map_err_into(FEK::StoreIdPathBufConvertError)
+        .and_then(|loc| {
+            File::open(loc)
+                .map_err_into(FEK::FileOpenError)
+                .map_err_into(FEK::IOError)
+        })
+}
+
 impl EntryFlock for Entry {
 
     fn lock(&self) -> Result<(), FE> {
-        use std::fs::File;
-
-        self.get_location()
-            .clone()
-            .into_pathbuf()
-            .map_err_into(FEK::StoreIdPathBufConvertError)
-            .and_then(|loc| {
-                File::open(loc)
-                    .map_err_into(FEK::FileOpenError)
-                    .map_err_into(FEK::IOError)
-            })
+        open_file(self.get_location().clone())
             .and_then(|file| {
                 file.lock_exclusive()
                     .map_err_into(FEK::LockError)
@@ -55,17 +56,7 @@ impl EntryFlock for Entry {
     }
 
     fn unlock(&self) -> Result<(), FE> {
-        use std::fs::File;
-
-        self.get_location()
-            .clone()
-            .into_pathbuf()
-            .map_err_into(FEK::StoreIdPathBufConvertError)
-            .and_then(|loc| {
-                File::open(loc)
-                    .map_err_into(FEK::FileOpenError)
-                    .map_err_into(FEK::IOError)
-            })
+        open_file(self.get_location().clone())
             .and_then(|file| {
                 file.unlock()
                     .map_err_into(FEK::UnlockError)
