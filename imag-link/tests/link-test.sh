@@ -50,13 +50,13 @@ test_linking_links() {
 
     imag-link internal add --from "test" --to "test2"
 
-    if [[ "$(entry_linked_to '/test')" == "$(cat_entry 'test2')" ]];
+    if [[ "$(entry_linked_to 'test')" == "$(cat_entry 'test2')" ]];
     then
         err "Linking to 'test' didn't succeed for 'test2'"
         err $(cat_entry 'test2')
     fi
 
-    if [[ "$(entry_linked_to '/test2')" == "$(cat_entry 'test')" ]];
+    if [[ "$(entry_linked_to 'test2')" == "$(cat_entry 'test')" ]];
     then
         err "Linking to 'test2' didn't succeed for 'test'"
         err $(cat_entry 'test')
