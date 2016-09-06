@@ -6,7 +6,7 @@ use libimagdiary::error::DiaryErrorKind as DEK;
 use libimagdiary::error::MapErrInto;
 use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::MapErrTrace;
 use libimagerror::into::IntoError;
 use libimagtimeui::datetime::DateTime;
 use libimagtimeui::parse::Parse;
@@ -37,7 +37,7 @@ pub fn edit(rt: &Runtime) {
         Some(Err(e)) => Err(e),
         None => Err(DEK::EntryNotInDiary.into_error()),
     }
-    .map_err(|e| trace_error(&e)).ok();
+    .map_err_trace().ok();
 }
 
 
