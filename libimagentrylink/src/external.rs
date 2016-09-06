@@ -47,10 +47,13 @@ impl<'a> Link<'a> {
     /// Get a link Url object from a `FileLockEntry`, ignore errors.
     fn get_link_uri_from_filelockentry(file: &FileLockEntry<'a>) -> Option<Url> {
         file.get_header()
-            .read("imag.content.uri")
+            .read("imag.content.url")
             .ok()
             .and_then(|opt| match opt {
-                Some(Value::String(s)) => Url::parse(&s[..]).ok(),
+                Some(Value::String(s)) => {
+                    debug!("Found url, parsing: {:?}", s);
+                    Url::parse(&s[..]).ok()
+                },
                 _ => None
             })
     }
@@ -58,7 +61,7 @@ impl<'a> Link<'a> {
     pub fn get_url(&self) -> Result<Option<Url>> {
         let opt = self.link
             .get_header()
-            .read("imag.content.uri");
+            .read("imag.content.url");
 
         match opt {
             Ok(Some(Value::String(s))) => {
@@ -91,8 +94,8 @@ pub trait ExternalLinker : InternalLinker {
 
 /// Check whether the StoreId starts with `/link/external/`
 pub fn is_external_link_storeid(id: &StoreId) -> bool {
-    debug!("Checking whether this is a link/external/*: '{:?}'", id);
-    id.local().starts_with("link/external")
+    debug!("Checking whether this is a 'links/external/': '{:?}'", id);
+    id.local().starts_with("links/external")
 }
 
 fn get_external_link_from_file(entry: &FileLockEntry) -> Result<Url> {
@@ -118,7 +121,12 @@ impl ExternalLinker for Entry {
                     .map(|id| {
                         debug!("Retrieving entry for id: '{:?}'", id);
                         match store.retrieve(id.clone()) {
-                            Ok(f) => get_external_link_from_file(&f),
+                            Ok(f) => {
+                                debug!("Store::retrieve({:?}) succeeded", id);
+                                debug!("getting external link from file now");
+                                get_external_link_from_file(&f)
+                                    .map_err(|e| { debug!("URL -> Err = {:?}", e); e })
+                            },
                             Err(e) => {
                                 debug!("Retrieving entry for id: '{:?}' failed", id);
                                 Err(LE::new(LEK::StoreReadError, Some(Box::new(e))))
