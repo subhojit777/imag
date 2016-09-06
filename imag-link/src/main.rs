@@ -34,10 +34,11 @@ use libimagstore::error::StoreError;
 use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
-use libimagerror::trace::{trace_error, trace_error_exit};
+use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
 use libimagentrylink::external::ExternalLinker;
 use libimagutil::warn_result::*;
 use libimagutil::warn_exit::warn_exit;
+use libimagutil::info_result::*;
 use clap::ArgMatches;
 use url::Url;
 
@@ -89,7 +90,7 @@ fn handle_internal_linking(rt: &Runtime) {
                                 println!("{: <3}: {}", i, link);
                             }
                         })
-                        .map_err(|e| trace_error(&e))
+                        .map_err_trace()
                         .ok();
                 },
 
@@ -236,38 +237,17 @@ fn handle_external_linking(rt: &Runtime) {
 }
 
 fn add_link_to_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLockEntry) {
-    let link = matches.value_of("add").unwrap();
-
-    let link = Url::parse(link);
-    if link.is_err() {
-        debug!("URL parsing error...");
-        trace_error_exit(&link.unwrap_err(), 1);
-    }
-    let link = link.unwrap();
-
-    if let Err(e) = entry.add_external_link(store, link) {
-        debug!("Error while adding external link...");
-        trace_error(&e);
-    } else {
-        debug!("Everything worked well");
-        info!("Ok");
-    }
+    Url::parse(matches.value_of("add").unwrap())
+        .map_err_trace_exit(1)
+        .map(|link| entry.add_external_link(store, link).map_err_trace().map_info_str("Ok"))
+        .ok();
 }
 
 fn remove_link_from_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLockEntry) {
-    let link = matches.value_of("remove").unwrap();
-
-    let link = Url::parse(link);
-    if link.is_err() {
-        trace_error_exit(&link.unwrap_err(), 1);
-    }
-    let link = link.unwrap();
-
-    if let Err(e) = entry.remove_external_link(store, link) {
-        trace_error(&e);
-    } else {
-        info!("Ok");
-    }
+    Url::parse(matches.value_of("remove").unwrap())
+        .map_err_trace_exit(1)
+        .map(|link| entry.remove_external_link(store, link).map_err_trace().map_info_str("Ok"))
+        .ok();
 }
 
 fn set_links_for_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLockEntry) {
@@ -289,29 +269,22 @@ fn set_links_for_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLock
         .filter_map(|x| x)
         .collect();
 
-    if let Err(e) = entry.set_external_links(store, links) {
-        trace_error(&e);
-    } else {
-        info!("Ok");
-    }
+    entry.set_external_links(store, links)
+        .map_err_trace()
+        .map_info_str("Ok")
+        .ok();
 }
 
 fn list_links_for_entry(store: &Store, entry: &mut FileLockEntry) {
-    let res = entry.get_external_links(store)
+    entry.get_external_links(store)
         .and_then(|links| {
             for (i, link) in links.iter().enumerate() {
                 println!("{: <3}: {}", i, link);
             }
             Ok(())
-        });
-
-    match res {
-        Err(e) => {
-            trace_error(&e);
-        },
-        Ok(_) => {
-            info!("Ok");
-        },
-    }
+        })
+        .map_err_trace()
+        .map_info_str("Ok")
+        .ok();
 }
 
