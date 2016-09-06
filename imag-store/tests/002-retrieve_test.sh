@@ -23,7 +23,7 @@ test_retrieve_nothing() {
     imag-store create -p ${id} || { err "create failed"; return 1; }
 
     out "Going to test the retrieve functionality now"
-    local zero_out="$(retrieve --id /${id})"
+    local zero_out="$(retrieve --id ${id})" || return 1
     out "Retrieving for zero_out finished"
 
     if [[ ! -z "$zero_out" ]]; then
@@ -39,7 +39,7 @@ test_retrieve_content() {
 
     out "Going to test the retrieve functionality now"
 
-    local content_out="$(retrieve --id /${id} --content)"
+    local content_out="$(retrieve --id ${id} --content)" || return 1
     out "Retrieving for content_out finished"
 
     if [[ ! -z "$content_out" ]]; then
