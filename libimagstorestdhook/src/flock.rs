@@ -1,6 +1,3 @@
-use std::io::Result as IoResult;
-use std::path::PathBuf;
-
 use toml::Value;
 
 use fs2::FileExt;
@@ -12,30 +9,38 @@ use libimagstore::hook::accessor::StoreIdAccessor;
 use libimagstore::hook::accessor::MutableHookDataAccessor;
 use libimagstore::hook::accessor::NonMutableHookDataAccessor;
 use libimagstore::hook::result::HookResult;
-use libimagstore::hook::error::{HookError, HookErrorKind};
+use libimagstore::hook::error::{HookError, HookErrorKind, MapErrInto};
 use libimagstore::storeid::StoreId;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Entry;
 
 trait EntryFlock {
-    fn lock(&self) -> IoResult<()>;
-    fn unlock(&self) -> IoResult<()>;
+    fn lock(&self) -> HookResult<()>;
+    fn unlock(&self) -> HookResult<()>;
 }
 
 impl EntryFlock for Entry {
 
-    fn lock(&self) -> IoResult<()> {
+    fn lock(&self) -> HookResult<()> {
         use std::fs::File;
 
-        let location : PathBuf = self.get_location().clone().into();
-        File::open(location).and_then(|file| file.lock_exclusive())
+        self.get_location()
+            .clone()
+            .into_pathbuf()
+            .map_err_into(HookErrorKind::HookExecutionError)
+            .and_then(|loc| File::open(loc).map_err_into(HookErrorKind::HookExecutionError))
+            .and_then(|file| file.lock_exclusive().map_err_into(HookErrorKind::HookExecutionError))
     }
 
-    fn unlock(&self) -> IoResult<()> {
+    fn unlock(&self) -> HookResult<()> {
         use std::fs::File;
 
-        let location : PathBuf = self.get_location().clone().into();
-        File::open(location).and_then(|file| file.unlock())
+        self.get_location()
+            .clone()
+            .into_pathbuf()
+            .map_err_into(HookErrorKind::HookExecutionError)
+            .and_then(|loc| File::open(loc).map_err_into(HookErrorKind::HookExecutionError))
+            .and_then(|file| file.unlock().map_err_into(HookErrorKind::HookExecutionError))
     }
 
 }
