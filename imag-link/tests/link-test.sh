@@ -63,7 +63,38 @@ test_linking_links() {
     fi
 }
 
+test_multilinking() {
+    mktestentry "test"
+    mktestentry "test2"
+
+    imag-link internal add --from "test" --to "test2" || {
+        err "Linking failed"; return 1
+    }
+
+    imag-link internal add --from "test" --to "test2" || {
+        err "Linking again failed"; return 1
+    }
+
+    local linked_to_test="$(entry_linked_to '"test"' | sha1sum)"
+    local linked_to_test2="$(entry_linked_to '"test2"' | sha1sum)"
+    local t2="$(cat_entry 'test2' | sha1sum)"
+    local t1="$(cat_entry 'test' | sha1sum)"
+
+    if [ "${linked_to_test}" != "${t2}" ];
+    then
+        err "Linking twice to 'test' didn't result in the expected output for 'test2'"
+        err "\n$(cat_entry 'test2')\n"
+    fi
+
+    if [ "${linked_to_test2}" != "${t1}" ];
+    then
+        err "Linking twice to 'test2' didn't result in the expected output for 'test'"
+        err "\n$(cat_entry 'test')\n"
+    fi
+}
+
 invoke_tests            \
     test_link_modificates \
-    test_linking_links
+    test_linking_links \
+    test_multilinking
 
