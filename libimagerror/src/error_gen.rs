@@ -74,10 +74,12 @@ macro_rules! generate_custom_error_types {
                 }
             }
 
+            #[allow(dead_code)]
             pub fn err_type(&self) -> $kindname {
                 self.err_type
             }
 
+            #[allow(dead_code)]
             pub fn with_custom_data(mut self, custom: $customMemberTypeName) -> $name {
                 self.custom_data = Some(custom);
                 self
