@@ -1,9 +1,11 @@
 use std::path::PathBuf;
+use std::path::Path;
 use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::result::Result as RResult;
 
 use toml::Value;
 use git2::{Reference as GitReference, Repository, Error as Git2Error};
+use git2::{ADD_DEFAULT, STATUS_WT_NEW, STATUS_WT_MODIFIED, IndexMatchedPath};
 
 use libimagstore::storeid::StoreId;
 use libimagstore::hook::Hook;
@@ -78,11 +80,26 @@ impl HookDataAccessorProvider for CreateHook {
 
 impl StoreIdAccessor for CreateHook {
 
+    /// The implementation of the CreateHook
+    ///
+    /// # Scope
+    ///
+    /// What this function has to do is _adding_ the new entry to the git index.
+    /// After that, the UpdateHook will take care of committing the changes or new file.
+    ///
     fn access(&self, id: &StoreId) -> HookResult<()> {
         use vcs::git::action::StoreAction;
         use vcs::git::config::commit_message;
 
         debug!("[GIT CREATE HOOK]: {:?}", id);
+
+        let path = try!(id.into_pathbuf().map_err_into(GHEK::StoreIdHandlingError));
+
+        let cfg = try!(
+            self.runtime
+                .config_value_or_err()
+                .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't get Value object from config")
+        );
 
         debug!("[GIT CREATE HOOK]: Ensuring branch checkout");
         try!(self
@@ -92,83 +109,40 @@ impl StoreIdAccessor for CreateHook {
              .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e)));
         debug!("[GIT CREATE HOOK]: Branch checked out");
 
-        self.runtime
-            .config_value_or_err()
-            .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't get Value object from config")
-            .and_then(|cfg| {
-                debug!("[GIT CREATE HOOK]: Getting repository");
-                self.runtime
-                    .repository()
-                    .map(|r| (r, cfg))
-                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't fetch Repository")
-                    .map_err_into(GHEK::RepositoryError)
-                    .map_err(|e| e.into())
-            })
-            .and_then(|(repo, cfg)| {
-                repo.signature()
-                    .map(|s| (repo, cfg, s))
-                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't fetch Signature")
-                    .map_err_into(GHEK::RepositorySignatureFetchingError)
-                    .map_err_into(GHEK::RepositoryError)
-                    .map_err(|e| e.into())
-            })
-            .and_then(|(repo, cfg, sig)| {
-                repo.index()
-                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't fetch Index")
-                    .and_then(|mut idx| idx.write_tree().map(|t| (idx, t)))
-                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't write Tree")
-                    .and_then(|(idx, tree_id)| repo.find_tree(tree_id).map(|t| (idx, t)))
-                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't find Tree")
-                    .map(|(idx, tree)| (repo, cfg, sig, idx, tree))
-                    .map_err_into(GHEK::RepositoryIndexFetchingError)
-                    .map_err_into(GHEK::RepositoryError)
-                    .map_err(|e| e.into())
-            })
-            .and_then(|(repo, cfg, sig, mut idx, tree)| {
-                idx.add_path(id)
-                    .map(|_| (repo, cfg, sig, idx, tree))
-                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't add Path")
-                    .map_dbg_err(|_| format!("\tpath = {:?}", id))
-                    .map_dbg_err(|e| format!("\terr  = {:?}", e))
-                    .map_err_into(GHEK::RepositoryPathAddingError)
-                    .map_err_into(GHEK::RepositoryError)
-                    .map_err(|e| e.into())
-            })
-            .and_then(|(repo, cfg, sig, idx, tree)| {
-                repo.head()
-                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't fetch HEAD")
-                    .map_err_into(GHEK::RepositoryHeadFetchingError)
-                    .map(|h| h.target())
-                    .and_then(|oid| {
-                        match oid {
-                            Some(oid) => {
-                                repo.find_commit(oid)
-                                    .map(|c| Some(c))
-                                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't find commit")
-                                    .map_dbg_err(|_| format!("\toid = {:?}", oid))
-                                    .map_err_into(GHEK::RepositoryCommitFindingError)
-                            },
-                            None => Ok(None),
-                        }
-                    })
-                    .map_err_into(GHEK::RepositoryError)
-                    .map_err(|e| e.into())
-                    .map(|parent| (repo, cfg, sig, idx, tree, parent))
-            })
-            .and_then(|(repo, cfg, sig, idx, tree, opt_parent)| {
-                let (msg, parents) = match opt_parent {
-                    None    => (String::from("Initial commit"), vec![]),
-                    Some(p) => (commit_message(&cfg, StoreAction::Create), vec![p]),
-                };
+        debug!("[GIT CREATE HOOK]: Getting repository");
+        let repo = try!(
+            self.runtime
+                .repository()
+                .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't fetch Repository")
+                .map_err_into(GHEK::RepositoryError)
+                .map_err(|e| e.into())
+        );
+        debug!("[GIT CREATE HOOK]: Repository object fetched");
 
-                let parents = parents.iter().collect::<Vec<_>>();
-                repo.commit(Some("HEAD"), &sig, &sig, &msg[..], &tree, &parents)
-                    .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't commit")
-                    .map_err_into(GHEK::RepositoryCommittingError)
-                    .map_err_into(GHEK::RepositoryError)
-                    .map_err(|e| e.into())
-            })
-            .map(|_| ())
+        let index = try!(repo.index().map_err_into(GHEK::RepositoryIndexFetchingError));
+
+        let file_status = try!(
+            repo.status_file(&path).map_err_into(GHEK::RepositoryFileStatusError)
+        );
+
+        let cb = &mut |path: &Path, _matched_spec: &[u8]| -> i32 {
+            if file_status.contains(STATUS_WT_MODIFIED) ||
+                file_status.contains(STATUS_WT_NEW) {
+
+                debug!("[GIT CREATE HOOK]: File is new or modified: {}", path.display());
+                0
+            } else {
+                debug!("[GIT CREATE HOOK]: Ignoring file: {}", path.display());
+                1
+            }
+        };
+
+        try!(
+            index.add_all(&[path], ADD_DEFAULT, Some(cb as &mut IndexMatchedPath))
+                .map_err_into(GHEK::RepositoryPathAddingError)
+        );
+
+        index.write().map_err_into(GHEK::RepositoryIndexWritingError).map_err(|e| e.into())
     }
 
 }
