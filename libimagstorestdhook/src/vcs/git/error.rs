@@ -16,6 +16,7 @@ generate_error_module!(
         RepositoryBranchNameFetchingError => "Error while fetching branch name",
         RepositorySignatureFetchingError  => "Error while fetching Authors/Committers signature",
         RepositoryIndexFetchingError      => "Error while fetching Repository Index",
+        RepositoryIndexWritingError       => "Error while writing Repository Index",
         RepositoryPathAddingError         => "Error while adding Path to Index",
         RepositoryTreeWritingError        => "Error while writing repository tree",
         RepositoryTreeFindingError        => "Error while finding repository tree",
