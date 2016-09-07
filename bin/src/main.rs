@@ -169,7 +169,8 @@ fn main() {
         }
 
         for versionstring in result.into_iter().map(|handle| handle.join()) {
-            print!("{}", versionstring);
+            // The amount of newlines may differ depending on the subprocess
+            println!("{}", versionstring.trim());
         }
     }
 
