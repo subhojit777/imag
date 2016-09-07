@@ -159,7 +159,7 @@ fn main() {
                     let v = Command::new(format!("imag-{}",command)).arg("--version").output();
                     match v {
                         Ok(v) => match String::from_utf8(v.stdout) {
-                            Ok(s) => format!("{} -> {}", command, s),
+                            Ok(s) => format!("{:10} -> {}", command, s),
                             Err(e) => format!("Failed calling {} -> {:?}", command, e),
                         },
                         Err(e) => format!("Failed calling {} -> {:?}", command, e),
@@ -169,7 +169,7 @@ fn main() {
         }
 
         for versionstring in result.into_iter().map(|handle| handle.join()) {
-            println!("{}", versionstring);
+            print!("{}", versionstring);
         }
     }
 
