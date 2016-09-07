@@ -189,7 +189,7 @@ fn main() {
                     if !exit_status.success() {
                         debug!("{} exited with non-zero exit code: {:?}", subcommand, exit_status);
                         println!("{} exited with non-zero exit code", subcommand);
-                        exit(exit_status.code().unwrap_or(42));
+                        exit(exit_status.code().unwrap_or(1));
                     }
                     debug!("Successful exit!");
                 },
@@ -208,7 +208,7 @@ fn main() {
                         },
                         _ => {
                             println!("Error spawning: {:?}", e);
-                            exit(1337);
+                            exit(1);
                         }
                     }
                 }
