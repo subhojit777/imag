@@ -55,12 +55,12 @@ fn get_bool_cfg(cfg: Option<&Value>, name: &str, on_fail: bool, on_unavail: bool
             Some(&Value::Boolean(b)) => b,
             Some(_) => {
                 warn!("Configuration error, '{}' must be a Boolean (true|false).", name);
-                warn!("Assuming 'true' now.");
+                warn!("Assuming '{}' now.", on_fail);
                 on_fail
             },
             None => {
-                debug!("No key '{}' - Assuming 'true'", name);
-                on_fail
+                debug!("No key '{}' - Assuming '{}'", name, on_unavail);
+                on_unavail
             },
         }
     })
