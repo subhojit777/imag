@@ -59,6 +59,18 @@ impl From<Git2Error> for GitHookError {
 
 }
 
+pub trait MapIntoHookError<T> {
+    fn map_into_hook_error(self) -> Result<T, HE>;
+}
+
+impl<T> MapIntoHookError<T> for Result<T, GitHookError> {
+
+    fn map_into_hook_error(self) -> Result<T, HE> {
+        self.map_err(|e| HE::new(HEK::HookExecutionError, Some(Box::new(e))))
+    }
+
+}
+
 pub use self::error::GitHookError;
 pub use self::error::GitHookErrorKind;
 pub use self::error::MapErrInto;
