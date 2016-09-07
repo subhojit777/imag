@@ -170,7 +170,11 @@ fn main() {
 
     match matches.subcommand() {
         (subcommand, Some(scmd)) => {
-            let subcommand_args : Vec<&str> = scmd.values_of("").unwrap().collect();
+            debug!("Calling with subcommand: {}", subcommand);
+            let subcommand_args : Vec<&str> = match scmd.values_of("") {
+                Some(values) => values.collect(),
+                None => Vec::new()
+            };
             debug!("Calling 'imag-{}' with args: {:?}", subcommand, subcommand_args);
 
             match Command::new(format!("imag-{}", subcommand))
