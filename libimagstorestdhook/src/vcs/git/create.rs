@@ -92,7 +92,7 @@ impl StoreIdAccessor for CreateHook {
         use vcs::git::action::StoreAction;
         use vcs::git::config::commit_message;
         use vcs::git::error::MapIntoHookError;
-        use vcs::git::util::fetch_repo;
+        use vcs::git::util::{fetch_repo, fetch_index};
 
         debug!("[GIT CREATE HOOK]: {:?}", id);
 
@@ -113,16 +113,9 @@ impl StoreIdAccessor for CreateHook {
         try!(self.runtime.ensure_cfg_branch_is_checked_out());
         debug!("[GIT CREATE HOOK]: Branch checked out");
 
-        let action = StoreAction::Create;
-
-        let repo = try!(fetch_repo(&self.runtime, &action));
-
-        let mut index = try!(
-            repo
-                .index()
-                .map_err_into(GHEK::RepositoryIndexFetchingError)
-                .map_into_hook_error()
-        );
+        let action    = StoreAction::Create;
+        let repo      = try!(fetch_repo(&self.runtime, &action));
+        let mut index = try!(fetch_index(repo, &action));
 
         let file_status = try!(
             repo
