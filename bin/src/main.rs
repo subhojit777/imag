@@ -114,7 +114,7 @@ fn main() {
     let commands = get_commands();
     let helptext = help_text(commands);
     let app      = Runtime::get_default_cli_builder(appname, version, about)
-        .settings(&[AppSettings::AllowExternalSubcommands])
+        .settings(&[AppSettings::AllowExternalSubcommands, AppSettings::ArgRequiredElseHelp])
         .arg(Arg::with_name("version")
              .long("version")
              .takes_value(false)
