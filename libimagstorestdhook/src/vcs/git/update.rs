@@ -87,31 +87,14 @@ impl StoreIdAccessor for UpdateHook {
         use vcs::git::action::StoreAction;
         use vcs::git::config::commit_message;
         use vcs::git::error::MapIntoHookError;
+        use vcs::git::util::fetch_index;
 
         debug!("[GIT UPDATE HOOK]: {:?}", id);
 
-        let cfg = try!(
-            self.runtime
-                .config_value_or_err()
-                .map_dbg_err_str("[GIT UPDATE HOOK]: Couldn't get Value object from config")
-        );
-
-        debug!("[GIT UPDATE HOOK]: Getting repository");
-        let repo = try!(
-            self.runtime
-                .repository()
-                .map_dbg_err_str("[GIT UPDATE HOOK]: Couldn't fetch Repository")
-                .map_err_into(GHEK::RepositoryError)
-                .map_into_hook_error()
-        );
-        debug!("[GIT UPDATE HOOK]: Repository object fetched");
-
-        let mut index = try!(
-            repo
-                .index()
-                .map_err_into(GHEK::RepositoryIndexFetchingError)
-                .map_into_hook_error()
-        );
+        let action    = StoreAction::Update;
+        let cfg       = try!(self.runtime.config_value_or_err(&action));
+        let repo      = try!(self.runtime.repository(&action));
+        let mut index = try!(fetch_index(repo, &action));
 
         let tree_id = try!(
             index.write_tree()
