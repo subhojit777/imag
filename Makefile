@@ -35,7 +35,7 @@ imag-bin-update:
 
 imag-bin-install:
 	@$(ECHO) "\t[IMAG   ][INSTALL]"
-	@$(CARGO) install --path ./bin/Cargo.toml
+	@$(CARGO) install --force --path ./bin
 
 imag-bin-clean:
 	@$(ECHO) "\t[IMAG   ][CLEAN  ]"
