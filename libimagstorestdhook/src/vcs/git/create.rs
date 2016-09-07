@@ -22,12 +22,12 @@ use vcs::git::result::Result;
 use vcs::git::error::MapErrInto;
 use vcs::git::error::GitHookErrorKind as GHEK;
 use vcs::git::error::GitHookError as GHE;
-use vcs::git::runtime::Runtime;
+use vcs::git::runtime::Runtime as GRuntime;
 
 pub struct CreateHook {
     storepath: PathBuf,
 
-    runtime: Runtime,
+    runtime: GRuntime,
 
     position: HookPosition,
 }
@@ -36,7 +36,7 @@ impl CreateHook {
 
     pub fn new(storepath: PathBuf, p: HookPosition) -> CreateHook {
         CreateHook {
-            runtime: Runtime::new(&storepath),
+            runtime: GRuntime::new(&storepath),
             storepath: storepath,
             position: p,
         }
