@@ -21,6 +21,7 @@ use libimagerror::into::IntoError;
 use libimagutil::debug_result::*;
 
 use vcs::git::result::Result;
+use vcs::git::error::MapIntoHookError;
 use vcs::git::error::MapErrInto;
 use vcs::git::error::GitHookErrorKind as GHEK;
 use vcs::git::error::GitHookError as GHE;
@@ -90,10 +91,16 @@ impl StoreIdAccessor for CreateHook {
     fn access(&self, id: &StoreId) -> HookResult<()> {
         use vcs::git::action::StoreAction;
         use vcs::git::config::commit_message;
+        use vcs::git::error::MapIntoHookError;
 
         debug!("[GIT CREATE HOOK]: {:?}", id);
 
-        let path = try!(id.into_pathbuf().map_err_into(GHEK::StoreIdHandlingError));
+        let path = try!(
+            id.clone()
+            .into_pathbuf()
+            .map_err_into(GHEK::StoreIdHandlingError)
+            .map_into_hook_error()
+        );
 
         let cfg = try!(
             self.runtime
@@ -102,11 +109,7 @@ impl StoreIdAccessor for CreateHook {
         );
 
         debug!("[GIT CREATE HOOK]: Ensuring branch checkout");
-        try!(self
-             .runtime
-             .ensure_cfg_branch_is_checked_out()
-             .map_err(Box::new)
-             .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e)));
+        try!(self.runtime.ensure_cfg_branch_is_checked_out());
         debug!("[GIT CREATE HOOK]: Branch checked out");
 
         debug!("[GIT CREATE HOOK]: Getting repository");
@@ -115,14 +118,22 @@ impl StoreIdAccessor for CreateHook {
                 .repository()
                 .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't fetch Repository")
                 .map_err_into(GHEK::RepositoryError)
-                .map_err(|e| e.into())
+                .map_into_hook_error()
         );
         debug!("[GIT CREATE HOOK]: Repository object fetched");
 
-        let index = try!(repo.index().map_err_into(GHEK::RepositoryIndexFetchingError));
+        let mut index = try!(
+            repo
+                .index()
+                .map_err_into(GHEK::RepositoryIndexFetchingError)
+                .map_into_hook_error()
+        );
 
         let file_status = try!(
-            repo.status_file(&path).map_err_into(GHEK::RepositoryFileStatusError)
+            repo
+                .status_file(&path)
+                .map_err_into(GHEK::RepositoryFileStatusError)
+                .map_into_hook_error()
         );
 
         let cb = &mut |path: &Path, _matched_spec: &[u8]| -> i32 {
@@ -140,9 +151,13 @@ impl StoreIdAccessor for CreateHook {
         try!(
             index.add_all(&[path], ADD_DEFAULT, Some(cb as &mut IndexMatchedPath))
                 .map_err_into(GHEK::RepositoryPathAddingError)
+                .map_into_hook_error()
         );
 
-        index.write().map_err_into(GHEK::RepositoryIndexWritingError).map_err(|e| e.into())
+        index
+            .write()
+            .map_err_into(GHEK::RepositoryIndexWritingError)
+            .map_into_hook_error()
     }
 
 }
