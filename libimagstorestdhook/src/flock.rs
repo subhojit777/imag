@@ -1,9 +1,7 @@
-use std::io::Result as IoResult;
-use std::path::PathBuf;
-
 use toml::Value;
 
 use fs2::FileExt;
+use std::fs::File;
 
 use libimagstore::hook::Hook;
 use libimagstore::hook::accessor::HookDataAccessor as HDA;
@@ -17,25 +15,54 @@ use libimagstore::storeid::StoreId;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Entry;
 
+mod error {
+    generate_error_imports!();
+    generate_error_types!(FlockError, FlockErrorKind,
+        IOError                    => "IO Error",
+        StoreIdPathBufConvertError => "Error while converting StoreId to PathBuf",
+        FileOpenError              => "Error on File::open()",
+        LockError                  => "Error while lock()ing",
+        UnlockError                => "Error while unlock()ing"
+    );
+}
+use self::error::FlockError as FE;
+use self::error::FlockErrorKind as FEK;
+use self::error::MapErrInto;
+
 trait EntryFlock {
-    fn lock(&self) -> IoResult<()>;
-    fn unlock(&self) -> IoResult<()>;
+    fn lock(&self) -> Result<(), FE>;
+    fn unlock(&self) -> Result<(), FE>;
+}
+
+fn open_file(id: StoreId) -> Result<File, FE> {
+    id.into_pathbuf()
+        .map_err_into(FEK::StoreIdPathBufConvertError)
+        .and_then(|loc| {
+            File::open(loc)
+                .map_err_into(FEK::FileOpenError)
+                .map_err_into(FEK::IOError)
+        })
 }
 
 impl EntryFlock for Entry {
 
-    fn lock(&self) -> IoResult<()> {
-        use std::fs::File;
-
-        let location : PathBuf = self.get_location().clone().into();
-        File::open(location).and_then(|file| file.lock_exclusive())
+    fn lock(&self) -> Result<(), FE> {
+        open_file(self.get_location().clone())
+            .and_then(|file| {
+                file.lock_exclusive()
+                    .map_err_into(FEK::LockError)
+                    .map_err_into(FEK::IOError)
+            })
     }
 
-    fn unlock(&self) -> IoResult<()> {
-        use std::fs::File;
-
-        let location : PathBuf = self.get_location().clone().into();
-        File::open(location).and_then(|file| file.unlock())
+    fn unlock(&self) -> Result<(), FE> {
+        open_file(self.get_location().clone())
+            .and_then(|file| {
+                file.unlock()
+                    .map_err_into(FEK::UnlockError)
+                    .map_err_into(FEK::LockError)
+                    .map_err_into(FEK::IOError)
+            })
     }
 
 }

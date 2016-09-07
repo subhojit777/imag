@@ -62,9 +62,17 @@ impl StoreId {
         self
     }
 
+    /// Transform the StoreId object into a PathBuf, error if the base of the StoreId is not
+    /// specified.
+    pub fn into_pathbuf(self) -> Result<PathBuf> {
+        let mut base = try!(self.base.ok_or(SEK::StoreIdHasNoBaseError.into_error()));
+        base.push(self.id);
+        Ok(base)
+    }
+
     pub fn exists(&self) -> bool {
-        let pb : PathBuf = self.clone().into();
-        pb.exists()
+        // TODO: hiding error here.
+        self.clone().into_pathbuf().map(|pb| pb.exists()).unwrap_or(false)
     }
 
     pub fn is_file(&self) -> bool {
@@ -99,16 +107,6 @@ impl StoreId {
     /// Get the _local_ part of a StoreId object, as in "the part from the store root to the entry".
     pub fn local(&self) -> &PathBuf {
         &self.id
-    }
-
-}
-
-impl Into<PathBuf> for StoreId {
-
-    fn into(self) -> PathBuf {
-        let mut base = self.base.unwrap_or(PathBuf::from("/"));
-        base.push(self.id);
-        base
     }
 
 }

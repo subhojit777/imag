@@ -124,12 +124,13 @@ impl Iterator for Walk {
 
 impl StoreEntry {
 
-    fn new(id: StoreId) -> StoreEntry {
-        StoreEntry {
-            id: id.clone(),
-            file: FileAbstraction::Absent(id.into()),
+    fn new(id: StoreId) -> Result<StoreEntry> {
+        let pb = try!(id.clone().into_pathbuf());
+        Ok(StoreEntry {
+            id: id,
+            file: FileAbstraction::Absent(pb),
             status: StoreEntryStatus::Present,
-        }
+        })
     }
 
     /// The entry is currently borrowed, meaning that some thread is currently
@@ -406,7 +407,7 @@ impl Store {
                 return Err(SEK::EntryAlreadyExists.into_error()).map_err_into(SEK::CreateCallError);
             }
             hsmap.insert(id.clone(), {
-                let mut se = StoreEntry::new(id.clone());
+                let mut se = try!(StoreEntry::new(id.clone()));
                 se.status = StoreEntryStatus::Borrowed;
                 se
             });
@@ -439,7 +440,8 @@ impl Store {
                 .write()
                 .map_err(|_| SE::new(SEK::LockPoisoned, None))
                 .and_then(|mut es| {
-                    let mut se = es.entry(id.clone()).or_insert_with(|| StoreEntry::new(id.clone()));
+                    let new_se = try!(StoreEntry::new(id.clone()));
+                    let mut se = es.entry(id.clone()).or_insert(new_se);
                     let entry = se.get_entry();
                     se.status = StoreEntryStatus::Borrowed;
                     entry
@@ -550,7 +552,7 @@ impl Store {
             return Err(SE::new(SEK::IdLocked, None)).map_err_into(SEK::RetrieveCopyCallError);
         }
 
-        StoreEntry::new(id).get_entry()
+        try!(StoreEntry::new(id)).get_entry()
     }
 
     /// Delete an entry
@@ -578,7 +580,8 @@ impl Store {
 
             // remove the entry first, then the file
             entries.remove(&id);
-            if let Err(e) = FileAbstraction::remove_file(&id.clone().into()) {
+            let pb = try!(id.clone().with_base(self.path().clone()).into_pathbuf());
+            if let Err(e) = FileAbstraction::remove_file(&pb) {
                 return Err(SEK::FileError.into_error_with_cause(Box::new(e)))
                     .map_err_into(SEK::DeleteCallError);
             }
@@ -617,10 +620,12 @@ impl Store {
 
         let old_id = entry.get_location().clone();
 
-        FileAbstraction::copy(&old_id.clone().into(), &new_id.clone().into())
+        let old_id_as_path = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
+        let new_id_as_path = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
+        FileAbstraction::copy(&old_id_as_path, &new_id_as_path)
             .and_then(|_| {
                 if remove_old {
-                    FileAbstraction::remove_file(&old_id.clone().into())
+                    FileAbstraction::remove_file(&old_id_as_path)
                 } else {
                     Ok(())
                 }
@@ -654,8 +659,8 @@ impl Store {
             if hsmap.contains_key(&old_id) {
                 return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
             } else {
-                let old_id_pb = old_id.clone().into();
-                let new_id_pb = new_id.clone().into();
+                let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
+                let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
                 match FileAbstraction::rename(&old_id_pb, &new_id_pb) {
                     Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
                     Ok(_) => {
