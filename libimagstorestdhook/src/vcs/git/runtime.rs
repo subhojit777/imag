@@ -74,11 +74,12 @@ impl Runtime {
             .map_dbg(|_| format!("[GIT {} HOOK]: Repository object fetched", action.uppercase()))
     }
 
-    pub fn ensure_cfg_branch_is_checked_out(&self) -> HookResult<()> {
+    pub fn ensure_cfg_branch_is_checked_out(&self, action: &StoreAction) -> HookResult<()> {
         use vcs::git::config::ensure_branch;
 
+        debug!("[GIT CREATE HOOK]: Ensuring branch checkout");
         let head = try!(self
-                        .repository()
+                        .repository(action)
                         .and_then(|r| {
                             debug!("Repository fetched, getting head");
                             r.head()
@@ -128,6 +129,7 @@ impl Runtime {
         }
         .map_err(Box::new)
         .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e))
+        .map_dbg_str("[GIT CREATE HOOK]: Branch checked out")
     }
 
 }
