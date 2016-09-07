@@ -2367,6 +2367,40 @@ mod store_tests {
     //     test(&store, "glu");
     // }
 
+    #[test]
+    fn test_store_move_moves_in_hm() {
+        use storeid::StoreId;
+
+        let store = get_store();
+
+        for n in 1..100 {
+            if n % 2 == 0 { // every second
+                let id    = StoreId::new_baseless(PathBuf::from(format!("t-{}", n))).unwrap();
+                let id_mv = StoreId::new_baseless(PathBuf::from(format!("t-{}", n - 1))).unwrap();
+
+                {
+                    assert!(store.entries.read().unwrap().get(&id).is_none());
+                }
+
+                {
+                    assert!(store.create(id.clone()).is_ok());
+                }
+
+                {
+                    let id_with_base = id.clone().with_base(store.path().clone());
+                    assert!(store.entries.read().unwrap().get(&id_with_base).is_some());
+                }
+
+                let r = store.move_by_id(id.clone(), id_mv.clone());
+                assert!(r.map_err(|e| println!("ERROR: {:?}", e)).is_ok());
+
+                {
+                    assert!(store.entries.read().unwrap().get(&id_mv).is_some());
+                }
+            }
+        }
+    }
+
 }
 
 #[cfg(test)]
