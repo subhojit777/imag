@@ -27,7 +27,10 @@ generate_error_module!(
         NotOnBranch                       => "No Branch is checked out",
         MkRepo => "Repository creation error",
         MkSignature => "Error while building Signature object",
-        StoreIdStripError => "Couldn't strip prefix from StoreID object"
+        StoreIdHandlingError => "Error handling the store id object",
+        StoreIdStripError => "Couldn't strip prefix from StoreID object",
+
+        RepositoryFileStatusError => "Error while getting file status"
     );
 );
 
