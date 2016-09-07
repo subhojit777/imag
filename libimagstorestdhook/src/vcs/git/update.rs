@@ -11,7 +11,6 @@ use libimagstore::hook::accessor::StoreIdAccessor;
 
 use vcs::git::runtime::Runtime as GRuntime;
 
-#[derive(Debug)]
 pub struct UpdateHook {
     storepath: PathBuf,
 
@@ -30,6 +29,16 @@ impl UpdateHook {
         }
     }
 
+}
+
+impl Debug for UpdateHook {
+    fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
+        write!(fmt, "UpdateHook(storepath={:?}, repository={}, pos={:?}, cfg={:?}",
+               self.storepath,
+               (if self.runtime.has_repository() { "Some(_)" } else { "None" }),
+               self.position,
+               self.runtime.has_config())
+    }
 }
 
 impl Hook for UpdateHook {
