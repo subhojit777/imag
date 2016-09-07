@@ -2154,7 +2154,7 @@ mod store_tests {
 
     use super::Store;
 
-    fn get_store() -> Store {
+    pub fn get_store() -> Store {
         Store::new(PathBuf::from("/"), None).unwrap()
     }
 
@@ -2271,6 +2271,110 @@ mod store_tests {
             let pb = pb.with_base(store.path().clone());
             assert!(store.entries.read().unwrap().get(&pb).is_some());
         }
+    }
+
+}
+
+#[cfg(test)]
+mod store_hook_tests {
+    use super::store_tests::get_store;
+
+    mod succeeding_hook {
+        use hook::Hook;
+        use hook::accessor::HookDataAccessor;
+        use hook::accessor::HookDataAccessorProvider;
+        use hook::position::HookPosition;
+
+        use self::accessor::SucceedingHookAccessor as DHA;
+
+        use toml::Value;
+
+        #[derive(Debug)]
+        pub struct SucceedingHook {
+            position: HookPosition,
+            accessor: DHA,
+        }
+
+        impl SucceedingHook {
+
+            pub fn new(pos: HookPosition) -> SucceedingHook {
+                SucceedingHook { position: pos.clone(), accessor: DHA::new(pos) }
+            }
+
+        }
+
+        impl Hook for SucceedingHook {
+            fn name(&self) -> &'static str { "testhook_succeeding" }
+            fn set_config(&mut self, _: &Value) { }
+        }
+
+        impl HookDataAccessorProvider for SucceedingHook {
+
+            fn accessor(&self) -> HookDataAccessor {
+                use hook::position::HookPosition as HP;
+                use hook::accessor::HookDataAccessor as HDA;
+
+                match self.position {
+                    HP::StoreUnload  |
+                    HP::PreCreate    |
+                    HP::PreRetrieve  |
+                    HP::PreDelete    |
+                    HP::PostDelete   => HDA::StoreIdAccess(&self.accessor),
+                    HP::PostCreate   |
+                    HP::PostRetrieve |
+                    HP::PreUpdate    |
+                    HP::PostUpdate   => HDA::MutableAccess(&self.accessor),
+                }
+            }
+
+        }
+
+        pub mod accessor {
+            use hook::result::HookResult;
+            use hook::accessor::MutableHookDataAccessor;
+            use hook::accessor::NonMutableHookDataAccessor;
+            use hook::accessor::StoreIdAccessor;
+            use hook::position::HookPosition;
+            use store::FileLockEntry;
+            use storeid::StoreId;
+
+            #[derive(Debug)]
+            pub struct SucceedingHookAccessor(HookPosition);
+
+            impl SucceedingHookAccessor {
+
+                pub fn new(position: HookPosition) -> SucceedingHookAccessor {
+                    SucceedingHookAccessor(position)
+                }
+
+            }
+
+            impl StoreIdAccessor for SucceedingHookAccessor {
+
+                fn access(&self, id: &StoreId) -> HookResult<()> {
+                    Ok(())
+                }
+
+            }
+
+            impl MutableHookDataAccessor for SucceedingHookAccessor {
+
+                fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
+                    Ok(())
+                }
+
+            }
+
+            impl NonMutableHookDataAccessor for SucceedingHookAccessor {
+
+                fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
+                    Ok(())
+                }
+
+            }
+
+        }
+
     }
 
 }
