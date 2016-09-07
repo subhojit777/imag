@@ -22,7 +22,3 @@ pub fn mkrepo(store: &Store) -> Result<()> {
         .map_err_into(GHEK::MkRepo)
 }
 
-pub fn hasrepo(store: &Store) -> bool {
-    Repository::open(store.path()).is_ok()
-}
-
