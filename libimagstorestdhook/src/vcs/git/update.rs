@@ -48,7 +48,9 @@ impl Hook for UpdateHook {
     }
 
     fn set_config(&mut self, config: &Value) {
-        self.config = Some(config.clone());
+        if let Err(e) = self.runtime.set_config(config) {
+            trace_error(&e);
+        }
     }
 
 }
