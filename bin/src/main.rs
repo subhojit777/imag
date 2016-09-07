@@ -20,6 +20,8 @@ use clap::{Arg, AppSettings, SubCommand};
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error;
 
+/// Returns the helptext, putting the Strings in cmds as possible
+/// subcommands into it
 fn help_text(cmds: Vec<String>) -> String {
     let text = format!(r#"
 
@@ -60,7 +62,7 @@ fn help_text(cmds: Vec<String>) -> String {
     text
 }
 
-
+/// Returns the list of imag-* executables found in $PATH
 fn get_commands() -> Vec<String> {
     let path = env::var("PATH");
     if path.is_err() {
@@ -108,11 +110,12 @@ fn get_commands() -> Vec<String> {
 
 
 fn main() {
+    // Initialize the Runtime and build the CLI
     let appname  = "imag";
     let version  = &version!();
     let about    = "imag - the PIM suite for the commandline";
     let commands = get_commands();
-    let helptext = help_text(commands);
+    let helptext = help_text(commands.clone());
     let app      = Runtime::get_default_cli_builder(appname, version, about)
         .settings(&[AppSettings::AllowExternalSubcommands, AppSettings::ArgRequiredElseHelp])
         .arg(Arg::with_name("version")
@@ -138,6 +141,8 @@ fn main() {
     let matches = rt.cli();
 
     debug!("matches: {:?}", matches);
+
+    // Begin checking for arguments
 
     if matches.is_present("version") {
         debug!("Showing version");
@@ -168,15 +173,19 @@ fn main() {
         }
     }
 
+    // Matches any subcommand given
     match matches.subcommand() {
         (subcommand, Some(scmd)) => {
-            debug!("Calling with subcommand: {}", subcommand);
+            // Get all given arguments and further subcommands to pass to
+            // the imag-<> binary
+            // Providing no arguments is OK, and is therefore ignored here
             let subcommand_args : Vec<&str> = match scmd.values_of("") {
                 Some(values) => values.collect(),
                 None => Vec::new()
             };
             
-            if !get_commands().contains(&String::from(subcommand)) {
+            // Typos happen, so check if the given subcommand is one found in $PATH
+            if !commands.clone().contains(&String::from(subcommand)) {
                 println!("No such command: 'imag-{}'", subcommand);
                 println!("See 'imag --help' for available subcommands");
                 exit(2);
@@ -184,6 +193,7 @@ fn main() {
     
             debug!("Calling 'imag-{}' with args: {:?}", subcommand, subcommand_args);
 
+            // Create a Command, and pass it the gathered arguments
             match Command::new(format!("imag-{}", subcommand))
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::inherit())
@@ -223,9 +233,8 @@ fn main() {
                 }
             }
         },
-        // clap ensures we have valid input by exiting if not.
-        // The above case is a catch-all for subcommands,
-        // so nothing else needs to be expexted.
-        _ => unreachable!(),
+        // Calling for example 'imag --versions' will lead here, as this option does not exit.
+        // There's nothing to do in such a case
+        _ => {},
     }
 }
