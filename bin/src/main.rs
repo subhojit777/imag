@@ -20,6 +20,8 @@ use clap::{Arg, AppSettings, SubCommand};
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error;
 
+/// Returns the helptext, putting the Strings in cmds as possible
+/// subcommands into it
 fn help_text(cmds: Vec<String>) -> String {
     let text = format!(r#"
 
@@ -60,7 +62,7 @@ fn help_text(cmds: Vec<String>) -> String {
     text
 }
 
-
+/// Returns the list of imag-* executables found in $PATH
 fn get_commands() -> Vec<String> {
     let path = env::var("PATH");
     if path.is_err() {
@@ -108,13 +110,14 @@ fn get_commands() -> Vec<String> {
 
 
 fn main() {
+    // Initialize the Runtime and build the CLI
     let appname  = "imag";
     let version  = &version!();
     let about    = "imag - the PIM suite for the commandline";
     let commands = get_commands();
-    let helptext = help_text(commands);
+    let helptext = help_text(commands.clone());
     let app      = Runtime::get_default_cli_builder(appname, version, about)
-        .settings(&[AppSettings::AllowExternalSubcommands])
+        .settings(&[AppSettings::AllowExternalSubcommands, AppSettings::ArgRequiredElseHelp])
         .arg(Arg::with_name("version")
              .long("version")
              .takes_value(false)
@@ -139,6 +142,8 @@ fn main() {
 
     debug!("matches: {:?}", matches);
 
+    // Begin checking for arguments
+
     if matches.is_present("version") {
         debug!("Showing version");
         println!("imag {}", &version!()[..]);
@@ -148,13 +153,13 @@ fn main() {
     if matches.is_present("versions") {
         debug!("Showing versions");
         let mut result = vec![];
-        for command in get_commands().iter() {
+        for command in commands.iter() {
             result.push(crossbeam::scope(|scope| {
                 scope.spawn(|| {
-                    let v = Command::new(command).arg("--version").output();
+                    let v = Command::new(format!("imag-{}",command)).arg("--version").output();
                     match v {
                         Ok(v) => match String::from_utf8(v.stdout) {
-                            Ok(s) => format!("{} -> {}", command, s),
+                            Ok(s) => format!("{:10} -> {}", command, s),
                             Err(e) => format!("Failed calling {} -> {:?}", command, e),
                         },
                         Err(e) => format!("Failed calling {} -> {:?}", command, e),
@@ -164,15 +169,32 @@ fn main() {
         }
 
         for versionstring in result.into_iter().map(|handle| handle.join()) {
-            println!("{}", versionstring);
+            // The amount of newlines may differ depending on the subprocess
+            println!("{}", versionstring.trim());
         }
     }
 
+    // Matches any subcommand given
     match matches.subcommand() {
         (subcommand, Some(scmd)) => {
-            let subcommand_args : Vec<&str> = scmd.values_of("").unwrap().collect();
+            // Get all given arguments and further subcommands to pass to
+            // the imag-<> binary
+            // Providing no arguments is OK, and is therefore ignored here
+            let subcommand_args : Vec<&str> = match scmd.values_of("") {
+                Some(values) => values.collect(),
+                None => Vec::new()
+            };
+            
+            // Typos happen, so check if the given subcommand is one found in $PATH
+            if !commands.contains(&String::from(subcommand)) {
+                println!("No such command: 'imag-{}'", subcommand);
+                println!("See 'imag --help' for available subcommands");
+                exit(2);
+            }
+    
             debug!("Calling 'imag-{}' with args: {:?}", subcommand, subcommand_args);
 
+            // Create a Command, and pass it the gathered arguments
             match Command::new(format!("imag-{}", subcommand))
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::inherit())
@@ -185,7 +207,7 @@ fn main() {
                     if !exit_status.success() {
                         debug!("{} exited with non-zero exit code: {:?}", subcommand, exit_status);
                         println!("{} exited with non-zero exit code", subcommand);
-                        exit(exit_status.code().unwrap_or(42));
+                        exit(exit_status.code().unwrap_or(1));
                     }
                     debug!("Successful exit!");
                 },
@@ -194,6 +216,8 @@ fn main() {
                     debug!("Error calling the subcommand");
                     match e.kind() {
                         ErrorKind::NotFound => {
+                            // With the check above, this absolutely should not happen.
+                            // Keeping it to be safe
                             println!("No such command: 'imag-{}'", subcommand);
                             println!("See 'imag --help' for available subcommands");
                             exit(2);
@@ -204,15 +228,14 @@ fn main() {
                         },
                         _ => {
                             println!("Error spawning: {:?}", e);
-                            exit(1337);
+                            exit(1);
                         }
                     }
                 }
             }
         },
-        // clap ensures we have valid input by exiting if not.
-        // The above case is a catch-all for subcommands,
-        // so nothing else needs to be expexted.
-        _ => unreachable!(),
+        // Calling for example 'imag --versions' will lead here, as this option does not exit.
+        // There's nothing to do in such a case
+        _ => {},
     }
 }
