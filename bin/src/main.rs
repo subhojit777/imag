@@ -156,7 +156,7 @@ fn main() {
         for command in get_commands().iter() {
             result.push(crossbeam::scope(|scope| {
                 scope.spawn(|| {
-                    let v = Command::new(command).arg("--version").output();
+                    let v = Command::new(format!("imag-{}",command)).arg("--version").output();
                     match v {
                         Ok(v) => match String::from_utf8(v.stdout) {
                             Ok(s) => format!("{} -> {}", command, s),
