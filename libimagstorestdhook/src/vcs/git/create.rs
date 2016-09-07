@@ -92,6 +92,7 @@ impl StoreIdAccessor for CreateHook {
         use vcs::git::action::StoreAction;
         use vcs::git::config::commit_message;
         use vcs::git::error::MapIntoHookError;
+        use vcs::git::util::fetch_index;
 
         debug!("[GIT CREATE HOOK]: {:?}", id);
 
@@ -102,32 +103,12 @@ impl StoreIdAccessor for CreateHook {
             .map_into_hook_error()
         );
 
-        let cfg = try!(
-            self.runtime
-                .config_value_or_err()
-                .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't get Value object from config")
-        );
+        let action    = StoreAction::Create;
+        try!(self.runtime.ensure_cfg_branch_is_checked_out(&action));
 
-        debug!("[GIT CREATE HOOK]: Ensuring branch checkout");
-        try!(self.runtime.ensure_cfg_branch_is_checked_out());
-        debug!("[GIT CREATE HOOK]: Branch checked out");
-
-        debug!("[GIT CREATE HOOK]: Getting repository");
-        let repo = try!(
-            self.runtime
-                .repository()
-                .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't fetch Repository")
-                .map_err_into(GHEK::RepositoryError)
-                .map_into_hook_error()
-        );
-        debug!("[GIT CREATE HOOK]: Repository object fetched");
-
-        let mut index = try!(
-            repo
-                .index()
-                .map_err_into(GHEK::RepositoryIndexFetchingError)
-                .map_into_hook_error()
-        );
+        let cfg       = try!(self.runtime.config_value_or_err(&action));
+        let repo      = try!(self.runtime.repository(&action));
+        let mut index = try!(fetch_index(repo, &action));
 
         let file_status = try!(
             repo

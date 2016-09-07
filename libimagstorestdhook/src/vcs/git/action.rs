@@ -8,6 +8,18 @@ pub enum StoreAction {
     Delete,
 }
 
+impl StoreAction {
+
+    pub fn uppercase(&self) -> &str {
+        match *self {
+            StoreAction::Create   => "CREATE",
+            StoreAction::Retrieve => "RETRIEVE",
+            StoreAction::Update   => "UPDATE",
+            StoreAction::Delete   => "DELETE",
+        }
+    }
+}
+
 impl Display for StoreAction {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), Error> {

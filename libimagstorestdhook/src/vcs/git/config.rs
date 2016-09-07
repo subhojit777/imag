@@ -13,11 +13,11 @@ pub fn commit_interactive(config: &Value) -> bool {
     false
 }
 
-pub fn commit_message(config: &Value, action: StoreAction) -> String {
+pub fn commit_message(config: &Value, action: StoreAction) -> Result<String> {
     if commit_interactive(config) {
         unimplemented!()
     } else {
-        String::from("Dummy commit")
+        Ok(String::from("Dummy commit"))
     }
 }
 

@@ -24,6 +24,7 @@ generate_error_module!(
         RepositoryCommittingError         => "Error while committing",
         RepositoryHeadFetchingError       => "Error while fetching HEAD",
         RepositoryHeadTargetFetchingError => "Error while fetching target of HEAD",
+        RepositoryParentFetchingError     => "Error while fetching parent of commit",
         HeadFetchError                    => "Error while getting HEAD",
         NotOnBranch                       => "No Branch is checked out",
         MkRepo => "Repository creation error",
