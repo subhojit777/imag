@@ -97,11 +97,9 @@ impl StoreIdAccessor for UpdateHook {
                 .map_dbg_err_str("[GIT UPDATE HOOK]: Couldn't get Value object from config")
         );
 
-        let repo = try!(fetch_repo(&self.runtime,
-            "[GIT UPDATE HOOK]: Getting repository",
-            "[GIT UPDATE HOOK]: Couldn't fetch Repository",
-            "[GIT UPDATE HOOK]: Repository object fetched")
-        );
+        let action = StoreAction::Update;
+
+        let repo = try!(fetch_repo(&self.runtime, &action));
 
         let mut index = try!(
             repo

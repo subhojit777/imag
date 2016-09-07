@@ -113,11 +113,9 @@ impl StoreIdAccessor for CreateHook {
         try!(self.runtime.ensure_cfg_branch_is_checked_out());
         debug!("[GIT CREATE HOOK]: Branch checked out");
 
-        let repo = try!(fetch_repo(&self.runtime,
-            "[GIT CREATE HOOK]: Getting repository",
-            "[GIT CREATE HOOK]: Couldn't fetch Repository",
-            "[GIT CREATE HOOK]: Repository object fetched")
-        );
+        let action = StoreAction::Create;
+
+        let repo = try!(fetch_repo(&self.runtime, &action));
 
         let mut index = try!(
             repo
