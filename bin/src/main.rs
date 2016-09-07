@@ -153,7 +153,7 @@ fn main() {
     if matches.is_present("versions") {
         debug!("Showing versions");
         let mut result = vec![];
-        for command in get_commands().iter() {
+        for command in commands.iter() {
             result.push(crossbeam::scope(|scope| {
                 scope.spawn(|| {
                     let v = Command::new(format!("imag-{}",command)).arg("--version").output();
@@ -186,7 +186,7 @@ fn main() {
             };
             
             // Typos happen, so check if the given subcommand is one found in $PATH
-            if !commands.clone().contains(&String::from(subcommand)) {
+            if !commands.contains(&String::from(subcommand)) {
                 println!("No such command: 'imag-{}'", subcommand);
                 println!("See 'imag --help' for available subcommands");
                 exit(2);
