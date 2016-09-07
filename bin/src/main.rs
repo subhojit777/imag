@@ -175,6 +175,13 @@ fn main() {
                 Some(values) => values.collect(),
                 None => Vec::new()
             };
+            
+            if !get_commands().contains(&String::from(subcommand)) {
+                println!("No such command: 'imag-{}'", subcommand);
+                println!("See 'imag --help' for available subcommands");
+                exit(2);
+            }
+    
             debug!("Calling 'imag-{}' with args: {:?}", subcommand, subcommand_args);
 
             match Command::new(format!("imag-{}", subcommand))
@@ -198,6 +205,8 @@ fn main() {
                     debug!("Error calling the subcommand");
                     match e.kind() {
                         ErrorKind::NotFound => {
+                            // With the check above, this absolutely should not happen.
+                            // Keeping it to be safe
                             println!("No such command: 'imag-{}'", subcommand);
                             println!("See 'imag --help' for available subcommands");
                             exit(2);
