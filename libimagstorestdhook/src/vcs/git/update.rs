@@ -9,21 +9,24 @@ use libimagstore::hook::position::HookPosition;
 use libimagstore::hook::accessor::{HookDataAccessor, HookDataAccessorProvider};
 use libimagstore::hook::accessor::StoreIdAccessor;
 
+use vcs::git::runtime::Runtime as GRuntime;
+
 #[derive(Debug)]
 pub struct UpdateHook {
     storepath: PathBuf,
 
+    runtime: GRuntime,
+
     position: HookPosition,
-    config: Option<Value>,
 }
 
 impl UpdateHook {
 
     pub fn new(storepath: PathBuf, p: HookPosition) -> UpdateHook {
         UpdateHook {
+            runtime: GRuntime::new(&storepath),
             storepath: storepath,
             position: p,
-            config: None,
         }
     }
 
