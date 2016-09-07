@@ -92,7 +92,7 @@ impl StoreIdAccessor for CreateHook {
         use vcs::git::action::StoreAction;
         use vcs::git::config::commit_message;
         use vcs::git::error::MapIntoHookError;
-        use vcs::git::util::{fetch_repo, fetch_index};
+        use vcs::git::util::fetch_index;
 
         debug!("[GIT CREATE HOOK]: {:?}", id);
 
@@ -109,7 +109,7 @@ impl StoreIdAccessor for CreateHook {
 
         let action    = StoreAction::Create;
         let cfg       = try!(self.runtime.config_value_or_err(&action));
-        let repo      = try!(fetch_repo(&self.runtime, &action));
+        let repo      = try!(self.runtime.repository(&action));
         let mut index = try!(fetch_index(repo, &action));
 
         let file_status = try!(

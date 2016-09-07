@@ -10,6 +10,7 @@ use libimagstore::hook::error::HookErrorKind as HEK;
 use libimagstore::hook::result::HookResult;
 use libimagutil::debug_result::*;
 
+use vcs::git::action::StoreAction;
 use vcs::git::result::Result;
 use vcs::git::error::{MapErrInto, GitHookErrorKind as GHEK};
 
@@ -60,12 +61,17 @@ impl Runtime {
             })
     }
 
-    pub fn repository(&self) -> HookResult<&Repository> {
+    pub fn repository(&self, action: &StoreAction) -> HookResult<&Repository> {
+        use vcs::git::error::MapIntoHookError;
+
+        debug!("[GIT {} HOOK]: Getting repository", action.uppercase());
         self.repository
             .as_ref()
             .ok_or(GHEK::MkRepo.into_error())
-            .map_err(Box::new)
-            .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e))
+            .map_err_into(GHEK::RepositoryError)
+            .map_into_hook_error()
+            .map_dbg_err(|_| format!("[GIT {} HOOK]: Couldn't fetch Repository", action.uppercase()))
+            .map_dbg(|_| format!("[GIT {} HOOK]: Repository object fetched", action.uppercase()))
     }
 
     pub fn ensure_cfg_branch_is_checked_out(&self) -> HookResult<()> {
