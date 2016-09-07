@@ -47,7 +47,7 @@ impl Runtime {
         self.config.is_some()
     }
 
-    pub fn config_value_or_err(&self) -> HookResult<&Value> {
+    pub fn config_value_or_err(&self, action: &StoreAction) -> HookResult<&Value> {
         self.config
             .as_ref()
             .ok_or(GHEK::NoConfigError.into_error())
@@ -55,6 +55,9 @@ impl Runtime {
             .map_err(Box::new)
             .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e))
             .map_err(|mut e| e.with_custom_data(CustomData::default().aborting(false)))
+            .map_dbg_err(|_| {
+                format!("[GIT {} HOOK]: Couldn't get Value object from config", action.uppercase())
+            })
     }
 
     pub fn repository(&self) -> HookResult<&Repository> {

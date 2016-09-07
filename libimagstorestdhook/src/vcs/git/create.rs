@@ -103,17 +103,12 @@ impl StoreIdAccessor for CreateHook {
             .map_into_hook_error()
         );
 
-        let cfg = try!(
-            self.runtime
-                .config_value_or_err()
-                .map_dbg_err_str("[GIT CREATE HOOK]: Couldn't get Value object from config")
-        );
-
         debug!("[GIT CREATE HOOK]: Ensuring branch checkout");
         try!(self.runtime.ensure_cfg_branch_is_checked_out());
         debug!("[GIT CREATE HOOK]: Branch checked out");
 
         let action    = StoreAction::Create;
+        let cfg       = try!(self.runtime.config_value_or_err(&action));
         let repo      = try!(fetch_repo(&self.runtime, &action));
         let mut index = try!(fetch_index(repo, &action));
 
