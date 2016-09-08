@@ -21,6 +21,7 @@ extern crate git2;
 
 extern crate libimagstore;
 extern crate libimagentrylink;
+extern crate libimaginteraction;
 #[macro_use] extern crate libimagerror;
 extern crate libimagutil;
 

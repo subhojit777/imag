@@ -15,6 +15,9 @@ path = "../libimagstore"
 [dependencies.libimagentrylink]
 path = "../libimagentrylink"
 
+[dependencies.libimaginteraction]
+path = "../libimaginteraction"
+
 [dependencies.libimagerror]
 path = "../libimagerror"
 
