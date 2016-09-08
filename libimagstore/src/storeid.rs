@@ -75,10 +75,6 @@ impl StoreId {
         self.clone().into_pathbuf().map(|pb| pb.exists()).unwrap_or(false)
     }
 
-    pub fn is_file(&self) -> bool {
-        true
-    }
-
     pub fn to_str(&self) -> Result<String> {
         if self.base.is_some() {
             let mut base = self.base.as_ref().cloned().unwrap();
