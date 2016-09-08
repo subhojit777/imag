@@ -172,6 +172,7 @@ impl StoreIdAccessor for UpdateHook {
                 .map_dbg_err_str("Failed to get commit message"));
 
         repo.commit(Some("HEAD"), &signature, &signature, &message, &tree, &parents)
+            .map_dbg_str("Committed")
             .map_dbg_err_str("Failed to commit")
             .map_err_into(GHEK::RepositoryCommittingError)
             .map_into_hook_error()
