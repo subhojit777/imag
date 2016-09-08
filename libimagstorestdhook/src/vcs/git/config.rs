@@ -72,7 +72,7 @@ pub fn commit_message(repo: &Repository, config: &Value, action: StoreAction) ->
         if commit_with_editor(config) {
             unimplemented!()
         } else {
-            unimplemented!()
+            Ok(ask_string("Commit Message", None, false, false, None, "> "))
         }
     } else {
         Ok(String::from(commit_default_msg(config)))
