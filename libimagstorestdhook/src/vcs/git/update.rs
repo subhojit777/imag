@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::path::Path;
 use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::result::Result as RResult;
 
@@ -88,6 +89,8 @@ impl StoreIdAccessor for UpdateHook {
         use vcs::git::config::commit_message;
         use vcs::git::error::MapIntoHookError;
         use vcs::git::util::fetch_index;
+        use git2::{Reference as GitReference, Repository, Error as Git2Error};
+        use git2::{ADD_DEFAULT, STATUS_WT_NEW, STATUS_WT_MODIFIED, IndexMatchedPath};
 
         debug!("[GIT UPDATE HOOK]: {:?}", id);
 
@@ -95,6 +98,13 @@ impl StoreIdAccessor for UpdateHook {
         let cfg       = try!(self.runtime.config_value_or_err(&action));
         let repo      = try!(self.runtime.repository(&action));
         let mut index = try!(fetch_index(repo, &action));
+
+        let path = try!(
+            id.clone()
+            .into_pathbuf()
+            .map_err_into(GHEK::StoreIdHandlingError)
+            .map_into_hook_error()
+        );
 
         let tree_id = try!(
             index.write_tree()
@@ -111,6 +121,29 @@ impl StoreIdAccessor for UpdateHook {
         let head = try!(
             repo.head()
                 .map_err_into(GHEK::HeadFetchError)
+                .map_into_hook_error()
+        );
+
+        let file_status = try!(
+            repo
+                .status_file(&path)
+                .map_err_into(GHEK::RepositoryFileStatusError)
+                .map_into_hook_error()
+        );
+
+        let cb = &mut |path: &Path, _matched_spec: &[u8]| -> i32 {
+            if file_status.contains(STATUS_WT_NEW) || file_status.contains(STATUS_WT_MODIFIED) {
+                debug!("[GIT CREATE HOOK]: File is modified/new: {}", path.display());
+                0
+            } else {
+                debug!("[GIT CREATE HOOK]: Ignoring file: {}", path.display());
+                1
+            }
+        };
+
+        try!(
+            index.add_all(&[path], ADD_DEFAULT, Some(cb as &mut IndexMatchedPath))
+                .map_err_into(GHEK::RepositoryPathAddingError)
                 .map_into_hook_error()
         );
 
