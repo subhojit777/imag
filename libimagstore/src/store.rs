@@ -57,6 +57,7 @@ use hook::Hook;
 use libimagerror::into::IntoError;
 use libimagerror::trace::trace_error;
 use libimagutil::iter::FoldResult;
+use libimagutil::debug_result::*;
 
 use self::glob_store_iter::*;
 
@@ -245,12 +246,9 @@ impl Store {
                     .map_err_into(SEK::IoError);
             }
 
-            debug!("Creating store path");
-            let c = FileAbstraction::create_dir_all(&location);
-            if c.is_err() {
-                debug!("Failed");
-                return Err(SEK::StorePathCreate.into_error_with_cause(Box::new(c.unwrap_err())));
-            }
+            try!(FileAbstraction::create_dir_all(&location)
+                 .map_err_into(SEK::StorePathCreate)
+                 .map_dbg_err_str("Failed"));
         } else if location.is_file() {
             debug!("Store path exists as file");
             return Err(SEK::StorePathExists.into_error());
