@@ -493,21 +493,10 @@ impl Store {
 
     /// Return the `FileLockEntry` and write to disk
     pub fn update<'a>(&'a self, mut entry: FileLockEntry<'a>) -> Result<()> {
-        if let Err(e) = self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), &mut entry) {
-            return Err(e)
-                .map_err_into(SEK::PreHookExecuteError)
-                .map_err_into(SEK::HookExecutionError)
-                .map_err_into(SEK::UpdateCallError);
-        }
-
-        if let Err(e) = self._update(&entry) {
+        if let Err(e) = self._update(&mut entry) {
             return Err(e).map_err_into(SEK::UpdateCallError);
         }
-
-        self.execute_hooks_for_mut_file(self.post_update_aspects.clone(), &mut entry)
-            .map_err_into(SEK::PostHookExecuteError)
-            .map_err_into(SEK::HookExecutionError)
-            .map_err_into(SEK::UpdateCallError)
+        Ok(())
     }
 
     /// Internal method to write to the filesystem store.
@@ -515,7 +504,14 @@ impl Store {
     /// # Assumptions
     /// This method assumes that entry is dropped _right after_ the call, hence
     /// it is not public.
-    fn _update<'a>(&'a self, entry: &FileLockEntry<'a>) -> Result<()> {
+    fn _update<'a>(&'a self, entry: &mut FileLockEntry<'a>) -> Result<()> {
+        if let Err(e) = self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), entry) {
+            return Err(e)
+                .map_err_into(SEK::PreHookExecuteError)
+                .map_err_into(SEK::HookExecutionError)
+                .map_err_into(SEK::UpdateCallError);
+        }
+
         let mut hsmap = match self.entries.write() {
             Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
             Ok(e) => e,
@@ -532,7 +528,11 @@ impl Store {
         try!(se.write_entry(&entry.entry));
         se.status = StoreEntryStatus::Present;
 
-        Ok(())
+
+        self.execute_hooks_for_mut_file(self.post_update_aspects.clone(), entry)
+            .map_err_into(SEK::PostHookExecuteError)
+            .map_err_into(SEK::HookExecutionError)
+            .map_err_into(SEK::UpdateCallError)
     }
 
     /// Retrieve a copy of a given entry, this cannot be used to mutate
@@ -865,7 +865,7 @@ impl<'a> DerefMut for FileLockEntry<'a> {
 impl<'a> Drop for FileLockEntry<'a> {
     /// This will silently ignore errors, use `Store::update` if you want to catch the errors
     fn drop(&mut self) {
-        let _ = self.store._update(self);
+        let _ = self.store._update(self).map_err(|e| trace_error(&e));
     }
 }
 

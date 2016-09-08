@@ -47,10 +47,16 @@ cat_entry() {
 }
 
 reset_store() {
+    rm -rf "${STORE}"/.git
     rm -r "${STORE}"
 }
 
 call_test() {
+    prepare_store_directory || {
+        err "Preparing store directory failed"
+        exit 1
+    }
+
     out "-- TESTING: '$1' --"
     $1
     result=$?
@@ -61,6 +67,27 @@ call_test() {
     fi
     [[ $result -eq 0 ]] || { err "-- FAILED: '$1'. Exiting."; exit 1; }
     success "-- SUCCESS: '$1' --"
+}
+
+__git() {
+    out "Calling git: $*"
+    git --work-tree=/tmp/store/ --git-dir=/tmp/store/.git $*
+}
+
+__git_commit() {
+    out "Calling git-commit: $*"
+    git --work-tree=/tmp/store/ --git-dir=/tmp/store/.git commit -m "$*"
+}
+
+prepare_store_directory() {
+    out "Preparing /tmp/store"
+    mkdir -p /tmp/store/                                &&\
+    touch /tmp/store/.gitkeep                           &&\
+    __git init                                          &&\
+    __git config --local user.email "imag@imag-pim.org" &&\
+    __git config --local user.name "Imag CI"            &&\
+    __git add .gitkeep                                  &&\
+    __git_commit 'Initial commit: .gitkeep'
 }
 
 invoke_tests() {

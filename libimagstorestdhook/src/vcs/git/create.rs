@@ -89,56 +89,9 @@ impl StoreIdAccessor for CreateHook {
     /// After that, the UpdateHook will take care of committing the changes or new file.
     ///
     fn access(&self, id: &StoreId) -> HookResult<()> {
-        use vcs::git::action::StoreAction;
-        use vcs::git::config::commit_message;
-        use vcs::git::error::MapIntoHookError;
-        use vcs::git::util::fetch_index;
-
         debug!("[GIT CREATE HOOK]: {:?}", id);
-
-        let path = try!(
-            id.clone()
-            .into_pathbuf()
-            .map_err_into(GHEK::StoreIdHandlingError)
-            .map_into_hook_error()
-        );
-
-        let action    = StoreAction::Create;
-        try!(self.runtime.ensure_cfg_branch_is_checked_out(&action));
-
-        let cfg       = try!(self.runtime.config_value_or_err(&action));
-        let repo      = try!(self.runtime.repository(&action));
-        let mut index = try!(fetch_index(repo, &action));
-
-        let file_status = try!(
-            repo
-                .status_file(&path)
-                .map_err_into(GHEK::RepositoryFileStatusError)
-                .map_into_hook_error()
-        );
-
-        let cb = &mut |path: &Path, _matched_spec: &[u8]| -> i32 {
-            if file_status.contains(STATUS_WT_MODIFIED) ||
-                file_status.contains(STATUS_WT_NEW) {
-
-                debug!("[GIT CREATE HOOK]: File is new or modified: {}", path.display());
-                0
-            } else {
-                debug!("[GIT CREATE HOOK]: Ignoring file: {}", path.display());
-                1
-            }
-        };
-
-        try!(
-            index.add_all(&[path], ADD_DEFAULT, Some(cb as &mut IndexMatchedPath))
-                .map_err_into(GHEK::RepositoryPathAddingError)
-                .map_into_hook_error()
-        );
-
-        index
-            .write()
-            .map_err_into(GHEK::RepositoryIndexWritingError)
-            .map_into_hook_error()
+        debug!("[GIT CREATE HOOK]: Doing nothing as Store::create() is lazy and does not write to disk");
+        Ok(())
     }
 
 }

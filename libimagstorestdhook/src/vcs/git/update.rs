@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use std::path::Path;
 use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::result::Result as RResult;
 
@@ -88,6 +89,8 @@ impl StoreIdAccessor for UpdateHook {
         use vcs::git::config::commit_message;
         use vcs::git::error::MapIntoHookError;
         use vcs::git::util::fetch_index;
+        use git2::{Reference as GitReference, Repository, Error as Git2Error};
+        use git2::{ADD_DEFAULT, STATUS_WT_NEW, STATUS_WT_MODIFIED, IndexMatchedPath};
 
         debug!("[GIT UPDATE HOOK]: {:?}", id);
 
@@ -96,21 +99,50 @@ impl StoreIdAccessor for UpdateHook {
         let repo      = try!(self.runtime.repository(&action));
         let mut index = try!(fetch_index(repo, &action));
 
-        let tree_id = try!(
-            index.write_tree()
-                .map_err_into(GHEK::RepositoryIndexWritingError)
-                .map_into_hook_error()
-        );
-
         let signature = try!(
             repo.signature()
                 .map_err_into(GHEK::MkSignature)
+                .map_dbg_err_str("Failed to fetch signature")
                 .map_into_hook_error()
         );
 
         let head = try!(
             repo.head()
                 .map_err_into(GHEK::HeadFetchError)
+                .map_dbg_err_str("Failed to fetch HEAD")
+                .map_into_hook_error()
+        );
+
+        let file_status = try!(
+            repo
+                .status_file(id.local())
+                .map_dbg_err_str("Failed to fetch file status")
+                .map_dbg_err(|e| format!("\t->  {:?}", e))
+                .map_err_into(GHEK::RepositoryFileStatusError)
+                .map_into_hook_error()
+        );
+
+        let cb = &mut |path: &Path, _matched_spec: &[u8]| -> i32 {
+            if file_status.contains(STATUS_WT_NEW) || file_status.contains(STATUS_WT_MODIFIED) {
+                debug!("[GIT CREATE HOOK]: File is modified/new: {}", path.display());
+                0
+            } else {
+                debug!("[GIT CREATE HOOK]: Ignoring file: {}", path.display());
+                1
+            }
+        };
+
+        try!(
+            index.add_all(&[id.local()], ADD_DEFAULT, Some(cb as &mut IndexMatchedPath))
+                .map_err_into(GHEK::RepositoryPathAddingError)
+                .map_dbg_err_str("Failed to add to index")
+                .map_into_hook_error()
+        );
+
+        let tree_id = try!(
+            index.write_tree()
+                .map_err_into(GHEK::RepositoryIndexWritingError)
+                .map_dbg_err_str("Failed to write tree")
                 .map_into_hook_error()
         );
 
@@ -119,6 +151,7 @@ impl StoreIdAccessor for UpdateHook {
             let commit = try!(
                 repo.find_commit(head.target().unwrap())
                     .map_err_into(GHEK::RepositoryParentFetchingError)
+                    .map_dbg_err_str("Failed to find commit HEAD")
                     .map_into_hook_error()
             );
             parents.push(commit);
@@ -130,16 +163,25 @@ impl StoreIdAccessor for UpdateHook {
         let tree = try!(
             repo.find_tree(tree_id)
                 .map_err_into(GHEK::RepositoryParentFetchingError)
+                .map_dbg_err_str("Failed to find tree")
                 .map_into_hook_error()
         );
 
-        let message = try!(commit_message(cfg, StoreAction::Update));
+        let message = try!(commit_message(cfg, StoreAction::Update)
+                .map_dbg_err_str("Failed to get commit message"));
 
-        repo.commit(Some("HEAD"), &signature, &signature, &message, &tree, &parents)
+        try!(repo.commit(Some("HEAD"), &signature, &signature, &message, &tree, &parents)
+            .map_dbg_str("Committed")
+            .map_dbg_err_str("Failed to commit")
             .map_err_into(GHEK::RepositoryCommittingError)
             .map_into_hook_error()
-            .map(|_| ())
+        );
 
+        index.write()
+            .map_err_into(GHEK::RepositoryIndexWritingError)
+            .map_dbg_err_str("Failed to write tree")
+            .map_into_hook_error()
+            .map(|_| ())
     }
 
 }
