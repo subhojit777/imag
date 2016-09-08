@@ -99,14 +99,6 @@ impl StoreIdAccessor for UpdateHook {
         let repo      = try!(self.runtime.repository(&action));
         let mut index = try!(fetch_index(repo, &action));
 
-        let path = try!(
-            id.clone()
-            .into_pathbuf()
-            .map_err_into(GHEK::StoreIdHandlingError)
-            .map_dbg_err_str("Failed to StoreId.into_pathbuf()")
-            .map_into_hook_error()
-        );
-
         let signature = try!(
             repo.signature()
                 .map_err_into(GHEK::MkSignature)
@@ -123,7 +115,7 @@ impl StoreIdAccessor for UpdateHook {
 
         let file_status = try!(
             repo
-                .status_file(&path)
+                .status_file(id.local())
                 .map_dbg_err_str("Failed to fetch file status")
                 .map_dbg_err(|e| format!("\t->  {:?}", e))
                 .map_err_into(GHEK::RepositoryFileStatusError)
@@ -141,7 +133,7 @@ impl StoreIdAccessor for UpdateHook {
         };
 
         try!(
-            index.add_all(&[path], ADD_DEFAULT, Some(cb as &mut IndexMatchedPath))
+            index.add_all(&[id.local()], ADD_DEFAULT, Some(cb as &mut IndexMatchedPath))
                 .map_err_into(GHEK::RepositoryPathAddingError)
                 .map_dbg_err_str("Failed to add to index")
                 .map_into_hook_error()
