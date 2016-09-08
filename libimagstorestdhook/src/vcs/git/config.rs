@@ -1,12 +1,15 @@
 use toml::Value;
 
 use libimagerror::into::IntoError;
+use libimagutil::edit::edit_in_tmpfile_with_command;
 
 use vcs::git::error::GitHookErrorKind as GHEK;
 use vcs::git::error::MapErrInto;
 use vcs::git::result::Result;
 
 use vcs::git::action::StoreAction;
+
+use git2::Repository;
 
 pub fn commit_interactive(config: &Value) -> bool {
     match config.lookup("commit.interactive") {
@@ -70,7 +73,16 @@ pub fn commit_message(repo: &Repository, config: &Value, action: StoreAction) ->
 
     if commit_interactive(config) {
         if commit_with_editor(config) {
-            unimplemented!()
+            repo.config()
+                .map_err_into(GHEK::GitConfigFetchError)
+                .and_then(|c| c.get_string("core.editor").map_err_into(GHEK::GitConfigEditorFetchError))
+                .map_err_into(GHEK::ConfigError)
+                .map(Command::new)
+                .and_then(|cmd| {
+                    let mut s = String::from(commit_template());
+                    edit_in_tmpfile_with_command(cmd, &mut s).map(|_| s)
+                        .map_err_into(GHEK::EditorError)
+                })
         } else {
             Ok(ask_string("Commit Message", None, false, false, None, "> "))
         }
