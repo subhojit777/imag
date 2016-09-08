@@ -39,6 +39,10 @@ impl<'a> Edit for FileLockEntry<'a> {
 }
 
 pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> Result<()> {
+    edit_in_tmpfile_with_command(rt.editor(), s)
+}
+
+pub fn edit_in_tmpfile_with_command(cmd: Command, s: &mut String) -> Result<()> {
     use tempfile::NamedTempFile;
     use std::io::Seek;
     use std::io::Read;
@@ -75,3 +79,4 @@ pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> Result<()> {
         Err(EditErrorKind::InstantiateError.into())
     }
 }
+
