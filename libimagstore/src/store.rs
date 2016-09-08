@@ -636,12 +636,15 @@ impl Store {
         -> Result<()>
     {
         let new_id = new_id.with_base(self.path().clone());
-        let hsmap = self.entries.write();
-        if hsmap.is_err() {
-            return Err(SE::new(SEK::LockPoisoned, None)).map_err_into(SEK::MoveCallError)
-        }
-        if hsmap.unwrap().contains_key(&new_id) {
-            return Err(SE::new(SEK::EntryAlreadyExists, None)).map_err_into(SEK::MoveCallError)
+        let hsmap = try!(
+            self.entries
+                .write()
+                .map_err(|_| SEK::LockPoisoned.into_error())
+                .map_err_into(SEK::MoveCallError)
+        );
+
+        if hsmap.contains_key(&new_id) {
+            return Err(SEK::EntryAlreadyExists.into_error()).map_err_into(SEK::MoveCallError)
         }
 
         let old_id = entry.get_location().clone();
