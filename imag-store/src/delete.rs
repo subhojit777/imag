@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error_exit;
 use libimagstore::storeid::StoreId;
+use libimagutil::warn_exit::warn_exit;
 
 pub fn delete(rt: &Runtime) {
     use std::process::exit;
@@ -24,14 +25,8 @@ pub fn delete(rt: &Runtime) {
                            exit(1);
                         })
                 })
-                .or_else(|| {
-                    warn!("No ID passed. Will exit now");
-                    exit(1);
-                })
+                .or_else(|| warn_exit("No ID passed. Will exit now", 1))
         })
-        .or_else(|| {
-            warn!("No subcommand 'delete'. Will exit now");
-            exit(1);
-        });
+        .or_else(|| warn_exit("No subcommand 'delete'. Will exit now", 1));
 }
 

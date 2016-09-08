@@ -1,4 +1,3 @@
-use std::process::exit;
 use chrono::naive::datetime::NaiveDateTime;
 
 use libimagdiary::diary::Diary;
@@ -7,16 +6,15 @@ use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error_exit;
 use libimagtimeui::datetime::DateTime;
 use libimagtimeui::parse::Parse;
+use libimagutil::warn_exit::warn_exit;
 
 use util::get_diary_name;
 
 pub fn delete(rt: &Runtime) {
     use libimaginteraction::ask::ask_bool;
 
-    let diaryname = get_diary_name(rt).unwrap_or_else(|| {
-        warn!("No diary selected. Use either the configuration file or the commandline option");
-        exit(1);
-    });
+    let diaryname = get_diary_name(rt)
+        .unwrap_or_else(|| warn_exit("No diary selected. Use either the configuration file or the commandline option", 1));
 
     let diary = Diary::open(rt.store(), &diaryname[..]);
     debug!("Diary opened: {:?}", diary);
@@ -39,10 +37,7 @@ pub fn delete(rt: &Runtime) {
         Some(Ok(e)) => e,
 
         Some(Err(e)) => trace_error_exit(&e, 1),
-        None => {
-            warn!("No entry");
-            exit(1);
-        },
+        None => warn_exit("No entry", 1)
     };
 
     if !ask_bool(&format!("Deleting {:?}", to_del.get_location())[..], Some(true)) {

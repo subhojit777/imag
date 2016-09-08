@@ -1,4 +1,3 @@
-use std::process::exit;
 use chrono::naive::datetime::NaiveDateTime;
 
 use libimagdiary::diary::Diary;
@@ -11,15 +10,12 @@ use libimagerror::trace::trace_error;
 use libimagerror::into::IntoError;
 use libimagtimeui::datetime::DateTime;
 use libimagtimeui::parse::Parse;
+use libimagutil::warn_exit::warn_exit;
 
 use util::get_diary_name;
 
 pub fn edit(rt: &Runtime) {
-    let diaryname = get_diary_name(rt).unwrap_or_else(|| {
-        warn!("No diary name");
-        exit(1);
-    });
-
+    let diaryname = get_diary_name(rt).unwrap_or_else(|| warn_exit("No diary name", 1));
     let diary = Diary::open(rt.store(), &diaryname[..]);
 
     let datetime : Option<NaiveDateTime> = rt

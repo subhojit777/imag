@@ -1,13 +1,11 @@
-use std::process::exit;
-
 use libimagrt::runtime::Runtime;
+use libimagutil::warn_exit::warn_exit;
 
 pub fn verify(rt: &Runtime) {
     if rt.store().verify() {
         info!("Store seems to be fine");
     } else {
-        warn!("Store seems to be broken somehow");
-        exit(1);
+        warn_exit("Store seems to be broken somehow", 1);
     }
 }
 

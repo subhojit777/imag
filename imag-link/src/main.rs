@@ -26,7 +26,6 @@ extern crate libimagstore;
 extern crate libimagerror;
 extern crate libimagutil;
 
-use std::process::exit;
 use std::ops::Deref;
 
 use libimagrt::runtime::Runtime;
@@ -38,6 +37,7 @@ use libimagstore::store::Store;
 use libimagerror::trace::{trace_error, trace_error_exit};
 use libimagentrylink::external::ExternalLinker;
 use libimagutil::warn_result::*;
+use libimagutil::warn_exit::warn_exit;
 use clap::ArgMatches;
 use url::Url;
 
@@ -57,10 +57,7 @@ fn main() {
             match name {
                 "internal" => handle_internal_linking(&rt),
                 "external" => handle_external_linking(&rt),
-                _ => {
-                    warn!("No commandline call");
-                    exit(1);
-                },
+                _ => warn_exit("No commandline call", 1)
             }
         });
 }
@@ -112,8 +109,7 @@ fn handle_internal_linking(rt: &Runtime) {
         let mut from = {
             let from = get_from_entry(&rt);
             if from.is_none() {
-                warn!("No 'from' entry");
-                exit(1);
+                warn_exit("No 'from' entry", 1);
             }
             from.unwrap()
         };
@@ -122,8 +118,7 @@ fn handle_internal_linking(rt: &Runtime) {
         let to = {
             let to = get_to_entries(&rt);
             if to.is_none() {
-                warn!("No 'to' entry");
-                exit(1);
+                warn_exit("No 'to' entry", 1);
             }
             to.unwrap()
         };
