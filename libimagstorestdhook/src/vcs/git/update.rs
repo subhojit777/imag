@@ -46,7 +46,7 @@ impl UpdateHook {
 
 impl Debug for UpdateHook {
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
-        write!(fmt, "UpdateHook(storepath={:?}, repository={}, pos={:?}, cfg={:?}",
+        write!(fmt, "UpdateHook(storepath={:?}, repository={}, pos={:?}, cfg={:?})",
                self.storepath,
                (if self.runtime.has_repository() { "Some(_)" } else { "None" }),
                self.position,
