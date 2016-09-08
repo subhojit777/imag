@@ -2,20 +2,26 @@ extern crate clap;
 #[macro_use] extern crate log;
 extern crate semver;
 #[macro_use] extern crate version;
+extern crate itertools;
 
 extern crate libimagnotes;
 extern crate libimagrt;
 extern crate libimagentryedit;
 extern crate libimagentrytag;
 extern crate libimagerror;
+extern crate libimagutil;
 
 use std::process::exit;
+
+use itertools::Itertools;
 
 use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagnotes::note::Note;
-use libimagerror::trace::{trace_error, trace_error_exit};
+use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagutil::info_result::*;
+use libimagutil::warn_result::WarnResult;
 
 mod ui;
 use ui::build_ui;
@@ -48,9 +54,7 @@ fn name_from_cli(rt: &Runtime, subcmd: &str) -> String {
 
 fn create(rt: &Runtime) {
     let name = name_from_cli(rt, "create");
-    Note::new(rt.store(), name.clone(), String::new())
-        .map_err(|e| trace_error(&e))
-        .ok();
+    Note::new(rt.store(), name.clone(), String::new()).map_err_trace().ok();
 
     if rt.cli().subcommand_matches("create").unwrap().is_present("edit") &&
             !edit_entry(rt, name) {
@@ -60,8 +64,8 @@ fn create(rt: &Runtime) {
 
 fn delete(rt: &Runtime) {
     Note::delete(rt.store(), String::from(name_from_cli(rt, "delete")))
-        .map_err(|e| trace_error(&e))
-        .map(|_| println!("Ok"))
+        .map_err_trace()
+        .map_info_str("Ok")
         .ok();
 }
 
@@ -83,47 +87,31 @@ fn edit_entry(rt: &Runtime, name: String) -> bool {
         },
     };
 
-    if let Err(e) = note.edit_content(rt) {
-        trace_error(&e);
-        warn!("Editing failed");
-        return false
-    }
-    true
+    note.edit_content(rt).map_err_trace().map_warn_err_str("Editing failed").is_ok()
 }
 
 fn list(rt: &Runtime) {
     use std::cmp::Ordering;
 
-    let iter = Note::all_notes(rt.store());
-    if iter.is_err() {
-        trace_error_exit(&iter.unwrap_err(), 1);
-    }
+    Note::all_notes(rt.store())
+        .map_err_trace_exit(1)
+        .map(|iter| {
+            let notes = iter.filter_map(|note| note.map_err_trace().ok())
+                .sort_by(|note_a, note_b| {
+                    if let (Ok(a), Ok(b)) = (note_a.get_name(), note_b.get_name()) {
+                        return a.cmp(&b)
+                    } else {
+                        return Ordering::Greater;
+                    }
+                });
 
-    let mut iter = iter.unwrap()
-        .filter_map(|note| {
-            match note {
-                Err(e) => {
-                    trace_error(&e);
-                    None
-                },
-                Ok(e) => Some(e)
+            for note in notes.iter() {
+                note.get_name()
+                    .map(|name| println!("{}", name))
+                    .map_err_trace()
+                    .ok();
             }
         })
-        .collect::<Vec<Note>>();
-
-    iter.sort_by(|note_a, note_b| {
-        if let (Ok(a), Ok(b)) = (note_a.get_name(), note_b.get_name()) {
-            return a.cmp(&b)
-        } else {
-            return Ordering::Greater;
-        }
-    });
-
-    for note in iter {
-        note.get_name()
-            .map(|name| println!("{}", name))
-            .map_err(|e| trace_error(&e))
-            .ok();
-    }
+        .ok();
 }
 

@@ -27,8 +27,9 @@ use std::str::FromStr;
 
 use libimagrt::setup::generate_runtime_setup;
 use libimagcounter::counter::Counter;
-use libimagerror::trace::{trace_error, trace_error_exit};
+use libimagerror::trace::MapErrTrace;
 use libimagutil::key_value_split::IntoKeyValue;
+use libimagutil::info_result::*;
 
 mod create;
 mod delete;
@@ -73,30 +74,15 @@ fn main() {
                 match action {
                     Action::Inc => {
                         Counter::load(String::from(name), rt.store())
-                            .map(|mut counter| {
-                                match counter.inc() {
-                                    Err(e) => trace_error_exit(&e, 1),
-                                    Ok(_) => info!("Ok"),
-                                }
-                            })
+                            .map(|mut c| c.inc().map_err_trace_exit(1).map_info_str("Ok"))
                     },
                     Action::Dec => {
                         Counter::load(String::from(name), rt.store())
-                            .map(|mut counter| {
-                                match counter.dec() {
-                                    Err(e) => trace_error_exit(&e, 1),
-                                    Ok(_) => info!("Ok"),
-                                }
-                            })
+                            .map(|mut c| c.dec().map_err_trace_exit(1).map_info_str("Ok"))
                     },
                     Action::Reset => {
                         Counter::load(String::from(name), rt.store())
-                            .map(|mut counter| {
-                                match counter.reset() {
-                                    Err(e) => trace_error_exit(&e, 1),
-                                    Ok(_) => info!("Ok"),
-                                }
-                            })
+                            .map(|mut c| c.reset().map_err_trace_exit(1).map_info_str("Ok"))
                     },
                     Action::Set => {
                         let kv = String::from(name).into_kv();
@@ -112,15 +98,10 @@ fn main() {
                         }
                         let value : i64 = value.unwrap();
                         Counter::load(String::from(key), rt.store())
-                            .map(|mut counter| {
-                                match counter.set(value) {
-                                    Err(e) => trace_error_exit(&e, 1),
-                                    Ok(_) => info!("Ok"),
-                                }
-                            })
+                            .map(|mut c| c.set(value).map_err_trace_exit(1).map_info_str("Ok"))
                     },
                 }
-                .map_err(|e| trace_error(&e))
+                .map_err_trace()
                 .ok();
             },
             |name| {

@@ -1,5 +1,5 @@
 use libimagrt::runtime::Runtime;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::{MapErrTrace, trace_error};
 use libimagcounter::counter::Counter;
 
 pub fn list(rt: &Runtime) {
@@ -25,11 +25,11 @@ pub fn list(rt: &Runtime) {
                             println!("{} - {} {}", name.unwrap(), value.unwrap(), unit.unwrap());
                         }
                     })
-                    .map_err(|e| trace_error(&e))
+                    .map_err_trace()
                     .ok();
                 }
             })
-            .map_err(|e| trace_error(&e))
+            .map_err_trace()
 
         });
 }
