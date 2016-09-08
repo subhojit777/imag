@@ -55,8 +55,6 @@ impl NonMutableHookDataAccessor for LinkedEntriesExistHook {
                 for link in links {
                     if !link.exists() {
                         warn!("File link does not exist: {:?} -> {:?}", fle.get_location(), link);
-                    } else if !link.is_file() {
-                        warn!("File link is not a file: {:?} -> {:?}", fle.get_location(), link);
                     }
                 }
             })
