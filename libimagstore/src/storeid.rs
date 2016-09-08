@@ -79,10 +79,6 @@ impl StoreId {
         true
     }
 
-    pub fn is_dir(&self) -> bool {
-        false
-    }
-
     pub fn to_str(&self) -> Result<String> {
         if self.base.is_some() {
             let mut base = self.base.as_ref().cloned().unwrap();
