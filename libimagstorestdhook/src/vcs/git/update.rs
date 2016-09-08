@@ -139,6 +139,13 @@ impl StoreIdAccessor for UpdateHook {
                 .map_into_hook_error()
         );
 
+        let tree_id = try!(
+            index.write_tree()
+                .map_err_into(GHEK::RepositoryIndexWritingError)
+                .map_dbg_err_str("Failed to write tree")
+                .map_into_hook_error()
+        );
+
         let mut parents = Vec::new();
         {
             let commit = try!(
@@ -152,14 +159,6 @@ impl StoreIdAccessor for UpdateHook {
 
         // for converting from Vec<Commit> to Vec<&Commit>
         let parents = parents.iter().collect::<Vec<_>>();
-
-        let tree_id = try!(
-            index.write_tree()
-                .map_err_into(GHEK::RepositoryIndexWritingError)
-                .map_dbg_err_str("Failed to write tree")
-                .map_into_hook_error()
-        );
-
 
         let tree = try!(
             repo.find_tree(tree_id)
