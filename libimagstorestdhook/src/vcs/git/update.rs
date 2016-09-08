@@ -170,10 +170,16 @@ impl StoreIdAccessor for UpdateHook {
         let message = try!(commit_message(cfg, StoreAction::Update)
                 .map_dbg_err_str("Failed to get commit message"));
 
-        repo.commit(Some("HEAD"), &signature, &signature, &message, &tree, &parents)
+        try!(repo.commit(Some("HEAD"), &signature, &signature, &message, &tree, &parents)
             .map_dbg_str("Committed")
             .map_dbg_err_str("Failed to commit")
             .map_err_into(GHEK::RepositoryCommittingError)
+            .map_into_hook_error()
+        );
+
+        index.write()
+            .map_err_into(GHEK::RepositoryIndexWritingError)
+            .map_dbg_err_str("Failed to write tree")
             .map_into_hook_error()
             .map(|_| ())
     }
