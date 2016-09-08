@@ -103,30 +103,29 @@ impl StoreIdAccessor for UpdateHook {
             id.clone()
             .into_pathbuf()
             .map_err_into(GHEK::StoreIdHandlingError)
+            .map_dbg_err_str("Failed to StoreId.into_pathbuf()")
             .map_into_hook_error()
-        );
-
-        let tree_id = try!(
-            index.write_tree()
-                .map_err_into(GHEK::RepositoryIndexWritingError)
-                .map_into_hook_error()
         );
 
         let signature = try!(
             repo.signature()
                 .map_err_into(GHEK::MkSignature)
+                .map_dbg_err_str("Failed to fetch signature")
                 .map_into_hook_error()
         );
 
         let head = try!(
             repo.head()
                 .map_err_into(GHEK::HeadFetchError)
+                .map_dbg_err_str("Failed to fetch HEAD")
                 .map_into_hook_error()
         );
 
         let file_status = try!(
             repo
                 .status_file(&path)
+                .map_dbg_err_str("Failed to fetch file status")
+                .map_dbg_err(|e| format!("\t->  {:?}", e))
                 .map_err_into(GHEK::RepositoryFileStatusError)
                 .map_into_hook_error()
         );
@@ -144,6 +143,7 @@ impl StoreIdAccessor for UpdateHook {
         try!(
             index.add_all(&[path], ADD_DEFAULT, Some(cb as &mut IndexMatchedPath))
                 .map_err_into(GHEK::RepositoryPathAddingError)
+                .map_dbg_err_str("Failed to add to index")
                 .map_into_hook_error()
         );
 
@@ -152,6 +152,7 @@ impl StoreIdAccessor for UpdateHook {
             let commit = try!(
                 repo.find_commit(head.target().unwrap())
                     .map_err_into(GHEK::RepositoryParentFetchingError)
+                    .map_dbg_err_str("Failed to find commit HEAD")
                     .map_into_hook_error()
             );
             parents.push(commit);
@@ -160,19 +161,29 @@ impl StoreIdAccessor for UpdateHook {
         // for converting from Vec<Commit> to Vec<&Commit>
         let parents = parents.iter().collect::<Vec<_>>();
 
-        let tree = try!(
-            repo.find_tree(tree_id)
-                .map_err_into(GHEK::RepositoryParentFetchingError)
+        let tree_id = try!(
+            index.write_tree()
+                .map_err_into(GHEK::RepositoryIndexWritingError)
+                .map_dbg_err_str("Failed to write tree")
                 .map_into_hook_error()
         );
 
-        let message = try!(commit_message(cfg, StoreAction::Update));
+
+        let tree = try!(
+            repo.find_tree(tree_id)
+                .map_err_into(GHEK::RepositoryParentFetchingError)
+                .map_dbg_err_str("Failed to find tree")
+                .map_into_hook_error()
+        );
+
+        let message = try!(commit_message(cfg, StoreAction::Update)
+                .map_dbg_err_str("Failed to get commit message"));
 
         repo.commit(Some("HEAD"), &signature, &signature, &message, &tree, &parents)
+            .map_dbg_err_str("Failed to commit")
             .map_err_into(GHEK::RepositoryCommittingError)
             .map_into_hook_error()
             .map(|_| ())
-
     }
 
 }
