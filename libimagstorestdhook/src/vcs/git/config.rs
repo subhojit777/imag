@@ -9,15 +9,73 @@ use vcs::git::result::Result;
 use vcs::git::action::StoreAction;
 
 pub fn commit_interactive(config: &Value) -> bool {
-    warn!("Interactive committing not yet supported, using dummy commit message");
-    false
+    match config.lookup("commit.interactive") {
+        Some(&Value::Boolean(b)) => b,
+        Some(_) => {
+            warn!("Configuration error, 'store.hooks.stdhook_git_update.commit.interactive' must be a Boolean.");
+            warn!("Defaulting to commit.interactive = false");
+            false
+        }
+        None => {
+            warn!("Unavailable configuration for");
+            warn!("\t'store.hooks.stdhook_git_update.commit.interactive'");
+            warn!("Defaulting to false");
+            false
+        }
+    }
 }
 
-pub fn commit_message(config: &Value, action: StoreAction) -> Result<String> {
+fn commit_with_editor(config: &Value) -> bool {
+    match config.lookup("commit.interactive_editor") {
+        Some(&Value::Boolean(b)) => b,
+        Some(_) => {
+            warn!("Configuration error, 'store.hooks.stdhook_git_update.commit.interactive_editor' must be a Boolean.");
+            warn!("Defaulting to commit.interactive_editor = false");
+            false
+        }
+        None => {
+            warn!("Unavailable configuration for");
+            warn!("\t'store.hooks.stdhook_git_update.commit.interactive_editor'");
+            warn!("Defaulting to false");
+            false
+        }
+    }
+}
+
+fn commit_default_msg<'a>(config: &'a Value) -> &'a str {
+    match config.lookup("commit.message") {
+        Some(&Value::String(ref b)) => b,
+        Some(_) => {
+            warn!("Configuration error, 'store.hooks.stdhook_git_update.commit.message' must be a String.");
+            warn!("Defaulting to commit.message = 'Update'");
+            "Update"
+        }
+        None => {
+            warn!("Unavailable configuration for");
+            warn!("\t'store.hooks.stdhook_git_update.commit.message'");
+            warn!("Defaulting to commit.message = 'Update'");
+            "Update"
+        }
+    }
+}
+
+fn commit_template() -> &'static str {
+    "Commit template"
+}
+
+pub fn commit_message(repo: &Repository, config: &Value, action: StoreAction) -> Result<String> {
+    use libimaginteraction::ask::ask_string;
+    use libimagutil::edit::edit_in_tmpfile_with_command;
+    use std::process::Command;
+
     if commit_interactive(config) {
-        unimplemented!()
+        if commit_with_editor(config) {
+            unimplemented!()
+        } else {
+            unimplemented!()
+        }
     } else {
-        Ok(String::from("Dummy commit"))
+        Ok(String::from(commit_default_msg(config)))
     }
 }
 
