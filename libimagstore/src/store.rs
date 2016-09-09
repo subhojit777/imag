@@ -1440,7 +1440,7 @@ impl Entry {
     }
 
     pub fn to_str(&self) -> String {
-        format!("---{header}---\n{content}",
+        format!("---\n{header}---\n{content}",
                 header  = ::toml::encode_str(&self.header.header),
                 content = self.content)
     }
