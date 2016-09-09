@@ -20,49 +20,29 @@ before_script:
   export PATH=$HOME/.local/bin:$PATH
 script:
 - |
-  travis_cargo_run_in() {
-      echo ":: Trying to run cargo in $1"
-      [[ -d "$1" ]] &&
-      cd "$1" &&
-      {
-        {
-          if [[ $(echo "$1" | grep lib) ]]; then
-            travis-cargo -q test
-          else
-            travis-cargo -q build
-          fi
-        } &&
-        cd -
-      } || exit 1
-  }
-
-  run_sh_test() {
-      echo "--- Running test script: '$1'"
-        bash $1 || { echo "--- Test failed. Exiting"; exit 1; }
-      echo "--- Test script $1 executed successfully"
-  }
-
-  echo "<< Changes in ./doc are not build by CI >>"
-
+  libs_to_test="$(find . -maxdepth 1 name "libimag*" -printf "test-%f ")"
+  bins_to_build="$(find . -maxdepth 1 name "imag-*" -printf "%f ")"
+  make $libs_to_test &&  \
+  make $bins_to_build && \
   for d in $(find -name "Cargo.toml" | grep -vE "^./Cargo.toml$"); do
-      echo ":: Working on $d"
       dir=$(dirname $d)
       { \
-        echo -e "\n--- Running in $d ---\n" &&    \
-          travis_cargo_run_in $dir &&             \
-          echo "--- Running test scripts ---" &&  \
-          for testsh in $(find $dir -iname "*test.sh"); do
-            run_sh_test $testsh
-          done && \
-          echo -e "--- Done with test scripts ---\n\n"
+        echo "--- Running test scripts ---" &&  \
+        for testsh in $(find $dir -iname "*test.sh"); do
+          echo "--- Running test script: '$1'"
+            bash $1 || { echo "--- Test failed. Exiting"; exit 1; }
+          echo "--- Test script $1 executed successfully"
+        done && \
       } || true
   done
+
 addons:
   apt:
     packages:
     - libcurl4-openssl-dev
-    - libelf-dev
     - libdw-dev
+    - libelf-dev
+    - make
 after_success:
 - |
   pushd .imag-documentation &&
