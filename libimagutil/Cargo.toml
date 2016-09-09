@@ -7,4 +7,5 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 lazy_static = "0.1.15"
 log = "0.3"
 regex = "0.1"
+tempfile = "2.1.1"
 
