@@ -5,23 +5,17 @@ use std::result::Result as RResult;
 
 use toml::Value;
 
-use libimagerror::into::IntoError;
 use libimagerror::trace::trace_error;
 use libimagstore::hook::Hook;
 use libimagstore::hook::accessor::StoreIdAccessor;
 use libimagstore::hook::accessor::{HookDataAccessor, HookDataAccessorProvider};
-use libimagstore::hook::error::HookError as HE;
-use libimagstore::hook::error::HookErrorKind as HEK;
 use libimagstore::hook::position::HookPosition;
 use libimagstore::hook::result::HookResult;
 use libimagstore::storeid::StoreId;
 use libimagutil::debug_result::*;
 
-use vcs::git::error::GitHookError as GHE;
 use vcs::git::error::GitHookErrorKind as GHEK;
 use vcs::git::error::MapErrInto;
-use vcs::git::error::MapIntoHookError;
-use vcs::git::result::Result;
 use vcs::git::runtime::Runtime as GRuntime;
 
 pub struct UpdateHook {
@@ -89,7 +83,6 @@ impl StoreIdAccessor for UpdateHook {
         use vcs::git::config::commit_message;
         use vcs::git::error::MapIntoHookError;
         use vcs::git::util::fetch_index;
-        use git2::{Reference as GitReference, Repository, Error as Git2Error};
         use git2::{ADD_DEFAULT, STATUS_WT_NEW, STATUS_WT_MODIFIED, IndexMatchedPath};
 
         debug!("[GIT UPDATE HOOK]: {:?}", id);
