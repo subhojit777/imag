@@ -4,6 +4,7 @@ bin = $@/target/debug/$@
 doc-crate-toml=./.imag-documentation/Cargo.toml
 
 ECHO=$(shell which echo) -e
+MAKE=$(shell which make)
 BASH=$(shell which bash)
 CARGO=$(shell which cargo)
 
@@ -69,7 +70,7 @@ $(TARGETS): %: .FORCE
 
 $(BIN_TARGET_TESTS): %: .FORCE
 	@$(ECHO) "\t[BINTEST]:\t$@"
-	$(shell find $(subst -test,,$@) -name "*test.sh" -exec $(BASH) {} \;)
+	find $(subst -test,,$@) -name "tests" -type d -exec $(MAKE) -j 1 -C {} \;
 
 $(RELEASE_TARGETS): %: .FORCE
 	@$(ECHO) "\t[RELEASE]:\t$(subst -release,,$@)"
