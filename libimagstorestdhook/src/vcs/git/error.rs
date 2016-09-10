@@ -32,7 +32,12 @@ generate_error_module!(
         StoreIdHandlingError => "Error handling the store id object",
         StoreIdStripError => "Couldn't strip prefix from StoreID object",
 
-        RepositoryFileStatusError => "Error while getting file status"
+        RepositoryFileStatusError => "Error while getting file status",
+
+        GitConfigFetchError => "Error fetching git config",
+        GitConfigEditorFetchError => "Error fetching 'editor' from git config",
+        CommitEditorInstantiationError => "Error when trying to instantiate commit editor",
+        EditorError => "Error while calling editor"
     );
 );
 

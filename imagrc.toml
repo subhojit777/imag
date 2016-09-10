@@ -94,3 +94,17 @@ ensure_branch = "master"
 # Try to checkout the ensure_branch if it isn't checked out
 try_checkout_ensure_branch = true
 
+# Commit configuration
+[store.hooks.stdhook_git_update.commit]
+
+# Whether to do the commit interactively
+interactive = false
+
+# Set to true to use the $EDITOR for the commit, to false to do on commandline
+# When committing without editor, only a single line is allowed as commit
+# message
+interactive_editor = false
+
+# Commit message if the commit is not interactive
+message = "Update"
+

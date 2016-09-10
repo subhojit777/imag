@@ -167,7 +167,7 @@ impl StoreIdAccessor for UpdateHook {
                 .map_into_hook_error()
         );
 
-        let message = try!(commit_message(cfg, StoreAction::Update)
+        let message = try!(commit_message(&repo, cfg, StoreAction::Update)
                 .map_dbg_err_str("Failed to get commit message"));
 
         try!(repo.commit(Some("HEAD"), &signature, &signature, &message, &tree, &parents)
