@@ -1,30 +1,17 @@
 use std::path::PathBuf;
-use std::path::Path;
 use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::result::Result as RResult;
 
 use toml::Value;
-use git2::{Reference as GitReference, Repository, Error as Git2Error};
-use git2::{ADD_DEFAULT, STATUS_WT_NEW, STATUS_WT_MODIFIED, IndexMatchedPath};
 
 use libimagstore::storeid::StoreId;
 use libimagstore::hook::Hook;
-use libimagstore::hook::error::HookError as HE;
-use libimagstore::hook::error::HookErrorKind as HEK;
-use libimagstore::hook::error::CustomData as HECD;
 use libimagstore::hook::result::HookResult;
 use libimagstore::hook::position::HookPosition;
 use libimagstore::hook::accessor::{HookDataAccessor, HookDataAccessorProvider};
 use libimagstore::hook::accessor::StoreIdAccessor;
 use libimagerror::trace::trace_error;
-use libimagerror::into::IntoError;
-use libimagutil::debug_result::*;
 
-use vcs::git::result::Result;
-use vcs::git::error::MapIntoHookError;
-use vcs::git::error::MapErrInto;
-use vcs::git::error::GitHookErrorKind as GHEK;
-use vcs::git::error::GitHookError as GHE;
 use vcs::git::runtime::Runtime as GRuntime;
 
 pub struct CreateHook {
