@@ -4,12 +4,14 @@ bin = $@/target/debug/$@
 doc-crate-toml=./.imag-documentation/Cargo.toml
 
 ECHO=$(shell which echo) -e
+BASH=$(shell which bash)
 CARGO=$(shell which cargo)
 
 BINS=$(shell find -maxdepth 1 -name "imag-*" -type d)
 LIBS=$(shell find -maxdepth 1 -name "libimag*" -type d)
 
 BIN_TARGETS=$(patsubst imag-%,,$(BINS))
+BIN_TARGET_TESTS=$(foreach x,$(BIN_TARGETS),$(x)-test)
 LIB_TARGETS=$(LIBS)
 LIB_TARGETS_TEST=$(foreach x,$(subst ./,,$(LIBS)),test-$(x))
 TARGETS=$(BIN_TARGETS) $(LIB_TARGETS)
@@ -64,6 +66,10 @@ clean: $(CLEAN_TARGETS) imag-bin-clean
 $(TARGETS): %: .FORCE
 	@$(ECHO) "\t[CARGO  ]:\t$@"
 	@$(CARGO) build --manifest-path ./$@/Cargo.toml
+
+$(BIN_TARGET_TESTS): %: .FORCE
+	@$(ECHO) "\t[BINTEST]:\t$@"
+	$(shell find $(subst -test,,$@) -name "*test.sh" -exec $(BASH) {} \;)
 
 $(RELEASE_TARGETS): %: .FORCE
 	@$(ECHO) "\t[RELEASE]:\t$(subst -release,,$@)"
