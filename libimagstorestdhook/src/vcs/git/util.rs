@@ -6,7 +6,6 @@ use git2::{Repository, Index};
 
 use vcs::git::error::GitHookErrorKind as GHEK;
 use vcs::git::error::MapErrInto;
-use vcs::git::runtime::Runtime as GRuntime;
 use vcs::git::action::StoreAction;
 use vcs::git::error::MapIntoHookError;
 
