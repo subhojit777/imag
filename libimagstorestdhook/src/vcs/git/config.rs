@@ -1,7 +1,6 @@
 use toml::Value;
 
 use libimagerror::into::IntoError;
-use libimagutil::edit::edit_in_tmpfile_with_command;
 
 use vcs::git::error::GitHookErrorKind as GHEK;
 use vcs::git::error::MapErrInto;
