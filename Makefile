@@ -57,6 +57,8 @@ lib: $(LIB_TARGETS)
 
 lib-test: $(LIB_TARGETS_TEST)
 
+test: bin-test lib-test
+
 install: $(INSTALL_TARGETS)
 	@$(ECHO) "\t[INSTALL]"
 
