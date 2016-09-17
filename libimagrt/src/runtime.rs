@@ -139,7 +139,7 @@ impl<'a> Runtime<'a> {
             let sp = storepath;
 
             let hooks : Vec<(Box<Hook>, &str, HP)> = vec![
-                (Box::new(GitDeleteHook::new(sp.clone(), HP::PreDelete))     , "vcs", HP::PreDelete),
+                (Box::new(GitDeleteHook::new(sp.clone(), HP::PostDelete))     , "vcs", HP::PostDelete),
                 (Box::new(GitUpdateHook::new(sp, HP::PostUpdate))    , "vcs", HP::PostUpdate),
             ];
 
