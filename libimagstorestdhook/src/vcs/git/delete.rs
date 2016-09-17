@@ -13,7 +13,6 @@ use vcs::git::error::GitHookErrorKind as GHEK;
 use vcs::git::error::MapErrInto;
 use vcs::git::runtime::Runtime as GRuntime;
 
-#[derive(Debug)]
 pub struct DeleteHook {
     storepath: PathBuf,
 
@@ -33,6 +32,17 @@ impl DeleteHook {
     }
 
 }
+
+impl Debug for DeleteHook {
+    fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
+        write!(fmt, "DeleteHook(storepath={:?}, repository={}, pos={:?}, cfg={:?})",
+               self.storepath,
+               (if self.runtime.has_repository() { "Some(_)" } else { "None" }),
+               self.position,
+               self.runtime.has_config())
+    }
+}
+
 
 impl Hook for DeleteHook {
 
