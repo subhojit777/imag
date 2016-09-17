@@ -43,9 +43,7 @@ impl<'a> Runtime<'a> {
         use libimagstore::hook::Hook;
         use libimagstore::error::StoreErrorKind;
         use libimagstorestdhook::debug::DebugHook;
-        use libimagstorestdhook::vcs::git::create::CreateHook as GitCreateHook;
         use libimagstorestdhook::vcs::git::delete::DeleteHook as GitDeleteHook;
-        use libimagstorestdhook::vcs::git::retrieve::RetrieveHook as GitRetrieveHook;
         use libimagstorestdhook::vcs::git::update::UpdateHook as GitUpdateHook;
         use libimagerror::trace::trace_error;
         use libimagerror::trace::trace_error_dbg;
@@ -141,9 +139,7 @@ impl<'a> Runtime<'a> {
             let sp = storepath;
 
             let hooks : Vec<(Box<Hook>, &str, HP)> = vec![
-                (Box::new(GitCreateHook::new(sp.clone(), HP::PostCreate))    , "vcs", HP::PostCreate),
                 (Box::new(GitDeleteHook::new(sp.clone(), HP::PreDelete))     , "vcs", HP::PreDelete),
-                (Box::new(GitRetrieveHook::new(sp.clone(), HP::PostRetrieve)), "vcs", HP::PostRetrieve),
                 (Box::new(GitUpdateHook::new(sp, HP::PostUpdate))    , "vcs", HP::PostUpdate),
             ];
 
