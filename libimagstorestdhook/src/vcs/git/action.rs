@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter, Error};
 
+/// Utility type to specify which kind of store action is running
 #[derive(Clone, Debug)]
 pub enum StoreAction {
     Create,
