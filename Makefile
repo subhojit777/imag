@@ -72,7 +72,7 @@ $(TARGETS): %: .FORCE
 	@$(ECHO) "\t[CARGO  ]:\t$@"
 	@$(CARGO) build --manifest-path ./$@/Cargo.toml
 
-$(BIN_TARGET_TESTS): %: .FORCE
+$(BIN_TARGET_TESTS): %-test: % .FORCE
 	@$(ECHO) "\t[BINTEST]:\t$@"
 	find $(subst -test,,$@) -name "tests" -type d -exec $(MAKE) -j 1 -C {} \;
 
