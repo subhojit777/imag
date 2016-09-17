@@ -14,6 +14,9 @@ use vcs::git::action::StoreAction;
 use vcs::git::result::Result;
 use vcs::git::error::{MapErrInto, GitHookErrorKind as GHEK};
 
+/// Runtime object for git hook implementations.
+///
+/// Contains some utility functionality to hold the repository and the configuration for the hooks.
 pub struct Runtime {
     repository: Option<Repository>,
     config: Option<Value>,
@@ -21,6 +24,11 @@ pub struct Runtime {
 
 impl Runtime {
 
+    /// Build a `Runtime` object, pass the store path to build the `Repository` instance the
+    /// `Runtime` has to contain.
+    ///
+    /// If the building of the `Repository` fails, this function `trace_error()`s the error and
+    /// returns a `Runtime` object that does _not_ contain a `Repository`.
     pub fn new(storepath: &PathBuf) -> Runtime {
         Runtime {
             repository: match Repository::open(storepath) {
@@ -35,19 +43,27 @@ impl Runtime {
         }
     }
 
+    /// Set the configuration for the `Runtime`. Always returns `Ok(())`.
     pub fn set_config(&mut self, cfg: &Value) -> Result<()> {
         self.config = Some(cfg.clone());
         Ok(())
     }
 
+    /// Check whether the `Runtime` has a `Repository`
     pub fn has_repository(&self) -> bool {
         self.repository.is_some()
     }
 
+    /// Check whether the `Runtime` has a configuration
     pub fn has_config(&self) -> bool {
         self.config.is_some()
     }
 
+    /// Get the the config value by reference or get an `Err()` which can be returned to the callee
+    /// of the Hook.
+    ///
+    /// The `action` Argument is required in case of `Err()` so the error message can be build
+    /// correctly.
     pub fn config_value_or_err(&self, action: &StoreAction) -> HookResult<&Value> {
         self.config
             .as_ref()
@@ -61,6 +77,11 @@ impl Runtime {
             })
     }
 
+    /// Get the `Repository` object from the `Runtime` or an `Err()` that can be returned to the
+    /// callee of the Hook.
+    ///
+    /// The `action` Argument is required in case of `Err()` so the error message can be build
+    /// correctly.
     pub fn repository(&self, action: &StoreAction) -> HookResult<&Repository> {
         use vcs::git::error::MapIntoHookError;
 
@@ -74,6 +95,7 @@ impl Runtime {
             .map_dbg(|_| format!("[GIT {} HOOK]: Repository object fetched", action.uppercase()))
     }
 
+    /// Ensure that the branch that is put in the configuration file is checked out, if any.
     pub fn ensure_cfg_branch_is_checked_out(&self, action: &StoreAction) -> HookResult<()> {
         use vcs::git::config::ensure_branch;
 
