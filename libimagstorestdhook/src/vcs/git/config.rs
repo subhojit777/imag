@@ -10,6 +10,7 @@ use vcs::git::action::StoreAction;
 
 use git2::Repository;
 
+/// Check the configuration whether we should commit interactively
 pub fn commit_interactive(config: &Value) -> bool {
     match config.lookup("commit.interactive") {
         Some(&Value::Boolean(b)) => b,
@@ -27,6 +28,7 @@ pub fn commit_interactive(config: &Value) -> bool {
     }
 }
 
+/// Check the configuration whether we should commit with the editor
 fn commit_with_editor(config: &Value) -> bool {
     match config.lookup("commit.interactive_editor") {
         Some(&Value::Boolean(b)) => b,
@@ -44,6 +46,7 @@ fn commit_with_editor(config: &Value) -> bool {
     }
 }
 
+/// Get the commit default message
 fn commit_default_msg<'a>(config: &'a Value) -> &'a str {
     match config.lookup("commit.message") {
         Some(&Value::String(ref b)) => b,
@@ -61,10 +64,18 @@ fn commit_default_msg<'a>(config: &'a Value) -> &'a str {
     }
 }
 
+/// Get the commit template
+///
+/// TODO: Implement good template string
 fn commit_template() -> &'static str {
     "Commit template"
 }
 
+/// Generate a commit message
+///
+/// Uses the functions `commit_interactive()` and `commit_with_editor()`
+/// or reads one from the commandline or uses the `commit_default_msg()` string to create a commit
+/// message.
 pub fn commit_message(repo: &Repository, config: &Value, action: StoreAction) -> Result<String> {
     use libimaginteraction::ask::ask_string;
     use libimagutil::edit::edit_in_tmpfile_with_command;
@@ -90,10 +101,15 @@ pub fn commit_message(repo: &Repository, config: &Value, action: StoreAction) ->
     }
 }
 
+/// Check whether the hook should abort if the repository cannot be initialized
 pub fn abort_on_repo_init_err(cfg: Option<&Value>) -> bool {
     get_bool_cfg(cfg, "abort_on_repo_init_failure", true, true)
 }
 
+/// Get the branch which must be checked out before running the hook (if any).
+///
+/// If there is no configuration for this, this is `Ok(None)`, otherwise we try to find the
+/// configuration `String`.
 pub fn ensure_branch(cfg: Option<&Value>) -> Result<Option<String>> {
     match cfg {
         Some(cfg) => {
@@ -114,10 +130,12 @@ pub fn ensure_branch(cfg: Option<&Value>) -> Result<Option<String>> {
     }
 }
 
+/// Check whether we should check out a branch before committing.
 pub fn do_checkout_ensure_branch(cfg: Option<&Value>) -> bool {
     get_bool_cfg(cfg, "try_checkout_ensure_branch", true, true)
 }
 
+/// Helper to get a boolean value from the configuration.
 fn get_bool_cfg(cfg: Option<&Value>, name: &str, on_fail: bool, on_unavail: bool) -> bool {
     cfg.map(|cfg| {
         match cfg.lookup(name) {

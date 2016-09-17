@@ -18,6 +18,14 @@ use vcs::git::error::GitHookErrorKind as GHEK;
 use vcs::git::error::MapErrInto;
 use vcs::git::runtime::Runtime as GRuntime;
 
+/// The `UpdateHook` type
+///
+/// Represents a hook which is executed whenever a entry in the store is updated (written to disk).
+///
+/// # Time of execution
+///
+/// This hook is executed _after_ the store operation succeeded, so _after_ the file is written to
+/// disk.
 pub struct UpdateHook {
     storepath: PathBuf,
 
@@ -54,6 +62,12 @@ impl Hook for UpdateHook {
         "stdhook_git_update"
     }
 
+    /// Set the configuration of the hook. See
+    /// `libimagstorestdhook::vcs::git::runtime::Runtime::set_config()`.
+    ///
+    /// This function traces the error (using `trace_error()`) that
+    /// `libimagstorestdhook::vcs::git::runtime::Runtime::set_config()`
+    /// returns, if any.
     fn set_config(&mut self, config: &Value) {
         if let Err(e) = self.runtime.set_config(config) {
             trace_error(&e);
