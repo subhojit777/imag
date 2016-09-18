@@ -92,40 +92,40 @@ impl Runtime {
     pub fn ensure_cfg_branch_is_checked_out(&self, action: &StoreAction) -> HookResult<()> {
         use vcs::git::config::ensure_branch;
 
-        debug!("[GIT CREATE HOOK]: Ensuring branch checkout");
+        debug!("[GIT {} HOOK]: Ensuring branch checkout", action.uppercase());
         let head = try!(self
                         .repository(action)
                         .and_then(|r| {
-                            debug!("Repository fetched, getting head");
+                            debug!("[GIT {} HOOK]: Repository fetched, getting head", action.uppercase());
                             r.head()
                                 .map_dbg_err_str("Couldn't fetch HEAD")
                                 .map_dbg_err(|e| format!("\tbecause = {:?}", e))
                                 .map_err_into(GHEK::HeadFetchError)
                                 .map_err(|e| e.into())
                         }));
-        debug!("HEAD fetched");
+        debug!("[GIT {} HOOK]: HEAD fetched", action.uppercase());
 
         // TODO: Fail if not on branch? hmmh... I'm not sure
         if !head.is_branch() {
-            debug!("HEAD is not a branch");
+            debug!("[GIT {} HOOK]: HEAD is not a branch", action.uppercase());
             return Err(GHEK::NotOnBranch.into_error().into());
         }
-        debug!("HEAD is a branch");
+        debug!("[GIT {} HOOK]: HEAD is a branch", action.uppercase());
 
         // Check out appropriate branch ... or fail
         match ensure_branch(self.config.as_ref()) {
             Ok(Some(s)) => {
-                debug!("We have to ensure branch: {}", s);
+                debug!("[GIT {} HOOK]: We have to ensure branch: {}", action.uppercase(), s);
                 match head.name().map(|name| {
-                    debug!("{} == {}", name, s);
+                    debug!("[GIT {} HOOK]: {} == {}", action.uppercase(), name, s);
                     name == s
                 }) {
                     Some(b) => {
                         if b {
-                            debug!("Branch already checked out.");
+                            debug!("[GIT {} HOOK]: Branch already checked out.", action.uppercase());
                             Ok(())
                         } else {
-                            debug!("Branch not checked out.");
+                            debug!("[GIT {} HOOK]: Branch not checked out.", action.uppercase());
                             unimplemented!()
                         }
                     },
@@ -136,7 +136,7 @@ impl Runtime {
                 }
             },
             Ok(None) => {
-                debug!("No branch to checkout");
+                debug!("[GIT {} HOOK]: No branch to checkout", action.uppercase());
                 Ok(())
             },
 
