@@ -147,7 +147,7 @@ impl<'a> Runtime<'a> {
                 if let Err(e) = store.register_hook(position, &String::from(aspectname), hook) {
                     if e.err_type() == StoreErrorKind::HookRegisterError {
                         trace_error_dbg(&e);
-                        warn!("Registering debug hook with store failed");
+                        warn!("Registering git hook with store failed");
                     } else {
                         trace_error(&e);
                     };
