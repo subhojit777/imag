@@ -11,17 +11,18 @@ use vcs::git::action::StoreAction;
 use git2::Repository;
 
 /// Check the configuration whether we should commit interactively
-pub fn commit_interactive(config: &Value) -> bool {
+pub fn commit_interactive(config: &Value, action: &StoreAction) -> bool {
     match config.lookup("commit.interactive") {
         Some(&Value::Boolean(b)) => b,
         Some(_) => {
-            warn!("Configuration error, 'store.hooks.stdhook_git_update.commit.interactive' must be a Boolean.");
+            warn!("Configuration error, 'store.hooks.stdhook_git_{}.commit.interactive' must be a Boolean.",
+                  action);
             warn!("Defaulting to commit.interactive = false");
             false
         }
         None => {
             warn!("Unavailable configuration for");
-            warn!("\t'store.hooks.stdhook_git_update.commit.interactive'");
+            warn!("\t'store.hooks.stdhook_git_{}.commit.interactive'", action);
             warn!("Defaulting to false");
             false
         }
@@ -29,17 +30,18 @@ pub fn commit_interactive(config: &Value) -> bool {
 }
 
 /// Check the configuration whether we should commit with the editor
-fn commit_with_editor(config: &Value) -> bool {
+fn commit_with_editor(config: &Value, action: &StoreAction) -> bool {
     match config.lookup("commit.interactive_editor") {
         Some(&Value::Boolean(b)) => b,
         Some(_) => {
-            warn!("Configuration error, 'store.hooks.stdhook_git_update.commit.interactive_editor' must be a Boolean.");
+            warn!("Configuration error, 'store.hooks.stdhook_git_{}.commit.interactive_editor' must be a Boolean.",
+                  action);
             warn!("Defaulting to commit.interactive_editor = false");
             false
         }
         None => {
             warn!("Unavailable configuration for");
-            warn!("\t'store.hooks.stdhook_git_update.commit.interactive_editor'");
+            warn!("\t'store.hooks.stdhook_git_{}.commit.interactive_editor'", action);
             warn!("Defaulting to false");
             false
         }
@@ -47,19 +49,20 @@ fn commit_with_editor(config: &Value) -> bool {
 }
 
 /// Get the commit default message
-fn commit_default_msg<'a>(config: &'a Value) -> &'a str {
+fn commit_default_msg<'a>(config: &'a Value, action: &'a StoreAction) -> &'a str {
     match config.lookup("commit.message") {
         Some(&Value::String(ref b)) => b,
         Some(_) => {
-            warn!("Configuration error, 'store.hooks.stdhook_git_update.commit.message' must be a String.");
-            warn!("Defaulting to commit.message = 'Update'");
-            "Update"
+            warn!("Configuration error, 'store.hooks.stdhook_git_{}.commit.message' must be a String.",
+                  action);
+            warn!("Defaulting to commit.message = '{}'", action.as_commit_message());
+            action.as_commit_message()
         }
         None => {
             warn!("Unavailable configuration for");
-            warn!("\t'store.hooks.stdhook_git_update.commit.message'");
-            warn!("Defaulting to commit.message = 'Update'");
-            "Update"
+            warn!("\t'store.hooks.stdhook_git_{}.commit.message'", action);
+            warn!("Defaulting to commit.message = '{}'", action.as_commit_message());
+            action.as_commit_message()
         }
     }
 }
@@ -81,8 +84,8 @@ pub fn commit_message(repo: &Repository, config: &Value, action: StoreAction) ->
     use libimagutil::edit::edit_in_tmpfile_with_command;
     use std::process::Command;
 
-    if commit_interactive(config) {
-        if commit_with_editor(config) {
+    if commit_interactive(config, &action) {
+        if commit_with_editor(config, &action) {
             repo.config()
                 .map_err_into(GHEK::GitConfigFetchError)
                 .and_then(|c| c.get_string("core.editor").map_err_into(GHEK::GitConfigEditorFetchError))
@@ -97,7 +100,7 @@ pub fn commit_message(repo: &Repository, config: &Value, action: StoreAction) ->
             Ok(ask_string("Commit Message", None, false, false, None, "> "))
         }
     } else {
-        Ok(String::from(commit_default_msg(config)))
+        Ok(String::from(commit_default_msg(config, &action)))
     }
 }
 

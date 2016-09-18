@@ -19,6 +19,15 @@ impl StoreAction {
             StoreAction::Delete   => "DELETE",
         }
     }
+
+    pub fn as_commit_message(&self) -> &str {
+        match *self {
+            StoreAction::Create   => "Create",
+            StoreAction::Retrieve => "Retrieve",
+            StoreAction::Update   => "Update",
+            StoreAction::Delete   => "Delete",
+        }
+    }
 }
 
 impl Display for StoreAction {
