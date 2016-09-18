@@ -121,6 +121,7 @@ impl StoreIdAccessor for UpdateHook {
             }
         }
 
+        let _         = try!(self.runtime.ensure_cfg_branch_is_checked_out(&action));
         let cfg       = try!(self.runtime.config_value_or_err(&action));
         let repo      = try!(self.runtime.repository(&action));
         let mut index = try!(fetch_index(repo, &action));
