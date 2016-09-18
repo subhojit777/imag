@@ -168,7 +168,7 @@ impl StoreIdAccessor for DeleteHook {
                 .map_into_hook_error()
         );
 
-        let message = try!(commit_message(&repo, cfg, action)
+        let message = try!(commit_message(&repo, cfg, action, &id)
                 .map_dbg_err_str("Failed to get commit message")
                 .map_dbg_str("[GIT DELETE HOOK]: Got commit message"));
 
