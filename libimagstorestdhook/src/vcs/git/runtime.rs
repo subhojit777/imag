@@ -91,6 +91,11 @@ impl Runtime {
     /// Ensure that the branch that is put in the configuration file is checked out, if any.
     pub fn ensure_cfg_branch_is_checked_out(&self, action: &StoreAction) -> HookResult<()> {
         use vcs::git::config::ensure_branch;
+        use vcs::git::config::do_checkout_ensure_branch;
+
+        if !do_checkout_ensure_branch(self.config.as_ref()) {
+            return Ok(())
+        }
 
         debug!("[GIT {} HOOK]: Ensuring branch checkout", action.uppercase());
         let head = try!(self
