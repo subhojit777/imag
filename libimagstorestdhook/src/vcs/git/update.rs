@@ -117,6 +117,7 @@ impl StoreIdAccessor for UpdateHook {
             repo.signature()
                 .map_err_into(GHEK::MkSignature)
                 .map_dbg_err_str("Failed to fetch signature")
+                .map_dbg_str("[GIT UPDATE HOOK]: Fetched signature object")
                 .map_into_hook_error()
         );
 
@@ -124,6 +125,7 @@ impl StoreIdAccessor for UpdateHook {
             repo.head()
                 .map_err_into(GHEK::HeadFetchError)
                 .map_dbg_err_str("Failed to fetch HEAD")
+                .map_dbg_str("[GIT UPDATE HOOK]: Fetched HEAD")
                 .map_into_hook_error()
         );
 
@@ -132,6 +134,7 @@ impl StoreIdAccessor for UpdateHook {
                 .status_file(id.local())
                 .map_dbg_err_str("Failed to fetch file status")
                 .map_dbg_err(|e| format!("\t->  {:?}", e))
+                .map_dbg_str("[GIT UPDATE HOOK]: Fetched file status")
                 .map_err_into(GHEK::RepositoryFileStatusError)
                 .map_into_hook_error()
         );
@@ -150,6 +153,7 @@ impl StoreIdAccessor for UpdateHook {
             index.add_all(&[id.local()], ADD_DEFAULT, Some(cb as &mut IndexMatchedPath))
                 .map_err_into(GHEK::RepositoryPathAddingError)
                 .map_dbg_err_str("Failed to add to index")
+                .map_dbg(|_| format!("[GIT UPDATE HOOK]: Added id ({:?}) to index", id))
                 .map_into_hook_error()
         );
 
@@ -157,6 +161,7 @@ impl StoreIdAccessor for UpdateHook {
             index.write_tree()
                 .map_err_into(GHEK::RepositoryIndexWritingError)
                 .map_dbg_err_str("Failed to write tree")
+                .map_dbg_str("[GIT UPDATE HOOK]: Wrote tree")
                 .map_into_hook_error()
         );
 
@@ -166,6 +171,7 @@ impl StoreIdAccessor for UpdateHook {
                 repo.find_commit(head.target().unwrap())
                     .map_err_into(GHEK::RepositoryParentFetchingError)
                     .map_dbg_err_str("Failed to find commit HEAD")
+                    .map_dbg_str("[GIT UPDATE HOOK]: Fetched commit parents of HEAD")
                     .map_into_hook_error()
             );
             parents.push(commit);
@@ -178,11 +184,13 @@ impl StoreIdAccessor for UpdateHook {
             repo.find_tree(tree_id)
                 .map_err_into(GHEK::RepositoryParentFetchingError)
                 .map_dbg_err_str("Failed to find tree")
+                .map_dbg_str("[GIT UPDATE HOOK]: Found Tree for parents")
                 .map_into_hook_error()
         );
 
         let message = try!(commit_message(&repo, cfg, StoreAction::Update)
-                .map_dbg_err_str("Failed to get commit message"));
+                .map_dbg_err_str("Failed to get commit message")
+                .map_dbg_str("[GIT UPDATE HOOK]: Fetched commit message"));
 
         try!(repo.commit(Some("HEAD"), &signature, &signature, &message, &tree, &parents)
             .map_dbg_str("Committed")
