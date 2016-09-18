@@ -64,7 +64,7 @@ impl Runtime {
             .map_err_into(GHEK::ConfigError)
             .map_err(Box::new)
             .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e))
-            .map_err(|mut e| e.with_custom_data(CustomData::default().aborting(false)))
+            .map_err(|e| e.with_custom_data(CustomData::default().aborting(false)))
             .map_dbg_err(|_| {
                 format!("[GIT {} HOOK]: Couldn't get Value object from config", action.uppercase())
             })
