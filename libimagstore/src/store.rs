@@ -2277,7 +2277,6 @@ mod store_tests {
 
 #[cfg(test)]
 mod store_hook_tests {
-    use super::store_tests::get_store;
 
     mod succeeding_hook {
         use hook::Hook;
@@ -2375,6 +2374,58 @@ mod store_hook_tests {
 
         }
 
+    }
+
+    use std::path::PathBuf;
+
+    use hook::position::HookPosition as HP;
+    use storeid::StoreId;
+    use store::Store;
+
+    use self::succeeding_hook::SucceedingHook;
+
+    fn get_store_with_config() -> Store {
+        use toml::Parser;
+
+        let cfg = Parser::new(mini_config()).parse().unwrap();
+        println!("Config parsed: {:?}", cfg);
+        Store::new(PathBuf::from("/"), Some(cfg.get("store").cloned().unwrap())).unwrap()
+    }
+
+    fn mini_config() -> &'static str {
+        r#"
+[store]
+store-unload-hook-aspects  = [ "test" ]
+pre-create-hook-aspects    = [ "test" ]
+post-create-hook-aspects   = [ "test" ]
+pre-move-hook-aspects      = [ "test" ]
+post-move-hook-aspects     = [ "test" ]
+pre-retrieve-hook-aspects  = [ "test" ]
+post-retrieve-hook-aspects = [ "test" ]
+pre-update-hook-aspects    = [ "test" ]
+post-update-hook-aspects   = [ "test" ]
+pre-delete-hook-aspects    = [ "test" ]
+post-delete-hook-aspects   = [ "test" ]
+
+[store.aspects.test]
+parallel = false
+mutable_hooks = true
+
+[store.hooks.testhook_succeeding]
+aspect = "test"
+        "#
+    }
+
+    #[test]
+    fn test_pre_create() {
+        let mut store = get_store_with_config();
+        let pos       = HP::PreCreate;
+        let hook      = SucceedingHook::new(pos.clone());
+
+        assert!(store.register_hook(pos, "test", Box::new(hook)).map_err(|e| println!("{:?}", e)).is_ok());
+
+        let pb = StoreId::new_baseless(PathBuf::from("test")).unwrap();
+        assert!(store.create(pb.clone()).is_ok());
     }
 
 }
