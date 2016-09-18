@@ -493,10 +493,7 @@ impl Store {
 
     /// Return the `FileLockEntry` and write to disk
     pub fn update<'a>(&'a self, mut entry: FileLockEntry<'a>) -> Result<()> {
-        if let Err(e) = self._update(&mut entry) {
-            return Err(e).map_err_into(SEK::UpdateCallError);
-        }
-        Ok(())
+        self._update(&mut entry).map_err_into(SEK::UpdateCallError)
     }
 
     /// Internal method to write to the filesystem store.
