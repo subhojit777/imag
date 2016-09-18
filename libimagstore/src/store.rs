@@ -493,10 +493,7 @@ impl Store {
 
     /// Return the `FileLockEntry` and write to disk
     pub fn update<'a>(&'a self, mut entry: FileLockEntry<'a>) -> Result<()> {
-        if let Err(e) = self._update(&mut entry) {
-            return Err(e).map_err_into(SEK::UpdateCallError);
-        }
-        Ok(())
+        self._update(&mut entry).map_err_into(SEK::UpdateCallError)
     }
 
     /// Internal method to write to the filesystem store.
@@ -505,12 +502,11 @@ impl Store {
     /// This method assumes that entry is dropped _right after_ the call, hence
     /// it is not public.
     fn _update<'a>(&'a self, entry: &mut FileLockEntry<'a>) -> Result<()> {
-        if let Err(e) = self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), entry) {
-            return Err(e)
-                .map_err_into(SEK::PreHookExecuteError)
-                .map_err_into(SEK::HookExecutionError)
-                .map_err_into(SEK::UpdateCallError);
-        }
+        let _ = try!(self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), entry)
+            .map_err_into(SEK::PreHookExecuteError)
+            .map_err_into(SEK::HookExecutionError)
+            .map_err_into(SEK::UpdateCallError)
+        );
 
         let mut hsmap = match self.entries.write() {
             Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
