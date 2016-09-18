@@ -4,7 +4,7 @@ use git2::{Index, Repository};
 use toml::Value;
 
 use libimagerror::into::IntoError;
-use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagerror::trace::MapErrTrace;
 use libimagstore::hook::error::CustomData;
 use libimagstore::hook::error::HookErrorKind as HEK;
 use libimagstore::hook::result::HookResult;
