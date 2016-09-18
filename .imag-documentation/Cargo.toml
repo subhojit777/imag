@@ -26,9 +26,6 @@ path = "../libimagentrylist"
 [dependencies.libimagentrymarkdown]
 path = "../libimagentrymarkdown"
 
-[dependencies.libimagentryselect]
-path = "../libimagentryselect"
-
 [dependencies.libimagentrytag]
 path = "../libimagentrytag"
 
