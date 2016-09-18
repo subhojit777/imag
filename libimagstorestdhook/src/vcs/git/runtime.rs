@@ -4,7 +4,7 @@ use git2::{Index, Repository};
 use toml::Value;
 
 use libimagerror::into::IntoError;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::{MapErrTrace, trace_error};
 use libimagstore::hook::error::CustomData;
 use libimagstore::hook::error::HookErrorKind as HEK;
 use libimagstore::hook::result::HookResult;
@@ -31,14 +31,7 @@ impl Runtime {
     /// returns a `Runtime` object that does _not_ contain a `Repository`.
     pub fn new(storepath: &PathBuf) -> Runtime {
         Runtime {
-            repository: match Repository::open(storepath) {
-                Ok(r) => Some(r),
-                Err(e) => {
-                    trace_error(&e);
-                    None
-                },
-            },
-
+            repository: Repository::open(storepath).map_err_trace().ok(),
             config: None,
         }
     }
