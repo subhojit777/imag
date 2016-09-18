@@ -14,7 +14,7 @@ LIBS=$(shell find -maxdepth 1 -name "libimag*" -type d)
 BIN_TARGETS=$(patsubst imag-%,,$(BINS))
 BIN_TARGET_TESTS=$(foreach x,$(BIN_TARGETS),$(x)-test)
 LIB_TARGETS=$(LIBS)
-LIB_TARGETS_TEST=$(foreach x,$(subst ./,,$(LIBS)),test-$(x))
+LIB_TARGETS_TEST=$(foreach x,$(subst ./,,$(LIBS)),$(x)-test)
 TARGETS=$(BIN_TARGETS) $(LIB_TARGETS)
 RELEASE_TARGETS=$(foreach x,$(TARGETS),$(x)-release)
 INSTALL_TARGETS=$(foreach x,$(BIN_TARGETS),$(x)-install)
@@ -82,7 +82,7 @@ $(RELEASE_TARGETS): %: .FORCE
 
 $(LIB_TARGETS_TEST): %: .FORCE
 	@$(ECHO) "\t[TEST   ]:\t$@"
-	@$(CARGO) test --manifest-path ./$(subst test-,,$@)/Cargo.toml
+	@$(CARGO) test --manifest-path ./$(subst -test,,$@)/Cargo.toml
 
 $(INSTALL_TARGETS): %: .FORCE imag-bin-install
 	@$(ECHO) "\t[INSTALL]:\t$(subst -install,,$@)"
