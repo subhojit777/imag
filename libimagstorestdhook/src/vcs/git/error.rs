@@ -9,35 +9,27 @@ generate_error_module!(
         ConfigError => "Configuration Error",
         NoConfigError => "No Configuration",
         ConfigTypeError => "Configuration value type wrong",
-        RuntimeInformationSetupError => "Couldn't setup runtime information for git hook",
-        RepositoryBackendError            => "Error in the git library",
+
         RepositoryError                   => "Error while interacting with git repository",
+        RepositoryBackendError            => "Error in the git library",
         RepositoryBranchError             => "Error while interacting with git branch(es)",
         RepositoryBranchNameFetchingError => "Error while fetching branch name",
-        RepositorySignatureFetchingError  => "Error while fetching Authors/Committers signature",
         RepositoryIndexFetchingError      => "Error while fetching Repository Index",
         RepositoryIndexWritingError       => "Error while writing Repository Index",
         RepositoryPathAddingError         => "Error while adding Path to Index",
-        RepositoryTreeWritingError        => "Error while writing repository tree",
-        RepositoryTreeFindingError        => "Error while finding repository tree",
-        RepositoryCommitFindingError      => "Error while finding commit",
         RepositoryCommittingError         => "Error while committing",
-        RepositoryHeadFetchingError       => "Error while fetching HEAD",
-        RepositoryHeadTargetFetchingError => "Error while fetching target of HEAD",
         RepositoryParentFetchingError     => "Error while fetching parent of commit",
+
         HeadFetchError                    => "Error while getting HEAD",
         NotOnBranch                       => "No Branch is checked out",
-        MkRepo => "Repository creation error",
-        MkSignature => "Error while building Signature object",
-        StoreIdHandlingError => "Error handling the store id object",
-        StoreIdStripError => "Couldn't strip prefix from StoreID object",
+        MkRepo                            => "Repository creation error",
+        MkSignature                       => "Error while building Signature object",
 
-        RepositoryFileStatusError => "Error while getting file status",
+        RepositoryFileStatusError         => "Error while getting file status",
 
-        GitConfigFetchError => "Error fetching git config",
-        GitConfigEditorFetchError => "Error fetching 'editor' from git config",
-        CommitEditorInstantiationError => "Error when trying to instantiate commit editor",
-        EditorError => "Error while calling editor"
+        GitConfigFetchError               => "Error fetching git config",
+        GitConfigEditorFetchError         => "Error fetching 'editor' from git config",
+        EditorError                       => "Error while calling editor"
     );
 );
 
