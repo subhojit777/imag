@@ -74,7 +74,9 @@ $(TARGETS): %: .FORCE
 
 $(BIN_TARGET_TESTS): %-test: % .FORCE
 	@$(ECHO) "\t[BINTEST]:\t$@"
-	find $(subst -test,,$@) -name "tests" -type d -exec $(MAKE) -j 1 -C {} \;
+	if [[ -f $(subst -test,,$@)/tests/Makefile ]]; then \
+		$(MAKE) -C $(subst -test,,$@)/tests || exit 1;\
+	fi;
 
 $(RELEASE_TARGETS): %: .FORCE
 	@$(ECHO) "\t[RELEASE]:\t$(subst -release,,$@)"
