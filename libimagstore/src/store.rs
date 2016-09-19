@@ -2284,5 +2284,17 @@ mod store_tests {
             }
         }
     }
+
+    #[test]
+    fn test_delete_none() {
+        let store = get_store();
+
+        for n in 1..100 {
+            match store.delete(PathBuf::from(format!("test-{}", n))) {
+                Err(_) => assert!(true),
+                _      => assert!(false),
+            }
+        }
+    }
 }
 
