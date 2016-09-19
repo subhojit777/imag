@@ -15,6 +15,7 @@ generate_error_module!(
         RepositoryBackendError            => "Error in the git library",
         RepositoryBranchError             => "Error while interacting with git branch(es)",
         RepositoryBranchNameFetchingError => "Error while fetching branch name",
+        RepositoryWrongBranchError        => "Error because repository is on wrong branch",
         RepositoryIndexFetchingError      => "Error while fetching Repository Index",
         RepositoryIndexWritingError       => "Error while writing Repository Index",
         RepositoryPathAddingError         => "Error while adding Path to Index",
