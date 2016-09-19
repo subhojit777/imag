@@ -115,8 +115,8 @@ pub fn commit_message(repo: &Repository, config: &Value, action: StoreAction, id
 }
 
 /// Check whether the hook should abort if the repository cannot be initialized
-pub fn abort_on_repo_init_err(cfg: Option<&Value>) -> bool {
-    get_bool_cfg(cfg, "abort_on_repo_init_failure", true, true)
+pub fn abort_on_repo_init_err(cfg: &Value) -> bool {
+    get_bool_cfg(Some(cfg), "abort_on_repo_init_failure", true, true)
 }
 
 /// Get the branch which must be checked out before running the hook (if any).

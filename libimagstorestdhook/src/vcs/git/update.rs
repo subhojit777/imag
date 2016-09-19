@@ -93,15 +93,35 @@ impl StoreIdAccessor for UpdateHook {
     /// if there is no configuration for an interactive commit.
     ///
     fn access(&self, id: &StoreId) -> HookResult<()> {
+        use libimagerror::into::IntoError;
         use vcs::git::action::StoreAction;
         use vcs::git::config::commit_message;
         use vcs::git::error::MapIntoHookError;
         use vcs::git::util::fetch_index;
+        use vcs::git::config::abort_on_repo_init_err;
         use git2::{ADD_DEFAULT, STATUS_WT_NEW, STATUS_WT_MODIFIED, IndexMatchedPath};
 
         debug!("[GIT UPDATE HOOK]: {:?}", id);
 
-        let action    = StoreAction::Update;
+        let action = StoreAction::Update;
+
+        if !self.runtime.has_repository() {
+            debug!("[GIT UPDATE HOOK]: Runtime has no repository...");
+            if try!(self.runtime.config_value_or_err(&action).map(|c| abort_on_repo_init_err(c))) {
+                // Abort on repo init failure
+                debug!("[GIT UPDATE HOOK]: Config says we should abort if we have no repository");
+                debug!("[GIT UPDATE HOOK]: Returing Err(_)");
+                return Err(GHEK::RepositoryInitError.into_error())
+                    .map_err_into(GHEK::RepositoryError)
+                    .map_into_hook_error()
+            } else {
+                debug!("[GIT UPDATE HOOK]: Config says it is okay to not have a repository");
+                debug!("[GIT UPDATE HOOK]: Returing Ok(())");
+                return Ok(())
+            }
+        }
+
+        let _         = try!(self.runtime.ensure_cfg_branch_is_checked_out(&action));
         let cfg       = try!(self.runtime.config_value_or_err(&action));
         let repo      = try!(self.runtime.repository(&action));
         let mut index = try!(fetch_index(repo, &action));

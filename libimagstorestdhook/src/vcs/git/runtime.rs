@@ -4,7 +4,7 @@ use git2::{Index, Repository};
 use toml::Value;
 
 use libimagerror::into::IntoError;
-use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagerror::trace::MapErrTrace;
 use libimagstore::hook::error::CustomData;
 use libimagstore::hook::error::HookErrorKind as HEK;
 use libimagstore::hook::result::HookResult;
@@ -64,7 +64,7 @@ impl Runtime {
             .map_err_into(GHEK::ConfigError)
             .map_err(Box::new)
             .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e))
-            .map_err(|mut e| e.with_custom_data(CustomData::default().aborting(false)))
+            .map_err(|e| e.with_custom_data(CustomData::default().aborting(false)))
             .map_dbg_err(|_| {
                 format!("[GIT {} HOOK]: Couldn't get Value object from config", action.uppercase())
             })
@@ -91,42 +91,50 @@ impl Runtime {
     /// Ensure that the branch that is put in the configuration file is checked out, if any.
     pub fn ensure_cfg_branch_is_checked_out(&self, action: &StoreAction) -> HookResult<()> {
         use vcs::git::config::ensure_branch;
+        use vcs::git::config::do_checkout_ensure_branch;
 
-        debug!("[GIT CREATE HOOK]: Ensuring branch checkout");
+        debug!("[GIT {} HOOK]: Ensuring branch checkout", action.uppercase());
         let head = try!(self
                         .repository(action)
                         .and_then(|r| {
-                            debug!("Repository fetched, getting head");
+                            debug!("[GIT {} HOOK]: Repository fetched, getting head", action.uppercase());
                             r.head()
                                 .map_dbg_err_str("Couldn't fetch HEAD")
                                 .map_dbg_err(|e| format!("\tbecause = {:?}", e))
                                 .map_err_into(GHEK::HeadFetchError)
                                 .map_err(|e| e.into())
                         }));
-        debug!("HEAD fetched");
+        debug!("[GIT {} HOOK]: HEAD fetched", action.uppercase());
 
         // TODO: Fail if not on branch? hmmh... I'm not sure
         if !head.is_branch() {
-            debug!("HEAD is not a branch");
+            debug!("[GIT {} HOOK]: HEAD is not a branch", action.uppercase());
             return Err(GHEK::NotOnBranch.into_error().into());
         }
-        debug!("HEAD is a branch");
+        debug!("[GIT {} HOOK]: HEAD is a branch", action.uppercase());
 
         // Check out appropriate branch ... or fail
         match ensure_branch(self.config.as_ref()) {
             Ok(Some(s)) => {
-                debug!("We have to ensure branch: {}", s);
+                debug!("[GIT {} HOOK]: We have to ensure branch: {}", action.uppercase(), s);
                 match head.name().map(|name| {
-                    debug!("{} == {}", name, s);
+                    debug!("[GIT {} HOOK]: {} == {}", action.uppercase(), name, s);
                     name == s
                 }) {
                     Some(b) => {
                         if b {
-                            debug!("Branch already checked out.");
+                            debug!("[GIT {} HOOK]: Branch already checked out.", action.uppercase());
                             Ok(())
                         } else {
-                            debug!("Branch not checked out.");
-                            unimplemented!()
+                            debug!("[GIT {} HOOK]: Branch not checked out.", action.uppercase());
+
+                            if !do_checkout_ensure_branch(self.config.as_ref()) {
+                                Err(GHEK::RepositoryWrongBranchError.into_error())
+                                    .map_err_into(GHEK::RepositoryError)
+                            } else {
+                                // Else try to check out the branch...
+                                unimplemented!()
+                            }
                         }
                     },
 
@@ -136,7 +144,7 @@ impl Runtime {
                 }
             },
             Ok(None) => {
-                debug!("No branch to checkout");
+                debug!("[GIT {} HOOK]: No branch to checkout", action.uppercase());
                 Ok(())
             },
 
@@ -144,7 +152,7 @@ impl Runtime {
         }
         .map_err(Box::new)
         .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e))
-        .map_dbg_str("[GIT CREATE HOOK]: Branch checked out")
+        .map_dbg(|_| format!("[GIT {} HOOK]: Branch checked out", action.uppercase()))
     }
 
     /// Check whether the WD is "dirty" - whether there is a diff to the repository
