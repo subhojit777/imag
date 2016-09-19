@@ -13,7 +13,6 @@ extern crate libimagstore;
 extern crate libimagerror;
 extern crate libimagtodo;
 
-use std::process::exit;
 use std::process::{Command, Stdio};
 use std::io::stdin;
 
@@ -22,7 +21,7 @@ use toml::Value;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagtodo::task::Task;
-use libimagerror::trace::trace_error;
+use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
 
 mod ui;
 
@@ -51,18 +50,13 @@ fn tw_hook(rt: &Runtime) {
 
         match Task::import(rt.store(), stdin) {
             Ok((_, line, uuid)) => println!("{}\nTask {} stored in imag", line, uuid),
-            Err(e) => {
-                trace_error(&e);
-                exit(1);
-            }
+            Err(e) => trace_error_exit(&e, 1),
         }
     } else if subcmd.is_present("delete") {
         // The used hook is "on-modify". This hook gives two json-objects
         // per usage und wants one (the second one) back.
         let stdin         = stdin();
-        Task::delete_by_imports(rt.store(), stdin.lock())
-            .map_err(|e| trace_error(&e))
-            .ok();
+        Task::delete_by_imports(rt.store(), stdin.lock()).map_err_trace().ok();
     } else {
         // Should not be possible, as one argument is required via
         // ArgGroup
@@ -120,8 +114,6 @@ fn list(rt: &Runtime) {
             println!("{}", outstring);
         });
 
-    if let Err(e) = res {
-        trace_error(&e);
-    }
+    res.map_err_trace().ok();
 }
 

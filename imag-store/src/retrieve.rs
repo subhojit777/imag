@@ -6,7 +6,8 @@ use toml::Value;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagrt::runtime::Runtime;
-use libimagerror::trace::{trace_error, trace_error_exit};
+use libimagerror::trace::MapErrTrace;
+use libimagutil::debug_result::*;
 
 pub fn retrieve(rt: &Runtime) {
     rt.cli()
@@ -16,18 +17,16 @@ pub fn retrieve(rt: &Runtime) {
                 .map(|id| {
                     let path = PathBuf::from(id);
                     let path = try!(StoreId::new(Some(rt.store().path().clone()), path)
-                                    .map_err(|e| trace_error_exit(&e, 1)));
+                                    .map_err_trace_exit(1));
                     debug!("path = {:?}", path);
 
                     rt.store()
                         // "id" must be present, enforced via clap spec
                         .retrieve(path)
                         .map(|e| print_entry(rt, scmd, e))
-                        .map_err(|e| {
-                            debug!("No entry.");
-                            debug!("{}:", e);
-                            trace_error(&e);
-                        })
+                        .map_dbg_str("No entry")
+                        .map_dbg(|e| format!("{:?}", e))
+                        .map_err_trace()
                 })
         });
 }
