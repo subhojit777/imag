@@ -1,5 +1,9 @@
 use toml::Value;
 
+use libimagerror::into::IntoError;
+
+use store::Result;
+
 /// Check whether the configuration is valid for the store
 ///
 /// The passed `Value` _must be_ the `[store]` sub-tree of the configuration. Otherwise this will
@@ -42,32 +46,42 @@ use toml::Value;
 /// You have been warned!
 ///
 ///
-pub fn config_is_valid(config: &Option<Value>) -> bool {
+pub fn config_is_valid(config: &Option<Value>) -> Result<()> {
     use std::collections::BTreeMap;
-    use std::io::Write;
-    use std::io::stderr;
+    use error::StoreErrorKind as SEK;
 
     if config.is_none() {
-        return true;
+        return Ok(());
     }
 
-    fn has_key_with_string_ary(v: &BTreeMap<String, Value>, key: &str) -> bool {
+    /// Check whether the config has a key with a string array.
+    /// The `key` is the key which is checked
+    /// The `kind` is the error kind which is used as `cause` if there is an error, so we can
+    /// indicate via error type which key is missing
+    fn has_key_with_string_ary(v: &BTreeMap<String, Value>, key: &str,
+                               kind: SEK) -> Result<()> {
         v.get(key)
-            .map_or_else(|| {
-                write!(stderr(), "Required key '{}' is not in store config", key).ok();
-                false
-            }, |t| match *t {
-                    Value::Array(ref a) => a.iter().all(|elem| {
-                        match *elem {
-                            Value::String(_) => true,
-                            _ => false,
-                        }
-                    }),
-                    _ => {
-                        write!(stderr(), "Key '{}' in store config should contain an array", key)
-                            .ok();
-                        false
-                    }
+            .ok_or_else(|| {
+                warn!("Required key '{}' is not in store config", key);
+                SEK::ConfigKeyMissingError.into_error_with_cause(Box::new(kind.into_error()))
+            })
+            .and_then(|t| match *t {
+                Value::Array(ref a) => {
+                    a.iter().fold(Ok(()), |acc, elem| {
+                        acc.and_then(|_| {
+                            if is_match!(*elem, Value::String(_)) {
+                                Ok(())
+                            } else {
+                                let cause = Box::new(kind.into_error());
+                                Err(SEK::ConfigTypeError.into_error_with_cause(cause))
+                            }
+                        })
+                    })
+                },
+                _ => {
+                    warn!("Key '{}' in store config should contain an array", key);
+                    Err(SEK::ConfigTypeError.into_error_with_cause(Box::new(kind.into_error())))
+                }
             })
     }
 
@@ -82,59 +96,64 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
                                              section: &str,
                                              key: &str,
                                              f: F)
-        -> bool
+        -> Result<()>
         where F: Fn(&Value) -> bool
     {
         store_config.get(section) // The store config has the section `section`
-            .map_or_else(|| {
-                write!(stderr(), "Store config expects section '{}' to be present, but isn't.",
-                        section).ok();
-                false
-            }, |section_table| {
-                match *section_table { // which is
-                    Value::Table(ref section_table) => // a table
-                        section_table
-                            .iter() // which has values,
-                            .all(|(inner_key, cfg)| { // and all of these values
-                                match *cfg {
-                                    Value::Table(ref hook_config) => { // are tables
-                                        hook_config.get(key) // with a key
-                                            // fullfilling this constraint
-                                            .map_or(false, |hook_aspect| f(&hook_aspect))
-                                    },
-                                    _ => {
-                                        write!(stderr(), "Store config expects '{}' to be in '{}.{}', but isn't.",
-                                                 key, section, inner_key).ok();
-                                        false
+            .ok_or_else(|| {
+                warn!("Store config expects section '{}' to be present, but isn't.", section);
+                SEK::ConfigKeyMissingError.into_error()
+            })
+            .and_then(|section_table| match *section_table { // which is
+                Value::Table(ref section_table) => // a table
+                    section_table.iter().fold(Ok(()), |acc, (inner_key, cfg)| {
+                        acc.and_then(|_| {
+                            match *cfg {
+                                Value::Table(ref hook_config) => { // are tables
+                                    // with a key
+                                    let hook_aspect_is_valid = try!(hook_config.get(key)
+                                        .map(|hook_aspect| f(&hook_aspect))
+                                        .ok_or(SEK::ConfigKeyMissingError.into_error())
+                                    );
+
+                                    if !hook_aspect_is_valid {
+                                        Err(SEK::ConfigTypeError.into_error())
+                                    } else {
+                                        Ok(())
                                     }
+                                },
+                                _ => {
+                                    warn!("Store config expects '{}' to be in '{}.{}', but isn't.",
+                                             key, section, inner_key);
+                                    Err(SEK::ConfigKeyMissingError.into_error())
                                 }
-                            }),
-                    _ => {
-                        write!(stderr(), "Store config expects '{}' to be a Table, but isn't.",
-                               section).ok();
-                        false
-                    }
+                            }
+                        })
+                    }),
+                _ => {
+                    warn!("Store config expects '{}' to be a Table, but isn't.", section);
+                    Err(SEK::ConfigTypeError.into_error())
                 }
             })
     }
 
     match *config {
         Some(Value::Table(ref t)) => {
-            has_key_with_string_ary(t, "store-unload-hook-aspects")    &&
+            try!(has_key_with_string_ary(t, "store-unload-hook-aspects", SEK::ConfigKeyUnloadAspectsError));
 
-            has_key_with_string_ary(t, "pre-create-hook-aspects")      &&
-            has_key_with_string_ary(t, "post-create-hook-aspects")     &&
-            has_key_with_string_ary(t, "pre-retrieve-hook-aspects")    &&
-            has_key_with_string_ary(t, "post-retrieve-hook-aspects")   &&
-            has_key_with_string_ary(t, "pre-update-hook-aspects")      &&
-            has_key_with_string_ary(t, "post-update-hook-aspects")     &&
-            has_key_with_string_ary(t, "pre-delete-hook-aspects")      &&
-            has_key_with_string_ary(t, "post-delete-hook-aspects")     &&
+            try!(has_key_with_string_ary(t, "pre-create-hook-aspects", SEK::ConfigKeyPreCreateAspectsError));
+            try!(has_key_with_string_ary(t, "post-create-hook-aspects", SEK::ConfigKeyPostCreateAspectsError));
+            try!(has_key_with_string_ary(t, "pre-retrieve-hook-aspects", SEK::ConfigKeyPreRetrieveAspectsError));
+            try!(has_key_with_string_ary(t, "post-retrieve-hook-aspects", SEK::ConfigKeyPostRetrieveAspectsError));
+            try!(has_key_with_string_ary(t, "pre-update-hook-aspects", SEK::ConfigKeyPreUpdateAspectsError));
+            try!(has_key_with_string_ary(t, "post-update-hook-aspects", SEK::ConfigKeyPostUpdateAspectsError));
+            try!(has_key_with_string_ary(t, "pre-delete-hook-aspects", SEK::ConfigKeyPreDeleteAspectsError));
+            try!(has_key_with_string_ary(t, "post-delete-hook-aspects", SEK::ConfigKeyPostDeleteAspectsError));
 
             // The section "hooks" has maps which have a key "aspect" which has a value of type
             // String
-            check_all_inner_maps_have_key_with(t, "hooks", "aspect",
-                                               |asp| is_match!(asp, &Value::String(_))) &&
+            try!(check_all_inner_maps_have_key_with(t, "hooks", "aspect",
+                                                    |asp| is_match!(asp, &Value::String(_))));
 
             // The section "aspects" has maps which have a key "parllel" which has a value of type
             // Boolean
@@ -142,8 +161,8 @@ pub fn config_is_valid(config: &Option<Value>) -> bool {
                                                |asp| is_match!(asp, &Value::Boolean(_)))
         }
         _ => {
-            write!(stderr(), "Store config is no table").ok();
-            false
+            warn!("Store config is no table");
+            Err(SEK::ConfigTypeError.into_error())
         },
     }
 }

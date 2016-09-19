@@ -213,9 +213,7 @@ impl Store {
         use configuration::*;
 
         debug!("Validating Store configuration");
-        if !config_is_valid(&store_config) {
-            return Err(SE::new(SEK::ConfigurationError, None));
-        }
+        let _ = try!(config_is_valid(&store_config).map_err_into(SEK::ConfigurationError));
 
         debug!("Building new Store object");
         if !location.exists() {
@@ -2158,7 +2156,7 @@ mod store_tests {
 
     use super::Store;
 
-    fn get_store() -> Store {
+    pub fn get_store() -> Store {
         Store::new(PathBuf::from("/"), None).unwrap()
     }
 
@@ -2349,6 +2347,161 @@ mod store_tests {
     //     test(&store, "boo");
     //     test(&store, "glu");
     // }
+
+}
+
+#[cfg(test)]
+mod store_hook_tests {
+
+    mod succeeding_hook {
+        use hook::Hook;
+        use hook::accessor::HookDataAccessor;
+        use hook::accessor::HookDataAccessorProvider;
+        use hook::position::HookPosition;
+
+        use self::accessor::SucceedingHookAccessor as DHA;
+
+        use toml::Value;
+
+        #[derive(Debug)]
+        pub struct SucceedingHook {
+            position: HookPosition,
+            accessor: DHA,
+        }
+
+        impl SucceedingHook {
+
+            pub fn new(pos: HookPosition) -> SucceedingHook {
+                SucceedingHook { position: pos.clone(), accessor: DHA::new(pos) }
+            }
+
+        }
+
+        impl Hook for SucceedingHook {
+            fn name(&self) -> &'static str { "testhook_succeeding" }
+            fn set_config(&mut self, _: &Value) { }
+        }
+
+        impl HookDataAccessorProvider for SucceedingHook {
+
+            fn accessor(&self) -> HookDataAccessor {
+                use hook::position::HookPosition as HP;
+                use hook::accessor::HookDataAccessor as HDA;
+
+                match self.position {
+                    HP::StoreUnload  |
+                    HP::PreCreate    |
+                    HP::PreRetrieve  |
+                    HP::PreDelete    |
+                    HP::PostDelete   => HDA::StoreIdAccess(&self.accessor),
+                    HP::PostCreate   |
+                    HP::PostRetrieve |
+                    HP::PreUpdate    |
+                    HP::PostUpdate   => HDA::MutableAccess(&self.accessor),
+                }
+            }
+
+        }
+
+        pub mod accessor {
+            use hook::result::HookResult;
+            use hook::accessor::MutableHookDataAccessor;
+            use hook::accessor::NonMutableHookDataAccessor;
+            use hook::accessor::StoreIdAccessor;
+            use hook::position::HookPosition;
+            use store::FileLockEntry;
+            use storeid::StoreId;
+
+            #[derive(Debug)]
+            pub struct SucceedingHookAccessor(HookPosition);
+
+            impl SucceedingHookAccessor {
+
+                pub fn new(position: HookPosition) -> SucceedingHookAccessor {
+                    SucceedingHookAccessor(position)
+                }
+
+            }
+
+            impl StoreIdAccessor for SucceedingHookAccessor {
+
+                fn access(&self, id: &StoreId) -> HookResult<()> {
+                    Ok(())
+                }
+
+            }
+
+            impl MutableHookDataAccessor for SucceedingHookAccessor {
+
+                fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
+                    Ok(())
+                }
+
+            }
+
+            impl NonMutableHookDataAccessor for SucceedingHookAccessor {
+
+                fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
+                    Ok(())
+                }
+
+            }
+
+        }
+
+    }
+
+    use std::path::PathBuf;
+
+    use hook::position::HookPosition as HP;
+    use storeid::StoreId;
+    use store::Store;
+
+    use self::succeeding_hook::SucceedingHook;
+
+    fn get_store_with_config() -> Store {
+        use toml::Parser;
+
+        let cfg = Parser::new(mini_config()).parse().unwrap();
+        println!("Config parsed: {:?}", cfg);
+        Store::new(PathBuf::from("/"), Some(cfg.get("store").cloned().unwrap())).unwrap()
+    }
+
+    fn mini_config() -> &'static str {
+        r#"
+[store]
+store-unload-hook-aspects  = [ "test" ]
+pre-create-hook-aspects    = [ "test" ]
+post-create-hook-aspects   = [ "test" ]
+pre-move-hook-aspects      = [ "test" ]
+post-move-hook-aspects     = [ "test" ]
+pre-retrieve-hook-aspects  = [ "test" ]
+post-retrieve-hook-aspects = [ "test" ]
+pre-update-hook-aspects    = [ "test" ]
+post-update-hook-aspects   = [ "test" ]
+pre-delete-hook-aspects    = [ "test" ]
+post-delete-hook-aspects   = [ "test" ]
+
+[store.aspects.test]
+parallel = false
+mutable_hooks = true
+
+[store.hooks.testhook_succeeding]
+aspect = "test"
+        "#
+    }
+
+    #[test]
+    fn test_pre_create() {
+        let mut store = get_store_with_config();
+        let pos       = HP::PreCreate;
+        let hook      = SucceedingHook::new(pos.clone());
+
+        assert!(store.register_hook(pos, "test", Box::new(hook)).map_err(|e| println!("{:?}", e)).is_ok());
+
+        let pb = StoreId::new_baseless(PathBuf::from("test")).unwrap();
+        assert!(store.create(pb.clone()).is_ok());
+    }
 
 }
 
