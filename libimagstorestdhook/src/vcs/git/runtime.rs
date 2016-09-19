@@ -93,10 +93,6 @@ impl Runtime {
         use vcs::git::config::ensure_branch;
         use vcs::git::config::do_checkout_ensure_branch;
 
-        if !do_checkout_ensure_branch(self.config.as_ref()) {
-            return Ok(())
-        }
-
         debug!("[GIT {} HOOK]: Ensuring branch checkout", action.uppercase());
         let head = try!(self
                         .repository(action)
@@ -131,7 +127,14 @@ impl Runtime {
                             Ok(())
                         } else {
                             debug!("[GIT {} HOOK]: Branch not checked out.", action.uppercase());
-                            unimplemented!()
+
+                            if !do_checkout_ensure_branch(self.config.as_ref()) {
+                                Err(GHEK::RepositoryWrongBranchError.into_error())
+                                    .map_err_into(GHEK::RepositoryError)
+                            } else {
+                                // Else try to check out the branch...
+                                unimplemented!()
+                            }
                         }
                     },
 
