@@ -32,7 +32,7 @@ script:
         done
     done
   else # $TEST_SUITE == "libraries"
-    make $(find . -maxdepth 1 -name "libimag*" -printf "test-%f ")
+    make $(find . -maxdepth 1 -name "libimag*" -printf "%f-test ")
   fi
 
 addons:
