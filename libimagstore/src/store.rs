@@ -573,9 +573,13 @@ impl Store {
             };
 
             // if the entry is currently modified by the user, we cannot drop it
-            if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
-                return Err(SE::new(SEK::IdLocked, None))
-                    .map_err_into(SEK::DeleteCallError);
+            match entries.get(&id) {
+                None => {
+                    return Err(SEK::FileNotFound.into_error()).map_err_into(SEK::DeleteCallError)
+                },
+                Some(e) => if e.is_borrowed() {
+                    return Err(SE::new(SEK::IdLocked, None)).map_err_into(SEK::DeleteCallError)
+                }
             }
 
             // remove the entry first, then the file
