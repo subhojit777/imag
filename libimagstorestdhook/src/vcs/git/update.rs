@@ -188,7 +188,7 @@ impl StoreIdAccessor for UpdateHook {
                 .map_into_hook_error()
         );
 
-        let message = try!(commit_message(&repo, cfg, StoreAction::Update)
+        let message = try!(commit_message(&repo, cfg, StoreAction::Update, &id)
                 .map_dbg_err_str("Failed to get commit message")
                 .map_dbg_str("[GIT UPDATE HOOK]: Fetched commit message"));
 

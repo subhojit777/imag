@@ -1,6 +1,7 @@
 use toml::Value;
 
 use libimagerror::into::IntoError;
+use libimagstore::storeid::StoreId;
 
 use vcs::git::error::GitHookErrorKind as GHEK;
 use vcs::git::error::MapErrInto;
@@ -70,8 +71,17 @@ fn commit_default_msg<'a>(config: &'a Value, action: &'a StoreAction) -> &'a str
 /// Get the commit template
 ///
 /// TODO: Implement good template string
-fn commit_template() -> &'static str {
-    "Commit template"
+fn commit_template(action: &StoreAction, id: &StoreId) -> String {
+    format!(r#"
+# Please commit your changes and remove these lines.
+#
+# You're about to commit changes via the {action} Hook
+#
+#   Altered file: {id}
+#
+    "#,
+    action = action,
+    id = id.local().display())
 }
 
 /// Generate a commit message
@@ -79,7 +89,7 @@ fn commit_template() -> &'static str {
 /// Uses the functions `commit_interactive()` and `commit_with_editor()`
 /// or reads one from the commandline or uses the `commit_default_msg()` string to create a commit
 /// message.
-pub fn commit_message(repo: &Repository, config: &Value, action: StoreAction) -> Result<String> {
+pub fn commit_message(repo: &Repository, config: &Value, action: StoreAction, id: &StoreId) -> Result<String> {
     use libimaginteraction::ask::ask_string;
     use libimagutil::edit::edit_in_tmpfile_with_command;
     use std::process::Command;
@@ -92,7 +102,7 @@ pub fn commit_message(repo: &Repository, config: &Value, action: StoreAction) ->
                 .map_err_into(GHEK::ConfigError)
                 .map(Command::new)
                 .and_then(|cmd| {
-                    let mut s = String::from(commit_template());
+                    let mut s = commit_template(&action, id);
                     edit_in_tmpfile_with_command(cmd, &mut s).map(|_| s)
                         .map_err_into(GHEK::EditorError)
                 })
