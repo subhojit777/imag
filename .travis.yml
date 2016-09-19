@@ -21,18 +21,9 @@ before_script:
 script:
 - |
   if [[ "$TEST_SUITE" == "binaries" ]]; then
-    make $(find . -maxdepth 1 -name "imag-*" -type d -printf "%f ") && \
-    for d in $(find -name "Cargo.toml" | grep -vE "^./Cargo.toml$"); do
-        dir=$(dirname $d)
-        echo "--- Running test scripts ---"
-        for testsh in $(find $dir -iname "*test.sh"); do
-          echo "--- Running test script: '$testsh'"
-          bash $testsh || { echo "--- Test failed. Exiting"; exit 1; }
-          echo "--- Test script $testsh executed successfully"
-        done
-    done
+    make bin-test
   else # $TEST_SUITE == "libraries"
-    make $(find . -maxdepth 1 -name "libimag*" -printf "%f-test ")
+    make lib-test
   fi
 
 addons:
