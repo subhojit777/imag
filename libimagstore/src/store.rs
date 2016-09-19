@@ -2300,5 +2300,55 @@ mod store_tests {
             }
         }
     }
+
+    // Disabled because we cannot test this by now, as we rely on glob() in
+    // Store::retieve_for_module(), which accesses the filesystem and tests run in-memory, so there
+    // are no files on the filesystem in this test after Store::create().
+    //
+    // #[test]
+    // fn test_retrieve_for_module() {
+    //     let pathes = vec![
+    //         "foo/1", "foo/2", "foo/3", "foo/4", "foo/5",
+    //         "bar/1", "bar/2", "bar/3", "bar/4", "bar/5",
+    //         "bla/1", "bla/2", "bla/3", "bla/4", "bla/5",
+    //         "boo/1", "boo/2", "boo/3", "boo/4", "boo/5",
+    //         "glu/1", "glu/2", "glu/3", "glu/4", "glu/5",
+    //     ];
+
+    //     fn test(store: &Store, modulename: &str) {
+    //         use std::path::Component;
+    //         use storeid::StoreId;
+
+    //         let retrieved = store.retrieve_for_module(modulename);
+    //         assert!(retrieved.is_ok());
+    //         let v : Vec<StoreId> = retrieved.unwrap().collect();
+    //         println!("v = {:?}", v);
+    //         assert!(v.len() == 5);
+
+    //         let retrieved = store.retrieve_for_module(modulename);
+    //         assert!(retrieved.is_ok());
+
+    //         assert!(retrieved.unwrap().all(|e| {
+    //             let first = e.components().next();
+    //             assert!(first.is_some());
+    //             match first.unwrap() {
+    //                 Component::Normal(s) => s == modulename,
+    //                 _                    => false,
+    //             }
+    //         }))
+    //     }
+
+    //     let store = get_store();
+    //     for path in pathes {
+    //         assert!(store.create(PathBuf::from(path)).is_ok());
+    //     }
+
+    //     test(&store, "foo");
+    //     test(&store, "bar");
+    //     test(&store, "bla");
+    //     test(&store, "boo");
+    //     test(&store, "glu");
+    // }
+
 }
 
