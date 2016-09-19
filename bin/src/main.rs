@@ -1,6 +1,11 @@
 extern crate crossbeam;
+extern crate clap;
 #[macro_use] extern crate version;
+#[macro_use] extern crate log;
 extern crate walkdir;
+
+extern crate libimagrt;
+extern crate libimagerror;
 
 use std::env;
 use std::process::exit;
@@ -10,11 +15,15 @@ use std::io::ErrorKind;
 
 use walkdir::WalkDir;
 use crossbeam::*;
+use clap::{Arg, AppSettings, SubCommand};
 
-const DBG_FLAG: &'static str = "--debug";
+use libimagrt::runtime::Runtime;
+use libimagerror::trace::trace_error;
 
-fn help(cmds: Vec<String>) {
-    println!(r#"
+/// Returns the helptext, putting the Strings in cmds as possible
+/// subcommands into it
+fn help_text(cmds: Vec<String>) -> String {
+    let text = format!(r#"
 
      _
     (_)_ __ ___   __ _  __ _
@@ -33,13 +42,8 @@ fn help(cmds: Vec<String>) {
     modules can be used independently.
 
     Available commands:
-    "#);
 
-    for cmd in cmds.iter() {
-        println!("\t{}", cmd);
-    }
-
-    println!(r#"
+    {imagbins}
 
     Call a command with 'imag <command> <args>'
     Each command can be called with "--help" to get the respective helptext.
@@ -49,9 +53,16 @@ fn help(cmds: Vec<String>) {
 
     imag is free software. It is released under the terms of LGPLv2.1
 
-    (c) 2016 Matthias Beyer and contributors"#);
+    (c) 2016 Matthias Beyer and contributors"#, imagbins = cmds.into_iter()
+        .map(|cmd| format!("\t{}\n", cmd))
+        .fold(String::new(), |s, c| {
+            let s = s + c.as_str();
+            s
+        }));
+    text
 }
 
+/// Returns the list of imag-* executables found in $PATH
 fn get_commands() -> Vec<String> {
     let path = env::var("PATH");
     if path.is_err() {
@@ -80,7 +91,7 @@ fn get_commands() -> Vec<String> {
                         .filter_map(|path| {
                            path.file_name()
                                .to_str()
-                               .and_then(|s| s.splitn(2, "-").nth(1).map(|s| format!("imag {}", s)))
+                               .and_then(|s| s.splitn(2, "-").nth(1).map(String::from))
                         })
                         .collect()
                 })
@@ -97,78 +108,94 @@ fn get_commands() -> Vec<String> {
     execs
 }
 
-fn find_command() -> Option<String> {
-    env::args().skip(1).filter(|x| !x.starts_with("-")).next()
-}
-
-fn find_flag() -> Option<String> {
-    env::args().skip(1).filter(|x| x.starts_with("-")).next()
-}
-
-fn is_debug_flag<T: AsRef<str>>(ref s: &T) -> bool {
-    s.as_ref() == DBG_FLAG
-}
-
-fn find_args(command: &str) -> Vec<String> {
-    env::args()
-        .skip(1)
-        .position(|e| e == command)
-        .map(|pos| env::args().skip(pos + 2).collect::<Vec<String>>())
-        .unwrap_or(vec![])
-}
 
 fn main() {
-    let commands  = get_commands();
-    let mut args  = env::args();
-    let _         = args.next();
-    let first_arg = match find_command() {
-        Some(s) => s,
-        None    => match find_flag() {
-            Some(s) => s,
-            None => {
-                help(commands);
-                exit(0);
-            },
-        },
-    };
-    let is_debug = env::args().skip(1).find(is_debug_flag).is_some();
+    // Initialize the Runtime and build the CLI
+    let appname  = "imag";
+    let version  = &version!();
+    let about    = "imag - the PIM suite for the commandline";
+    let commands = get_commands();
+    let helptext = help_text(commands.clone());
+    let app      = Runtime::get_default_cli_builder(appname, version, about)
+        .settings(&[AppSettings::AllowExternalSubcommands, AppSettings::ArgRequiredElseHelp])
+        .arg(Arg::with_name("version")
+             .long("version")
+             .takes_value(false)
+             .required(false)
+             .multiple(false)
+             .help("Get the version of imag"))
+        .arg(Arg::with_name("versions")
+             .long("versions")
+             .takes_value(false)
+             .required(false)
+             .multiple(false)
+             .help("Get the versions of the imag commands"))
+        .subcommand(SubCommand::with_name("help").help("Show help"))
+        .help(helptext.as_str());
+    let rt = Runtime::new(app)
+        .unwrap_or_else(|e| {
+            println!("Runtime couldn't be setup. Exiting");
+            trace_error(&e);
+            exit(1);
+        });
+    let matches = rt.cli();
 
-    match &first_arg[..] {
-        "--help" | "-h" => {
-            help(commands);
-            exit(0);
-        },
+    debug!("matches: {:?}", matches);
 
-        "--version"  => println!("imag {}", &version!()[..]),
+    // Begin checking for arguments
 
-        "--versions" => {
-            let mut result = vec![];
-            for command in commands.iter() {
-                result.push(crossbeam::scope(|scope| {
-                    scope.spawn(|| {
-                        let v = Command::new(command).arg("--version").output();
-                        match v {
-                            Ok(v) => match String::from_utf8(v.stdout) {
-                                Ok(s) => format!("{} -> {}", command, s),
-                                Err(e) => format!("Failed calling {} -> {:?}", command, e),
-                            },
+    if matches.is_present("version") {
+        debug!("Showing version");
+        println!("imag {}", &version!()[..]);
+        exit(0);
+    }
+
+    if matches.is_present("versions") {
+        debug!("Showing versions");
+        let mut result = vec![];
+        for command in commands.iter() {
+            result.push(crossbeam::scope(|scope| {
+                scope.spawn(|| {
+                    let v = Command::new(format!("imag-{}",command)).arg("--version").output();
+                    match v {
+                        Ok(v) => match String::from_utf8(v.stdout) {
+                            Ok(s) => format!("{:10} -> {}", command, s),
                             Err(e) => format!("Failed calling {} -> {:?}", command, e),
-                        }
-                    })
-                }))
-            }
+                        },
+                        Err(e) => format!("Failed calling {} -> {:?}", command, e),
+                    }
+                })
+            }))
+        }
 
-            for versionstring in result.into_iter().map(|handle| handle.join()) {
-                println!("{}", versionstring);
-            }
-        },
+        for versionstring in result.into_iter().map(|handle| handle.join()) {
+            // The amount of newlines may differ depending on the subprocess
+            println!("{}", versionstring.trim());
+        }
+    }
 
-        s => {
-            let mut subcommand_args = find_args(s);
-            if is_debug && subcommand_args.iter().find(is_debug_flag).is_none() {
-                subcommand_args.insert(0, String::from(DBG_FLAG));
+    // Matches any subcommand given
+    match matches.subcommand() {
+        (subcommand, Some(scmd)) => {
+            // Get all given arguments and further subcommands to pass to
+            // the imag-<> binary
+            // Providing no arguments is OK, and is therefore ignored here
+            let subcommand_args : Vec<&str> = match scmd.values_of("") {
+                Some(values) => values.collect(),
+                None => Vec::new()
+            };
+            
+            // Typos happen, so check if the given subcommand is one found in $PATH
+            if !commands.contains(&String::from(subcommand)) {
+                println!("No such command: 'imag-{}'", subcommand);
+                println!("See 'imag --help' for available subcommands");
+                exit(2);
             }
-            match Command::new(format!("imag-{}", s))
+    
+            debug!("Calling 'imag-{}' with args: {:?}", subcommand, subcommand_args);
+
+            // Create a Command, and pass it the gathered arguments
+            match Command::new(format!("imag-{}", subcommand))
                 .stdin(Stdio::inherit())
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
@@ -178,29 +205,37 @@ fn main() {
             {
                 Ok(exit_status) => {
                     if !exit_status.success() {
-                        println!("{} exited with non-zero exit code", s);
-                        exit(exit_status.code().unwrap_or(42));
+                        debug!("{} exited with non-zero exit code: {:?}", subcommand, exit_status);
+                        println!("{} exited with non-zero exit code", subcommand);
+                        exit(exit_status.code().unwrap_or(1));
                     }
+                    debug!("Successful exit!");
                 },
 
                 Err(e) => {
+                    debug!("Error calling the subcommand");
                     match e.kind() {
                         ErrorKind::NotFound => {
-                            println!("No such command: 'imag-{}'", s);
+                            // With the check above, this absolutely should not happen.
+                            // Keeping it to be safe
+                            println!("No such command: 'imag-{}'", subcommand);
+                            println!("See 'imag --help' for available subcommands");
                             exit(2);
                         },
                         ErrorKind::PermissionDenied => {
-                            println!("No permission to execute: 'imag-{}'", s);
+                            println!("No permission to execute: 'imag-{}'", subcommand);
                             exit(1);
                         },
                         _ => {
                             println!("Error spawning: {:?}", e);
-                            exit(1337);
+                            exit(1);
                         }
                     }
                 }
             }
-
         },
+        // Calling for example 'imag --versions' will lead here, as this option does not exit.
+        // There's nothing to do in such a case
+        _ => {},
     }
 }

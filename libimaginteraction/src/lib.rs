@@ -18,6 +18,7 @@ extern crate interactor;
 extern crate ansi_term;
 #[macro_use] extern crate lazy_static;
 extern crate regex;
+extern crate clap;
 
 extern crate libimagentryfilter;
 extern crate libimagstore;
@@ -28,4 +29,5 @@ pub mod ask;
 pub mod error;
 pub mod filter;
 pub mod result;
+pub mod ui;
 

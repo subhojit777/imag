@@ -8,6 +8,7 @@ extern crate libimagstore;
 extern crate libimagrt;
 extern crate libimagentrytag;
 extern crate libimagerror;
+extern crate libimagutil;
 
 use std::process::exit;
 use std::path::PathBuf;
@@ -19,6 +20,7 @@ use libimagentrytag::tag::Tag;
 use libimagerror::trace::{trace_error, trace_error_exit};
 use libimagentrytag::ui::{get_add_tags, get_remove_tags};
 use libimagstore::storeid::StoreId;
+use libimagutil::warn_exit::warn_exit;
 
 mod ui;
 
@@ -103,10 +105,7 @@ fn list(id: PathBuf, rt: &Runtime) {
 
     let entry = match rt.store().get(path.clone()) {
         Ok(Some(e)) => e,
-        Ok(None) => {
-            info!("No entry found.");
-            exit(1);
-        },
+        Ok(None) => warn_exit("No entry found.", 1),
 
         Err(e) => {
             warn!("Could not get entry '{:?}'", path);
