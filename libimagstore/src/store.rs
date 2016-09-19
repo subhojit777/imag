@@ -2273,5 +2273,16 @@ mod store_tests {
         }
     }
 
+    #[test]
+    fn test_get_none() {
+        let store = get_store();
+
+        for n in 1..100 {
+            match store.get(PathBuf::from(format!("test-{}", n))) {
+                Ok(None) => assert!(true),
+                _        => assert!(false),
+            }
+        }
+    }
 }
 
