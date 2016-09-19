@@ -152,7 +152,7 @@ impl Runtime {
         }
         .map_err(Box::new)
         .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e))
-        .map_dbg_str("[GIT CREATE HOOK]: Branch checked out")
+        .map_dbg(|_| format!("[GIT {} HOOK]: Branch checked out", action.uppercase()))
     }
 
     /// Check whether the WD is "dirty" - whether there is a diff to the repository
