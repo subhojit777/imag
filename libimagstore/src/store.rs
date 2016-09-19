@@ -213,9 +213,7 @@ impl Store {
         use configuration::*;
 
         debug!("Validating Store configuration");
-        if !config_is_valid(&store_config) {
-            return Err(SE::new(SEK::ConfigurationError, None));
-        }
+        let _ = try!(config_is_valid(&store_config).map_err_into(SEK::ConfigurationError));
 
         debug!("Building new Store object");
         if !location.exists() {

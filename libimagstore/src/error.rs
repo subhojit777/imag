@@ -6,6 +6,19 @@ pub struct CustomErrorData {}
 
 generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     ConfigurationError      => "Store Configuration Error",
+    ConfigTypeError         => "Store configuration type error",
+    ConfigKeyMissingError   => "Configuration Key missing",
+
+    ConfigKeyUnloadAspectsError       => "Config Key 'store-unload-hook-aspects' caused an error",
+    ConfigKeyPreCreateAspectsError    => "Config Key 'pre-create-hook-aspects' caused an error",
+    ConfigKeyPostCreateAspectsError   => "Config Key 'post-create-hook-aspects' caused an error",
+    ConfigKeyPreRetrieveAspectsError  => "Config Key 'pre-retrieve-hook-aspect' caused an error",
+    ConfigKeyPostRetrieveAspectsError => "Config Key 'post-retrieve-hook-aspec' caused an error",
+    ConfigKeyPreUpdateAspectsError    => "Config Key 'pre-update-hook-aspects' caused an error",
+    ConfigKeyPostUpdateAspectsError   => "Config Key 'post-update-hook-aspects' caused an error",
+    ConfigKeyPreDeleteAspectsError    => "Config Key 'pre-delete-hook-aspects' caused an error",
+    ConfigKeyPostDeleteAspectsError   => "Config Key 'post-delete-hook-aspects' caused an error",
+
     CreateStoreDirDenied    => "Creating store directory implicitely denied",
     FileError               => "File Error",
     IoError                 => "IO Error",
