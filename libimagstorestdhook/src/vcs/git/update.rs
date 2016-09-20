@@ -99,11 +99,17 @@ impl StoreIdAccessor for UpdateHook {
         use vcs::git::error::MapIntoHookError;
         use vcs::git::util::fetch_index;
         use vcs::git::config::abort_on_repo_init_err;
+        use vcs::git::config::is_enabled;
         use git2::{ADD_DEFAULT, STATUS_WT_NEW, STATUS_WT_MODIFIED, IndexMatchedPath};
 
         debug!("[GIT UPDATE HOOK]: {:?}", id);
 
         let action = StoreAction::Update;
+        let cfg    = try!(self.runtime.config_value_or_err(&action));
+
+        if !is_enabled(cfg) {
+            return Ok(());
+        }
 
         if !self.runtime.has_repository() {
             debug!("[GIT UPDATE HOOK]: Runtime has no repository...");
@@ -122,7 +128,6 @@ impl StoreIdAccessor for UpdateHook {
         }
 
         let _         = try!(self.runtime.ensure_cfg_branch_is_checked_out(&action));
-        let cfg       = try!(self.runtime.config_value_or_err(&action));
         let repo      = try!(self.runtime.repository(&action));
         let mut index = try!(fetch_index(repo, &action));
 
