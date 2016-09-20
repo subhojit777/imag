@@ -17,12 +17,16 @@
 #[macro_use] extern crate log;
 extern crate toml;
 extern crate fs2;
+extern crate git2;
 
 extern crate libimagstore;
 extern crate libimagentrylink;
+extern crate libimaginteraction;
 #[macro_use] extern crate libimagerror;
+extern crate libimagutil;
 
 pub mod debug;
 pub mod flock;
 pub mod linkverify;
+pub mod vcs;
 
