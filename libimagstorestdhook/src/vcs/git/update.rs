@@ -126,13 +126,6 @@ impl StoreIdAccessor for UpdateHook {
         let repo      = try!(self.runtime.repository(&action));
         let mut index = try!(fetch_index(repo, &action));
 
-        if !self.runtime.repo_is_dirty(&index) {
-            debug!("[GIT UPDATE HOOK]: Repository seems to be clean. I'm done.");
-            return Ok(())
-        } else {
-            debug!("[GIT UPDATE HOOK]: Repository seems to be dirty. Continuing.");
-        }
-
         let signature = try!(
             repo.signature()
                 .map_err_into(GHEK::MkSignature)
