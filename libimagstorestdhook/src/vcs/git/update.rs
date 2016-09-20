@@ -129,6 +129,26 @@ impl StoreIdAccessor for UpdateHook {
 
         let _         = try!(self.runtime.ensure_cfg_branch_is_checked_out(&action));
         let repo      = try!(self.runtime.repository(&action));
+
+        let file_status = try!(
+            repo
+                .status_file(id.local())
+                .map_dbg_err_str("Failed to fetch file status")
+                .map_dbg_err(|e| format!("\t->  {:?}", e))
+                .map_dbg_str("[GIT UPDATE HOOK]: Fetched file status")
+                .map_err_into(GHEK::RepositoryFileStatusError)
+                .map_into_hook_error()
+        );
+
+        debug!("File status: STATUS_WT_NEW      = {}", file_status.contains(STATUS_WT_NEW));
+        debug!("File status: STATUS_WT_MODIFIED = {}", file_status.contains(STATUS_WT_MODIFIED));
+
+        if !file_status.contains(STATUS_WT_NEW) && !file_status.contains(STATUS_WT_MODIFIED) {
+            // File seems to be unmodified and not new. This means that the file is already
+            // committed and we can return here.
+            return Ok(())
+        }
+
         let mut index = try!(fetch_index(repo, &action));
 
         let signature = try!(
@@ -144,16 +164,6 @@ impl StoreIdAccessor for UpdateHook {
                 .map_err_into(GHEK::HeadFetchError)
                 .map_dbg_err_str("Failed to fetch HEAD")
                 .map_dbg_str("[GIT UPDATE HOOK]: Fetched HEAD")
-                .map_into_hook_error()
-        );
-
-        let file_status = try!(
-            repo
-                .status_file(id.local())
-                .map_dbg_err_str("Failed to fetch file status")
-                .map_dbg_err(|e| format!("\t->  {:?}", e))
-                .map_dbg_str("[GIT UPDATE HOOK]: Fetched file status")
-                .map_err_into(GHEK::RepositoryFileStatusError)
                 .map_into_hook_error()
         );
 
