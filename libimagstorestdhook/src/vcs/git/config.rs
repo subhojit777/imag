@@ -167,3 +167,9 @@ fn get_bool_cfg(cfg: Option<&Value>, name: &str, on_fail: bool, on_unavail: bool
     .unwrap_or(on_unavail)
 }
 
+/// Check whether the hook is enabled or not. If the config is not there, the hook is _enabled_ by
+/// default.
+pub fn is_enabled(cfg: &Value) -> bool {
+    get_bool_cfg(Some(cfg), "enabled", true, true)
+}
+
