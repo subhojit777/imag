@@ -2196,28 +2196,38 @@ mod store_tests {
     }
 
     #[test]
-    fn test_store_create_delete_get() {
+    fn test_store_get_create_get_delete_get() {
         let store = get_store();
+
+        for n in 1..100 {
+            let res = store.get(PathBuf::from(format!("test-{}", n)));
+            assert!(match res { Ok(None) => true, _ => false, })
+        }
 
         for n in 1..100 {
             let s = format!("test-{}", n);
             let entry = store.create(PathBuf::from(s.clone())).unwrap();
+
             assert!(entry.verify().is_ok());
+
             let loc = entry.get_location().clone().into_pathbuf().unwrap();
+
             assert!(loc.starts_with("/"));
             assert!(loc.ends_with(s));
         }
 
         for n in 1..100 {
-            if n % 2 == 0 { continue; }
-            let s = format!("test-{}", n);
-            assert!(store.delete(PathBuf::from(s)).is_ok())
+            let res = store.get(PathBuf::from(format!("test-{}", n)));
+            assert!(match res { Ok(Some(_)) => true, _ => false, })
         }
 
         for n in 1..100 {
-            if n % 2 != 0 { continue; }
-            let s = format!("test-{}", n);
-            assert!(store.get(PathBuf::from(s)).is_ok())
+            assert!(store.delete(PathBuf::from(format!("test-{}", n))).is_ok())
+        }
+
+        for n in 1..100 {
+            let res = store.get(PathBuf::from(format!("test-{}", n)));
+            assert!(match res { Ok(None) => true, _ => false, })
         }
     }
 
