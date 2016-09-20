@@ -105,6 +105,7 @@ impl StoreIdAccessor for DeleteHook {
         use vcs::git::util::fetch_index;
         use vcs::git::config::abort_on_repo_init_err;
         use vcs::git::config::is_enabled;
+        use vcs::git::config::committing_is_enabled;
         use git2::{ADD_DEFAULT, STATUS_WT_DELETED, IndexMatchedPath};
 
         debug!("[GIT DELETE HOOK]: {:?}", id);
@@ -188,6 +189,11 @@ impl StoreIdAccessor for DeleteHook {
                 .map_dbg_str("[GIT DELETE HOOK]: Wrote index tree")
                 .map_into_hook_error()
         );
+
+        if !try!(committing_is_enabled(cfg)) {
+            debug!("Committing not enabled. This is fine, returning now...");
+            return Ok(())
+        }
 
         let mut parents = Vec::new();
         {
