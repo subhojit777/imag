@@ -23,6 +23,7 @@ pub mod delete;
 mod error;
 mod result;
 mod runtime;
+pub mod store_unload;
 pub mod update;
 pub mod util;
 
