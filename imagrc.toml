@@ -41,6 +41,9 @@ aspect = "debug"
 [store.hooks.stdhook_git_update]
 aspect = "vcs"
 
+# set to false to disable
+enabled = true
+
 # Fail if the repository cannot be opened. If this is set to `false`, the error
 # will be printed, but will not abort the store operation. `true` will print the
 # error and abort the store action.
@@ -68,6 +71,9 @@ message = "Update"
 
 [store.hooks.stdhook_git_delete]
 aspect = "vcs"
+
+# set to false to disable
+enabled = true
 
 # Fail if the repository cannot be opened. If this is set to `false`, the error
 # will be printed, but will not abort the store operation. `true` will print the
