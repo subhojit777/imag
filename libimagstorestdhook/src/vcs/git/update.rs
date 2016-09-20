@@ -157,6 +157,9 @@ impl StoreIdAccessor for UpdateHook {
                 .map_into_hook_error()
         );
 
+        debug!("File status: STATUS_WT_NEW      = {}", file_status.contains(STATUS_WT_NEW));
+        debug!("File status: STATUS_WT_MODIFIED = {}", file_status.contains(STATUS_WT_MODIFIED));
+
         let cb = &mut |path: &Path, _matched_spec: &[u8]| -> i32 {
             if file_status.contains(STATUS_WT_NEW) || file_status.contains(STATUS_WT_MODIFIED) {
                 debug!("[GIT CREATE HOOK]: File is modified/new: {}", path.display());
