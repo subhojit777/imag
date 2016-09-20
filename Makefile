@@ -4,14 +4,17 @@ bin = $@/target/debug/$@
 doc-crate-toml=./.imag-documentation/Cargo.toml
 
 ECHO=$(shell which echo) -e
+MAKE=$(shell which make)
+BASH=$(shell which bash)
 CARGO=$(shell which cargo)
 
 BINS=$(shell find -maxdepth 1 -name "imag-*" -type d)
 LIBS=$(shell find -maxdepth 1 -name "libimag*" -type d)
 
 BIN_TARGETS=$(patsubst imag-%,,$(BINS))
+BIN_TARGET_TESTS=$(foreach x,$(BIN_TARGETS),$(x)-test)
 LIB_TARGETS=$(LIBS)
-LIB_TARGETS_TEST=$(foreach x,$(subst ./,,$(LIBS)),test-$(x))
+LIB_TARGETS_TEST=$(foreach x,$(subst ./,,$(LIBS)),$(x)-test)
 TARGETS=$(BIN_TARGETS) $(LIB_TARGETS)
 RELEASE_TARGETS=$(foreach x,$(TARGETS),$(x)-release)
 INSTALL_TARGETS=$(foreach x,$(BIN_TARGETS),$(x)-install)
@@ -47,10 +50,14 @@ release: $(RELEASE_TARGETS) imag-bin-release
 bin: $(BIN_TARGETS) imag-bin
 	@$(ECHO) "\t[ALLBIN ]"
 
+bin-test: $(BIN_TARGET_TESTS)
+
 lib: $(LIB_TARGETS)
 	@$(ECHO) "\t[ALLLIB ]"
 
 lib-test: $(LIB_TARGETS_TEST)
+
+test: bin-test lib-test
 
 install: $(INSTALL_TARGETS)
 	@$(ECHO) "\t[INSTALL]"
@@ -65,13 +72,19 @@ $(TARGETS): %: .FORCE
 	@$(ECHO) "\t[CARGO  ]:\t$@"
 	@$(CARGO) build --manifest-path ./$@/Cargo.toml
 
+$(BIN_TARGET_TESTS): %-test: % .FORCE
+	@$(ECHO) "\t[BINTEST]:\t$@"
+	if [[ -f $(subst -test,,$@)/tests/Makefile ]]; then \
+		$(MAKE) -C $(subst -test,,$@)/tests || exit 1;\
+	fi;
+
 $(RELEASE_TARGETS): %: .FORCE
 	@$(ECHO) "\t[RELEASE]:\t$(subst -release,,$@)"
 	@$(CARGO) build --release --manifest-path ./$(subst -release,,$@)/Cargo.toml
 
 $(LIB_TARGETS_TEST): %: .FORCE
 	@$(ECHO) "\t[TEST   ]:\t$@"
-	@$(CARGO) test --manifest-path ./$(subst test-,,$@)/Cargo.toml
+	@$(CARGO) test --manifest-path ./$(subst -test,,$@)/Cargo.toml
 
 $(INSTALL_TARGETS): %: .FORCE imag-bin-install
 	@$(ECHO) "\t[INSTALL]:\t$(subst -install,,$@)"
