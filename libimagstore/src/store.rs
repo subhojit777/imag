@@ -459,11 +459,20 @@ impl Store {
     ///
     /// This executes the {pre,post}_retrieve_aspects hooks.
     pub fn get<'a, S: IntoStoreId + Clone>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>> {
-        let id_copy = try!(id.clone().into_storeid()).with_base(self.path().clone());
-        if !id_copy.exists() {
-            debug!("Does not exist: {:?}", id_copy);
+        let id = try!(id.into_storeid()).with_base(self.path().clone());
+
+        let exists = try!(self.entries
+            .read()
+            .map(|map| map.contains_key(&id))
+            .map_err(|_| SE::new(SEK::LockPoisoned, None))
+            .map_err_into(SEK::GetCallError)
+        );
+
+        if !exists && !id.exists() {
+            debug!("Does not exist in internal cache or filesystem: {:?}", id);
             return Ok(None);
         }
+
         self.retrieve(id).map(Some).map_err_into(SEK::GetCallError)
     }
 
