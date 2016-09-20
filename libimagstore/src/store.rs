@@ -2582,16 +2582,80 @@ aspect = "test"
         "#
     }
 
-    #[test]
-    fn test_pre_create() {
+    fn test_hook_execution(hook_positions: &[HP]) {
         let mut store = get_store_with_config();
         let pos       = HP::PreCreate;
         let hook      = TestHook::new(pos.clone(), true, false);
 
-        assert!(store.register_hook(pos, "test", Box::new(hook)).map_err(|e| println!("{:?}", e)).is_ok());
+        println!("Registering hooks...");
+        for pos in hook_positions {
+            let hook = TestHook::new(pos.clone(), true, false);
+            println!("\tRegistering: {:?}", pos);
+            assert!(store.register_hook(pos.clone(), "test", Box::new(hook))
+                    .map_err(|e| println!("{:?}", e))
+                    .is_ok()
+            );
+        }
+        println!("... done.");
 
-        let pb = StoreId::new_baseless(PathBuf::from("test")).unwrap();
+        let pb       = StoreId::new_baseless(PathBuf::from("test")).unwrap();
+        let pb_moved = StoreId::new_baseless(PathBuf::from("test-moved")).unwrap();
+
+        println!("Creating {:?}", pb);
         assert!(store.create(pb.clone()).is_ok());
+
+        {
+            println!("Getting {:?} -> Some?", pb);
+            assert!(match store.get(pb.clone()) {
+                Ok(Some(_)) => true,
+                _           => false,
+            });
+        }
+
+        {
+            println!("Getting {:?} -> None?", pb_moved);
+            assert!(match store.get(pb_moved.clone()) {
+                Ok(None) => true,
+                _        => false,
+            });
+        }
+
+        {
+            println!("Moving {:?} -> {:?}", pb, pb_moved);
+            assert!(store.move_by_id(pb.clone(), pb_moved.clone()).is_ok());
+        }
+
+        {
+            println!("Getting {:?} -> None", pb);
+            assert!(match store.get(pb.clone()) {
+                Ok(None) => true,
+                _        => false,
+            });
+        }
+
+        {
+            println!("Getting {:?} -> Some", pb_moved);
+            assert!(match store.get(pb_moved.clone()) {
+                Ok(Some(_)) => true,
+                _           => false,
+            });
+        }
+
+        {
+            println!("Getting {:?} -> Some -> updating", pb_moved);
+            assert!(match store.get(pb_moved.clone()).map_err(|e| println!("ERROR GETTING: {:?}", e)) {
+                Ok(Some(fle)) => store.update(fle).map_err(|e| println!("ERROR UPDATING: {:?}", e)).is_ok(),
+                _             => false,
+            });
+        }
+
+        println!("Deleting {:?}", pb_moved);
+        assert!(store.delete(pb_moved).is_ok());
+    }
+
+    #[test]
+    fn test_pre_create() {
+        test_hook_execution(&[HP::PreCreate]);
     }
 
 }
