@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use git2::{Index, Repository};
+use git2::Repository;
 use toml::Value;
 
 use libimagerror::into::IntoError;
@@ -153,26 +153,6 @@ impl Runtime {
         .map_err(Box::new)
         .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e))
         .map_dbg(|_| format!("[GIT {} HOOK]: Branch checked out", action.uppercase()))
-    }
-
-    /// Check whether the WD is "dirty" - whether there is a diff to the repository
-    /// This function returns false if there is no `Repository` object in the `Runtime`
-    pub fn repo_is_dirty(&self, index: &Index) -> bool {
-        match self.repository.as_ref() {
-            Some(repo) => {
-                repo.diff_index_to_workdir(Some(index), None)
-                    .map_dbg_str("Fetched diff: Index <-> WD")
-                    .map_dbg_err_str("Failed to fetch diff: Index <-> WD")
-                    .map(|diff| diff.deltas().count() != 0)
-                    .unwrap_or(false)
-            },
-
-            None => {
-                debug!("No repository: Cannot fetch diff: Index <-> WD");
-                false
-            }
-        }
-
     }
 
 }
