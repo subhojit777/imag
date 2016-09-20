@@ -159,13 +159,13 @@ fn get_bool_cfg(cfg: Option<&Value>, name: &str, on_fail: bool, on_unavail: bool
                 on_fail
             },
             None => {
-                debug!("No key '{}' - Assuming '{}'", name, on_unavail);
+                warn!("No key '{}' - Assuming '{}'", name, on_unavail);
                 on_unavail
             },
         }
     })
     .unwrap_or_else(|| {
-        debug!("No configuration to fetch {} from, assuming {}", name, on_unavail);
+        warn!("No configuration to fetch {} from, assuming {}", name, on_unavail);
         on_unavail
     })
 }
