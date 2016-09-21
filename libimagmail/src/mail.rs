@@ -79,8 +79,19 @@ impl<'a> Mail<'a> {
             .map(|buffer| Some(Mail(r, buffer)))
     }
 
-    pub fn get_field<S: AsRef<str>>(&self, field: S) -> Result<Option<&str>> {
-        unimplemented!()
+    pub fn get_field(&self, field: &str) -> Result<Option<String>> {
+        use mailparse::MailHeader;
+
+        self.1
+            .parsed()
+            .map_err_into(MEK::MailParsingError)
+            .map(|parsed| {
+                parsed.headers
+                    .iter()
+                    .filter(|hdr| hdr.get_key().map(|n| n == field).unwrap_or(false))
+                    .next()
+                    .and_then(|field| field.get_value().ok())
+            })
     }
 
     pub fn get_from(&self) -> Result<Option<&str>> {
