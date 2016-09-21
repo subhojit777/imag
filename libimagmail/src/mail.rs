@@ -94,24 +94,24 @@ impl<'a> Mail<'a> {
             })
     }
 
-    pub fn get_from(&self) -> Result<Option<&str>> {
-        unimplemented!()
+    pub fn get_from(&self) -> Result<Option<String>> {
+        self.get_field("From")
     }
 
-    pub fn get_to(&self) -> Result<Option<&str>> {
-        unimplemented!()
+    pub fn get_to(&self) -> Result<Option<String>> {
+        self.get_field("To")
     }
 
-    pub fn get_subject(&self) -> Result<Option<&str>> {
-        unimplemented!()
+    pub fn get_subject(&self) -> Result<Option<String>> {
+        self.get_field("Subject")
     }
 
-    pub fn get_message_id(&self) -> Result<Option<&str>> {
-        unimplemented!()
+    pub fn get_message_id(&self) -> Result<Option<String>> {
+        self.get_field("Message-ID")
     }
 
-    pub fn get_in_reply_to(&self) -> Result<Option<&str>> {
-        unimplemented!()
+    pub fn get_in_reply_to(&self) -> Result<Option<String>> {
+        self.get_field("In-Reply-To")
     }
 
 }
