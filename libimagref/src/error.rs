@@ -41,7 +41,9 @@ generate_error_module!(
         RefTargetPermissionError    => "Ref Target permissions insufficient for referencing",
         RefTargetCannotBeHashed     => "Ref Target cannot be hashed (is it a directory?)",
         RefTargetFileCannotBeOpened => "Ref Target File cannot be open()ed",
-        RefTargetCannotReadPermissions => "Ref Target: Cannot read permissions"
+        RefTargetCannotReadPermissions => "Ref Target: Cannot read permissions",
+
+        RefHashingError => "Error while hashing"
     );
 );
 
