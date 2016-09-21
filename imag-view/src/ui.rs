@@ -50,12 +50,11 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .value_name("BROWSER"))
 
                    .arg(Arg::with_name("view-in-texteditor")
-                        .long("editor")
+                        .long("in-editor")
                         .short("e")
-                        .takes_value(true) // optional, which editor
+                        .takes_value(false)
                         .required(false)
-                        .help("View content in $EDITOR")
-                        .value_name("EDITOR"))
+                        .help("View content in $EDITOR (can be passed via --editor)"))
 
                    .arg(Arg::with_name("view-in-custom")
                         .long("custom")
