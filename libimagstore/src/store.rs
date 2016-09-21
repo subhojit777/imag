@@ -2654,8 +2654,63 @@ aspect = "test"
     }
 
     #[test]
-    fn test_pre_create() {
+    fn test_storeunload() {
+        test_hook_execution(&[HP::StoreUnload]);
+    }
+
+    #[test]
+    fn test_precreate() {
         test_hook_execution(&[HP::PreCreate]);
+    }
+
+    #[test]
+    fn test_postcreate() {
+        test_hook_execution(&[HP::PostCreate]);
+    }
+
+    #[test]
+    fn test_preretrieve() {
+        test_hook_execution(&[HP::PreRetrieve]);
+    }
+
+    #[test]
+    fn test_postretrieve() {
+        test_hook_execution(&[HP::PostRetrieve]);
+    }
+
+    #[test]
+    fn test_preupdate() {
+        test_hook_execution(&[HP::PreUpdate]);
+    }
+
+    #[test]
+    fn test_postupdate() {
+        test_hook_execution(&[HP::PostUpdate]);
+    }
+
+    #[test]
+    fn test_predelete() {
+        test_hook_execution(&[HP::PreDelete]);
+    }
+
+    #[test]
+    fn test_postdelete() {
+        test_hook_execution(&[HP::PostDelete]);
+    }
+
+    #[test]
+    fn test_multiple_same_position() {
+        let positions = [ HP::StoreUnload, HP::PreCreate, HP::PostCreate, HP::PreRetrieve,
+            HP::PostRetrieve, HP::PreUpdate, HP::PostUpdate, HP::PreDelete, HP::PostDelete ];
+
+        for position in positions.iter() {
+            for n in 2..10 {
+                let mut v = Vec::with_capacity(n);
+                for x in 0..n { v.push(position.clone()); }
+
+                test_hook_execution(&v);
+            }
+        }
     }
 
 }
