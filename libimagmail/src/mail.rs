@@ -3,9 +3,27 @@ use std::path::Path;
 
 use libimagstore::store::{FileLockEntry, Store};
 
+use mailparse::{MailParseError, ParsedMail, parse_mail};
+
+use result::Result;
+
+struct Buffer(String);
+
+impl Buffer {
+    pub fn parsed<'a>(&'a self) -> RResult<ParsedMail<'a>, MailParseError> {
+        parse_mail(self.0.as_bytes())
+    }
+}
+
+impl From<String> for Buffer {
+    fn from(data: String) -> Buffer {
+        Buffer(data)
+    }
+}
+
 pub struct Mail<'a> {
     fle: FileLockEntry<'a>,
-    parsedmail: ParsedMail,
+    buffer: Buffer,
 }
 
 impl<'a> Mail<'a> {
