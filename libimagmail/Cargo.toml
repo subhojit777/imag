@@ -16,3 +16,6 @@ path = "../libimagstore"
 [dependencies.libimagerror]
 path = "../libimagerror"
 
+[dependencies.libimagref]
+path = "../libimagref"
+
