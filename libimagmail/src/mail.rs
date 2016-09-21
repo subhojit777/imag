@@ -43,7 +43,10 @@ impl<'a> Mail<'a> {
 
     /// Opens a mail by the passed hash
     pub fn open<S: AsRef<str>>(store: &Store, hash: S) -> Result<Option<Mail>> {
-        unimplemented!()
+        Ref::get_by_hash(store, String::from(hash.as_ref()))
+            .map(|opt| opt.map(|r| Mail(r)))
+            .map_err_into(MEK::FetchByHashError)
+            .map_err_into(MEK::FetchError)
     }
 
     pub fn get_field<S: AsRef<str>>(&self, field: S) -> Result<Option<&str>> {
