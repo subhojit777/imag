@@ -62,7 +62,8 @@ mod fs {
             };
         }
 
-        pub fn remove_file(_: &PathBuf) -> Result<(), SE> {
+        pub fn remove_file(path: &PathBuf) -> Result<(), SE> {
+            MAP.lock().unwrap().remove(path);
             Ok(())
         }
 
