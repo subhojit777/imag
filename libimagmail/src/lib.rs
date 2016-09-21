@@ -7,7 +7,8 @@ extern crate filters;
 #[macro_use] extern crate libimagerror;
 extern crate libimagstore;
 
-pub mod mail;
 pub mod error;
+pub mod hasher;
+pub mod mail;
 pub mod result;
 

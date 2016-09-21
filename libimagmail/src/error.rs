@@ -1,6 +1,7 @@
 generate_error_module!(
     generate_error_types!(MailError, MailErrorKind,
         RefCreationError => "Error creating a reference to a file/directory",
+        MailParsingError => "Error while parsing mail",
         IOError => "IO Error"
     );
 );
