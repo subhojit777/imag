@@ -39,3 +39,5 @@ pub mod is_in_diary;
 pub mod entry;
 pub mod iter;
 pub mod result;
+pub mod viewer;
+
