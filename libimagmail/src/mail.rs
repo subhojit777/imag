@@ -1,11 +1,16 @@
 use std::result::Result as RResult;
 use std::path::Path;
+use std::path::PathBuf;
 
 use libimagstore::store::{FileLockEntry, Store};
+use libimagref::reference::Ref;
+use libimagref::flags::RefFlags;
 
 use mailparse::{MailParseError, ParsedMail, parse_mail};
 
+use hasher::MailHasher;
 use result::Result;
+use error::{MapErrInto, MailErrorKind as MEK};
 
 struct Buffer(String);
 
@@ -21,16 +26,19 @@ impl From<String> for Buffer {
     }
 }
 
-pub struct Mail<'a> {
-    fle: FileLockEntry<'a>,
-    buffer: Buffer,
-}
+pub struct Mail<'a>(Ref<'a>);
 
 impl<'a> Mail<'a> {
 
     /// Imports a mail from the Path passed
     pub fn import_from_path<P: AsRef<Path>>(store: &Store, p: P) -> Result<Mail> {
-        unimplemented!()
+        let h = MailHasher::new();
+        let f = RefFlags::default().with_content_hashing(true).with_permission_tracking(false);
+        let p = PathBuf::from(p.as_ref());
+
+        Ref::create_with_hasher(store, p, f, h)
+            .map_err_into(MEK::RefCreationError)
+            .map(|r| Mail(r))
     }
 
     /// Imports a mail from the String passed
