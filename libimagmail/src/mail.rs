@@ -1,6 +1,8 @@
 use std::result::Result as RResult;
 use std::path::Path;
 use std::path::PathBuf;
+use std::fs::File;
+use std::io::Read;
 
 use libimagstore::store::{FileLockEntry, Store};
 use libimagref::reference::Ref;
@@ -26,7 +28,7 @@ impl From<String> for Buffer {
     }
 }
 
-pub struct Mail<'a>(Ref<'a>);
+pub struct Mail<'a>(Ref<'a>, Buffer);
 
 impl<'a> Mail<'a> {
 
@@ -38,15 +40,43 @@ impl<'a> Mail<'a> {
 
         Ref::create_with_hasher(store, p, f, h)
             .map_err_into(MEK::RefCreationError)
-            .map(|r| Mail(r))
+            .and_then(|reference| {
+                reference.fs_file()
+                    .map_err_into(MEK::RefHandlingError)
+                    .and_then(|path| File::open(path).map_err_into(MEK::IOError))
+                    .and_then(|mut file| {
+                        let mut s = String::new();
+                        file.read_to_string(&mut s)
+                            .map(|_| s)
+                            .map_err_into(MEK::IOError)
+                    })
+                    .map(Buffer::from)
+                    .map(|buffer| Mail(reference, buffer))
+            })
     }
 
     /// Opens a mail by the passed hash
     pub fn open<S: AsRef<str>>(store: &Store, hash: S) -> Result<Option<Mail>> {
-        Ref::get_by_hash(store, String::from(hash.as_ref()))
-            .map(|opt| opt.map(|r| Mail(r)))
+        let r = try!(Ref::get_by_hash(store, String::from(hash.as_ref()))
             .map_err_into(MEK::FetchByHashError)
-            .map_err_into(MEK::FetchError)
+            .map_err_into(MEK::FetchError));
+
+        if r.is_none() {
+            return Ok(None);
+        }
+        let r = r.unwrap();
+
+        r.fs_file()
+            .map_err_into(MEK::RefHandlingError)
+            .and_then(|path| File::open(path).map_err_into(MEK::IOError))
+            .and_then(|mut file| {
+                let mut s = String::new();
+                file.read_to_string(&mut s)
+                    .map(|_| s)
+                    .map_err_into(MEK::IOError)
+            })
+            .map(Buffer::from)
+            .map(|buffer| Some(Mail(r, buffer)))
     }
 
     pub fn get_field<S: AsRef<str>>(&self, field: S) -> Result<Option<&str>> {
