@@ -26,6 +26,7 @@ extern crate itertools;
 #[macro_use] extern crate libimagutil;
 #[macro_use] extern crate libimagerror;
 extern crate libimagentryedit;
+extern crate libimagentryview;
 extern crate libimagrt;
 
 module_entry_path_mod!("diary");
