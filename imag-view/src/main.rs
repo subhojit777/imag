@@ -48,14 +48,6 @@ fn main() {
     let view_header  = rt.cli().is_present("view-header");
     let view_content = rt.cli().is_present("view-content");
 
-    let scmd = match rt.cli().subcommand_matches("view-in") {
-        None => {
-            debug!("No commandline call");
-            exit(1); // we can afford not-executing destructors here
-        }
-        Some(s) => s,
-    };
-
     let entry = match rt.store().get(PathBuf::from(entry_id)) {
         Ok(Some(fle)) => fle,
         Ok(None) => {
@@ -68,19 +60,27 @@ fn main() {
     };
 
     let res = {
-        if scmd.is_present("view-in-stdout") {
-        } else if scmd.is_present("view-in-ui") {
-            warn!("Viewing in UI is currently not supported, switch to stdout");
-        } else if scmd.is_present("view-in-browser") {
-            warn!("Viewing in browser is currently not supported, switch to stdout");
-        } else if scmd.is_present("view-in-texteditor") {
-            if let Err(e) = Editor::new(&rt, &entry).show() {
-                error!("Cannot view in editor: {}", e);
-                trace_error_exit(&e, 1);
-            }
-        } else if scmd.is_present("view-in-custom") {
-            warn!("Viewing in custom is currently not supported, switch to stdout");
-        }
+        match rt.cli().subcommand_matches("view-in") {
+            None => {
+                debug!("No commandline call");
+                debug!("Assuming to view in cli (stdout)");
+            },
+            Some(s) => {
+                if s.is_present("view-in-stdout") {
+                } else if s.is_present("view-in-ui") {
+                    warn!("Viewing in UI is currently not supported, switch to stdout");
+                } else if s.is_present("view-in-browser") {
+                    warn!("Viewing in browser is currently not supported, switch to stdout");
+                } else if s.is_present("view-in-texteditor") {
+                    if let Err(e) = Editor::new(&rt, &entry).show() {
+                        error!("Cannot view in editor: {}", e);
+                        trace_error_exit(&e, 1);
+                    }
+                } else if s.is_present("view-in-custom") {
+                    warn!("Viewing in custom is currently not supported, switch to stdout");
+                }
+            },
+        };
 
         StdoutViewer::new(view_header, view_content).view_entry(&entry)
     };
