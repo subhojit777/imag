@@ -41,11 +41,6 @@ impl<'a> Mail<'a> {
             .map(|r| Mail(r))
     }
 
-    /// Imports a mail from the String passed
-    pub fn import_from_string<S: AsRef<str>>(store: &Store, s: S) -> Result<Mail> {
-        unimplemented!()
-    }
-
     /// Opens a mail by the passed hash
     pub fn open<S: AsRef<str>>(store: &Store, hash: S) -> Result<Option<Mail>> {
         unimplemented!()
