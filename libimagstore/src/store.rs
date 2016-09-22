@@ -662,10 +662,14 @@ impl Store {
         }
 
         {
-            let hsmap = match self.entries.write() {
+            let mut hsmap = match self.entries.write() {
                 Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
                 Ok(m)  => m,
             };
+
+            if hsmap.contains_key(&new_id) {
+                return Err(SEK::EntryAlreadyExists.into_error());
+            }
 
             if !hsmap.contains_key(&old_id) {
                 return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
@@ -675,7 +679,13 @@ impl Store {
                 match FileAbstraction::rename(&old_id_pb, &new_id_pb) {
                     Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
                     Ok(_) => {
-                        debug!("Rename worked");
+                        debug!("Rename worked on filesystem");
+
+                        // assert enforced through check hsmap.contains_key(&new_id) above.
+                        // Should therefor never fail
+                        assert!(hsmap
+                                .remove(&old_id)
+                                .and_then(|entry| hsmap.insert(new_id.clone(), entry)).is_none())
                     }
                 }
             }
@@ -2395,7 +2405,8 @@ mod store_tests {
                 assert!(r.map_err(|e| println!("ERROR: {:?}", e)).is_ok());
 
                 {
-                    assert!(store.entries.read().unwrap().get(&id_mv).is_some());
+                    let id_mv_with_base = id_mv.clone().with_base(store.path().clone());
+                    assert!(store.entries.read().unwrap().get(&id_mv_with_base).is_some());
                 }
             }
         }
