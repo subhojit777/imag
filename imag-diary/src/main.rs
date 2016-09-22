@@ -21,7 +21,6 @@ extern crate chrono;
 extern crate libimagdiary;
 extern crate libimagentryedit;
 extern crate libimagentrylist;
-extern crate libimagentryview;
 extern crate libimaginteraction;
 extern crate libimagrt;
 extern crate libimagstore;

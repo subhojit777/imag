@@ -21,9 +21,6 @@ path = "../libimagentryedit"
 [dependencies.libimagentrylist]
 path = "../libimagentrylist"
 
-[dependencies.libimagentryview]
-path = "../libimagentryview"
-
 [dependencies.libimagerror]
 path = "../libimagerror"
 

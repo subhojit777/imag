@@ -7,7 +7,8 @@ generate_error_module!(
         DiaryEditError      => "Cannot edit diary entry",
         PathConversionError => "Error while converting paths internally",
         EntryNotInDiary     => "Entry not in Diary",
-        IOError             => "IO Error"
+        IOError             => "IO Error",
+        ViewError           => "Error viewing diary entry"
     );
 );
 
