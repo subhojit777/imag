@@ -667,7 +667,7 @@ impl Store {
                 Ok(m)  => m,
             };
 
-            if hsmap.contains_key(&old_id) {
+            if !hsmap.contains_key(&old_id) {
                 return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
             } else {
                 let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
