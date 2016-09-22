@@ -2390,8 +2390,8 @@ mod store_hook_tests {
 
         impl TestHook {
 
-            pub fn new(pos: HookPosition) -> TestHook {
-                TestHook { position: pos.clone(), accessor: DHA::new(pos) }
+            pub fn new(pos: HookPosition, succeed: bool, error_aborting: bool) -> TestHook {
+                TestHook { position: pos.clone(), accessor: DHA::new(pos, succeed, error_aborting) }
             }
 
         }
@@ -2430,22 +2430,48 @@ mod store_hook_tests {
             use hook::position::HookPosition;
             use store::FileLockEntry;
             use storeid::StoreId;
+            use hook::error::HookErrorKind as HEK;
+            use hook::error::CustomData;
+            use libimagerror::into::IntoError;
 
             #[derive(Debug)]
-            pub struct TestHookAccessor(HookPosition);
+            pub struct TestHookAccessor {
+                pos: HookPosition,
+                succeed: bool,
+                error_aborting: bool
+            }
 
             impl TestHookAccessor {
 
-                pub fn new(position: HookPosition) -> TestHookAccessor {
-                    TestHookAccessor(position)
+                pub fn new(position: HookPosition, succeed: bool, error_aborting: bool)
+                    -> TestHookAccessor
+                {
+                    TestHookAccessor {
+                        pos: position,
+                        succeed: succeed,
+                        error_aborting: error_aborting,
+                    }
                 }
 
+            }
+
+            fn get_result(succeed: bool, abort: bool) -> HookResult<()> {
+                if succeed {
+                    Ok(())
+                } else {
+                    if abort {
+                        Err(HEK::HookExecutionError.into_error())
+                    } else {
+                        let custom = CustomData::default().aborting(false);
+                        Err(HEK::HookExecutionError.into_error().with_custom_data(custom))
+                    }
+                }
             }
 
             impl StoreIdAccessor for TestHookAccessor {
 
                 fn access(&self, id: &StoreId) -> HookResult<()> {
-                    Ok(())
+                    get_result(self.succeed, self.error_aborting)
                 }
 
             }
@@ -2453,7 +2479,7 @@ mod store_hook_tests {
             impl MutableHookDataAccessor for TestHookAccessor {
 
                 fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
-                    Ok(())
+                    get_result(self.succeed, self.error_aborting)
                 }
 
             }
@@ -2461,7 +2487,7 @@ mod store_hook_tests {
             impl NonMutableHookDataAccessor for TestHookAccessor {
 
                 fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
-                    Ok(())
+                    get_result(self.succeed, self.error_aborting)
                 }
 
             }
@@ -2514,7 +2540,7 @@ aspect = "test"
     fn test_pre_create() {
         let mut store = get_store_with_config();
         let pos       = HP::PreCreate;
-        let hook      = TestHook::new(pos.clone());
+        let hook      = TestHook::new(pos.clone(), true, false);
 
         assert!(store.register_hook(pos, "test", Box::new(hook)).map_err(|e| println!("{:?}", e)).is_ok());
 
