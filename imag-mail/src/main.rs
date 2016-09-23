@@ -29,6 +29,8 @@ extern crate libimagmail;
 extern crate libimagerror;
 extern crate libimagutil;
 
+mod ui;
+
 fn main() {
     println!("Hello, world!");
 }
