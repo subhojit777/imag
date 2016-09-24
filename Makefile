@@ -8,8 +8,8 @@ MAKE=$(shell which make)
 BASH=$(shell which bash)
 CARGO=$(shell which cargo)
 
-BINS=$(shell find -maxdepth 1 -name "imag-*" -type d)
-LIBS=$(shell find -maxdepth 1 -name "libimag*" -type d)
+BINS=$(shell find -maxdepth 1 -name "imag-*" -type d | sort)
+LIBS=$(shell find -maxdepth 1 -name "libimag*" -type d | sort)
 
 BIN_TARGETS=$(patsubst imag-%,,$(BINS))
 BIN_TARGET_TESTS=$(foreach x,$(BIN_TARGETS),$(x)-test)
