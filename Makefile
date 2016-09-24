@@ -30,7 +30,7 @@ imag-bin:
 
 imag-bin-release:
 	@$(ECHO) "\t[IMAG   ][RELEASE]"
-	@$(CARGO) release --manifest-path ./bin/Cargo.toml
+	@$(CARGO) build --release --manifest-path ./bin/Cargo.toml
 
 imag-bin-update:
 	@$(ECHO) "\t[IMAG   ][UPDATE ]"
