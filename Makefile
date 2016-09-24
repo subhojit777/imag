@@ -8,8 +8,8 @@ MAKE=$(shell which make)
 BASH=$(shell which bash)
 CARGO=$(shell which cargo)
 
-BINS=$(shell find -maxdepth 1 -name "imag-*" -type d)
-LIBS=$(shell find -maxdepth 1 -name "libimag*" -type d)
+BINS=$(shell find -maxdepth 1 -name "imag-*" -type d | sort)
+LIBS=$(shell find -maxdepth 1 -name "libimag*" -type d | sort)
 
 BIN_TARGETS=$(patsubst imag-%,,$(BINS))
 BIN_TARGET_TESTS=$(foreach x,$(BIN_TARGETS),$(x)-test)
@@ -21,7 +21,7 @@ INSTALL_TARGETS=$(foreach x,$(BIN_TARGETS),$(x)-install)
 UPDATE_TARGETS=$(foreach x,$(TARGETS),$(x)-update)
 CLEAN_TARGETS=$(foreach x,$(TARGETS),$(x)-clean)
 
-all: $(TARGETS)
+all: $(TARGETS) imag-bin
 	@$(ECHO) "\t[ALL    ]"
 
 imag-bin:
@@ -30,7 +30,7 @@ imag-bin:
 
 imag-bin-release:
 	@$(ECHO) "\t[IMAG   ][RELEASE]"
-	@$(CARGO) release --manifest-path ./bin/Cargo.toml
+	@$(CARGO) build --release --manifest-path ./bin/Cargo.toml
 
 imag-bin-update:
 	@$(ECHO) "\t[IMAG   ][UPDATE ]"
@@ -59,10 +59,10 @@ lib-test: $(LIB_TARGETS_TEST)
 
 test: bin-test lib-test
 
-install: $(INSTALL_TARGETS)
+install: $(INSTALL_TARGETS) imag-bin-install
 	@$(ECHO) "\t[INSTALL]"
 
-update: $(UPDATE_TARGETS)
+update: $(UPDATE_TARGETS) imag-bin-update
 	@$(ECHO) "\t[UPDATE ]"
 
 clean: $(CLEAN_TARGETS) imag-bin-clean
