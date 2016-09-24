@@ -21,7 +21,7 @@ INSTALL_TARGETS=$(foreach x,$(BIN_TARGETS),$(x)-install)
 UPDATE_TARGETS=$(foreach x,$(TARGETS),$(x)-update)
 CLEAN_TARGETS=$(foreach x,$(TARGETS),$(x)-clean)
 
-all: $(TARGETS)
+all: $(TARGETS) imag-bin
 	@$(ECHO) "\t[ALL    ]"
 
 imag-bin:
@@ -59,10 +59,10 @@ lib-test: $(LIB_TARGETS_TEST)
 
 test: bin-test lib-test
 
-install: $(INSTALL_TARGETS)
+install: $(INSTALL_TARGETS) imag-bin-install
 	@$(ECHO) "\t[INSTALL]"
 
-update: $(UPDATE_TARGETS)
+update: $(UPDATE_TARGETS) imag-bin-update
 	@$(ECHO) "\t[UPDATE ]"
 
 clean: $(CLEAN_TARGETS) imag-bin-clean
