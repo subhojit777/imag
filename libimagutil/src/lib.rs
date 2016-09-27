@@ -16,6 +16,7 @@
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate log;
 extern crate regex;
+extern crate url;
 extern crate tempfile;
 
 #[macro_use] mod log_result;
