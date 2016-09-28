@@ -2,6 +2,8 @@ use clap::{Arg, ArgMatches, App, SubCommand};
 
 use tag::Tag;
 
+use libimagutil::cli_validators::is_tag;
+
 /// Generates a `clap::SubCommand` to be integrated in the commandline-ui builder for building a
 /// "tags --add foo --remove bar" subcommand to do tagging action.
 pub fn tag_subcommand<'a, 'b>() -> App<'a, 'b> {
@@ -20,6 +22,7 @@ pub fn tag_add_arg<'a, 'b>() -> Arg<'a, 'b> {
         .takes_value(true)
         .value_name("tags")
         .multiple(true)
+        .validator(is_tag)
         .help("Add tags, seperated by comma or by specifying multiple times")
 }
 
@@ -30,6 +33,7 @@ pub fn tag_remove_arg<'a, 'b>() -> Arg<'a, 'b> {
         .takes_value(true)
         .value_name("tags")
         .multiple(true)
+        .validator(is_tag)
         .help("Remove tags, seperated by comma or by specifying multiple times")
 }
 
@@ -57,6 +61,7 @@ pub fn tag_argument<'a, 'b>() -> Arg<'a, 'b> {
         .long("tags")
         .takes_value(true)
         .multiple(true)
+        .validator(is_tag)
         .help("Add or remove tags, prefixed by '+' (for adding) or '-' (for removing)")
 }
 
