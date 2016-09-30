@@ -10,7 +10,9 @@ interactor = "0.1"
 lazy_static = "0.1.15"
 log = "0.3"
 regex = "0.1"
+toml = "0.2.1"
 spinner = "0.4"
+rustyline = "1.0"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
