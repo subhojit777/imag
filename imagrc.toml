@@ -1,6 +1,23 @@
 # This is a example configuration file for the imag suite.
 # It is written in TOML
 
+#
+# Configuration options for the user interface
+#
+[ui]
+
+#
+# Configuration options for the commandline user interface
+#
+[ui.cli]
+
+# History file path for readline
+readline_history_file = "/tmp/readline.history"
+readline_history_size = 100
+readline_history_ignore_dups = true
+readline_history_ignore_space = true
+readline_prompt = ">> "
+
 [store]
 
 # Set to false if you do not want imag to create the directory where the store
