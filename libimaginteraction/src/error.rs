@@ -28,6 +28,7 @@ generate_error_module!(
         ConfigMissingError  => "Configuration missing",
         ConfigTypeError     => "Config Type Error",
         NoConfigError       => "No configuration",
+        ReadlineHistoryFileCreationError => "Could not create history file for readline",
         ReadlineError       => "Readline error"
     );
 );

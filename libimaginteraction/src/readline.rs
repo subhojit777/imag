@@ -84,6 +84,12 @@ impl Readline {
             .build();
 
         let mut editor = Editor::new(config);
+
+        if !histfile.exists() {
+            let _ = try!(File::create(histfile.clone())
+                         .map_err_into(IEK::ReadlineHistoryFileCreationError));
+        }
+
         let _ = try!(editor.load_history(&histfile).map_err_into(ReadlineError));
 
         Ok(Readline {
