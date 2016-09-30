@@ -1,5 +1,7 @@
 use clap::{Arg, App, SubCommand};
 
+use libimagutil::cli_validators::is_existing_path;
+
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
         .subcommand(SubCommand::with_name("add")
@@ -11,6 +13,7 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                          .takes_value(true)
                          .required(true)
                          .help("The path of the file")
+                         .validator(is_existing_path)
                          .value_name("PATH"))
                     .arg(Arg::with_name("track-content")
                          .long("content-hash")
