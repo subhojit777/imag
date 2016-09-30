@@ -650,7 +650,6 @@ impl Store {
 
     /// Move an entry without loading
     pub fn move_by_id(&self, old_id: StoreId, new_id: StoreId) -> Result<()> {
-
         let new_id = new_id.with_base(self.path().clone());
         let old_id = old_id.with_base(self.path().clone());
 
@@ -671,22 +670,19 @@ impl Store {
                 return Err(SEK::EntryAlreadyExists.into_error());
             }
 
-            if !hsmap.contains_key(&old_id) {
-                return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
-            } else {
-                let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
-                let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
-                match FileAbstraction::rename(&old_id_pb, &new_id_pb) {
-                    Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
-                    Ok(_) => {
-                        debug!("Rename worked on filesystem");
+            let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
+            let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
 
-                        // assert enforced through check hsmap.contains_key(&new_id) above.
-                        // Should therefor never fail
-                        assert!(hsmap
-                                .remove(&old_id)
-                                .and_then(|entry| hsmap.insert(new_id.clone(), entry)).is_none())
-                    }
+            match FileAbstraction::rename(&old_id_pb, &new_id_pb) {
+                Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
+                Ok(_) => {
+                    debug!("Rename worked on filesystem");
+
+                    // assert enforced through check hsmap.contains_key(&new_id) above.
+                    // Should therefor never fail
+                    assert!(hsmap
+                            .remove(&old_id)
+                            .and_then(|entry| hsmap.insert(new_id.clone(), entry)).is_none())
                 }
             }
 
