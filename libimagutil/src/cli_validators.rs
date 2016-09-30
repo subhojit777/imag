@@ -4,6 +4,10 @@
 use std::path::PathBuf;
 use boolinator::Boolinator;
 
+pub fn is_existing_path(s: String) -> Result<(), String> {
+    PathBuf::from(s.clone()).exists().as_result((), format!("Not a File or Directory: {}", s))
+}
+
 pub fn is_file(s: String) -> Result<(), String> {
     PathBuf::from(s.clone()).is_file().as_result((), format!("Not a File: {}", s))
 }
