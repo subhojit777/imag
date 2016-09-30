@@ -11,11 +11,20 @@
 #
 [ui.cli]
 
-# History file path for readline
+# History file path for readline. Will be created by imag if it does not exist.
 readline_history_file = "/tmp/readline.history"
+
+# Number of lines to safe in the history file
 readline_history_size = 100
+
+# Ignore duplicated lines
 readline_history_ignore_dups = true
+
+# Tell if lines which begin with a space character are saved or not in the
+# history list.
 readline_history_ignore_space = true
+
+# The prompt string to use
 readline_prompt = ">> "
 
 [store]
