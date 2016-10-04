@@ -115,7 +115,7 @@ outdated.
 
 ## Please contribute!
 
-We are looking work contributors!
+We are looking for contributors!
 
 There is always a number of
 [complexity/easy tagged issues](https://github.com/matthiasbeyer/imag/issues?q=is%3Aopen+is%3Aissue+label%3Acomplexity%2Feasy)
