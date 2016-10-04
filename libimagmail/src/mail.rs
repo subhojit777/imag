@@ -57,15 +57,18 @@ impl<'a> Mail<'a> {
 
     /// Opens a mail by the passed hash
     pub fn open<S: AsRef<str>>(store: &Store, hash: S) -> Result<Option<Mail>> {
-        let r = try!(Ref::get_by_hash(store, String::from(hash.as_ref()))
+        Ref::get_by_hash(store, String::from(hash.as_ref()))
             .map_err_into(MEK::FetchByHashError)
-            .map_err_into(MEK::FetchError));
+            .map_err_into(MEK::FetchError)
+            .and_then(|o| match o {
+                Some(r) => Mail::from_ref(r).map(Some),
+                None => Ok(None),
+            })
 
-        if r.is_none() {
-            return Ok(None);
-        }
-        let r = r.unwrap();
+    }
 
+    /// Implement me as TryFrom as soon as it is stable
+    pub fn from_ref(r: Ref<'a>) -> Result<Mail> {
         r.fs_file()
             .map_err_into(MEK::RefHandlingError)
             .and_then(|path| File::open(path).map_err_into(MEK::IOError))
@@ -76,7 +79,7 @@ impl<'a> Mail<'a> {
                     .map_err_into(MEK::IOError)
             })
             .map(Buffer::from)
-            .map(|buffer| Some(Mail(r, buffer)))
+            .map(|buffer| Mail(r, buffer))
     }
 
     pub fn get_field(&self, field: &str) -> Result<Option<String>> {
