@@ -10,6 +10,7 @@ extern crate libimagref;
 
 pub mod error;
 pub mod hasher;
+pub mod iter;
 pub mod mail;
 pub mod result;
 
