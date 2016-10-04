@@ -650,7 +650,6 @@ impl Store {
 
     /// Move an entry without loading
     pub fn move_by_id(&self, old_id: StoreId, new_id: StoreId) -> Result<()> {
-
         let new_id = new_id.with_base(self.path().clone());
         let old_id = old_id.with_base(self.path().clone());
 
@@ -662,21 +661,28 @@ impl Store {
         }
 
         {
-            let hsmap = match self.entries.write() {
+            let mut hsmap = match self.entries.write() {
                 Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
                 Ok(m)  => m,
             };
 
-            if hsmap.contains_key(&old_id) {
-                return Err(SE::new(SEK::EntryAlreadyBorrowed, None));
-            } else {
-                let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
-                let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
-                match FileAbstraction::rename(&old_id_pb, &new_id_pb) {
-                    Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
-                    Ok(_) => {
-                        debug!("Rename worked");
-                    }
+            if hsmap.contains_key(&new_id) {
+                return Err(SEK::EntryAlreadyExists.into_error());
+            }
+
+            let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
+            let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
+
+            match FileAbstraction::rename(&old_id_pb, &new_id_pb) {
+                Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
+                Ok(_) => {
+                    debug!("Rename worked on filesystem");
+
+                    // assert enforced through check hsmap.contains_key(&new_id) above.
+                    // Should therefor never fail
+                    assert!(hsmap
+                            .remove(&old_id)
+                            .and_then(|entry| hsmap.insert(new_id.clone(), entry)).is_none())
                 }
             }
 
@@ -2366,6 +2372,46 @@ mod store_tests {
     //     test(&store, "boo");
     //     test(&store, "glu");
     // }
+
+    #[test]
+    fn test_store_move_moves_in_hm() {
+        use storeid::StoreId;
+
+        let store = get_store();
+
+        for n in 1..100 {
+            if n % 2 == 0 { // every second
+                let id    = StoreId::new_baseless(PathBuf::from(format!("t-{}", n))).unwrap();
+                let id_mv = StoreId::new_baseless(PathBuf::from(format!("t-{}", n - 1))).unwrap();
+
+                {
+                    assert!(store.entries.read().unwrap().get(&id).is_none());
+                }
+
+                {
+                    assert!(store.create(id.clone()).is_ok());
+                }
+
+                {
+                    let id_with_base = id.clone().with_base(store.path().clone());
+                    assert!(store.entries.read().unwrap().get(&id_with_base).is_some());
+                }
+
+                let r = store.move_by_id(id.clone(), id_mv.clone());
+                assert!(r.map_err(|e| println!("ERROR: {:?}", e)).is_ok());
+
+                {
+                    let id_mv_with_base = id_mv.clone().with_base(store.path().clone());
+                    assert!(store.entries.read().unwrap().get(&id_mv_with_base).is_some());
+                }
+
+                assert!(match store.get(id.clone()) { Ok(None) => true, _ => false },
+                        "Moved id ({:?}) is still there", id);
+                assert!(match store.get(id_mv.clone()) { Ok(Some(_)) => true, _ => false },
+                        "New id ({:?}) is not in store...", id_mv);
+            }
+        }
+    }
 
 }
 
