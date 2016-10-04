@@ -670,6 +670,13 @@ impl Store {
                 return Err(SEK::EntryAlreadyExists.into_error());
             }
 
+            // if we do not have an entry here, we fail in `FileAbstraction::rename()` below.
+            // if we have one, but it is borrowed, we really should not rename it, as this might
+            // lead to strange errors
+            if hsmap.get(&old_id).map(|e| e.is_borrowed()).unwrap_or(false) {
+                return Err(SEK::EntryAlreadyBorrowed.into_error());
+            }
+
             let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
             let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
 
