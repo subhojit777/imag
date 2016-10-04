@@ -88,7 +88,7 @@ $> make install
 ```
 
 The installation root of the binaries may not yet be in your $PATH.
-To see, where this installation root is, check out `man cargo-install`.
+To see where this installation root is check out `man cargo-install`.
 To change the $PATH in bash:
 
 ```bash
