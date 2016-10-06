@@ -2418,36 +2418,36 @@ mod store_tests {
 #[cfg(test)]
 mod store_hook_tests {
 
-    mod succeeding_hook {
+    mod test_hook {
         use hook::Hook;
         use hook::accessor::HookDataAccessor;
         use hook::accessor::HookDataAccessorProvider;
         use hook::position::HookPosition;
 
-        use self::accessor::SucceedingHookAccessor as DHA;
+        use self::accessor::TestHookAccessor as DHA;
 
         use toml::Value;
 
         #[derive(Debug)]
-        pub struct SucceedingHook {
+        pub struct TestHook {
             position: HookPosition,
             accessor: DHA,
         }
 
-        impl SucceedingHook {
+        impl TestHook {
 
-            pub fn new(pos: HookPosition) -> SucceedingHook {
-                SucceedingHook { position: pos.clone(), accessor: DHA::new(pos) }
+            pub fn new(pos: HookPosition, succeed: bool, error_aborting: bool) -> TestHook {
+                TestHook { position: pos.clone(), accessor: DHA::new(pos, succeed, error_aborting) }
             }
 
         }
 
-        impl Hook for SucceedingHook {
+        impl Hook for TestHook {
             fn name(&self) -> &'static str { "testhook_succeeding" }
             fn set_config(&mut self, _: &Value) { }
         }
 
-        impl HookDataAccessorProvider for SucceedingHook {
+        impl HookDataAccessorProvider for TestHook {
 
             fn accessor(&self) -> HookDataAccessor {
                 use hook::position::HookPosition as HP;
@@ -2476,38 +2476,64 @@ mod store_hook_tests {
             use hook::position::HookPosition;
             use store::FileLockEntry;
             use storeid::StoreId;
+            use hook::error::HookErrorKind as HEK;
+            use hook::error::CustomData;
+            use libimagerror::into::IntoError;
 
             #[derive(Debug)]
-            pub struct SucceedingHookAccessor(HookPosition);
+            pub struct TestHookAccessor {
+                pos: HookPosition,
+                succeed: bool,
+                error_aborting: bool
+            }
 
-            impl SucceedingHookAccessor {
+            impl TestHookAccessor {
 
-                pub fn new(position: HookPosition) -> SucceedingHookAccessor {
-                    SucceedingHookAccessor(position)
+                pub fn new(position: HookPosition, succeed: bool, error_aborting: bool)
+                    -> TestHookAccessor
+                {
+                    TestHookAccessor {
+                        pos: position,
+                        succeed: succeed,
+                        error_aborting: error_aborting,
+                    }
                 }
 
             }
 
-            impl StoreIdAccessor for SucceedingHookAccessor {
+            fn get_result(succeed: bool, abort: bool) -> HookResult<()> {
+                if succeed {
+                    Ok(())
+                } else {
+                    if abort {
+                        Err(HEK::HookExecutionError.into_error())
+                    } else {
+                        let custom = CustomData::default().aborting(false);
+                        Err(HEK::HookExecutionError.into_error().with_custom_data(custom))
+                    }
+                }
+            }
+
+            impl StoreIdAccessor for TestHookAccessor {
 
                 fn access(&self, id: &StoreId) -> HookResult<()> {
-                    Ok(())
+                    get_result(self.succeed, self.error_aborting)
                 }
 
             }
 
-            impl MutableHookDataAccessor for SucceedingHookAccessor {
+            impl MutableHookDataAccessor for TestHookAccessor {
 
                 fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
-                    Ok(())
+                    get_result(self.succeed, self.error_aborting)
                 }
 
             }
 
-            impl NonMutableHookDataAccessor for SucceedingHookAccessor {
+            impl NonMutableHookDataAccessor for TestHookAccessor {
 
                 fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
-                    Ok(())
+                    get_result(self.succeed, self.error_aborting)
                 }
 
             }
@@ -2522,7 +2548,7 @@ mod store_hook_tests {
     use storeid::StoreId;
     use store::Store;
 
-    use self::succeeding_hook::SucceedingHook;
+    use self::test_hook::TestHook;
 
     fn get_store_with_config() -> Store {
         use toml::Parser;
@@ -2560,7 +2586,7 @@ aspect = "test"
     fn test_pre_create() {
         let mut store = get_store_with_config();
         let pos       = HP::PreCreate;
-        let hook      = SucceedingHook::new(pos.clone());
+        let hook      = TestHook::new(pos.clone(), true, false);
 
         assert!(store.register_hook(pos, "test", Box::new(hook)).map_err(|e| println!("{:?}", e)).is_ok());
 
