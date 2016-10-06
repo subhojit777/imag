@@ -101,6 +101,17 @@ impl StoreIdAccessor for StoreUnloadHook {
         use vcs::git::config::is_enabled;
         use vcs::git::config::committing_is_enabled;
 
+        use git2::StatusOptions;
+        use git2::StatusShow;
+        use git2::{STATUS_INDEX_NEW,
+                   STATUS_INDEX_DELETED,
+                   STATUS_INDEX_RENAMED,
+                   STATUS_INDEX_MODIFIED};
+        use git2::{STATUS_WT_NEW,
+                   STATUS_WT_DELETED,
+                   STATUS_WT_RENAMED,
+                   STATUS_WT_MODIFIED};
+
         let action = StoreAction::StoreUnload;
         let cfg    = try!(self.runtime.config_value_or_err(&action));
 
@@ -127,6 +138,46 @@ impl StoreIdAccessor for StoreUnloadHook {
         let _         = try!(self.runtime.ensure_cfg_branch_is_checked_out(&action));
         let repo      = try!(self.runtime.repository(&action));
         let mut index = try!(fetch_index(repo, &action));
+
+
+        let mut status_options = StatusOptions::new();
+        status_options.show(StatusShow::Index);
+        status_options.include_untracked(true);
+        let status = try!(repo.statuses(Some(&mut status_options)).map(|statuses| {
+            statuses.iter()
+                .map(|s| s.status())
+                .map(|s| {
+                    debug!("STATUS_INDEX_NEW = {}", s == STATUS_INDEX_NEW);
+                    debug!("STATUS_INDEX_MODIFIED = {}", s == STATUS_INDEX_MODIFIED);
+                    debug!("STATUS_INDEX_DELETED = {}", s == STATUS_INDEX_DELETED);
+                    debug!("STATUS_INDEX_RENAMED = {}", s == STATUS_INDEX_RENAMED);
+                    s
+                })
+                .any(|s| s == STATUS_INDEX_NEW || s == STATUS_INDEX_MODIFIED || s == STATUS_INDEX_DELETED || s == STATUS_INDEX_RENAMED)
+        }).map_err_into(GHEK::RepositoryError).map_into_hook_error());
+
+        let mut status_options = StatusOptions::new();
+        status_options.show(StatusShow::Workdir);
+        status_options.include_untracked(true);
+        let status = status || try!(repo.statuses(Some(&mut status_options)).map(|statuses| {
+            statuses.iter()
+                .map(|s| s.status())
+                .map(|s| {
+                    debug!("STATUS_WT_NEW = {}", s == STATUS_WT_NEW);
+                    debug!("STATUS_WT_MODIFIED = {}", s == STATUS_WT_MODIFIED);
+                    debug!("STATUS_WT_DELETED = {}", s == STATUS_WT_DELETED);
+                    debug!("STATUS_WT_RENAMED = {}", s == STATUS_WT_RENAMED);
+                    s
+                })
+                .any(|s| s == STATUS_WT_NEW || s == STATUS_WT_MODIFIED || s == STATUS_WT_DELETED || s == STATUS_WT_RENAMED)
+        }).map_err_into(GHEK::RepositoryError).map_into_hook_error());
+
+        if status {
+            debug!("INDEX DIRTY!");
+        } else {
+            debug!("INDEX CLEAN... not continuing!");
+            return Ok(());
+        }
 
         let signature = try!(
             repo.signature()
