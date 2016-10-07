@@ -190,7 +190,7 @@ fn check_changed_content(r: &Ref) -> bool {
     }
 }
 
-fn check_changed_permiss(r: &Ref) -> bool {
+fn check_changed_permiss(_: &Ref) -> bool {
     warn!("Permission changes tracking not supported yet.");
     false
 }
