@@ -131,6 +131,7 @@ fn list(rt: &Runtime) {
         .check_changed(do_check_changed)
         .check_changed_content(do_check_changed_content)
         .check_changed_permiss(do_check_changed_permiss)
-        .list(iter.map(|e| e.into()));
+        .list(iter.map(|e| e.into()))
+        .ok();
 }
 
