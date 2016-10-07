@@ -40,6 +40,7 @@ generate_error_module!(
         RepositoryPathAddingError         => "Error while adding Path to Index",
         RepositoryCommittingError         => "Error while committing",
         RepositoryParentFetchingError     => "Error while fetching parent of commit",
+        RepositoryStatusFetchError        => "Error while fetching repository status",
 
         HeadFetchError                    => "Error while getting HEAD",
         NotOnBranch                       => "No Branch is checked out",

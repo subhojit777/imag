@@ -160,6 +160,7 @@ impl StoreIdAccessor for StoreUnloadHook {
                         })
                         .any(|s| s == new || s == modif || s == del || s == ren)
                 })
+                .map_err_into(GHEK::RepositoryStatusFetchError)
                 .map_err_into(GHEK::RepositoryError)
                 .map_into_hook_error()
         };
@@ -168,6 +169,7 @@ impl StoreIdAccessor for StoreUnloadHook {
             if add_wt_changes_before_committing(cfg) {
                 debug!("Adding WT changes before committing.");
                 try!(index.add_all(&["*"], ADD_DEFAULT, None)
+                    .map_err_into(GHEK::RepositoryPathAddingError)
                     .map_err_into(GHEK::RepositoryError)
                     .map_into_hook_error());
             } else {
