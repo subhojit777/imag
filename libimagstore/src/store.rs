@@ -507,7 +507,7 @@ impl Store {
                 .map_err_into(SEK::UpdateCallError);
         }
 
-        if let Err(e) = self._update(&entry) {
+        if let Err(e) = self._update(&entry, false) {
             return Err(e).map_err_into(SEK::UpdateCallError);
         }
 
@@ -522,7 +522,7 @@ impl Store {
     /// # Assumptions
     /// This method assumes that entry is dropped _right after_ the call, hence
     /// it is not public.
-    fn _update<'a>(&'a self, entry: &FileLockEntry<'a>) -> Result<()> {
+    fn _update<'a>(&'a self, entry: &FileLockEntry<'a>, modify_presence: bool) -> Result<()> {
         let mut hsmap = match self.entries.write() {
             Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
             Ok(e) => e,
@@ -537,7 +537,9 @@ impl Store {
 
         debug!("Writing Entry");
         try!(se.write_entry(&entry.entry));
-        se.status = StoreEntryStatus::Present;
+        if modify_presence {
+            se.status = StoreEntryStatus::Present;
+        }
 
         Ok(())
     }
@@ -928,7 +930,7 @@ impl<'a> DerefMut for FileLockEntry<'a> {
 impl<'a> Drop for FileLockEntry<'a> {
     /// This will silently ignore errors, use `Store::update` if you want to catch the errors
     fn drop(&mut self) {
-        let _ = self.store._update(self);
+        let _ = self.store._update(self, true);
     }
 }
 
@@ -936,7 +938,7 @@ impl<'a> Drop for FileLockEntry<'a> {
 impl<'a> Drop for FileLockEntry<'a> {
     /// This will not silently ignore errors but prints the result of the _update() call for testing
     fn drop(&mut self) {
-        println!("Drop Result: {:?}", self.store._update(self));
+        println!("Drop Result: {:?}", self.store._update(self, true));
     }
 }
 
