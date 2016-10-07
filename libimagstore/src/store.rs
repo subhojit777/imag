@@ -2502,12 +2502,16 @@ mod store_hook_tests {
             }
 
             fn get_result(succeed: bool, abort: bool) -> HookResult<()> {
+                println!("Generting result: succeed = {}, abort = {}", succeed, abort);
                 if succeed {
+                    println!("Generating result: Ok(())");
                     Ok(())
                 } else {
                     if abort {
+                        println!("Generating result: Err(_), aborting");
                         Err(HEK::HookExecutionError.into_error())
                     } else {
+                        println!("Generating result: Err(_), not aborting");
                         let custom = CustomData::default().aborting(false);
                         Err(HEK::HookExecutionError.into_error().with_custom_data(custom))
                     }
