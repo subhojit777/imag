@@ -879,12 +879,22 @@ impl<'a> DerefMut for FileLockEntry<'a> {
     }
 }
 
+#[cfg(not(test))]
 impl<'a> Drop for FileLockEntry<'a> {
     /// This will silently ignore errors, use `Store::update` if you want to catch the errors
     fn drop(&mut self) {
         let _ = self.store._update(self);
     }
 }
+
+#[cfg(test)]
+impl<'a> Drop for FileLockEntry<'a> {
+    /// This will not silently ignore errors but prints the result of the _update() call for testing
+    fn drop(&mut self) {
+        println!("Drop Result: {:?}", self.store._update(self));
+    }
+}
+
 
 /// `EntryContent` type
 pub type EntryContent = String;
