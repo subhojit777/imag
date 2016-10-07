@@ -212,3 +212,7 @@ pub fn committing_is_enabled(cfg: &Value) -> Result<bool> {
     .map_err_into(GHEK::ConfigError)
 }
 
+pub fn add_wt_changes_before_committing(cfg: &Value) -> bool {
+    get_bool_cfg(Some(cfg), "commit.add_wt_changes", true, true)
+}
+

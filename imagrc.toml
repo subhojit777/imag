@@ -133,6 +133,14 @@ try_checkout_ensure_branch = true
 # by the other git hooks.
 enabled = true
 
+# Do a git-add on all files that are not in the index yet, before committing.
+# This must be turned on, as we do not support adding with "Update" hooks and
+# only committing with the "Drop" hook, yet.
+# So, effectively, disabling this will disable committing.
+#
+# If not set: false
+add_wt_changes = true
+
 # Whether to do the commit interactively
 interactive = false
 
