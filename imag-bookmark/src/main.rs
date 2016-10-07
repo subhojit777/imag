@@ -30,8 +30,6 @@ extern crate libimagutil;
 
 use std::process::exit;
 
-use libimagentrytag::ui::{get_add_tags, get_remove_tags};
-use libimagentrylink::internal::Link;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagbookmark::collection::BookmarkCollection;
