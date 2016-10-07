@@ -724,7 +724,10 @@ impl Store {
                     // Should therefor never fail
                     assert!(hsmap
                             .remove(&old_id)
-                            .and_then(|entry| hsmap.insert(new_id.clone(), entry)).is_none())
+                            .and_then(|mut entry| {
+                                entry.id = new_id.clone();
+                                hsmap.insert(new_id.clone(), entry)
+                            }).is_none())
                 }
             }
 
