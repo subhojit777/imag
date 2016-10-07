@@ -69,7 +69,7 @@ fn add(rt: &Runtime) {
     BookmarkCollection::get(rt.store(), coll)
         .map(|mut collection| {
             for url in scmd.values_of("urls").unwrap() { // enforced by clap
-                collection.add_link(BookmarkLink::from(url)).map_err(|e| trace_error(&e));
+                collection.add_link(BookmarkLink::from(url)).map_err(|e| trace_error(&e)).ok();
             }
         });
     info!("Ready");
@@ -115,7 +115,8 @@ fn list(rt: &Runtime) {
                 },
                 Err(e) => trace_error_exit(&e, 1),
             }
-        });
+        })
+        .ok();
     info!("Ready");
 }
 
@@ -126,9 +127,10 @@ fn remove(rt: &Runtime) {
     BookmarkCollection::get(rt.store(), coll)
         .map(|mut collection| {
             for url in scmd.values_of("urls").unwrap() { // enforced by clap
-                collection.remove_link(BookmarkLink::from(url)).map_err(|e| trace_error(&e));
+                collection.remove_link(BookmarkLink::from(url)).map_err(|e| trace_error(&e)).ok();
             }
-        });
+        })
+        .ok();
     info!("Ready");
 }
 
