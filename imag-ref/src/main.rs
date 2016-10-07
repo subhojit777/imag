@@ -81,8 +81,6 @@ fn add(rt: &Runtime) {
 }
 
 fn remove(rt: &Runtime) {
-    use libimagref::error::RefErrorKind;
-    use libimagerror::into::IntoError;
     use libimaginteraction::ask::ask_bool;
 
     let cmd  = rt.cli().subcommand_matches("remove").unwrap();
@@ -102,10 +100,8 @@ fn remove(rt: &Runtime) {
 
 fn list(rt: &Runtime) {
     use std::process::exit;
-    use std::ops::Deref;
 
     use libimagentrylist::lister::Lister;
-    use libimagentrylist::listers::core::CoreLister;
     use libimagref::lister::RefLister;
 
     let cmd                      = rt.cli().subcommand_matches("list").unwrap();
