@@ -35,9 +35,12 @@
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate log;
 extern crate regex;
+extern crate url;
+extern crate boolinator;
 extern crate tempfile;
 
 #[macro_use] mod log_result;
+pub mod cli_validators;
 pub mod debug_result;
 pub mod edit;
 pub mod info_result;

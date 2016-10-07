@@ -27,3 +27,6 @@ path = "../libimaginteraction"
 [dependencies.libimagentrylist]
 path = "../libimagentrylist"
 
+[dependencies.libimagutil]
+path = "../libimagutil"
+

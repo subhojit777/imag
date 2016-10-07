@@ -28,6 +28,7 @@ extern crate libimagref;
 extern crate libimagerror;
 extern crate libimagentrylist;
 extern crate libimaginteraction;
+extern crate libimagutil;
 
 mod ui;
 use ui::build_ui;
