@@ -74,7 +74,7 @@ $(TARGETS): %: .FORCE
 
 $(BIN_TARGET_TESTS): %-test: % .FORCE
 	@$(ECHO) "\t[BINTEST]:\t$@"
-	if [[ -f $(subst -test,,$@)/tests/Makefile ]]; then \
+	if [ -f $(subst -test,,$@)/tests/Makefile ]; then \
 		$(MAKE) -C $(subst -test,,$@)/tests || exit 1;\
 	fi;
 
