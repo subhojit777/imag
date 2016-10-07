@@ -102,17 +102,18 @@ impl StoreIdAccessor for StoreUnloadHook {
         use vcs::git::config::committing_is_enabled;
         use vcs::git::config::add_wt_changes_before_committing;
 
-        use git2::StatusOptions;
-        use git2::StatusShow;
-        use git2::{STATUS_INDEX_NEW,
-                   STATUS_INDEX_DELETED,
-                   STATUS_INDEX_RENAMED,
-                   STATUS_INDEX_MODIFIED};
-        use git2::{STATUS_WT_NEW,
-                   STATUS_WT_DELETED,
-                   STATUS_WT_RENAMED,
-                   STATUS_WT_MODIFIED};
-        use git2::ADD_DEFAULT;
+        use git2::{ADD_DEFAULT,
+                   StatusOptions,
+                   Status,
+                   StatusShow as STShow,
+                   STATUS_INDEX_NEW as I_NEW,
+                   STATUS_INDEX_DELETED as I_DEL,
+                   STATUS_INDEX_RENAMED as I_REN,
+                   STATUS_INDEX_MODIFIED as I_MOD,
+                   STATUS_WT_NEW as WT_NEW,
+                   STATUS_WT_DELETED as WT_DEL,
+                   STATUS_WT_RENAMED as WT_REN,
+                   STATUS_WT_MODIFIED as WT_MOD};
 
         let action = StoreAction::StoreUnload;
         let cfg    = try!(self.runtime.config_value_or_err(&action));
@@ -141,23 +142,29 @@ impl StoreIdAccessor for StoreUnloadHook {
         let repo      = try!(self.runtime.repository(&action));
         let mut index = try!(fetch_index(repo, &action));
 
-        let mut status_options = StatusOptions::new();
-        status_options.show(StatusShow::Workdir);
-        status_options.include_untracked(true);
-        let wt_dirty = try!(repo.statuses(Some(&mut status_options)).map(|statuses| {
-            statuses.iter()
-                .map(|s| s.status())
-                .map(|s| {
-                    debug!("STATUS_WT_NEW = {}", s == STATUS_WT_NEW);
-                    debug!("STATUS_WT_MODIFIED = {}", s == STATUS_WT_MODIFIED);
-                    debug!("STATUS_WT_DELETED = {}", s == STATUS_WT_DELETED);
-                    debug!("STATUS_WT_RENAMED = {}", s == STATUS_WT_RENAMED);
-                    s
-                })
-                .any(|s| s == STATUS_WT_NEW || s == STATUS_WT_MODIFIED || s == STATUS_WT_DELETED || s == STATUS_WT_RENAMED)
-        }).map_err_into(GHEK::RepositoryError).map_into_hook_error());
+        let check_dirty = |show: STShow, new: Status, modif: Status, del: Status, ren: Status| {
+            let mut status_options = StatusOptions::new();
+            status_options.show(show);
+            status_options.include_untracked(true);
 
-        if wt_dirty {
+            repo.statuses(Some(&mut status_options))
+                .map(|statuses| {
+                    statuses.iter()
+                        .map(|s| s.status())
+                        .map(|s| {
+                            debug!("STATUS_WT_NEW = {}",        s == new);
+                            debug!("STATUS_WT_MODIFIED = {}",   s == modif);
+                            debug!("STATUS_WT_DELETED = {}",    s == del);
+                            debug!("STATUS_WT_RENAMED = {}",    s == ren);
+                            s
+                        })
+                        .any(|s| s == new || s == modif || s == del || s == ren)
+                })
+                .map_err_into(GHEK::RepositoryError)
+                .map_into_hook_error()
+        };
+
+        if try!(check_dirty(STShow::Workdir, WT_NEW, WT_MOD, WT_DEL, WT_REN)) {
             if add_wt_changes_before_committing(cfg) {
                 debug!("Adding WT changes before committing.");
                 try!(index.add_all(&["*"], ADD_DEFAULT, None)
@@ -171,23 +178,7 @@ impl StoreIdAccessor for StoreUnloadHook {
             debug!("WT not dirty.");
         }
 
-        let mut status_options = StatusOptions::new();
-        status_options.show(StatusShow::Index);
-        status_options.include_untracked(true);
-        let index_dirty = try!(repo.statuses(Some(&mut status_options)).map(|statuses| {
-            statuses.iter()
-                .map(|s| s.status())
-                .map(|s| {
-                    debug!("STATUS_INDEX_NEW = {}", s == STATUS_INDEX_NEW);
-                    debug!("STATUS_INDEX_MODIFIED = {}", s == STATUS_INDEX_MODIFIED);
-                    debug!("STATUS_INDEX_DELETED = {}", s == STATUS_INDEX_DELETED);
-                    debug!("STATUS_INDEX_RENAMED = {}", s == STATUS_INDEX_RENAMED);
-                    s
-                })
-                .any(|s| s == STATUS_INDEX_NEW || s == STATUS_INDEX_MODIFIED || s == STATUS_INDEX_DELETED || s == STATUS_INDEX_RENAMED)
-        }).map_err_into(GHEK::RepositoryError).map_into_hook_error());
-
-        if index_dirty {
+        if try!(check_dirty(STShow::Index, I_NEW, I_MOD, I_DEL, I_REN)) {
             debug!("INDEX DIRTY!");
         } else {
             debug!("INDEX CLEAN... not continuing!");
