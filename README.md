@@ -102,6 +102,22 @@ To test, simply add `--help` to one of the above commands:
 $> imag counter --help
 ```
 
+## Staying up-to-date
+
+Despite we have a [official site for imag](http://imag-pim.org), I do not push
+updates to this site, yet. Anyways, I post a blog articles about what happened
+in the last two weeks every other week.
+
+You can find them
+[on my personal blog, tagged "imag"](http://beyermatthias.de/tags/imag.html)
+
+I also post these blog posts
+[on reddit](https://www.reddit.com/r/rust/search?q=What%27s+coming+up+in+imag&restrict_sr=on)
+and submit them to [this-week-in-rust](https://this-week-in-rust.org/).
+
+From time to time I publish an article about imag which does not focus on some
+things that are happening, but rather about something more general.
+
 ## Documentation
 
 For detailed information, please read [the documentation](./doc/).
