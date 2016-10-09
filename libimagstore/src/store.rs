@@ -651,6 +651,41 @@ impl Store {
     }
 
     /// Move an entry without loading
+    ///
+    /// This function moves an entry from one path to another.
+    ///
+    /// Generally, this function shouldn't be used by library authors, if they "just" want to move
+    /// something around. A library for moving entries while caring about meta-data and links.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error in certain cases:
+    ///
+    /// * If pre-move-hooks error (if they return an error which indicates that the action should be
+    ///   aborted)
+    /// * If the about-to-be-moved entry is borrowed
+    /// * If the lock on the internal data structure cannot be aquired
+    /// * If the new path already exists
+    /// * If the about-to-be-moved entry does not exist
+    /// * If the FS-operation failed
+    /// * If the post-move-hooks error (though the operation has succeeded then).
+    ///
+    /// # Warnings
+    ///
+    /// This should be used with _great_ care, as moving an entry from `a` to `b` might result in
+    /// dangling links (see below).
+    ///
+    /// ## Moving linked entries
+    ///
+    /// If the entry which is moved is linked to another entry, these links get invalid (but we do
+    /// not detect this here). As links are always two-way-links, so `a` is not only linked to `b`,
+    /// but also the other way round, moving `b` to `c` results in the following scenario:
+    ///
+    /// * `a` links to `b`, which does not exist anymore.
+    /// * `c` links to `a`, which does exist.
+    ///
+    /// So the link is _partly dangling_, so to say.
+    ///
     pub fn move_by_id(&self, old_id: StoreId, new_id: StoreId) -> Result<()> {
         let new_id = new_id.with_base(self.path().clone());
         let old_id = old_id.with_base(self.path().clone());
@@ -672,6 +707,13 @@ impl Store {
                 return Err(SEK::EntryAlreadyExists.into_error());
             }
 
+            // if we do not have an entry here, we fail in `FileAbstraction::rename()` below.
+            // if we have one, but it is borrowed, we really should not rename it, as this might
+            // lead to strange errors
+            if hsmap.get(&old_id).map(|e| e.is_borrowed()).unwrap_or(false) {
+                return Err(SEK::EntryAlreadyBorrowed.into_error());
+            }
+
             let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
             let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
 
@@ -684,7 +726,10 @@ impl Store {
                     // Should therefor never fail
                     assert!(hsmap
                             .remove(&old_id)
-                            .and_then(|entry| hsmap.insert(new_id.clone(), entry)).is_none())
+                            .and_then(|mut entry| {
+                                entry.id = new_id.clone();
+                                hsmap.insert(new_id.clone(), entry)
+                            }).is_none())
                 }
             }
 
@@ -2598,16 +2643,135 @@ aspect = "test"
         "#
     }
 
-    #[test]
-    fn test_pre_create() {
+    fn test_hook_execution(hook_positions: &[HP]) {
         let mut store = get_store_with_config();
         let pos       = HP::PreCreate;
         let hook      = TestHook::new(pos.clone(), true, false);
 
-        assert!(store.register_hook(pos, "test", Box::new(hook)).map_err(|e| println!("{:?}", e)).is_ok());
+        println!("Registering hooks...");
+        for pos in hook_positions {
+            let hook = TestHook::new(pos.clone(), true, false);
+            println!("\tRegistering: {:?}", pos);
+            assert!(store.register_hook(pos.clone(), "test", Box::new(hook))
+                    .map_err(|e| println!("{:?}", e))
+                    .is_ok()
+            );
+        }
+        println!("... done.");
 
-        let pb = StoreId::new_baseless(PathBuf::from("test")).unwrap();
+        let pb       = StoreId::new_baseless(PathBuf::from("test")).unwrap();
+        let pb_moved = StoreId::new_baseless(PathBuf::from("test-moved")).unwrap();
+
+        println!("Creating {:?}", pb);
         assert!(store.create(pb.clone()).is_ok());
+
+        {
+            println!("Getting {:?} -> Some?", pb);
+            assert!(match store.get(pb.clone()) {
+                Ok(Some(_)) => true,
+                _           => false,
+            });
+        }
+
+        {
+            println!("Getting {:?} -> None?", pb_moved);
+            assert!(match store.get(pb_moved.clone()) {
+                Ok(None) => true,
+                _        => false,
+            });
+        }
+
+        {
+            println!("Moving {:?} -> {:?}", pb, pb_moved);
+            assert!(store.move_by_id(pb.clone(), pb_moved.clone()).is_ok());
+        }
+
+        {
+            println!("Getting {:?} -> None", pb);
+            assert!(match store.get(pb.clone()) {
+                Ok(None) => true,
+                _        => false,
+            });
+        }
+
+        {
+            println!("Getting {:?} -> Some", pb_moved);
+            assert!(match store.get(pb_moved.clone()) {
+                Ok(Some(_)) => true,
+                _           => false,
+            });
+        }
+
+        {
+            println!("Getting {:?} -> Some -> updating", pb_moved);
+            assert!(match store.get(pb_moved.clone()).map_err(|e| println!("ERROR GETTING: {:?}", e)) {
+                Ok(Some(fle)) => store.update(fle).map_err(|e| println!("ERROR UPDATING: {:?}", e)).is_ok(),
+                _             => false,
+            });
+        }
+
+        println!("Deleting {:?}", pb_moved);
+        assert!(store.delete(pb_moved).is_ok());
+    }
+
+    #[test]
+    fn test_storeunload() {
+        test_hook_execution(&[HP::StoreUnload]);
+    }
+
+    #[test]
+    fn test_precreate() {
+        test_hook_execution(&[HP::PreCreate]);
+    }
+
+    #[test]
+    fn test_postcreate() {
+        test_hook_execution(&[HP::PostCreate]);
+    }
+
+    #[test]
+    fn test_preretrieve() {
+        test_hook_execution(&[HP::PreRetrieve]);
+    }
+
+    #[test]
+    fn test_postretrieve() {
+        test_hook_execution(&[HP::PostRetrieve]);
+    }
+
+    #[test]
+    fn test_preupdate() {
+        test_hook_execution(&[HP::PreUpdate]);
+    }
+
+    #[test]
+    fn test_postupdate() {
+        test_hook_execution(&[HP::PostUpdate]);
+    }
+
+    #[test]
+    fn test_predelete() {
+        test_hook_execution(&[HP::PreDelete]);
+    }
+
+    #[test]
+    fn test_postdelete() {
+        test_hook_execution(&[HP::PostDelete]);
+    }
+
+    #[test]
+    fn test_multiple_same_position() {
+        let positions = [ HP::StoreUnload, HP::PreCreate, HP::PostCreate, HP::PreRetrieve,
+            HP::PostRetrieve, HP::PreUpdate, HP::PostUpdate, HP::PreDelete, HP::PostDelete ];
+
+        for position in positions.iter() {
+            for n in 2..10 {
+                let mut v = Vec::with_capacity(n);
+                for x in 0..n { v.push(position.clone()); }
+
+                test_hook_execution(&v);
+            }
+        }
     }
 
 
