@@ -507,7 +507,7 @@ impl Store {
                 .map_err_into(SEK::UpdateCallError);
         }
 
-        if let Err(e) = self._update(&entry) {
+        if let Err(e) = self._update(&entry, false) {
             return Err(e).map_err_into(SEK::UpdateCallError);
         }
 
@@ -522,7 +522,7 @@ impl Store {
     /// # Assumptions
     /// This method assumes that entry is dropped _right after_ the call, hence
     /// it is not public.
-    fn _update<'a>(&'a self, entry: &FileLockEntry<'a>) -> Result<()> {
+    fn _update<'a>(&'a self, entry: &FileLockEntry<'a>, modify_presence: bool) -> Result<()> {
         let mut hsmap = match self.entries.write() {
             Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
             Ok(e) => e,
@@ -537,7 +537,9 @@ impl Store {
 
         debug!("Writing Entry");
         try!(se.write_entry(&entry.entry));
-        se.status = StoreEntryStatus::Present;
+        if modify_presence {
+            se.status = StoreEntryStatus::Present;
+        }
 
         Ok(())
     }
@@ -879,12 +881,22 @@ impl<'a> DerefMut for FileLockEntry<'a> {
     }
 }
 
+#[cfg(not(test))]
 impl<'a> Drop for FileLockEntry<'a> {
     /// This will silently ignore errors, use `Store::update` if you want to catch the errors
     fn drop(&mut self) {
-        let _ = self.store._update(self);
+        let _ = self.store._update(self, true);
     }
 }
+
+#[cfg(test)]
+impl<'a> Drop for FileLockEntry<'a> {
+    /// This will not silently ignore errors but prints the result of the _update() call for testing
+    fn drop(&mut self) {
+        println!("Drop Result: {:?}", self.store._update(self, true));
+    }
+}
+
 
 /// `EntryContent` type
 pub type EntryContent = String;
@@ -2502,12 +2514,16 @@ mod store_hook_tests {
             }
 
             fn get_result(succeed: bool, abort: bool) -> HookResult<()> {
+                println!("Generting result: succeed = {}, abort = {}", succeed, abort);
                 if succeed {
+                    println!("Generating result: Ok(())");
                     Ok(())
                 } else {
                     if abort {
+                        println!("Generating result: Err(_), aborting");
                         Err(HEK::HookExecutionError.into_error())
                     } else {
+                        println!("Generating result: Err(_), not aborting");
                         let custom = CustomData::default().aborting(false);
                         Err(HEK::HookExecutionError.into_error().with_custom_data(custom))
                     }
@@ -2592,6 +2608,92 @@ aspect = "test"
 
         let pb = StoreId::new_baseless(PathBuf::from("test")).unwrap();
         assert!(store.create(pb.clone()).is_ok());
+    }
+
+
+    fn get_store_with_aborting_hook_at_pos(pos: HP) -> Store {
+        let mut store = get_store_with_config();
+        let hook      = TestHook::new(pos.clone(), false, true);
+
+        assert!(store.register_hook(pos, "test", Box::new(hook)).map_err(|e| println!("{:?}", e)).is_ok());
+        store
+    }
+
+    fn default_test_id() -> StoreId {
+        StoreId::new_baseless(PathBuf::from("test")).unwrap()
+    }
+
+    #[test]
+    fn test_pre_create_error() {
+        let store   = get_store_with_aborting_hook_at_pos(HP::PreCreate);
+        assert!(store.create(default_test_id()).is_err());
+    }
+
+    #[test]
+    fn test_pre_retrieve_error() {
+        let store   = get_store_with_aborting_hook_at_pos(HP::PreRetrieve);
+        assert!(store.retrieve(default_test_id()).is_err());
+    }
+
+    #[test]
+    fn test_pre_delete_error() {
+        let store   = get_store_with_aborting_hook_at_pos(HP::PreDelete);
+        assert!(store.delete(default_test_id()).is_err());
+    }
+
+    #[test]
+    fn test_pre_update_error() {
+        let store   = get_store_with_aborting_hook_at_pos(HP::PreUpdate);
+        let fle     = store.create(default_test_id()).unwrap();
+
+        assert!(store.update(fle).is_err());
+    }
+
+    #[test]
+    fn test_post_create_error() {
+        let store   = get_store_with_aborting_hook_at_pos(HP::PostCreate);
+        let pb      = default_test_id();
+
+        assert!(store.create(pb.clone()).is_err());
+
+        // But the entry exists, as the hook fails post-create
+        assert!(store.entries.read().unwrap().get(&pb.with_base(store.path().clone())).is_some());
+    }
+
+    #[test]
+    fn test_post_retrieve_error() {
+        let store   = get_store_with_aborting_hook_at_pos(HP::PostRetrieve);
+        let pb      = default_test_id();
+
+        assert!(store.retrieve(pb.clone()).is_err());
+
+        // But the entry exists, as the hook fails post-retrieve
+        assert!(store.entries.read().unwrap().get(&pb.with_base(store.path().clone())).is_some());
+    }
+
+    #[test]
+    fn test_post_delete_error() {
+        let store   = get_store_with_aborting_hook_at_pos(HP::PostDelete);
+        let pb      = default_test_id();
+
+        assert!(store.create(pb.clone()).is_ok());
+        let pb = pb.with_base(store.path().clone());
+        assert!(store.entries.read().unwrap().get(&pb).is_some());
+
+        assert!(store.delete(pb.clone()).is_err());
+        // But the entry is removed, as we fail post-delete
+        assert!(store.entries.read().unwrap().get(&pb).is_none());
+    }
+
+    #[test]
+    fn test_post_update_error() {
+        let store   = get_store_with_aborting_hook_at_pos(HP::PostUpdate);
+        let pb      = default_test_id();
+        let fle     = store.create(pb.clone()).unwrap();
+        let pb      = pb.with_base(store.path().clone());
+
+        assert!(store.entries.read().unwrap().get(&pb).is_some());
+        assert!(store.update(fle).is_err());
     }
 
 }
