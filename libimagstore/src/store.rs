@@ -2683,7 +2683,7 @@ aspect = "test"
 
         {
             println!("Moving {:?} -> {:?}", pb, pb_moved);
-            assert!(store.move_by_id(pb.clone(), pb_moved.clone()).is_ok());
+            assert!(store.move_by_id(pb.clone(), pb_moved.clone()).map_err(|e| println!("ERROR MOVING: {:?}", e)).is_ok());
         }
 
         {
