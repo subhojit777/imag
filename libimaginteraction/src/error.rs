@@ -23,7 +23,13 @@ generate_error_module!(
         CLIError            => "Error on commandline",
         IdMissingError      => "Commandline: ID missing",
         StoreIdParsingError => "Error while parsing StoreId",
-        IdSelectingError    => "Error while selecting id"
+        IdSelectingError    => "Error while selecting id",
+        ConfigError         => "Configuration error",
+        ConfigMissingError  => "Configuration missing",
+        ConfigTypeError     => "Config Type Error",
+        NoConfigError       => "No configuration",
+        ReadlineHistoryFileCreationError => "Could not create history file for readline",
+        ReadlineError       => "Readline error"
     );
 );
 
