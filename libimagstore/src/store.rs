@@ -1,3 +1,22 @@
+//
+// imag - the personal information management suite for the commandline
+// Copyright (C) 2015, 2016 Matthias Beyer <mail@beyermatthias.de> and contributors
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; version
+// 2.1 of the License.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+
 use std::collections::HashMap;
 use std::ops::Drop;
 use std::path::PathBuf;
@@ -500,21 +519,7 @@ impl Store {
 
     /// Return the `FileLockEntry` and write to disk
     pub fn update<'a>(&'a self, mut entry: FileLockEntry<'a>) -> Result<()> {
-        if let Err(e) = self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), &mut entry) {
-            return Err(e)
-                .map_err_into(SEK::PreHookExecuteError)
-                .map_err_into(SEK::HookExecutionError)
-                .map_err_into(SEK::UpdateCallError);
-        }
-
-        if let Err(e) = self._update(&entry, false) {
-            return Err(e).map_err_into(SEK::UpdateCallError);
-        }
-
-        self.execute_hooks_for_mut_file(self.post_update_aspects.clone(), &mut entry)
-            .map_err_into(SEK::PostHookExecuteError)
-            .map_err_into(SEK::HookExecutionError)
-            .map_err_into(SEK::UpdateCallError)
+        self._update(&mut entry, false).map_err_into(SEK::UpdateCallError)
     }
 
     /// Internal method to write to the filesystem store.
@@ -522,7 +527,13 @@ impl Store {
     /// # Assumptions
     /// This method assumes that entry is dropped _right after_ the call, hence
     /// it is not public.
-    fn _update<'a>(&'a self, entry: &FileLockEntry<'a>, modify_presence: bool) -> Result<()> {
+    fn _update<'a>(&'a self, mut entry: &mut FileLockEntry<'a>, modify_presence: bool) -> Result<()> {
+        let _ = try!(self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), &mut entry)
+            .map_err_into(SEK::PreHookExecuteError)
+            .map_err_into(SEK::HookExecutionError)
+            .map_err_into(SEK::UpdateCallError)
+        );
+
         let mut hsmap = match self.entries.write() {
             Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
             Ok(e) => e,
@@ -541,7 +552,11 @@ impl Store {
             se.status = StoreEntryStatus::Present;
         }
 
-        Ok(())
+
+        self.execute_hooks_for_mut_file(self.post_update_aspects.clone(), &mut entry)
+            .map_err_into(SEK::PostHookExecuteError)
+            .map_err_into(SEK::HookExecutionError)
+            .map_err_into(SEK::UpdateCallError)
     }
 
     /// Retrieve a copy of a given entry, this cannot be used to mutate
@@ -938,7 +953,7 @@ impl<'a> Drop for FileLockEntry<'a> {
 impl<'a> Drop for FileLockEntry<'a> {
     /// This will not silently ignore errors but prints the result of the _update() call for testing
     fn drop(&mut self) {
-        println!("Drop Result: {:?}", self.store._update(self, true));
+        let _ = self.store._update(self, true).map_err(|e| trace_error(&e));
     }
 }
 

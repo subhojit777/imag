@@ -1,148 +1,95 @@
 # imag - [imag-pim.org](http://imag-pim.org)
 
-Imag is a CLI PIM suite you can
-integrate in your tools of choice (Editor, MUA, RSS reader, etc etc).
+`imag` is a commandline personal information management suite.
+
+**This application is in early development. There are _some_ things that work,
+but we do not consider anything stable or usable at this moment. Feel free to
+play around anyways.**
 
 [![Build Status](https://travis-ci.org/matthiasbeyer/imag.svg?branch=master)](https://travis-ci.org/matthiasbeyer/imag)
 [![Issue Stats](http://www.issuestats.com/github/matthiasbeyer/imag/badge/pr?style=flat-square)](http://www.issuestats.com/github/matthiasbeyer/imag)
 [![Issue Stats](http://www.issuestats.com/github/matthiasbeyer/imag/badge/issue?style=flat-square)](http://www.issuestats.com/github/matthiasbeyer/imag)
 [![license](https://img.shields.io/github/license/matthiasbeyer/imag.svg?maxAge=2592000?style=flat-square)]()
 
-## Please contribute!
+## What is this / Goal and Functionality
 
-We are looking work contributors!
+Our (long-term) goal is to
 
-There is always a number of
-[complexity/easy tagged issues](https://github.com/matthiasbeyer/imag/issues?q=is%3Aopen+is%3Aissue+label%3Acomplexity%2Feasy)
-available in the issue tracker you can start with and we are open to questions!
-
-Feel free to open issues for asking questions, suggesting features or other
-things!
-
-Also have a look at [the CONTRIBUTING.md file](./CONTRIBUTING.md)!
-
-## Goal
-
-Our goal is to
-
-> Create a fast, reliable, forwards/backwards compatible commandline personal
+> Create a fast, reliable commandline personal
 > information management suite which covers all aspects of personal information
 > management, consists of reusable parts and integrates well with known
 > commandline tools.
 
-We try to accomplish these requirements:
+We try to implement as many aspects of personal information management (PIM),
+but re-use existing commandline tools.
+We do this by tracking/referring to the data the tools create.
+A user can now link pieces of data (from different tools), tag this data and
+query/search this data using imag.
+So `imag` is more like a data-mining helper than an actual PIM tool, but we
+implement some of the PIM aspects directly in `imag`.
+Parts of PIM (we call them "modules") that are already implemented and basically
+working:
 
-* "fast": We use the awesome, fast and safe programming language "Rust"
-* "reliable": We try to test every aspect of our software. Our build process
-  ensures that the build breaks whenever a library interface changes and the
-  modules which use the library are not updated.
-* "forwards/backwards compatible:" Our (plain text) on-disk data format and
-  storage library both ensure that incompatibilities are captured and resolved
-  ([using](https://crates.io/crates/semver) [semver](https://semver.org))
-* "commandline": We ensure that everything can be done by commandline calls, for
-  some modules there might be a curses-like UI, but there are no graphical
-  clients and there never will be any within this codebase. We use
-  [clap](https://crates.io/crates/clap) for commandline-interface building and
-  we try to keep the interface easy and consistent between modules.
-* "personal": We store everything as plain text in a store inside the users
-  `$HOME` directory. There will be a version-control (most surely `git`) hook
-  integrated to sync between several machines. There are no multi-user features
-  included or planned at the time of writing.
-* "information management": We want to give the user the possibility to put
-  every single information about their personal lives into the store and we try
-  hard to provide a sane interface to query and retrieve data from this
-  database.
-* "covers all the aspects of personal information management": We want to
-  provide modules for:
-  * contact management
-  * calendar
-  * diary
-  * notes
-  * personal wiki
-  * news (rss)
-  * passwords
-  * images
-  * music
-  * movies
-  * personal project management
-  * podcast management
-  * ledger
-  * mail
-  * bibliography management
-  * ... and many, many more.
-* "constists of reusable parts": Every functionality is implemented as library.
-  The binaries we ship are just commandline-interace-to-library-interface
-  translators
-* "integrates well with known commandline tools": We do not re-invent the wheel.
-  **We do not implement "yet another password manager", but use
-  [the standard unix password manager](https://www.passwordstore.org/), do not
-  implement a news reader, but use [newsbeuter](http://www.newsbeuter.org/),
-  do not reimplement a mail reader, etc etc.**
-  We do not copy images, movies or other data to the store but "link" them into
-  the store, so you can use imag tools to query and access this data, but still
-  live with your beloved commandline apps. We do not want to duplicate work but
-  reuse as much as possible.
-  You don't like one of the applications we use (for example `pass` as password
-  manager)? Sure, feel free to submit patches so the user is able to switch the
-  used tool, as long as it doesn't break the workflow. We will happily merge
-  them!
+* todo (via taskwarrior, we track the tasks one creates in taskwarrior)
+* diary
+* notes
+* bookmarks
+* counter (just an example, nothing that usable)
 
-## Current state of development
+Helper modules that come with `imag` but are not "PIM aspects":
 
-**This application is in _really_ early development.**
-
-We have implemented the very core of the system, though some more utility work
-is to be done.
-We have the store working, a hooks API and some default hooks are in
-development.
-Basic features like tagging and linking entries is possible as well as viewing
-entries.
-Some small things are implemented, like a note-taking module, a basic diary
-module, a counter module and a bookmark module.
-These modules contain basic features and are subject to change.
-More modules are about to be implemented.
-
-Though, the very core of the system is stable and nothing prevents _you_ from
-contributing and implementing a module.
+* linking entries
+* viewing entries
+* tagging entries
+* creating misc entries
+* creating entries that refer to files/directories
 
 ## Building/Running
 
-Here goes how to try imag out.
+Here goes how to try `imag` out.
+
+`imag` is a _suite_ of tools and you can build them individually.
+All subdirectories prefixed with "`libimag"` are libraries for the respective
+binaries.
+All subdirectories prefixed with `"imag-"` are binaries and compiling them will
+give you a commandline application.
 
 ### Building
 
 By now, there are several targets in the Makefile, fulfilling following roles:
-* `all` Is the default and builds every crate in debug mode. This is the same as
-  traversing every directory yourself and calling `cargo build` in it.
-  To build a single crate, call `make <crate>`, for example
-  `make imag-store`
-* `release`, as the name implies, builds every crate in release mode. Following
-  the example above, to build `imag-store` in release mode, call
-  `make imag-store-release`.
-* `install` will install all binary crates to the default installation root (see
-  `man cargo-install`). To install a single module, run `make <module>-install`,
-  again, for example: `make imag-store-install`
+
+* `all` is the default and builds every crate in debug mode.
+  To build a single module, call `make <module>`, for example `make imag-store`.
+* `release`, as the name implies, builds every module in release mode.
+  E.G.: `make imag-store-release` to build "imag-store" in release mode.
+* `install` will install all commandline modules to the default installation
+  root (see `man cargo-install`).
+  To install a single module, run `make <module>-install`,
+  E.G.: `make imag-store-install`
 * `bin`/`lib` are separate targets for either building all binaries or
   libraries.
-* `lib-test` runs `cargo test` for all libraries. For testing a single library,
-  run `make test-libimagstore` for example.
-* `clean` will run `cargo clean` in every crate. Again, for cleaning a single
-  crate, use `make imag-store-clean` for example.
+* `lib-test` runs `cargo test` for all libraries.
+  For testing a single library, E.G.: `make test-libimagstore`.
+* `clean` will run `cargo clean` in every crate.
+  For cleaning a single crate, use `make imag-store-clean` for example.
 * to build _only_ the `imag` binary, use the target `imag-bin`
-  (`imag-bin-release` for release build, `imag-bin-update` for
-  `cargo update`ing, `imag-bin-clean` for `cargo clean`ing).
+  (`imag-bin-release` for release build, `imag-bin-clean` for `cargo clean`ing).
 
 ### Running
 
 To test out a single module, simply using `cargo run -- <options>` in the
-respective directory will do the trick. For using it "normally", install the
+respective directory will do the trick.
+But you can also `make <module>` and call the binary on the commandline.
+For using it "normally", install the
 binaries as described above, as well as the imag-binary:
+
 ```
 $> make install
 ```
-The installation root of the binaries (a.k.a. where they are installed to), may
-not yet be in your $PATH. To see, where this installation root is, check out
-`man cargo-install`. To change the $PATH in bash:
+
+The installation root of the binaries may not yet be in your $PATH.
+To see where this installation root is check out `man cargo-install`.
+To change the $PATH in bash:
 
 ```bash
 $> PATH=$PATH:~/.cargo/bin
@@ -155,19 +102,45 @@ To test, simply add `--help` to one of the above commands:
 $> imag counter --help
 ```
 
-Please note that $PATH will be reset in a new shell. To make these changes
-permanent, see the User Guide of your shell.
+## Staying up-to-date
+
+Despite we have a [official site for imag](http://imag-pim.org), I do not push
+updates to this site, yet. Anyways, I post a blog articles about what happened
+in the last two weeks every other week.
+
+You can find them
+[on my personal blog, tagged "imag"](http://beyermatthias.de/tags/imag.html)
+
+I also post these blog posts
+[on reddit](https://www.reddit.com/r/rust/search?q=What%27s+coming+up+in+imag&restrict_sr=on)
+and submit them to [this-week-in-rust](https://this-week-in-rust.org/).
+
+From time to time I publish an article about imag which does not focus on some
+things that are happening, but rather about something more general.
 
 ## Documentation
 
-For detailed information, please read [the documentation](./doc/) (You can
-either read the Markdown files or compile it to HTML/PDF using
-[pandoc](http://pandoc.org)).
+For detailed information, please read [the documentation](./doc/).
+You can either read the Markdown files or compile it to HTML/PDF using
+[pandoc](http://pandoc.org).
 Developer documentation is also available
 [online on github.io](https://matthiasbeyer.github.io/imag/imag_documentation/index.html).
 
 Please note that the documentation is work in progress as well and may be
 outdated.
+
+## Please contribute!
+
+We are looking for contributors!
+
+There is always a number of
+[complexity/easy tagged issues](https://github.com/matthiasbeyer/imag/issues?q=is%3Aopen+is%3Aissue+label%3Acomplexity%2Feasy)
+available in the issue tracker you can start with and we are open to questions!
+
+Feel free to open issues for asking questions, suggesting features or other
+things!
+
+Also have a look at [the CONTRIBUTING.md file](./CONTRIBUTING.md)!
 
 ## Contact
 

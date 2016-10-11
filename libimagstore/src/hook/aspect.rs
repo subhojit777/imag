@@ -1,3 +1,22 @@
+//
+// imag - the personal information management suite for the commandline
+// Copyright (C) 2015, 2016 Matthias Beyer <mail@beyermatthias.de> and contributors
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; version
+// 2.1 of the License.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+
 use libimagerror::trace::trace_error;
 use libimagutil::iter::FoldResult;
 
@@ -68,10 +87,6 @@ impl MutableHookDataAccessor for Aspect {
     fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
         debug!("Checking whether mutable hooks are allowed");
         debug!("-> config = {:?}", self.cfg);
-        if !self.cfg.as_ref().map(|c| c.allow_mutable_hooks()).unwrap_or(false) {
-            debug!("Apparently mutable hooks are not allowed... failing now.");
-            return Err(HE::new(HEK::MutableHooksNotAllowed, None));
-        }
 
         let accessors : Vec<HDA> = self.hooks.iter().map(|h| h.accessor()).collect();
 
@@ -82,8 +97,15 @@ impl MutableHookDataAccessor for Aspect {
         accessors.iter().fold_defresult(|accessor| {
             let res = match accessor {
                 &HDA::StoreIdAccess(ref accessor)    => accessor.access(fle.get_location()),
-                &HDA::MutableAccess(ref accessor)    => accessor.access_mut(fle),
                 &HDA::NonMutableAccess(ref accessor) => accessor.access(fle),
+                &HDA::MutableAccess(ref accessor)    => {
+                    if !self.cfg.as_ref().map(|c| c.allow_mutable_hooks()).unwrap_or(false) {
+                        debug!("Apparently mutable hooks are not allowed... failing now.");
+                        return Err(HE::new(HEK::MutableHooksNotAllowed, None));
+                    }
+
+                    accessor.access_mut(fle)
+                },
             };
             trace_hook_errors(res)
         })

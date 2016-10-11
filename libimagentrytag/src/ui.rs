@@ -1,6 +1,27 @@
+//
+// imag - the personal information management suite for the commandline
+// Copyright (C) 2015, 2016 Matthias Beyer <mail@beyermatthias.de> and contributors
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; version
+// 2.1 of the License.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+
 use clap::{Arg, ArgMatches, App, SubCommand};
 
 use tag::Tag;
+
+use libimagutil::cli_validators::is_tag;
 
 /// Generates a `clap::SubCommand` to be integrated in the commandline-ui builder for building a
 /// "tags --add foo --remove bar" subcommand to do tagging action.
@@ -20,6 +41,7 @@ pub fn tag_add_arg<'a, 'b>() -> Arg<'a, 'b> {
         .takes_value(true)
         .value_name("tags")
         .multiple(true)
+        .validator(is_tag)
         .help("Add tags, seperated by comma or by specifying multiple times")
 }
 
@@ -30,6 +52,7 @@ pub fn tag_remove_arg<'a, 'b>() -> Arg<'a, 'b> {
         .takes_value(true)
         .value_name("tags")
         .multiple(true)
+        .validator(is_tag)
         .help("Remove tags, seperated by comma or by specifying multiple times")
 }
 
@@ -57,6 +80,7 @@ pub fn tag_argument<'a, 'b>() -> Arg<'a, 'b> {
         .long("tags")
         .takes_value(true)
         .multiple(true)
+        .validator(is_tag)
         .help("Add or remove tags, prefixed by '+' (for adding) or '-' (for removing)")
 }
 
