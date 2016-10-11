@@ -49,7 +49,9 @@ use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagbookmark::collection::BookmarkCollection;
 use libimagbookmark::link::Link as BookmarkLink;
-use libimagerror::trace::{trace_error, trace_error_exit};
+use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
+use libimagutil::info_result::*;
+use libimagutil::iter::*;
 
 mod ui;
 
@@ -82,12 +84,14 @@ fn add(rt: &Runtime) {
     let coll = scmd.value_of("collection").unwrap(); // enforced by clap
 
     BookmarkCollection::get(rt.store(), coll)
-        .map(|mut collection| {
-            for url in scmd.values_of("urls").unwrap() { // enforced by clap
-                collection.add_link(BookmarkLink::from(url)).map_err(|e| trace_error(&e)).ok();
-            }
-        });
-    info!("Ready");
+        .and_then(|mut collection| {
+            scmd.values_of("urls")
+                .unwrap() // enforced by clap
+                .fold_defresult(|url| collection.add_link(BookmarkLink::from(url)))
+        })
+        .map_err_trace()
+        .map_info_str("Ready")
+        .ok();
 }
 
 fn collection(rt: &Runtime) {
