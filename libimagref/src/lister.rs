@@ -21,12 +21,9 @@ use std::default::Default;
 use std::io::stdout;
 use std::io::Write;
 
-use toml::Value;
-
 use libimagentrylist::lister::Lister;
 use libimagentrylist::result::Result;
 use libimagerror::trace::trace_error;
-use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagerror::into::IntoError;
 use libimagentrylist::error::ListErrorKind as LEK;
