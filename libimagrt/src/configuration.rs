@@ -147,7 +147,7 @@ impl Configuration {
                     None => Err(CEK::ConfigOverrideKeyNotAvailable.into_error()),
                 }
             })
-            .fold_defresult(|i| i)
+            .fold_result(|i| i)
             .map_err(Box::new)
             .map_err(|e| CEK::ConfigOverrideError.into_error_with_cause(e))
     }
@@ -274,4 +274,3 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
         .map(|inner| Value::Table(inner.unwrap()))
         .ok_or(ConfigErrorKind::NoConfigFileFound.into())
 }
-

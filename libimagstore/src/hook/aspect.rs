@@ -73,7 +73,7 @@ impl StoreIdAccessor for Aspect {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
-        accessors.iter().fold_defresult(|accessor| {
+        accessors.iter().fold_result(|accessor| {
             let res = match accessor {
                 &HDA::StoreIdAccess(accessor) => accessor.access(id),
                 _ => unreachable!(),
@@ -94,7 +94,7 @@ impl MutableHookDataAccessor for Aspect {
         // More sophisticated version would check whether there are _chunks_ of
         // NonMutableAccess accessors and execute these chunks in parallel. We do not have
         // performance concerns yet, so this is okay.
-        accessors.iter().fold_defresult(|accessor| {
+        accessors.iter().fold_result(|accessor| {
             let res = match accessor {
                 &HDA::StoreIdAccess(ref accessor)    => accessor.access(fle.get_location()),
                 &HDA::NonMutableAccess(ref accessor) => accessor.access(fle),
@@ -127,7 +127,7 @@ impl NonMutableHookDataAccessor for Aspect {
             return Err(HE::new(HEK::AccessTypeViolation, None));
         }
 
-        accessors.iter().fold_defresult(|accessor| {
+        accessors.iter().fold_result(|accessor| {
             let res = match accessor {
                 &HDA::NonMutableAccess(accessor) => accessor.access(fle),
                 _ => unreachable!(),
