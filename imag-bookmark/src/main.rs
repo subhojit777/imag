@@ -17,6 +17,21 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+#![deny(
+    non_camel_case_types,
+    non_snake_case,
+    path_statements,
+    trivial_numeric_casts,
+    unstable_features,
+    unused_allocation,
+    unused_import_braces,
+    unused_imports,
+    unused_must_use,
+    unused_mut,
+    unused_qualifications,
+    while_true,
+)]
+
 extern crate clap;
 #[macro_use] extern crate log;
 #[macro_use] extern crate version;
@@ -30,13 +45,13 @@ extern crate libimagutil;
 
 use std::process::exit;
 
-use libimagentrytag::ui::{get_add_tags, get_remove_tags};
-use libimagentrylink::internal::Link;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagbookmark::collection::BookmarkCollection;
 use libimagbookmark::link::Link as BookmarkLink;
-use libimagerror::trace::{trace_error, trace_error_exit};
+use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
+use libimagutil::info_result::*;
+use libimagutil::iter::*;
 
 mod ui;
 
@@ -69,12 +84,14 @@ fn add(rt: &Runtime) {
     let coll = scmd.value_of("collection").unwrap(); // enforced by clap
 
     BookmarkCollection::get(rt.store(), coll)
-        .map(|mut collection| {
-            for url in scmd.values_of("urls").unwrap() { // enforced by clap
-                collection.add_link(BookmarkLink::from(url)).map_err(|e| trace_error(&e));
-            }
-        });
-    info!("Ready");
+        .and_then(|mut collection| {
+            scmd.values_of("urls")
+                .unwrap() // enforced by clap
+                .fold_defresult(|url| collection.add_link(BookmarkLink::from(url)))
+        })
+        .map_err_trace()
+        .map_info_str("Ready")
+        .ok();
 }
 
 fn collection(rt: &Runtime) {
@@ -117,7 +134,8 @@ fn list(rt: &Runtime) {
                 },
                 Err(e) => trace_error_exit(&e, 1),
             }
-        });
+        })
+        .ok();
     info!("Ready");
 }
 
@@ -128,9 +146,10 @@ fn remove(rt: &Runtime) {
     BookmarkCollection::get(rt.store(), coll)
         .map(|mut collection| {
             for url in scmd.values_of("urls").unwrap() { // enforced by clap
-                collection.remove_link(BookmarkLink::from(url)).map_err(|e| trace_error(&e));
+                collection.remove_link(BookmarkLink::from(url)).map_err(|e| trace_error(&e)).ok();
             }
-        });
+        })
+        .ok();
     info!("Ready");
 }
 

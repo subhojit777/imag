@@ -17,6 +17,21 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+#![deny(
+    non_camel_case_types,
+    non_snake_case,
+    path_statements,
+    trivial_numeric_casts,
+    unstable_features,
+    unused_allocation,
+    unused_import_braces,
+    unused_imports,
+    unused_must_use,
+    unused_mut,
+    unused_qualifications,
+    while_true,
+)]
+
 #[macro_use] extern crate log;
 #[macro_use] extern crate version;
 extern crate semver;
@@ -82,8 +97,6 @@ fn add(rt: &Runtime) {
 }
 
 fn remove(rt: &Runtime) {
-    use libimagref::error::RefErrorKind;
-    use libimagerror::into::IntoError;
     use libimaginteraction::ask::ask_bool;
 
     let cmd  = rt.cli().subcommand_matches("remove").unwrap();
@@ -103,10 +116,8 @@ fn remove(rt: &Runtime) {
 
 fn list(rt: &Runtime) {
     use std::process::exit;
-    use std::ops::Deref;
 
     use libimagentrylist::lister::Lister;
-    use libimagentrylist::listers::core::CoreLister;
     use libimagref::lister::RefLister;
 
     let cmd                      = rt.cli().subcommand_matches("list").unwrap();
@@ -136,6 +147,7 @@ fn list(rt: &Runtime) {
         .check_changed(do_check_changed)
         .check_changed_content(do_check_changed_content)
         .check_changed_permiss(do_check_changed_permiss)
-        .list(iter.map(|e| e.into()));
+        .list(iter.map(|e| e.into()))
+        .ok();
 }
 

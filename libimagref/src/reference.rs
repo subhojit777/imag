@@ -169,13 +169,13 @@ impl<'a> Ref<'a> {
                     match can.to_str().map(String::from) {
                         // UTF convert error in PathBuf::to_str(),
                         None      => Err(REK::PathUTF8Error.into_error()),
-                        Some(can) => Ok((file, opt_conhash, opt_perm, can, path_hash))
+                        Some(can) => Ok((opt_conhash, opt_perm, can, path_hash))
                     }
                 })
 
                 // and then we create the FileLockEntry in the Store
                 // and return (filelockentry, content hash, permissions, canonicalized path)
-                .and_then(|(file, opt_conhash, opt_perm, can, path_hash)| {
+                .and_then(|(opt_conhash, opt_perm, can, path_hash)| {
                     let fle = try!(store
                                    .create(ModuleEntryPath::new(path_hash))
                                    .map_err(Box::new)

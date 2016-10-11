@@ -21,12 +21,9 @@ use std::default::Default;
 use std::io::stdout;
 use std::io::Write;
 
-use toml::Value;
-
 use libimagentrylist::lister::Lister;
 use libimagentrylist::result::Result;
 use libimagerror::trace::trace_error;
-use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagerror::into::IntoError;
 use libimagentrylist::error::ListErrorKind as LEK;
@@ -80,20 +77,6 @@ impl Default for RefLister {
             check_changed_permiss: false,
         }
     }
-}
-
-fn list_fn(e: &Entry) -> String {
-    let stored_hash = match e.get_header().read("ref.content_hash") {
-        Ok(Some(Value::String(s))) => s.clone(),
-        _                          => String::from("<Error: Could not read stored hash>"),
-    };
-
-    let filepath = match e.get_header().read("ref.path") {
-        Ok(Some(Value::String(ref s))) => s.clone(),
-        _ => String::from("<Error: Could not read file path>"),
-    };
-
-    format!("Ref({} -> {})", stored_hash, filepath)
 }
 
 impl Lister for RefLister {
@@ -204,7 +187,7 @@ fn check_changed_content(r: &Ref) -> bool {
     }
 }
 
-fn check_changed_permiss(r: &Ref) -> bool {
+fn check_changed_permiss(_: &Ref) -> bool {
     warn!("Permission changes tracking not supported yet.");
     false
 }
