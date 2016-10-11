@@ -2643,7 +2643,7 @@ aspect = "test"
         "#
     }
 
-    fn test_hook_execution(hook_positions: &[HP]) {
+    fn test_hook_execution(hook_positions: &[HP], storeid_name: &str) {
         let mut store = get_store_with_config();
         let pos       = HP::PreCreate;
         let hook      = TestHook::new(pos.clone(), true, false);
@@ -2659,8 +2659,8 @@ aspect = "test"
         }
         println!("... done.");
 
-        let pb       = StoreId::new_baseless(PathBuf::from("test")).unwrap();
-        let pb_moved = StoreId::new_baseless(PathBuf::from("test-moved")).unwrap();
+        let pb       = StoreId::new_baseless(PathBuf::from(storeid_name)).unwrap();
+        let pb_moved = StoreId::new_baseless(PathBuf::from(format!("{}-moved", storeid_name))).unwrap();
 
         println!("Creating {:?}", pb);
         assert!(store.create(pb.clone()).is_ok());
@@ -2716,47 +2716,47 @@ aspect = "test"
 
     #[test]
     fn test_storeunload() {
-        test_hook_execution(&[HP::StoreUnload]);
+        test_hook_execution(&[HP::StoreUnload], "test_storeunload");
     }
 
     #[test]
     fn test_precreate() {
-        test_hook_execution(&[HP::PreCreate]);
+        test_hook_execution(&[HP::PreCreate], "test_precreate");
     }
 
     #[test]
     fn test_postcreate() {
-        test_hook_execution(&[HP::PostCreate]);
+        test_hook_execution(&[HP::PostCreate], "test_postcreate");
     }
 
     #[test]
     fn test_preretrieve() {
-        test_hook_execution(&[HP::PreRetrieve]);
+        test_hook_execution(&[HP::PreRetrieve], "test_preretrieve");
     }
 
     #[test]
     fn test_postretrieve() {
-        test_hook_execution(&[HP::PostRetrieve]);
+        test_hook_execution(&[HP::PostRetrieve], "test_postretrieve");
     }
 
     #[test]
     fn test_preupdate() {
-        test_hook_execution(&[HP::PreUpdate]);
+        test_hook_execution(&[HP::PreUpdate], "test_preupdate");
     }
 
     #[test]
     fn test_postupdate() {
-        test_hook_execution(&[HP::PostUpdate]);
+        test_hook_execution(&[HP::PostUpdate], "test_postupdate");
     }
 
     #[test]
     fn test_predelete() {
-        test_hook_execution(&[HP::PreDelete]);
+        test_hook_execution(&[HP::PreDelete], "test_predelete");
     }
 
     #[test]
     fn test_postdelete() {
-        test_hook_execution(&[HP::PostDelete]);
+        test_hook_execution(&[HP::PostDelete], "test_postdelete");
     }
 
     #[test]
@@ -2769,7 +2769,7 @@ aspect = "test"
                 let mut v = Vec::with_capacity(n);
                 for x in 0..n { v.push(position.clone()); }
 
-                test_hook_execution(&v);
+                test_hook_execution(&v, "test_multiple_same_position");
             }
         }
     }
@@ -2789,26 +2789,30 @@ aspect = "test"
 
     #[test]
     fn test_pre_create_error() {
+        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_create_error")).unwrap();
         let store   = get_store_with_aborting_hook_at_pos(HP::PreCreate);
-        assert!(store.create(default_test_id()).is_err());
+        assert!(store.create(storeid).is_err());
     }
 
     #[test]
     fn test_pre_retrieve_error() {
+        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_retrieve_error")).unwrap();
         let store   = get_store_with_aborting_hook_at_pos(HP::PreRetrieve);
-        assert!(store.retrieve(default_test_id()).is_err());
+        assert!(store.retrieve(storeid).is_err());
     }
 
     #[test]
     fn test_pre_delete_error() {
+        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_delete_error")).unwrap();
         let store   = get_store_with_aborting_hook_at_pos(HP::PreDelete);
-        assert!(store.delete(default_test_id()).is_err());
+        assert!(store.delete(storeid).is_err());
     }
 
     #[test]
     fn test_pre_update_error() {
+        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_update_error")).unwrap();
         let store   = get_store_with_aborting_hook_at_pos(HP::PreUpdate);
-        let fle     = store.create(default_test_id()).unwrap();
+        let fle     = store.create(storeid).unwrap();
 
         assert!(store.update(fle).is_err());
     }
@@ -2816,7 +2820,7 @@ aspect = "test"
     #[test]
     fn test_post_create_error() {
         let store   = get_store_with_aborting_hook_at_pos(HP::PostCreate);
-        let pb      = default_test_id();
+        let pb      = StoreId::new_baseless(PathBuf::from("test_post_create_error")).unwrap();
 
         assert!(store.create(pb.clone()).is_err());
 
@@ -2827,7 +2831,7 @@ aspect = "test"
     #[test]
     fn test_post_retrieve_error() {
         let store   = get_store_with_aborting_hook_at_pos(HP::PostRetrieve);
-        let pb      = default_test_id();
+        let pb      = StoreId::new_baseless(PathBuf::from("test_post_retrieve_error")).unwrap();
 
         assert!(store.retrieve(pb.clone()).is_err());
 
@@ -2838,7 +2842,7 @@ aspect = "test"
     #[test]
     fn test_post_delete_error() {
         let store   = get_store_with_aborting_hook_at_pos(HP::PostDelete);
-        let pb      = default_test_id();
+        let pb      = StoreId::new_baseless(PathBuf::from("test_post_delete_error")).unwrap();
 
         assert!(store.create(pb.clone()).is_ok());
         let pb = pb.with_base(store.path().clone());
@@ -2852,7 +2856,7 @@ aspect = "test"
     #[test]
     fn test_post_update_error() {
         let store   = get_store_with_aborting_hook_at_pos(HP::PostUpdate);
-        let pb      = default_test_id();
+        let pb      = StoreId::new_baseless(PathBuf::from("test_post_update_error")).unwrap();
         let fle     = store.create(pb.clone()).unwrap();
         let pb      = pb.with_base(store.path().clone());
 
@@ -2870,27 +2874,31 @@ aspect = "test"
 
     #[test]
     fn test_pre_create_allowed_error() {
+        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_create_allowed_error")).unwrap();
         let store   = get_store_with_allowed_error_hook_at_pos(HP::PreCreate);
-        assert!(store.create(default_test_id()).is_ok());
+        assert!(store.create(storeid).is_ok());
     }
 
     #[test]
     fn test_pre_retrieve_allowed_error() {
+        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_retrieve_allowed_error")).unwrap();
         let store   = get_store_with_allowed_error_hook_at_pos(HP::PreRetrieve);
-        assert!(store.retrieve(default_test_id()).is_ok());
+        assert!(store.retrieve(storeid).is_ok());
     }
 
     #[test]
     fn test_pre_delete_allowed_error() {
+        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_delete_allowed_error")).unwrap();
         let store   = get_store_with_allowed_error_hook_at_pos(HP::PreDelete);
-        assert!(store.retrieve(default_test_id()).is_ok());
-        assert!(store.delete(default_test_id()).map_err(|e| println!("{:?}", e)).is_ok());
+        assert!(store.retrieve(storeid.clone()).is_ok());
+        assert!(store.delete(storeid).map_err(|e| println!("{:?}", e)).is_ok());
     }
 
     #[test]
     fn test_pre_update_allowed_error() {
+        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_update_allowed_error")).unwrap();
         let store   = get_store_with_allowed_error_hook_at_pos(HP::PreUpdate);
-        let fle     = store.create(default_test_id()).unwrap();
+        let fle     = store.create(storeid).unwrap();
 
         assert!(store.update(fle).is_ok());
     }
@@ -2898,7 +2906,7 @@ aspect = "test"
     #[test]
     fn test_post_create_allowed_error() {
         let store   = get_store_with_allowed_error_hook_at_pos(HP::PostCreate);
-        let pb      = default_test_id();
+        let pb      = StoreId::new_baseless(PathBuf::from("test_pre_create_allowed_error")).unwrap();
 
         assert!(store.create(pb.clone()).is_ok());
 
@@ -2909,7 +2917,7 @@ aspect = "test"
     #[test]
     fn test_post_retrieve_allowed_error() {
         let store   = get_store_with_allowed_error_hook_at_pos(HP::PostRetrieve);
-        let pb      = default_test_id();
+        let pb      = StoreId::new_baseless(PathBuf::from("test_pre_retrieve_allowed_error")).unwrap();
 
         assert!(store.retrieve(pb.clone()).is_ok());
 
@@ -2920,7 +2928,7 @@ aspect = "test"
     #[test]
     fn test_post_delete_allowed_error() {
         let store   = get_store_with_allowed_error_hook_at_pos(HP::PostDelete);
-        let pb      = default_test_id();
+        let pb      = StoreId::new_baseless(PathBuf::from("test_pre_delete_allowed_error")).unwrap();
 
         assert!(store.create(pb.clone()).is_ok());
         let pb = pb.with_base(store.path().clone());
@@ -2934,7 +2942,7 @@ aspect = "test"
     #[test]
     fn test_post_update_allowed_error() {
         let store   = get_store_with_allowed_error_hook_at_pos(HP::PostUpdate);
-        let pb      = default_test_id();
+        let pb      = StoreId::new_baseless(PathBuf::from("test_pre_update_allowed_error")).unwrap();
         let fle     = store.create(pb.clone()).unwrap();
         let pb      = pb.with_base(store.path().clone());
 
