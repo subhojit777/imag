@@ -2860,5 +2860,86 @@ aspect = "test"
         assert!(store.update(fle).is_err());
     }
 
+    fn get_store_with_allowed_error_hook_at_pos(pos: HP) -> Store {
+        let mut store = get_store_with_config();
+        let hook      = TestHook::new(pos.clone(), false, false);
+
+        assert!(store.register_hook(pos, "test", Box::new(hook)).map_err(|e| println!("{:?}", e)).is_ok());
+        store
+    }
+
+    #[test]
+    fn test_pre_create_allowed_error() {
+        let store   = get_store_with_allowed_error_hook_at_pos(HP::PreCreate);
+        assert!(store.create(default_test_id()).is_ok());
+    }
+
+    #[test]
+    fn test_pre_retrieve_allowed_error() {
+        let store   = get_store_with_allowed_error_hook_at_pos(HP::PreRetrieve);
+        assert!(store.retrieve(default_test_id()).is_ok());
+    }
+
+    #[test]
+    fn test_pre_delete_allowed_error() {
+        let store   = get_store_with_allowed_error_hook_at_pos(HP::PreDelete);
+        assert!(store.retrieve(default_test_id()).is_ok());
+        assert!(store.delete(default_test_id()).map_err(|e| println!("{:?}", e)).is_ok());
+    }
+
+    #[test]
+    fn test_pre_update_allowed_error() {
+        let store   = get_store_with_allowed_error_hook_at_pos(HP::PreUpdate);
+        let fle     = store.create(default_test_id()).unwrap();
+
+        assert!(store.update(fle).is_ok());
+    }
+
+    #[test]
+    fn test_post_create_allowed_error() {
+        let store   = get_store_with_allowed_error_hook_at_pos(HP::PostCreate);
+        let pb      = default_test_id();
+
+        assert!(store.create(pb.clone()).is_ok());
+
+        // But the entry exists, as the hook fails post-create
+        assert!(store.entries.read().unwrap().get(&pb.with_base(store.path().clone())).is_some());
+    }
+
+    #[test]
+    fn test_post_retrieve_allowed_error() {
+        let store   = get_store_with_allowed_error_hook_at_pos(HP::PostRetrieve);
+        let pb      = default_test_id();
+
+        assert!(store.retrieve(pb.clone()).is_ok());
+
+        // But the entry exists, as the hook fails post-retrieve
+        assert!(store.entries.read().unwrap().get(&pb.with_base(store.path().clone())).is_some());
+    }
+
+    #[test]
+    fn test_post_delete_allowed_error() {
+        let store   = get_store_with_allowed_error_hook_at_pos(HP::PostDelete);
+        let pb      = default_test_id();
+
+        assert!(store.create(pb.clone()).is_ok());
+        let pb = pb.with_base(store.path().clone());
+        assert!(store.entries.read().unwrap().get(&pb).is_some());
+
+        assert!(store.delete(pb.clone()).is_ok());
+        // But the entry is removed, as we fail post-delete
+        assert!(store.entries.read().unwrap().get(&pb).is_none());
+    }
+
+    #[test]
+    fn test_post_update_allowed_error() {
+        let store   = get_store_with_allowed_error_hook_at_pos(HP::PostUpdate);
+        let pb      = default_test_id();
+        let fle     = store.create(pb.clone()).unwrap();
+        let pb      = pb.with_base(store.path().clone());
+
+        assert!(store.entries.read().unwrap().get(&pb).is_some());
+        assert!(store.update(fle).is_ok());
+    }
 }
 
