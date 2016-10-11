@@ -18,7 +18,6 @@
 //
 
 use std::path::PathBuf;
-use std::path::Path;
 use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::result::Result as RResult;
 
@@ -28,7 +27,6 @@ use libimagerror::trace::trace_error;
 use libimagstore::storeid::StoreId;
 use libimagstore::hook::Hook;
 use libimagstore::hook::result::HookResult;
-use libimagstore::hook::position::HookPosition;
 use libimagstore::hook::accessor::{HookDataAccessor, HookDataAccessorProvider};
 use libimagstore::hook::accessor::StoreIdAccessor;
 use libimagutil::debug_result::*;
@@ -37,41 +35,37 @@ use vcs::git::error::GitHookErrorKind as GHEK;
 use vcs::git::error::MapErrInto;
 use vcs::git::runtime::Runtime as GRuntime;
 
-pub struct DeleteHook {
+pub struct StoreUnloadHook {
     storepath: PathBuf,
 
     runtime: GRuntime,
-
-    position: HookPosition,
 }
 
-impl DeleteHook {
+impl StoreUnloadHook {
 
-    pub fn new(storepath: PathBuf, p: HookPosition) -> DeleteHook {
-        DeleteHook {
+    pub fn new(storepath: PathBuf) -> StoreUnloadHook {
+        StoreUnloadHook {
             runtime: GRuntime::new(&storepath),
             storepath: storepath,
-            position: p,
         }
     }
 
 }
 
-impl Debug for DeleteHook {
+impl Debug for StoreUnloadHook {
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
-        write!(fmt, "DeleteHook(storepath={:?}, repository={}, pos={:?}, cfg={:?})",
+        write!(fmt, "StoreUnloadHook(storepath={:?}, repository={}, cfg={:?})",
                self.storepath,
                (if self.runtime.has_repository() { "Some(_)" } else { "None" }),
-               self.position,
                self.runtime.has_config())
     }
 }
 
 
-impl Hook for DeleteHook {
+impl Hook for StoreUnloadHook {
 
     fn name(&self) -> &'static str {
-        "stdhook_git_delete"
+        "stdhook_git_storeunload"
     }
 
     /// Set the configuration of the hook. See
@@ -88,14 +82,14 @@ impl Hook for DeleteHook {
 
 }
 
-impl HookDataAccessorProvider for DeleteHook {
+impl HookDataAccessorProvider for StoreUnloadHook {
 
     fn accessor(&self) -> HookDataAccessor {
         HookDataAccessor::StoreIdAccess(self)
     }
 }
 
-impl StoreIdAccessor for DeleteHook {
+impl StoreIdAccessor for StoreUnloadHook {
 
     fn access(&self, id: &StoreId) -> HookResult<()> {
         use libimagerror::into::IntoError;
@@ -106,11 +100,22 @@ impl StoreIdAccessor for DeleteHook {
         use vcs::git::config::abort_on_repo_init_err;
         use vcs::git::config::is_enabled;
         use vcs::git::config::committing_is_enabled;
-        use git2::{ADD_DEFAULT, STATUS_WT_DELETED, IndexMatchedPath};
+        use vcs::git::config::add_wt_changes_before_committing;
 
-        debug!("[GIT DELETE HOOK]: {:?}", id);
+        use git2::{ADD_DEFAULT,
+                   StatusOptions,
+                   Status,
+                   StatusShow as STShow,
+                   STATUS_INDEX_NEW as I_NEW,
+                   STATUS_INDEX_DELETED as I_DEL,
+                   STATUS_INDEX_RENAMED as I_REN,
+                   STATUS_INDEX_MODIFIED as I_MOD,
+                   STATUS_WT_NEW as WT_NEW,
+                   STATUS_WT_DELETED as WT_DEL,
+                   STATUS_WT_RENAMED as WT_REN,
+                   STATUS_WT_MODIFIED as WT_MOD};
 
-        let action = StoreAction::Delete;
+        let action = StoreAction::StoreUnload;
         let cfg    = try!(self.runtime.config_value_or_err(&action));
 
         if !is_enabled(cfg) {
@@ -118,17 +123,17 @@ impl StoreIdAccessor for DeleteHook {
         }
 
         if !self.runtime.has_repository() {
-            debug!("[GIT DELETE HOOK]: Runtime has no repository...");
+            debug!("[GIT STORE UNLOAD HOOK]: Runtime has no repository...");
             if try!(self.runtime.config_value_or_err(&action).map(|c| abort_on_repo_init_err(c))) {
                 // Abort on repo init failure
-                debug!("[GIT DELETE HOOK]: Config says we should abort if we have no repository");
-                debug!("[GIT DELETE HOOK]: Returing Err(_)");
+                debug!("[GIT STORE UNLOAD HOOK]: Config says we should abort if we have no repository");
+                debug!("[GIT STORE UNLOAD HOOK]: Returing Err(_)");
                 return Err(GHEK::RepositoryInitError.into_error())
                     .map_err_into(GHEK::RepositoryError)
                     .map_into_hook_error()
             } else {
-                debug!("[GIT DELETE HOOK]: Config says it is okay to not have a repository");
-                debug!("[GIT DELETE HOOK]: Returing Ok(())");
+                debug!("[GIT STORE UNLOAD HOOK]: Config says it is okay to not have a repository");
+                debug!("[GIT STORE UNLOAD HOOK]: Returing Ok(())");
                 return Ok(())
             }
         }
@@ -137,11 +142,56 @@ impl StoreIdAccessor for DeleteHook {
         let repo      = try!(self.runtime.repository(&action));
         let mut index = try!(fetch_index(repo, &action));
 
+        let check_dirty = |show: STShow, new: Status, modif: Status, del: Status, ren: Status| {
+            let mut status_options = StatusOptions::new();
+            status_options.show(show);
+            status_options.include_untracked(true);
+
+            repo.statuses(Some(&mut status_options))
+                .map(|statuses| {
+                    statuses.iter()
+                        .map(|s| s.status())
+                        .map(|s| {
+                            debug!("STATUS_WT_NEW = {}",        s == new);
+                            debug!("STATUS_WT_MODIFIED = {}",   s == modif);
+                            debug!("STATUS_WT_DELETED = {}",    s == del);
+                            debug!("STATUS_WT_RENAMED = {}",    s == ren);
+                            s
+                        })
+                        .any(|s| s == new || s == modif || s == del || s == ren)
+                })
+                .map_err_into(GHEK::RepositoryStatusFetchError)
+                .map_err_into(GHEK::RepositoryError)
+                .map_into_hook_error()
+        };
+
+        if try!(check_dirty(STShow::Workdir, WT_NEW, WT_MOD, WT_DEL, WT_REN)) {
+            if add_wt_changes_before_committing(cfg) {
+                debug!("Adding WT changes before committing.");
+                try!(index.add_all(&["*"], ADD_DEFAULT, None)
+                    .map_err_into(GHEK::RepositoryPathAddingError)
+                    .map_err_into(GHEK::RepositoryError)
+                    .map_into_hook_error());
+            } else {
+                warn!("WT dirty, but adding files before committing on Drop disabled.");
+                warn!("Continuing without adding changes to the index.");
+            }
+        } else {
+            debug!("WT not dirty.");
+        }
+
+        if try!(check_dirty(STShow::Index, I_NEW, I_MOD, I_DEL, I_REN)) {
+            debug!("INDEX DIRTY!");
+        } else {
+            debug!("INDEX CLEAN... not continuing!");
+            return Ok(());
+        }
+
         let signature = try!(
             repo.signature()
                 .map_err_into(GHEK::MkSignature)
                 .map_dbg_err_str("Failed to fetch signature")
-                .map_dbg_str("[GIT DELETE HOOK]: Fetched signature object")
+                .map_dbg_str("[GIT STORE UNLOAD HOOK]: Fetched signature object")
                 .map_into_hook_error()
         );
 
@@ -149,36 +199,7 @@ impl StoreIdAccessor for DeleteHook {
             repo.head()
                 .map_err_into(GHEK::HeadFetchError)
                 .map_dbg_err_str("Failed to fetch HEAD")
-                .map_dbg_str("[GIT DELETE HOOK]: Fetched HEAD")
-                .map_into_hook_error()
-        );
-
-        let file_status = try!(
-            repo
-                .status_file(id.local())
-                .map_dbg_err_str("Failed to fetch file status")
-                .map_dbg_err(|e| format!("\t->  {:?}", e))
-                .map_dbg_str("[GIT DELETE HOOK]: Fetched file status")
-                .map_err_into(GHEK::RepositoryFileStatusError)
-                .map_into_hook_error()
-        );
-
-        let cb = &mut |path: &Path, _matched_spec: &[u8]| -> i32 {
-            debug!("[GIT DELETE HOOK]: Checking file status for: {}", path.display());
-            if file_status.contains(STATUS_WT_DELETED) {
-                debug!("[GIT DELETE HOOK]: File is deleted: {}", path.display());
-                0
-            } else {
-                debug!("[GIT DELETE HOOK]: Ignoring file: {}", path.display());
-                1
-            }
-        };
-
-        try!(
-            index.add_all(&[id.local()], ADD_DEFAULT, Some(cb as &mut IndexMatchedPath))
-                .map_err_into(GHEK::RepositoryPathAddingError)
-                .map_dbg_err_str("Failed to add to index")
-                .map_dbg_str("[GIT DELETE HOOK]: Fetched index")
+                .map_dbg_str("[GIT STORE UNLOAD HOOK]: Fetched HEAD")
                 .map_into_hook_error()
         );
 
@@ -186,7 +207,7 @@ impl StoreIdAccessor for DeleteHook {
             index.write_tree()
                 .map_err_into(GHEK::RepositoryIndexWritingError)
                 .map_dbg_err_str("Failed to write tree")
-                .map_dbg_str("[GIT DELETE HOOK]: Wrote index tree")
+                .map_dbg_str("[GIT STORE UNLOAD HOOK]: Wrote index tree")
                 .map_into_hook_error()
         );
 
@@ -201,7 +222,7 @@ impl StoreIdAccessor for DeleteHook {
                 repo.find_commit(head.target().unwrap())
                     .map_err_into(GHEK::RepositoryParentFetchingError)
                     .map_dbg_err_str("Failed to find commit HEAD")
-                    .map_dbg_str("[GIT DELETE HOOK]: Found commit HEAD")
+                    .map_dbg_str("[GIT STORE UNLOAD HOOK]: Found commit HEAD")
                     .map_into_hook_error()
             );
             parents.push(commit);
@@ -214,18 +235,18 @@ impl StoreIdAccessor for DeleteHook {
             repo.find_tree(tree_id)
                 .map_err_into(GHEK::RepositoryParentFetchingError)
                 .map_dbg_err_str("Failed to find tree")
-                .map_dbg_str("[GIT DELETE HOOK]: Found tree for index")
+                .map_dbg_str("[GIT STORE UNLOAD HOOK]: Found tree for index")
                 .map_into_hook_error()
         );
 
         let message = try!(commit_message(&repo, cfg, action, &id)
                 .map_dbg_err_str("Failed to get commit message")
-                .map_dbg_str("[GIT DELETE HOOK]: Got commit message"));
+                .map_dbg_str("[GIT STORE UNLOAD HOOK]: Got commit message"));
 
         try!(repo.commit(Some("HEAD"), &signature, &signature, &message, &tree, &parents)
             .map_dbg_str("Committed")
             .map_dbg_err_str("Failed to commit")
-            .map_dbg_str("[GIT DELETE HOOK]: Committed")
+            .map_dbg_str("[GIT STORE UNLOAD HOOK]: Committed")
             .map_err_into(GHEK::RepositoryCommittingError)
             .map_into_hook_error()
         );
@@ -233,10 +254,11 @@ impl StoreIdAccessor for DeleteHook {
         index.write()
             .map_err_into(GHEK::RepositoryIndexWritingError)
             .map_dbg_err_str("Failed to write tree")
-            .map_dbg_str("[GIT DELETE HOOK]: Wrote index")
+            .map_dbg_str("[GIT STORE UNLOAD HOOK]: Wrote index")
             .map_into_hook_error()
             .map(|_| ())
     }
 
 }
+
 

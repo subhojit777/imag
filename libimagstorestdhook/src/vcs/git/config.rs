@@ -195,3 +195,24 @@ pub fn is_enabled(cfg: &Value) -> bool {
     get_bool_cfg(Some(cfg), "enabled", true, true)
 }
 
+/// Check whether committing is enabled for a hook.
+pub fn committing_is_enabled(cfg: &Value) -> Result<bool> {
+    match cfg.lookup("commit.enabled") {
+        Some(&Value::Boolean(b)) => Ok(b),
+        Some(_) => {
+            warn!("Config setting whether committing is enabled or not has wrong type.");
+            warn!("Expected Boolean");
+            Err(GHEK::ConfigTypeError.into_error())
+        },
+        None => {
+            warn!("No config setting whether committing is enabled or not.");
+            Err(GHEK::NoConfigError.into_error())
+        },
+    }
+    .map_err_into(GHEK::ConfigError)
+}
+
+pub fn add_wt_changes_before_committing(cfg: &Value) -> bool {
+    get_bool_cfg(Some(cfg), "commit.add_wt_changes", true, true)
+}
+

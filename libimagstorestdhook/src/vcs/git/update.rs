@@ -119,6 +119,7 @@ impl StoreIdAccessor for UpdateHook {
         use vcs::git::util::fetch_index;
         use vcs::git::config::abort_on_repo_init_err;
         use vcs::git::config::is_enabled;
+        use vcs::git::config::committing_is_enabled;
         use git2::{ADD_DEFAULT, STATUS_WT_NEW, STATUS_WT_MODIFIED, IndexMatchedPath};
 
         debug!("[GIT UPDATE HOOK]: {:?}", id);
@@ -211,6 +212,11 @@ impl StoreIdAccessor for UpdateHook {
                 .map_dbg_str("[GIT UPDATE HOOK]: Wrote tree")
                 .map_into_hook_error()
         );
+
+        if !try!(committing_is_enabled(cfg)) {
+            debug!("Committing not enabled. This is fine, returning now...");
+            return Ok(())
+        }
 
         let mut parents = Vec::new();
         {
