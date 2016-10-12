@@ -1,3 +1,22 @@
+//
+// imag - the personal information management suite for the commandline
+// Copyright (C) 2015, 2016 Matthias Beyer <mail@beyermatthias.de> and contributors
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; version
+// 2.1 of the License.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+
 use std::path::PathBuf;
 use std::process::Command;
 use std::env;
@@ -43,6 +62,8 @@ impl<'a> Runtime<'a> {
         use libimagstore::hook::Hook;
         use libimagstore::error::StoreErrorKind;
         use libimagstorestdhook::debug::DebugHook;
+        use libimagstorestdhook::vcs::git::delete::DeleteHook as GitDeleteHook;
+        use libimagstorestdhook::vcs::git::update::UpdateHook as GitUpdateHook;
         use libimagerror::trace::trace_error;
         use libimagerror::trace::trace_error_dbg;
         use libimagerror::into::IntoError;
@@ -107,7 +128,7 @@ impl<'a> Runtime<'a> {
             write!(stderr(), "Store-config: {:?}\n", store_config).ok();
         }
 
-        Store::new(storepath, store_config).map(|mut store| {
+        Store::new(storepath.clone(), store_config).map(|mut store| {
             // If we are debugging, generate hooks for all positions
             if is_debugging {
                 let hooks : Vec<(Box<Hook>, &str, HP)> = vec![
@@ -131,6 +152,24 @@ impl<'a> Runtime<'a> {
                             trace_error(&e);
                         };
                     }
+                }
+            }
+
+            let sp = storepath;
+
+            let hooks : Vec<(Box<Hook>, &str, HP)> = vec![
+                (Box::new(GitDeleteHook::new(sp.clone(), HP::PostDelete))     , "vcs", HP::PostDelete),
+                (Box::new(GitUpdateHook::new(sp, HP::PostUpdate))    , "vcs", HP::PostUpdate),
+            ];
+
+            for (hook, aspectname, position) in hooks {
+                if let Err(e) = store.register_hook(position, &String::from(aspectname), hook) {
+                    if e.err_type() == StoreErrorKind::HookRegisterError {
+                        trace_error_dbg(&e);
+                        warn!("Registering git hook with store failed");
+                    } else {
+                        trace_error(&e);
+                    };
                 }
             }
 

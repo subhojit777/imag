@@ -1,3 +1,22 @@
+//
+// imag - the personal information management suite for the commandline
+// Copyright (C) 2015, 2016 Matthias Beyer <mail@beyermatthias.de> and contributors
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; version
+// 2.1 of the License.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+
 use std::ops::DerefMut;
 
 use libimagerror::into::IntoError;
@@ -39,39 +58,20 @@ impl<'a> Edit for FileLockEntry<'a> {
 }
 
 pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> Result<()> {
-    use tempfile::NamedTempFile;
-    use std::io::Seek;
-    use std::io::Read;
-    use std::io::SeekFrom;
-    use std::io::Write;
+    use libimagutil::edit::edit_in_tmpfile_with_command;
 
-    let file      = try!(NamedTempFile::new().map_err_into(EditErrorKind::IOError));
-    let file_path = file.path();
-    let mut file  = try!(file.reopen().map_err_into(EditErrorKind::IOError));
-
-    try!(file.write_all(&s.clone().into_bytes()[..]).map_err_into(EditErrorKind::IOError));
-    try!(file.sync_data().map_err_into(EditErrorKind::IOError));
-
-    if let Some(mut editor) = rt.editor() {
-        let exit_status = editor.arg(file_path).status();
-
-        match exit_status.map(|s| s.success()).map_err(Box::new) {
-            Ok(true)  => {
-                file.sync_data()
-                    .and_then(|_| file.seek(SeekFrom::Start(0)))
-                    .and_then(|_| {
-                        let mut new_s = String::new();
-                        let res = file.read_to_string(&mut new_s);
-                        *s = new_s;
-                        res
-                    })
-                    .map(|_| ())
-                    .map_err_into(EditErrorKind::IOError)
-            },
-            Ok(false) => Err(EditErrorKind::ProcessExitFailure.into()),
-            Err(e)    => Err(EditErrorKind::IOError.into_error_with_cause(e)),
-        }
-    } else {
-        Err(EditErrorKind::InstantiateError.into())
-    }
+    rt.editor()
+        .ok_or(EditErrorKind::NoEditor.into_error())
+        .and_then(|editor| {
+            edit_in_tmpfile_with_command(editor, s)
+                .map_err_into(EditErrorKind::IOError)
+                .and_then(|worked| {
+                    if !worked {
+                        Err(EditErrorKind::ProcessExitFailure.into())
+                    } else {
+                        Ok(())
+                    }
+                })
+        })
 }
+

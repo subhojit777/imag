@@ -20,49 +20,24 @@ before_script:
   export PATH=$HOME/.local/bin:$PATH
 script:
 - |
-  travis_cargo_run_in() {
-      echo ":: Trying to run cargo in $1"
-      [[ -d "$1" ]] &&
-      cd "$1" &&
-      {
-        {
-          if [[ $(echo "$1" | grep lib) ]]; then
-            travis-cargo -q test
-          else
-            travis-cargo -q build
-          fi
-        } &&
-        cd -
-      } || exit 1
-  }
+  if [[ "$TEST_SUITE" == "binaries" ]]; then
+    make bin-test
+  else # $TEST_SUITE == "libraries"
+    make lib-test
+  fi
 
-  run_sh_test() {
-      echo "--- Running test script: '$1'"
-        bash $1 || { echo "--- Test failed. Exiting"; exit 1; }
-      echo "--- Test script $1 executed successfully"
-  }
-
-  echo "<< Changes in ./doc are not build by CI >>"
-
-  for d in $(find -name "Cargo.toml" | grep -vE "^./Cargo.toml$"); do
-      echo ":: Working on $d"
-      dir=$(dirname $d)
-      { \
-        echo -e "\n--- Running in $d ---\n" &&    \
-          travis_cargo_run_in $dir &&             \
-          echo "--- Running test scripts ---" &&  \
-          for testsh in $(find $dir -iname "*test.sh"); do
-            run_sh_test $testsh
-          done && \
-          echo -e "--- Done with test scripts ---\n\n"
-      } || true
-  done
 addons:
   apt:
     packages:
+    - cmake
     - libcurl4-openssl-dev
-    - libelf-dev
     - libdw-dev
+    - libelf-dev
+    - libzzip-dev
+    - make
+    - tree
+    sources:
+    - kalakris-cmake
 after_success:
 - |
   pushd .imag-documentation &&
@@ -78,6 +53,9 @@ notifications:
     template:
     - "%{repository_name} (%{branch} @ %{commit} by %{author}): %{result}"
 env:
+  matrix:
+  - TEST_SUITE=binaries
+  - TEST_SUITE=libraries
   global:
   - TRAVIS_CARGO_NIGHTLY_FEATURE=dev
   - secure: D+3exBnbvzFvk7fvLOxkF7UotCc4gBbvvOW4xGr9u6dDjEjV5y6CdDy/OQAkhfKhvSou+lIC22g5MuCBQXFEf/ua7A1XzwBAFeVLK4cWZSa7+ql6LdHKqOg3oF6pQlh095WeWr8S2PYJFFJFg8RGUPnbjqdu1J4KSXqe/7GoZ3lYS69mx7D5Hb93KEN084/KGfBuvyJtMjO1fK3spltL2zV8oqegFpv0gLG5GY4LsJ/7ij4Mc6wepXSyyQbaiA1eKMMwQZDvoi4V1mCulo/jeC3pucGxvgnMV5DZs8aa8R7votltGvSpHCgU78LW19dg8oZqwShQQ+XUYw27H+QK5V1lz1l1MaJLbwS3ySyZBPGH8qUuOzQ3bLp9xhAIRgCui3kX/UDhmeME7nJI6k3UZydh+/ydNB1BZHTKn76XS/yFj0Gcibxg7f5fcAYA6Ge5Sg+YPozuwbcKnKe6IpN2M7qNgWa+6MCSXJ1v4BgPb7kN74EynJUM8+yWEFN7MZtWEUQ4ZsHdCs8Pub4C/zHpYGV8qGenZwQzosAFq56YwoGCvJezz35yg4BDd3IMKenOzNnXLBrdxxqX8ySgwt5B3zBqwve/64Lx6OXjae2m8wZKlsmeqad/s6K7nx0zG15/qqRIzyvgcLXq3jwBaHkteq49FRFWvHQFpBQcsPZ2uH4=

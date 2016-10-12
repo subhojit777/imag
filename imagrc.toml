@@ -12,25 +12,91 @@ implicit-create = false
 # store, so these hooks should be chosen carefully.
 store-unload-hook-aspects  = [ "debug" ]
 
-pre-create-hook-aspects    = [ "debug" ]
-post-create-hook-aspects   = [ "debug" ]
+pre-create-hook-aspects    = [ "debug", "vcs" ]
+post-create-hook-aspects   = [ "debug", "vcs" ]
 
 pre-move-hook-aspects      = [ "debug" ]
 post-move-hook-aspects     = [ "debug" ]
 
-pre-retrieve-hook-aspects  = [ "debug" ]
-post-retrieve-hook-aspects = [ "debug" ]
+pre-retrieve-hook-aspects  = [ "debug", "vcs" ]
+post-retrieve-hook-aspects = [ "debug", "vcs" ]
 
-pre-update-hook-aspects    = [ "debug" ]
-post-update-hook-aspects   = [ "debug" ]
+pre-update-hook-aspects    = [ "debug", "vcs" ]
+post-update-hook-aspects   = [ "debug", "vcs" ]
 
-pre-delete-hook-aspects    = [ "debug" ]
-post-delete-hook-aspects   = [ "debug" ]
+pre-delete-hook-aspects    = [ "debug", "vcs" ]
+post-delete-hook-aspects   = [ "debug", "vcs" ]
 
 [store.aspects.debug]
 parallel = false
 mutable_hooks = true
 
+[store.aspects.vcs]
+parallel = false
+mutable_hooks = false
+
 [store.hooks.stdhook_debug]
 aspect = "debug"
+
+[store.hooks.stdhook_git_update]
+aspect = "vcs"
+
+# set to false to disable
+enabled = true
+
+# Fail if the repository cannot be opened. If this is set to `false`, the error
+# will be printed, but will not abort the store operation. `true` will print the
+# error and abort the store action.
+abort_on_repo_init_failure = true
+
+# Ensure to be on this branche before doing anything.
+ensure_branch = "refs/heads/master"
+
+# Try to checkout the ensure_branch if it isn't checked out
+try_checkout_ensure_branch = true
+
+# Commit configuration
+[store.hooks.stdhook_git_update.commit]
+
+# Whether to do the commit interactively
+interactive = false
+
+# Set to true to use the $EDITOR for the commit, to false to do on commandline
+# When committing without editor, only a single line is allowed as commit
+# message
+interactive_editor = false
+
+# Commit message if the commit is not interactive
+message = "Update"
+
+[store.hooks.stdhook_git_delete]
+aspect = "vcs"
+
+# set to false to disable
+enabled = true
+
+# Fail if the repository cannot be opened. If this is set to `false`, the error
+# will be printed, but will not abort the store operation. `true` will print the
+# error and abort the store action.
+abort_on_repo_init_failure = true
+
+# Ensure to be on this branche before doing anything.
+ensure_branch = "refs/heads/master"
+
+# Try to checkout the ensure_branch if it isn't checked out
+try_checkout_ensure_branch = true
+
+# Commit configuration
+[store.hooks.stdhook_git_delete.commit]
+
+# Whether to do the commit interactively
+interactive = false
+
+# Set to true to use the $EDITOR for the commit, to false to do on commandline
+# When committing without editor, only a single line is allowed as commit
+# message
+interactive_editor = false
+
+# Commit message if the commit is not interactive
+message = "Deleted"
 

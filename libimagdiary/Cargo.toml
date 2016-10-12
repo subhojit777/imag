@@ -27,3 +27,6 @@ path = "../libimagrt"
 [dependencies.libimagentryedit]
 path = "../libimagentryedit"
 
+[dependencies.libimagentryview]
+path = "../libimagentryview"
+
