@@ -26,8 +26,11 @@ pub use self::fs::FileAbstraction;
 #[cfg(test)]
 mod fs {
     use error::StoreError as SE;
+    use error::StoreErrorKind as SEK;
     use std::io::Cursor;
     use std::path::PathBuf;
+
+    use libimagerror::into::IntoError;
 
     use std::collections::HashMap;
     use std::sync::Mutex;
@@ -56,7 +59,7 @@ mod fs {
             match *self {
                 FileAbstraction::Absent(ref f) => {
                     let map = MAP.lock().unwrap();
-                    return Ok(map.get(f).unwrap().clone());
+                    return map.get(f).cloned().ok_or(SEK::FileNotFound.into_error());
                 },
             };
         }
@@ -78,20 +81,21 @@ mod fs {
             };
         }
 
-        pub fn remove_file(_: &PathBuf) -> Result<(), SE> {
+        pub fn remove_file(path: &PathBuf) -> Result<(), SE> {
+            MAP.lock().unwrap().remove(path);
             Ok(())
         }
 
         pub fn copy(from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
             let mut map = MAP.lock().unwrap();
-            let a = map.get(from).unwrap().clone();
+            let a = try!(map.get(from).cloned().ok_or(SEK::FileNotFound.into_error()));
             map.insert(to.clone(), a);
             Ok(())
         }
 
         pub fn rename(from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
             let mut map = MAP.lock().unwrap();
-            let a = map.get(from).unwrap().clone();
+            let a = try!(map.get(from).cloned().ok_or(SEK::FileNotFound.into_error()));
             map.insert(to.clone(), a);
             Ok(())
         }
