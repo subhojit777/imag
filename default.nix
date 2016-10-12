@@ -10,6 +10,7 @@ let
     openssl
     zlib
     cmake
+    which
   ];
 in
 
