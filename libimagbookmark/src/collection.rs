@@ -114,7 +114,7 @@ impl<'a> BookmarkCollection<'a> {
 
         self.fle
             .get_internal_links()
-            .map(|v| v.into_iter().filter(|id| is_external_link_storeid(id)).collect())
+            .map(|v| v.filter(|id| is_external_link_storeid(id)).collect())
             .map_err_into(BEK::StoreReadError)
     }
 

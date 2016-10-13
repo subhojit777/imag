@@ -133,10 +133,9 @@ impl ExternalLinker for Entry {
         // /link/external/<SHA> -> load these files and get the external link from their headers,
         // put them into the return vector.
         self.get_internal_links()
-            .map(|vect| {
+            .map(|iter| {
                 debug!("Getting external links");
-                vect.into_iter()
-                    .filter(is_external_link_storeid)
+                iter.filter(|l| is_external_link_storeid(l))
                     .map(|id| {
                         debug!("Retrieving entry for id: '{:?}'", id);
                         match store.retrieve(id.clone()) {
