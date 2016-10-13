@@ -1,4 +1,4 @@
-# libimagref
+## libimagref
 
 This library crate contains functionality to generate _references_ within the
 imag store.
@@ -20,14 +20,14 @@ Permission changes can be tracked as well.
 
 So this library helps to resemble something like a _symlink_.
 
-## Limits
+### Limits
 
 Please understand that this is _not_ intended to be a version control system or
 something like that.
 We also can not use _real symlinks_ as we need imag-store-objects to be able to
 link stuff.
 
-## Usecase
+### Usecase
 
 This library offers functionality to refer to content outside of the store.
 It can be used to refer to _nearly static stuff_ pretty easily - think of a
@@ -43,7 +43,7 @@ of files which constantly change... but the first 5 lines do never change
 after the file is created - you can write a custom hasher that only uses the
 first 5 lines for the hash.
 
-## Internals
+### Internals
 
 Internally, in the store, the file gets created under
 `/ref/<hash of the path to the file to refer to>`.

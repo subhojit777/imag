@@ -1,4 +1,4 @@
-# libimagstore
+## libimagstore
 
 The store is the heart of everything. Here lives the data, the complexity and
 the performance bottleneck.
