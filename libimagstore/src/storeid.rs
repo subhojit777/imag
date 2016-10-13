@@ -95,16 +95,14 @@ impl StoreId {
     }
 
     pub fn to_str(&self) -> Result<String> {
-        if self.base.is_some() {
-            let mut base = self.base.as_ref().cloned().unwrap();
-            base.push(self.id.clone());
-            base
-        } else {
-            self.id.clone()
-        }
-        .to_str()
-        .map(String::from)
-        .ok_or(SEK::StoreIdHandlingError.into_error())
+        self.base
+            .as_ref()
+            .cloned()
+            .map(|mut base| { base.push(self.id.clone()); base })
+            .unwrap_or_else(|| self.id.clone())
+            .to_str()
+            .map(String::from)
+            .ok_or(SEK::StoreIdHandlingError.into_error())
     }
 
     /// Returns the components of the `id` part of the StoreId object.
