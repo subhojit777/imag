@@ -44,6 +44,11 @@ pub trait Annotateable {
     /// The `pg` is a AnnotationPathGenerator object which is used to generate a StoreId
     fn annotate_with_path_generator(&self, store: &Store, pg: &AnnotationPathGenerator) -> Result<Annotation>;
 
+    /// List annotations of a Annotateable
+    ///
+    /// This lists only annotations that are generated via the `DefaultAnnotationPathGenerator`
+    fn annotations(&self) -> Result<Vec<StoreId>>;
+
 }
 
 /// A AnnotationPathGenerator generates a unique path for the annotation to be generated.
@@ -80,4 +85,24 @@ impl Annotateable for FileLockEntry {
             })
             .map(Annotation)
     }
+
+    /// Get the annotations of a FileLockEntry
+    ///
+    /// Returns the pathes to the annotations, not the annotations itself.
+    fn annotations(&self) -> Result<Vec<StoreId>> {
+        self.get_internal_links()
+            .map_err_into(AEK::LinkError)
+            .map(|v| v.iter_into()
+                .filter(|id| id.components()
+                    .next()
+                    .map(|fst| match fst {
+                        Component::Normal(ref s) => s == ANNOTATION_COLLECTION_NAME,
+                        _ => false,
+                    })
+                    .unwrap_or(false)
+                )
+                .collect::<Vec<StoreId>>();
+            )
+    }
+
 }
