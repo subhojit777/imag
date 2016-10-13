@@ -170,8 +170,7 @@ impl StoreEntry {
                 }
             } else {
                 // TODO:
-                let entry = Entry::from_reader(self.id.clone(), &mut file.unwrap());
-                entry
+                Entry::from_reader(self.id.clone(), &mut file.unwrap())
             }
         } else {
             Err(SE::new(SEK::EntryAlreadyBorrowed, None))
