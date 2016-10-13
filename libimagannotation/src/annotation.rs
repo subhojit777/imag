@@ -20,6 +20,7 @@
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
+use libimagnotes::note::Note;
 
 use result::Result;
 use error::AnnotationErrorKind as AEK;
@@ -33,7 +34,7 @@ pub trait Annotateable {
     ///
     /// This `Annotation` is stored in the Store itself.
     fn annotate(&self, store: &Store) -> Result<Annotation> {
-        self.annotate_with_path_generator(store, DefaultAnnotationPathGenerator::new())
+        self.annotate_with_path_generator(store, DefaultAnnotationNameGenerator::new())
     }
 
     /// Add an annotation to `Self`, that is a `FileLockEntry` which is linked to `Self` (link as in
@@ -41,12 +42,12 @@ pub trait Annotateable {
     ///
     /// This `Annotation` is stored in the Store itself.
     ///
-    /// The `pg` is a AnnotationPathGenerator object which is used to generate a StoreId
-    fn annotate_with_path_generator(&self, store: &Store, pg: &AnnotationPathGenerator) -> Result<Annotation>;
+    /// The `pg` is a AnnotationNameGenerator object which is used to generate a StoreId
+    fn annotate_with_path_generator(&self, store: &Store, pg: &AnnotationNameGenerator) -> Result<Annotation>;
 
     /// List annotations of a Annotateable
     ///
-    /// This lists only annotations that are generated via the `DefaultAnnotationPathGenerator`
+    /// This lists only annotations that are generated via the `DefaultAnnotationNameGenerator`
     fn annotations(&self) -> Result<Vec<StoreId>>;
 
     /// Remove an annotation by its ID
@@ -58,33 +59,32 @@ pub trait Annotateable {
 
 }
 
-/// A AnnotationPathGenerator generates a unique path for the annotation to be generated.
-pub trait AnnotationPathGenerator {
-    fn generate_annotation_path(&self) -> Result<StoreId>;
+/// A AnnotationNameGenerator generates a unique path for the annotation to be generated.
+pub trait AnnotationNameGenerator {
+    fn generate_annotation_path(&self) -> Result<String>;
 }
 
-/// The DefaultAnnotationPathGenerator generates unique StoreIds for Annotations, where the
+/// The DefaultAnnotationNameGenerator generates unique StoreIds for Annotations, where the
 /// collection the annotations are stored in is `/annotation/`.
-pub struct DefaultAnnotationPathGenerator;
+pub struct DefaultAnnotationNameGenerator;
 
-impl AnnotationPathGenerator for DefaultAnnotationPathGenerator {
+impl AnnotationNameGenerator for DefaultAnnotationNameGenerator {
 
-    fn generate_annotation_path(&self) -> Result<StoreId> {
-        let id = Uuid::new_v4();
-        ModuleEntryPath::new(format!("{}", id)).map_err_into(AEK::StoreIdGenerationError)
+    fn generate_annotation_path(&self) -> Result<String> {
+        Ok(format!("{}/{}", MODULE_ENTRY_PATH_NAME, Uuid::new_v4()))
     }
 
 }
 
-pub struct Annotation<'a>(FileLockEntry<'a>);
+pub struct Annotation<'a>(Note<'a>);
 
 impl Annotateable for FileLockEntry {
 
-    fn annotate_with_path_generator(&self, store: &Store, pg: &AnnotationPathGenerator)
+    fn annotate_with_path_generator(&self, store: &Store, pg: &AnnotationNameGenerator)
         -> Result<Annotation>
     {
         pb.generate_annotation_path()
-            .and_then(|id| store.create(id).map_err_into(AEK::StoreWriteError))
+            .and_then(|name| Note::new(store, name, String::new()).map_err_into(AEK::StoreWriteError))
             .and_then(|mut fle| {
                 self.add_internal_link(&mut fle)
                     .map_err_into(AEK::LinkingError)
@@ -97,19 +97,15 @@ impl Annotateable for FileLockEntry {
     ///
     /// Returns the pathes to the annotations, not the annotations itself.
     fn annotations(&self) -> Result<Vec<StoreId>> {
+        lazy_static! {
+            static ref pb : PathBuf = PathBuf::from(format!("{}/{}",
+                                                            libimagnotes::MODULE_ENTRY_PATH_NAME,
+                                                            MODULE_ENTRY_PATH_NAME));
+        };
+
         self.get_internal_links()
             .map_err_into(AEK::LinkError)
-            .map(|v| v.iter_into()
-                .filter(|id| id.components()
-                    .next()
-                    .map(|fst| match fst {
-                        Component::Normal(ref s) => s == ANNOTATION_COLLECTION_NAME,
-                        _ => false,
-                    })
-                    .unwrap_or(false)
-                )
-                .collect::<Vec<StoreId>>();
-            )
+            .map(|v| v.iter_into().filter(|id| id.local().starts_with(pb)).collect())
     }
 
     /// Remove an annotation by its ID

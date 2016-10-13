@@ -24,9 +24,9 @@ extern crate uuid;
 extern crate libimaglink;
 extern crate libimagutil;
 
-static ANNOTATION_COLLECTION_NAME : &str = "annotation";
+pub static MODULE_ENTRY_PATH_NAME: &'static str = "annotation";
 
-module_entry_path_mod!(ANNOTATION_COLLECTION_NAME);
+module_entry_path_mod!(MODULE_ENTRY_PATH_NAME);
 
 pub mod annotation;
 pub mod error;
