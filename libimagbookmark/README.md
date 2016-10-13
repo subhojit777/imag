@@ -1,4 +1,4 @@
-# libimagbookmark
+## libimagbookmark
 
 This library crate implements functionality for bookmarks.
 

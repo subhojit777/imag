@@ -1,4 +1,4 @@
-# libimagentryfilter
+## libimagentryfilter
 
 Helper library to filter lists of entries by certain predicated. Offers filters
 for filtering by header values and other predicates, plus this library offers

@@ -1,4 +1,4 @@
-# libimagentrymarkdown
+## libimagentrymarkdown
 
 Helper crate to add useful functionality in a wrapper around
 [hoedown](https://crates.io/crates/hoedown) for imag.

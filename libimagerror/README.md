@@ -1,4 +1,4 @@
-# libimagerror
+## libimagerror
 
 In imag, we do not panic.
 

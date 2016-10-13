@@ -1,4 +1,4 @@
-# libimaginteraction
+## libimaginteraction
 
 A crate for more general interaction with the user (interactive commandline
 interface).
