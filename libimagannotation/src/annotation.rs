@@ -71,5 +71,13 @@ impl Annotateable for FileLockEntry {
     fn annotate_with_path_generator(&self, store: &Store, pg: &AnnotationPathGenerator)
         -> Result<Annotation>
     {
+        pb.generate_annotation_path()
+            .and_then(|id| store.create(id).map_err_into(AEK::StoreWriteError))
+            .and_then(|mut fle| {
+                self.add_internal_link(&mut fle)
+                    .map_err_into(AEK::LinkingError)
+                    .map(|_| fle)
+            })
+            .map(Annotation)
     }
 }
