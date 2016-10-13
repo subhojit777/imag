@@ -43,7 +43,9 @@ extern crate libimagrt;
 extern crate libimagentryedit;
 extern crate libimagentrytag;
 
-module_entry_path_mod!("notes");
+pub static MODULE_ENTRY_PATH_NAME: &'static str = "notes";
+
+module_entry_path_mod!(MODULE_ENTRY_PATH_NAME);
 
 pub mod error;
 pub mod note;
