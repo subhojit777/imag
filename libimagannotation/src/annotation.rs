@@ -49,6 +49,13 @@ pub trait Annotateable {
     /// This lists only annotations that are generated via the `DefaultAnnotationPathGenerator`
     fn annotations(&self) -> Result<Vec<StoreId>>;
 
+    /// Remove an annotation by its ID
+    fn remove_annotation(&mut self, ann_id: &str) -> Result<()>;
+
+    /// Remove an annotation and remove the annotation object from the store, if there's no more
+    /// link to it.
+    fn remove_annotation_with_gc(&mut self, ann_id: &str, store: &Store) -> Result<()>;
+
 }
 
 /// A AnnotationPathGenerator generates a unique path for the annotation to be generated.
@@ -103,6 +110,17 @@ impl Annotateable for FileLockEntry {
                 )
                 .collect::<Vec<StoreId>>();
             )
+    }
+
+    /// Remove an annotation by its ID
+    fn remove_annotation(&mut self, ann_id: &str) -> Result<()> {
+        unimplemented!()
+    }
+
+    /// Remove an annotation and remove the annotation object from the store, if there's no more
+    /// link to it.
+    fn remove_annotation_with_gc(&mut self, ann_id: &str, store: &Store) -> Result<()> {
+        unimplemented!()
     }
 
 }
