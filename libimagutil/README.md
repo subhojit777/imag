@@ -1,4 +1,1 @@
-# libimagutil
-
-Utility library. Does not depend on other imag crates.
-
+../doc/src/05100-lib-util.md
