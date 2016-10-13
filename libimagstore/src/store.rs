@@ -160,18 +160,16 @@ impl StoreEntry {
     }
 
     fn get_entry(&mut self) -> Result<Entry> {
+        let id = &self.id.clone();
         if !self.is_borrowed() {
-            let file = self.file.get_file_content();
-            if let Err(err) = file {
-                if err.err_type() == SEK::FileNotFound {
-                    Ok(Entry::new(self.id.clone()))
+            self.file
+                .get_file_content()
+                .and_then(|mut file| Entry::from_reader(id.clone(), &mut file))
+                .or_else(|err| if err.err_type() == SEK::FileNotFound {
+                    Ok(Entry::new(id.clone()))
                 } else {
                     Err(err)
-                }
-            } else {
-                // TODO:
-                Entry::from_reader(self.id.clone(), &mut file.unwrap())
-            }
+                })
         } else {
             Err(SE::new(SEK::EntryAlreadyBorrowed, None))
         }
