@@ -61,12 +61,23 @@ pub mod iter {
     use toml::Value;
     use itertools::Itertools;
 
+    use libimagstore::store::Store;
+    use libimagstore::store::FileLockEntry;
+
     pub struct LinkIter(IntoIter<Link>);
 
     impl LinkIter {
 
         pub fn new(v: Vec<Link>) -> LinkIter {
             LinkIter(v.into_iter())
+        }
+
+        pub fn into_getter(self, store: &Store) -> GetIter {
+            GetIter(self.0, store)
+        }
+
+        pub fn into_deleter(self, store: &Store) -> DeleteIter {
+            DeleteIter(self.0, store)
         }
 
     }
@@ -102,6 +113,98 @@ pub mod iter {
                 })
                 .into_iter()
         }
+    }
+
+    /// An Iterator that `Store::get()`s the Entries from the store while consumed
+    pub struct GetIter<'a>(IntoIter<Link>, &'a Store);
+
+    impl<'a> GetIter<'a> {
+        fn new(i: IntoIter<Link>, store: &'a Store) -> GetIter<'a> {
+            GetIter(i, store)
+        }
+
+        /// Turn this iterator into a LinkGcIter, which `Store::delete()`s entries that are not
+        /// linked to any other entry.
+        pub fn remove_unlinked(self) -> RemoveUnlinkedIter<'a> {
+            RemoveUnlinkedIter(self)
+        }
+
+        pub fn store(&self) -> &Store {
+            self.1
+        }
+    }
+
+    impl<'a> Iterator for GetIter<'a> {
+        type Item = Result<FileLockEntry<'a>>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.0.next().and_then(|id| match self.1.get(id).map_err_into(LEK::StoreReadError) {
+                Ok(None)    => None,
+                Ok(Some(x)) => Some(Ok(x)),
+                Err(e)      => Some(Err(e)),
+            })
+        }
+
+    }
+
+    /// An Iterator that `Store::get()`s the Entries from the store while consumed
+    pub struct DeleteIter<'a>(IntoIter<Link>, &'a Store);
+
+    impl<'a> DeleteIter<'a> {
+        fn new(i: IntoIter<Link>, store: &'a Store) -> DeleteIter<'a> {
+            DeleteIter(i, store)
+        }
+    }
+
+    impl<'a> Iterator for DeleteIter<'a> {
+        type Item = Result<()>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.0.next().map(|id| self.1.delete(id).map_err_into(LEK::StoreReadError))
+        }
+
+    }
+
+    /// An iterator that removes all Items from the iterator that are not linked anymore by calling
+    /// `Store::delete()` on them.
+    ///
+    /// It yields only items which are somehow linked to another entry
+    pub struct RemoveUnlinkedIter<'a>(GetIter<'a>);
+
+    impl<'a> Iterator for RemoveUnlinkedIter<'a> {
+        type Item = Result<FileLockEntry<'a>>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            use internal::InternalLinker;
+
+            loop {
+                match self.0.next() {
+                    Some(Ok(fle)) => {
+                        let links = match fle.get_internal_links().map_err_into(LEK::StoreReadError)
+                        {
+                            Err(e) => return Some(Err(e)),
+                            Ok(links) => links,
+                        };
+                        if links.count() == 0 {
+                            match self.0
+                                 .store()
+                                 .delete(fle.get_location().clone())
+                                 .map_err_into(LEK::StoreWriteError)
+                            {
+                                Ok(x)  => x,
+                                Err(e) => return Some(Err(e)),
+                            }
+                        } else {
+                            return Some(Ok(fle));
+                        }
+                    },
+                    Some(Err(e)) => return Some(Err(e)),
+                    None => break,
+                }
+            }
+            None
+        }
+
     }
 
 }
