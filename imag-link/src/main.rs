@@ -97,7 +97,6 @@ fn handle_internal_linking(rt: &Runtime) {
                     e.get_internal_links()
                         .map(|links| {
                             let i = links
-                                .iter()
                                 .filter_map(|l| {
                                     l.to_str()
                                         .map_warn_err(|e| format!("Failed to convert StoreId to string: {:?}", e))

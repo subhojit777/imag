@@ -17,8 +17,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::cmp::Ordering;
-
 use libimagstore::storeid::StoreId;
 use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
@@ -28,19 +26,20 @@ use libimagerror::into::IntoError;
 use error::LinkErrorKind as LEK;
 use error::MapErrInto;
 use result::Result;
+use self::iter::LinkIter;
+use self::iter::IntoValues;
 
 use toml::Value;
-use itertools::Itertools;
 
 pub type Link = StoreId;
 
 pub trait InternalLinker {
 
     /// Get the internal links from the implementor object
-    fn get_internal_links(&self) -> Result<Vec<Link>>;
+    fn get_internal_links(&self) -> Result<LinkIter>;
 
     /// Set the internal links for the implementor object
-    fn set_internal_links(&mut self, links: Vec<&mut Entry>) -> Result<Vec<Link>>;
+    fn set_internal_links(&mut self, links: Vec<&mut Entry>) -> Result<LinkIter>;
 
     /// Add an internal link to the implementor object
     fn add_internal_link(&mut self, link: &mut Entry) -> Result<()>;
@@ -50,14 +49,73 @@ pub trait InternalLinker {
 
 }
 
+pub mod iter {
+    use std::vec::IntoIter;
+    use std::cmp::Ordering;
+    use super::Link;
+
+    use error::LinkErrorKind as LEK;
+    use error::MapErrInto;
+    use result::Result;
+
+    use toml::Value;
+    use itertools::Itertools;
+
+    pub struct LinkIter(IntoIter<Link>);
+
+    impl LinkIter {
+
+        pub fn new(v: Vec<Link>) -> LinkIter {
+            LinkIter(v.into_iter())
+        }
+
+    }
+
+    impl Iterator for LinkIter {
+        type Item = Link;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.0.next()
+        }
+    }
+
+    pub trait IntoValues {
+        fn into_values(self) -> IntoIter<Result<Value>>;
+    }
+
+    impl<I: Iterator<Item = Link>> IntoValues for I {
+        fn into_values(self) -> IntoIter<Result<Value>> {
+            self.map(|s| s.without_base().to_str().map_err_into(LEK::InternalConversionError))
+                .unique_by(|entry| {
+                    match entry {
+                        &Ok(ref e) => Some(e.clone()),
+                        &Err(_) => None,
+                    }
+                })
+                .map(|elem| elem.map(Value::String))
+                .sorted_by(|a, b| {
+                    match (a, b) {
+                        (&Ok(Value::String(ref a)), &Ok(Value::String(ref b))) => Ord::cmp(a, b),
+                        (&Err(_), _) | (_, &Err(_)) => Ordering::Equal,
+                        _ => unreachable!()
+                    }
+                })
+                .into_iter()
+        }
+    }
+
+}
+
 impl InternalLinker for Entry {
 
-    fn get_internal_links(&self) -> Result<Vec<Link>> {
+    fn get_internal_links(&self) -> Result<LinkIter> {
         process_rw_result(self.get_header().read("imag.links"))
     }
 
     /// Set the links in a header and return the old links, if any.
-    fn set_internal_links(&mut self, links: Vec<&mut Entry>) -> Result<Vec<Link>> {
+    fn set_internal_links(&mut self, links: Vec<&mut Entry>) -> Result<LinkIter> {
+        use internal::iter::IntoValues;
+
         let self_location = self.get_location().clone();
         let mut new_links = vec![];
 
@@ -69,8 +127,8 @@ impl InternalLinker for Entry {
             new_links.push(link);
         }
 
-        let new_links = try!(links_into_values(new_links)
-                             .into_iter()
+        let new_links = try!(LinkIter::new(new_links)
+                             .into_values()
                              .fold(Ok(vec![]), |acc, elem| {
                                 acc.and_then(move |mut v| {
                                     elem.map_err_into(LEK::InternalConversionError)
@@ -89,8 +147,8 @@ impl InternalLinker for Entry {
         add_foreign_link(link, self.get_location().clone())
             .and_then(|_| {
                 self.get_internal_links()
-                    .and_then(|mut links| {
-                        links.push(new_link);
+                    .and_then(|links| {
+                        let links = links.chain(LinkIter::new(vec![new_link]));
                         rewrite_links(self.get_header_mut(), links)
                     })
             })
@@ -102,43 +160,20 @@ impl InternalLinker for Entry {
 
         link.get_internal_links()
             .and_then(|links| {
-                let links = links.into_iter().filter(|l| l.clone() != own_loc).collect();
-                rewrite_links(self.get_header_mut(), links)
+                rewrite_links(self.get_header_mut(), links.filter(|l| *l != own_loc))
             })
             .and_then(|_| {
                 self.get_internal_links()
                     .and_then(|links| {
-                        let links = links.into_iter().filter(|l| l.clone() != other_loc).collect();
-                        rewrite_links(link.get_header_mut(), links)
+                        rewrite_links(link.get_header_mut(), links.filter(|l| *l != other_loc))
                     })
             })
     }
 
 }
 
-fn links_into_values(links: Vec<StoreId>) -> Vec<Result<Value>> {
-    links
-        .into_iter()
-        .map(|s| s.without_base().to_str().map_err_into(LEK::InternalConversionError))
-        .unique_by(|entry| {
-            match entry {
-                &Ok(ref e) => Some(e.clone()),
-                &Err(_) => None,
-            }
-        })
-        .map(|elem| elem.map(Value::String))
-        .sorted_by(|a, b| {
-            match (a, b) {
-                (&Ok(Value::String(ref a)), &Ok(Value::String(ref b))) => Ord::cmp(a, b),
-                (&Err(_), _) | (_, &Err(_)) => Ordering::Equal,
-                _ => unreachable!()
-            }
-        })
-}
-
-fn rewrite_links(header: &mut EntryHeader, links: Vec<StoreId>) -> Result<()> {
-    let links = try!(links_into_values(links)
-                     .into_iter()
+fn rewrite_links<I: Iterator<Item = Link>>(header: &mut EntryHeader, links: I) -> Result<()> {
+    let links = try!(links.into_values()
                      .fold(Ok(vec![]), |acc, elem| {
                         acc.and_then(move |mut v| {
                             elem.map_err_into(LEK::InternalConversionError)
@@ -157,10 +192,10 @@ fn rewrite_links(header: &mut EntryHeader, links: Vec<StoreId>) -> Result<()> {
 /// This is a helper function which does this.
 fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
     target.get_internal_links()
-        .and_then(|mut links| {
-            links.push(from);
-            let links = try!(links_into_values(links)
-                             .into_iter()
+        .and_then(|links| {
+            let links = try!(links
+                             .chain(LinkIter::new(vec![from]))
+                             .into_values()
                              .fold(Ok(vec![]), |acc, elem| {
                                 acc.and_then(move |mut v| {
                                     elem.map_err_into(LEK::InternalConversionError)
@@ -175,7 +210,7 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
         })
 }
 
-fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
+fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<LinkIter> {
     use std::path::PathBuf;
 
     let links = match links {
@@ -185,7 +220,7 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
         },
         Ok(None) => {
             debug!("We got no value from the header!");
-            return Ok(vec![])
+            return Ok(LinkIter::new(vec![]))
         },
         Ok(Some(Value::Array(l))) => l,
         Ok(Some(_)) => {
@@ -211,6 +246,6 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<Vec<Link>> {
         .collect());
 
     debug!("Ok, the RW action was successful, returning link vector now!");
-    Ok(links)
+    Ok(LinkIter::new(links))
 }
 
