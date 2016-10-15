@@ -157,8 +157,8 @@ impl InternalLinker for Entry {
     }
 
     fn remove_internal_link(&mut self, link: &mut Entry) -> Result<()> {
-        let own_loc   = link.get_location().clone();
-        let other_loc = link.get_location().clone();
+        let own_loc   = self.get_location().clone().without_base();
+        let other_loc = link.get_location().clone().without_base();
 
         debug!("Removing internal link from {:?} to {:?}", own_loc, other_loc);
 
