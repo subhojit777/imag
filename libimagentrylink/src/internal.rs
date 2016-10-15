@@ -271,5 +271,41 @@ mod test {
         assert_eq!(links.collect::<Vec<_>>().len(), 0);
     }
 
+    #[test]
+    fn test_link_two_entries() {
+        let store = get_store();
+        let mut e1 = store.create(PathBuf::from("test_link_two_entries1")).unwrap();
+        assert!(e1.get_internal_links().is_ok());
+
+        let mut e2 = store.create(PathBuf::from("test_link_two_entries2")).unwrap();
+        assert!(e2.get_internal_links().is_ok());
+
+        {
+            assert!(e1.add_internal_link(&mut e2).is_ok());
+
+            let e1_links = e1.get_internal_links().unwrap().collect::<Vec<_>>();
+            let e2_links = e2.get_internal_links().unwrap().collect::<Vec<_>>();
+
+            assert_eq!(e1_links.len(), 1);
+            assert_eq!(e2_links.len(), 1);
+
+            assert!(e1_links.first().map(|l| l.clone().with_base(store.path().clone()) == *e2.get_location()).unwrap_or(false));
+            assert!(e2_links.first().map(|l| l.clone().with_base(store.path().clone()) == *e1.get_location()).unwrap_or(false));
+        }
+
+        {
+            assert!(e1.remove_internal_link(&mut e2).is_ok());
+
+            println!("{:?}", e2.to_str());
+            let e2_links = e2.get_internal_links().unwrap().collect::<Vec<_>>();
+            assert_eq!(e2_links.len(), 0, "Expected [], got: {:?}", e2_links);
+
+            println!("{:?}", e1.to_str());
+            let e1_links = e1.get_internal_links().unwrap().collect::<Vec<_>>();
+            assert_eq!(e1_links.len(), 0, "Expected [], got: {:?}", e1_links);
+
+        }
+    }
+
 }
 
