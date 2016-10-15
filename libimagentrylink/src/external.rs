@@ -111,6 +111,145 @@ pub trait ExternalLinker : InternalLinker {
 
 }
 
+pub mod iter {
+    use libimagutil::debug_result::*;
+    use libimagstore::store::Store;
+
+    use internal::Link;
+    use internal::iter::LinkIter;
+    use error::LinkErrorKind as LEK;
+    use error::MapErrInto;
+    use result::Result;
+
+    use url::Url;
+
+    /// Helper for building `OnlyExternalIter` and `NoExternalIter`
+    ///
+    /// The boolean value defines, how to interpret the `is_external_link_storeid()` return value
+    /// (here as "pred"):
+    ///
+    ///     pred | bool | xor | take?
+    ///     ---- | ---- | --- | ----
+    ///        0 |    0 |   0 |   1
+    ///        0 |    1 |   1 |   0
+    ///        1 |    1 |   1 |   0
+    ///        1 |    1 |   0 |   1
+    ///
+    /// If `bool` says "take if return value is false", we take the element if the `pred` returns
+    /// false... and so on.
+    ///
+    /// As we can see, the operator between these two operants is `!(a ^ b)`.
+    struct ExternalFilterIter(LinkIter, bool);
+
+    impl Iterator for ExternalFilterIter {
+        type Item = Link;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            use super::is_external_link_storeid;
+
+            while let Some(elem) = self.0.next() {
+                if !(self.1 ^ is_external_link_storeid(&elem)) {
+                    return Some(elem);
+                }
+            }
+            None
+        }
+    }
+
+    pub struct OnlyExternalIter(ExternalFilterIter);
+
+    impl OnlyExternalIter {
+        pub fn new(li: LinkIter) -> OnlyExternalIter {
+            OnlyExternalIter(ExternalFilterIter(li, true))
+        }
+
+        pub fn urls<'a>(self, store: &'a Store) -> UrlIter<'a> {
+            UrlIter(self, store)
+        }
+    }
+
+    impl Iterator for OnlyExternalIter {
+        type Item = Link;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.0.next()
+        }
+    }
+
+    pub struct NoExternalIter(ExternalFilterIter);
+
+    impl NoExternalIter {
+        pub fn new(li: LinkIter) -> NoExternalIter {
+            NoExternalIter(ExternalFilterIter(li, false))
+        }
+    }
+
+    impl Iterator for NoExternalIter {
+        type Item = Link;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.0.next()
+        }
+    }
+
+    pub trait OnlyExternalLinks : Sized {
+        fn only_external_links(self) -> OnlyExternalIter ;
+
+        fn no_internal_links(self) -> OnlyExternalIter {
+            self.only_external_links()
+        }
+    }
+
+    impl OnlyExternalLinks for LinkIter {
+        fn only_external_links(self) -> OnlyExternalIter {
+            OnlyExternalIter::new(self)
+        }
+    }
+
+    pub trait OnlyInternalLinks : Sized {
+        fn only_internal_links(self) -> NoExternalIter;
+
+        fn no_external_links(self) -> NoExternalIter {
+            self.only_internal_links()
+        }
+    }
+
+    impl OnlyInternalLinks for LinkIter {
+        fn only_internal_links(self) -> NoExternalIter {
+            NoExternalIter::new(self)
+        }
+    }
+
+    pub struct UrlIter<'a>(OnlyExternalIter, &'a Store);
+
+    impl<'a> Iterator for UrlIter<'a> {
+        type Item = Result<Url>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            use super::get_external_link_from_file;
+
+            self.0
+                .next()
+                .map(|id| {
+                    debug!("Retrieving entry for id: '{:?}'", id);
+                    self.1
+                        .retrieve(id.clone())
+                        .map_err_into(LEK::StoreReadError)
+                        .map_dbg_err(|_| format!("Retrieving entry for id: '{:?}' failed", id))
+                        .and_then(|f| {
+                            debug!("Store::retrieve({:?}) succeeded", id);
+                            debug!("getting external link from file now");
+                            get_external_link_from_file(&f)
+                                .map_dbg_err(|e| format!("URL -> Err = {:?}", e))
+                        })
+                })
+        }
+
+    }
+
+}
+
+
 /// Check whether the StoreId starts with `/link/external/`
 pub fn is_external_link_storeid(id: &StoreId) -> bool {
     debug!("Checking whether this is a 'links/external/': '{:?}'", id);
