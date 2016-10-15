@@ -17,8 +17,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::path::PathBuf;
-
 use toml::Value;
 
 use libimagstore::hook::Hook;
@@ -29,7 +27,6 @@ use libimagstore::hook::accessor::NonMutableHookDataAccessor;
 use libimagstore::hook::result::HookResult;
 use libimagstore::store::FileLockEntry;
 use libimagentrylink::internal::InternalLinker;
-use libimagerror::trace::trace_error;
 
 
 mod error {
@@ -38,9 +35,7 @@ mod error {
         LinksLeft => "The entry has links and therefor cannot be deleted."
     );
 }
-use self::error::NoLinksLeftCheckerHookError as NLLCHE;
 use self::error::NoLinksLeftCheckerHookErrorKind as NLLCHEK;
-use self::error::MapErrInto;
 
 #[derive(Debug, Clone)]
 pub struct DenyDeletionOfLinkedEntriesHook {
@@ -95,7 +90,6 @@ impl NonMutableHookDataAccessor for DenyDeletionOfLinkedEntriesHook {
         use libimagutil::debug_result::*;
         use libimagerror::trace::MapErrTrace;
         use libimagerror::into::IntoError;
-        use libimagstore::hook::error::MapErrInto;
 
         debug!("[NO LINKS LEFT CHECKER HOOK] {:?}", fle.get_location());
 
