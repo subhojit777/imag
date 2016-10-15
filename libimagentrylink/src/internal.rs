@@ -144,6 +144,8 @@ impl InternalLinker for Entry {
     fn add_internal_link(&mut self, link: &mut Entry) -> Result<()> {
         let new_link = link.get_location().clone();
 
+        debug!("Adding internal link from {:?} to {:?}", self.get_location(), new_link);
+
         add_foreign_link(link, self.get_location().clone())
             .and_then(|_| {
                 self.get_internal_links()
@@ -155,17 +157,21 @@ impl InternalLinker for Entry {
     }
 
     fn remove_internal_link(&mut self, link: &mut Entry) -> Result<()> {
-        let own_loc   = link.get_location().clone();
-        let other_loc = link.get_location().clone();
+        let own_loc   = self.get_location().clone().without_base();
+        let other_loc = link.get_location().clone().without_base();
+
+        debug!("Removing internal link from {:?} to {:?}", own_loc, other_loc);
 
         link.get_internal_links()
             .and_then(|links| {
-                rewrite_links(self.get_header_mut(), links.filter(|l| *l != own_loc))
+                debug!("Rewriting own links for {:?}, without {:?}", other_loc, own_loc);
+                rewrite_links(link.get_header_mut(), links.filter(|l| *l != own_loc))
             })
             .and_then(|_| {
                 self.get_internal_links()
                     .and_then(|links| {
-                        rewrite_links(link.get_header_mut(), links.filter(|l| *l != other_loc))
+                        debug!("Rewriting own links for {:?}, without {:?}", own_loc, other_loc);
+                        rewrite_links(self.get_header_mut(), links.filter(|l| *l != other_loc))
                     })
             })
     }
@@ -184,6 +190,7 @@ fn rewrite_links<I: Iterator<Item = Link>>(header: &mut EntryHeader, links: I) -
                         })
                      }));
 
+    debug!("Setting new link array: {:?}", links);
     let process = header.set("imag.links", Value::Array(links));
     process_rw_result(process).map(|_| ())
 }
@@ -191,6 +198,7 @@ fn rewrite_links<I: Iterator<Item = Link>>(header: &mut EntryHeader, links: I) -
 /// When Linking A -> B, the specification wants us to link back B -> A.
 /// This is a helper function which does this.
 fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
+    debug!("Linking back from {:?} to {:?}", target.get_location(), from);
     target.get_internal_links()
         .and_then(|links| {
             let links = try!(links
@@ -205,6 +213,7 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
                                         })
                                 })
                              }));
+            debug!("Setting links in {:?}: {:?}", target.get_location(), links);
             process_rw_result(target.get_header_mut().set("imag.links", Value::Array(links)))
                 .map(|_| ())
         })
@@ -247,5 +256,152 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<LinkIter> {
 
     debug!("Ok, the RW action was successful, returning link vector now!");
     Ok(LinkIter::new(links))
+}
+
+#[cfg(test)]
+mod test {
+    use std::path::PathBuf;
+
+    use libimagstore::store::Store;
+
+    use super::InternalLinker;
+
+    fn setup_logging() {
+        use env_logger;
+        let _ = env_logger::init().unwrap_or(());
+    }
+
+    pub fn get_store() -> Store {
+        Store::new(PathBuf::from("/"), None).unwrap()
+    }
+
+    #[test]
+    fn test_new_entry_no_links() {
+        setup_logging();
+        let store = get_store();
+        let entry = store.create(PathBuf::from("test_new_entry_no_links")).unwrap();
+        let links = entry.get_internal_links();
+        assert!(links.is_ok());
+        let links = links.unwrap();
+        assert_eq!(links.collect::<Vec<_>>().len(), 0);
+    }
+
+    #[test]
+    fn test_link_two_entries() {
+        setup_logging();
+        let store = get_store();
+        let mut e1 = store.create(PathBuf::from("test_link_two_entries1")).unwrap();
+        assert!(e1.get_internal_links().is_ok());
+
+        let mut e2 = store.create(PathBuf::from("test_link_two_entries2")).unwrap();
+        assert!(e2.get_internal_links().is_ok());
+
+        {
+            assert!(e1.add_internal_link(&mut e2).is_ok());
+
+            let e1_links = e1.get_internal_links().unwrap().collect::<Vec<_>>();
+            let e2_links = e2.get_internal_links().unwrap().collect::<Vec<_>>();
+
+            debug!("1 has links: {:?}", e1_links);
+            debug!("2 has links: {:?}", e2_links);
+
+            assert_eq!(e1_links.len(), 1);
+            assert_eq!(e2_links.len(), 1);
+
+            assert!(e1_links.first().map(|l| l.clone().with_base(store.path().clone()) == *e2.get_location()).unwrap_or(false));
+            assert!(e2_links.first().map(|l| l.clone().with_base(store.path().clone()) == *e1.get_location()).unwrap_or(false));
+        }
+
+        {
+            assert!(e1.remove_internal_link(&mut e2).is_ok());
+
+            println!("{:?}", e2.to_str());
+            let e2_links = e2.get_internal_links().unwrap().collect::<Vec<_>>();
+            assert_eq!(e2_links.len(), 0, "Expected [], got: {:?}", e2_links);
+
+            println!("{:?}", e1.to_str());
+            let e1_links = e1.get_internal_links().unwrap().collect::<Vec<_>>();
+            assert_eq!(e1_links.len(), 0, "Expected [], got: {:?}", e1_links);
+
+        }
+    }
+
+    #[test]
+    fn test_multiple_links() {
+        setup_logging();
+        let store = get_store();
+
+        let mut e1 = store.retrieve(PathBuf::from("1")).unwrap();
+        let mut e2 = store.retrieve(PathBuf::from("2")).unwrap();
+        let mut e3 = store.retrieve(PathBuf::from("3")).unwrap();
+        let mut e4 = store.retrieve(PathBuf::from("4")).unwrap();
+        let mut e5 = store.retrieve(PathBuf::from("5")).unwrap();
+
+        assert!(e1.add_internal_link(&mut e2).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e1.add_internal_link(&mut e3).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 2);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e1.add_internal_link(&mut e4).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 3);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e1.add_internal_link(&mut e5).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 4);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+
+        assert!(e5.remove_internal_link(&mut e1).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 3);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e4.remove_internal_link(&mut e1).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 2);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e3.remove_internal_link(&mut e1).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e2.remove_internal_link(&mut e1).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+    }
+
 }
 
