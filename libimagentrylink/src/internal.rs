@@ -165,13 +165,13 @@ impl InternalLinker for Entry {
         link.get_internal_links()
             .and_then(|links| {
                 debug!("Rewriting own links for {:?}, without {:?}", other_loc, own_loc);
-                rewrite_links(self.get_header_mut(), links.filter(|l| *l != own_loc))
+                rewrite_links(link.get_header_mut(), links.filter(|l| *l != own_loc))
             })
             .and_then(|_| {
                 self.get_internal_links()
                     .and_then(|links| {
                         debug!("Rewriting own links for {:?}, without {:?}", own_loc, other_loc);
-                        rewrite_links(link.get_header_mut(), links.filter(|l| *l != other_loc))
+                        rewrite_links(self.get_header_mut(), links.filter(|l| *l != other_loc))
                     })
             })
     }
