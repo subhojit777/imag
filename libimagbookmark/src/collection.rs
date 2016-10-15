@@ -37,6 +37,7 @@ use libimagstore::store::Store;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::FileLockEntry;
 use libimagentrylink::external::ExternalLinker;
+use libimagentrylink::external::iter::UrlIter;
 use libimagentrylink::internal::InternalLinker;
 use libimagentrylink::internal::Link as StoreLink;
 use libimagerror::into::IntoError;
@@ -105,7 +106,7 @@ impl<'a> BookmarkCollection<'a> {
             .map_err_into(BEK::StoreReadError)
     }
 
-    pub fn links(&self) -> Result<Vec<Url>> {
+    pub fn links(&self) -> Result<UrlIter> {
         self.fle.get_external_links(&self.store).map_err_into(BEK::LinkError)
     }
 
@@ -126,11 +127,13 @@ impl<'a> BookmarkCollection<'a> {
             .map_err_into(BEK::LinkError)
     }
 
-    pub fn get_links_matching(&self, r: Regex) -> Result<Vec<Link>> {
+    pub fn get_links_matching(&self, r: Regex) -> Result<UrlIter> {
+        use std::result::Result as RResult;
+
         self.get_external_links(self.store)
             .map_err_into(BEK::LinkError)
             .map(|v| {
-                v.into_iter()
+                v.filter_map(RResult::ok) // TODO: Do not ignore errors here
                     .map(Url::into_string)
                     .filter(|urlstr| r.is_match(&urlstr[..]))
                     .map(Link::from)
