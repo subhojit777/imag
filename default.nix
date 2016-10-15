@@ -19,7 +19,7 @@ pkgs.stdenv.mkDerivation rec {
     src = ./.;
     version = "0.0.0";
 
-    buildInputs = [ env dependencies ];
+    buildInputs = env ++ dependencies;
 
 }
 
