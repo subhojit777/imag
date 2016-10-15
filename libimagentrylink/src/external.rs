@@ -116,6 +116,13 @@ pub mod iter {
     //!
     //! Contains also helpers to filter iterators for external/internal links
     //!
+    //!
+    //! # Warning
+    //!
+    //! This module uses `internal::Link` as link type, so we operate on _store ids_ here.
+    //!
+    //! Not to confuse with `external::Link` which is a real `FileLockEntry` under the hood.
+    //!
 
     use libimagutil::debug_result::*;
     use libimagstore::store::Store;
