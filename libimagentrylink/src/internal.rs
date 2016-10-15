@@ -249,3 +249,27 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<LinkIter> {
     Ok(LinkIter::new(links))
 }
 
+#[cfg(test)]
+mod test {
+    use std::path::PathBuf;
+
+    use libimagstore::store::Store;
+
+    use super::InternalLinker;
+
+    pub fn get_store() -> Store {
+        Store::new(PathBuf::from("/"), None).unwrap()
+    }
+
+    #[test]
+    fn test_new_entry_no_links() {
+        let store = get_store();
+        let entry = store.create(PathBuf::from("test_new_entry_no_links")).unwrap();
+        let links = entry.get_internal_links();
+        assert!(links.is_ok());
+        let links = links.unwrap();
+        assert_eq!(links.collect::<Vec<_>>().len(), 0);
+    }
+
+}
+
