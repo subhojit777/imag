@@ -47,6 +47,8 @@ use result::Result;
 use internal::InternalLinker;
 use module_path::ModuleEntryPath;
 
+use self::iter::*;
+
 use toml::Value;
 use url::Url;
 use crypto::sha1::Sha1;
@@ -98,7 +100,7 @@ impl<'a> Link<'a> {
 pub trait ExternalLinker : InternalLinker {
 
     /// Get the external links from the implementor object
-    fn get_external_links(&self, store: &Store) -> Result<Vec<Url>>;
+    fn get_external_links<'a>(&self, store: &'a Store) -> Result<UrlIter<'a>>;
 
     /// Set the external links for the implementor object
     fn set_external_links(&mut self, store: &Store, links: Vec<Url>) -> Result<()>;
@@ -296,33 +298,16 @@ fn get_external_link_from_file(entry: &FileLockEntry) -> Result<Url> {
 impl ExternalLinker for Entry {
 
     /// Get the external links from the implementor object
-    fn get_external_links(&self, store: &Store) -> Result<Vec<Url>> {
+    fn get_external_links<'a>(&self, store: &'a Store) -> Result<UrlIter<'a>> {
         // Iterate through all internal links and filter for FileLockEntries which live in
         // /link/external/<SHA> -> load these files and get the external link from their headers,
         // put them into the return vector.
         self.get_internal_links()
+            .map_err(|e| LE::new(LEK::StoreReadError, Some(Box::new(e))))
             .map(|iter| {
                 debug!("Getting external links");
-                iter.filter(|l| is_external_link_storeid(l))
-                    .map(|id| {
-                        debug!("Retrieving entry for id: '{:?}'", id);
-                        match store.retrieve(id.clone()) {
-                            Ok(f) => {
-                                debug!("Store::retrieve({:?}) succeeded", id);
-                                debug!("getting external link from file now");
-                                get_external_link_from_file(&f)
-                                    .map_err(|e| { debug!("URL -> Err = {:?}", e); e })
-                            },
-                            Err(e) => {
-                                debug!("Retrieving entry for id: '{:?}' failed", id);
-                                Err(LE::new(LEK::StoreReadError, Some(Box::new(e))))
-                            }
-                        }
-                    })
-                    .filter_map(|x| x.ok()) // TODO: Do not ignore error here
-                    .collect()
+                iter.only_external_links().urls(store)
             })
-            .map_err(|e| LE::new(LEK::StoreReadError, Some(Box::new(e))))
     }
 
     /// Set the external links for the implementor object
@@ -401,7 +386,9 @@ impl ExternalLinker for Entry {
         // get external links, add this one, save them
         debug!("Getting links");
         self.get_external_links(store)
-            .and_then(|mut links| {
+            .and_then(|links| {
+                // TODO: Do not ignore errors here
+                let mut links = links.filter_map(Result::ok).collect::<Vec<_>>();
                 debug!("Adding link = '{:?}' to links = {:?}", link, links);
                 links.push(link);
                 debug!("Setting {} links = {:?}", links.len(), links);
@@ -414,10 +401,11 @@ impl ExternalLinker for Entry {
         // get external links, remove this one, save them
         self.get_external_links(store)
             .and_then(|links| {
-                debug!("Removing link = '{:?}' from links = {:?}", link, links);
-                let links = links.into_iter()
+                debug!("Removing link = '{:?}'", link);
+                let links = links
+                    .filter_map(Result::ok)
                     .filter(|l| l.as_str() != link.as_str())
-                    .collect();
+                    .collect::<Vec<_>>();
                 self.set_external_links(store, links)
             })
     }
