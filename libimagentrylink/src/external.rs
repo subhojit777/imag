@@ -144,7 +144,7 @@ pub mod iter {
     /// false... and so on.
     ///
     /// As we can see, the operator between these two operants is `!(a ^ b)`.
-    struct ExternalFilterIter(LinkIter, bool);
+    pub struct ExternalFilterIter(LinkIter, bool);
 
     impl Iterator for ExternalFilterIter {
         type Item = Link;
@@ -160,6 +160,23 @@ pub mod iter {
             None
         }
     }
+
+    /// Helper trait to be implemented on `LinkIter` to select or deselect all external links
+    ///
+    /// # See also
+    ///
+    /// Also see `OnlyExternalIter` and `NoExternalIter` and the helper traits/functions
+    /// `OnlyInteralLinks`/`only_internal_links()` and `OnlyExternalLinks`/`only_external_links()`.
+    pub trait SelectExternal {
+        fn select_external_links(self, b: bool) -> ExternalFilterIter;
+    }
+
+    impl SelectExternal for LinkIter {
+        fn select_external_links(self, b: bool) -> ExternalFilterIter {
+            ExternalFilterIter(self, b)
+        }
+    }
+
 
     pub struct OnlyExternalIter(ExternalFilterIter);
 
