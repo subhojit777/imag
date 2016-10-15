@@ -112,6 +112,11 @@ pub trait ExternalLinker : InternalLinker {
 }
 
 pub mod iter {
+    //! Iterator helpers for external linking stuff
+    //!
+    //! Contains also helpers to filter iterators for external/internal links
+    //!
+
     use libimagutil::debug_result::*;
     use libimagstore::store::Store;
 
