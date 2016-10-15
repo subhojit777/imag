@@ -326,5 +326,82 @@ mod test {
         }
     }
 
+    #[test]
+    fn test_multiple_links() {
+        setup_logging();
+        let store = get_store();
+
+        let mut e1 = store.retrieve(PathBuf::from("1")).unwrap();
+        let mut e2 = store.retrieve(PathBuf::from("2")).unwrap();
+        let mut e3 = store.retrieve(PathBuf::from("3")).unwrap();
+        let mut e4 = store.retrieve(PathBuf::from("4")).unwrap();
+        let mut e5 = store.retrieve(PathBuf::from("5")).unwrap();
+
+        assert!(e1.add_internal_link(&mut e2).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e1.add_internal_link(&mut e3).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 2);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e1.add_internal_link(&mut e4).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 3);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e1.add_internal_link(&mut e5).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 4);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+
+        assert!(e5.remove_internal_link(&mut e1).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 3);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e4.remove_internal_link(&mut e1).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 2);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e3.remove_internal_link(&mut e1).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e2.remove_internal_link(&mut e1).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e4.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e5.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+    }
+
 }
 
