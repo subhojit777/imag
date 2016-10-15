@@ -257,12 +257,18 @@ mod test {
 
     use super::InternalLinker;
 
+    fn setup_logging() {
+        use env_logger;
+        let _ = env_logger::init().unwrap_or(());
+    }
+
     pub fn get_store() -> Store {
         Store::new(PathBuf::from("/"), None).unwrap()
     }
 
     #[test]
     fn test_new_entry_no_links() {
+        setup_logging();
         let store = get_store();
         let entry = store.create(PathBuf::from("test_new_entry_no_links")).unwrap();
         let links = entry.get_internal_links();
@@ -273,6 +279,7 @@ mod test {
 
     #[test]
     fn test_link_two_entries() {
+        setup_logging();
         let store = get_store();
         let mut e1 = store.create(PathBuf::from("test_link_two_entries1")).unwrap();
         assert!(e1.get_internal_links().is_ok());

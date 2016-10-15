@@ -38,6 +38,9 @@ extern crate semver;
 extern crate url;
 extern crate crypto;
 
+#[cfg(test)]
+extern crate env_logger;
+
 #[macro_use] extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
 #[macro_use] extern crate libimagutil;
