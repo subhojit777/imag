@@ -29,11 +29,12 @@ mod fs {
     use error::StoreErrorKind as SEK;
     use std::io::Cursor;
     use std::path::PathBuf;
+    use std::collections::HashMap;
+    use std::sync::Mutex;
 
     use libimagerror::into::IntoError;
 
-    use std::collections::HashMap;
-    use std::sync::Mutex;
+    use error::MapErrInto;
 
     lazy_static! {
         static ref MAP: Mutex<HashMap<PathBuf, Cursor<Vec<u8>>>> = {
