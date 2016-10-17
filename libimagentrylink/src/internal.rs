@@ -125,13 +125,14 @@ pub mod iter {
             DeleteUnlinkedIter(self)
         }
 
-        /// Turn this iterator into a FilterLessThanIter, which filters out the unlinked entries.
-        pub fn without_unlinked(self) -> FilterLessThanIter<'a> {
-            FilterLessThanIter(self, 1)
+        /// Turn this iterator into a FilterCompareLinkCountIter, which filters out the unlinked
+        /// entries.
+        pub fn without_unlinked(self) -> FilterCompareLinkCountIter<'a> {
+            FilterCompareLinkCountIter(gi, |u: usize| u > n)
         }
 
-        pub fn with_less_than_n_links(self, n: usize) -> FilterLessThanIter<'a> {
-            FilterLessThanIter(self, n)
+        pub fn with_less_than_n_links(self, n: usize) -> FilterCompareLinkCountIter<'a> {
+            FilterCompareLinkCountIter(gi, |u: usize| u < n)
         }
 
         pub fn with_more_than_n_links(self, n: usize) -> FilterMoreThanIter<'a> {
@@ -156,20 +157,14 @@ pub mod iter {
 
     }
 
-    /// An iterator that removes all Items from the iterator that have `less than` `N` links.
-    /// This does _not_ `Store::delete()` anything.
-    pub struct FilterLessThanIter<'a>(GetIter<'a>, usize);
+    /// An iterator helper that has a function F.
+    ///
+    /// If the function F returns `false` for the number of links, the entry is ignored, else it is
+    /// taken.
+    struct FilterCompareLinkCountIter<'a, F>(GetIter<'a>, F)
+        where F: FnOnce(usize) -> bool;
 
-    impl<'a> FilterLessThanIter<'a> {
-
-        /// Create a new `FilterNLinksIter` iterator that filters out all entries that have LESS
-        /// THAN N links
-        pub fn new(gi: GetIter<'a>, n: usize) -> FilterNLinksIter<'a> {
-            FilterNLinksIter(gi, n)
-        }
-    }
-
-    impl<'a> Iterator for FilterLessThanIter<'a> {
+    impl<'a> Iterator for FilterCompareLinkCountIter<'a> {
         type Item = Result<FileLockEntry<'a>>;
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -183,49 +178,7 @@ pub mod iter {
                             Err(e) => return Some(Err(e)),
                             Ok(links) => links,
                         };
-                        if links.count() > self.1 {
-                            continue;
-                        } else {
-                            return Some(Ok(fle));
-                        }
-                    },
-                    Some(Err(e)) => return Some(Err(e)),
-                    None => break,
-                }
-            }
-            None
-        }
-
-    }
-
-    /// An iterator that removes all Items from the iterator that have `less than` `N` links.
-    /// This does _not_ `Store::delete()` anything.
-    pub struct FilterMoreThanIter<'a>(GetIter<'a>, usize);
-
-    impl<'a> FilterMoreThanIter<'a> {
-
-        /// Create a new `FilterNLinksIter` iterator that filters out all entries that have LESS
-        /// THAN N links
-        pub fn new(gi: GetIter<'a>, n: usize) -> FilterNLinksIter<'a> {
-            FilterNLinksIter(gi, n)
-        }
-    }
-
-    impl<'a> Iterator for FilterMoreThanIter<'a> {
-        type Item = Result<FileLockEntry<'a>>;
-
-        fn next(&mut self) -> Option<Self::Item> {
-            use internal::InternalLinker;
-
-            loop {
-                match self.0.next() {
-                    Some(Ok(fle)) => {
-                        let links = match fle.get_internal_links().map_err_into(LEK::StoreReadError)
-                        {
-                            Err(e) => return Some(Err(e)),
-                            Ok(links) => links,
-                        };
-                        if links.count() < self.1 {
+                        if !self.1(links.count()) {
                             continue;
                         } else {
                             return Some(Ok(fle));
