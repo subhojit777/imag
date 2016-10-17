@@ -125,6 +125,11 @@ pub mod iter {
             DeleteUnlinkedIter(self)
         }
 
+        /// Turn this iterator into a FilterUnlinkedIter, which filters out the unlinked entries.
+        pub fn without_unlinked(self) -> FilterUnlinkedIter<'a> {
+            FilterUnlinkedIter(self)
+        }
+
         pub fn store(&self) -> &Store {
             self.1
         }
@@ -143,10 +148,49 @@ pub mod iter {
 
     }
 
+    /// An iterator that removes all Items from the iterator that are not linked anymore.
+    /// This does _not_ `Store::delete()` anything.
+    pub struct FilterUnlinkedIter<'a>(GetIter<'a>);
+
+    impl<'a> Iterator for FilterUnlinkedIter<'a> {
+        type Item = Result<FileLockEntry<'a>>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            use internal::InternalLinker;
+
+            loop {
+                match self.0.next() {
+                    Some(Ok(fle)) => {
+                        let links = match fle.get_internal_links().map_err_into(LEK::StoreReadError)
+                        {
+                            Err(e) => return Some(Err(e)),
+                            Ok(links) => links,
+                        };
+                        if links.count() == 0 {
+                            continue;
+                        } else {
+                            return Some(Ok(fle));
+                        }
+                    },
+                    Some(Err(e)) => return Some(Err(e)),
+                    None => break,
+                }
+            }
+            None
+        }
+
+    }
+
+
     /// An iterator that removes all Items from the iterator that are not linked anymore by calling
     /// `Store::delete()` on them.
     ///
     /// It yields only items which are somehow linked to another entry
+    ///
+    /// # Warning
+    ///
+    /// Deletes entries from the store.
+    ///
     pub struct DeleteUnlinkedIter<'a>(GetIter<'a>);
 
     impl<'a> Iterator for DeleteUnlinkedIter<'a> {
