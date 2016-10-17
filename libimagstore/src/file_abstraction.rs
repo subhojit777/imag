@@ -29,11 +29,12 @@ mod fs {
     use error::StoreErrorKind as SEK;
     use std::io::Cursor;
     use std::path::PathBuf;
+    use std::collections::HashMap;
+    use std::sync::Mutex;
 
     use libimagerror::into::IntoError;
 
-    use std::collections::HashMap;
-    use std::sync::Mutex;
+    use error::MapErrInto;
 
     lazy_static! {
         static ref MAP: Mutex<HashMap<PathBuf, Cursor<Vec<u8>>>> = {
@@ -58,7 +59,7 @@ mod fs {
             debug!("Getting lazy file: {:?}", self);
             match *self {
                 FileAbstraction::Absent(ref f) => {
-                    let map = MAP.lock().unwrap();
+                    let map = try!(MAP.lock().map_err_into(SEK::LockPoisoned));
                     return map.get(f).cloned().ok_or(SEK::FileNotFound.into_error());
                 },
             };
@@ -67,7 +68,7 @@ mod fs {
         pub fn write_file_content(&mut self, buf: &[u8]) -> Result<(), SE> {
             match *self {
                 FileAbstraction::Absent(ref f) => {
-                    let mut map = MAP.lock().unwrap();
+                    let mut map = try!(MAP.lock().map_err_into(SEK::LockPoisoned));
                     if let Some(ref mut cur) = map.get_mut(f) {
                         let mut vec = cur.get_mut();
                         vec.clear();
@@ -82,19 +83,21 @@ mod fs {
         }
 
         pub fn remove_file(path: &PathBuf) -> Result<(), SE> {
-            MAP.lock().unwrap().remove(path);
-            Ok(())
+            try!(MAP.lock().map_err_into(SEK::LockPoisoned))
+                .remove(path)
+                .map(|_| ())
+                .ok_or(SEK::FileNotFound.into_error())
         }
 
         pub fn copy(from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
-            let mut map = MAP.lock().unwrap();
+            let mut map = try!(MAP.lock().map_err_into(SEK::LockPoisoned));
             let a = try!(map.get(from).cloned().ok_or(SEK::FileNotFound.into_error()));
             map.insert(to.clone(), a);
             Ok(())
         }
 
         pub fn rename(from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
-            let mut map = MAP.lock().unwrap();
+            let mut map = try!(MAP.lock().map_err_into(SEK::LockPoisoned));
             let a = try!(map.get(from).cloned().ok_or(SEK::FileNotFound.into_error()));
             map.insert(to.clone(), a);
             Ok(())

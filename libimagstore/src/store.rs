@@ -57,6 +57,7 @@ use hook::Hook;
 use libimagerror::into::IntoError;
 use libimagerror::trace::trace_error;
 use libimagutil::iter::FoldResult;
+use libimagutil::debug_result::*;
 
 use self::glob_store_iter::*;
 
@@ -159,19 +160,16 @@ impl StoreEntry {
     }
 
     fn get_entry(&mut self) -> Result<Entry> {
+        let id = &self.id.clone();
         if !self.is_borrowed() {
-            let file = self.file.get_file_content();
-            if let Err(err) = file {
-                if err.err_type() == SEK::FileNotFound {
-                    Ok(Entry::new(self.id.clone()))
+            self.file
+                .get_file_content()
+                .and_then(|mut file| Entry::from_reader(id.clone(), &mut file))
+                .or_else(|err| if err.err_type() == SEK::FileNotFound {
+                    Ok(Entry::new(id.clone()))
                 } else {
                     Err(err)
-                }
-            } else {
-                // TODO:
-                let entry = Entry::from_reader(self.id.clone(), &mut file.unwrap());
-                entry
-            }
+                })
         } else {
             Err(SE::new(SEK::EntryAlreadyBorrowed, None))
         }
@@ -245,12 +243,9 @@ impl Store {
                     .map_err_into(SEK::IoError);
             }
 
-            debug!("Creating store path");
-            let c = FileAbstraction::create_dir_all(&location);
-            if c.is_err() {
-                debug!("Failed");
-                return Err(SEK::StorePathCreate.into_error_with_cause(Box::new(c.unwrap_err())));
-            }
+            try!(FileAbstraction::create_dir_all(&location)
+                 .map_err_into(SEK::StorePathCreate)
+                 .map_dbg_err_str("Failed"));
         } else if location.is_file() {
             debug!("Store path exists as file");
             return Err(SEK::StorePathExists.into_error());
@@ -638,12 +633,15 @@ impl Store {
         -> Result<()>
     {
         let new_id = new_id.with_base(self.path().clone());
-        let hsmap = self.entries.write();
-        if hsmap.is_err() {
-            return Err(SE::new(SEK::LockPoisoned, None)).map_err_into(SEK::MoveCallError)
-        }
-        if hsmap.unwrap().contains_key(&new_id) {
-            return Err(SE::new(SEK::EntryAlreadyExists, None)).map_err_into(SEK::MoveCallError)
+        let hsmap = try!(
+            self.entries
+                .write()
+                .map_err(|_| SEK::LockPoisoned.into_error())
+                .map_err_into(SEK::MoveCallError)
+        );
+
+        if hsmap.contains_key(&new_id) {
+            return Err(SEK::EntryAlreadyExists.into_error()).map_err_into(SEK::MoveCallError)
         }
 
         let old_id = entry.get_location().clone();
