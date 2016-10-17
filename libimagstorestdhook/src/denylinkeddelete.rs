@@ -32,7 +32,8 @@ use libimagentrylink::internal::InternalLinker;
 mod error {
     generate_error_imports!();
     generate_error_types!(NoLinksLeftCheckerHookError, NoLinksLeftCheckerHookErrorKind,
-        LinksLeft => "The entry has links and therefor cannot be deleted."
+        ReadInternalLinksError  => "Error while reading internal links of entry",
+        LinksLeft               => "The entry has links and therefor cannot be deleted."
     );
 }
 use self::error::NoLinksLeftCheckerHookErrorKind as NLLCHEK;
@@ -86,21 +87,17 @@ impl HookDataAccessorProvider for DenyDeletionOfLinkedEntriesHook {
 impl NonMutableHookDataAccessor for DenyDeletionOfLinkedEntriesHook {
 
     fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
-        use libimagutil::warn_result::*;
-        use libimagutil::debug_result::*;
-        use libimagerror::trace::MapErrTrace;
         use libimagerror::into::IntoError;
+        use self::error::MapErrInto;
 
         debug!("[NO LINKS LEFT CHECKER HOOK] {:?}", fle.get_location());
 
-        let n = fle
+        let n = try!(fle
             .get_internal_links()
             .map(|i| i.count())
-            .map_warn_err_str("[NO LINKS LEFT CHECKER HOOK]: Cannot get internal links")
-            .map_warn_err_str("[NO LINKS LEFT CHECKER HOOK]: Assuming 1 to automatically abort")
-            .map_dbg_err_str("[NO LINKS LEFT CHECKER HOOK]: Printing trace now")
-            .map_err_trace()
-            .unwrap_or(1);
+            .map_err_into(NLLCHEK::ReadInternalLinksError)
+            .map_err(Box::new)
+            .map_err(|e| HEK::HookExecutionError.into_error_with_cause(e)));
 
         if n > 0 {
             Err(NLLCHEK::LinksLeft.into_error())
