@@ -76,10 +76,6 @@ pub mod iter {
             GetIter(self.0, store)
         }
 
-        pub fn into_deleter(self, store: &Store) -> DeleteIter {
-            DeleteIter(self.0, store)
-        }
-
     }
 
     impl Iterator for LinkIter {
@@ -143,24 +139,6 @@ pub mod iter {
                 Ok(Some(x)) => Some(Ok(x)),
                 Err(e)      => Some(Err(e)),
             })
-        }
-
-    }
-
-    /// An Iterator that `Store::get()`s the Entries from the store while consumed
-    pub struct DeleteIter<'a>(IntoIter<Link>, &'a Store);
-
-    impl<'a> DeleteIter<'a> {
-        fn new(i: IntoIter<Link>, store: &'a Store) -> DeleteIter<'a> {
-            DeleteIter(i, store)
-        }
-    }
-
-    impl<'a> Iterator for DeleteIter<'a> {
-        type Item = Result<()>;
-
-        fn next(&mut self) -> Option<Self::Item> {
-            self.0.next().map(|id| self.1.delete(id).map_err_into(LEK::StoreReadError))
         }
 
     }
