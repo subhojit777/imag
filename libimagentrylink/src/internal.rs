@@ -125,18 +125,36 @@ pub mod iter {
             DeleteUnlinkedIter(self)
         }
 
-        /// Turn this iterator into a FilterCompareLinkCountIter, which filters out the unlinked
-        /// entries.
-        pub fn without_unlinked(self) -> FilterCompareLinkCountIter<'a> {
-            FilterCompareLinkCountIter(gi, |u: usize| u > n)
+        /// Turn this iterator into a FilterLinksIter that removes all entries that are not linked
+        /// to any other entry, by filtering them out the iterator.
+        ///
+        /// This does _not_ remove the entries from the store.
+        pub fn without_unlinked(self) -> FilterLinksIter<'a> {
+            FilterLinksIter::new(self, Box::new(|links: &[Link]| links.len() > 0))
         }
 
-        pub fn with_less_than_n_links(self, n: usize) -> FilterCompareLinkCountIter<'a> {
-            FilterCompareLinkCountIter(gi, |u: usize| u < n)
+        /// Turn this iterator into a FilterLinksIter that removes all entries that have less than
+        /// `n` links to any other entries.
+        ///
+        /// This does _not_ remove the entries from the store.
+        pub fn with_less_than_n_links(self, n: usize) -> FilterLinksIter<'a> {
+            FilterLinksIter::new(self, Box::new(move |links: &[Link]| links.len() < n))
         }
 
-        pub fn with_more_than_n_links(self, n: usize) -> FilterMoreThanIter<'a> {
-            FilterMoreThanIter(self, n)
+        /// Turn this iterator into a FilterLinksIter that removes all entries that have more than
+        /// `n` links to any other entries.
+        ///
+        /// This does _not_ remove the entries from the store.
+        pub fn with_more_than_n_links(self, n: usize) -> FilterLinksIter<'a> {
+            FilterLinksIter::new(self, Box::new(move |links: &[Link]| links.len() > n))
+        }
+
+        /// Turn this iterator into a FilterLinksIter that removes all entries where the predicate
+        /// `F` returns false
+        ///
+        /// This does _not_ remove the entries from the store.
+        pub fn filtered_for_links(self, f: Box<Fn(&[Link]) -> bool>) -> FilterLinksIter<'a> {
+            FilterLinksIter::new(self, f)
         }
 
         pub fn store(&self) -> &Store {
@@ -161,10 +179,15 @@ pub mod iter {
     ///
     /// If the function F returns `false` for the number of links, the entry is ignored, else it is
     /// taken.
-    struct FilterCompareLinkCountIter<'a, F>(GetIter<'a>, F)
-        where F: FnOnce(usize) -> bool;
+    pub struct FilterLinksIter<'a>(GetIter<'a>, Box<Fn(&[Link]) -> bool>);
 
-    impl<'a> Iterator for FilterCompareLinkCountIter<'a> {
+    impl<'a> FilterLinksIter<'a> {
+        pub fn new(gi: GetIter<'a>, f: Box<Fn(&[Link]) -> bool>) -> FilterLinksIter<'a> {
+            FilterLinksIter(gi, f)
+        }
+    }
+
+    impl<'a> Iterator for FilterLinksIter<'a> {
         type Item = Result<FileLockEntry<'a>>;
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -176,9 +199,9 @@ pub mod iter {
                         let links = match fle.get_internal_links().map_err_into(LEK::StoreReadError)
                         {
                             Err(e) => return Some(Err(e)),
-                            Ok(links) => links,
+                            Ok(links) => links.collect::<Vec<_>>(),
                         };
-                        if !self.1(links.count()) {
+                        if !(self.1)(&links) {
                             continue;
                         } else {
                             return Some(Ok(fle));
