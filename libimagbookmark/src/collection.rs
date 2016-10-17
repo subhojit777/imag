@@ -41,9 +41,10 @@ use libimagentrylink::external::iter::UrlIter;
 use libimagentrylink::internal::InternalLinker;
 use libimagentrylink::internal::Link as StoreLink;
 use libimagerror::into::IntoError;
-use url::Url;
 
 use link::Link;
+
+use self::iter::LinksMatchingRegexIter;
 
 pub struct BookmarkCollection<'a> {
     fle: FileLockEntry<'a>,
@@ -127,18 +128,12 @@ impl<'a> BookmarkCollection<'a> {
             .map_err_into(BEK::LinkError)
     }
 
-    pub fn get_links_matching(&self, r: Regex) -> Result<UrlIter> {
-        use std::result::Result as RResult;
+    pub fn get_links_matching(&self, r: Regex) -> Result<LinksMatchingRegexIter<'a>> {
+        use self::iter::IntoLinksMatchingRegexIter;
 
         self.get_external_links(self.store)
             .map_err_into(BEK::LinkError)
-            .map(|v| {
-                v.filter_map(RResult::ok) // TODO: Do not ignore errors here
-                    .map(Url::into_string)
-                    .filter(|urlstr| r.is_match(&urlstr[..]))
-                    .map(Link::from)
-                    .collect()
-            })
+            .map(|iter| iter.matching_regex(r))
     }
 
     pub fn remove_link(&mut self, l: Link) -> Result<()> {
@@ -149,6 +144,78 @@ impl<'a> BookmarkCollection<'a> {
                 self.remove_external_link(self.store, url).map_err_into(BEK::LinkingError)
             })
             .map_err_into(BEK::LinkError)
+    }
+
+}
+
+pub mod iter {
+    use link::Link;
+    use result::Result;
+    use error::{MapErrInto, BookmarkErrorKind as BEK};
+
+    pub struct LinkIter<I>(I)
+        where I: Iterator<Item = Link>;
+
+    impl<I: Iterator<Item = Link>> LinkIter<I> {
+        pub fn new(i: I) -> LinkIter<I> {
+            LinkIter(i)
+        }
+    }
+
+    impl<I: Iterator<Item = Link>> Iterator for LinkIter<I> {
+        type Item = Link;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.0.next()
+        }
+    }
+
+    impl<I> From<I> for LinkIter<I> where I: Iterator<Item = Link> {
+        fn from(i: I) -> LinkIter<I> {
+            LinkIter(i)
+        }
+    }
+
+    use libimagentrylink::external::iter::UrlIter;
+    use regex::Regex;
+
+    pub struct LinksMatchingRegexIter<'a>(UrlIter<'a>, Regex);
+
+    impl<'a> LinksMatchingRegexIter<'a> {
+        pub fn new(i: UrlIter<'a>, r: Regex) -> LinksMatchingRegexIter<'a> {
+            LinksMatchingRegexIter(i, r)
+        }
+    }
+
+    impl<'a> Iterator for LinksMatchingRegexIter<'a> {
+        type Item = Result<Link>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            loop {
+                let n = match self.0.next() {
+                    Some(Ok(n))  => n,
+                    Some(Err(e)) => return Some(Err(e).map_err_into(BEK::LinkError)),
+                    None         => return None,
+                };
+
+                let s = n.into_string();
+                if self.1.is_match(&s[..]) {
+                    return Some(Ok(Link::from(s)))
+                } else {
+                    continue;
+                }
+            }
+        }
+    }
+
+    pub trait IntoLinksMatchingRegexIter<'a> {
+        fn matching_regex(self, Regex) -> LinksMatchingRegexIter<'a>;
+    }
+
+    impl<'a> IntoLinksMatchingRegexIter<'a> for UrlIter<'a> {
+        fn matching_regex(self, r: Regex) -> LinksMatchingRegexIter<'a> {
+            LinksMatchingRegexIter(self, r)
+        }
     }
 
 }
