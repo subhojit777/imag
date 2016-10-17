@@ -125,9 +125,13 @@ pub mod iter {
             DeleteUnlinkedIter(self)
         }
 
-        /// Turn this iterator into a FilterUnlinkedIter, which filters out the unlinked entries.
-        pub fn without_unlinked(self) -> FilterUnlinkedIter<'a> {
-            FilterUnlinkedIter(self)
+        /// Turn this iterator into a FilterLessThanIter, which filters out the unlinked entries.
+        pub fn without_unlinked(self) -> FilterLessThanIter<'a> {
+            FilterLessThanIter(self, 1)
+        }
+
+        pub fn with_less_than_n_links(self, n: usize) -> FilterLessThanIter<'a> {
+            FilterLessThanIter(self, n)
         }
 
         pub fn store(&self) -> &Store {
@@ -148,11 +152,20 @@ pub mod iter {
 
     }
 
-    /// An iterator that removes all Items from the iterator that are not linked anymore.
+    /// An iterator that removes all Items from the iterator that have `less than` `N` links.
     /// This does _not_ `Store::delete()` anything.
-    pub struct FilterUnlinkedIter<'a>(GetIter<'a>);
+    pub struct FilterLessThanIter<'a>(GetIter<'a>, usize);
 
-    impl<'a> Iterator for FilterUnlinkedIter<'a> {
+    impl<'a> FilterLessThanIter<'a> {
+
+        /// Create a new `FilterNLinksIter` iterator that filters out all entries that have LESS
+        /// THAN N links
+        pub fn new(gi: GetIter<'a>, n: usize) -> FilterNLinksIter<'a> {
+            FilterNLinksIter(gi, n)
+        }
+    }
+
+    impl<'a> Iterator for FilterLessThanIter<'a> {
         type Item = Result<FileLockEntry<'a>>;
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -166,7 +179,7 @@ pub mod iter {
                             Err(e) => return Some(Err(e)),
                             Ok(links) => links,
                         };
-                        if links.count() == 0 {
+                        if links.count() > self.1 {
                             continue;
                         } else {
                             return Some(Ok(fle));
@@ -180,7 +193,6 @@ pub mod iter {
         }
 
     }
-
 
     /// An iterator that removes all Items from the iterator that are not linked anymore by calling
     /// `Store::delete()` on them.
