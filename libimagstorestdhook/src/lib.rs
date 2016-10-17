@@ -45,6 +45,7 @@ extern crate libimaginteraction;
 extern crate libimagutil;
 
 pub mod debug;
+pub mod denylinkeddelete;
 pub mod flock;
 pub mod linkverify;
 pub mod vcs;
