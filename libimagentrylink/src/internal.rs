@@ -134,6 +134,10 @@ pub mod iter {
             FilterLessThanIter(self, n)
         }
 
+        pub fn with_more_than_n_links(self, n: usize) -> FilterMoreThanIter<'a> {
+            FilterMoreThanIter(self, n)
+        }
+
         pub fn store(&self) -> &Store {
             self.1
         }
@@ -180,6 +184,48 @@ pub mod iter {
                             Ok(links) => links,
                         };
                         if links.count() > self.1 {
+                            continue;
+                        } else {
+                            return Some(Ok(fle));
+                        }
+                    },
+                    Some(Err(e)) => return Some(Err(e)),
+                    None => break,
+                }
+            }
+            None
+        }
+
+    }
+
+    /// An iterator that removes all Items from the iterator that have `less than` `N` links.
+    /// This does _not_ `Store::delete()` anything.
+    pub struct FilterMoreThanIter<'a>(GetIter<'a>, usize);
+
+    impl<'a> FilterMoreThanIter<'a> {
+
+        /// Create a new `FilterNLinksIter` iterator that filters out all entries that have LESS
+        /// THAN N links
+        pub fn new(gi: GetIter<'a>, n: usize) -> FilterNLinksIter<'a> {
+            FilterNLinksIter(gi, n)
+        }
+    }
+
+    impl<'a> Iterator for FilterMoreThanIter<'a> {
+        type Item = Result<FileLockEntry<'a>>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            use internal::InternalLinker;
+
+            loop {
+                match self.0.next() {
+                    Some(Ok(fle)) => {
+                        let links = match fle.get_internal_links().map_err_into(LEK::StoreReadError)
+                        {
+                            Err(e) => return Some(Err(e)),
+                            Ok(links) => links,
+                        };
+                        if links.count() < self.1 {
                             continue;
                         } else {
                             return Some(Ok(fle));
