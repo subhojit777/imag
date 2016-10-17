@@ -121,8 +121,8 @@ pub mod iter {
 
         /// Turn this iterator into a LinkGcIter, which `Store::delete()`s entries that are not
         /// linked to any other entry.
-        pub fn remove_unlinked(self) -> RemoveUnlinkedIter<'a> {
-            RemoveUnlinkedIter(self)
+        pub fn delete_unlinked(self) -> DeleteUnlinkedIter<'a> {
+            DeleteUnlinkedIter(self)
         }
 
         pub fn store(&self) -> &Store {
@@ -147,9 +147,9 @@ pub mod iter {
     /// `Store::delete()` on them.
     ///
     /// It yields only items which are somehow linked to another entry
-    pub struct RemoveUnlinkedIter<'a>(GetIter<'a>);
+    pub struct DeleteUnlinkedIter<'a>(GetIter<'a>);
 
-    impl<'a> Iterator for RemoveUnlinkedIter<'a> {
+    impl<'a> Iterator for DeleteUnlinkedIter<'a> {
         type Item = Result<FileLockEntry<'a>>;
 
         fn next(&mut self) -> Option<Self::Item> {
