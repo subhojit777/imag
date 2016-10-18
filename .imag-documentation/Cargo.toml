@@ -3,6 +3,16 @@ name = "imag-documentation"
 version = "0.2.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
+description = "Documentation crate of the imag distribution. Does not contain functionality"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+website       = "http://imag-pim.org"
+
 [dependencies]
 
 [dependencies.libimagbookmark]
