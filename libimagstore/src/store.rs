@@ -2941,7 +2941,7 @@ aspect = "test"
     #[test]
     fn test_post_delete_allowed_error() {
         let store   = get_store_with_allowed_error_hook_at_pos(HP::PostDelete);
-        let pb      = StoreId::new_baseless(PathBuf::from("test_pre_delete_allowed_error")).unwrap();
+        let pb      = StoreId::new_baseless(PathBuf::from("test_post_delete_allowed_error")).unwrap();
 
         assert!(store.create(pb.clone()).is_ok());
         let pb = pb.with_base(store.path().clone());
