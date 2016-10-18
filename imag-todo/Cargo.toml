@@ -3,6 +3,16 @@ authors = ["mario <mario-krehl@gmx.de>"]
 name = "imag-todo"
 version = "0.2.0"
 
+description = "Part of the imag core distribution: imag-todo command"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+website       = "http://imag-pim.org"
+
 [dependencies]
 clap = "2.*"
 glob = "0.2.11"
