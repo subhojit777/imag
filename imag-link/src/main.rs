@@ -297,7 +297,10 @@ fn list_links_for_entry(store: &Store, entry: &mut FileLockEntry) {
     entry.get_external_links(store)
         .and_then(|links| {
             for (i, link) in links.enumerate() {
-                println!("{: <3}: {}", i, link);
+                match link {
+                    Ok(link) => println!("{: <3}: {}", i, link),
+                    Err(e)   => trace_error(&e),
+                }
             }
             Ok(())
         })
