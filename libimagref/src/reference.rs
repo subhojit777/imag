@@ -34,7 +34,6 @@ use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::Store;
 use libimagerror::into::IntoError;
-use libimagerror::trace::MapErrTrace;
 
 use toml::Value;
 
@@ -249,18 +248,18 @@ impl<'a> Ref<'a> {
     }
 
     /// Get the hash from the path of the ref
-    pub fn get_path_hash(&self) -> Option<String> {
+    pub fn get_path_hash(&self) -> Result<String> {
         self.0
             .get_location()
             .clone()
             .into_pathbuf()
-            .map_err_trace()
-            .ok() // TODO: Hiding the error here is not so nice
+            .map_err_into(REK::StoreIdError)
             .and_then(|pb| {
                 pb.file_name()
                     .and_then(|osstr| osstr.to_str())
                     .and_then(|s| s.split("~").next())
                     .map(String::from)
+                    .ok_or(REK::StoreIdError.into_error())
             })
     }
 

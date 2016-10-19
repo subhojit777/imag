@@ -146,7 +146,7 @@ fn lister_fn(fle: FileLockEntry,
                     is_changed,
                     is_changed_content,
                     is_changed_permiss,
-                    r.get_path_hash().unwrap_or_else(|| String::from("Cannot get hash")),
+                    r.get_path_hash().unwrap_or_else(|_| String::from("Cannot get hash")),
                     r.get_location())
         })
         .map_err(|e| LEK::FormatError.into_error_with_cause(Box::new(e)))
