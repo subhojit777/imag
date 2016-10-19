@@ -184,11 +184,12 @@ pub trait FromStoreId : Sized {
 
 use std::path::Component;
 
-fn component_to_str<'a>(com: Component<'a>) -> Option<&'a str> {
+fn component_to_str<'a>(com: Component<'a>) -> Result<&'a str, DE> {
     match com {
         Component::Normal(s) => Some(s),
-        _ => None
+        _ => None,
     }.and_then(|s| s.to_str())
+    .ok_or(DE::new(DEK::ParseError, None))
 }
 
 impl FromStoreId for DiaryId {
@@ -197,43 +198,46 @@ impl FromStoreId for DiaryId {
         use std::str::FromStr;
 
         let mut cmps   = s.components().rev();
-        let (hour, minute) = match cmps.next().and_then(component_to_str)
-            .and_then(|time| {
-                let mut time = time.split(":");
-                let hour     = time.next().and_then(|s| FromStr::from_str(s).ok());
-                let minute   = time.next()
-                    .and_then(|s| s.split("~").next())
-                    .and_then(|s| FromStr::from_str(s).ok());
+        let (hour, minute) = try!(cmps.next()
+                                  .ok_or(DE::new(DEK::ParseError, None))
+                                  .and_then(component_to_str)
+                                  .and_then(|time| {
+                                      let mut time = time.split(":");
+                                      let hour     = time.next().and_then(|s| FromStr::from_str(s).ok());
+                                      let minute   = time.next()
+                                          .and_then(|s| s.split("~").next())
+                                          .and_then(|s| FromStr::from_str(s).ok());
 
-                debug!("Hour   = {:?}", hour);
-                debug!("Minute = {:?}", minute);
+                                      debug!("Hour   = {:?}", hour);
+                                      debug!("Minute = {:?}", minute);
 
-                match (hour, minute) {
-                    (Some(h), Some(m)) => Some((h, m)),
-                    _ => None,
-                }
-            })
-        {
-            Some(s) => s,
-            None => return Err(DE::new(DEK::ParseError, None)),
-        };
+                                      match (hour, minute) {
+                                          (Some(h), Some(m)) => Ok((h, m)),
+                                          _ => return Err(DE::new(DEK::ParseError, None)),
+                                      }
+                                  }));
 
-        let day: Result<u32,_> = cmps.next().and_then(component_to_str)
+        let day: Result<u32,_> = cmps.next()
             .ok_or(DE::new(DEK::ParseError, None))
+            .and_then(component_to_str)
             .and_then(|s| s.parse::<u32>()
                       .map_err(|e| DE::new(DEK::ParseError, Some(Box::new(e)))));
 
-        let month: Result<u32,_> = cmps.next().and_then(component_to_str)
+        let month: Result<u32,_> = cmps.next()
             .ok_or(DE::new(DEK::ParseError, None))
+            .and_then(component_to_str)
             .and_then(|s| s.parse::<u32>()
                       .map_err(|e| DE::new(DEK::ParseError, Some(Box::new(e)))));
 
-        let year: Result<i32,_> = cmps.next().and_then(component_to_str)
+        let year: Result<i32,_> = cmps.next()
             .ok_or(DE::new(DEK::ParseError, None))
+            .and_then(component_to_str)
             .and_then(|s| s.parse::<i32>()
                       .map_err(|e| DE::new(DEK::ParseError, Some(Box::new(e)))));
 
-        let name = cmps.next().and_then(component_to_str).map(String::from);
+        let name = cmps.next()
+            .ok_or(DE::new(DEK::ParseError, None))
+            .and_then(component_to_str).map(String::from);
 
         debug!("Day   = {:?}", day);
         debug!("Month = {:?}", month);
@@ -243,7 +247,7 @@ impl FromStoreId for DiaryId {
         let day    = try!(day);
         let month  = try!(month);
         let year   = try!(year);
-        let name   = try!(name.ok_or(DE::new(DEK::ParseError, None)));
+        let name   = try!(name);
 
         Ok(DiaryId::new(name, year, month, day, hour, minute))
     }
