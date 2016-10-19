@@ -296,8 +296,11 @@ fn set_links_for_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLock
 fn list_links_for_entry(store: &Store, entry: &mut FileLockEntry) {
     entry.get_external_links(store)
         .and_then(|links| {
-            for (i, link) in links.iter().enumerate() {
-                println!("{: <3}: {}", i, link);
+            for (i, link) in links.enumerate() {
+                match link {
+                    Ok(link) => println!("{: <3}: {}", i, link),
+                    Err(e)   => trace_error(&e),
+                }
             }
             Ok(())
         })

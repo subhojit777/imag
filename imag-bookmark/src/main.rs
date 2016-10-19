@@ -127,8 +127,11 @@ fn list(rt: &Runtime) {
             match collection.links() {
                 Ok(links) => {
                     debug!("Listing...");
-                    for (i, link) in links.iter().enumerate() {
-                        println!("{: >3}: {}", i, link);
+                    for (i, link) in links.enumerate() {
+                        match link {
+                            Ok(link) => println!("{: >3}: {}", i, link),
+                            Err(e)   => trace_error(&e)
+                        }
                     };
                     debug!("... ready with listing");
                 },

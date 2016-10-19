@@ -47,6 +47,8 @@ use result::Result;
 use internal::InternalLinker;
 use module_path::ModuleEntryPath;
 
+use self::iter::*;
+
 use toml::Value;
 use url::Url;
 use crypto::sha1::Sha1;
@@ -98,7 +100,7 @@ impl<'a> Link<'a> {
 pub trait ExternalLinker : InternalLinker {
 
     /// Get the external links from the implementor object
-    fn get_external_links(&self, store: &Store) -> Result<Vec<Url>>;
+    fn get_external_links<'a>(&self, store: &'a Store) -> Result<UrlIter<'a>>;
 
     /// Set the external links for the implementor object
     fn set_external_links(&mut self, store: &Store, links: Vec<Url>) -> Result<()>;
@@ -110,6 +112,174 @@ pub trait ExternalLinker : InternalLinker {
     fn remove_external_link(&mut self, store: &Store, link: Url) -> Result<()>;
 
 }
+
+pub mod iter {
+    //! Iterator helpers for external linking stuff
+    //!
+    //! Contains also helpers to filter iterators for external/internal links
+    //!
+    //!
+    //! # Warning
+    //!
+    //! This module uses `internal::Link` as link type, so we operate on _store ids_ here.
+    //!
+    //! Not to confuse with `external::Link` which is a real `FileLockEntry` under the hood.
+    //!
+
+    use libimagutil::debug_result::*;
+    use libimagstore::store::Store;
+
+    use internal::Link;
+    use internal::iter::LinkIter;
+    use error::LinkErrorKind as LEK;
+    use error::MapErrInto;
+    use result::Result;
+
+    use url::Url;
+
+    /// Helper for building `OnlyExternalIter` and `NoExternalIter`
+    ///
+    /// The boolean value defines, how to interpret the `is_external_link_storeid()` return value
+    /// (here as "pred"):
+    ///
+    ///     pred | bool | xor | take?
+    ///     ---- | ---- | --- | ----
+    ///        0 |    0 |   0 |   1
+    ///        0 |    1 |   1 |   0
+    ///        1 |    1 |   1 |   0
+    ///        1 |    1 |   0 |   1
+    ///
+    /// If `bool` says "take if return value is false", we take the element if the `pred` returns
+    /// false... and so on.
+    ///
+    /// As we can see, the operator between these two operants is `!(a ^ b)`.
+    pub struct ExternalFilterIter(LinkIter, bool);
+
+    impl Iterator for ExternalFilterIter {
+        type Item = Link;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            use super::is_external_link_storeid;
+
+            while let Some(elem) = self.0.next() {
+                if !(self.1 ^ is_external_link_storeid(&elem)) {
+                    return Some(elem);
+                }
+            }
+            None
+        }
+    }
+
+    /// Helper trait to be implemented on `LinkIter` to select or deselect all external links
+    ///
+    /// # See also
+    ///
+    /// Also see `OnlyExternalIter` and `NoExternalIter` and the helper traits/functions
+    /// `OnlyInteralLinks`/`only_internal_links()` and `OnlyExternalLinks`/`only_external_links()`.
+    pub trait SelectExternal {
+        fn select_external_links(self, b: bool) -> ExternalFilterIter;
+    }
+
+    impl SelectExternal for LinkIter {
+        fn select_external_links(self, b: bool) -> ExternalFilterIter {
+            ExternalFilterIter(self, b)
+        }
+    }
+
+
+    pub struct OnlyExternalIter(ExternalFilterIter);
+
+    impl OnlyExternalIter {
+        pub fn new(li: LinkIter) -> OnlyExternalIter {
+            OnlyExternalIter(ExternalFilterIter(li, true))
+        }
+
+        pub fn urls<'a>(self, store: &'a Store) -> UrlIter<'a> {
+            UrlIter(self, store)
+        }
+    }
+
+    impl Iterator for OnlyExternalIter {
+        type Item = Link;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.0.next()
+        }
+    }
+
+    pub struct NoExternalIter(ExternalFilterIter);
+
+    impl NoExternalIter {
+        pub fn new(li: LinkIter) -> NoExternalIter {
+            NoExternalIter(ExternalFilterIter(li, false))
+        }
+    }
+
+    impl Iterator for NoExternalIter {
+        type Item = Link;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.0.next()
+        }
+    }
+
+    pub trait OnlyExternalLinks : Sized {
+        fn only_external_links(self) -> OnlyExternalIter ;
+
+        fn no_internal_links(self) -> OnlyExternalIter {
+            self.only_external_links()
+        }
+    }
+
+    impl OnlyExternalLinks for LinkIter {
+        fn only_external_links(self) -> OnlyExternalIter {
+            OnlyExternalIter::new(self)
+        }
+    }
+
+    pub trait OnlyInternalLinks : Sized {
+        fn only_internal_links(self) -> NoExternalIter;
+
+        fn no_external_links(self) -> NoExternalIter {
+            self.only_internal_links()
+        }
+    }
+
+    impl OnlyInternalLinks for LinkIter {
+        fn only_internal_links(self) -> NoExternalIter {
+            NoExternalIter::new(self)
+        }
+    }
+
+    pub struct UrlIter<'a>(OnlyExternalIter, &'a Store);
+
+    impl<'a> Iterator for UrlIter<'a> {
+        type Item = Result<Url>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            use super::get_external_link_from_file;
+
+            self.0
+                .next()
+                .map(|id| {
+                    debug!("Retrieving entry for id: '{:?}'", id);
+                    self.1
+                        .retrieve(id.clone())
+                        .map_err_into(LEK::StoreReadError)
+                        .map_dbg_err(|_| format!("Retrieving entry for id: '{:?}' failed", id))
+                        .and_then(|f| {
+                            debug!("Store::retrieve({:?}) succeeded", id);
+                            debug!("getting external link from file now");
+                            get_external_link_from_file(&f)
+                                .map_dbg_err(|e| format!("URL -> Err = {:?}", e))
+                        })
+                })
+        }
+
+    }
+
+}
+
 
 /// Check whether the StoreId starts with `/link/external/`
 pub fn is_external_link_storeid(id: &StoreId) -> bool {
@@ -128,33 +298,16 @@ fn get_external_link_from_file(entry: &FileLockEntry) -> Result<Url> {
 impl ExternalLinker for Entry {
 
     /// Get the external links from the implementor object
-    fn get_external_links(&self, store: &Store) -> Result<Vec<Url>> {
+    fn get_external_links<'a>(&self, store: &'a Store) -> Result<UrlIter<'a>> {
         // Iterate through all internal links and filter for FileLockEntries which live in
         // /link/external/<SHA> -> load these files and get the external link from their headers,
         // put them into the return vector.
         self.get_internal_links()
+            .map_err(|e| LE::new(LEK::StoreReadError, Some(Box::new(e))))
             .map(|iter| {
                 debug!("Getting external links");
-                iter.filter(|l| is_external_link_storeid(l))
-                    .map(|id| {
-                        debug!("Retrieving entry for id: '{:?}'", id);
-                        match store.retrieve(id.clone()) {
-                            Ok(f) => {
-                                debug!("Store::retrieve({:?}) succeeded", id);
-                                debug!("getting external link from file now");
-                                get_external_link_from_file(&f)
-                                    .map_err(|e| { debug!("URL -> Err = {:?}", e); e })
-                            },
-                            Err(e) => {
-                                debug!("Retrieving entry for id: '{:?}' failed", id);
-                                Err(LE::new(LEK::StoreReadError, Some(Box::new(e))))
-                            }
-                        }
-                    })
-                    .filter_map(|x| x.ok()) // TODO: Do not ignore error here
-                    .collect()
+                iter.only_external_links().urls(store)
             })
-            .map_err(|e| LE::new(LEK::StoreReadError, Some(Box::new(e))))
     }
 
     /// Set the external links for the implementor object
@@ -233,7 +386,9 @@ impl ExternalLinker for Entry {
         // get external links, add this one, save them
         debug!("Getting links");
         self.get_external_links(store)
-            .and_then(|mut links| {
+            .and_then(|links| {
+                // TODO: Do not ignore errors here
+                let mut links = links.filter_map(Result::ok).collect::<Vec<_>>();
                 debug!("Adding link = '{:?}' to links = {:?}", link, links);
                 links.push(link);
                 debug!("Setting {} links = {:?}", links.len(), links);
@@ -246,10 +401,11 @@ impl ExternalLinker for Entry {
         // get external links, remove this one, save them
         self.get_external_links(store)
             .and_then(|links| {
-                debug!("Removing link = '{:?}' from links = {:?}", link, links);
-                let links = links.into_iter()
+                debug!("Removing link = '{:?}'", link);
+                let links = links
+                    .filter_map(Result::ok)
                     .filter(|l| l.as_str() != link.as_str())
-                    .collect();
+                    .collect::<Vec<_>>();
                 self.set_external_links(store, links)
             })
     }
