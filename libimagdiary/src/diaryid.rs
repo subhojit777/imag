@@ -197,47 +197,46 @@ impl FromStoreId for DiaryId {
     fn from_storeid(s: &StoreId) -> Result<DiaryId, DE> {
         use std::str::FromStr;
 
+        use std::path::Components;
+        use std::iter::Rev;
+
+        fn next_component<'a>(components: &'a mut Rev<Components>) -> Result<&'a str, DE> {
+            components.next()
+                .ok_or(DE::new(DEK::ParseError, None))
+                .and_then(component_to_str)
+        }
+
         let mut cmps   = s.components().rev();
-        let (hour, minute) = try!(cmps.next()
-                                  .ok_or(DE::new(DEK::ParseError, None))
-                                  .and_then(component_to_str)
-                                  .and_then(|time| {
-                                      let mut time = time.split(":");
-                                      let hour     = time.next().and_then(|s| FromStr::from_str(s).ok());
-                                      let minute   = time.next()
-                                          .and_then(|s| s.split("~").next())
-                                          .and_then(|s| FromStr::from_str(s).ok());
 
-                                      debug!("Hour   = {:?}", hour);
-                                      debug!("Minute = {:?}", minute);
+        let (hour, minute) = try!(next_component(&mut cmps).and_then(|time| {
+            let mut time = time.split(":");
+            let hour     = time.next().and_then(|s| FromStr::from_str(s).ok());
+            let minute   = time.next()
+                .and_then(|s| s.split("~").next())
+                .and_then(|s| FromStr::from_str(s).ok());
 
-                                      match (hour, minute) {
-                                          (Some(h), Some(m)) => Ok((h, m)),
-                                          _ => return Err(DE::new(DEK::ParseError, None)),
-                                      }
-                                  }));
+            debug!("Hour   = {:?}", hour);
+            debug!("Minute = {:?}", minute);
 
-        let day: Result<u32,_> = cmps.next()
-            .ok_or(DE::new(DEK::ParseError, None))
-            .and_then(component_to_str)
+            match (hour, minute) {
+                (Some(h), Some(m)) => Ok((h, m)),
+                _ => return Err(DE::new(DEK::ParseError, None)),
+            }
+        }));
+
+        let day: Result<u32,_> = next_component(&mut cmps)
             .and_then(|s| s.parse::<u32>()
                       .map_err(|e| DE::new(DEK::ParseError, Some(Box::new(e)))));
 
-        let month: Result<u32,_> = cmps.next()
-            .ok_or(DE::new(DEK::ParseError, None))
-            .and_then(component_to_str)
+        let month: Result<u32,_> = next_component(&mut cmps)
             .and_then(|s| s.parse::<u32>()
                       .map_err(|e| DE::new(DEK::ParseError, Some(Box::new(e)))));
 
-        let year: Result<i32,_> = cmps.next()
-            .ok_or(DE::new(DEK::ParseError, None))
-            .and_then(component_to_str)
+        let year: Result<i32,_> = next_component(&mut cmps)
             .and_then(|s| s.parse::<i32>()
                       .map_err(|e| DE::new(DEK::ParseError, Some(Box::new(e)))));
 
-        let name = cmps.next()
-            .ok_or(DE::new(DEK::ParseError, None))
-            .and_then(component_to_str).map(String::from);
+        let name = next_component(&mut cmps).map(String::from);
 
         debug!("Day   = {:?}", day);
         debug!("Month = {:?}", month);
