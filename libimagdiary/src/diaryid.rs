@@ -30,6 +30,9 @@ use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::Result as StoreResult;
 
+use error::DiaryError as DE;
+use error::DiaryErrorKind as DEK;
+
 use module_path::ModuleEntryPath;
 
 #[derive(Debug, Clone)]
@@ -175,7 +178,7 @@ impl Into<NaiveDateTime> for DiaryId {
 
 pub trait FromStoreId : Sized {
 
-    fn from_storeid(&StoreId) -> Option<Self>;
+    fn from_storeid(&StoreId) -> Result<Self, DE>;
 
 }
 
@@ -190,7 +193,7 @@ fn component_to_str<'a>(com: Component<'a>) -> Option<&'a str> {
 
 impl FromStoreId for DiaryId {
 
-    fn from_storeid(s: &StoreId) -> Option<DiaryId> {
+    fn from_storeid(s: &StoreId) -> Result<DiaryId, DE> {
         use std::str::FromStr;
 
         let mut cmps   = s.components().rev();
@@ -212,25 +215,37 @@ impl FromStoreId for DiaryId {
             })
         {
             Some(s) => s,
-            None => return None,
+            None => return Err(DE::new(DEK::ParseError, None)),
         };
 
-        let day   :Option<u32> = cmps.next().and_then(component_to_str).and_then(|s| FromStr::from_str(s).ok());
-        let month :Option<u32> = cmps.next().and_then(component_to_str).and_then(|s| FromStr::from_str(s).ok());
-        let year  :Option<i32> = cmps.next().and_then(component_to_str).and_then(|s| FromStr::from_str(s).ok());
-        let name       = cmps.next().and_then(component_to_str).map(String::from);
+        let day: Result<u32,_> = cmps.next().and_then(component_to_str)
+            .ok_or(DE::new(DEK::ParseError, None))
+            .and_then(|s| s.parse::<u32>()
+                      .map_err(|e| DE::new(DEK::ParseError, Some(Box::new(e)))));
+
+        let month: Result<u32,_> = cmps.next().and_then(component_to_str)
+            .ok_or(DE::new(DEK::ParseError, None))
+            .and_then(|s| s.parse::<u32>()
+                      .map_err(|e| DE::new(DEK::ParseError, Some(Box::new(e)))));
+
+        let year: Result<i32,_> = cmps.next().and_then(component_to_str)
+            .ok_or(DE::new(DEK::ParseError, None))
+            .and_then(|s| s.parse::<i32>()
+                      .map_err(|e| DE::new(DEK::ParseError, Some(Box::new(e)))));
+
+        let name = cmps.next().and_then(component_to_str).map(String::from);
 
         debug!("Day   = {:?}", day);
         debug!("Month = {:?}", month);
         debug!("Year  = {:?}", year);
         debug!("Name  = {:?}", name);
 
-        let day    = match day   { None => return None, Some(day)   => day };
-        let month  = match month { None => return None, Some(month) => month };
-        let year   = match year  { None => return None, Some(year)  => year };
-        let name   = match name  { None => return None, Some(name)  => name };
+        let day    = try!(day);
+        let month  = try!(month);
+        let year   = try!(year);
+        let name   = try!(name.ok_or(DE::new(DEK::ParseError, None)));
 
-        Some(DiaryId::new(name, year, month, day, hour, minute))
+        Ok(DiaryId::new(name, year, month, day, hour, minute))
     }
 
 }
