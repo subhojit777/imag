@@ -50,12 +50,15 @@ impl Hasher for MailHasher {
 
                 let filter = subject_filter.or(from_filter).or(to_filter);
 
-                let s : String = mail.headers
-                    .iter()
-                    .filter(|item| filter.filter(item))
-                    .filter_map(|hdr| hdr.get_value().ok()) // TODO: Do not hide error here
-                    .collect::<Vec<String>>()
-                    .join("");
+                let mut v = vec![];
+                for hdr in mail.headers.iter().filter(|item| filter.filter(item)) {
+                    let s = try!(hdr.get_value()
+                        .map_err(Box::new)
+                        .map_err(|e| REK::RefHashingError.into_error_with_cause(e)));
+
+                    v.push(s);
+                }
+                let s : String = v.join("");
 
                 self.defaulthasher.create_hash(pb, &mut s.as_bytes())
             })
