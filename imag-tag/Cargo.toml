@@ -3,6 +3,16 @@ name = "imag-tag"
 version = "0.2.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
+description = "Part of the imag core distribution: imag-tag command"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+website       = "http://imag-pim.org"
+
 [dependencies]
 clap = "2.*"
 log = "0.3"
