@@ -115,7 +115,7 @@ pub mod iter {
     pub struct GetIter<'a>(IntoIter<Link>, &'a Store);
 
     impl<'a> GetIter<'a> {
-        fn new(i: IntoIter<Link>, store: &'a Store) -> GetIter<'a> {
+        pub fn new(i: IntoIter<Link>, store: &'a Store) -> GetIter<'a> {
             GetIter(i, store)
         }
 
