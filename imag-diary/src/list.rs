@@ -49,11 +49,16 @@ pub fn list(rt: &Runtime) {
             debug!("Iterator for listing: {:?}", es);
 
             let es = es
-                .filter_map(|a| a.map_dbg(|e| format!("Filtering: {:?}", e)).ok())
+                .filter_map(|entry| {
+                    entry
+                        .map_dbg(|e| format!("Filtering: {:?}", e))
+                        .map_err_trace() // error tracing here
+                        .ok() // so we can ignore errors here
+                })
                 .map(|e| e.into());
 
             CoreLister::new(&entry_to_location_listing_string)
-                .list(es) // TODO: Do not ignore non-ok()s
+                .list(es)
                 .map_err_into(DEK::IOError)
         })
         .map_dbg_str("Ok")
