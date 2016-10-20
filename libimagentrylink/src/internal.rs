@@ -61,12 +61,19 @@ pub mod iter {
     use toml::Value;
     use itertools::Itertools;
 
+    use libimagstore::store::Store;
+    use libimagstore::store::FileLockEntry;
+
     pub struct LinkIter(IntoIter<Link>);
 
     impl LinkIter {
 
         pub fn new(v: Vec<Link>) -> LinkIter {
             LinkIter(v.into_iter())
+        }
+
+        pub fn into_getter(self, store: &Store) -> GetIter {
+            GetIter(self.0, store)
         }
 
     }
@@ -102,6 +109,158 @@ pub mod iter {
                 })
                 .into_iter()
         }
+    }
+
+    /// An Iterator that `Store::get()`s the Entries from the store while consumed
+    pub struct GetIter<'a>(IntoIter<Link>, &'a Store);
+
+    impl<'a> GetIter<'a> {
+        pub fn new(i: IntoIter<Link>, store: &'a Store) -> GetIter<'a> {
+            GetIter(i, store)
+        }
+
+        /// Turn this iterator into a LinkGcIter, which `Store::delete()`s entries that are not
+        /// linked to any other entry.
+        pub fn delete_unlinked(self) -> DeleteUnlinkedIter<'a> {
+            DeleteUnlinkedIter(self)
+        }
+
+        /// Turn this iterator into a FilterLinksIter that removes all entries that are not linked
+        /// to any other entry, by filtering them out the iterator.
+        ///
+        /// This does _not_ remove the entries from the store.
+        pub fn without_unlinked(self) -> FilterLinksIter<'a> {
+            FilterLinksIter::new(self, Box::new(|links: &[Link]| links.len() > 0))
+        }
+
+        /// Turn this iterator into a FilterLinksIter that removes all entries that have less than
+        /// `n` links to any other entries.
+        ///
+        /// This does _not_ remove the entries from the store.
+        pub fn with_less_than_n_links(self, n: usize) -> FilterLinksIter<'a> {
+            FilterLinksIter::new(self, Box::new(move |links: &[Link]| links.len() < n))
+        }
+
+        /// Turn this iterator into a FilterLinksIter that removes all entries that have more than
+        /// `n` links to any other entries.
+        ///
+        /// This does _not_ remove the entries from the store.
+        pub fn with_more_than_n_links(self, n: usize) -> FilterLinksIter<'a> {
+            FilterLinksIter::new(self, Box::new(move |links: &[Link]| links.len() > n))
+        }
+
+        /// Turn this iterator into a FilterLinksIter that removes all entries where the predicate
+        /// `F` returns false
+        ///
+        /// This does _not_ remove the entries from the store.
+        pub fn filtered_for_links(self, f: Box<Fn(&[Link]) -> bool>) -> FilterLinksIter<'a> {
+            FilterLinksIter::new(self, f)
+        }
+
+        pub fn store(&self) -> &Store {
+            self.1
+        }
+    }
+
+    impl<'a> Iterator for GetIter<'a> {
+        type Item = Result<FileLockEntry<'a>>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.0.next().and_then(|id| match self.1.get(id).map_err_into(LEK::StoreReadError) {
+                Ok(None)    => None,
+                Ok(Some(x)) => Some(Ok(x)),
+                Err(e)      => Some(Err(e)),
+            })
+        }
+
+    }
+
+    /// An iterator helper that has a function F.
+    ///
+    /// If the function F returns `false` for the number of links, the entry is ignored, else it is
+    /// taken.
+    pub struct FilterLinksIter<'a>(GetIter<'a>, Box<Fn(&[Link]) -> bool>);
+
+    impl<'a> FilterLinksIter<'a> {
+        pub fn new(gi: GetIter<'a>, f: Box<Fn(&[Link]) -> bool>) -> FilterLinksIter<'a> {
+            FilterLinksIter(gi, f)
+        }
+    }
+
+    impl<'a> Iterator for FilterLinksIter<'a> {
+        type Item = Result<FileLockEntry<'a>>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            use internal::InternalLinker;
+
+            loop {
+                match self.0.next() {
+                    Some(Ok(fle)) => {
+                        let links = match fle.get_internal_links().map_err_into(LEK::StoreReadError)
+                        {
+                            Err(e) => return Some(Err(e)),
+                            Ok(links) => links.collect::<Vec<_>>(),
+                        };
+                        if !(self.1)(&links) {
+                            continue;
+                        } else {
+                            return Some(Ok(fle));
+                        }
+                    },
+                    Some(Err(e)) => return Some(Err(e)),
+                    None => break,
+                }
+            }
+            None
+        }
+
+    }
+
+    /// An iterator that removes all Items from the iterator that are not linked anymore by calling
+    /// `Store::delete()` on them.
+    ///
+    /// It yields only items which are somehow linked to another entry
+    ///
+    /// # Warning
+    ///
+    /// Deletes entries from the store.
+    ///
+    pub struct DeleteUnlinkedIter<'a>(GetIter<'a>);
+
+    impl<'a> Iterator for DeleteUnlinkedIter<'a> {
+        type Item = Result<FileLockEntry<'a>>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            use internal::InternalLinker;
+
+            loop {
+                match self.0.next() {
+                    Some(Ok(fle)) => {
+                        let links = match fle.get_internal_links().map_err_into(LEK::StoreReadError)
+                        {
+                            Err(e) => return Some(Err(e)),
+                            Ok(links) => links,
+                        };
+                        if links.count() == 0 {
+                            match self.0
+                                 .store()
+                                 .delete(fle.get_location().clone())
+                                 .map_err_into(LEK::StoreWriteError)
+                            {
+                                Ok(x)  => x,
+                                Err(e) => return Some(Err(e)),
+                            }
+                        } else {
+                            return Some(Ok(fle));
+                        }
+                    },
+                    Some(Err(e)) => return Some(Err(e)),
+                    None => break,
+                }
+            }
+            None
+        }
+
     }
 
 }
