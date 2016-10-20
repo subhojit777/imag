@@ -19,18 +19,88 @@
 
 extern crate semver;
 extern crate clap;
-extern crate log;
-extern crate version;
 extern crate toml;
 extern crate url;
+#[macro_use] extern crate log;
+#[macro_use] extern crate version;
 
 extern crate libimagrt;
 extern crate libimagmail;
 extern crate libimagerror;
 extern crate libimagutil;
+extern crate libimagref;
+
+use libimagutil::debug_result::*;
+use libimagutil::info_result::*;
+use libimagref::reference::Ref;
 
 mod ui;
 
+use ui::build_ui;
+
 fn main() {
-    println!("Hello, world!");
+    let rt = generate_runtime_setup("imag-mail",
+                                    &version!()[..],
+                                    "Mail collection tool",
+                                    build_ui);
+
+    rt.cli()
+        .subcommand_name()
+        .map(|name| {
+            debug!("Call {}", name);
+            match name {
+                "import-mail" => import_mail(&rt),
+                "list"        => list(&rt),
+                "mail-store"  => mail_store(&rt),
+                _             => debug!("Unknown command") // More error handling
+            }
+        });
 }
+
+fn import_mail(rt: &Runtime) {
+    let scmd = rt.cli().subcommand_matches("import-mail").unwrap();
+    let path = scmd.value_of("path").unwrap(); // enforced by clap
+
+    Mail::import_from_path(rt.store(), path)
+        .map_err_trace()
+        .map_info_str("Ok");
+}
+
+fn list(rt: &Runtime) {
+    use libimagmail::error::MailErrorKind as MEK;
+    use libimagmail::error::MapErrInto;
+
+    let scmd = rt.cli().subcommand_matches("list").unwrap();
+    let do_check_dead            = scmd.is_present("check-dead");
+    let do_check_changed         = scmd.is_present("check-changed");
+    let do_check_changed_content = scmd.is_present("check-changed-content");
+    let do_check_changed_permiss = scmd.is_present("check-changed-permissions");
+    let store = rt.store();
+
+    let iter = match store.retrieve_for_module("ref") {
+        Ok(iter) => iter.filter_map(|id| {
+            Ref::get(store, id)
+                .map_err_into(MEK::RefHandlingError)
+                .and_then(|rf| Mail::from_ref(rf))
+                .map_err_trace()
+                .ok()
+        }),
+        Err(e)   => trace_error_exit(&e, 1),
+    };
+
+    fn list_mail(m: Mail) {
+        unimplemented!()
+    }
+
+    // TODO: Implement lister type in libimagmail for this
+    for mail in iter {
+        list_mail(mail)
+    }
+}
+
+fn mail_store(rt: &Runtime) {
+    let scmd = rt.cli().subcommand_matches("mail-store").unwrap();
+    error!("This feature is currently not implemented.");
+    unimplemented!()
+}
+
