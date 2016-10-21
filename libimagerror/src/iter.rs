@@ -38,13 +38,7 @@ impl<I, F, T, E> Iterator for OnErr<I, F> where
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        match self.iter.next() {
-            Some(Err(e)) => {
-                (self.f)(&e);
-                Some(Err(e))
-            },
-            other => other
-        }
+        self.iter.next().map(|r| r.map_err(|e| { (self.f)(&e); e }))
     }
 
     #[inline]
@@ -65,13 +59,7 @@ impl<I, F, T, E> DoubleEndedIterator for OnErr<I, F> where
 {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        match self.iter.next_back() {
-            Some(Err(e)) => {
-                (self.f)(&e);
-                Some(Err(e))
-            },
-            other => other
-        }
+        self.iter.next_back().map(|r| r.map_err(|e| { (self.f)(&e); e }))
     }
 }
 
