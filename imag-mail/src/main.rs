@@ -93,7 +93,48 @@ fn list(rt: &Runtime) {
     };
 
     fn list_mail(m: Mail) {
-        unimplemented!()
+        let id = match m.get_message_id() {
+            Ok(Some(f)) => f,
+            Ok(None) => "<no id>".to_owned(),
+            Err(e) => {
+                trace_error(&e);
+                "<error>".to_owned()
+            },
+        };
+
+        let from = match m.get_from() {
+            Ok(Some(f)) => f,
+            Ok(None) => "<no from>".to_owned(),
+            Err(e) => {
+                trace_error(&e);
+                "<error>".to_owned()
+            },
+        };
+
+        let to = match m.get_to() {
+            Ok(Some(f)) => f,
+            Ok(None) => "<no to>".to_owned(),
+            Err(e) => {
+                trace_error(&e);
+                "<error>".to_owned()
+            },
+        };
+
+        let subject = match m.get_subject() {
+            Ok(Some(f)) => f,
+            Ok(None) => "<no subject>".to_owned(),
+            Err(e) => {
+                trace_error(&e);
+                "<error>".to_owned()
+            },
+        };
+
+        println!("Mail: {id}\n\tFrom: {from}\n\tTo: {to}\n\t{subj}\n",
+                 from = from,
+                 id   = id,
+                 subj = subject,
+                 to   = to
+        );
     }
 
     // TODO: Implement lister type in libimagmail for this
