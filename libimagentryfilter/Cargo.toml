@@ -22,9 +22,6 @@ regex = "0.1"
 semver = "0.2.1"
 toml = "0.2.*"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagentrytag]
-path = "../libimagentrytag"
+libimagentrytag = "0.2.0"
+libimagstore    = "0.2.0"
 

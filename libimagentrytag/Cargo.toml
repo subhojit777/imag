@@ -20,12 +20,7 @@ regex = "0.1"
 toml = "0.2.*"
 itertools = "0.4"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
+libimagerror = "0.2.0"
+libimagstore = "0.2.0"
+libimagutil  = "0.2.0"
 

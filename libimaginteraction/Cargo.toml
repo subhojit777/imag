@@ -24,15 +24,8 @@ toml = "0.2.1"
 spinner = "0.4"
 rustyline = "1.0"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagentryfilter]
-path = "../libimagentryfilter"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
+libimagentryfilter = "0.2.0"
+libimagerror       = "0.2.0"
+libimagstore       = "0.2.0"
+libimagutil        = "0.2.0"
 

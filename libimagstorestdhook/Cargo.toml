@@ -19,18 +19,9 @@ log = "0.3"
 fs2 = "0.2"
 git2 = "0.4"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagentrylink]
-path = "../libimagentrylink"
-
-[dependencies.libimaginteraction]
-path = "../libimaginteraction"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
+libimagentrylink   = "0.2.0"
+libimagerror       = "0.2.0"
+libimaginteraction = "0.2.0"
+libimagstore       = "0.2.0"
+libimagutil        = "0.2.0"
 

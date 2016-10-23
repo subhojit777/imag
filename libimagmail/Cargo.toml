@@ -20,12 +20,7 @@ semver = "0.2"
 toml = "0.2.*"
 filters = "0.1.0"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagref]
-path = "../libimagref"
+libimagerror = "0.2.0"
+libimagref   = "0.2.0"
+libimagstore = "0.2.0"
 

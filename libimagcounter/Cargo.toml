@@ -18,9 +18,6 @@ log = "0.3"
 toml = "0.2.*"
 semver = "0.2"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
+libimagerror = "0.2.0"
+libimagstore = "0.2.0"
 

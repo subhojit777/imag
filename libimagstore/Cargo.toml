@@ -25,11 +25,8 @@ version = "2.0.1"
 crossbeam = "0.2.8"
 walkdir = "0.1.5"
 
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
+libimagerror = "0.2.0"
+libimagutil  = "0.2.0"
 
 [dev-dependencies]
 tempdir = "0.3.4"

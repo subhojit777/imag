@@ -19,9 +19,5 @@ hoedown = "5.0.0"
 crossbeam = "0.2"
 url = "1.1"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
+libimagerror = "0.2.0"
+libimagstore = "0.2.0"

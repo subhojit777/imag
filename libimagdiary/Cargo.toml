@@ -22,21 +22,10 @@ regex = "0.1"
 lazy_static = "0.2"
 itertools = "0.4"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagentryedit]
-path = "../libimagentryedit"
-
-[dependencies.libimagentryview]
-path = "../libimagentryview"
+libimagentryedit = "0.2.0"
+libimagentryview = "0.2.0"
+libimagerror     = "0.2.0"
+libimagrt        = "0.2.0"
+libimagstore     = "0.2.0"
+libimagutil      = "0.2.0"
 

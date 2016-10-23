@@ -20,17 +20,13 @@ version = "2.0.1"
 semver = "0.2.1"
 toml = "0.2.*"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-default-features = false
-features = ["verify"]
+libimagstore = {
+    version = "0.2.0",
+    default-features = false,
+    features = ["verify"]
+}
 
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
+libimagrt    = "0.2.0"
+libimagutil  = "0.2.0"
+libimagerror = "0.2.0"
 

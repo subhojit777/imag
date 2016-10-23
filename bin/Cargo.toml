@@ -20,9 +20,6 @@ crossbeam = "0.2.9"
 clap = "2.*"
 log = "0.3"
 
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
+libimagerror = "0.2.0"
+libimagrt    = "0.2.0"
 

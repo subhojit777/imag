@@ -15,57 +15,22 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 
-[dependencies.libimagbookmark]
-path = "../libimagbookmark"
-
-[dependencies.libimagcounter]
-path = "../libimagcounter"
-
-[dependencies.libimagdiary]
-path = "../libimagdiary"
-
-[dependencies.libimagentryfilter]
-path = "../libimagentryfilter"
-
-[dependencies.libimagentrylink]
-path = "../libimagentrylink"
-
-[dependencies.libimagentrylist]
-path = "../libimagentrylist"
-
-[dependencies.libimagentrymarkdown]
-path = "../libimagentrymarkdown"
-
-[dependencies.libimagentrytag]
-path = "../libimagentrytag"
-
-[dependencies.libimagentryview]
-path = "../libimagentryview"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimaginteraction]
-path = "../libimaginteraction"
-
-[dependencies.libimagnotes]
-path = "../libimagnotes"
-
-[dependencies.libimagref]
-path = "../libimagref"
-
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagstorestdhook]
-path = "../libimagstorestdhook"
-
-[dependencies.libimagtimeui]
-path = "../libimagtimeui"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
+libimagbookmark      = "0.2.0"
+libimagcounter       = "0.2.0"
+libimagdiary         = "0.2.0"
+libimagentryfilter   = "0.2.0"
+libimagentrylink     = "0.2.0"
+libimagentrylist     = "0.2.0"
+libimagentrymarkdown = "0.2.0"
+libimagentrytag      = "0.2.0"
+libimagentryview     = "0.2.0"
+libimagerror         = "0.2.0"
+libimaginteraction   = "0.2.0"
+libimagnotes         = "0.2.0"
+libimagref           = "0.2.0"
+libimagrt            = "0.2.0"
+libimagstore         = "0.2.0"
+libimagstorestdhook  = "0.2.0"
+libimagtimeui        = "0.2.0"
+libimagutil          = "0.2.0"
 
