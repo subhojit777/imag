@@ -15,10 +15,10 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 log = "0.3"
-mailparse = "0.2.0"
-semver = "0.2"
+mailparse = "0.3"
+semver = "0.5"
 toml = "0.2.*"
-filters = "0.1.0"
+filters = "0.1.*"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
