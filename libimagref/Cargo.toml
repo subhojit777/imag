@@ -14,13 +14,13 @@ repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
 [dependencies]
-itertools = "0.4"
+itertools = "0.5"
 log = "0.3"
 rust-crypto = "0.2"
-semver = "0.2"
+semver = "0.5"
 toml = "0.2.*"
 version = "2.0.1"
-walkdir = "0.1.5"
+walkdir = "0.1.*"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
