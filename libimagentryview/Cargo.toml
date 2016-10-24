@@ -16,7 +16,7 @@ homepage      = "http://imag-pim.org"
 [dependencies]
 log = "0.3"
 toml = "0.2.*"
-glob = "0.2.11"
+glob = "0.2"
 
 [dependencies.libimagrt]
 path = "../libimagrt"
