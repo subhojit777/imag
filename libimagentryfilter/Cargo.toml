@@ -16,10 +16,10 @@ homepage      = "http://imag-pim.org"
 [dependencies]
 clap = "2.*"
 filters = "0.1.*"
-itertools = "0.4"
+itertools = "0.5"
 log = "0.3"
 regex = "0.1"
-semver = "0.2.1"
+semver = "0.5.*"
 toml = "0.2.*"
 
 [dependencies.libimagstore]
