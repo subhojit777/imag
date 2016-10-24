@@ -14,10 +14,10 @@ repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
 [dependencies]
-ansi_term = "0.7.2"
+ansi_term = "0.9.*"
 clap = "2.*"
 interactor = "0.1"
-lazy_static = "0.1.15"
+lazy_static = "0.2.*"
 log = "0.3"
 regex = "0.1"
 toml = "0.2.1"
