@@ -15,7 +15,7 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 semver = "0.2"
-task-hookrs = "0.2"
+task-hookrs = "0.2.2"
 uuid = "0.3"
 toml = "0.2.*"
 log = "0.3"
