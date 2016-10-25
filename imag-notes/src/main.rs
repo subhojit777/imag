@@ -116,7 +116,7 @@ fn list(rt: &Runtime) {
         .map_err_trace_exit(1)
         .map(|iter| {
             let notes = iter.filter_map(|note| note.map_err_trace().ok())
-                .sort_by(|note_a, note_b| {
+                .sorted_by(|note_a, note_b| {
                     if let (Ok(a), Ok(b)) = (note_a.get_name(), note_b.get_name()) {
                         return a.cmp(&b)
                     } else {
