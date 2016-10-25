@@ -15,12 +15,12 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 chrono = "0.2"
-log = "0.3.5"
-semver = "0.2"
+log = "0.3"
+semver = "0.5"
 toml = "0.2.*"
 regex = "0.1"
 lazy_static = "0.2"
-itertools = "0.4"
+itertools = "0.5"
 
 [dependencies.libimagstore]
 path = "../libimagstore"

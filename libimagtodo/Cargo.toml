@@ -15,11 +15,11 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 semver = "0.2"
-task-hookrs = "0.2"
-uuid = "0.2.0"
+task-hookrs = "0.2.2"
+uuid = "0.3"
 toml = "0.2.*"
-log = "0.3.6"
-serde_json = "0.7.3"
+log = "0.3"
+serde_json = "0.8"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
