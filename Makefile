@@ -20,6 +20,7 @@ RELEASE_TARGETS=$(foreach x,$(TARGETS),$(x)-release)
 INSTALL_TARGETS=$(foreach x,$(BIN_TARGETS),$(x)-install)
 UPDATE_TARGETS=$(foreach x,$(TARGETS),$(x)-update)
 CLEAN_TARGETS=$(foreach x,$(TARGETS),$(x)-clean)
+CHECK_TARGETS=$(foreach x,$(TARGETS),$(x)-check)
 
 all: $(TARGETS) imag-bin
 	@$(ECHO) "\t[ALL    ]"
@@ -44,6 +45,10 @@ imag-bin-clean:
 	@$(ECHO) "\t[IMAG   ][CLEAN  ]"
 	@$(CARGO) clean --manifest-path ./bin/Cargo.toml
 
+imag-bin-check:
+	@$(ECHO) "\t[IMAG   ][CHECK  ]"
+	@$(CARGO) check --manifest-path ./bin/Cargo.toml
+
 release: $(RELEASE_TARGETS) imag-bin-release
 	@$(ECHO) "\t[RELEASE]"
 
@@ -67,6 +72,8 @@ update: $(UPDATE_TARGETS) imag-bin-update
 
 clean: $(CLEAN_TARGETS) imag-bin-clean
 	@$(ECHO) "\t[CLEAN  ]"
+
+check: $(CHECK_TARGETS) imag-bin-check
 
 $(TARGETS): %: .FORCE
 	@$(ECHO) "\t[CARGO  ]:\t$@"
@@ -97,6 +104,10 @@ $(UPDATE_TARGETS): %: .FORCE
 $(CLEAN_TARGETS): %: .FORCE
 	@$(ECHO) "\t[CLEAN  ]:\t$(subst -clean,,$@)"
 	@$(CARGO) clean --manifest-path ./$(subst -clean,,$@)/Cargo.toml
+
+$(CHECK_TARGETS): %: .FORCE
+	@$(ECHO) "\t[CHECK  ]:\t$(subst -check,,$@)"
+	@$(CARGO) check --manifest-path ./$(subst -check,,$@)/Cargo.toml
 
 .FORCE:
 
