@@ -97,14 +97,15 @@ and submit them to [this-week-in-rust](https://this-week-in-rust.org/).
 
 ## Documentation
 
-For detailed information, please read [the documentation](./doc/).
-You can either read the Markdown files or compile it to HTML/PDF using
-[pandoc](http://pandoc.org).
+This is a hobby project, so sometimes things are not optimal and might go
+unrecognized and slip through. Feel free to open issues about things you notice!
+
+Though, we have some documentation in [the ./doc subtree](./doc/)
+which can be compiled to PDF or a website.
+These docs are not published anywhere and are not even integrated into our CI,
+so it might be broken (though it's unlikely).
 Developer documentation is also available
 [online on github.io](https://matthiasbeyer.github.io/imag/imag_documentation/index.html).
-
-Please note that the documentation is work in progress as well and may be
-outdated.
 
 ## Please contribute!
 
