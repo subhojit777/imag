@@ -11,7 +11,7 @@
 but we do not consider anything stable or usable at this moment. Feel free to
 play around anyways.**
 
-## What is this / Goal and Functionality
+## Goal / What is imag?
 
 Our (long-term) goal is to
 
@@ -20,29 +20,17 @@ Our (long-term) goal is to
 > management, consists of reusable parts and integrates well with known
 > commandline tools.
 
-We try to implement as many aspects of personal information management (PIM),
-but re-use existing commandline tools.
-We do this by tracking/referring to the data the tools create.
-A user can now link pieces of data (from different tools), tag this data and
-query/search this data using imag.
-So `imag` is more like a data-mining helper than an actual PIM tool, but we
-implement some of the PIM aspects directly in `imag`.
-Parts of PIM (we call them "modules") that are already implemented and basically
-working:
+imag is a PIM _helper_. We do not actually implement the PIM functionality, but
+try to interface with existing PIM tools (via their API or via some standard
+format they use, e.g. vcard) to make the data they manage _linkable_
+and _queryable_ in an uniform way.
 
-* todo (via taskwarrior, we track the tasks one creates in taskwarrior)
-* diary
-* notes
-* bookmarks
-* counter (just an example, nothing that usable)
-
-Helper modules that come with `imag` but are not "PIM aspects":
-
-* linking entries
-* viewing entries
-* tagging entries
-* creating misc entries
-* creating entries that refer to files/directories
+imag consists of _modules_ (e.g. `imag-notes`, `imag-diary`), where each module
+covers one PIM aspect.
+The initial approach is to use one PIM tool for one module.
+So you can use `imag-todo` with [taskwarrior](https://taskwarrior.org/)
+but `imag-calendar` with [icalendar](https://en.wikipedia.org/wiki/ICalendar)
+files.
 
 ## Building/Running
 
