@@ -2,16 +2,16 @@
 
 `imag` is a commandline personal information management suite.
 
-**This application is in early development. There are _some_ things that work,
-but we do not consider anything stable or usable at this moment. Feel free to
-play around anyways.**
-
 [![Build Status](https://travis-ci.org/matthiasbeyer/imag.svg?branch=master)](https://travis-ci.org/matthiasbeyer/imag)
 [![Issue Stats](http://www.issuestats.com/github/matthiasbeyer/imag/badge/pr?style=flat-square)](http://www.issuestats.com/github/matthiasbeyer/imag)
 [![Issue Stats](http://www.issuestats.com/github/matthiasbeyer/imag/badge/issue?style=flat-square)](http://www.issuestats.com/github/matthiasbeyer/imag)
 [![license](https://img.shields.io/github/license/matthiasbeyer/imag.svg?maxAge=2592000?style=flat-square)]()
 
-## What is this / Goal and Functionality
+**This application is in early development. There are _some_ things that work,
+but we do not consider anything stable or usable at this moment. Feel free to
+play around anyways.**
+
+## Goal / What is imag?
 
 Our (long-term) goal is to
 
@@ -20,35 +20,23 @@ Our (long-term) goal is to
 > management, consists of reusable parts and integrates well with known
 > commandline tools.
 
-We try to implement as many aspects of personal information management (PIM),
-but re-use existing commandline tools.
-We do this by tracking/referring to the data the tools create.
-A user can now link pieces of data (from different tools), tag this data and
-query/search this data using imag.
-So `imag` is more like a data-mining helper than an actual PIM tool, but we
-implement some of the PIM aspects directly in `imag`.
-Parts of PIM (we call them "modules") that are already implemented and basically
-working:
+imag is a PIM _helper_. We do not actually implement the PIM functionality, but
+try to interface with existing PIM tools (via their API or via some standard
+format they use, e.g. vcard) to make the data they manage _linkable_
+and _queryable_ in an uniform way.
 
-* todo (via taskwarrior, we track the tasks one creates in taskwarrior)
-* diary
-* notes
-* bookmarks
-* counter (just an example, nothing that usable)
-
-Helper modules that come with `imag` but are not "PIM aspects":
-
-* linking entries
-* viewing entries
-* tagging entries
-* creating misc entries
-* creating entries that refer to files/directories
+imag consists of _modules_ (e.g. `imag-notes`, `imag-diary`), where each module
+covers one PIM aspect.
+The initial approach is to use one PIM tool for one module.
+So you can use `imag-todo` with [taskwarrior](https://taskwarrior.org/)
+but `imag-calendar` with [icalendar](https://en.wikipedia.org/wiki/ICalendar)
+files.
 
 ## Building/Running
 
-Here goes how to try `imag` out.
+Here is how to try `imag` out.
 
-`imag` is a _suite_ of tools and you can build them individually.
+`imag` is a _suite/collection_ of tools and you can build them individually.
 All subdirectories prefixed with "`libimag"` are libraries for the respective
 binaries.
 All subdirectories prefixed with `"imag-"` are binaries and compiling them will
@@ -56,78 +44,68 @@ give you a commandline application.
 
 ### Building
 
-By now, there are several targets in the Makefile, fulfilling following roles:
+We use `make` to automate the build process (as `cargo` is not (yet?) able to
+build several applications at once).
+Make sure to _not_ include some `-j 8` arguments, as cargo parallelizes the
+build process on its own. If you parallelize it with make, you end up with a
+really high load on your system.
 
-* `all` is the default and builds every crate in debug mode.
-  To build a single module, call `make <module>`, for example `make imag-store`.
-* `release`, as the name implies, builds every module in release mode.
-  E.G.: `make imag-store-release` to build "imag-store" in release mode.
-* `install` will install all commandline modules to the default installation
-  root (see `man cargo-install`).
-  To install a single module, run `make <module>-install`,
-  E.G.: `make imag-store-install`
-* `bin`/`lib` are separate targets for either building all binaries or
-  libraries.
-* `lib-test` runs `cargo test` for all libraries.
-  For testing a single library, E.G.: `make test-libimagstore`.
-* `clean` will run `cargo clean` in every crate.
-  For cleaning a single crate, use `make imag-store-clean` for example.
-* to build _only_ the `imag` binary, use the target `imag-bin`
-  (`imag-bin-release` for release build, `imag-bin-clean` for `cargo clean`ing).
+There are several targets for each of the sub-crates in the Makefile:
+
+| Target   | Multi | Purpose                                  | Example         |
+| :---     | ----- | :---                                     | :---            |
+| all      |       | Build everything, debug mode             | `make all`      |
+| bin      |       | Build all binaries, debug mode           | `make bin`      |
+| lib      |       | Build all libraries, debug mode          | `make lib`      |
+| lib-test |       | Test all libraries                       | `make lib-test` |
+| imag-bin |       | Build only the `imag` binary, debug mode | `make imag-bin` |
+| check    | *     | Run `cargo check`                        | `make check`    |
+| clean    | *     | Remove build artifacts                   | `make clean`    |
+| install  | *     | Build everything, release mode, install  | `make install`  |
+| release  | *     | Build everything, release mode           | `make release`  |
+| update   | *     | Run `cargo update`                       | `make update`   |
+
+The `Multi` targets are callable for each sub-crate. For example you can call
+`make imag-bookmark-check` to run `cargo check` on the `imag-bookmark` subcrate.
 
 ### Running
 
-To test out a single module, simply using `cargo run -- <options>` in the
-respective directory will do the trick.
-But you can also `make <module>` and call the binary on the commandline.
-For using it "normally", install the
-binaries as described above, as well as the imag-binary:
+After you build the module you want to play with, you can simply call the binary
+itself with the `--help` flag, to get some help what the module is capable of.
 
-```
-$> make install
-```
-
-The installation root of the binaries may not yet be in your $PATH.
-To see where this installation root is check out `man cargo-install`.
-To change the $PATH in bash:
-
-```bash
-$> PATH=$PATH:~/.cargo/bin
-$> imag --help
-```
-
-To test, simply add `--help` to one of the above commands:
-
-```bash
-$> imag counter --help
-```
+If you installed the module, you can either call `imag-<modulename>` (if the
+install-directory is in your `$PATH`), or install the `imag` binary to call `imag
+<modulename>` (also if everything is in your `$PATH`).
 
 ## Staying up-to-date
 
-Despite we have a [official site for imag](http://imag-pim.org), I do not push
-updates to this site, yet. Anyways, I post a blog articles about what happened
-in the last two weeks every other week.
+We have a [official website for imag](http://imag-pim.org), where I post
+[release notes](http://imag-pim.org/releases/).
+There is no RSS feed, though.
 
-You can find them
-[on my personal blog, tagged "imag"](http://beyermatthias.de/tags/imag.html)
+We also have a [mailinglist](http://imag-pim.org/mailinglist/) where I post
+updates and where discussion and questions are encouraged.
+
+There is a blog series which gets a update every other week
+on my blog, where
+[entries are tagged "imag"](http://beyermatthias.de/tags/imag.html).
+I also post non-regular posts about imag things there.
 
 I also post these blog posts
 [on reddit](https://www.reddit.com/r/rust/search?q=What%27s+coming+up+in+imag&restrict_sr=on)
 and submit them to [this-week-in-rust](https://this-week-in-rust.org/).
 
-From time to time I publish an article about imag which does not focus on some
-things that are happening, but rather about something more general.
-
 ## Documentation
 
-For detailed information, please read [the documentation](./doc/).
-You can either read the Markdown files or compile it to HTML/PDF using
-[pandoc](http://pandoc.org).
+This is a hobby project, so sometimes things are not optimal and might go
+unrecognized and slip through. Feel free to open issues about things you notice!
+
+Though, we have some documentation in [the ./doc subtree](./doc/)
+which can be compiled to PDF or a website.
+These docs are not published anywhere and are not even integrated into our CI,
+so it might be broken (though it's unlikely).
 Developer documentation is also available
 [online on github.io](https://matthiasbeyer.github.io/imag/imag_documentation/index.html).
-
-Please note that the documentation is work in progress as well and may be
-outdated.
 
 ## Please contribute!
 
@@ -153,7 +131,4 @@ or our [mailinglist](http://imag-pim.org/mailinglist/).
 ## License
 
 We chose to distribute this software under terms of GNU LGPLv2.1.
-
-This decision was made to ensure everyone can write applications which use the
-imag core functionality which is distributed with the imag source distribution.
 
