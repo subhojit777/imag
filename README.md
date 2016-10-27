@@ -132,6 +132,3 @@ or our [mailinglist](http://imag-pim.org/mailinglist/).
 
 We chose to distribute this software under terms of GNU LGPLv2.1.
 
-This decision was made to ensure everyone can write applications which use the
-imag core functionality which is distributed with the imag source distribution.
-
