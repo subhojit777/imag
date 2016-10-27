@@ -34,7 +34,7 @@ files.
 
 ## Building/Running
 
-Here goes how to try `imag` out.
+Here is how to try `imag` out.
 
 `imag` is a _suite/collection_ of tools and you can build them individually.
 All subdirectories prefixed with "`libimag"` are libraries for the respective
