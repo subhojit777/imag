@@ -79,19 +79,21 @@ install-directory is in your `$PATH`), or install the `imag` binary to call `ima
 
 ## Staying up-to-date
 
-Despite we have a [official site for imag](http://imag-pim.org), I do not push
-updates to this site, yet. Anyways, I post a blog articles about what happened
-in the last two weeks every other week.
+We have a [official website for imag](http://imag-pim.org), where I post
+[release notes](http://imag-pim.org/releases/).
+There is no RSS feed, though.
 
-You can find them
-[on my personal blog, tagged "imag"](http://beyermatthias.de/tags/imag.html)
+We also have a [mailinglist](http://imag-pim.org/mailinglist/) where I post
+updates and where discussion and questions are encouraged.
+
+There is a blog series which gets a update every other week
+on my blog, where
+[entries are tagged "imag"](http://beyermatthias.de/tags/imag.html).
+I also post non-regular posts about imag things there.
 
 I also post these blog posts
 [on reddit](https://www.reddit.com/r/rust/search?q=What%27s+coming+up+in+imag&restrict_sr=on)
 and submit them to [this-week-in-rust](https://this-week-in-rust.org/).
-
-From time to time I publish an article about imag which does not focus on some
-things that are happening, but rather about something more general.
 
 ## Documentation
 
