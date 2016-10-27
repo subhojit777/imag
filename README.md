@@ -36,7 +36,7 @@ files.
 
 Here goes how to try `imag` out.
 
-`imag` is a _suite_ of tools and you can build them individually.
+`imag` is a _suite/collection_ of tools and you can build them individually.
 All subdirectories prefixed with "`libimag"` are libraries for the respective
 binaries.
 All subdirectories prefixed with `"imag-"` are binaries and compiling them will
@@ -44,24 +44,29 @@ give you a commandline application.
 
 ### Building
 
-By now, there are several targets in the Makefile, fulfilling following roles:
+We use `make` to automate the build process (as `cargo` is not (yet?) able to
+build several applications at once).
+Make sure to _not_ include some `-j 8` arguments, as cargo parallelizes the
+build process on its own. If you parallelize it with make, you end up with a
+really high load on your system.
 
-* `all` is the default and builds every crate in debug mode.
-  To build a single module, call `make <module>`, for example `make imag-store`.
-* `release`, as the name implies, builds every module in release mode.
-  E.G.: `make imag-store-release` to build "imag-store" in release mode.
-* `install` will install all commandline modules to the default installation
-  root (see `man cargo-install`).
-  To install a single module, run `make <module>-install`,
-  E.G.: `make imag-store-install`
-* `bin`/`lib` are separate targets for either building all binaries or
-  libraries.
-* `lib-test` runs `cargo test` for all libraries.
-  For testing a single library, E.G.: `make test-libimagstore`.
-* `clean` will run `cargo clean` in every crate.
-  For cleaning a single crate, use `make imag-store-clean` for example.
-* to build _only_ the `imag` binary, use the target `imag-bin`
-  (`imag-bin-release` for release build, `imag-bin-clean` for `cargo clean`ing).
+There are several targets for each of the sub-crates in the Makefile:
+
+| Target   | Multi | Purpose                                  | Example         |
+| :---     | ----- | :---                                     | :---            |
+| all      |       | Build everything, debug mode             | `make all`      |
+| bin      |       | Build all binaries, debug mode           | `make bin`      |
+| lib      |       | Build all libraries, debug mode          | `make lib`      |
+| lib-test |       | Test all libraries                       | `make lib-test` |
+| imag-bin |       | Build only the `imag` binary, debug mode | `make imag-bin` |
+| check    | *     | Run `cargo check`                        | `make check`    |
+| clean    | *     | Remove build artifacts                   | `make clean`    |
+| install  | *     | Build everything, release mode, install  | `make install`  |
+| release  | *     | Build everything, release mode           | `make release`  |
+| update   | *     | Run `cargo update`                       | `make update`   |
+
+The `Multi` targets are callable for each sub-crate. For example you can call
+`make imag-bookmark-check` to run `cargo check` on the `imag-bookmark` subcrate.
 
 ### Running
 
