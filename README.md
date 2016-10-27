@@ -70,30 +70,12 @@ The `Multi` targets are callable for each sub-crate. For example you can call
 
 ### Running
 
-To test out a single module, simply using `cargo run -- <options>` in the
-respective directory will do the trick.
-But you can also `make <module>` and call the binary on the commandline.
-For using it "normally", install the
-binaries as described above, as well as the imag-binary:
+After you build the module you want to play with, you can simply call the binary
+itself with the `--help` flag, to get some help what the module is capable of.
 
-```
-$> make install
-```
-
-The installation root of the binaries may not yet be in your $PATH.
-To see where this installation root is check out `man cargo-install`.
-To change the $PATH in bash:
-
-```bash
-$> PATH=$PATH:~/.cargo/bin
-$> imag --help
-```
-
-To test, simply add `--help` to one of the above commands:
-
-```bash
-$> imag counter --help
-```
+If you installed the module, you can either call `imag-<modulename>` (if the
+install-directory is in your `$PATH`), or install the `imag` binary to call `imag
+<modulename>` (also if everything is in your `$PATH`).
 
 ## Staying up-to-date
 
