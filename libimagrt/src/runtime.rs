@@ -57,6 +57,9 @@ impl<'a> Runtime<'a> {
      */
     pub fn new(cli_spec: App<'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
         use std::env;
+        use std::io::stdout;
+
+        use clap::Shell;
 
         use libimagstore::hook::position::HookPosition as HP;
         use libimagstore::hook::Hook;
@@ -78,6 +81,15 @@ impl<'a> Runtime<'a> {
         let colored      = !matches.is_present("no-color-output");
 
         Runtime::init_logger(is_debugging, is_verbose, colored);
+
+        match matches.value_of(Runtime::arg_generate_compl()) {
+            Some(shell) => {
+                debug!("Generating shell completion script, writing to stdout");
+                let shell = shell.parse::<Shell>().unwrap(); // clap has our back here.
+                cli_spec.gen_completions_to("fakename", shell, &mut stdout());
+            },
+            _ => debug!("Not generating shell completion script"),
+        }
 
         let rtp : PathBuf = matches.value_of("runtimepath")
             .map_or_else(|| {
@@ -255,6 +267,15 @@ impl<'a> Runtime<'a> {
                 .help("Set editor")
                 .required(false)
                 .takes_value(true))
+
+            .arg(Arg::with_name(Runtime::arg_generate_compl())
+                .long("generate-commandline-completion")
+                .help("Generate the commandline completion for bash or zsh or fish")
+                .required(false)
+                .takes_value(true)
+                .value_name("SHELL")
+                .possible_values(&["bash", "fish", "zsh"]))
+
     }
 
     pub fn arg_names() -> Vec<&'static str> {
@@ -300,6 +321,10 @@ impl<'a> Runtime<'a> {
 
     pub fn arg_editor_name() -> &'static str {
         "editor"
+    }
+
+    pub fn arg_generate_compl() -> &'static str {
+        "generate-completion"
     }
 
     /**
