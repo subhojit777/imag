@@ -55,7 +55,7 @@ impl<'a> Runtime<'a> {
      * The cli_spec object should be initially build with the ::get_default_cli_builder() function.
      *
      */
-    pub fn new(cli_spec: App<'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
+    pub fn new(mut cli_spec: App<'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
         use std::env;
         use std::io::stdout;
 
@@ -74,7 +74,7 @@ impl<'a> Runtime<'a> {
 
         use configuration::error::ConfigErrorKind;
 
-        let matches = cli_spec.get_matches();
+        let matches = cli_spec.clone().get_matches();
 
         let is_debugging = matches.is_present("debugging");
         let is_verbose   = matches.is_present("verbosity");
