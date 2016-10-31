@@ -213,16 +213,14 @@ fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<Option<FileLockE
 fn handle_external_linking(rt: &Runtime) {
     let scmd       = rt.cli().subcommand_matches("external").unwrap();
     let entry_name = scmd.value_of("id").unwrap(); // enforced by clap
-    let entry      = get_entry_by_name(rt, entry_name);
-    if entry.is_err() {
-        trace_error_exit(&entry.unwrap_err(), 1);
-    }
-    let entry = entry.unwrap();
-    if entry.is_none() {
-        warn!("Entry not found: {:?}", entry_name);
-        return;
-    }
-    let mut entry = entry.unwrap();
+    let mut entry  = match get_entry_by_name(rt, entry_name) {
+        Err(e) => trace_error_exit(&e, 1),
+        Ok(None) => {
+            warn!("Entry not found: {:?}", entry_name);
+            return;
+        },
+        Ok(Some(entry)) => entry
+    };
 
     if scmd.is_present("add") {
         debug!("Adding link to entry!");
