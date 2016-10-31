@@ -20,6 +20,7 @@ before_script:
   export PATH=$HOME/.local/bin:$PATH
 script:
 - |
+  export RUSTFLAGS="-C codegen-units=2"
   if [[ "$TEST_SUITE" == "binaries" ]]; then
     make bin-test
   else # $TEST_SUITE == "libraries"
