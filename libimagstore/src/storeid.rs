@@ -33,10 +33,16 @@ use error::MapErrInto;
 use store::Result;
 
 /// The Index into the Store
-#[derive(Debug, Clone, PartialEq, Hash, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Hash, Eq, PartialOrd, Ord)]
 pub struct StoreId {
     base: Option<PathBuf>,
     id:   PathBuf,
+}
+
+impl PartialEq for StoreId {
+    fn eq(&self, other: &StoreId) -> bool {
+        self.id == other.id
+    }
 }
 
 impl StoreId {
