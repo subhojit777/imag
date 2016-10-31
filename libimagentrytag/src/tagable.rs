@@ -17,12 +17,9 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::ops::Deref;
-use std::ops::DerefMut;
-
 use itertools::Itertools;
 
-use libimagstore::store::{Entry, EntryHeader, FileLockEntry};
+use libimagstore::store::{Entry, EntryHeader};
 use libimagerror::into::IntoError;
 
 use error::TagErrorKind;
@@ -171,34 +168,6 @@ impl Tagable for Entry {
 
     fn has_tags(&self, ts: &[Tag]) -> Result<bool> {
         self.get_header().has_tags(ts)
-    }
-
-}
-
-impl<'a> Tagable for FileLockEntry<'a> {
-
-    fn get_tags(&self) -> Result<Vec<Tag>> {
-        self.deref().get_tags()
-    }
-
-    fn set_tags(&mut self, ts: &[Tag]) -> Result<()> {
-        self.deref_mut().set_tags(ts)
-    }
-
-    fn add_tag(&mut self, t: Tag) -> Result<()> {
-        self.deref_mut().add_tag(t)
-    }
-
-    fn remove_tag(&mut self, t: Tag) -> Result<()> {
-        self.deref_mut().remove_tag(t)
-    }
-
-    fn has_tag(&self, t: TagSlice) -> Result<bool> {
-        self.deref().has_tag(t)
-    }
-
-    fn has_tags(&self, ts: &[Tag]) -> Result<bool> {
-        self.deref().has_tags(ts)
     }
 
 }
