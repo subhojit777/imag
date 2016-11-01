@@ -88,80 +88,77 @@ fn handle_internal_linking(rt: &Runtime) {
     debug!("Handle internal linking call");
     let cmd = rt.cli().subcommand_matches("internal").unwrap();
 
-    if cmd.is_present("list") {
-        debug!("List...");
-        for entry in cmd.value_of("list").unwrap().split(',') {
-            debug!("Listing for '{}'", entry);
-            match get_entry_by_name(rt, entry) {
-                Ok(Some(e)) => {
-                    e.get_internal_links()
-                        .map(|links| {
-                            let i = links
-                                .filter_map(|l| {
-                                    l.to_str()
-                                        .map_warn_err(|e| format!("Failed to convert StoreId to string: {:?}", e))
-                                        .ok()
-                                })
-                                .enumerate();
+    match cmd.value_of("list") {
+        Some(list) => {
+            debug!("List...");
+            for entry in list.split(',') {
+                debug!("Listing for '{}'", entry);
+                match get_entry_by_name(rt, entry) {
+                    Ok(Some(e)) => {
+                        e.get_internal_links()
+                            .map(|links| {
+                                let i = links
+                                    .filter_map(|l| {
+                                        l.to_str()
+                                            .map_warn_err(|e| format!("Failed to convert StoreId to string: {:?}", e))
+                                            .ok()
+                                    })
+                                    .enumerate();
 
-                            for (i, link) in i {
-                                println!("{: <3}: {}", i, link);
-                            }
-                        })
-                        .map_err_trace()
-                        .ok();
-                },
+                                for (i, link) in i {
+                                    println!("{: <3}: {}", i, link);
+                                }
+                            })
+                            .map_err_trace()
+                            .ok();
+                    },
 
-                Ok(None) => {
-                    warn!("Entry not found: {:?}", entry);
-                    break;
+                    Ok(None) => {
+                        warn!("Entry not found: {:?}", entry);
+                        break;
+                    }
+
+                    Err(e) => {
+                        trace_error(&e);
+                        break;
+                    },
                 }
-
-                Err(e) => {
-                    trace_error(&e);
-                    break;
-                },
             }
+            debug!("Listing ready!");
+        },
+        None => {
+            let mut from = match get_from_entry(&rt) {
+                None => warn_exit("No 'from' entry", 1),
+                Some(s) => s,
+            };
+            debug!("Link from = {:?}", from.deref());
+
+            let to = match get_to_entries(&rt) {
+                None => warn_exit("No 'to' entry", 1),
+                Some(to) => to,
+            };
+            debug!("Link to = {:?}", to.iter().map(|f| f.deref()).collect::<Vec<&Entry>>());
+
+            match cmd.subcommand_name() {
+                Some("add") => {
+                    for mut to_entry in to {
+                        if let Err(e) = to_entry.add_internal_link(&mut from) {
+                            trace_error_exit(&e, 1);
+                        }
+                    }
+                },
+
+                Some("remove") => {
+                    for mut to_entry in to {
+                        if let Err(e) = to_entry.remove_internal_link(&mut from) {
+                            trace_error_exit(&e, 1);
+                        }
+                    }
+                },
+
+                _ => unreachable!(),
+            };
         }
-        debug!("Listing ready!");
-    } else {
-        let mut from = {
-            let from = get_from_entry(&rt);
-            if from.is_none() {
-                warn_exit("No 'from' entry", 1);
-            }
-            from.unwrap()
-        };
-        debug!("Link from = {:?}", from.deref());
-
-        let to = {
-            let to = get_to_entries(&rt);
-            if to.is_none() {
-                warn_exit("No 'to' entry", 1);
-            }
-            to.unwrap()
-        };
-        debug!("Link to = {:?}", to.iter().map(|f| f.deref()).collect::<Vec<&Entry>>());
-
-        match cmd.subcommand_name() {
-            Some("add") => {
-                for mut to_entry in to {
-                    if let Err(e) = to_entry.add_internal_link(&mut from) {
-                        trace_error_exit(&e, 1);
-                    }
-                }
-            },
-
-            Some("remove") => {
-                for mut to_entry in to {
-                    if let Err(e) = to_entry.remove_internal_link(&mut from) {
-                        trace_error_exit(&e, 1);
-                    }
-                }
-            },
-
-            _ => unreachable!(),
-        };
     }
 }
 
@@ -216,16 +213,14 @@ fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<Option<FileLockE
 fn handle_external_linking(rt: &Runtime) {
     let scmd       = rt.cli().subcommand_matches("external").unwrap();
     let entry_name = scmd.value_of("id").unwrap(); // enforced by clap
-    let entry      = get_entry_by_name(rt, entry_name);
-    if entry.is_err() {
-        trace_error_exit(&entry.unwrap_err(), 1);
-    }
-    let entry = entry.unwrap();
-    if entry.is_none() {
-        warn!("Entry not found: {:?}", entry_name);
-        return;
-    }
-    let mut entry = entry.unwrap();
+    let mut entry  = match get_entry_by_name(rt, entry_name) {
+        Err(e) => trace_error_exit(&e, 1),
+        Ok(None) => {
+            warn!("Entry not found: {:?}", entry_name);
+            return;
+        },
+        Ok(Some(entry)) => entry
+    };
 
     if scmd.is_present("add") {
         debug!("Adding link to entry!");
