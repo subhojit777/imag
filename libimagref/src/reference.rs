@@ -157,14 +157,14 @@ impl<'a> Ref<'a> {
                         .map_err(|e| REK::PathHashingError.into_error_with_cause(e))
                     );
 
-                    Ok((file, opt_contenthash, opt_permissions, can, path_hash))
+                    Ok((opt_contenthash, opt_permissions, can, path_hash))
                 })
 
                 // and then we convert the PathBuf of the canonicalized path to a String to be able
                 // to save it in the Ref FileLockEntry obj
                 // and return
                 // (file, content hash, permissions, canonicalized path as String, path hash)
-                .and_then(|(file, opt_conhash, opt_perm, can, path_hash)| {
+                .and_then(|(opt_conhash, opt_perm, can, path_hash)| {
                     match can.to_str().map(String::from) {
                         // UTF convert error in PathBuf::to_str(),
                         None      => Err(REK::PathUTF8Error.into_error()),
