@@ -85,8 +85,9 @@ impl<'a> Runtime<'a> {
         match matches.value_of(Runtime::arg_generate_compl()) {
             Some(shell) => {
                 debug!("Generating shell completion script, writing to stdout");
-                let shell = shell.parse::<Shell>().unwrap(); // clap has our back here.
-                cli_spec.gen_completions_to("fakename", shell, &mut stdout());
+                let shell   = shell.parse::<Shell>().unwrap(); // clap has our back here.
+                let appname = String::from(cli_spec.get_name());
+                cli_spec.gen_completions_to(appname, shell, &mut stdout());
             },
             _ => debug!("Not generating shell completion script"),
         }
