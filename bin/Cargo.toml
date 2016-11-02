@@ -17,8 +17,10 @@ build = "build.rs"
 
 [build-dependencies]
 clap = ">=2.16.1"
-libimagrt = { path = "../libimagrt" }
 version = "2.0"
+libimagrt = { path = "../libimagrt" }
+libimagentrytag = { path = "../libimagentrytag" }
+libimagutil = { path = "../libimagutil" }
 
 [profile.dev]
 codegen-units = 2
