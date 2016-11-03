@@ -1558,6 +1558,16 @@ impl Entry {
 
 }
 
+impl PartialEq for Entry {
+
+    fn eq(&self, other: &Entry) -> bool {
+        self.location == other.location && // As the location only compares from the store root
+            self.header == other.header && // and the other Entry could be from another store (not
+            self.content == other.content  // implemented by now, but we think ahead here)
+    }
+
+}
+
 mod glob_store_iter {
     use std::fmt::{Debug, Formatter};
     use std::fmt::Error as FmtError;
