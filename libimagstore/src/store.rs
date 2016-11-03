@@ -963,7 +963,7 @@ pub type EntryContent = String;
 ///
 /// This is basically a wrapper around `toml::Table` which provides convenience to the user of the
 /// library.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct EntryHeader {
     header: Value,
 }
