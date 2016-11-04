@@ -27,9 +27,8 @@ use std::io::Error as IOError;
 use tempfile::NamedTempFile;
 
 pub fn edit_in_tmpfile_with_command(mut cmd: Command, s: &mut String) -> Result<bool, IOError> {
-    let file      = try!(NamedTempFile::new());
+    let mut file  = &try!(NamedTempFile::new());
     let file_path = file.path();
-    let mut file  = try!(file.reopen());
 
     try!(file.write_all(&s.clone().into_bytes()[..]));
     try!(file.sync_data());
