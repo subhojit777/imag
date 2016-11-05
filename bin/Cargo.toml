@@ -13,6 +13,15 @@ documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.h
 repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
+build = "build.rs"
+
+[build-dependencies]
+clap = ">=2.16.1"
+version = "2.0"
+libimagrt = { path = "../libimagrt" }
+libimagentrytag = { path = "../libimagentrytag" }
+libimagutil = { path = "../libimagutil" }
+
 [profile.dev]
 codegen-units = 2
 
