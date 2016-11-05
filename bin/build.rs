@@ -7,16 +7,35 @@ extern crate libimagutil;
 use clap::Shell;
 use libimagrt::runtime::Runtime;
 
-macro_rules! gen_types_buildui {
-    ($(($p:expr, $n:ident)$(,)*)*) => (
+/// This macro generates mods with the given '$modulename',
+/// whose content is the file given with `$path`.
+/// In this case, It is used specifically to include the
+/// `ui.rs` files of the imag binaries.
+/// The imag project (accidentally?) followed the convention
+/// to write a `ui.rs` containing the function
+/// `fn build_ui(app : App) -> App`.
+/// This macro allows us to use the same named functions by
+/// putting them each into their own module.
+macro_rules! gen_mods_buildui {
+    ($(($path:expr, $modulename:ident)$(,)*)*) => (
         $(
-            mod $n {
-                include!($p);
+            mod $modulename {
+                include!($path);
             }
          )*
         )
 }
 
+/// This macro reduces boilerplate code.
+///
+/// For example: `build_subcommand!("counter", imagcounter)`
+/// will result in the following code:
+/// ```ignore
+/// imagcounter::build_ui(Runtime::get_default_cli_builder(
+///     "counter",
+///     &version!()[..],
+///     "counter"))
+/// ```
 macro_rules! build_subcommand {
     ($name:expr, $module:ident) => (
         $module::build_ui(Runtime::get_default_cli_builder(
@@ -26,7 +45,8 @@ macro_rules! build_subcommand {
     )
 }
 
-gen_types_buildui!(
+// Actually generates the module.
+gen_mods_buildui!(
     ("../imag-bookmark/src/ui.rs",  imagbookmark),
     ("../imag-counter/src/ui.rs",   imagcounter),
     ("../imag-diary/src/ui.rs",     imagdiary),
@@ -40,10 +60,12 @@ gen_types_buildui!(
 );
 
 fn main() {
+    // Make the `imag`-App...
     let mut app = Runtime::get_default_cli_builder(
         "imag",
         &version!()[..],
         "imag")
+        // and add all the subapps as subcommands.
         .subcommand(build_subcommand!("bookmark",   imagbookmark))
         .subcommand(build_subcommand!("counter",    imagcounter))
         .subcommand(build_subcommand!("diary",      imagdiary))
@@ -55,6 +77,7 @@ fn main() {
         .subcommand(build_subcommand!("todo",       imagtodo))
         .subcommand(build_subcommand!("view",       imagview));
 
+    // Actually generates the completion files
     app.gen_completions("imag", Shell::Bash, env!("OUT_DIR"));
     app.gen_completions("imag", Shell::Fish, env!("OUT_DIR"));
     app.gen_completions("imag", Shell::Zsh, env!("OUT_DIR"));
