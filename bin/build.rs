@@ -17,6 +17,15 @@ macro_rules! gen_types_buildui {
         )
 }
 
+macro_rules! build_subcommand {
+    ($name:expr, $module:ident) => (
+        $module::build_ui(Runtime::get_default_cli_builder(
+                $name,
+                &version!()[..],
+                $name))
+    )
+}
+
 gen_types_buildui!(
     ("../imag-bookmark/src/ui.rs",  imagbookmark),
     ("../imag-counter/src/ui.rs",   imagcounter),
@@ -28,66 +37,27 @@ gen_types_buildui!(
     ("../imag-tag/src/ui.rs",       imagtag),
     ("../imag-todo/src/ui.rs",      imagtodo),
     ("../imag-view/src/ui.rs",      imagview)
-    );
+);
 
 fn main() {
     let mut app = Runtime::get_default_cli_builder(
         "imag",
         &version!()[..],
         "imag")
-        .subcommand(
-            imagbookmark::build_ui(Runtime::get_default_cli_builder(
-                    "bookmark",
-                    &version!()[..],
-                    "bookmark")))
-        .subcommand(
-            imagcounter::build_ui(Runtime::get_default_cli_builder(
-                    "counter",
-                    &version!()[..],
-                    "counter")))
-        .subcommand(
-            imagdiary::build_ui(Runtime::get_default_cli_builder(
-                    "diary",
-                    &version!()[..],
-                    "diary")))
-        .subcommand(
-            imaglink::build_ui(Runtime::get_default_cli_builder(
-                    "link",
-                    &version!()[..],
-                    "link")))
-        .subcommand(
-            imagnotes::build_ui(Runtime::get_default_cli_builder(
-                    "notes",
-                    &version!()[..],
-                    "notes")))
-        .subcommand(
-            imagref::build_ui(Runtime::get_default_cli_builder(
-                    "ref",
-                    &version!()[..],
-                    "ref")))
-        .subcommand(
-            imagstore::build_ui(Runtime::get_default_cli_builder(
-                    "store",
-                    &version!()[..],
-                    "store")))
-        .subcommand(
-            imagtag::build_ui(Runtime::get_default_cli_builder(
-                    "tag",
-                    &version!()[..],
-                    "tag")))
-        .subcommand(
-            imagtodo::build_ui(Runtime::get_default_cli_builder(
-                    "todo",
-                    &version!()[..],
-                    "todo")))
-        .subcommand(
-            imagview::build_ui(Runtime::get_default_cli_builder(
-                    "view",
-                    &version!()[..],
-                    "view")))
-        ;
+        .subcommand(build_subcommand!("bookmark",   imagbookmark))
+        .subcommand(build_subcommand!("counter",    imagcounter))
+        .subcommand(build_subcommand!("diary",      imagdiary))
+        .subcommand(build_subcommand!("link",       imaglink))
+        .subcommand(build_subcommand!("notes",      imagnotes))
+        .subcommand(build_subcommand!("ref",        imagref))
+        .subcommand(build_subcommand!("store",      imagstore))
+        .subcommand(build_subcommand!("tag",        imagtag))
+        .subcommand(build_subcommand!("todo",       imagtodo))
+        .subcommand(build_subcommand!("view",       imagview));
+
     app.gen_completions("imag", Shell::Bash, env!("OUT_DIR"));
     app.gen_completions("imag", Shell::Fish, env!("OUT_DIR"));
     app.gen_completions("imag", Shell::Zsh, env!("OUT_DIR"));
 
 }
+
