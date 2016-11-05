@@ -963,7 +963,7 @@ pub type EntryContent = String;
 ///
 /// This is basically a wrapper around `toml::Table` which provides convenience to the user of the
 /// library.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct EntryHeader {
     header: Value,
 }
@@ -1554,6 +1554,16 @@ impl Entry {
 
     pub fn verify(&self) -> Result<()> {
         self.header.verify()
+    }
+
+}
+
+impl PartialEq for Entry {
+
+    fn eq(&self, other: &Entry) -> bool {
+        self.location == other.location && // As the location only compares from the store root
+            self.header == other.header && // and the other Entry could be from another store (not
+            self.content == other.content  // implemented by now, but we think ahead here)
     }
 
 }
