@@ -36,6 +36,10 @@ macro_rules! gen_mods_buildui {
 ///     &version!()[..],
 ///     "counter"))
 /// ```
+/// As for the `&version!()[..]` part, it does not matter
+/// which version the subcommand is getting here, as the
+/// output of this script is a completion script, which
+/// does not contain information about the version at all.
 macro_rules! build_subcommand {
     ($name:expr, $module:ident) => (
         $module::build_ui(Runtime::get_default_cli_builder(
