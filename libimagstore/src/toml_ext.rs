@@ -206,8 +206,6 @@ impl TomlValueExt for Value {
                 },
             },
         }
-
-        Ok(None)
     }
 
     /**
@@ -282,8 +280,6 @@ impl TomlValueExt for Value {
                 },
             },
         }
-
-        Ok(None)
     }
 
 }
