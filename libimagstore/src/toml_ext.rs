@@ -85,11 +85,11 @@ impl TomlValueExt for Value {
     fn insert_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<bool> {
         let tokens = match tokenize(spec, sep) {
             Err(e) => return Err(e),
-            Ok(t) => t
+            Ok(t)  => t
         };
 
         let destination = match tokens.iter().last() {
-            None => return Err(SE::new(SEK::HeaderPathSyntaxError, None)),
+            None    => return Err(SE::new(SEK::HeaderPathSyntaxError, None)),
             Some(d) => d,
         };
 
@@ -98,7 +98,7 @@ impl TomlValueExt for Value {
         // walk N-1 tokens
         let value = match walk_header(self, path_to_dest) {
             Err(e) => return Err(e),
-            Ok(v) => v
+            Ok(v)  => v
         };
 
         // There is already an value at this place
@@ -107,43 +107,39 @@ impl TomlValueExt for Value {
         }
 
         match *destination {
-            Token::Key(ref s) => { // if the destination shall be an map key
-                match *value {
-                    /*
-                     * Put it in there if we have a map
-                     */
-                    Value::Table(ref mut t) => {
-                        t.insert(s.clone(), v);
-                    }
+            // if the destination shall be an map key
+            Token::Key(ref s) => match *value {
+                /*
+                 * Put it in there if we have a map
+                 */
+                Value::Table(ref mut t) => { t.insert(s.clone(), v); },
 
-                    /*
-                     * Fail if there is no map here
-                     */
-                    _ => return Err(SEK::HeaderPathTypeFailure.into_error()),
-                }
+                /*
+                 * Fail if there is no map here
+                 */
+                _ => return Err(SEK::HeaderPathTypeFailure.into_error()),
             },
 
-            Token::Index(i) => { // if the destination shall be an array
-                match *value {
+            // if the destination shall be an array
+            Token::Index(i) => match *value {
 
-                    /*
-                     * Put it in there if we have an array
-                     */
-                    Value::Array(ref mut a) => {
-                        a.push(v); // push to the end of the array
+                /*
+                 * Put it in there if we have an array
+                 */
+                Value::Array(ref mut a) => {
+                    a.push(v); // push to the end of the array
 
-                        // if the index is inside the array, we swap-remove the element at this
-                        // index
-                        if a.len() < i {
-                            a.swap_remove(i);
-                        }
-                    },
+                    // if the index is inside the array, we swap-remove the element at this
+                    // index
+                    if a.len() < i {
+                        a.swap_remove(i);
+                    }
+                },
 
-                    /*
-                     * Fail if there is no array here
-                     */
-                    _ => return Err(SEK::HeaderPathTypeFailure.into_error()),
-                }
+                /*
+                 * Fail if there is no array here
+                 */
+                _ => return Err(SEK::HeaderPathTypeFailure.into_error()),
             },
         }
 
@@ -176,12 +172,12 @@ impl TomlValueExt for Value {
     fn set_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<Option<Value>> {
         let tokens = match tokenize(spec, sep) {
             Err(e) => return Err(e),
-            Ok(t) => t,
+            Ok(t)  => t,
         };
         debug!("tokens = {:?}", tokens);
 
         let destination = match tokens.iter().last() {
-            None => return Err(SEK::HeaderPathSyntaxError.into_error()),
+            None    => return Err(SEK::HeaderPathSyntaxError.into_error()),
             Some(d) => d
         };
         debug!("destination = {:?}", destination);
@@ -190,60 +186,58 @@ impl TomlValueExt for Value {
         // walk N-1 tokens
         let value = match walk_header(self, path_to_dest) {
             Err(e) => return Err(e),
-            Ok(v) => v
+            Ok(v)  => v
         };
         debug!("walked value = {:?}", value);
 
         match *destination {
-            Token::Key(ref s) => { // if the destination shall be an map key->value
-                match *value {
-                    /*
-                     * Put it in there if we have a map
-                     */
-                    Value::Table(ref mut t) => {
-                        debug!("Matched Key->Table");
-                        return Ok(t.insert(s.clone(), v));
-                    }
+            // if the destination shall be an map key->value
+            Token::Key(ref s) => match *value {
+                /*
+                 * Put it in there if we have a map
+                 */
+                Value::Table(ref mut t) => {
+                    debug!("Matched Key->Table");
+                    return Ok(t.insert(s.clone(), v));
+                }
 
-                    /*
-                     * Fail if there is no map here
-                     */
-                    _ => {
-                        debug!("Matched Key->NON-Table");
-                        return Err(SEK::HeaderPathTypeFailure.into_error());
-                    }
+                /*
+                 * Fail if there is no map here
+                 */
+                _ => {
+                    debug!("Matched Key->NON-Table");
+                    return Err(SEK::HeaderPathTypeFailure.into_error());
                 }
             },
 
-            Token::Index(i) => { // if the destination shall be an array
-                match *value {
+            // if the destination shall be an array
+            Token::Index(i) => match *value {
 
-                    /*
-                     * Put it in there if we have an array
-                     */
-                    Value::Array(ref mut a) => {
-                        debug!("Matched Index->Array");
-                        a.push(v); // push to the end of the array
+                /*
+                 * Put it in there if we have an array
+                 */
+                Value::Array(ref mut a) => {
+                    debug!("Matched Index->Array");
+                    a.push(v); // push to the end of the array
 
-                        // if the index is inside the array, we swap-remove the element at this
-                        // index
-                        if a.len() > i {
-                            debug!("Swap-Removing in Array {:?}[{:?}] <- {:?}", a, i, a[a.len()-1]);
-                            return Ok(Some(a.swap_remove(i)));
-                        }
+                    // if the index is inside the array, we swap-remove the element at this
+                    // index
+                    if a.len() > i {
+                        debug!("Swap-Removing in Array {:?}[{:?}] <- {:?}", a, i, a[a.len()-1]);
+                        return Ok(Some(a.swap_remove(i)));
+                    }
 
-                        debug!("Appended");
-                        return Ok(None);
-                    },
+                    debug!("Appended");
+                    return Ok(None);
+                },
 
-                    /*
-                     * Fail if there is no array here
-                     */
-                    _ => {
-                        debug!("Matched Index->NON-Array");
-                        return Err(SEK::HeaderPathTypeFailure.into_error());
-                    },
-                }
+                /*
+                 * Fail if there is no array here
+                 */
+                _ => {
+                    debug!("Matched Index->NON-Array");
+                    return Err(SEK::HeaderPathTypeFailure.into_error());
+                },
             },
         }
 
@@ -295,11 +289,11 @@ impl TomlValueExt for Value {
     fn delete_with_sep(&mut self, spec: &str, splitchr: char) -> Result<Option<Value>> {
         let tokens = match tokenize(spec, splitchr) {
             Err(e) => return Err(e),
-            Ok(t) => t
+            Ok(t)  => t
         };
 
         let destination = match tokens.iter().last() {
-            None => return Err(SEK::HeaderPathSyntaxError.into_error()),
+            None    => return Err(SEK::HeaderPathSyntaxError.into_error()),
             Some(d) => d
         };
         debug!("destination = {:?}", destination);
@@ -308,41 +302,38 @@ impl TomlValueExt for Value {
         // walk N-1 tokens
         let mut value = match walk_header(self, path_to_dest) {
             Err(e) => return Err(e),
-            Ok(v) => v
+            Ok(v)  => v
         };
         debug!("walked value = {:?}", value);
 
         match *destination {
-            Token::Key(ref s) => { // if the destination shall be an map key->value
-                match *value {
-                    Value::Table(ref mut t) => {
-                        debug!("Matched Key->Table, removing {:?}", s);
-                        return Ok(t.remove(s));
-                    },
-                    _ => {
-                        debug!("Matched Key->NON-Table");
-                        return Err(SEK::HeaderPathTypeFailure.into_error());
-                    }
+            // if the destination shall be an map key->value
+            Token::Key(ref s) => match *value {
+                Value::Table(ref mut t) => {
+                    debug!("Matched Key->Table, removing {:?}", s);
+                    return Ok(t.remove(s));
+                },
+                _ => {
+                    debug!("Matched Key->NON-Table");
+                    return Err(SEK::HeaderPathTypeFailure.into_error());
                 }
             },
 
-            Token::Index(i) => { // if the destination shall be an array
-                match *value {
-                    Value::Array(ref mut a) => {
-                        // if the index is inside the array, we swap-remove the element at this
-                        // index
-                        if a.len() > i {
-                            debug!("Removing in Array {:?}[{:?}]", a, i);
-                            return Ok(Some(a.remove(i)));
-                        } else {
-                            return Ok(None);
-                        }
-                    },
-                    _ => {
-                        debug!("Matched Index->NON-Array");
-                        return Err(SEK::HeaderPathTypeFailure.into_error());
-                    },
-                }
+            // if the destination shall be an array
+            Token::Index(i) => match *value {
+
+                // if the index is inside the array, we swap-remove the element at this
+                // index
+                Value::Array(ref mut a) => if a.len() > i {
+                    debug!("Removing in Array {:?}[{:?}]", a, i);
+                    return Ok(Some(a.remove(i)));
+                } else {
+                    return Ok(None);
+                },
+                _ => {
+                    debug!("Matched Index->NON-Array");
+                    return Err(SEK::HeaderPathTypeFailure.into_error());
+                },
             },
         }
 
@@ -355,11 +346,7 @@ fn tokenize(spec: &str, splitchr: char) -> Result<Vec<Token>> {
     use std::str::FromStr;
 
     spec.split(splitchr)
-        .map(|s| {
-            usize::from_str(s)
-                .map(Token::Index)
-                .or_else(|_| Ok(Token::Key(String::from(s))))
-        })
+        .map(|s| usize::from_str(s).map(Token::Index).or_else(|_| Ok(Token::Key(String::from(s)))))
         .collect()
 }
 
@@ -368,12 +355,10 @@ fn walk_header(v: &mut Value, tokens: Vec<Token>) -> Result<&mut Value> {
 
     fn walk_iter<'a>(v: Result<&'a mut Value>, i: &mut IntoIter<Token>) -> Result<&'a mut Value> {
         let next = i.next();
-        v.and_then(move |value| {
-            if let Some(token) = next {
-                walk_iter(extract(value, &token), i)
-            } else {
-                Ok(value)
-            }
+        v.and_then(move |value| if let Some(token) = next {
+            walk_iter(extract(value, &token), i)
+        } else {
+            Ok(value)
         })
     }
 
@@ -382,22 +367,17 @@ fn walk_header(v: &mut Value, tokens: Vec<Token>) -> Result<&mut Value> {
 
 fn extract_from_table<'a>(v: &'a mut Value, s: &str) -> Result<&'a mut Value> {
     match *v {
-        Value::Table(ref mut t) => {
-            t.get_mut(&s[..])
-                .ok_or(SEK::HeaderKeyNotFound.into_error())
-        },
+        Value::Table(ref mut t) => t.get_mut(&s[..]).ok_or(SEK::HeaderKeyNotFound.into_error()),
         _ => Err(SEK::HeaderPathTypeFailure.into_error()),
     }
 }
 
 fn extract_from_array(v: &mut Value, i: usize) -> Result<&mut Value> {
     match *v {
-        Value::Array(ref mut a) => {
-            if a.len() < i {
-                Err(SEK::HeaderKeyNotFound.into_error())
-            } else {
-                Ok(&mut a[i])
-            }
+        Value::Array(ref mut a) => if a.len() < i {
+            Err(SEK::HeaderKeyNotFound.into_error())
+        } else {
+            Ok(&mut a[i])
         },
         _ => Err(SEK::HeaderPathTypeFailure.into_error()),
     }
