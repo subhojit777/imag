@@ -20,7 +20,7 @@
 use toml::Value;
 
 use store::Result;
-use error::{StoreError as SE, StoreErrorKind as SEK};
+use error::StoreErrorKind as SEK;
 use libimagerror::into::IntoError;
 
 pub trait TomlValueExt {
@@ -83,20 +83,14 @@ impl TomlValueExt for Value {
      * Returns true if header field was set, false if there is already a value
      */
     fn insert_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<bool> {
-        let tokens      = try!(tokenize(spec, sep));
-        let destination = try!(tokens.iter().last().ok_or(SEK::HeaderPathSyntaxError.into_error))
-
-        let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-
-        // walk N-1 tokens
-        let value = try!(walk_header(self, path_to_dest));
+        let (destination, value) = try!(setup(self, spec, sep));
 
         // There is already an value at this place
-        if extract(value, destination).is_ok() {
+        if extract(value, &destination).is_ok() {
             return Ok(false);
         }
 
-        match *destination {
+        match destination {
             // if the destination shall be an map key
             Token::Key(ref s) => match *value {
                 /*
@@ -160,18 +154,9 @@ impl TomlValueExt for Value {
      * will be returned
      */
     fn set_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<Option<Value>> {
-        let tokens = try!(tokenize(spec, sep));
-        debug!("tokens = {:?}", tokens);
+        let (destination, value) = try!(setup(self, spec, sep));
 
-        let destination = try!(tokens.iter().last().ok_or(SEK::HeaderPathSyntaxError.into_error()))
-        debug!("destination = {:?}", destination);
-
-        let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        // walk N-1 tokens
-        let value = try!(walk_header(self, path_to_dest));
-        debug!("walked value = {:?}", value);
-
-        match *destination {
+        match destination {
             // if the destination shall be an map key->value
             Token::Key(ref s) => match *value {
                 /*
@@ -265,16 +250,9 @@ impl TomlValueExt for Value {
     }
 
     fn delete_with_sep(&mut self, spec: &str, splitchr: char) -> Result<Option<Value>> {
-        let tokens      = try!(tokenize(spec, splitchr));
-        let destination = try!(tokens.iter().last().ok_or(SEK::HeaderPathSyntaxError.into_error()));
-        debug!("destination = {:?}", destination);
+        let (destination, value) = try!(setup(self, spec, splitchr));
 
-        let path_to_dest = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-        // walk N-1 tokens
-        let mut value = try!(walk_header(self, path_to_dest));
-        debug!("walked value = {:?}", value);
-
-        match *destination {
+        match destination {
             // if the destination shall be an map key->value
             Token::Key(ref s) => match *value {
                 Value::Table(ref mut t) => {
@@ -308,6 +286,23 @@ impl TomlValueExt for Value {
         Ok(None)
     }
 
+}
+
+fn setup<'a>(v: &'a mut Value, spec: &str, sep: char)
+    -> Result<(Token, &'a mut Value)>
+{
+    let tokens       = try!(tokenize(spec, sep));
+    debug!("tokens = {:?}", tokens);
+
+    let destination  = try!(tokens.iter().last().cloned().ok_or(SEK::HeaderPathSyntaxError.into_error()));
+    debug!("destination = {:?}", destination);
+
+    let path_to_dest : Vec<Token> = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
+    let value        = try!(walk_header(v, path_to_dest.clone())); // walk N-1 tokens
+
+    debug!("walked value = {:?}", value);
+
+    Ok((destination, value))
 }
 
 fn tokenize(spec: &str, splitchr: char) -> Result<Vec<Token>> {
