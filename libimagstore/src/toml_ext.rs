@@ -86,7 +86,7 @@ impl TomlValueExt for Value {
         let (destination, value) = try!(setup(self, spec, sep));
 
         // There is already an value at this place
-        if extract(value, &destination).is_ok() {
+        if value.extract(&destination).is_ok() {
             return Ok(false);
         }
 
@@ -315,7 +315,7 @@ fn walk_header(v: &mut Value, tokens: Vec<Token>) -> Result<&mut Value> {
     fn walk_iter<'a>(v: Result<&'a mut Value>, i: &mut IntoIter<Token>) -> Result<&'a mut Value> {
         let next = i.next();
         v.and_then(move |value| if let Some(token) = next {
-            walk_iter(extract(value, &token), i)
+            walk_iter(value.extract(&token), i)
         } else {
             Ok(value)
         })
@@ -324,28 +324,32 @@ fn walk_header(v: &mut Value, tokens: Vec<Token>) -> Result<&mut Value> {
     walk_iter(Ok(v), &mut tokens.into_iter())
 }
 
-fn extract_from_table<'a>(v: &'a mut Value, s: &str) -> Result<&'a mut Value> {
-    match *v {
-        Value::Table(ref mut t) => t.get_mut(&s[..]).ok_or(SEK::HeaderKeyNotFound.into_error()),
-        _ => Err(SEK::HeaderPathTypeFailure.into_error()),
-    }
+trait Extract {
+    fn extract<'a>(&'a mut self, &Token) -> Result<&'a mut Self>;
 }
 
-fn extract_from_array(v: &mut Value, i: usize) -> Result<&mut Value> {
-    match *v {
-        Value::Array(ref mut a) => if a.len() < i {
-            Err(SEK::HeaderKeyNotFound.into_error())
-        } else {
-            Ok(&mut a[i])
-        },
-        _ => Err(SEK::HeaderPathTypeFailure.into_error()),
-    }
-}
+impl Extract for Value {
+    fn extract<'a>(&'a mut self, token: &Token) -> Result<&'a mut Value> {
+        match *token {
+            // on Token::Key extract from Value::Table
+            Token::Key(ref s) => match *self {
+                Value::Table(ref mut t) =>
+                    t.get_mut(&s[..]).ok_or(SEK::HeaderKeyNotFound.into_error()),
 
-fn extract<'a>(v: &'a mut Value, token: &Token) -> Result<&'a mut Value> {
-    match *token {
-        Token::Key(ref s)  => extract_from_table(v, s),
-        Token::Index(i)    => extract_from_array(v, i),
+                _ => Err(SEK::HeaderPathTypeFailure.into_error()),
+            },
+
+            // on Token::Index extract from Value::Array
+            Token::Index(i) => match *self {
+                Value::Array(ref mut a) => if a.len() < i {
+                    Err(SEK::HeaderKeyNotFound.into_error())
+                } else {
+                    Ok(&mut a[i])
+                },
+
+                _ => Err(SEK::HeaderPathTypeFailure.into_error()),
+            }
+        }
     }
 }
 
