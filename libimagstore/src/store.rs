@@ -1025,22 +1025,22 @@ impl EntryHeader {
 
     #[inline]
     pub fn insert(&mut self, spec: &str, v: Value) -> Result<bool> {
-        self.insert_with_sep(spec, '.', v)
+        self.0.insert(spec, v)
     }
 
     #[inline]
     pub fn set(&mut self, spec: &str, v: Value) -> Result<Option<Value>> {
-        self.set_with_sep(spec, '.', v)
+        self.0.set(spec, v)
     }
 
     #[inline]
     pub fn read(&self, spec: &str) -> Result<Option<Value>> {
-        self.read_with_sep(spec, '.')
+        self.0.read(spec)
     }
 
     #[inline]
     pub fn delete(&mut self, spec: &str) -> Result<Option<Value>> {
-        self.delete_with_sep(spec, '.')
+        self.0.delete(spec)
     }
 
 }
