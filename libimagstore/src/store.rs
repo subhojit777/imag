@@ -1019,8 +1019,8 @@ impl EntryHeader {
     }
 
     #[inline]
-    pub fn delete(&mut self, spec: &str) -> Result<Option<Value>> {
-        self.0.delete(spec)
+    pub fn delete_with_sep(&mut self, spec: &str, splitchr: char) -> Result<Option<Value>> {
+        self.0.delete_with_sep(spec, splitchr)
     }
 
     #[inline]
@@ -1036,6 +1036,11 @@ impl EntryHeader {
     #[inline]
     pub fn read(&self, spec: &str) -> Result<Option<Value>> {
         self.read_with_sep(spec, '.')
+    }
+
+    #[inline]
+    pub fn delete(&mut self, spec: &str) -> Result<Option<Value>> {
+        self.delete_with_sep(spec, '.')
     }
 
 }
