@@ -21,6 +21,7 @@ use toml::Value;
 
 use store::Result;
 use error::{StoreError as SE, StoreErrorKind as SEK};
+use libimagerror::into::IntoError;
 
 pub trait TomlValueExt {
     fn insert_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<bool>;
@@ -118,7 +119,7 @@ impl TomlValueExt for Value {
                     /*
                      * Fail if there is no map here
                      */
-                    _ => return Err(SE::new(SEK::HeaderPathTypeFailure, None)),
+                    _ => return Err(SEK::HeaderPathTypeFailure.into_error()),
                 }
             },
 
@@ -141,7 +142,7 @@ impl TomlValueExt for Value {
                     /*
                      * Fail if there is no array here
                      */
-                    _ => return Err(SE::new(SEK::HeaderPathTypeFailure, None)),
+                    _ => return Err(SEK::HeaderPathTypeFailure.into_error()),
                 }
             },
         }
@@ -180,7 +181,7 @@ impl TomlValueExt for Value {
         debug!("tokens = {:?}", tokens);
 
         let destination = match tokens.iter().last() {
-            None => return Err(SE::new(SEK::HeaderPathSyntaxError, None)),
+            None => return Err(SEK::HeaderPathSyntaxError.into_error()),
             Some(d) => d
         };
         debug!("destination = {:?}", destination);
@@ -209,7 +210,7 @@ impl TomlValueExt for Value {
                      */
                     _ => {
                         debug!("Matched Key->NON-Table");
-                        return Err(SE::new(SEK::HeaderPathTypeFailure, None));
+                        return Err(SEK::HeaderPathTypeFailure.into_error());
                     }
                 }
             },
@@ -240,7 +241,7 @@ impl TomlValueExt for Value {
                      */
                     _ => {
                         debug!("Matched Index->NON-Array");
-                        return Err(SE::new(SEK::HeaderPathTypeFailure, None));
+                        return Err(SEK::HeaderPathTypeFailure.into_error());
                     },
                 }
             },
@@ -298,7 +299,7 @@ impl TomlValueExt for Value {
         };
 
         let destination = match tokens.iter().last() {
-            None => return Err(SE::new(SEK::HeaderPathSyntaxError, None)),
+            None => return Err(SEK::HeaderPathSyntaxError.into_error()),
             Some(d) => d
         };
         debug!("destination = {:?}", destination);
@@ -320,7 +321,7 @@ impl TomlValueExt for Value {
                     },
                     _ => {
                         debug!("Matched Key->NON-Table");
-                        return Err(SE::new(SEK::HeaderPathTypeFailure, None));
+                        return Err(SEK::HeaderPathTypeFailure.into_error());
                     }
                 }
             },
@@ -339,7 +340,7 @@ impl TomlValueExt for Value {
                     },
                     _ => {
                         debug!("Matched Index->NON-Array");
-                        return Err(SE::new(SEK::HeaderPathTypeFailure, None));
+                        return Err(SEK::HeaderPathTypeFailure.into_error());
                     },
                 }
             },
@@ -383,9 +384,9 @@ fn extract_from_table<'a>(v: &'a mut Value, s: &str) -> Result<&'a mut Value> {
     match *v {
         Value::Table(ref mut t) => {
             t.get_mut(&s[..])
-                .ok_or(SE::new(SEK::HeaderKeyNotFound, None))
+                .ok_or(SEK::HeaderKeyNotFound.into_error())
         },
-        _ => Err(SE::new(SEK::HeaderPathTypeFailure, None)),
+        _ => Err(SEK::HeaderPathTypeFailure.into_error()),
     }
 }
 
@@ -393,12 +394,12 @@ fn extract_from_array(v: &mut Value, i: usize) -> Result<&mut Value> {
     match *v {
         Value::Array(ref mut a) => {
             if a.len() < i {
-                Err(SE::new(SEK::HeaderKeyNotFound, None))
+                Err(SEK::HeaderKeyNotFound.into_error())
             } else {
                 Ok(&mut a[i])
             }
         },
-        _ => Err(SE::new(SEK::HeaderPathTypeFailure, None)),
+        _ => Err(SEK::HeaderPathTypeFailure.into_error()),
     }
 }
 
