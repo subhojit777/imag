@@ -294,7 +294,7 @@ fn setup<'a>(v: &'a mut Value, spec: &str, sep: char)
     debug!("destination = {:?}", destination);
 
     let path_to_dest : Vec<Token> = tokens[..(tokens.len() - 1)].into(); // N - 1 tokens
-    let value        = try!(walk_header(v, path_to_dest.clone())); // walk N-1 tokens
+    let value        = try!(walk_header(v, path_to_dest)); // walk N-1 tokens
 
     debug!("walked value = {:?}", value);
 
