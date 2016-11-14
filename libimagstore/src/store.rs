@@ -965,9 +965,7 @@ pub type EntryContent = String;
 /// This is basically a wrapper around `toml::Table` which provides convenience to the user of the
 /// library.
 #[derive(Debug, Clone, PartialEq)]
-pub struct EntryHeader {
-    header: Value,
-}
+pub struct EntryHeader(Value);
 
 pub type EntryResult<V> = RResult<V, ParserError>;
 
@@ -977,19 +975,15 @@ pub type EntryResult<V> = RResult<V, ParserError>;
 impl EntryHeader {
 
     pub fn new() -> EntryHeader {
-        EntryHeader {
-            header: build_default_header()
-        }
+        EntryHeader(build_default_header())
     }
 
     pub fn header(&self) -> &Value {
-        &self.header
+        &self.0
     }
 
     fn from_table(t: Table) -> EntryHeader {
-        EntryHeader {
-            header: Value::Table(t)
-        }
+        EntryHeader(Value::Table(t))
     }
 
     pub fn parse(s: &str) -> EntryResult<EntryHeader> {
@@ -1003,7 +997,7 @@ impl EntryHeader {
     }
 
     pub fn verify(&self) -> Result<()> {
-        match self.header {
+        match self.0 {
             Value::Table(ref t) => verify_header(&t),
             _ => Err(SE::new(SEK::HeaderTypeFailure, None)),
         }
@@ -1011,22 +1005,22 @@ impl EntryHeader {
 
     #[inline]
     pub fn insert_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<bool> {
-        self.header.insert_with_sep(spec, sep, v)
+        self.0.insert_with_sep(spec, sep, v)
     }
 
     #[inline]
     pub fn set_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<Option<Value>> {
-        self.header.set_with_sep(spec, sep, v)
+        self.0.set_with_sep(spec, sep, v)
     }
 
     #[inline]
     pub fn read_with_sep(&self, spec: &str, splitchr: char) -> Result<Option<Value>> {
-        self.header.read_with_sep(spec, splitchr)
+        self.0.read_with_sep(spec, splitchr)
     }
 
     #[inline]
     pub fn delete(&mut self, spec: &str) -> Result<Option<Value>> {
-        self.header.delete(spec)
+        self.0.delete(spec)
     }
 
     #[inline]
@@ -1049,7 +1043,7 @@ impl EntryHeader {
 impl Into<Table> for EntryHeader {
 
     fn into(self) -> Table {
-        match self.header {
+        match self.0 {
             Value::Table(t) => t,
             _ => panic!("EntryHeader is not a table!"),
         }
@@ -1060,7 +1054,7 @@ impl Into<Table> for EntryHeader {
 impl From<Table> for EntryHeader {
 
     fn from(t: Table) -> EntryHeader {
-        EntryHeader { header: Value::Table(t) }
+        EntryHeader(Value::Table(t))
     }
 
 }
@@ -1195,7 +1189,7 @@ impl Entry {
 
     pub fn to_str(&self) -> String {
         format!("---\n{header}---\n{content}",
-                header  = ::toml::encode_str(&self.header.header),
+                header  = ::toml::encode_str(&self.header.0),
                 content = self.content)
     }
 
