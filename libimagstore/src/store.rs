@@ -1146,7 +1146,7 @@ mod test {
 
     #[test]
     fn test_imag_section() {
-        use super::has_main_section;
+        use toml_ext::has_main_section;
 
         let mut map = BTreeMap::new();
         map.insert("imag".into(), Value::Table(BTreeMap::new()));
@@ -1156,7 +1156,7 @@ mod test {
 
     #[test]
     fn test_imag_invalid_section_type() {
-        use super::has_main_section;
+        use toml_ext::has_main_section;
 
         let mut map = BTreeMap::new();
         map.insert("imag".into(), Value::Boolean(false));
@@ -1166,7 +1166,7 @@ mod test {
 
     #[test]
     fn test_imag_abscent_main_section() {
-        use super::has_main_section;
+        use toml_ext::has_main_section;
 
         let mut map = BTreeMap::new();
         map.insert("not_imag".into(), Value::Boolean(false));

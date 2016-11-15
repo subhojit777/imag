@@ -429,13 +429,8 @@ fn has_only_tables(t: &Table) -> bool {
     t.iter().all(|(_, x)| is_match!(*x, Value::Table(_)))
 }
 
-fn has_main_section(t: &Table) -> bool {
-    t.contains_key("imag") &&
-        match t.get("imag") {
-            Some(&Value::Table(_)) => true,
-            Some(_)                => false,
-            None                   => false,
-        }
+pub fn has_main_section(t: &Table) -> bool {
+    t.contains_key("imag") && is_match!(t.get("imag"), Some(&Value::Table(_)))
 }
 
 fn has_imag_version_in_main_section(t: &Table) -> bool {
