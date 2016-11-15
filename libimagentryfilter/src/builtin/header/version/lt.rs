@@ -21,6 +21,7 @@ use semver::Version;
 use toml::Value;
 
 use libimagstore::store::Entry;
+use libimagstore::toml_ext::TomlValueExt;
 
 use filters::filter::Filter;
 

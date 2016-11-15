@@ -17,10 +17,15 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use toml::Value;
+use std::result::Result as RResult;
+use std::collections::BTreeMap;
+
+use toml::{Table, Value};
 
 use store::Result;
+use error::StoreError as SE;
 use error::StoreErrorKind as SEK;
+use error::{ParserErrorKind, ParserError};
 use libimagerror::into::IntoError;
 
 pub trait TomlValueExt {
@@ -353,10 +358,109 @@ impl Extract for Value {
     }
 }
 
+pub type EntryResult<T> = RResult<T, ParserError>;
+
+/// Extension trait for top-level toml::Value::Table, will only yield correct results on the
+/// top-level Value::Table, but not on intermediate tables.
+pub trait Header {
+    fn verify(&self) -> Result<()>;
+    fn parse(s: &str) -> EntryResult<Value>;
+    fn default_header() -> Value;
+}
+
+impl Header for Value {
+
+    fn verify(&self) -> Result<()> {
+        match *self {
+            Value::Table(ref t) => verify_header(&t),
+            _ => Err(SE::new(SEK::HeaderTypeFailure, None)),
+        }
+    }
+
+    fn parse(s: &str) -> EntryResult<Value> {
+        use toml::Parser;
+
+        let mut parser = Parser::new(s);
+        parser.parse()
+            .ok_or(ParserErrorKind::TOMLParserErrors.into())
+            .and_then(verify_header_consistency)
+            .map(Value::Table)
+    }
+
+    fn default_header() -> Value {
+        let mut m = BTreeMap::new();
+
+        m.insert(String::from("imag"), {
+            let mut imag_map = BTreeMap::<String, Value>::new();
+
+            imag_map.insert(String::from("version"), Value::String(String::from(version!())));
+            imag_map.insert(String::from("links"), Value::Array(vec![]));
+
+            Value::Table(imag_map)
+        });
+
+        Value::Table(m)
+    }
+
+}
+
+pub fn verify_header_consistency(t: Table) -> EntryResult<Table> {
+    verify_header(&t)
+        .map_err(Box::new)
+        .map_err(|e| ParserErrorKind::HeaderInconsistency.into_error_with_cause(e))
+        .map(|_| t)
+}
+
+fn verify_header(t: &Table) -> Result<()> {
+    if !has_main_section(t) {
+        Err(SE::from(ParserErrorKind::MissingMainSection.into_error()))
+    } else if !has_imag_version_in_main_section(t) {
+        Err(SE::from(ParserErrorKind::MissingVersionInfo.into_error()))
+    } else if !has_only_tables(t) {
+        debug!("Could not verify that it only has tables in its base table");
+        Err(SE::from(ParserErrorKind::NonTableInBaseTable.into_error()))
+    } else {
+        Ok(())
+    }
+}
+
+fn has_only_tables(t: &Table) -> bool {
+    debug!("Verifying that table has only tables");
+    t.iter().all(|(_, x)| if let Value::Table(_) = *x { true } else { false })
+}
+
+fn has_main_section(t: &Table) -> bool {
+    t.contains_key("imag") &&
+        match t.get("imag") {
+            Some(&Value::Table(_)) => true,
+            Some(_)                => false,
+            None                   => false,
+        }
+}
+
+fn has_imag_version_in_main_section(t: &Table) -> bool {
+    use semver::Version;
+
+    match *t.get("imag").unwrap() {
+        Value::Table(ref sec) => {
+            sec.get("version")
+                .and_then(|v| {
+                    match *v {
+                        Value::String(ref s) => Some(Version::parse(&s[..]).is_ok()),
+                        _                    => Some(false),
+                    }
+                })
+            .unwrap_or(false)
+        }
+        _ => false,
+    }
+}
+
+
 #[cfg(test)]
 mod test {
     extern crate env_logger;
-    use store::EntryHeader;
+    use super::TomlValueExt;
     use super::{tokenize, walk_header};
     use super::Token;
 
@@ -619,11 +723,7 @@ mod test {
 
     #[test]
     fn test_header_read() {
-        let v = create_header();
-        let h = match v {
-            Value::Table(t) => EntryHeader::from(t),
-            _ => panic!("create_header() doesn't return a table!"),
-        };
+        let h = create_header();
 
         assert!(if let Ok(Some(Value::Table(_)))  = h.read("a") { true } else { false });
         assert!(if let Ok(Some(Value::Array(_)))   = h.read("a.array") { true } else { false });
@@ -656,11 +756,7 @@ mod test {
     #[test]
     fn test_header_set_override() {
         let _ = env_logger::init();
-        let v = create_header();
-        let mut h = match v {
-            Value::Table(t) => EntryHeader::from(t),
-            _ => panic!("create_header() doesn't return a table!"),
-        };
+        let mut h = create_header();
 
         println!("Testing index 0");
         assert_eq!(h.read("a.array.0").unwrap().unwrap(), Value::Integer(0));
@@ -686,11 +782,7 @@ mod test {
     #[test]
     fn test_header_set_new() {
         let _ = env_logger::init();
-        let v = create_header();
-        let mut h = match v {
-            Value::Table(t) => EntryHeader::from(t),
-            _ => panic!("create_header() doesn't return a table!"),
-        };
+        let mut h = create_header();
 
         assert!(h.read("a.foo").is_ok());
         assert!(h.read("a.foo").unwrap().is_none());
@@ -727,11 +819,7 @@ mod test {
     #[test]
     fn test_header_insert_override() {
         let _ = env_logger::init();
-        let v = create_header();
-        let mut h = match v {
-            Value::Table(t) => EntryHeader::from(t),
-            _ => panic!("create_header() doesn't return a table!"),
-        };
+        let mut h = create_header();
 
         println!("Testing index 0");
         assert_eq!(h.read("a.array.0").unwrap().unwrap(), Value::Integer(0));
@@ -756,11 +844,7 @@ mod test {
     #[test]
     fn test_header_insert_new() {
         let _ = env_logger::init();
-        let v = create_header();
-        let mut h = match v {
-            Value::Table(t) => EntryHeader::from(t),
-            _ => panic!("create_header() doesn't return a table!"),
-        };
+        let mut h = create_header();
 
         assert!(h.read("a.foo").is_ok());
         assert!(h.read("a.foo").unwrap().is_none());
@@ -796,11 +880,7 @@ mod test {
     #[test]
     fn test_header_delete() {
         let _ = env_logger::init();
-        let v = create_header();
-        let mut h = match v {
-            Value::Table(t) => EntryHeader::from(t),
-            _ => panic!("create_header() doesn't return a table!"),
-        };
+        let mut h = create_header();
 
         assert!(if let Ok(Some(Value::Table(_)))   = h.read("a") { true } else { false });
         assert!(if let Ok(Some(Value::Array(_)))   = h.read("a.array") { true } else { false });
@@ -815,3 +895,4 @@ mod test {
     }
 
 }
+

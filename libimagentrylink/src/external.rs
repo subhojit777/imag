@@ -38,6 +38,7 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
+use libimagstore::toml_ext::TomlValueExt;
 use libimagutil::debug_result::*;
 
 use error::LinkError as LE;

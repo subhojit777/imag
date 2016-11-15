@@ -23,7 +23,6 @@ use std::path::PathBuf;
 use std::result::Result as RResult;
 use std::sync::Arc;
 use std::sync::RwLock;
-use std::collections::BTreeMap;
 use std::io::Read;
 use std::convert::From;
 use std::convert::Into;
@@ -34,13 +33,12 @@ use std::fmt::Formatter;
 use std::fmt::Debug;
 use std::fmt::Error as FMTError;
 
-use toml::{Table, Value};
+use toml::Value;
 use regex::Regex;
 use glob::glob;
 use walkdir::WalkDir;
 use walkdir::Iter as WalkDirIter;
 
-use error::{ParserErrorKind, ParserError};
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::MapErrInto;
 use storeid::{IntoStoreId, StoreId, StoreIdIterator};
@@ -960,176 +958,6 @@ impl<'a> Drop for FileLockEntry<'a> {
 /// `EntryContent` type
 pub type EntryContent = String;
 
-/// `EntryHeader`
-///
-/// This is basically a wrapper around `toml::Table` which provides convenience to the user of the
-/// library.
-#[derive(Debug, Clone, PartialEq)]
-pub struct EntryHeader(Value);
-
-pub type EntryResult<V> = RResult<V, ParserError>;
-
-/**
- * Wrapper type around file header (TOML) object
- */
-impl EntryHeader {
-
-    pub fn new() -> EntryHeader {
-        EntryHeader(build_default_header())
-    }
-
-    pub fn header(&self) -> &Value {
-        &self.0
-    }
-
-    fn from_table(t: Table) -> EntryHeader {
-        EntryHeader(Value::Table(t))
-    }
-
-    pub fn parse(s: &str) -> EntryResult<EntryHeader> {
-        use toml::Parser;
-
-        let mut parser = Parser::new(s);
-        parser.parse()
-            .ok_or(ParserErrorKind::TOMLParserErrors.into())
-            .and_then(verify_header_consistency)
-            .map(EntryHeader::from_table)
-    }
-
-    pub fn verify(&self) -> Result<()> {
-        match self.0 {
-            Value::Table(ref t) => verify_header(&t),
-            _ => Err(SE::new(SEK::HeaderTypeFailure, None)),
-        }
-    }
-
-    #[inline]
-    pub fn insert_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<bool> {
-        self.0.insert_with_sep(spec, sep, v)
-    }
-
-    #[inline]
-    pub fn set_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<Option<Value>> {
-        self.0.set_with_sep(spec, sep, v)
-    }
-
-    #[inline]
-    pub fn read_with_sep(&self, spec: &str, splitchr: char) -> Result<Option<Value>> {
-        self.0.read_with_sep(spec, splitchr)
-    }
-
-    #[inline]
-    pub fn delete_with_sep(&mut self, spec: &str, splitchr: char) -> Result<Option<Value>> {
-        self.0.delete_with_sep(spec, splitchr)
-    }
-
-    #[inline]
-    pub fn insert(&mut self, spec: &str, v: Value) -> Result<bool> {
-        self.0.insert(spec, v)
-    }
-
-    #[inline]
-    pub fn set(&mut self, spec: &str, v: Value) -> Result<Option<Value>> {
-        self.0.set(spec, v)
-    }
-
-    #[inline]
-    pub fn read(&self, spec: &str) -> Result<Option<Value>> {
-        self.0.read(spec)
-    }
-
-    #[inline]
-    pub fn delete(&mut self, spec: &str) -> Result<Option<Value>> {
-        self.0.delete(spec)
-    }
-
-}
-
-impl Into<Table> for EntryHeader {
-
-    fn into(self) -> Table {
-        match self.0 {
-            Value::Table(t) => t,
-            _ => panic!("EntryHeader is not a table!"),
-        }
-    }
-
-}
-
-impl From<Table> for EntryHeader {
-
-    fn from(t: Table) -> EntryHeader {
-        EntryHeader(Value::Table(t))
-    }
-
-}
-
-fn build_default_header() -> Value { // BTreeMap<String, Value>
-    let mut m = BTreeMap::new();
-
-    m.insert(String::from("imag"), {
-        let mut imag_map = BTreeMap::<String, Value>::new();
-
-        imag_map.insert(String::from("version"), Value::String(String::from(version!())));
-        imag_map.insert(String::from("links"), Value::Array(vec![]));
-
-        Value::Table(imag_map)
-    });
-
-    Value::Table(m)
-}
-fn verify_header(t: &Table) -> Result<()> {
-    if !has_main_section(t) {
-        Err(SE::from(ParserErrorKind::MissingMainSection.into_error()))
-    } else if !has_imag_version_in_main_section(t) {
-        Err(SE::from(ParserErrorKind::MissingVersionInfo.into_error()))
-    } else if !has_only_tables(t) {
-        debug!("Could not verify that it only has tables in its base table");
-        Err(SE::from(ParserErrorKind::NonTableInBaseTable.into_error()))
-    } else {
-        Ok(())
-    }
-}
-
-fn verify_header_consistency(t: Table) -> EntryResult<Table> {
-    verify_header(&t)
-        .map_err(Box::new)
-        .map_err(|e| ParserErrorKind::HeaderInconsistency.into_error_with_cause(e))
-        .map(|_| t)
-}
-
-fn has_only_tables(t: &Table) -> bool {
-    debug!("Verifying that table has only tables");
-    t.iter().all(|(_, x)| if let Value::Table(_) = *x { true } else { false })
-}
-
-fn has_main_section(t: &Table) -> bool {
-    t.contains_key("imag") &&
-        match t.get("imag") {
-            Some(&Value::Table(_)) => true,
-            Some(_)                => false,
-            None                   => false,
-        }
-}
-
-fn has_imag_version_in_main_section(t: &Table) -> bool {
-    use semver::Version;
-
-    match *t.get("imag").unwrap() {
-        Value::Table(ref sec) => {
-            sec.get("version")
-                .and_then(|v| {
-                    match *v {
-                        Value::String(ref s) => Some(Version::parse(&s[..]).is_ok()),
-                        _                    => Some(false),
-                    }
-                })
-            .unwrap_or(false)
-        }
-        _ => false,
-    }
-}
-
 /**
  * An Entry of the store
  *
@@ -1138,7 +966,7 @@ fn has_imag_version_in_main_section(t: &Table) -> bool {
 #[derive(Debug, Clone)]
 pub struct Entry {
     location: StoreId,
-    header: EntryHeader,
+    header: Value,
     content: EntryContent,
 }
 
@@ -1147,9 +975,13 @@ impl Entry {
     pub fn new(loc: StoreId) -> Entry {
         Entry {
             location: loc,
-            header: EntryHeader::new(),
+            header: Entry::default_header(),
             content: EntryContent::new()
         }
+    }
+
+    pub fn default_header() -> Value { // BTreeMap<String, Value>
+        Value::default_header()
     }
 
     pub fn from_reader<S: IntoStoreId>(loc: S, file: &mut Read) -> Result<Entry> {
@@ -1187,14 +1019,14 @@ impl Entry {
         debug!("Header and content found. Yay! Building Entry object now");
         Ok(Entry {
             location: try!(loc.into_storeid()),
-            header: try!(EntryHeader::parse(header.as_str())),
+            header: try!(Value::parse(header.as_str())),
             content: String::from(content),
         })
     }
 
     pub fn to_str(&self) -> String {
         format!("---\n{header}---\n{content}",
-                header  = ::toml::encode_str(&self.header.0),
+                header  = ::toml::encode_str(&self.header),
                 content = self.content)
     }
 
@@ -1202,11 +1034,11 @@ impl Entry {
         &self.location
     }
 
-    pub fn get_header(&self) -> &EntryHeader {
+    pub fn get_header(&self) -> &Value {
         &self.header
     }
 
-    pub fn get_header_mut(&mut self) -> &mut EntryHeader {
+    pub fn get_header_mut(&mut self) -> &mut Value {
         &mut self.header
     }
 
@@ -1378,7 +1210,7 @@ mod test {
 
     #[test]
     fn test_verification_good() {
-        use super::verify_header_consistency;
+        use toml_ext::verify_header_consistency;
 
         let mut header = BTreeMap::new();
         let sub = {
@@ -1395,7 +1227,7 @@ mod test {
 
     #[test]
     fn test_verification_invalid_versionstring() {
-        use super::verify_header_consistency;
+        use toml_ext::verify_header_consistency;
 
         let mut header = BTreeMap::new();
         let sub = {
@@ -1413,7 +1245,7 @@ mod test {
 
     #[test]
     fn test_verification_current_version() {
-        use super::verify_header_consistency;
+        use toml_ext::verify_header_consistency;
 
         let mut header = BTreeMap::new();
         let sub = {

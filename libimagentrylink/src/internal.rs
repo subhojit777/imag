@@ -21,6 +21,7 @@ use libimagstore::storeid::StoreId;
 use libimagstore::store::Entry;
 use libimagstore::store::EntryHeader;
 use libimagstore::store::Result as StoreResult;
+use libimagstore::toml_ext::TomlValueExt;
 use libimagerror::into::IntoError;
 
 use error::LinkErrorKind as LEK;
