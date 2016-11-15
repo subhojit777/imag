@@ -426,7 +426,7 @@ fn verify_header(t: &Table) -> Result<()> {
 
 fn has_only_tables(t: &Table) -> bool {
     debug!("Verifying that table has only tables");
-    t.iter().all(|(_, x)| if let Value::Table(_) = *x { true } else { false })
+    t.iter().all(|(_, x)| is_match!(*x, Value::Table(_)))
 }
 
 fn has_main_section(t: &Table) -> bool {
