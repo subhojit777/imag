@@ -18,6 +18,7 @@
 //
 
 use libimagstore::store::Entry;
+use libimagstore::toml_ext::TomlValueExt;
 
 use builtin::header::field_path::FieldPath;
 use filters::filter::Filter;
