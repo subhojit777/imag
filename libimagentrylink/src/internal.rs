@@ -19,7 +19,6 @@
 
 use libimagstore::storeid::StoreId;
 use libimagstore::store::Entry;
-use libimagstore::store::EntryHeader;
 use libimagstore::store::Result as StoreResult;
 use libimagstore::toml_ext::TomlValueExt;
 use libimagerror::into::IntoError;
@@ -338,7 +337,7 @@ impl InternalLinker for Entry {
 
 }
 
-fn rewrite_links<I: Iterator<Item = Link>>(header: &mut EntryHeader, links: I) -> Result<()> {
+fn rewrite_links<I: Iterator<Item = Link>>(header: &mut Value, links: I) -> Result<()> {
     let links = try!(links.into_values()
                      .fold(Ok(vec![]), |acc, elem| {
                         acc.and_then(move |mut v| {
