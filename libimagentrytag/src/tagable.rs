@@ -19,8 +19,9 @@
 
 use itertools::Itertools;
 
-use libimagstore::store::{Entry, EntryHeader};
+use libimagstore::store::Entry;
 use libimagerror::into::IntoError;
+use libimagstore::toml_ext::TomlValueExt;
 
 use error::TagErrorKind;
 use error::MapErrInto;
@@ -43,7 +44,7 @@ pub trait Tagable {
 
 }
 
-impl Tagable for EntryHeader {
+impl Tagable for Value {
 
     fn get_tags(&self) -> Result<Vec<Tag>> {
         let tags = try!(self.read("imag.tags").map_err_into(TagErrorKind::HeaderReadError));
