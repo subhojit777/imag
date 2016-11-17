@@ -24,13 +24,11 @@ use std::str::Split;
 use clap::ArgMatches;
 use toml::Value;
 
-use libimagstore::store::EntryHeader;
 use libimagutil::key_value_split::IntoKeyValue;
 
-pub fn build_toml_header(matches: &ArgMatches, header: EntryHeader) -> EntryHeader {
+pub fn build_toml_header(matches: &ArgMatches, mut header: Value) -> Value {
     debug!("Building header from cli spec");
     if let Some(headerspecs) = matches.values_of("header") {
-        let mut main = header.into();
         let kvs = headerspecs.into_iter()
                             .filter_map(|hs| {
                                 debug!("- Processing: '{}'", hs);
@@ -42,18 +40,16 @@ pub fn build_toml_header(matches: &ArgMatches, header: EntryHeader) -> EntryHead
             let (key, value) = tpl.into();
             debug!("Splitting: {:?}", key);
             let mut split = key.split('.');
-            let current = split.next();
-            if current.is_some() {
-                insert_key_into(String::from(current.unwrap()), &mut split, Cow::Owned(value), &mut main);
+            match (split.next(), &mut header) {
+                (Some(cur), &mut Value::Table(ref mut hdr)) =>
+                    insert_key_into(String::from(cur), &mut split, Cow::Owned(value), hdr),
+                _ => { }
             }
         }
-
-        debug!("Header = {:?}", main);
-        EntryHeader::from(main)
-    } else {
-        debug!("Header = {:?}", header);
-        header
     }
+
+    debug!("Header = {:?}", header);
+    header
 }
 
 fn insert_key_into<'a>(current: String,
