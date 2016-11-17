@@ -44,7 +44,7 @@ impl Viewer for StdoutViewer {
 
     fn view_entry(&self, e: &Entry) -> Result<()> {
         if self.view_header {
-            println!("{}", encode_str(e.get_header().header()));
+            println!("{}", encode_str(e.get_header()));
         }
 
         if self.view_content {
