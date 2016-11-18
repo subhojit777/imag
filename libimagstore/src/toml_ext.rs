@@ -433,7 +433,7 @@ pub fn has_main_section(t: &Table) -> bool {
     t.contains_key("imag") && is_match!(t.get("imag"), Some(&Value::Table(_)))
 }
 
-fn has_imag_version_in_main_section(t: &Table) -> bool {
+pub fn has_imag_version_in_main_section(t: &Table) -> bool {
     use semver::Version;
 
     match *t.get("imag").unwrap() {

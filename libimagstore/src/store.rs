@@ -1176,7 +1176,7 @@ mod test {
 
     #[test]
     fn test_main_section_without_version() {
-        use super::has_imag_version_in_main_section;
+        use toml_ext::has_imag_version_in_main_section;
 
         let mut map = BTreeMap::new();
         map.insert("imag".into(), Value::Table(BTreeMap::new()));
@@ -1186,7 +1186,7 @@ mod test {
 
     #[test]
     fn test_main_section_with_version() {
-        use super::has_imag_version_in_main_section;
+        use toml_ext::has_imag_version_in_main_section;
 
         let mut map = BTreeMap::new();
         let mut sub = BTreeMap::new();
@@ -1198,7 +1198,7 @@ mod test {
 
     #[test]
     fn test_main_section_with_version_in_wrong_type() {
-        use super::has_imag_version_in_main_section;
+        use toml_ext::has_imag_version_in_main_section;
 
         let mut map = BTreeMap::new();
         let mut sub = BTreeMap::new();
