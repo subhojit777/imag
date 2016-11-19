@@ -33,6 +33,7 @@ use libimagstore::store::Result as StoreResult;
 use error::DiaryError as DE;
 use error::DiaryErrorKind as DEK;
 use error::MapErrInto;
+use libimagerror::into::IntoError;
 
 use module_path::ModuleEntryPath;
 
@@ -190,7 +191,7 @@ fn component_to_str<'a>(com: Component<'a>) -> Result<&'a str, DE> {
         Component::Normal(s) => Some(s),
         _ => None,
     }.and_then(|s| s.to_str())
-    .ok_or(DE::new(DEK::ParseError, None))
+    .ok_or(DEK::ParseError.into_error())
 }
 
 impl FromStoreId for DiaryId {
@@ -203,7 +204,7 @@ impl FromStoreId for DiaryId {
 
         fn next_component<'a>(components: &'a mut Rev<Components>) -> Result<&'a str, DE> {
             components.next()
-                .ok_or(DE::new(DEK::ParseError, None))
+                .ok_or(DEK::ParseError.into_error())
                 .and_then(component_to_str)
         }
 
