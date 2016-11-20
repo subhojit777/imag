@@ -28,7 +28,7 @@ generate_error_module!(
         EntryNotInDiary     => "Entry not in Diary",
         IOError             => "IO Error",
         ViewError           => "Error viewing diary entry",
-        ParseError          => "Error while parsing"
+        IdParseError        => "Error while parsing ID"
     );
 );
 
