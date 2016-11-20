@@ -30,6 +30,11 @@ use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::Result as StoreResult;
 
+use error::DiaryError as DE;
+use error::DiaryErrorKind as DEK;
+use error::MapErrInto;
+use libimagerror::into::IntoError;
+
 use module_path::ModuleEntryPath;
 
 #[derive(Debug, Clone)]
@@ -175,62 +180,77 @@ impl Into<NaiveDateTime> for DiaryId {
 
 pub trait FromStoreId : Sized {
 
-    fn from_storeid(&StoreId) -> Option<Self>;
+    fn from_storeid(&StoreId) -> Result<Self, DE>;
 
 }
 
 use std::path::Component;
 
-fn component_to_str<'a>(com: Component<'a>) -> Option<&'a str> {
+fn component_to_str<'a>(com: Component<'a>) -> Result<&'a str, DE> {
     match com {
         Component::Normal(s) => Some(s),
-        _ => None
+        _ => None,
     }.and_then(|s| s.to_str())
+    .ok_or(DEK::IdParseError.into_error())
 }
 
 impl FromStoreId for DiaryId {
 
-    fn from_storeid(s: &StoreId) -> Option<DiaryId> {
+    fn from_storeid(s: &StoreId) -> Result<DiaryId, DE> {
         use std::str::FromStr;
 
+        use std::path::Components;
+        use std::iter::Rev;
+
+        fn next_component<'a>(components: &'a mut Rev<Components>) -> Result<&'a str, DE> {
+            components.next()
+                .ok_or(DEK::IdParseError.into_error())
+                .and_then(component_to_str)
+        }
+
         let mut cmps   = s.components().rev();
-        let (hour, minute) = match cmps.next().and_then(component_to_str)
-            .and_then(|time| {
-                let mut time = time.split(":");
-                let hour     = time.next().and_then(|s| FromStr::from_str(s).ok());
-                let minute   = time.next()
-                    .and_then(|s| s.split("~").next())
-                    .and_then(|s| FromStr::from_str(s).ok());
 
-                debug!("Hour   = {:?}", hour);
-                debug!("Minute = {:?}", minute);
+        let (hour, minute) = try!(next_component(&mut cmps).and_then(|time| {
+            let mut time = time.split(":");
+            let hour     = time.next().and_then(|s| FromStr::from_str(s).ok());
+            let minute   = time.next()
+                .and_then(|s| s.split("~").next())
+                .and_then(|s| FromStr::from_str(s).ok());
 
-                match (hour, minute) {
-                    (Some(h), Some(m)) => Some((h, m)),
-                    _ => None,
-                }
-            })
-        {
-            Some(s) => s,
-            None => return None,
-        };
+            debug!("Hour   = {:?}", hour);
+            debug!("Minute = {:?}", minute);
 
-        let day   :Option<u32> = cmps.next().and_then(component_to_str).and_then(|s| FromStr::from_str(s).ok());
-        let month :Option<u32> = cmps.next().and_then(component_to_str).and_then(|s| FromStr::from_str(s).ok());
-        let year  :Option<i32> = cmps.next().and_then(component_to_str).and_then(|s| FromStr::from_str(s).ok());
-        let name       = cmps.next().and_then(component_to_str).map(String::from);
+            match (hour, minute) {
+                (Some(h), Some(m)) => Ok((h, m)),
+                _ => return Err(DE::new(DEK::IdParseError, None)),
+            }
+        }));
+
+        let day: Result<u32,_> = next_component(&mut cmps)
+            .and_then(|s| s.parse::<u32>()
+                      .map_err_into(DEK::IdParseError));
+
+        let month: Result<u32,_> = next_component(&mut cmps)
+            .and_then(|s| s.parse::<u32>()
+                      .map_err_into(DEK::IdParseError));
+
+        let year: Result<i32,_> = next_component(&mut cmps)
+            .and_then(|s| s.parse::<i32>()
+                      .map_err_into(DEK::IdParseError));
+
+        let name = next_component(&mut cmps).map(String::from);
 
         debug!("Day   = {:?}", day);
         debug!("Month = {:?}", month);
         debug!("Year  = {:?}", year);
         debug!("Name  = {:?}", name);
 
-        let day    = match day   { None => return None, Some(day)   => day };
-        let month  = match month { None => return None, Some(month) => month };
-        let year   = match year  { None => return None, Some(year)  => year };
-        let name   = match name  { None => return None, Some(name)  => name };
+        let day    = try!(day);
+        let month  = try!(month);
+        let year   = try!(year);
+        let name   = try!(name);
 
-        Some(DiaryId::new(name, year, month, day, hour, minute))
+        Ok(DiaryId::new(name, year, month, day, hour, minute))
     }
 
 }

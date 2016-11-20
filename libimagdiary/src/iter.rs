@@ -30,6 +30,7 @@ use entry::Entry as DiaryEntry;
 use error::DiaryError as DE;
 use error::DiaryErrorKind as DEK;
 use result::Result;
+use libimagerror::trace::trace_error;
 
 /// A iterator for iterating over diary entries
 pub struct DiaryEntryIterator<'a> {
@@ -99,9 +100,10 @@ impl<'a> Iterator for DiaryEntryIterator<'a> {
             if next.is_in_diary(self.name) {
                 debug!("Seems to be in diary: {:?}", next);
                 let id = match DiaryId::from_storeid(&next) {
-                    Some(i) => i,
-                    None => {
-                        debug!("Couldn't parse {:?} into DiaryId", next);
+                    Ok(i) => i,
+                    Err(e) => {
+                        trace_error(&e);
+                        debug!("Couldn't parse {:?} into DiaryId: {:?}", next, e);
                         continue;
                     }
                 };

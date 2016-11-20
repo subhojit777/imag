@@ -27,7 +27,8 @@ generate_error_module!(
         PathConversionError => "Error while converting paths internally",
         EntryNotInDiary     => "Entry not in Diary",
         IOError             => "IO Error",
-        ViewError           => "Error viewing diary entry"
+        ViewError           => "Error viewing diary entry",
+        IdParseError        => "Error while parsing ID"
     );
 );
 
