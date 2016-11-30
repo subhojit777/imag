@@ -1,0 +1,28 @@
+[package]
+name = "imag-mail"
+version = "0.2.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+semver = "0.5"
+clap = "2.*"
+log = "0.3"
+version = "2.0.1"
+toml = "0.2.*"
+url = "1.2"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimagmail]
+path = "../libimagmail"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
+[dependencies.libimagref]
+path = "../libimagref"
+
