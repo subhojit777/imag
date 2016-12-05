@@ -146,7 +146,7 @@ pub mod iter {
     ///     ---- | ---- | --- | ----
     ///        0 |    0 |   0 |   1
     ///        0 |    1 |   1 |   0
-    ///        1 |    1 |   1 |   0
+    ///        1 |    0 |   1 |   0
     ///        1 |    1 |   0 |   1
     ///
     /// If `bool` says "take if return value is false", we take the element if the `pred` returns
