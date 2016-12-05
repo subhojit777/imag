@@ -84,6 +84,7 @@ fn main() {
 
 fn handle_internal_linking(rt: &Runtime) {
     use libimagentrylink::internal::InternalLinker;
+    use libimagentrylink::external::iter::NoExternalIter;
 
     debug!("Handle internal linking call");
     let cmd = rt.cli().subcommand_matches("internal").unwrap();
@@ -96,6 +97,7 @@ fn handle_internal_linking(rt: &Runtime) {
                 match get_entry_by_name(rt, entry) {
                     Ok(Some(e)) => {
                         e.get_internal_links()
+                            .map(NoExternalIter::new)
                             .map(|links| {
                                 let i = links
                                     .filter_map(|l| {
