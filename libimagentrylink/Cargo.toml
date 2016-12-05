@@ -17,7 +17,7 @@ homepage      = "http://imag-pim.org"
 codegen-units = 2
 
 [dependencies]
-itertools = "0.4"
+itertools = "0.5"
 log = "0.3"
 toml = "0.2.*"
 semver = "0.5"
