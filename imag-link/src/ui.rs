@@ -71,6 +71,13 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                          .required(false)
                          .help("List links to this entry")
                          .value_name("ENTRY"))
+
+
+                    .arg(Arg::with_name("list-externals-too")
+                         .long("list-external")
+                         .takes_value(false)
+                         .required(false)
+                         .help("If --list is provided, also list external links (debugging helper that might be removed at some point"))
                     )
         .subcommand(SubCommand::with_name("external")
                     .about("Add and remove external links")
