@@ -52,7 +52,7 @@ imag-bin-check:
 
 imag-bin-check-outdated:
 	@$(ECHO) "\t[IMAG   ][CHECK  ]"
-	@$(CARGO) outdated --manifest-path ./bin/Cargo.toml
+	@$(CARGO) outdated --manifest-path ./bin/Cargo.toml --lockfile-path ./bin/Cargo.lock
 
 release: $(RELEASE_TARGETS) imag-bin-release
 	@$(ECHO) "\t[RELEASE]"
@@ -118,7 +118,9 @@ $(CHECK_TARGETS): %: .FORCE
 
 $(CHECK_OUTDATED_TARGETS): %: .FORCE $(subst -check-outdated,-update,$@)
 	@$(ECHO) "\t[OUTDATE]:\t$(subst -check-outdated,,$@)"
-	@$(CARGO) outdated -R --manifest-path ./$(subst -check-outdated,,$@)/Cargo.toml
+	@$(CARGO) outdated -R										  \
+		--manifest-path $(PWD)/$(subst -check-outdated,,$@)/Cargo.toml \
+		--lockfile-path $(PWD)/$(subst -check-outdated,,$@)/Cargo.lock
 
 .FORCE:
 
