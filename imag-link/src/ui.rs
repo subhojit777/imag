@@ -95,8 +95,8 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                     .arg(Arg::with_name("remove")
                          .long("remove")
                          .short("r")
-                         .takes_value(false)
-                         .required(false)
+                         .takes_value(true)
+                         .required(true)
                          .help("Remove one external link"))
 
                     .arg(Arg::with_name("set")
