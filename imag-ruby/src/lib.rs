@@ -18,9 +18,12 @@
 //
 
 #[macro_use] extern crate ruru;
+#[macro_use] extern crate lazy_static;
+#[macro_use] extern crate log;
 
 #[macro_use] extern crate libimagerror;
 extern crate libimagstore;
 extern crate libimagrt;
 #[macro_use] extern crate libimagutil;
 
+pub mod store;
