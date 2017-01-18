@@ -36,6 +36,7 @@ members = [
     "libimagnotes",
     "libimagref",
     "libimagrt",
+    "libimagruby",
     "libimagstore",
     "libimagstorestdhook",
     "libimagtimeui",
