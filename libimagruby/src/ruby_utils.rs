@@ -59,43 +59,15 @@ impl AsToml for AnyObject {
                  VM::raise(rte, "Cannot translate type '' to fit into TOML");
                  Value::Boolean(false)
              },
-             ValueType::Float =>
-                        Value::Float(self.try_convert_to::<Float>().unwrap().to_f64()),
-             ValueType::RString =>
-                        Value::String(self.try_convert_to::<RString>().unwrap().to_string()),
+             ValueType::Float => self.try_convert_to::<Float>().unwrap().as_toml(),
+             ValueType::RString => self.try_convert_to::<RString>().unwrap().as_toml(),
              ValueType::Regexp => {
                  let rte = Class::from_existing("TypeError");
                  VM::raise(rte, "Cannot translate type '' to fit into TOML");
                  Value::Boolean(false)
              },
-             ValueType::Array => {
-                let vals = self
-                    .try_convert_to::<Array>()
-                    .unwrap()
-                    .into_iter()
-                    .map(|v| v.as_toml())
-                    .collect::<Vec<Value>>();
-
-                Value::Array(vals)
-             },
-             ValueType::Hash => {
-                let mut btm = BTreeMap::new();
-                self.try_convert_to::<Hash>()
-                    .unwrap()
-                    .each(|key, value| {
-                        let key = match key.as_toml() {
-                            Value::String(s) => s,
-                            _ => {
-                                let rte = Class::from_existing("TypeError");
-                                VM::raise(rte, "Can only have String or Symbol as Key for TOML maps");
-                                String::new()
-                            }
-                        };
-                        let value = value.as_toml();
-                        btm.insert(key, value);
-                    });
-                Value::Table(btm)
-             },
+             ValueType::Array => self.try_convert_to::<Array>().unwrap().as_toml(),
+             ValueType::Hash  => self.try_convert_to::<Hash>().unwrap().as_toml(),
              ValueType::Struct => {
                  let rte = Class::from_existing("TypeError");
                  VM::raise(rte, "Cannot translate type '' to fit into TOML");
@@ -134,8 +106,8 @@ impl AsToml for AnyObject {
              ValueType::Nil => Value::Boolean(false),
              ValueType::True => Value::Boolean(true),
              ValueType::False => Value::Boolean(false),
-             ValueType::Symbol => Value::String(self.try_convert_to::<Symbol>().unwrap().to_string()),
-             ValueType::Fixnum => Value::Integer(self.try_convert_to::<Fixnum>().unwrap().to_i64()),
+             ValueType::Symbol => self.try_convert_to::<Symbol>().unwrap().as_toml(),
+             ValueType::Fixnum => self.try_convert_to::<Fixnum>().unwrap().as_toml(),
              ValueType::Undef => {
                  let rte = Class::from_existing("TypeError");
                  VM::raise(rte, "Cannot translate type '' to fit into TOML");
@@ -162,6 +134,76 @@ impl AsToml for AnyObject {
                  Value::Boolean(false)
              },
         }
+    }
+
+}
+
+impl AsToml for Hash {
+
+    fn as_toml(&self) -> Value {
+        let mut btm = BTreeMap::new();
+        self.try_convert_to::<Hash>()
+            .unwrap()
+            .each(|key, value| {
+                let key = match key.as_toml() {
+                    Value::String(s) => s,
+                    _ => {
+                        let rte = Class::from_existing("TypeError");
+                        VM::raise(rte, "Can only have String or Symbol as Key for TOML maps");
+                        String::new()
+                    }
+                };
+                let value = value.as_toml();
+                btm.insert(key, value);
+            });
+        Value::Table(btm)
+    }
+
+}
+
+impl AsToml for Array {
+
+    fn as_toml(&self) -> Value {
+        let vals = self
+            .try_convert_to::<Array>()
+            .unwrap()
+            .into_iter()
+            .map(|v| v.as_toml())
+            .collect::<Vec<Value>>();
+
+        Value::Array(vals)
+    }
+
+}
+
+impl AsToml for RString {
+
+    fn as_toml(&self) -> Value {
+        Value::String(self.try_convert_to::<RString>().unwrap().to_string())
+    }
+
+}
+
+impl AsToml for Float {
+
+    fn as_toml(&self) -> Value {
+        Value::Float(self.try_convert_to::<Float>().unwrap().to_f64())
+    }
+
+}
+
+impl AsToml for Symbol {
+
+    fn as_toml(&self) -> Value {
+        Value::String(self.try_convert_to::<Symbol>().unwrap().to_string())
+    }
+
+}
+
+impl AsToml for Fixnum {
+
+    fn as_toml(&self) -> Value {
+        Value::Integer(self.try_convert_to::<Fixnum>().unwrap().to_i64())
     }
 
 }
