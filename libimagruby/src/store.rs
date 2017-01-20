@@ -211,13 +211,19 @@ pub mod store {
 
         wrappable_struct!(EntryHeader, EntryHeaderWrapper, ENTRY_HEADER_WRAPPER);
         class!(REntryHeader);
+
+        impl Wrap for EntryHeader {
+            fn wrap(self) -> AnyObject {
+                Class::from_existing("REntryHeader").wrap_data(self, &*ENTRY_HEADER_WRAPPER)
+            }
+        }
+
         methods!(
             REntryHeader,
             itself,
 
             fn r_entry_header_new() -> AnyObject {
-                Class::from_existing("REntryHeader")
-                    .wrap_data(EntryHeader::new(), &*ENTRY_HEADER_WRAPPER)
+                EntryHeader::new().wrap()
             }
 
             fn r_entry_header_insert(spec: RString, obj: AnyObject) -> Boolean {
