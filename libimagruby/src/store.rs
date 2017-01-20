@@ -135,16 +135,16 @@ pub mod storeid {
     pub fn setup() -> Class {
         let mut class = Class::new("RStoreId", None);
         class.define(|itself| {
-                itself.def_self("new"          , r_storeid_new);
-                itself.def_self("new_baseless" , r_storeid_new_baseless);
+            itself.def_self("new"          , r_storeid_new);
+            itself.def_self("new_baseless" , r_storeid_new_baseless);
 
-                itself.def("without_base"      , r_storeid_without_base);
-                itself.def("with_base"         , r_storeid_with_base);
-                itself.def("into_pathbuf"      , r_storeid_into_pathbuf);
-                itself.def("exists"            , r_storeid_exists);
-                itself.def("to_str"            , r_storeid_to_str);
-                itself.def("local"             , r_storeid_local);
-            });
+            itself.def("without_base"      , r_storeid_without_base);
+            itself.def("with_base"         , r_storeid_with_base);
+            itself.def("into_pathbuf"      , r_storeid_into_pathbuf);
+            itself.def("exists"            , r_storeid_exists);
+            itself.def("to_str"            , r_storeid_to_str);
+            itself.def("local"             , r_storeid_local);
+        });
         class
     }
 
