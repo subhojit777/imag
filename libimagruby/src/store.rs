@@ -237,6 +237,26 @@ pub mod store {
                 }
             }
 
+            fn r_entry_header_get(spec: RString) -> AnyObject {
+                use ruru::NilClass;
+
+                if let Err(ref error) = spec { // raise exception if "spec" is not a String
+                    VM::raise(error.to_exception(), error.description());
+                    return Boolean::new(false).to_any_object();
+                }
+
+                let spec = spec.unwrap().to_string(); // safe because of check above.
+
+                match itself.get_data(&*ENTRY_HEADER_WRAPPER).read(&spec) {
+                    Ok(Some(v)) => v.into_ruby(),
+                    Ok(None)    => NilClass::new().to_any_object(),
+                    Err(e) => {
+                        VM::raise(Class::from_existing("RuntimeError"), e.description());
+                        return Boolean::new(false).to_any_object();
+                    }
+                }
+            }
+
         );
 
         wrappable_struct!(EntryContent, EntryContentWrapper, ENTRY_CONTENT_WRAPPER);
