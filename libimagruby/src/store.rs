@@ -207,6 +207,11 @@ pub mod store {
             fn r_get_location() -> AnyObject {
                 itself.get_data(&*FLE_WRAPPER).get_location().clone().wrap()
             }
+
+            fn r_get_header() -> AnyObject {
+                itself.get_data(&*FLE_WRAPPER).get_header().clone().wrap()
+            }
+
         );
 
         wrappable_struct!(EntryHeader, EntryHeaderWrapper, ENTRY_HEADER_WRAPPER);
