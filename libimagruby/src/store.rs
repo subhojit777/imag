@@ -290,6 +290,12 @@ pub mod store {
         wrappable_struct!(EntryContent, EntryContentWrapper, ENTRY_CONTENT_WRAPPER);
         class!(REntryContent);
 
+        impl Wrap for EntryContent {
+            fn wrap(self) -> AnyObject {
+                Class::from_existing("REntryContent").wrap_data(self, &*ENTRY_CONTENT_WRAPPER)
+            }
+        }
+
         wrappable_struct!(Entry, EntryWrapper, ENTRY_WRAPPER);
         class!(REntry);
 
