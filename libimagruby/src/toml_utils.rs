@@ -19,7 +19,7 @@
 
 // Toml -> Ruby translation primitives
 
-use ruru::AnyObject;
+use ruru::{Object, AnyObject, RString, Fixnum, Float, Boolean, Hash, Array};
 use toml::Value;
 
 pub trait AsRuby : Sized {
@@ -36,7 +36,29 @@ impl<T: AsRuby> IntoRuby for T { }
 impl AsRuby for Value {
 
     fn as_ruby(&self) -> AnyObject {
-        unimplemented!()
+        match *self {
+            Value::String(ref s)   => RString::new(&s).to_any_object(),
+            Value::Integer(i)      => Fixnum::new(i).to_any_object(),
+            Value::Float(f)        => Float::new(f).to_any_object(),
+            Value::Boolean(b)      => Boolean::new(b).to_any_object(),
+            Value::Datetime(ref s) => RString::new(&s).to_any_object(),
+            Value::Array(ref a)    => {
+                let mut arr = Array::new();
+                for obj in a.into_iter().map(AsRuby::as_ruby) {
+                    arr.push(obj);
+                }
+                arr.to_any_object()
+            },
+            Value::Table(ref t) => {
+                let mut h = Hash::new();
+                for (k, v) in t.into_iter() {
+                    let key = RString::new(k).to_any_object();
+                    let v = v.as_ruby();
+                    h.store(key, v);
+                }
+                h.to_any_object()
+            },
+        }
     }
 
 }
