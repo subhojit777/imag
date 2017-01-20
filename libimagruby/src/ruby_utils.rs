@@ -17,22 +17,27 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#[macro_use] extern crate ruru;
-#[macro_use] extern crate lazy_static;
-#[macro_use] extern crate log;
-extern crate toml;
+// Ruby -> Toml translation primitives
 
-#[macro_use] extern crate libimagerror;
-extern crate libimagstore;
-extern crate libimagrt;
-#[macro_use] extern crate libimagutil;
+use ruru::AnyObject;
+use toml::Value;
 
-pub mod store;
-pub mod toml_utils;
-pub mod ruby_utils;
+pub trait AsToml : Sized {
+    fn as_toml(&self) -> Value;
+}
 
-#[no_mangle]
-pub extern fn imag_ruby_initialize() {
-    self::store::storeid::setup();
+pub trait IntoToml : AsToml {
+    fn into_toml(self) -> Value {
+        self.as_toml()
+    }
+}
+impl<T: AsToml> IntoToml for T { }
+
+impl AsToml for AnyObject {
+
+    fn as_toml(&self) -> Value {
+        unimplemented!()
+    }
+
 }
 
