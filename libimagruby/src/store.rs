@@ -358,6 +358,13 @@ pub mod store {
 
         pub fn setup_filelockentry() -> Class {
             let mut class = Class::new("RFileLockEntry", None);
+            class.define(|itself| {
+                itself.def("location", r_get_location);
+                itself.def("header"  , r_get_header);
+                itself.def("header=" , r_set_header);
+                itself.def("content" , r_get_content);
+                itself.def("content=", r_set_content);
+            });
             class
         }
 
