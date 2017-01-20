@@ -240,6 +240,30 @@ pub mod store {
                 itself.get_data(&*FLE_WRAPPER).get_content().clone().wrap()
             }
 
+            fn r_set_content(ctt: RString) -> NilClass {
+                use ruby_utils::IntoToml;
+                use toml_utils::IntoRuby;
+                use toml::Value;
+
+                let mut content = itself.get_data(&*FLE_WRAPPER).get_content_mut();
+
+                if let Err(ref error) = ctt { // raise exception if "ctt" is not a String
+                    VM::raise(error.to_exception(), error.description());
+                    return NilClass::new();
+                }
+
+                let hdr = match ctt.unwrap().into_toml() {
+                    Value::String(s) => *content = s,
+                    _ => {
+                        let ec = Class::from_existing("RuntimeError");
+                        VM::raise(ec, "Something weird happened. String seems to be not a String");
+                        return NilClass::new();
+                    },
+                };
+
+                NilClass::new()
+            }
+
         );
 
         wrappable_struct!(EntryHeader, EntryHeaderWrapper, ENTRY_HEADER_WRAPPER);
