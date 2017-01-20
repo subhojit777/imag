@@ -272,6 +272,11 @@ pub mod store {
 
         pub fn setup_entryheader() -> Class {
             let mut class = Class::new("REntryHeader", None);
+            class.define(|itself| {
+                itself.def("insert", r_entry_header_insert);
+                itself.def("set"   , r_entry_header_set);
+                itself.def("read"  , r_entry_header_get);
+            });
             class
         }
 
