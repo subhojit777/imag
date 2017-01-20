@@ -13,9 +13,6 @@ documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.h
 repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
-[profile.dev]
-codegen-units = 2
-
 [dependencies]
 url = "1.2"
 boolinator = "2.4.0"
