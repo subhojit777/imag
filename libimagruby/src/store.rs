@@ -36,6 +36,7 @@ pub mod storeid {
             let base = match base.map(|b| b.to_string()).map(PathBuf::from) {
                 Ok(base) => base,
                 Err(e) => {
+                    // TODO: Exception!
                     error!("Building StoreId object failed: {:?}", e);
                     return AnyObject::from(NilClass::new().value());
                 },
@@ -44,6 +45,7 @@ pub mod storeid {
             let id = match id.map(|id| id.to_string()).map(PathBuf::from) {
                 Ok(id) => id,
                 Err(e) => {
+                    // TODO: Exception!
                     error!("Building StoreId object failed: {:?}", e);
                     return AnyObject::from(NilClass::new().value());
                 },
@@ -52,6 +54,7 @@ pub mod storeid {
             match StoreId::new(Some(base), id) {
                 Ok(sid) => Class::from_existing("RStoreId").wrap_data(sid, &*STOREID_WRAPPER),
                 Err(e) => {
+                    // TODO: Exception!
                     error!("Building StoreId object failed: {:?}", e);
                     return AnyObject::from(NilClass::new().value());
                 },
@@ -62,6 +65,7 @@ pub mod storeid {
             let id = match id.map(|id| id.to_string()).map(PathBuf::from) {
                 Ok(id) => id,
                 Err(e) => {
+                    // TODO: Exception!
                     error!("Building StoreId object failed: {:?}", e);
                     return AnyObject::from(NilClass::new().value());
                 },
@@ -70,6 +74,7 @@ pub mod storeid {
             match StoreId::new(None, id) {
                 Ok(sid) => Class::from_existing("RStoreId").wrap_data(sid, &*STOREID_WRAPPER),
                 Err(e) => {
+                    // TODO: Exception!
                     error!("Building StoreId object failed: {:?}", e);
                     return AnyObject::from(NilClass::new().value());
                 },
@@ -85,6 +90,7 @@ pub mod storeid {
             let base : PathBuf = match base.map(|b| b.to_string()).map(PathBuf::from) {
                 Ok(pb) => pb,
                 Err(e) => {
+                    // TODO: Exception!
                     error!("Error: {:?}", e);
                     return AnyObject::from(NilClass::new().value());
                 },
@@ -97,9 +103,11 @@ pub mod storeid {
             itself.get_data(&*STOREID_WRAPPER)
                 .clone()
                 .into_pathbuf()
+                // TODO: No unwraps
                 .map(|pb| pb.to_str().map(String::from).unwrap())
                 .as_ref()
                 .map(|s| AnyObject::from(RString::new(s).value()))
+                // TODO: Exception!
                 .unwrap_or(AnyObject::from(NilClass::new().value()))
         }
 
@@ -112,12 +120,13 @@ pub mod storeid {
                 .to_str()
                 .as_ref()
                 .map(|s| AnyObject::from(RString::new(s).value()))
+                // TODO: Exception!
                 .unwrap_or(AnyObject::from(NilClass::new().value()))
         }
 
         fn r_storeid_local() -> RString {
             let local = itself.get_data(&*STOREID_WRAPPER).local();
-            let local = local.to_str().unwrap();
+            let local = local.to_str().unwrap(); // TODO: No unwraps
             RString::new(local)
         }
 
@@ -140,4 +149,3 @@ pub mod storeid {
     }
 
 }
-
