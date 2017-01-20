@@ -17,6 +17,11 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use ruru::AnyObject;
+trait Wrap {
+    fn wrap(self) -> AnyObject;
+}
+
 #[allow(unused_variables)]
 pub mod storeid {
     use std::path::PathBuf;
@@ -27,6 +32,13 @@ pub mod storeid {
 
     wrappable_struct!(StoreId, StoreIdWrapper, STOREID_WRAPPER);
     class!(RStoreId);
+
+    use store::Wrap;
+    impl Wrap for StoreId {
+        fn wrap(self) -> AnyObject {
+            Class::from_existing("RStoreId").wrap_data(self, &*STOREID_WRAPPER)
+        }
+    }
 
     methods!(
         RStoreId,
@@ -167,6 +179,7 @@ pub mod store {
 
         use ruby_utils::IntoToml;
         use toml_utils::IntoRuby;
+        use store::Wrap;
 
         pub struct FLECustomWrapper(Box<FLE<'static>>);
 
@@ -186,6 +199,15 @@ pub mod store {
 
         wrappable_struct!(FLECustomWrapper, FileLockEntryWrapper, FLE_WRAPPER);
         class!(RFileLockEntry);
+
+        methods!(
+            RFileLockEntry,
+            itself,
+
+            fn r_get_location() -> AnyObject {
+                itself.get_data(&*FLE_WRAPPER).get_location().clone().wrap()
+            }
+        );
 
         wrappable_struct!(EntryHeader, EntryHeaderWrapper, ENTRY_HEADER_WRAPPER);
         class!(REntryHeader);
