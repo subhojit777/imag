@@ -20,6 +20,7 @@
 #[macro_use] extern crate ruru;
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate log;
+extern crate toml;
 
 #[macro_use] extern crate libimagerror;
 extern crate libimagstore;
