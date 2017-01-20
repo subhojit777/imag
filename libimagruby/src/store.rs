@@ -170,7 +170,7 @@ pub mod store {
         use std::ops::Deref;
         use std::ops::DerefMut;
 
-        use ruru::{Class, Object, AnyObject, Boolean, RString, VM};
+        use ruru::{Class, Object, AnyObject, Boolean, RString, VM, Hash, NilClass};
 
         use libimagstore::store::FileLockEntry as FLE;
         use libimagstore::store::EntryHeader;
@@ -210,6 +210,30 @@ pub mod store {
 
             fn r_get_header() -> AnyObject {
                 itself.get_data(&*FLE_WRAPPER).get_header().clone().wrap()
+            }
+
+            fn r_set_header(hdr: Hash) -> NilClass {
+                use ruby_utils::IntoToml;
+                use toml_utils::IntoRuby;
+                use toml::Value;
+
+                let mut header = itself.get_data(&*FLE_WRAPPER).get_header_mut();
+
+                if let Err(ref error) = hdr { // raise exception if "hdr" is not a Hash
+                    VM::raise(error.to_exception(), error.description());
+                    return NilClass::new();
+                }
+
+                let hdr = match hdr.unwrap().into_toml() {
+                    Value::Table(t) => *header = EntryHeader::from(t),
+                    _ => {
+                        let ec = Class::from_existing("RuntimeError");
+                        VM::raise(ec, "Something weird happened. Hash seems to be not a Hash");
+                        return NilClass::new();
+                    },
+                };
+
+                NilClass::new()
             }
 
         );
