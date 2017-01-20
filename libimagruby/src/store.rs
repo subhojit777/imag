@@ -236,6 +236,10 @@ pub mod store {
                 NilClass::new()
             }
 
+            fn r_get_content() -> AnyObject {
+                itself.get_data(&*FLE_WRAPPER).get_content().clone().wrap()
+            }
+
         );
 
         wrappable_struct!(EntryHeader, EntryHeaderWrapper, ENTRY_HEADER_WRAPPER);
