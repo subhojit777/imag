@@ -27,6 +27,7 @@ extern crate libimagstore;
 extern crate libimagrt;
 #[macro_use] extern crate libimagutil;
 
+pub mod imag;
 pub mod store;
 pub mod toml_utils;
 pub mod ruby_utils;
