@@ -158,12 +158,15 @@ pub mod store {
         use std::ops::Deref;
         use std::ops::DerefMut;
 
-        use ruru::{Class, Object, Array, Hash, Fixnum, Float, Symbol, AnyObject, Boolean, RString, VM};
+        use ruru::{Class, Object, AnyObject, Boolean, RString, VM};
 
         use libimagstore::store::FileLockEntry as FLE;
         use libimagstore::store::EntryHeader;
         use libimagstore::store::EntryContent;
         use libimagstore::store::Entry;
+
+        use ruby_utils::IntoToml;
+        use toml_utils::IntoRuby;
 
         pub struct FLECustomWrapper(Box<FLE<'static>>);
 
@@ -196,10 +199,6 @@ pub mod store {
             }
 
             fn r_entry_header_insert(spec: RString, obj: AnyObject) -> Boolean {
-                use toml::Value;
-                use ruru::types::ValueType;
-                use ruby_utils::IntoToml;
-
                 if let Err(ref error) = spec { // raise exception if "spec" is not a String
                     VM::raise(error.to_exception(), error.description());
                     return Boolean::new(false);
@@ -213,6 +212,27 @@ pub mod store {
                     Err(e) => {
                         VM::raise(Class::from_existing("RuntimeError"), e.description());
                         return Boolean::new(false);
+                    }
+                }
+            }
+
+            fn r_entry_header_set(spec: RString, obj: AnyObject) -> AnyObject {
+                use ruru::NilClass;
+
+                if let Err(ref error) = spec { // raise exception if "spec" is not a String
+                    VM::raise(error.to_exception(), error.description());
+                    return Boolean::new(false).to_any_object();
+                }
+
+                let spec = spec.unwrap().to_string(); // safe because of check above.
+                let obj = obj.unwrap(); // possibly not safe... TODO
+
+                match itself.get_data(&*ENTRY_HEADER_WRAPPER).set(&spec, obj.into_toml()) {
+                    Ok(Some(v)) => v.into_ruby(),
+                    Ok(None)    => NilClass::new().to_any_object(),
+                    Err(e) => {
+                        VM::raise(Class::from_existing("RuntimeError"), e.description());
+                        return Boolean::new(false).to_any_object();
                     }
                 }
             }
