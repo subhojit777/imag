@@ -27,3 +27,9 @@ extern crate libimagrt;
 #[macro_use] extern crate libimagutil;
 
 pub mod store;
+
+#[no_mangle]
+pub extern fn imag_ruby_initialize() {
+    self::store::storeid::setup();
+}
+
