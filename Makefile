@@ -65,7 +65,10 @@ bin-test: $(BIN_TARGET_TESTS)
 lib: $(LIB_TARGETS)
 	@$(ECHO) "\t[ALLLIB ]"
 
-lib-test: $(LIB_TARGETS_TEST)
+lib-test: $(LIB_TARGETS_TEST) lib-imag-ruby-test
+
+lib-imag-ruby-test:
+	@$(MAKE) -C imag-ruby
 
 test: bin-test lib-test
 
