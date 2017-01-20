@@ -1,5 +1,5 @@
 [package]
-name = "imag-ruby"
+name = "libimagruby"
 version = "0.1.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 

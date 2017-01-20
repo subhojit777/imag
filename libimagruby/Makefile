@@ -6,10 +6,10 @@ RUBY_TEST_TARGETS=$(foreach x,$(subst ,,$(RUBY_TESTS)),$(x))
 all: lib
 
 lib:
-	$(MAKE) -C .. imag-ruby
+	$(MAKE) -C .. libimagruby
 
 lib-release:
-	$(MAKE) -C .. imag-ruby-release
+	$(MAKE) -C .. libimagruby-release
 
 test: lib $(RUBY_TEST_TARGETS)
 

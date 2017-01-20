@@ -68,7 +68,7 @@ lib: $(LIB_TARGETS)
 lib-test: $(LIB_TARGETS_TEST) lib-imag-ruby-test
 
 lib-imag-ruby-test:
-	@$(MAKE) -C imag-ruby
+	@$(MAKE) -C libimagruby
 
 test: bin-test lib-test
 
