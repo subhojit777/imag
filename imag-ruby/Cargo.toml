@@ -13,6 +13,9 @@ documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.h
 repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
+[lib]
+crate-type = ["dylib"]
+
 [dependencies]
 ruru = "0.9"
 lazy_static = "0.2"
