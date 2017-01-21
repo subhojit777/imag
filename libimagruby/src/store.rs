@@ -36,6 +36,39 @@ macro_rules! impl_verified_object {
     };
 }
 
+/// Helper macro to simplify type checking in the ruby-interfacing functions.
+///
+/// # Return
+///
+/// If called with only the object to check, this returns NIL after raising an exception.
+/// If called with more arguments, the other things will be returned.
+/// E.G.:
+///
+/// ```ignore
+/// let obj1 = typecheck!(obj1); // returns `obj` or raises exception
+///
+/// // returns `obj` or raises exception and returns AnyObject (Boolean -> false):
+/// let obj2 = typecheck!(obj2 or return any Boolean::new(false));
+///
+/// // returns `obj` or raises excpetion and returns Boolean -> false
+/// let obj3 = typecheck!(obj3 or return Boolean::new(false));
+/// ```
+///
+macro_rules! typecheck {
+    ($obj: ident)                          => { typecheck!($obj or return NilClass::new()) };
+    ($obj: ident or return any $els: expr) => { typecheck!($obj or return $els.to_any_object()) };
+    ($obj: ident or return $els: expr)     => {
+        match $obj {
+            Ok(o)  => o,
+            Err(e) => {
+                VM::raise(e.to_exception(), e.description());
+                return $els
+            },
+        }
+    };
+
+}
+
 #[allow(unused_variables)]
 pub mod storeid {
     use std::path::PathBuf;
@@ -235,20 +268,13 @@ pub mod store {
 
                 let mut header = itself.get_data(&*FLE_WRAPPER).get_header_mut();
 
-                if let Err(ref error) = hdr { // raise exception if "hdr" is not a Hash
-                    VM::raise(error.to_exception(), error.description());
-                    return NilClass::new();
-                }
-
-                let hdr = match hdr.unwrap().into_toml() {
+                match typecheck!(hdr or return NilClass::new()).into_toml() {
                     Value::Table(t) => *header = EntryHeader::from(t),
                     _ => {
                         let ec = Class::from_existing("RuntimeError");
                         VM::raise(ec, "Something weird happened. Hash seems to be not a Hash");
-                        return NilClass::new();
                     },
                 };
-
                 NilClass::new()
             }
 
@@ -263,19 +289,13 @@ pub mod store {
 
                 let mut content = itself.get_data(&*FLE_WRAPPER).get_content_mut();
 
-                if let Err(ref error) = ctt { // raise exception if "ctt" is not a String
-                    VM::raise(error.to_exception(), error.description());
-                    return NilClass::new();
-                }
-
-                let hdr = match ctt.unwrap().into_toml() {
+                match typecheck!(ctt).into_toml() {
                     Value::String(s) => *content = s,
                     _ => {
                         let ec = Class::from_existing("RuntimeError");
                         VM::raise(ec, "Something weird happened. String seems to be not a String");
-                        return NilClass::new();
                     },
-                };
+                }
 
                 NilClass::new()
             }
@@ -302,19 +322,14 @@ pub mod store {
             }
 
             fn r_entry_header_insert(spec: RString, obj: AnyObject) -> Boolean {
-                if let Err(ref error) = spec { // raise exception if "spec" is not a String
-                    VM::raise(error.to_exception(), error.description());
-                    return Boolean::new(false);
-                }
-
-                let spec = spec.unwrap().to_string(); // safe because of check above.
+                let spec = typecheck!(spec or return Boolean::new(false)).to_string();
                 let obj = obj.unwrap(); // possibly not safe... TODO
 
                 match itself.get_data(&*ENTRY_HEADER_WRAPPER).insert(&spec, obj.into_toml()) {
                     Ok(b) => Boolean::new(b),
                     Err(e) => {
                         VM::raise(Class::from_existing("RuntimeError"), e.description());
-                        return Boolean::new(false);
+                        Boolean::new(false)
                     }
                 }
             }
@@ -322,12 +337,7 @@ pub mod store {
             fn r_entry_header_set(spec: RString, obj: AnyObject) -> AnyObject {
                 use ruru::NilClass;
 
-                if let Err(ref error) = spec { // raise exception if "spec" is not a String
-                    VM::raise(error.to_exception(), error.description());
-                    return Boolean::new(false).to_any_object();
-                }
-
-                let spec = spec.unwrap().to_string(); // safe because of check above.
+                let spec = typecheck!(spec or return any Boolean::new(false)).to_string();
                 let obj = obj.unwrap(); // possibly not safe... TODO
 
                 match itself.get_data(&*ENTRY_HEADER_WRAPPER).set(&spec, obj.into_toml()) {
@@ -343,12 +353,7 @@ pub mod store {
             fn r_entry_header_get(spec: RString) -> AnyObject {
                 use ruru::NilClass;
 
-                if let Err(ref error) = spec { // raise exception if "spec" is not a String
-                    VM::raise(error.to_exception(), error.description());
-                    return Boolean::new(false).to_any_object();
-                }
-
-                let spec = spec.unwrap().to_string(); // safe because of check above.
+                let spec = typecheck!(spec or return any Boolean::new(false)).to_string();
 
                 match itself.get_data(&*ENTRY_HEADER_WRAPPER).read(&spec) {
                     Ok(Some(v)) => v.into_ruby(),
