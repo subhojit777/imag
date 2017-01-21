@@ -403,5 +403,146 @@ pub mod store {
         }
     }
 
+    use libimagstore::store::Store;
+    use std::error::Error;
+    use std::ops::Deref;
+    use std::ops::DerefMut;
+
+    use ruru::{Class, Object, AnyObject, Boolean, RString, VM, Hash, NilClass, VerifiedObject};
+
+    use ruby_utils::IntoToml;
+    use toml_utils::IntoRuby;
+    use store::Wrap;
+
+    wrappable_struct!(Store, StoreWrapper, STORE_WRAPPER);
+    class!(RStore);
+    impl_verified_object!(RStore);
+
+    impl Wrap for Store {
+        fn wrap(self) -> AnyObject {
+            Class::from_existing("RStore").wrap_data(self, &*STORE_WRAPPER)
+        }
+    }
+
+    use store::storeid::RStoreId;
+    use store::store::entry::RFileLockEntry;
+
+    methods!(
+        RStore,
+        itself,
+
+        // Create an FileLockEntry in the store
+        //
+        // # Returns:
+        //
+        // On success: A RFileLockEntry
+        // On failure: Nil
+        // On error: Nil + Exception
+        //
+        fn create(id: RStoreId) -> AnyObject {
+            unimplemented!()
+        }
+
+        // Retrieve an FileLockEntry from the store
+        //
+        // # Returns:
+        //
+        // On success: A RFileLockEntry
+        // On error: Nil + Exception
+        //
+        fn retrieve(id: RStoreId) -> AnyObject {
+            unimplemented!()
+        }
+
+        // Get an FileLockEntry from the store
+        //
+        // # Returns:
+        //
+        // On success, if there is some: A RFileLockEntry
+        // On success, if there is none: Nil
+        // On error: Nil + Exception
+        //
+        fn get(sid: RStoreId) -> AnyObject {
+            unimplemented!()
+        }
+
+        // Get all FileLockEntry of a module from the store
+        //
+        // # Returns:
+        //
+        // On success: A Array[RFileLockEntry]
+        // On error: Nil + Exception
+        //
+        fn retrieve_for_module(name: RString) -> AnyObject {
+            unimplemented!()
+        }
+
+        // Update a FileLockEntry in the store
+        //
+        // # Returns:
+        //
+        // On success: Nil
+        // On error: Nil + Exception
+        //
+        fn update(fle: RFileLockEntry) -> NilClass {
+            unimplemented!()
+        }
+
+        // Delete a FileLockEntry from the store
+        //
+        // # Returns:
+        //
+        // On success: Nil
+        // On error: Nil + Exception
+        //
+        fn delete(sid: RStoreId) -> NilClass {
+            unimplemented!()
+        }
+
+        // Save a FileLockEntry in a new path inside the store, keep the RFileLockEntry
+        //
+        // # Returns:
+        //
+        // On success: Nil
+        // On error: Nil + Exception
+        //
+        fn save_to(fle: RFileLockEntry, sid: RStoreId) -> NilClass {
+            unimplemented!()
+        }
+
+        // Save a FileLockEntry in a new path inside the store, move the RFileLockEntry
+        //
+        // # Returns:
+        //
+        // On success: Nil
+        // On error: Nil + Exception
+        //
+        fn save_as(fle: RFileLockEntry, sid: RStoreId) -> NilClass {
+            unimplemented!()
+        }
+
+        // Move one entry in the store to another place, by its ID
+        //
+        // # Returns:
+        //
+        // On success: Nil
+        // On error: Nil + Exception
+        //
+        fn move_by_id(old: RStoreId, nw: RStoreId) -> NilClass {
+            unimplemented!()
+        }
+
+        // Get the path of the store object
+        //
+        // # Returns:
+        //
+        // A RString
+        //
+        fn path() -> RString {
+            unimplemented!()
+        }
+
+    );
+
 }
 
