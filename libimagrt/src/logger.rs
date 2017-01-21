@@ -27,6 +27,7 @@ use ansi_term::Colour;
 use ansi_term::ANSIString;
 
 pub struct ImagLogger {
+    prefix: String,
     lvl: LogLevel,
     color_enabled: bool,
 }
@@ -35,9 +36,15 @@ impl ImagLogger {
 
     pub fn new(lvl: LogLevel) -> ImagLogger {
         ImagLogger {
+            prefix: "[imag]".to_owned(),
             lvl: lvl,
             color_enabled: true
         }
+    }
+
+    pub fn with_prefix(mut self, pref: String) -> ImagLogger {
+        self.prefix = pref;
+        self
     }
 
     pub fn with_color(mut self, b: bool) -> ImagLogger {
@@ -84,22 +91,22 @@ impl Log for ImagLogger {
                     let ln   = self.color_or_not(Cyan, format!("{}", loc.line()));
                     let args = self.color_or_not(Cyan, format!("{}", record.args()));
 
-                    writeln!(stderr(), "[imag][{: <5}][{}][{: >5}]: {}", lvl, file, ln, args).ok();
+                    writeln!(stderr(), "{}[{: <5}][{}][{: >5}]: {}", self.prefix, lvl, file, ln, args).ok();
                 },
                 LogLevel::Warn | LogLevel::Error => {
                     let lvl  = self.style_or_not(Red.blink(), format!("{}", record.level()));
                     let args = self.color_or_not(Red, format!("{}", record.args()));
 
-                    writeln!(stderr(), "[imag][{: <5}]: {}", lvl, args).ok();
+                    writeln!(stderr(), "{}[{: <5}]: {}", self.prefix, lvl, args).ok();
                 },
                 LogLevel::Info => {
                     let lvl  = self.color_or_not(Yellow, format!("{}", record.level()));
                     let args = self.color_or_not(Yellow, format!("{}", record.args()));
 
-                    writeln!(stderr(), "[imag][{: <5}]: {}", lvl, args).ok();
+                    writeln!(stderr(), "{}[{: <5}]: {}", self.prefix, lvl, args).ok();
                 },
                 _ => {
-                    writeln!(stderr(), "[imag][{: <5}]: {}", record.level(), record.args()).ok();
+                    writeln!(stderr(), "{}[{: <5}]: {}", self.prefix, record.level(), record.args()).ok();
                 },
             }
         }
