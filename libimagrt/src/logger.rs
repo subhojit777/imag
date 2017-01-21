@@ -28,6 +28,7 @@ use ansi_term::ANSIString;
 
 pub struct ImagLogger {
     prefix: String,
+    dbg_fileline: bool,
     lvl: LogLevel,
     color_enabled: bool,
 }
@@ -37,9 +38,15 @@ impl ImagLogger {
     pub fn new(lvl: LogLevel) -> ImagLogger {
         ImagLogger {
             prefix: "[imag]".to_owned(),
+            dbg_fileline: true,
             lvl: lvl,
             color_enabled: true
         }
+    }
+
+    pub fn with_dbg_file_and_line(mut self, b: bool) -> ImagLogger {
+        self.dbg_fileline = b;
+        self
     }
 
     pub fn with_prefix(mut self, pref: String) -> ImagLogger {
@@ -87,11 +94,15 @@ impl Log for ImagLogger {
             match record.metadata().level() {
                 LogLevel::Debug => {
                     let lvl  = self.color_or_not(Cyan, format!("{}", record.level()));
-                    let file = self.color_or_not(Cyan, format!("{}", loc.file()));
-                    let ln   = self.color_or_not(Cyan, format!("{}", loc.line()));
                     let args = self.color_or_not(Cyan, format!("{}", record.args()));
+                    if self.dbg_fileline {
+                        let file = self.color_or_not(Cyan, format!("{}", loc.file()));
+                        let ln   = self.color_or_not(Cyan, format!("{}", loc.line()));
 
-                    writeln!(stderr(), "{}[{: <5}][{}][{: >5}]: {}", self.prefix, lvl, file, ln, args).ok();
+                        writeln!(stderr(), "{}[{: <5}][{}][{: >5}]: {}", self.prefix, lvl, file, ln, args).ok();
+                    } else {
+                        writeln!(stderr(), "{}[{: <5}]: {}", self.prefix, lvl, args).ok();
+                    }
                 },
                 LogLevel::Warn | LogLevel::Error => {
                     let lvl  = self.style_or_not(Red.blink(), format!("{}", record.level()));
