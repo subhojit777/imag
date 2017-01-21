@@ -22,16 +22,31 @@ trait Wrap {
     fn wrap(self) -> AnyObject;
 }
 
+macro_rules! impl_verified_object {
+    ($objname: ty) => {
+        impl VerifiedObject for $objname {
+            fn is_correct_type<T: Object>(object: &T) -> bool {
+                object.class() == Class::from_existing(stringify!($objname))
+            }
+
+            fn error_message() -> &'static str {
+                concat!("Not a ", stringify!($objname), " object")
+            }
+        }
+    };
+}
+
 #[allow(unused_variables)]
 pub mod storeid {
     use std::path::PathBuf;
 
-    use ruru::{Class, Object, AnyObject, Boolean, RString, NilClass};
+    use ruru::{Class, Object, AnyObject, Boolean, RString, NilClass, VerifiedObject};
 
     use libimagstore::storeid::StoreId;
 
     wrappable_struct!(StoreId, StoreIdWrapper, STOREID_WRAPPER);
     class!(RStoreId);
+    impl_verified_object!(RStoreId);
 
     use store::Wrap;
     impl Wrap for StoreId {
@@ -170,7 +185,7 @@ pub mod store {
         use std::ops::Deref;
         use std::ops::DerefMut;
 
-        use ruru::{Class, Object, AnyObject, Boolean, RString, VM, Hash, NilClass};
+        use ruru::{Class, Object, AnyObject, Boolean, RString, VM, Hash, NilClass, VerifiedObject};
 
         use libimagstore::store::FileLockEntry as FLE;
         use libimagstore::store::EntryHeader;
@@ -199,6 +214,7 @@ pub mod store {
 
         wrappable_struct!(FLECustomWrapper, FileLockEntryWrapper, FLE_WRAPPER);
         class!(RFileLockEntry);
+        impl_verified_object!(RFileLockEntry);
 
         methods!(
             RFileLockEntry,
@@ -268,6 +284,8 @@ pub mod store {
 
         wrappable_struct!(EntryHeader, EntryHeaderWrapper, ENTRY_HEADER_WRAPPER);
         class!(REntryHeader);
+
+        impl_verified_object!(REntryHeader);
 
         impl Wrap for EntryHeader {
             fn wrap(self) -> AnyObject {
