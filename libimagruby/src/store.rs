@@ -32,15 +32,20 @@ use util::Unwrap;
 
 use storeid::RStoreId;
 use entry::RFileLockEntry;
+use cache::StoreHandle;
 
-wrappable_struct!(Store, StoreWrapper, STORE_WRAPPER);
+wrappable_struct!(StoreHandle, StoreWrapper, STORE_WRAPPER);
 class!(RStore);
-impl_wrap!(Store, STORE_WRAPPER);
-impl_unwrap!(RStore, Store, STORE_WRAPPER);
+impl_wrap!(StoreHandle, STORE_WRAPPER);
+impl_unwrap!(RStore, StoreHandle, STORE_WRAPPER);
 impl_verified_object!(RStore);
 
 macro_rules! call_on_store_by_handle {
     ($store_handle:ident -> $name:ident -> $operation:block) => {{
+        call_on_store_by_handle!($store_handle -> $name -> $operation on fail return NilClass::new().to_any_object())
+    }};
+
+    ($store_handle:ident -> $name:ident -> $operation:block on fail return $ex:expr) => {{
         use cache::RUBY_STORE_CACHE;
 
         let arc = RUBY_STORE_CACHE.clone();
@@ -53,22 +58,26 @@ macro_rules! call_on_store_by_handle {
                         None => {
                             VM::raise(Class::from_existing("RuntimeError"),
                                     "Tried to operate on non-existing object");
-                            NilClass::new().to_any_object()
+                            $ex
                         }
                     }
                 },
                 Err(e) => {
                     VM::raise(Class::from_existing("RuntimeError"), e.description());
-                    NilClass::new().to_any_object()
+                    $ex
                 }
             }
         }
-    }}
+    }};
 }
 
 macro_rules! call_on_store {
+    ($itself:ident ($wrapper:ident) -> $name:ident -> $operation:block on fail return $ex:expr) => {{
+        let handle = $itself.get_data(&*$wrapper);
+        call_on_store_by_handle!(handle -> $name -> $operation on fail return $ex)
+    }};
     ($itself:ident ($wrapper:ident) -> $name:ident -> $operation:block) => {{
-        let handle = $itself.get_data(&*$wrapper).store_handle();
+        let handle = $itself.get_data(&*$wrapper);
         call_on_store_by_handle!(handle -> $name -> $operation)
     }};
 }
@@ -178,12 +187,13 @@ methods!(
         let old = typecheck!(old).unwrap().clone();
         let nw  = typecheck!(nw).unwrap().clone();
 
-        if let Err(e) = itself.get_data(&*STORE_WRAPPER).move_by_id(old, nw) {
-            trace_error(&e);
-            VM::raise(Class::from_existing("RuntimeError"), e.description());
-        }
-
-        NilClass::new()
+        call_on_store!(itself (STORE_WRAPPER) -> store -> {
+            if let Err(e) = store.move_by_id(old, nw) {
+                trace_error(&e);
+                VM::raise(Class::from_existing("RuntimeError"), e.description());
+            }
+            NilClass::new()
+        } on fail return NilClass::new())
     }
 
     // Get the path of the store object
@@ -193,12 +203,13 @@ methods!(
     // A RString
     //
     fn path() -> RString {
-        itself.get_data(&*STORE_WRAPPER)
-            .path()
-            .clone()
-            .to_str()
-            .map(RString::new)
-            .unwrap_or(RString::new(""))
+        call_on_store!(itself (STORE_WRAPPER) -> store -> {
+            store.path()
+                .clone()
+                .to_str()
+                .map(RString::new)
+                .unwrap_or(RString::new(""))
+        } on fail return RString::new(""))
     }
 
 );
