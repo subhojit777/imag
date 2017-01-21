@@ -97,6 +97,48 @@ macro_rules! typecheck {
 
 }
 
+/// Helper macro for operating on FILE_LOCK_ENTRY_CACHE object
+///
+/// This macro fetches an ARC from the FILE_LOCK_ENTRY_CACHE, then locks the Mutex inside it
+/// and calls the $operation on the element inside the Mutex, this synchronizing the
+/// operation on the FILE_LOCK_ENTRY_CACHE.
+///
+/// Yes, this is performance-wise not very elegant, but we're working with Ruby, and we need
+/// to cache objects (why, see documentation for FILE_LOCK_ENTRY_CACHE).
+///
+macro_rules! operate_on_fle_cache {
+    (mut |$name: ident| $operation: block) => {{
+        use cache::FILE_LOCK_ENTRY_CACHE;
+
+        let arc = FILE_LOCK_ENTRY_CACHE.clone();
+        {
+            let lock = arc.lock();
+            match lock {
+                Ok(mut $name) => { $operation },
+                Err(e) => {
+                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                    NilClass::new().to_any_object()
+                }
+            }
+        }
+    }};
+    (|$name: ident| $operation: block) => {{
+        use cache::FILE_LOCK_ENTRY_CACHE;
+
+        let arc = FILE_LOCK_ENTRY_CACHE.clone();
+        {
+            let lock = arc.lock();
+            match lock {
+                Ok($name) => { $operation },
+                Err(e) => {
+                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                    NilClass::new().to_any_object()
+                }
+            }
+        }
+    }};
+}
+
 #[allow(unused_variables)]
 pub mod storeid {
     use std::path::PathBuf;
@@ -250,31 +292,40 @@ pub mod store {
         use libimagstore::store::EntryHeader;
         use libimagstore::store::EntryContent;
         use libimagstore::store::Entry;
+        use libimagstore::storeid::StoreId;
 
         use ruby_utils::IntoToml;
         use toml_utils::IntoRuby;
         use store::Wrap;
         use store::Unwrap;
+        use cache::FILE_LOCK_ENTRY_CACHE;
 
-        pub struct FLECustomWrapper(Box<FLE<'static>>);
+        pub struct FileLockEntryHandle(StoreId);
 
-        impl Deref for FLECustomWrapper {
-            type Target = Box<FLE<'static>>;
+        impl FileLockEntryHandle {
+            pub fn new(id: StoreId) -> FileLockEntryHandle {
+                FileLockEntryHandle(id)
+            }
+        }
+
+        impl Deref for FileLockEntryHandle {
+            type Target = StoreId;
 
             fn deref(&self) -> &Self::Target {
                 &self.0
             }
         }
 
-        impl DerefMut for FLECustomWrapper {
+        impl DerefMut for FileLockEntryHandle {
             fn deref_mut(&mut self) -> &mut Self::Target {
                 &mut self.0
             }
         }
 
-        wrappable_struct!(FLECustomWrapper, FileLockEntryWrapper, FLE_WRAPPER);
+        wrappable_struct!(FileLockEntryHandle, FileLockEntryWrapper, FLE_WRAPPER);
         class!(RFileLockEntry);
-        impl_unwrap!(RFileLockEntry, FLECustomWrapper, FLE_WRAPPER);
+        impl_unwrap!(RFileLockEntry, FileLockEntryHandle, FLE_WRAPPER);
+        impl_wrap!(FileLockEntryHandle, FLE_WRAPPER);
         impl_verified_object!(RFileLockEntry);
 
         methods!(
@@ -282,11 +333,29 @@ pub mod store {
             itself,
 
             fn r_get_location() -> AnyObject {
-                itself.get_data(&*FLE_WRAPPER).get_location().clone().wrap()
+                operate_on_fle_cache!(|hm| {
+                    match hm.get(itself.get_data(&*FLE_WRAPPER)) {
+                        Some(el) => el.get_location().clone().wrap(),
+                        None => {
+                            VM::raise(Class::from_existing("RuntimeError"),
+                                    "Tried to operate on non-existing object");
+                            NilClass::new().to_any_object()
+                        }
+                    }
+                })
             }
 
             fn r_get_header() -> AnyObject {
-                itself.get_data(&*FLE_WRAPPER).get_header().clone().wrap()
+                operate_on_fle_cache!(|hm| {
+                    match hm.get(itself.get_data(&*FLE_WRAPPER)) {
+                        Some(el) => el.get_header().clone().wrap(),
+                        None => {
+                            VM::raise(Class::from_existing("RuntimeError"),
+                                    "Tried to operate on non-existing object");
+                            NilClass::new().to_any_object()
+                        }
+                    }
+                })
             }
 
             fn r_set_header(hdr: Hash) -> NilClass {
@@ -294,20 +363,38 @@ pub mod store {
                 use toml_utils::IntoRuby;
                 use toml::Value;
 
-                let mut header = itself.get_data(&*FLE_WRAPPER).get_header_mut();
-
-                match typecheck!(hdr or return NilClass::new()).into_toml() {
-                    Value::Table(t) => *header = EntryHeader::from(t),
+                let entryheader = match typecheck!(hdr or return NilClass::new()).into_toml() {
+                    Value::Table(t) => EntryHeader::from(t),
                     _ => {
                         let ec = Class::from_existing("RuntimeError");
                         VM::raise(ec, "Something weird happened. Hash seems to be not a Hash");
+                        return NilClass::new();
                     },
                 };
+
+                operate_on_fle_cache!(mut |hm| {
+                    match hm.get_mut(itself.get_data(&*FLE_WRAPPER)) {
+                        Some(mut el) => {
+                            *el.get_header_mut() = entryheader;
+                        },
+                        None => {
+                            VM::raise(Class::from_existing("RuntimeError"),
+                                    "Tried to operate on non-existing object");
+                        }
+                    }
+                    NilClass::new().to_any_object()
+                });
+
                 NilClass::new()
             }
 
             fn r_get_content() -> AnyObject {
-                itself.get_data(&*FLE_WRAPPER).get_content().clone().wrap()
+                operate_on_fle_cache!(|hm| {
+                    match hm.get(itself.get_data(&*FLE_WRAPPER)) {
+                        Some(el) => el.get_content().clone().wrap(),
+                        None => NilClass::new().to_any_object()
+                    }
+                })
             }
 
             fn r_set_content(ctt: RString) -> NilClass {
@@ -315,15 +402,27 @@ pub mod store {
                 use toml_utils::IntoRuby;
                 use toml::Value;
 
-                let mut content = itself.get_data(&*FLE_WRAPPER).get_content_mut();
-
-                match typecheck!(ctt).into_toml() {
-                    Value::String(s) => *content = s,
+                let content = match typecheck!(ctt).into_toml() {
+                    Value::String(s) => s,
                     _ => {
                         let ec = Class::from_existing("RuntimeError");
                         VM::raise(ec, "Something weird happened. String seems to be not a String");
+                        return NilClass::new();
                     },
-                }
+                };
+
+                operate_on_fle_cache!(mut |hm| {
+                    match hm.get_mut(itself.get_data(&*FLE_WRAPPER)) {
+                        Some(el) => {
+                            *el.get_content_mut() = content;
+                        },
+                        None => {
+                            VM::raise(Class::from_existing("RuntimeError"),
+                                    "Tried to operate on non-existing object");
+                        }
+                    }
+                    NilClass::new().to_any_object()
+                });
 
                 NilClass::new()
             }

@@ -28,6 +28,8 @@ extern crate libimagstore;
 extern crate libimagrt;
 #[macro_use] extern crate libimagutil;
 
+mod cache;
+
 pub mod imag;
 pub mod store;
 pub mod toml_utils;
