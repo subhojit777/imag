@@ -22,6 +22,22 @@ trait Wrap {
     fn wrap(self) -> AnyObject;
 }
 
+trait Unwrap {
+    type Target;
+    fn unwrap<'a>(&'a self) -> &'a mut Self::Target;
+}
+
+macro_rules! impl_unwrap {
+    ($from: ty, $to: ty, $wrapper: path) => {
+        impl Unwrap for $from {
+            type Target = $to;
+            fn unwrap<'a>(&'a self) -> &'a mut $to {
+                self.get_data(&*($wrapper))
+            }
+        }
+    }
+}
+
 macro_rules! impl_verified_object {
     ($objname: ty) => {
         impl VerifiedObject for $objname {
@@ -76,9 +92,11 @@ pub mod storeid {
     use ruru::{Class, Object, AnyObject, Boolean, RString, NilClass, VerifiedObject};
 
     use libimagstore::storeid::StoreId;
+    use store::Unwrap;
 
     wrappable_struct!(StoreId, StoreIdWrapper, STOREID_WRAPPER);
     class!(RStoreId);
+    impl_unwrap!(RStoreId, StoreId, STOREID_WRAPPER);
     impl_verified_object!(RStoreId);
 
     use store::Wrap;
@@ -228,6 +246,7 @@ pub mod store {
         use ruby_utils::IntoToml;
         use toml_utils::IntoRuby;
         use store::Wrap;
+        use store::Unwrap;
 
         pub struct FLECustomWrapper(Box<FLE<'static>>);
 
@@ -247,6 +266,7 @@ pub mod store {
 
         wrappable_struct!(FLECustomWrapper, FileLockEntryWrapper, FLE_WRAPPER);
         class!(RFileLockEntry);
+        impl_unwrap!(RFileLockEntry, FLECustomWrapper, FLE_WRAPPER);
         impl_verified_object!(RFileLockEntry);
 
         methods!(
@@ -304,7 +324,7 @@ pub mod store {
 
         wrappable_struct!(EntryHeader, EntryHeaderWrapper, ENTRY_HEADER_WRAPPER);
         class!(REntryHeader);
-
+        impl_unwrap!(REntryHeader, EntryHeader, ENTRY_HEADER_WRAPPER);
         impl_verified_object!(REntryHeader);
 
         impl Wrap for EntryHeader {
@@ -369,6 +389,7 @@ pub mod store {
 
         wrappable_struct!(EntryContent, EntryContentWrapper, ENTRY_CONTENT_WRAPPER);
         class!(REntryContent);
+        impl_unwrap!(REntryContent, EntryContent, ENTRY_CONTENT_WRAPPER);
 
         impl Wrap for EntryContent {
             fn wrap(self) -> AnyObject {
@@ -378,6 +399,7 @@ pub mod store {
 
         wrappable_struct!(Entry, EntryWrapper, ENTRY_WRAPPER);
         class!(REntry);
+        impl_unwrap!(REntry, Entry, ENTRY_WRAPPER);
 
         pub fn setup_filelockentry() -> Class {
             let mut class = Class::new("RFileLockEntry", None);
@@ -418,9 +440,11 @@ pub mod store {
     use ruby_utils::IntoToml;
     use toml_utils::IntoRuby;
     use store::Wrap;
+    use store::Unwrap;
 
     wrappable_struct!(Store, StoreWrapper, STORE_WRAPPER);
     class!(RStore);
+    impl_unwrap!(RStore, Store, STORE_WRAPPER);
     impl_verified_object!(RStore);
 
     impl Wrap for Store {
