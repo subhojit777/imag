@@ -22,6 +22,18 @@ trait Wrap {
     fn wrap(self) -> AnyObject;
 }
 
+macro_rules! impl_wrap {
+    ($target: ty, $wrapper: path) => {
+        impl Wrap for $target {
+            fn wrap(self) -> AnyObject {
+                Class::from_existing(concat!("R", stringify!($target)))
+                    .wrap_data(self, &*($wrapper))
+            }
+        }
+    }
+}
+
+
 trait Unwrap {
     type Target;
     fn unwrap<'a>(&'a self) -> &'a mut Self::Target;
@@ -93,18 +105,14 @@ pub mod storeid {
 
     use libimagstore::storeid::StoreId;
     use store::Unwrap;
+    use store::Wrap;
 
     wrappable_struct!(StoreId, StoreIdWrapper, STOREID_WRAPPER);
     class!(RStoreId);
+    impl_wrap!(StoreId, STOREID_WRAPPER);
     impl_unwrap!(RStoreId, StoreId, STOREID_WRAPPER);
     impl_verified_object!(RStoreId);
 
-    use store::Wrap;
-    impl Wrap for StoreId {
-        fn wrap(self) -> AnyObject {
-            Class::from_existing("RStoreId").wrap_data(self, &*STOREID_WRAPPER)
-        }
-    }
 
     methods!(
         RStoreId,
@@ -324,14 +332,9 @@ pub mod store {
 
         wrappable_struct!(EntryHeader, EntryHeaderWrapper, ENTRY_HEADER_WRAPPER);
         class!(REntryHeader);
+        impl_wrap!(EntryHeader, ENTRY_HEADER_WRAPPER);
         impl_unwrap!(REntryHeader, EntryHeader, ENTRY_HEADER_WRAPPER);
         impl_verified_object!(REntryHeader);
-
-        impl Wrap for EntryHeader {
-            fn wrap(self) -> AnyObject {
-                Class::from_existing("REntryHeader").wrap_data(self, &*ENTRY_HEADER_WRAPPER)
-            }
-        }
 
         methods!(
             REntryHeader,
@@ -389,13 +392,8 @@ pub mod store {
 
         wrappable_struct!(EntryContent, EntryContentWrapper, ENTRY_CONTENT_WRAPPER);
         class!(REntryContent);
+        impl_wrap!(EntryContent, ENTRY_CONTENT_WRAPPER);
         impl_unwrap!(REntryContent, EntryContent, ENTRY_CONTENT_WRAPPER);
-
-        impl Wrap for EntryContent {
-            fn wrap(self) -> AnyObject {
-                Class::from_existing("REntryContent").wrap_data(self, &*ENTRY_CONTENT_WRAPPER)
-            }
-        }
 
         wrappable_struct!(Entry, EntryWrapper, ENTRY_WRAPPER);
         class!(REntry);
@@ -444,14 +442,9 @@ pub mod store {
 
     wrappable_struct!(Store, StoreWrapper, STORE_WRAPPER);
     class!(RStore);
+    impl_wrap!(Store, STORE_WRAPPER);
     impl_unwrap!(RStore, Store, STORE_WRAPPER);
     impl_verified_object!(RStore);
-
-    impl Wrap for Store {
-        fn wrap(self) -> AnyObject {
-            Class::from_existing("RStore").wrap_data(self, &*STORE_WRAPPER)
-        }
-    }
 
     use store::storeid::RStoreId;
     use store::store::entry::RFileLockEntry;
