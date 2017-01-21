@@ -561,7 +561,12 @@ pub mod store {
         // A RString
         //
         fn path() -> RString {
-            unimplemented!()
+            itself.get_data(&*STORE_WRAPPER)
+                .path()
+                .clone()
+                .to_str()
+                .map(RString::new)
+                .unwrap_or(RString::new(""))
         }
 
     );
