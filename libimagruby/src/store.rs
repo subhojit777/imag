@@ -41,11 +41,20 @@ impl_unwrap!(RStore, StoreHandle, STORE_WRAPPER);
 impl_verified_object!(RStore);
 
 macro_rules! call_on_store_by_handle {
-    ($store_handle:ident -> $name:ident -> $operation:block) => {{
-        call_on_store_by_handle!($store_handle -> $name -> $operation on fail return NilClass::new().to_any_object())
+    {
+        $store_handle:ident named $name:ident inside $operation:block
+    }=> {{
+        call_on_store_by_handle! {
+            $store_handle
+            named $name
+            inside $operation
+            on fail return NilClass::new().to_any_object()
+        }
     }};
 
-    ($store_handle:ident -> $name:ident -> $operation:block on fail return $ex:expr) => {{
+    {
+        $store_handle:ident named $name:ident inside $operation:block on fail return $ex:expr
+    } => {{
         use cache::RUBY_STORE_CACHE;
 
         let arc = RUBY_STORE_CACHE.clone();
@@ -92,20 +101,23 @@ macro_rules! call_on_store {
         on fail return $fail_expr:expr
     } => {
         let handle = $itself.get_data(&*$wrapper);
-        call_on_store_by_handle!(handle -> $store_name -> {
-            let $fle_name = match $store_name.get($fle_handle_name) {
-                Ok(Some(fle)) => fle,
-                Ok(None) => {
-                    VM::raise(Class::from_existing("RuntimeError"), "Obj does not exist");
-                    return $fail_expr
-                },
-                Err(e) => {
-                    VM::raise(Class::from_existing("RuntimeError"), e.description());
-                    return $fail_expr
-                },
-            };
-            $operation
-        } on fail return $fail_expr)
+        call_on_store_by_handle! {
+            handle named $store_name inside {
+                let $fle_name = match $store_name.get($fle_handle_name) {
+                    Ok(Some(fle)) => fle,
+                    Ok(None) => {
+                        VM::raise(Class::from_existing("RuntimeError"), "Obj does not exist");
+                        return $fail_expr
+                    },
+                    Err(e) => {
+                        VM::raise(Class::from_existing("RuntimeError"), e.description());
+                        return $fail_expr
+                    },
+                };
+                $operation
+            }
+            on fail return $fail_expr
+        }
     };
 
     {
@@ -114,7 +126,9 @@ macro_rules! call_on_store {
         on fail return $fail_expr:expr
     } => {
         let handle = $itself.get_data(&*$wrapper);
-        call_on_store_by_handle!(handle -> $store_name -> $operation on fail return $fail_expr)
+        call_on_store_by_handle! {
+            handle named $store_name inside $operation on fail return $fail_expr
+        }
     };
 
     {
@@ -122,7 +136,7 @@ macro_rules! call_on_store {
         operation $block
     } => {
         let handle = $itself.get_data(&*$wrapper);
-        call_on_store_by_handle!(handle -> $name -> $operation)
+        call_on_store_by_handle! { handle named $name inside $operation }
     };
 }
 
