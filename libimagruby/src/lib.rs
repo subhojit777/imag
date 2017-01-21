@@ -35,5 +35,9 @@ pub mod ruby_utils;
 #[no_mangle]
 pub extern fn imag_ruby_initialize() {
     self::store::storeid::setup();
+    self::store::store::entry::setup_filelockentry();
+    self::store::store::entry::setup_entryheader();
+    self::store::store::entry::setup_entrycontent();
+    self::imag::setup();
 }
 
