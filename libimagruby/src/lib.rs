@@ -22,6 +22,7 @@
 #[macro_use] extern crate log;
 extern crate env_logger;
 extern crate toml;
+extern crate uuid;
 
 #[macro_use] extern crate libimagerror;
 extern crate libimagstore;
