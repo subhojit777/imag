@@ -20,13 +20,74 @@
 
 use std::error::Error;
 
-use ruru::{Class, RString, NilClass, VM, Object};
+use ruru::{Class, Boolean, RString, NilClass, VM, Object};
+
+use libimagrt::logger::ImagLogger;
 
 class!(Imag);
 
 methods!(
     Imag,
     itself,
+
+    fn r_initialize_logger(debug: Boolean, verbose: Boolean, colored: Boolean) -> NilClass {
+        use std::env::var as env_var;
+        use env_logger;
+        use log;
+        use log::{Log, LogLevel, LogRecord, LogMetadata};
+        use log::LogLevelFilter;
+
+        let debug = match debug {
+            Ok(d)      => d.to_bool(),
+            Err(ref e) => {
+                VM::raise(e.to_exception(), e.description());
+                return NilClass::new();
+            },
+        };
+
+        let verbose = match verbose {
+            Ok(v)      => v.to_bool(),
+            Err(ref e) => {
+                VM::raise(e.to_exception(), e.description());
+                return NilClass::new();
+            },
+        };
+
+        let colored = match colored {
+            Ok(c)      => c.to_bool(),
+            Err(ref e) => {
+                VM::raise(e.to_exception(), e.description());
+                return NilClass::new();
+            },
+        };
+
+        if env_var("IMAG_LOG_ENV").is_ok() {
+            env_logger::init().unwrap();
+        } else {
+            let lvl = if debug {
+                LogLevelFilter::Debug
+            } else if verbose {
+                LogLevelFilter::Info
+            } else {
+                LogLevelFilter::Warn
+            };
+
+            log::set_logger(|max_log_lvl| {
+                max_log_lvl.set(lvl);
+                debug!("Init logger with {}", lvl);
+                let lgr = ImagLogger::new(lvl.to_log_level().unwrap())
+                    .with_color(colored)
+                    .with_prefix("[imag][ruby]".to_owned());
+                Box::new(lgr)
+            })
+            .map_err(|_| {
+                panic!("Could not setup logger");
+            })
+            .ok();
+        }
+
+        NilClass::new()
+    }
 
     fn r_log_trace(l: RString) -> NilClass {
         match l {
@@ -73,12 +134,13 @@ methods!(
 pub fn setup() -> Class {
     let mut class = Class::new("Imag", None);
     class.define(|itself| {
-        itself.def_self("trace",    r_log_trace);
-        itself.def_self("dbg",      r_log_debug);
-        itself.def_self("debug",    r_log_debug);
-        itself.def_self("info",     r_log_info);
-        itself.def_self("warn",     r_log_warn);
-        itself.def_self("error",    r_log_error);
+        itself.def_self("init_logger",  r_initialize_logger);
+        itself.def_self("trace",        r_log_trace);
+        itself.def_self("dbg",          r_log_debug);
+        itself.def_self("debug",        r_log_debug);
+        itself.def_self("info",         r_log_info);
+        itself.def_self("warn",         r_log_warn);
+        itself.def_self("error",        r_log_error);
     });
     class
 }

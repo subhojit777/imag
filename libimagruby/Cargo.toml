@@ -20,6 +20,7 @@ crate-type = ["dylib"]
 ruru = "0.9"
 lazy_static = "0.2"
 log = "0.3"
+env_logger = "0.3"
 toml = "0.2"
 
 [dependencies.libimagerror]
