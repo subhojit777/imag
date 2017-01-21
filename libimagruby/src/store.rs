@@ -39,6 +39,40 @@ impl_wrap!(Store, STORE_WRAPPER);
 impl_unwrap!(RStore, Store, STORE_WRAPPER);
 impl_verified_object!(RStore);
 
+macro_rules! call_on_store_by_handle {
+    ($store_handle:ident -> $name:ident -> $operation:block) => {{
+        use cache::RUBY_STORE_CACHE;
+
+        let arc = RUBY_STORE_CACHE.clone();
+        {
+            let lock = arc.lock();
+            match lock {
+                Ok(mut hm) => {
+                    match hm.get($store_handle) {
+                        Some($name) => { $operation },
+                        None => {
+                            VM::raise(Class::from_existing("RuntimeError"),
+                                    "Tried to operate on non-existing object");
+                            NilClass::new().to_any_object()
+                        }
+                    }
+                },
+                Err(e) => {
+                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                    NilClass::new().to_any_object()
+                }
+            }
+        }
+    }}
+}
+
+macro_rules! call_on_store {
+    ($itself:ident ($wrapper:ident) -> $name:ident -> $operation:block) => {{
+        let handle = $itself.get_data(&*$wrapper).store_handle();
+        call_on_store_by_handle!(handle -> $name -> $operation)
+    }};
+}
+
 methods!(
     RStore,
     itself,

@@ -88,82 +88,42 @@ impl_verified_object!(RFileLockEntry);
 #[macro_export]
 macro_rules! call_on_fle_from_store {
     ($itself:ident ($wrapper:ident) -> $name:ident -> $operation:block) => {{
-        use cache::RUBY_STORE_CACHE;
-
-        let arc = RUBY_STORE_CACHE.clone();
-        {
-            let lock = arc.lock();
-            match lock {
-                Ok(mut hm) => {
-                    let handle = $itself.get_data(&*$wrapper);
-                    match hm.get(handle.store_handle()) {
-                        Some(store) => {
-                            match store.get(handle.fle_handle().clone()) {
-                                Ok(Some(mut $name)) => {
-                                    $operation
-                                },
-                                Ok(None) => {
-                                    VM::raise(Class::from_existing("RuntimeError"), "Obj does not exist");
-                                    NilClass::new().to_any_object()
-                                },
-                                Err(e) => {
-                                    VM::raise(Class::from_existing("RuntimeError"), e.description());
-                                    NilClass::new().to_any_object()
-                                },
-                            }
-                        },
-                        None => {
-                            VM::raise(Class::from_existing("RuntimeError"),
-                                    "Tried to operate on non-existing object");
-                            NilClass::new().to_any_object()
-                        }
-                    }
+        let handle = $itself.get_data(&*$wrapper);
+        let store_handle = handle.store_handle();
+        call_on_store_by_handle!(store_handle -> store -> {
+            match store.get(handle.fle_handle().clone()) {
+                Ok(Some(mut $name)) => {
+                    $operation
+                },
+                Ok(None) => {
+                    VM::raise(Class::from_existing("RuntimeError"), "Obj does not exist");
+                    NilClass::new().to_any_object()
                 },
                 Err(e) => {
                     VM::raise(Class::from_existing("RuntimeError"), e.description());
                     NilClass::new().to_any_object()
-                }
+                },
             }
-        }
+        })
     }};
     ($itself:ident ($wrapper:ident) -> $name:ident -> $operation: block on fail return $ex:expr) => {{
-        use cache::RUBY_STORE_CACHE;
-
-        let arc = RUBY_STORE_CACHE.clone();
-        {
-            let lock = arc.lock();
-            match lock {
-                Ok(mut hm) => {
-                    let handle = $itself.get_data(&*$wrapper);
-                    match hm.get(handle.store_handle()) {
-                        Some(store) => {
-                            match store.get(handle.fle_handle().clone()) {
-                                Ok(Some(mut $name)) => {
-                                    $operation
-                                },
-                                Ok(None) => {
-                                    VM::raise(Class::from_existing("RuntimeError"), "Obj does not exist");
-                                    $ex
-                                },
-                                Err(e) => {
-                                    VM::raise(Class::from_existing("RuntimeError"), e.description());
-                                    $ex
-                                },
-                            }
-                        },
-                        None => {
-                            VM::raise(Class::from_existing("RuntimeError"),
-                                    "Tried to operate on non-existing object");
-                            NilClass::new().to_any_object()
-                        }
-                    }
+        let handle = $itself.get_data(&*$wrapper);
+        let store_handle = handle.store_handle();
+        call_on_store_by_handle!(store_handle -> store -> {
+            match store.get(handle.fle_handle().clone()) {
+                Ok(Some(mut $name)) => {
+                    $operation
+                },
+                Ok(None) => {
+                    VM::raise(Class::from_existing("RuntimeError"), "Obj does not exist");
+                    $ex
                 },
                 Err(e) => {
                     VM::raise(Class::from_existing("RuntimeError"), e.description());
-                    NilClass::new().to_any_object()
-                }
+                    $ex
+                },
             }
-        }
+        })
     }};
 }
 

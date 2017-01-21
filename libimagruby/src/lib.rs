@@ -30,12 +30,12 @@ extern crate libimagrt;
 #[macro_use] extern crate libimagutil;
 
 #[macro_use] mod util;
+#[macro_use] pub mod store;
 mod cache;
 
 pub mod entry;
 pub mod imag;
 pub mod ruby_utils;
-pub mod store;
 pub mod storeid;
 pub mod toml_utils;
 
