@@ -209,7 +209,19 @@ methods!(
     // On error: Nil + Exception
     //
     fn delete(sid: RStoreId) -> NilClass {
-        unimplemented!()
+        let sid = typecheck!(sid).unwrap().clone();
+
+        call_on_store! {
+            store <- itself wrapped inside STORE_WRAPPER,
+            operation {
+                if let Err(e) = store.delete(sid) {
+                    trace_error(&e);
+                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                }
+                NilClass::new()
+            },
+            on fail return NilClass::new()
+        }
     }
 
     // Save a FileLockEntry in a new path inside the store, keep the RFileLockEntry
