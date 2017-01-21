@@ -28,19 +28,23 @@ extern crate libimagstore;
 extern crate libimagrt;
 #[macro_use] extern crate libimagutil;
 
+#[macro_use] mod util;
 mod cache;
 
+pub mod entry;
 pub mod imag;
-pub mod store;
-pub mod toml_utils;
 pub mod ruby_utils;
+pub mod store;
+pub mod storeid;
+pub mod toml_utils;
 
 #[no_mangle]
 pub extern fn imag_ruby_initialize() {
-    self::store::storeid::setup();
-    self::store::store::entry::setup_filelockentry();
-    self::store::store::entry::setup_entryheader();
-    self::store::store::entry::setup_entrycontent();
+    self::store::setup();
+    self::storeid::setup();
+    self::entry::setup_filelockentry();
+    self::entry::setup_entryheader();
+    self::entry::setup_entrycontent();
     self::imag::setup();
 }
 
