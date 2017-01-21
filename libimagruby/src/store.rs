@@ -198,7 +198,20 @@ methods!(
     // On error: Nil + Exception
     //
     fn update(fle: RFileLockEntry) -> NilClass {
-        unimplemented!()
+        let fle = typecheck!(fle).unwrap().clone();
+
+        call_on_store! {
+            store <- itself wrapped inside STORE_WRAPPER,
+            real_fle <- fetch fle,
+            operation {
+                if let Err(e) = store.update(real_fle) {
+                    trace_error(&e);
+                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                }
+                NilClass::new()
+            },
+            on fail return NilClass::new()
+        }
     }
 
     // Delete a FileLockEntry from the store
