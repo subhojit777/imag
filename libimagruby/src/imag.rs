@@ -77,7 +77,8 @@ methods!(
                 debug!("Init logger with {}", lvl);
                 let lgr = ImagLogger::new(lvl.to_log_level().unwrap())
                     .with_color(colored)
-                    .with_prefix("[imag][ruby]".to_owned());
+                    .with_prefix("[imag][ruby]".to_owned())
+                    .with_dbg_file_and_line(false);
                 Box::new(lgr)
             })
             .map_err(|_| {
