@@ -72,35 +72,58 @@ macro_rules! call_on_store_by_handle {
 }
 
 macro_rules! call_on_store {
-    ($itself:ident ($wrapper:ident) -> $name:ident fetch $fle_handle_name:ident -> $fle_name:ident -> $operation:block) => {{
-        call_on_store!($itself ($wrapper) -> $name fetch $fle_handle_name -> $fle_name -> $operation on fail return NilClass::new())
-    }};
-    ($itself:ident ($wrapper:ident) -> $name:ident fetch $fle_handle_name:ident -> $fle_name:ident -> $operation:block on fail return $ex:expr) => {{
+    {
+        $store_name:ident <- $itself:ident wrapped inside $wrapper:ident,
+        $fle_name:ident <- fetch $fle_handle_name:ident
+        operation $operation:block
+    } => {
+        call_on_store! {
+            $store_name <- $itself wrapped inside $wrapper,
+            $fle_name <- fetch $fle_handle_name,
+            operation $operation,
+            on fail return NilClass::new()
+        }
+    };
+
+    {
+        $store_name:ident <- $itself:ident wrapped inside $wrapper:ident,
+        $fle_name:ident <- fetch $fle_handle_name:ident,
+        operation $operation:block,
+        on fail return $fail_expr:expr
+    } => {
         let handle = $itself.get_data(&*$wrapper);
-        call_on_store_by_handle!(handle -> $name -> {
-            let $fle_name = match $name.get($fle_handle_name) {
+        call_on_store_by_handle!(handle -> $store_name -> {
+            let $fle_name = match $store_name.get($fle_handle_name) {
                 Ok(Some(fle)) => fle,
                 Ok(None) => {
                     VM::raise(Class::from_existing("RuntimeError"), "Obj does not exist");
-                    return $ex
+                    return $fail_expr
                 },
                 Err(e) => {
                     VM::raise(Class::from_existing("RuntimeError"), e.description());
-                    return $ex
+                    return $fail_expr
                 },
             };
             $operation
-        } on fail return $ex)
-    }};
+        } on fail return $fail_expr)
+    };
 
-    ($itself:ident ($wrapper:ident) -> $name:ident -> $operation:block on fail return $ex:expr) => {{
+    {
+        $store_name:ident <- $itself:ident wrapped inside $wrapper:ident,
+        operation $operation:block,
+        on fail return $fail_expr:expr
+    } => {
         let handle = $itself.get_data(&*$wrapper);
-        call_on_store_by_handle!(handle -> $name -> $operation on fail return $ex)
-    }};
-    ($itself:ident ($wrapper:ident) -> $name:ident -> $operation:block) => {{
+        call_on_store_by_handle!(handle -> $store_name -> $operation on fail return $fail_expr)
+    };
+
+    {
+        $store_name:ident <- $itself:ident wrapped inside $wrapper:ident,
+        operation $block
+    } => {
         let handle = $itself.get_data(&*$wrapper);
         call_on_store_by_handle!(handle -> $name -> $operation)
-    }};
+    };
 }
 
 methods!(
@@ -186,13 +209,18 @@ methods!(
         let fle = typecheck!(fle).unwrap().clone();
         let sid = typecheck!(sid).unwrap().clone();
 
-        call_on_store!(itself (STORE_WRAPPER) -> store fetch fle -> real_fle -> {
-            if let Err(e) = store.save_to(&real_fle, sid) {
-                trace_error(&e);
-                VM::raise(Class::from_existing("RuntimeError"), e.description());
-            }
-            NilClass::new()
-        } on fail return NilClass::new())
+        call_on_store! {
+            store <- itself wrapped inside STORE_WRAPPER,
+            real_fle <- fetch fle,
+            operation {
+                if let Err(e) = store.save_to(&real_fle, sid) {
+                    trace_error(&e);
+                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                }
+                NilClass::new()
+            },
+            on fail return NilClass::new()
+        }
     }
 
     // Save a FileLockEntry in a new path inside the store, move the RFileLockEntry
@@ -206,13 +234,18 @@ methods!(
         let fle = typecheck!(fle).unwrap().clone();
         let sid = typecheck!(sid).unwrap().clone();
 
-        call_on_store!(itself (STORE_WRAPPER) -> store fetch fle -> real_fle -> {
-            if let Err(e) = store.save_as(real_fle, sid) {
-                trace_error(&e);
-                VM::raise(Class::from_existing("RuntimeError"), e.description());
-            }
-            NilClass::new()
-        } on fail return NilClass::new())
+        call_on_store! {
+            store <- itself wrapped inside STORE_WRAPPER,
+            real_fle <- fetch fle,
+            operation {
+                if let Err(e) = store.save_as(real_fle, sid) {
+                    trace_error(&e);
+                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                }
+                NilClass::new()
+            },
+            on fail return NilClass::new()
+        }
     }
 
     // Move one entry in the store to another place, by its ID
@@ -226,13 +259,17 @@ methods!(
         let old = typecheck!(old).unwrap().clone();
         let nw  = typecheck!(nw).unwrap().clone();
 
-        call_on_store!(itself (STORE_WRAPPER) -> store -> {
-            if let Err(e) = store.move_by_id(old, nw) {
-                trace_error(&e);
-                VM::raise(Class::from_existing("RuntimeError"), e.description());
-            }
-            NilClass::new()
-        } on fail return NilClass::new())
+        call_on_store! {
+            store <- itself wrapped inside STORE_WRAPPER,
+            operation {
+                if let Err(e) = store.move_by_id(old, nw) {
+                    trace_error(&e);
+                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                }
+                NilClass::new()
+            },
+            on fail return NilClass::new()
+        }
     }
 
     // Get the path of the store object
@@ -242,13 +279,17 @@ methods!(
     // A RString
     //
     fn path() -> RString {
-        call_on_store!(itself (STORE_WRAPPER) -> store -> {
-            store.path()
-                .clone()
-                .to_str()
-                .map(RString::new)
-                .unwrap_or(RString::new(""))
-        } on fail return RString::new(""))
+        call_on_store! {
+            store <- itself wrapped inside STORE_WRAPPER,
+            operation {
+                store.path()
+                    .clone()
+                    .to_str()
+                    .map(RString::new)
+                    .unwrap_or(RString::new(""))
+            },
+            on fail return RString::new("")
+        }
     }
 
 );
