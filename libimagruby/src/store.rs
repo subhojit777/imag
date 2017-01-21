@@ -429,6 +429,7 @@ pub mod store {
     }
 
     use libimagstore::store::Store;
+    use libimagerror::trace::trace_error;
     use std::error::Error;
     use std::ops::Deref;
     use std::ops::DerefMut;
@@ -551,7 +552,15 @@ pub mod store {
         // On error: Nil + Exception
         //
         fn move_by_id(old: RStoreId, nw: RStoreId) -> NilClass {
-            unimplemented!()
+            let old = typecheck!(old).unwrap().clone();
+            let nw  = typecheck!(nw).unwrap().clone();
+
+            if let Err(e) = itself.get_data(&*STORE_WRAPPER).move_by_id(old, nw) {
+                trace_error(&e);
+                VM::raise(Class::from_existing("RuntimeError"), e.description());
+            }
+
+            NilClass::new()
         }
 
         // Get the path of the store object
