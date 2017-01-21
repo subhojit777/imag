@@ -72,6 +72,27 @@ macro_rules! call_on_store_by_handle {
 }
 
 macro_rules! call_on_store {
+    ($itself:ident ($wrapper:ident) -> $name:ident fetch $fle_handle_name:ident -> $fle_name:ident -> $operation:block) => {{
+        call_on_store!($itself ($wrapper) -> $name fetch $fle_handle_name -> $fle_name -> $operation on fail return NilClass::new())
+    }};
+    ($itself:ident ($wrapper:ident) -> $name:ident fetch $fle_handle_name:ident -> $fle_name:ident -> $operation:block on fail return $ex:expr) => {{
+        let handle = $itself.get_data(&*$wrapper);
+        call_on_store_by_handle!(handle -> $name -> {
+            let $fle_name = match $name.get($fle_handle_name) {
+                Ok(Some(fle)) => fle,
+                Ok(None) => {
+                    VM::raise(Class::from_existing("RuntimeError"), "Obj does not exist");
+                    return $ex
+                },
+                Err(e) => {
+                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                    return $ex
+                },
+            };
+            $operation
+        } on fail return $ex)
+    }};
+
     ($itself:ident ($wrapper:ident) -> $name:ident -> $operation:block on fail return $ex:expr) => {{
         let handle = $itself.get_data(&*$wrapper);
         call_on_store_by_handle!(handle -> $name -> $operation on fail return $ex)
@@ -162,7 +183,16 @@ methods!(
     // On error: Nil + Exception
     //
     fn save_to(fle: RFileLockEntry, sid: RStoreId) -> NilClass {
-        unimplemented!()
+        let fle = typecheck!(fle).unwrap().clone();
+        let sid = typecheck!(sid).unwrap().clone();
+
+        call_on_store!(itself (STORE_WRAPPER) -> store fetch fle -> real_fle -> {
+            if let Err(e) = store.save_to(&real_fle, sid) {
+                trace_error(&e);
+                VM::raise(Class::from_existing("RuntimeError"), e.description());
+            }
+            NilClass::new()
+        } on fail return NilClass::new())
     }
 
     // Save a FileLockEntry in a new path inside the store, move the RFileLockEntry
@@ -173,7 +203,16 @@ methods!(
     // On error: Nil + Exception
     //
     fn save_as(fle: RFileLockEntry, sid: RStoreId) -> NilClass {
-        unimplemented!()
+        let fle = typecheck!(fle).unwrap().clone();
+        let sid = typecheck!(sid).unwrap().clone();
+
+        call_on_store!(itself (STORE_WRAPPER) -> store fetch fle -> real_fle -> {
+            if let Err(e) = store.save_as(real_fle, sid) {
+                trace_error(&e);
+                VM::raise(Class::from_existing("RuntimeError"), e.description());
+            }
+            NilClass::new()
+        } on fail return NilClass::new())
     }
 
     // Move one entry in the store to another place, by its ID
