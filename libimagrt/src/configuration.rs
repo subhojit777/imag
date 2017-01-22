@@ -34,7 +34,7 @@ generate_error_module!(
     );
 );
 
-use self::error::{ConfigError, ConfigErrorKind};
+pub use self::error::{ConfigError, ConfigErrorKind};
 
 /**
  * Result type of this module. Either `T` or `ConfigError`
