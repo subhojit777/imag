@@ -41,7 +41,8 @@ pub mod storeid;
 pub mod toml_utils;
 
 #[no_mangle]
-pub extern fn imag_ruby_initialize() {
+#[allow(non_snake_case)]
+pub extern fn Init_liblibimagruby() {
     self::store::setup();
     self::storeid::setup();
     self::entry::setup_filelockentry();

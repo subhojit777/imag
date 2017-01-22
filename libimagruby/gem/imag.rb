@@ -5,9 +5,9 @@ module RubyImag
   IMAG_INIT_FN_NAME = 'imag_ruby_initialize'
 
   def self.setup binary_path
-    require 'fiddle'
+    require binary_path
 
-    self.core_setup binary_path
+    self.core_setup
     self.classes_setup
   end
 
@@ -55,10 +55,7 @@ module RubyImag
     ]
   end
 
-  def self.core_setup binary
-    lib = Fiddle::dlopen binary
-    Fiddle::Function::new(lib[RubyImag::IMAG_INIT_FN_NAME], [], Fiddle::TYPE_VOIDP).call
-
+  def self.core_setup
     self.class_names.map {|n| [n, "R#{n}".to_sym ] }.each do |elem|
       RubyImag.const_set elem.first, Kernel.const_get(elem.last)
     end

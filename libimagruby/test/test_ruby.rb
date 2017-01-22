@@ -1,17 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'fiddle'
-
-INIT_FN = 'imag_ruby_initialize'
-
-for targ in %w(debug release)
-  begin
-    lib = Fiddle::dlopen "../target/#{targ}/liblibimagruby.so"
-    Fiddle::Function::new(lib[INIT_FN], [], Fiddle::TYPE_VOIDP).call
-    break;
-  rescue Fiddle::DLError
-  end
-end
+require "../target/debug/liblibimagruby.so"
 
 color = true
 verbose = true
