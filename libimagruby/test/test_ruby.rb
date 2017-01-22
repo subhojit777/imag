@@ -23,16 +23,36 @@ def works name, b
   end
 end
 
+def has_instance_method klass, meth
+  works "#{klass}.instance_methods.include? #{meth}",
+    (klass.instance_methods.include? meth)
+end
+
 puts "---"
 
-works "RStoreId.new_baseless"                              , (not RStoreId.new_baseless("test").nil?)
-works "RStoreHandle.respond_to? :new"                      , (RStoreHandle.respond_to? :new)
-works "RStoreHandle.instance_methods.include? :create"     , (RStoreHandle.instance_methods.include? :create)
-works "RStoreHandle.instance_methods.include? :get"        , (RStoreHandle.instance_methods.include? :get)
-works "RStoreHandle.instance_methods.include? :retrieve"   , (RStoreHandle.instance_methods.include? :retrieve)
-works "RStoreHandle.instance_methods.include? :delete"     , (RStoreHandle.instance_methods.include? :delete)
-works "RStoreHandle.instance_methods.include? :update"     , (RStoreHandle.instance_methods.include? :update)
-works "RStoreHandle.instance_methods.include? :move_by_id" , (RStoreHandle.instance_methods.include? :move_by_id)
-works "RStoreHandle.instance_methods.include? :save_as"    , (RStoreHandle.instance_methods.include? :save_as)
-works "RStoreHandle.instance_methods.include? :save_to"    , (RStoreHandle.instance_methods.include? :save_to)
+works "RStoreId.new_baseless", (not RStoreId.new_baseless("test").nil?)
+
+works "RStoreHandle.respond_to? :new", (RStoreHandle.respond_to? :new)
+
+has_instance_method RStoreHandle, :create
+has_instance_method RStoreHandle, :get
+has_instance_method RStoreHandle, :retrieve
+has_instance_method RStoreHandle, :delete
+has_instance_method RStoreHandle, :update
+has_instance_method RStoreHandle, :move_by_id
+has_instance_method RStoreHandle, :save_as
+has_instance_method RStoreHandle, :save_to
+
+has_instance_method RFileLockEntryHandle, :content
+has_instance_method RFileLockEntryHandle, :content=
+has_instance_method RFileLockEntryHandle, :header
+has_instance_method RFileLockEntryHandle, :header=
+
+has_instance_method REntryHeader, :read
+has_instance_method REntryHeader, :[]
+has_instance_method REntryHeader, :set
+has_instance_method REntryHeader, :[]=
+has_instance_method REntryHeader, :insert
+
+works "REntryContent.superclass == String", (REntryContent.superclass == String)
 
