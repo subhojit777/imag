@@ -27,8 +27,8 @@ use util::Wrap;
 
 wrappable_struct!(StoreId, StoreIdWrapper, STOREID_WRAPPER);
 class!(RStoreId);
-impl_wrap!(StoreId, STOREID_WRAPPER);
-impl_unwrap!(RStoreId, StoreId, STOREID_WRAPPER);
+impl_wrap!(StoreId => STOREID_WRAPPER);
+impl_unwrap!(RStoreId => StoreId => STOREID_WRAPPER);
 impl_verified_object!(RStoreId);
 
 

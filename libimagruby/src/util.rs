@@ -24,7 +24,7 @@ pub trait Wrap {
 
 #[macro_export]
 macro_rules! impl_wrap {
-    ($target: ty, $wrapper: path) => {
+    ($target:ty => $wrapper:path) => {
         impl Wrap for $target {
             fn wrap(self) -> AnyObject {
                 Class::from_existing(concat!("R", stringify!($target)))
@@ -41,7 +41,7 @@ pub trait Unwrap {
 
 #[macro_export]
 macro_rules! impl_unwrap {
-    ($from: ty, $to: ty, $wrapper: path) => {
+    ($from:ty => $to:ty => $wrapper:path) => {
         impl Unwrap for $from {
             type Target = $to;
             fn unwrap<'a>(&'a self) -> &'a mut $to {

@@ -56,8 +56,8 @@ impl FileLockEntryHandle {
 
 wrappable_struct!(FileLockEntryHandle, FileLockEntryWrapper, FLE_WRAPPER);
 class!(RFileLockEntryHandle);
-impl_wrap!(FileLockEntryHandle, FLE_WRAPPER);
-impl_unwrap!(RFileLockEntryHandle, FileLockEntryHandle, FLE_WRAPPER);
+impl_wrap!(FileLockEntryHandle => FLE_WRAPPER);
+impl_unwrap!(RFileLockEntryHandle => FileLockEntryHandle => FLE_WRAPPER);
 impl_verified_object!(RFileLockEntryHandle);
 
 /// Helper macro for operating on RUBY_STORE_CACHE object
@@ -184,8 +184,8 @@ methods!(
 
 wrappable_struct!(EntryHeader, EntryHeaderWrapper, ENTRY_HEADER_WRAPPER);
 class!(REntryHeader);
-impl_wrap!(EntryHeader, ENTRY_HEADER_WRAPPER);
-impl_unwrap!(REntryHeader, EntryHeader, ENTRY_HEADER_WRAPPER);
+impl_wrap!(EntryHeader => ENTRY_HEADER_WRAPPER);
+impl_unwrap!(REntryHeader => EntryHeader => ENTRY_HEADER_WRAPPER);
 impl_verified_object!(REntryHeader);
 
 methods!(
@@ -244,12 +244,12 @@ methods!(
 
 wrappable_struct!(EntryContent, EntryContentWrapper, ENTRY_CONTENT_WRAPPER);
 class!(REntryContent);
-impl_wrap!(EntryContent, ENTRY_CONTENT_WRAPPER);
-impl_unwrap!(REntryContent, EntryContent, ENTRY_CONTENT_WRAPPER);
+impl_wrap!(EntryContent => ENTRY_CONTENT_WRAPPER);
+impl_unwrap!(REntryContent => EntryContent => ENTRY_CONTENT_WRAPPER);
 
 wrappable_struct!(Entry, EntryWrapper, ENTRY_WRAPPER);
 class!(REntry);
-impl_unwrap!(REntry, Entry, ENTRY_WRAPPER);
+impl_unwrap!(REntry => Entry => ENTRY_WRAPPER);
 
 pub fn setup_filelockentry() -> Class {
     let mut class = Class::new("RFileLockEntryHandle", None);

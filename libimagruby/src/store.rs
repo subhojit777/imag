@@ -36,8 +36,8 @@ use cache::StoreHandle;
 
 wrappable_struct!(StoreHandle, StoreWrapper, STORE_WRAPPER);
 class!(RStoreHandle);
-impl_wrap!(StoreHandle, STORE_WRAPPER);
-impl_unwrap!(RStoreHandle, StoreHandle, STORE_WRAPPER);
+impl_wrap!(StoreHandle => STORE_WRAPPER);
+impl_unwrap!(RStoreHandle => StoreHandle => STORE_WRAPPER);
 impl_verified_object!(RStoreHandle);
 
 macro_rules! call_on_store_by_handle {
