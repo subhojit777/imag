@@ -153,7 +153,30 @@ methods!(
     // On error: Nil + Exception
     //
     fn create(id: RStoreId) -> AnyObject {
-        unimplemented!()
+        use entry::FileLockEntryHandle;
+        let sid = typecheck!(id or return any NilClass::new()).unwrap().clone();
+
+        call_on_store! {
+            store <- itself wrapped inside STORE_WRAPPER,
+            operation {
+                match store.create(sid.clone()) {
+                    Err(e) => {
+                        trace_error(&e);
+                        VM::raise(Class::from_existing("RuntimeError"), e.description());
+                        NilClass::new().to_any_object()
+                    },
+                    Ok(entry) => {
+                        // Take the location (StoreId) of the entry (we know it exists... so this
+                        // is fine) and wrap it into a RFileLockEntry which is then returned to the
+                        // user (as handle)
+                        let sid = entry.get_location().clone();
+                        let store_handle = itself.get_data(&*STORE_WRAPPER).clone();
+                        FileLockEntryHandle::new(store_handle, sid).wrap()
+                    },
+                }
+            },
+            on fail return NilClass::new().to_any_object()
+        }
     }
 
     // Retrieve an FileLockEntry from the store
