@@ -6,20 +6,20 @@ color = true
 verbose = true
 debug = true
 
-Imag.init_logger debug, verbose, color
+RImag.init_logger debug, verbose, color
 
-Imag.trace  "Trace-Hello from Ruby"
-Imag.dbg    "Debug-Hello from Ruby"
-Imag.debug  "Debug-Hello from Ruby"
-Imag.info   "Info-Hello from Ruby"
-Imag.warn   "Warn-Hello from Ruby"
-Imag.error  "Error-Hello from Ruby"
+RImag.trace  "Trace-Hello from Ruby"
+RImag.dbg    "Debug-Hello from Ruby"
+RImag.debug  "Debug-Hello from Ruby"
+RImag.info   "Info-Hello from Ruby"
+RImag.warn   "Warn-Hello from Ruby"
+RImag.error  "Error-Hello from Ruby"
 
 def works name, b
   if b
-    Imag.info "Works: #{name}"
+    RImag.info "Works: #{name}"
   else
-    Imag.error "Fails: #{name}"
+    RImag.error "Fails: #{name}"
   end
 end
 

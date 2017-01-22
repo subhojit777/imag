@@ -24,10 +24,10 @@ use ruru::{Class, Boolean, RString, NilClass, VM, Object};
 
 use libimagrt::logger::ImagLogger;
 
-class!(Imag);
+class!(RImag);
 
 methods!(
-    Imag,
+    RImag,
     itself,
 
     fn r_initialize_logger(debug: Boolean, verbose: Boolean, colored: Boolean) -> NilClass {
@@ -133,7 +133,7 @@ methods!(
 );
 
 pub fn setup() -> Class {
-    let mut class = Class::new("Imag", None);
+    let mut class = Class::new("RImag", None);
     class.define(|itself| {
         itself.def_self("init_logger",  r_initialize_logger);
         itself.def_self("trace",        r_log_trace);
