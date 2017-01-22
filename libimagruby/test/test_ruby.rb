@@ -36,5 +36,13 @@ end
 
 puts "---"
 
-works "RStoreId.new_baseless", (not RStoreId.new_baseless("test").nil?)
+works "RStoreId.new_baseless"                        , (not RStoreId.new_baseless("test").nil?)
+works "RStore.instance_methods.include? :create"     , (RStore.instance_methods.include? :create)
+works "RStore.instance_methods.include? :get"        , (RStore.instance_methods.include? :get)
+works "RStore.instance_methods.include? :retrieve"   , (RStore.instance_methods.include? :retrieve)
+works "RStore.instance_methods.include? :delete"     , (RStore.instance_methods.include? :delete)
+works "RStore.instance_methods.include? :update"     , (RStore.instance_methods.include? :update)
+works "RStore.instance_methods.include? :move_by_id" , (RStore.instance_methods.include? :move_by_id)
+works "RStore.instance_methods.include? :save_as"    , (RStore.instance_methods.include? :save_as)
+works "RStore.instance_methods.include? :save_to"    , (RStore.instance_methods.include? :save_to)
 
