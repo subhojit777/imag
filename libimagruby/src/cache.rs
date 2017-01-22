@@ -28,6 +28,12 @@ use libimagstore::store::Store;
 #[derive(Clone, Debug, Ord, Hash, Eq, PartialOrd, PartialEq)]
 pub struct StoreHandle(Uuid);
 
+impl StoreHandle {
+    pub fn new() -> StoreHandle {
+        StoreHandle(Uuid::new_v4())
+    }
+}
+
 lazy_static! {
     pub static ref RUBY_STORE_CACHE: Arc<Mutex<BTreeMap<StoreHandle, Store>>> = {
         Arc::new(Mutex::new(BTreeMap::new()))
