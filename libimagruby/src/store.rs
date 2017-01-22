@@ -403,6 +403,20 @@ methods!(
 
 );
 
-pub fn setup() {
-    unimplemented!()
+pub fn setup() -> Class {
+    let mut class = Class::new("RStore", None);
+    class.define(|itself| {
+        itself.def("create"              , create);
+        itself.def("retrieve"            , retrieve);
+        itself.def("get"                 , get);
+        itself.def("retrieve_for_module" , retrieve_for_module);
+        itself.def("update"              , update);
+        itself.def("delete"              , delete);
+        itself.def("save_to"             , save_to);
+        itself.def("save_as"             , save_as);
+        itself.def("move_by_id"          , move_by_id);
+        itself.def("path"                , path);
+    });
+    class
 }
+
