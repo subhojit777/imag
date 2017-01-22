@@ -268,7 +268,7 @@ methods!(
     // On error: Nil + Exception
     //
     fn update(fle: RFileLockEntry) -> NilClass {
-        let fle = typecheck!(fle).unwrap().clone();
+        let fle = typecheck!(fle).unwrap().fle_handle().clone();
 
         call_on_store! {
             store <- itself wrapped inside STORE_WRAPPER,
@@ -315,7 +315,7 @@ methods!(
     // On error: Nil + Exception
     //
     fn save_to(fle: RFileLockEntry, sid: RStoreId) -> NilClass {
-        let fle = typecheck!(fle).unwrap().clone();
+        let fle = typecheck!(fle).unwrap().fle_handle().clone();
         let sid = typecheck!(sid).unwrap().clone();
 
         call_on_store! {
@@ -340,7 +340,7 @@ methods!(
     // On error: Nil + Exception
     //
     fn save_as(fle: RFileLockEntry, sid: RStoreId) -> NilClass {
-        let fle = typecheck!(fle).unwrap().clone();
+        let fle = typecheck!(fle).unwrap().fle_handle().clone();
         let sid = typecheck!(sid).unwrap().clone();
 
         call_on_store! {

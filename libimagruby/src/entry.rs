@@ -54,20 +54,6 @@ impl FileLockEntryHandle {
     }
 }
 
-impl Deref for FileLockEntryHandle {
-    type Target = StoreId;
-
-    fn deref(&self) -> &Self::Target {
-        &self.1
-    }
-}
-
-impl DerefMut for FileLockEntryHandle {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.1
-    }
-}
-
 wrappable_struct!(FileLockEntryHandle, FileLockEntryWrapper, FLE_WRAPPER);
 class!(RFileLockEntry);
 impl_unwrap!(RFileLockEntry, FileLockEntryHandle, FLE_WRAPPER);
