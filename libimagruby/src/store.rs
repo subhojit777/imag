@@ -144,6 +144,142 @@ methods!(
     RStore,
     itself,
 
+    // Build a new Store object, return a handle to it.
+    //
+    // This function takes a boolean whether the store should include debugging functionality
+    // (namingly the debug hooks) and a runtimepath, where the store lifes.
+    // It then builds a Store object (raising errors on failure and returning Nil) and a handle for
+    // it.
+    // It puts the store object and the handle in the cache and returns the handle as object to the
+    // Ruby code.
+    //
+    // # Returns
+    //
+    // Nil on failure (including raising an error)
+    // StoreHandle on success
+    //
+    fn new(store_debugging: Boolean, rtp: RString) -> AnyObject {
+        use std::path::PathBuf;
+        use libimagerror::into::IntoError;
+        use libimagerror::trace::trace_error;
+        use libimagerror::trace::trace_error_dbg;
+        use libimagerror::trace::trace_error_exit;
+        use libimagrt::configuration::ConfigErrorKind;
+        use libimagrt::configuration::Configuration;
+        use libimagrt::error::RuntimeErrorKind;
+        use libimagstore::error::StoreErrorKind;
+        use libimagstore::hook::Hook;
+        use libimagstore::hook::position::HookPosition as HP;
+        use libimagstorestdhook::debug::DebugHook;
+        use libimagstorestdhook::vcs::git::delete::DeleteHook as GitDeleteHook;
+        use libimagstorestdhook::vcs::git::store_unload::StoreUnloadHook as GitStoreUnloadHook;
+        use libimagstorestdhook::vcs::git::update::UpdateHook as GitUpdateHook;
+
+        use cache::RUBY_STORE_CACHE;
+
+        let store_debugging = typecheck!(store_debugging or return any NilClass::new()).to_bool();
+        let rtp = PathBuf::from(typecheck!(rtp or return any NilClass::new()).to_string());
+
+        if !rtp.exists() || !rtp.is_dir() {
+            VM::raise(Class::from_existing("RuntimeError"), "Runtimepath not a directory");
+            return NilClass::new().to_any_object();
+        }
+
+        let store_config = match Configuration::new(&rtp) {
+            Ok(mut cfg) => cfg.store_config().cloned(),
+            Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
+                VM::raise(Class::from_existing("RuntimeError"), e.description());
+                return NilClass::new().to_any_object();
+            } else {
+                warn!("No config file found.");
+                warn!("Continuing without configuration file");
+                None
+            },
+        };
+
+        let storepath = {
+            let mut spath = rtp.clone();
+            spath.push("store");
+            spath
+        };
+
+        let store = Store::new(storepath.clone(), store_config).map(|mut store| {
+            // If we are debugging, generate hooks for all positions
+            if store_debugging {
+                let hooks : Vec<(Box<Hook>, &str, HP)> = vec![
+                    (Box::new(DebugHook::new(HP::PreCreate))          , "debug", HP::PreCreate),
+                    (Box::new(DebugHook::new(HP::PostCreate))         , "debug", HP::PostCreate),
+                    (Box::new(DebugHook::new(HP::PreRetrieve))        , "debug", HP::PreRetrieve),
+                    (Box::new(DebugHook::new(HP::PostRetrieve))       , "debug", HP::PostRetrieve),
+                    (Box::new(DebugHook::new(HP::PreUpdate))          , "debug", HP::PreUpdate),
+                    (Box::new(DebugHook::new(HP::PostUpdate))         , "debug", HP::PostUpdate),
+                    (Box::new(DebugHook::new(HP::PreDelete))          , "debug", HP::PreDelete),
+                    (Box::new(DebugHook::new(HP::PostDelete))         , "debug", HP::PostDelete),
+                ];
+
+                // If hook registration fails, trace the error and warn, but continue.
+                for (hook, aspectname, position) in hooks {
+                    if let Err(e) = store.register_hook(position, &String::from(aspectname), hook) {
+                        if e.err_type() == StoreErrorKind::HookRegisterError {
+                            trace_error_dbg(&e);
+                            warn!("Registering debug hook with store failed");
+                        } else {
+                            trace_error(&e);
+                        };
+                    }
+                }
+            }
+
+            let sp = storepath;
+
+            let hooks : Vec<(Box<Hook>, &str, HP)> = vec![
+                (Box::new(GitDeleteHook::new(sp.clone(), HP::PostDelete)), "vcs", HP::PostDelete),
+                (Box::new(GitUpdateHook::new(sp.clone(), HP::PostUpdate)), "vcs", HP::PostUpdate),
+                (Box::new(GitStoreUnloadHook::new(sp)),                    "vcs", HP::StoreUnload),
+            ];
+
+            for (hook, aspectname, position) in hooks {
+                if let Err(e) = store.register_hook(position, &String::from(aspectname), hook) {
+                    if e.err_type() == StoreErrorKind::HookRegisterError {
+                        trace_error_dbg(&e);
+                        warn!("Registering git hook with store failed");
+                    } else {
+                        trace_error(&e);
+                    };
+                }
+            }
+
+            store
+        });
+
+        let store = match store {
+            Ok(s) => s,
+            Err(e) => {
+                VM::raise(Class::from_existing("RuntimeError"), e.description());
+                return NilClass::new().to_any_object();
+            },
+        };
+
+        let store_handle = StoreHandle::new();
+
+        let arc = RUBY_STORE_CACHE.clone();
+        {
+            let lock = arc.lock();
+            match lock {
+                Ok(mut hm) => {
+                    hm.insert(store_handle.clone(), store);
+                    return store_handle.wrap().to_any_object();
+                },
+                Err(e) => {
+                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                    return NilClass::new().to_any_object();
+                }
+            }
+        }
+
+    }
+
+
     // Create an FileLockEntry in the store
     //
     // # Returns:
@@ -406,6 +542,7 @@ methods!(
 pub fn setup() -> Class {
     let mut class = Class::new("RStore", None);
     class.define(|itself| {
+        itself.def_self("new"            , new);
         itself.def("create"              , create);
         itself.def("retrieve"            , retrieve);
         itself.def("get"                 , get);

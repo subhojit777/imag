@@ -26,6 +26,7 @@ extern crate uuid;
 
 #[macro_use] extern crate libimagerror;
 extern crate libimagstore;
+extern crate libimagstorestdhook;
 extern crate libimagrt;
 #[macro_use] extern crate libimagutil;
 

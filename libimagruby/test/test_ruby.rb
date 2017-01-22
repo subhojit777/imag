@@ -37,6 +37,7 @@ end
 puts "---"
 
 works "RStoreId.new_baseless"                        , (not RStoreId.new_baseless("test").nil?)
+works "RStore.respond_to? :new"                      , (RStore.respond_to? :new)
 works "RStore.instance_methods.include? :create"     , (RStore.instance_methods.include? :create)
 works "RStore.instance_methods.include? :get"        , (RStore.instance_methods.include? :get)
 works "RStore.instance_methods.include? :retrieve"   , (RStore.instance_methods.include? :retrieve)
