@@ -36,14 +36,14 @@ end
 
 puts "---"
 
-works "RStoreId.new_baseless"                        , (not RStoreId.new_baseless("test").nil?)
-works "RStore.respond_to? :new"                      , (RStore.respond_to? :new)
-works "RStore.instance_methods.include? :create"     , (RStore.instance_methods.include? :create)
-works "RStore.instance_methods.include? :get"        , (RStore.instance_methods.include? :get)
-works "RStore.instance_methods.include? :retrieve"   , (RStore.instance_methods.include? :retrieve)
-works "RStore.instance_methods.include? :delete"     , (RStore.instance_methods.include? :delete)
-works "RStore.instance_methods.include? :update"     , (RStore.instance_methods.include? :update)
-works "RStore.instance_methods.include? :move_by_id" , (RStore.instance_methods.include? :move_by_id)
-works "RStore.instance_methods.include? :save_as"    , (RStore.instance_methods.include? :save_as)
-works "RStore.instance_methods.include? :save_to"    , (RStore.instance_methods.include? :save_to)
+works "RStoreId.new_baseless"                              , (not RStoreId.new_baseless("test").nil?)
+works "RStoreHandle.respond_to? :new"                      , (RStoreHandle.respond_to? :new)
+works "RStoreHandle.instance_methods.include? :create"     , (RStoreHandle.instance_methods.include? :create)
+works "RStoreHandle.instance_methods.include? :get"        , (RStoreHandle.instance_methods.include? :get)
+works "RStoreHandle.instance_methods.include? :retrieve"   , (RStoreHandle.instance_methods.include? :retrieve)
+works "RStoreHandle.instance_methods.include? :delete"     , (RStoreHandle.instance_methods.include? :delete)
+works "RStoreHandle.instance_methods.include? :update"     , (RStoreHandle.instance_methods.include? :update)
+works "RStoreHandle.instance_methods.include? :move_by_id" , (RStoreHandle.instance_methods.include? :move_by_id)
+works "RStoreHandle.instance_methods.include? :save_as"    , (RStoreHandle.instance_methods.include? :save_as)
+works "RStoreHandle.instance_methods.include? :save_to"    , (RStoreHandle.instance_methods.include? :save_to)
 

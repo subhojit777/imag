@@ -55,10 +55,10 @@ impl FileLockEntryHandle {
 }
 
 wrappable_struct!(FileLockEntryHandle, FileLockEntryWrapper, FLE_WRAPPER);
-class!(RFileLockEntry);
-impl_unwrap!(RFileLockEntry, FileLockEntryHandle, FLE_WRAPPER);
+class!(RFileLockEntryHandle);
 impl_wrap!(FileLockEntryHandle, FLE_WRAPPER);
-impl_verified_object!(RFileLockEntry);
+impl_unwrap!(RFileLockEntryHandle, FileLockEntryHandle, FLE_WRAPPER);
+impl_verified_object!(RFileLockEntryHandle);
 
 /// Helper macro for operating on RUBY_STORE_CACHE object
 ///
@@ -119,7 +119,7 @@ macro_rules! call_on_fle_from_store {
 
 
 methods!(
-    RFileLockEntry,
+    RFileLockEntryHandle,
     itself,
 
     fn r_get_location() -> AnyObject {
@@ -252,7 +252,7 @@ class!(REntry);
 impl_unwrap!(REntry, Entry, ENTRY_WRAPPER);
 
 pub fn setup_filelockentry() -> Class {
-    let mut class = Class::new("RFileLockEntry", None);
+    let mut class = Class::new("RFileLockEntryHandle", None);
     class.define(|itself| {
         itself.def("location", r_get_location);
         itself.def("header"  , r_get_header);

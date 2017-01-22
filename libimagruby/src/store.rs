@@ -31,14 +31,14 @@ use util::Wrap;
 use util::Unwrap;
 
 use storeid::RStoreId;
-use entry::RFileLockEntry;
+use entry::RFileLockEntryHandle;
 use cache::StoreHandle;
 
 wrappable_struct!(StoreHandle, StoreWrapper, STORE_WRAPPER);
-class!(RStore);
+class!(RStoreHandle);
 impl_wrap!(StoreHandle, STORE_WRAPPER);
-impl_unwrap!(RStore, StoreHandle, STORE_WRAPPER);
-impl_verified_object!(RStore);
+impl_unwrap!(RStoreHandle, StoreHandle, STORE_WRAPPER);
+impl_verified_object!(RStoreHandle);
 
 macro_rules! call_on_store_by_handle {
     {
@@ -141,7 +141,7 @@ macro_rules! call_on_store {
 }
 
 methods!(
-    RStore,
+    RStoreHandle,
     itself,
 
     // Build a new Store object, return a handle to it.
@@ -403,7 +403,7 @@ methods!(
     // On success: Nil
     // On error: Nil + Exception
     //
-    fn update(fle: RFileLockEntry) -> NilClass {
+    fn update(fle: RFileLockEntryHandle) -> NilClass {
         let fle = typecheck!(fle).unwrap().fle_handle().clone();
 
         call_on_store! {
@@ -450,7 +450,7 @@ methods!(
     // On success: Nil
     // On error: Nil + Exception
     //
-    fn save_to(fle: RFileLockEntry, sid: RStoreId) -> NilClass {
+    fn save_to(fle: RFileLockEntryHandle, sid: RStoreId) -> NilClass {
         let fle = typecheck!(fle).unwrap().fle_handle().clone();
         let sid = typecheck!(sid).unwrap().clone();
 
@@ -475,7 +475,7 @@ methods!(
     // On success: Nil
     // On error: Nil + Exception
     //
-    fn save_as(fle: RFileLockEntry, sid: RStoreId) -> NilClass {
+    fn save_as(fle: RFileLockEntryHandle, sid: RStoreId) -> NilClass {
         let fle = typecheck!(fle).unwrap().fle_handle().clone();
         let sid = typecheck!(sid).unwrap().clone();
 
@@ -540,7 +540,7 @@ methods!(
 );
 
 pub fn setup() -> Class {
-    let mut class = Class::new("RStore", None);
+    let mut class = Class::new("RStoreHandle", None);
     class.define(|itself| {
         itself.def_self("new"            , new);
         itself.def("create"              , create);
