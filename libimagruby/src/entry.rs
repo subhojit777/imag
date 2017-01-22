@@ -268,7 +268,9 @@ pub fn setup_entryheader() -> Class {
     class.define(|itself| {
         itself.def("insert", r_entry_header_insert);
         itself.def("set"   , r_entry_header_set);
+        itself.def("[]="   , r_entry_header_set);
         itself.def("read"  , r_entry_header_get);
+        itself.def("[]"    , r_entry_header_get);
     });
     class
 }
