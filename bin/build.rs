@@ -51,15 +51,11 @@ macro_rules! build_subcommand {
 
 // Actually generates the module.
 gen_mods_buildui!(
-    ("../imag-bookmark/src/ui.rs",  imagbookmark),
-    ("../imag-counter/src/ui.rs",   imagcounter),
-    ("../imag-diary/src/ui.rs",     imagdiary),
     ("../imag-link/src/ui.rs",      imaglink),
     ("../imag-notes/src/ui.rs",     imagnotes),
     ("../imag-ref/src/ui.rs",       imagref),
     ("../imag-store/src/ui.rs",     imagstore),
     ("../imag-tag/src/ui.rs",       imagtag),
-    ("../imag-todo/src/ui.rs",      imagtodo),
     ("../imag-view/src/ui.rs",      imagview)
 );
 
@@ -70,15 +66,11 @@ fn main() {
         &version!()[..],
         "imag")
         // and add all the subapps as subcommands.
-        .subcommand(build_subcommand!("bookmark",   imagbookmark))
-        .subcommand(build_subcommand!("counter",    imagcounter))
-        .subcommand(build_subcommand!("diary",      imagdiary))
         .subcommand(build_subcommand!("link",       imaglink))
         .subcommand(build_subcommand!("notes",      imagnotes))
         .subcommand(build_subcommand!("ref",        imagref))
         .subcommand(build_subcommand!("store",      imagstore))
         .subcommand(build_subcommand!("tag",        imagtag))
-        .subcommand(build_subcommand!("todo",       imagtodo))
         .subcommand(build_subcommand!("view",       imagview));
 
     // Actually generates the completion files
