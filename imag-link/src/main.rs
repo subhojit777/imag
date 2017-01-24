@@ -98,11 +98,9 @@ fn handle_internal_linking(rt: &Runtime) {
                     Ok(Some(e)) => {
                         e.get_internal_links()
                             .map(|iter| {
-                                if cmd.is_present("list-externals-too") {
-                                    iter.filter(|_| true)
-                                } else {
-                                    iter.filter(|id| !is_external_link_storeid(&id))
-                                }
+                                iter.filter(move |id| {
+                                    cmd.is_present("list-externals-too") || !is_external_link_storeid(&id)
+                                })
                             })
                             .map(|links| {
                                 let i = links
