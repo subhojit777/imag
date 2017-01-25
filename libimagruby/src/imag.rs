@@ -34,7 +34,6 @@ methods!(
         use std::env::var as env_var;
         use env_logger;
         use log;
-        use log::{Log, LogLevel, LogRecord, LogMetadata};
         use log::LogLevelFilter;
 
         let debug = match debug {

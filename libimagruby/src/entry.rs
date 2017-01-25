@@ -19,13 +19,9 @@
 
 use std::collections::BTreeMap;
 use std::error::Error;
-use std::ops::Deref;
-use std::ops::DerefMut;
 
 use ruru::{Class, Object, AnyObject, Boolean, RString, VM, Hash, NilClass, VerifiedObject};
-use uuid::Uuid;
 
-use libimagstore::store::FileLockEntry as FLE;
 use libimagstore::store::EntryHeader;
 use libimagstore::store::EntryContent;
 use libimagstore::store::Entry;
@@ -35,7 +31,6 @@ use ruby_utils::IntoToml;
 use toml_utils::IntoRuby;
 use util::Wrap;
 use util::Unwrap;
-use cache::RUBY_STORE_CACHE;
 use cache::StoreHandle;
 
 pub struct FileLockEntryHandle(StoreHandle, StoreId);
@@ -132,7 +127,6 @@ methods!(
 
     fn r_set_header(hdr: Hash) -> NilClass {
         use ruby_utils::IntoToml;
-        use toml_utils::IntoRuby;
         use toml::Value;
 
         let entryheader = match typecheck!(hdr or return NilClass::new()).into_toml() {
@@ -160,7 +154,6 @@ methods!(
 
     fn r_set_content(ctt: RString) -> NilClass {
         use ruby_utils::IntoToml;
-        use toml_utils::IntoRuby;
         use toml::Value;
 
         let content = match typecheck!(ctt).into_toml() {

@@ -20,13 +20,9 @@
 use libimagstore::store::Store;
 use libimagerror::trace::trace_error;
 use std::error::Error;
-use std::ops::Deref;
-use std::ops::DerefMut;
 
-use ruru::{Class, Object, AnyObject, Boolean, RString, VM, Hash, NilClass, VerifiedObject};
+use ruru::{Class, Object, AnyObject, Boolean, RString, VM, NilClass, VerifiedObject};
 
-use ruby_utils::IntoToml;
-use toml_utils::IntoRuby;
 use util::Wrap;
 use util::Unwrap;
 
@@ -160,13 +156,10 @@ methods!(
     //
     fn new(store_debugging: Boolean, rtp: RString) -> AnyObject {
         use std::path::PathBuf;
-        use libimagerror::into::IntoError;
         use libimagerror::trace::trace_error;
         use libimagerror::trace::trace_error_dbg;
-        use libimagerror::trace::trace_error_exit;
         use libimagrt::configuration::ConfigErrorKind;
         use libimagrt::configuration::Configuration;
-        use libimagrt::error::RuntimeErrorKind;
         use libimagstore::error::StoreErrorKind;
         use libimagstore::hook::Hook;
         use libimagstore::hook::position::HookPosition as HP;
