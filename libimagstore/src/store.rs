@@ -2019,10 +2019,6 @@ aspect = "test"
         store
     }
 
-    fn default_test_id() -> StoreId {
-        StoreId::new_baseless(PathBuf::from("test")).unwrap()
-    }
-
     #[test]
     fn test_pre_create_error() {
         let storeid = StoreId::new_baseless(PathBuf::from("test_pre_create_error")).unwrap();
