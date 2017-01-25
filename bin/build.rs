@@ -73,10 +73,12 @@ fn main() {
         .subcommand(build_subcommand!("tag",        imagtag))
         .subcommand(build_subcommand!("view",       imagview));
 
+    let outdir = std::env::var("OUT_DIR").unwrap();
+
     // Actually generates the completion files
-    app.gen_completions("imag", Shell::Bash, env!("OUT_DIR"));
-    app.gen_completions("imag", Shell::Fish, env!("OUT_DIR"));
-    app.gen_completions("imag", Shell::Zsh, env!("OUT_DIR"));
+    app.gen_completions("imag", Shell::Bash, outdir);
+    app.gen_completions("imag", Shell::Fish, outdir);
+    app.gen_completions("imag", Shell::Zsh,  outdir);
 
 }
 
