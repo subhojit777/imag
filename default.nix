@@ -7,10 +7,14 @@ let
   ];
 
   dependencies = with pkgs; [
-    openssl
-    zlib
     cmake
+    curl
+    gcc
+    libpsl
+    openssl
+    pkgconfig
     which
+    zlib
   ];
 in
 
