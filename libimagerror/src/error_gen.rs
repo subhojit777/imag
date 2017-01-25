@@ -416,7 +416,7 @@ mod test {
         let something : Option<i32> = None;
         match something.ok_or_errkind(TestErrorKind::TestErrorKindA) {
             Ok(_)  => assert!(false),
-            Err(e) => assert!(true),
+            Err(_) => assert!(true),
         }
     }
 
