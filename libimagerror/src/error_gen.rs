@@ -242,11 +242,15 @@ mod test {
 
     generate_error_imports!();
 
+    #[allow(dead_code)]
     generate_custom_error_types!(CustomTestError, CustomTestErrorKind,
         CustomData,
         CustomErrorKindA => "customerrorkind a",
         CustomErrorKindB => "customerrorkind B");
 
+    // Allow dead code here.
+    // We wrote this to show that custom test types can be implemented.
+    #[allow(dead_code)]
     impl CustomTestError {
         pub fn test(&self) -> i32 {
             match self.custom_data {
