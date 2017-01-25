@@ -1814,7 +1814,7 @@ mod store_hook_tests {
 
             impl StoreIdAccessor for TestHookAccessor {
 
-                fn access(&self, id: &StoreId) -> HookResult<()> {
+                fn access(&self, _: &StoreId) -> HookResult<()> {
                     get_result(self.succeed, self.error_aborting)
                 }
 
@@ -1822,7 +1822,7 @@ mod store_hook_tests {
 
             impl MutableHookDataAccessor for TestHookAccessor {
 
-                fn access_mut(&self, fle: &mut FileLockEntry) -> HookResult<()> {
+                fn access_mut(&self, _: &mut FileLockEntry) -> HookResult<()> {
                     get_result(self.succeed, self.error_aborting)
                 }
 
@@ -1830,7 +1830,7 @@ mod store_hook_tests {
 
             impl NonMutableHookDataAccessor for TestHookAccessor {
 
-                fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
+                fn access(&self, _: &FileLockEntry) -> HookResult<()> {
                     get_result(self.succeed, self.error_aborting)
                 }
 
@@ -1883,7 +1883,6 @@ aspect = "test"
     fn test_hook_execution(hook_positions: &[HP], storeid_name: &str) {
         let mut store = get_store_with_config();
         let pos       = HP::PreCreate;
-        let hook      = TestHook::new(pos.clone(), true, false);
 
         println!("Registering hooks...");
         for pos in hook_positions {
@@ -2004,7 +2003,7 @@ aspect = "test"
         for position in positions.iter() {
             for n in 2..10 {
                 let mut v = Vec::with_capacity(n);
-                for x in 0..n { v.push(position.clone()); }
+                for _ in 0..n { v.push(position.clone()); }
 
                 test_hook_execution(&v, "test_multiple_same_position");
             }
@@ -2018,10 +2017,6 @@ aspect = "test"
 
         assert!(store.register_hook(pos, "test", Box::new(hook)).map_err(|e| println!("{:?}", e)).is_ok());
         store
-    }
-
-    fn default_test_id() -> StoreId {
-        StoreId::new_baseless(PathBuf::from("test")).unwrap()
     }
 
     #[test]
