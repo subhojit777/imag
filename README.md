@@ -44,11 +44,9 @@ give you a commandline application.
 
 ### Building
 
-We use `make` to automate the build process (as `cargo` is not (yet?) able to
-build several applications at once).
-Make sure to _not_ include some `-j 8` arguments, as cargo parallelizes the
-build process on its own. If you parallelize it with make, you end up with a
-really high load on your system.
+We use `make` to automate the build process.
+Make sure to _not_ include some `-j 8` arguments, this will _not_ work as you
+might think!
 
 There are several targets for each of the sub-crates in the Makefile:
 
@@ -66,7 +64,7 @@ There are several targets for each of the sub-crates in the Makefile:
 | update   | *     | Run `cargo update`                       | `make update`   |
 
 The `Multi` targets are callable for each sub-crate. For example you can call
-`make imag-bookmark-check` to run `cargo check` on the `imag-bookmark` subcrate.
+`make imag-store-check` to run `cargo check` on the `imag-store` crate.
 
 ### Running
 
@@ -86,8 +84,7 @@ There is no RSS feed, though.
 We also have a [mailinglist](http://imag-pim.org/mailinglist/) where I post
 updates and where discussion and questions are encouraged.
 
-There is a blog series which gets a update every other week
-on my blog, where
+There is a blog series which gets an update once a month on my blog, where
 [entries are tagged "imag"](http://beyermatthias.de/tags/imag.html).
 I also post non-regular posts about imag things there.
 
@@ -105,7 +102,9 @@ which can be compiled to PDF or a website.
 These docs are not published anywhere and are not even integrated into our CI,
 so it might be broken (though it's unlikely).
 Developer documentation is also available
-[online on github.io](https://matthiasbeyer.github.io/imag/imag_documentation/index.html).
+[online on github.io](https://matthiasbeyer.github.io/imag/imag_documentation/index.html)
+and [on docs.rs](https://docs.rs/releases/search?query=imag), though they might
+be a bit outdated.
 
 ## Please contribute!
 
