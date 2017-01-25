@@ -270,6 +270,5 @@ pub fn setup_entryheader() -> Class {
 
 pub fn setup_entrycontent() -> Class {
     let string = Class::from_existing("String");
-    let mut class = Class::new("REntryContent", Some(&string));
-    class
+    Class::new("REntryContent", Some(&string))
 }
