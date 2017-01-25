@@ -56,8 +56,6 @@ But I hope we get it in travis soonish.
 This crate will contain both the Rust bindings for imag using `ruru` and a bunch
 of wrapper code for the actual `imag` gem.
 
-We are not there yet, though.
-
 ### Why another layer of indirection?
 
 As "ruru" does not yet support modules (which is sad btw) we would end up with
@@ -67,40 +65,21 @@ E.G.: `imag_runtime_setup()` instead of `Imag::Runtime::setup()`
 
 I want to add a Ruby gem to wrap these things.
 
-So basically a piece of Ruby which uses `imag.rb` (the Rust gem) to build
+So basically a piece of Ruby which uses the Rust code to build
 `imag` as a gem which then exports a fine module system.
 
-### Ideas for module system:
+### The module system:
 
 ```text
 Imag (Module)
-  Runtime (Class)
-  Store (Class)
-  Entry (Class)
-  EntryHeader (Class)
   EntryContent (Class (inherits from String))
+  EntryHeader (Class)
+  FileLockEntryHandle (Class)
+  StoreHandle (Class)
   StoreId (Class)
 ```
 
-I would name the types the same as in the Rust codebase, to avoid confusion.
-Only exception would be the `Entry` class, which would be a `FileLockEntry`
-underneath.
-
-If we adapt `libimagentrytag` and the other `libimagentry*`
-libraries, we would extend this type.
-
-## More plans
-
-I want to pull these libraries into the Ruby bindings:
-
-* libimagentryedit
-* libimagentryfilter
-* libimagentrylink
-* libimagentrylist
-* libimagentrymarkdown
-* libimagentrytag
-* libimagentryview
-
-Which all provide functions on top of `libimagstore::store::{FileLock,}Entry`,
-so we will implement them on `Imag::Entry`.
+`libimagentrytag` and the other `libimagentry*` libraries will be pulled into
+this library to support more advanced operations with the `FileLockEntryHandle`
+type.
 
