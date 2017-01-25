@@ -76,8 +76,8 @@ fn main() {
     let outdir = std::env::var("OUT_DIR").unwrap();
 
     // Actually generates the completion files
-    app.gen_completions("imag", Shell::Bash, outdir);
-    app.gen_completions("imag", Shell::Fish, outdir);
+    app.gen_completions("imag", Shell::Bash, outdir.clone());
+    app.gen_completions("imag", Shell::Fish, outdir.clone());
     app.gen_completions("imag", Shell::Zsh,  outdir);
 
 }
