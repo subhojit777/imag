@@ -60,7 +60,7 @@ release: $(RELEASE_TARGETS) imag-bin-release
 bin: $(BIN_TARGETS) imag-bin
 	@$(ECHO) "\t[ALLBIN ]"
 
-bin-test: $(BIN_TARGET_TESTS)
+bin-test: $(BIN_TARGET_TESTS) imag-bin
 
 lib: $(LIB_TARGETS)
 	@$(ECHO) "\t[ALLLIB ]"
