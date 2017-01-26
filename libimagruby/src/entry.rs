@@ -107,7 +107,7 @@ macro_rules! call_on_fle_from_store {
                         $ex
                     },
                 }
-            }
+            } on fail return $ex
         }
     }};
 }
