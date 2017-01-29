@@ -29,7 +29,6 @@ extern crate libimagentrytag;
 extern crate libimagerror;
 extern crate libimagutil;
 
-use std::process::exit;
 use std::path::PathBuf;
 
 use libimagrt::runtime::Runtime;
