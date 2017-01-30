@@ -1182,13 +1182,13 @@ impl Entry {
             Some(s) => s
         };
 
-        let content = matches.name("content").unwrap_or("");
+        let content = matches.name("content").map(|r| r.as_str()).unwrap_or("");
 
         debug!("Header and content found. Yay! Building Entry object now");
         Ok(Entry {
             location: try!(loc.into_storeid()),
-            header: try!(EntryHeader::parse(header)),
-            content: content.into(),
+            header: try!(EntryHeader::parse(header.as_str())),
+            content: String::from(content),
         })
     }
 
