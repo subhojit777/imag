@@ -72,9 +72,18 @@ impl Parse for Time {
 
         R.captures(s)
             .and_then(|capts| {
-                let minute = capts.name("m").and_then(|o| FromStr::from_str(o).ok()).unwrap_or(0);
-                let second = capts.name("s").and_then(|o| FromStr::from_str(o).ok()).unwrap_or(0);
-                let hour   = match capts.name("h").and_then(|o| FromStr::from_str(o).ok()) {
+                let minute = capts
+                    .name("m")
+                    .and_then(|o| FromStr::from_str(o.as_str()).ok())
+                    .unwrap_or(0);
+                let second = capts
+                    .name("s")
+                    .and_then(|o| FromStr::from_str(o.as_str()).ok())
+                    .unwrap_or(0);
+                let hour   = match capts
+                    .name("h")
+                    .and_then(|o| FromStr::from_str(o.as_str()).ok())
+                {
                     None => {
                         debug!("No hour");
                         return None;

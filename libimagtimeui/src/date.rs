@@ -73,9 +73,9 @@ impl Parse for Date {
 
         R.captures(s)
             .and_then(|capts| {
-                let year  = capts.name("Y").and_then(|o| FromStr::from_str(o).ok());
-                let month = capts.name("M").and_then(|o| FromStr::from_str(o).ok());
-                let day   = capts.name("D").and_then(|o| FromStr::from_str(o).ok());
+                let year  = capts.name("Y").and_then(|o| FromStr::from_str(o.as_str()).ok());
+                let month = capts.name("M").and_then(|o| FromStr::from_str(o.as_str()).ok());
+                let day   = capts.name("D").and_then(|o| FromStr::from_str(o.as_str()).ok());
 
                 let year = match year {
                     None => {

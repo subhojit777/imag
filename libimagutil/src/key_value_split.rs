@@ -75,10 +75,12 @@ impl IntoKeyValue<String, String> for String {
                     .unwrap();
             }
             R.captures(&self[..])
-                .map(|caps| caps.name("VALUE").or(caps.name("QVALUE")).unwrap_or(""))
+                .map(|c| c.name("VALUE").or(c.name("QVALUE")).map(|m| m.as_str()).unwrap_or(""))
         };
 
-        key.and_then(|k| value.and_then(|v| Some(KeyValue::new(String::from(k), String::from(v)))))
+        key.and_then(|k| {
+            value.and_then(|v| Some(KeyValue::new(String::from(k.as_str()), String::from(v))))
+        })
     }
 
 }
