@@ -17,6 +17,7 @@ codegen-units = 2
 
 [workspace]
 members = [
+    ".imag-documentation",
     "bin",
     "imag-link",
     "imag-notes",
