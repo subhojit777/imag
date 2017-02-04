@@ -68,9 +68,9 @@ lib: $(LIB_TARGETS)
 lib-test: $(LIB_TARGETS_TEST)
 
 lib-imag-ruby-test:
-	@$(MAKE) -C libimagruby
+	@$(MAKE) -C libimagruby test
 
-test: bin-test lib-test
+test: bin-test lib-test lib-imag-ruby-test
 
 install: $(INSTALL_TARGETS) imag-bin-install
 	@$(ECHO) "\t[INSTALL]"
