@@ -34,3 +34,6 @@ path = "../libimagutil"
 [dependencies.libimagerror]
 path = "../libimagerror"
 
+[features]
+early-panic = [ "libimagstore/early-panic" ]
+

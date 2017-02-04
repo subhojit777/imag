@@ -17,42 +17,19 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#![deny(
-    non_camel_case_types,
-    non_snake_case,
-    path_statements,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_allocation,
-    unused_import_braces,
-    unused_imports,
-    unused_mut,
-    unused_qualifications,
-    while_true,
-)]
+#[cfg(feature = "early-panic")]
+#[macro_export]
+macro_rules! if_cfg_panic {
+    ()                       => { panic!() };
+    ($msg:expr)              => { panic!($msg) };
+    ($fmt:expr, $($arg:tt)+) => { panic!($fmt, $($($arg),*)) };
+}
 
-#[macro_use] extern crate log;
-#[macro_use] extern crate version;
-extern crate fs2;
-extern crate glob;
-#[macro_use] extern crate lazy_static;
-extern crate regex;
-extern crate toml;
-#[cfg(test)] extern crate tempdir;
-extern crate semver;
-extern crate crossbeam;
-extern crate walkdir;
-
-#[macro_use] extern crate libimagerror;
-#[macro_use] extern crate libimagutil;
-
-#[macro_use] mod util;
-
-pub mod storeid;
-pub mod error;
-pub mod hook;
-pub mod store;
-mod configuration;
-mod file_abstraction;
-pub mod toml_ext;
+#[cfg(not(feature = "early-panic"))]
+#[macro_export]
+macro_rules! if_cfg_panic {
+    ()                       => { };
+    ($msg:expr)              => { };
+    ($fmt:expr, $($arg:tt)+) => { };
+}
 

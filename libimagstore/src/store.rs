@@ -942,7 +942,15 @@ impl<'a> DerefMut for FileLockEntry<'a> {
 impl<'a> Drop for FileLockEntry<'a> {
     /// This will silently ignore errors, use `Store::update` if you want to catch the errors
     fn drop(&mut self) {
-        let _ = self.store._update(self, true);
+        use libimagerror::trace::trace_error_dbg;
+
+        match self.store._update(self, true) {
+            Err(e) => {
+                trace_error_dbg(&e);
+                if_cfg_panic!("ERROR WHILE DROPPING: {:?}", e);
+            },
+            Ok(_) => { },
+        }
     }
 }
 

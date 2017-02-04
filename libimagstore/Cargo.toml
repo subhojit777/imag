@@ -39,3 +39,8 @@ env_logger = "0.3"
 default = []
 verify  = []
 
+# Enable panic!()s if critical errors occur.
+# Can be used to debug the store more intensly via the imag-store commandline
+# application
+early-panic=[]
+
