@@ -1,6 +1,6 @@
 [package]
 name = "imag-tag"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-tag command"
