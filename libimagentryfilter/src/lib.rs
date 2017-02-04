@@ -32,8 +32,6 @@
     while_true,
 )]
 
-#[macro_use] extern crate log;
-
 extern crate filters;
 extern crate itertools;
 extern crate regex;
