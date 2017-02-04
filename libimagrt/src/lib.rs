@@ -34,7 +34,7 @@
 )]
 
 #[macro_use] extern crate log;
-#[macro_use] extern crate itertools;
+extern crate itertools;
 #[cfg(unix)] extern crate xdg_basedir;
 extern crate env_logger;
 extern crate tempfile;
