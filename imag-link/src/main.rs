@@ -34,7 +34,7 @@
 
 #[macro_use] extern crate log;
 extern crate clap;
-#[macro_use] extern crate semver;
+extern crate semver;
 extern crate toml;
 extern crate url;
 #[macro_use] extern crate version;

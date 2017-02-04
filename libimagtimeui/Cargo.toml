@@ -20,6 +20,3 @@ log = "0.3"
 chrono = "0.2"
 regex = "0.2"
 
-[dependencies.libimagerror]
-path = "../libimagerror"
-
