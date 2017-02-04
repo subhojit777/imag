@@ -1,20 +1,22 @@
 ECHO=$(shell which echo) -e
 RUBY=$(shell which ruby)
-RUBY_TESTS=$(shell find ./test -maxdepth 1 -name "*.rb" -type f)
-RUBY_TEST_TARGETS=$(foreach x,$(subst ,,$(RUBY_TESTS)),$(x))
+BUNDLE=$(shell which bundle)
 
-all: lib
+all:
+	@$(ECHO) "There is no default target here"
 
-lib:
-	$(MAKE) -C .. libimagruby
+bundle:
+	@$(ECHO) "[BUNDLE]"
+	@$(BUNDLE) install --path vendor/bundle
 
-lib-release:
-	$(MAKE) -C .. libimagruby-release
+bundle-rake-thermite-test:
+	@$(ECHO) "[RAKE  ][thermite]"
+	@CARGO_TARGET=debug $(BUNDLE) exec rake thermite:tarball
 
-test: lib $(RUBY_TEST_TARGETS)
-
-$(RUBY_TEST_TARGETS): %: lib .FORCE
-	@$(ECHO) "\t[TEST   ]:\t$@"
-	@$(RUBY) $(subst -test,,$@)
+test: lib bundle-rake-thermite-test
+	@$(ECHO) "[TEST  ]"
 
 .FORCE:
+
+.PHONY: all
+
