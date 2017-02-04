@@ -38,10 +38,10 @@ extern crate semver;
 extern crate toml;
 #[macro_use] extern crate version;
 
+extern crate libimagentryview;
+extern crate libimagerror;
 extern crate libimagrt;
 extern crate libimagstore;
-extern crate libimagentryview;
-#[macro_use] extern crate libimagerror;
 
 use std::process::exit;
 use std::path::PathBuf;
