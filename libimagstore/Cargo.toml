@@ -40,7 +40,27 @@ default = []
 verify  = []
 
 # Enable panic!()s if critical errors occur.
-# Can be used to debug the store more intensly via the imag-store commandline
-# application
+#
+# # Howto
+#
+# To enable this, put
+#
+# ```toml
+# [features]
+# early-panic = [ "libimagstore/early-panic" ]
+# ```
+#
+# In the crate depending on this library and compile your crate with
+# `cargo build --features early-panic`. This way, the `libimagstore`
+# implementation fails via `panic!()` instead of propagating errors which have
+# to be printed somewhere to be visible.
+#
+# # WARNING
+#
+# The behaviour of the store implementation might be broken with this, resulting
+# in partially written store entries and/or worse, so this is
+#
+#    _NOT INTENDED FOR PRODUCTION USE_!
+#
 early-panic=[]
 
