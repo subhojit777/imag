@@ -386,7 +386,30 @@ methods!(
     // On error: Nil + Exception
     //
     fn retrieve_for_module(name: RString) -> AnyObject {
-        unimplemented!()
+        use entry::FileLockEntryHandle as FLEH;
+        use ruru::Array;
+
+        let name = typecheck!(name or return any NilClass::new()).to_string();
+
+        call_on_store! {
+            store <- itself wrapped inside STORE_WRAPPER,
+            operation {
+                match store.retrieve_for_module(&name) {
+                    Err(e) => {
+                        trace_error(&e);
+                        VM::raise(Class::from_existing("RuntimeError"), e.description());
+                        NilClass::new().to_any_object()
+                    },
+                    Ok(iter) => {
+                        let store_handle = itself.get_data(&*STORE_WRAPPER).clone();
+                        iter.map(|sid| FLEH::new(store_handle.clone(), sid).wrap())
+                            .fold(Array::new(), |mut a, e| a.push(e))
+                            .to_any_object()
+                    },
+                }
+            },
+            on fail return NilClass::new().to_any_object()
+        }
     }
 
     // Update a FileLockEntry in the store
