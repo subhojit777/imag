@@ -137,22 +137,22 @@ impl<'a> Ref<'a> {
                         None
                     };
 
-                    Ok((file, opt_contenthash, opt_permissions))
+                    Ok((opt_contenthash, opt_permissions))
                 })
 
                 // and then we try to canonicalize the PathBuf, because we want to store a
                 // canonicalized path
                 // and return (file, content hash, permissions, canonicalized path)
-                .and_then(|(file, opt_contenthash, opt_permissions)| {
+                .and_then(|(opt_contenthash, opt_permissions)| {
                     pb.canonicalize()
-                        .map(|can| (file, opt_contenthash, opt_permissions, can))
+                        .map(|can| (opt_contenthash, opt_permissions, can))
                         // if PathBuf::canonicalize() failed, build an error from the return value
                         .map_err(|e| REK::PathCanonicalizationError.into_error_with_cause(Box::new(e)))
                 })
 
                 // and then we hash the canonicalized path
                 // and return (file, content hash, permissions, canonicalized path, path hash)
-                .and_then(|(file, opt_contenthash, opt_permissions, can)| {
+                .and_then(|(opt_contenthash, opt_permissions, can)| {
                     let path_hash = try!(Ref::hash_path(&can)
                         .map_err(Box::new)
                         .map_err(|e| REK::PathHashingError.into_error_with_cause(e))
