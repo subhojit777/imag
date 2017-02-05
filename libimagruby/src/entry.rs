@@ -21,11 +21,12 @@ use std::collections::BTreeMap;
 use std::error::Error;
 
 use ruru::{Class, Object, AnyObject, Boolean, RString, VM, Hash, NilClass, VerifiedObject};
+use toml::Value;
 
-use libimagstore::store::EntryHeader;
 use libimagstore::store::EntryContent;
 use libimagstore::store::Entry;
 use libimagstore::storeid::StoreId;
+use libimagstore::toml_ext::TomlValueExt;
 
 use ruby_utils::IntoToml;
 use toml_utils::IntoRuby;
@@ -130,7 +131,7 @@ methods!(
         use toml::Value;
 
         let entryheader = match typecheck!(hdr or return NilClass::new()).into_toml() {
-            Value::Table(t) => EntryHeader::from(t),
+            Value::Table(t) => Value::Table(t),
             _ => {
                 let ec = Class::from_existing("RuntimeError");
                 VM::raise(ec, "Something weird happened. Hash seems to be not a Hash");
@@ -175,10 +176,10 @@ methods!(
 
 );
 
-wrappable_struct!(EntryHeader, EntryHeaderWrapper, ENTRY_HEADER_WRAPPER);
+wrappable_struct!(Value, EntryHeaderWrapper, ENTRY_HEADER_WRAPPER);
 class!(REntryHeader);
-impl_wrap!(EntryHeader => ENTRY_HEADER_WRAPPER);
-impl_unwrap!(REntryHeader => EntryHeader => ENTRY_HEADER_WRAPPER);
+impl_wrap!(Value => ENTRY_HEADER_WRAPPER);
+impl_unwrap!(REntryHeader => Value => ENTRY_HEADER_WRAPPER);
 impl_verified_object!(REntryHeader);
 
 methods!(
@@ -186,7 +187,7 @@ methods!(
     itself,
 
     fn r_entry_header_new() -> AnyObject {
-        EntryHeader::new().wrap()
+        Entry::default_header().wrap()
     }
 
     fn r_entry_header_insert(spec: RString, obj: AnyObject) -> Boolean {
