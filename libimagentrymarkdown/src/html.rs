@@ -80,7 +80,7 @@ pub mod iter {
 
     impl<I: Iterator<Item = Entry>> WithHtmlIterator<I> {
 
-        fn new(i: I) -> WithHtmlIterator<I> {
+        pub fn new(i: I) -> WithHtmlIterator<I> {
             WithHtmlIterator { i: i }
         }
 
