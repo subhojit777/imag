@@ -36,7 +36,7 @@ pub struct Link {
 impl Link {
 
     /// Translate a `Link` into a `UrlLink`
-    fn into_urllink(self) -> Result<UrlLink> {
+    pub fn into_urllink(self) -> Result<UrlLink> {
         Url::parse(&self.link[..])
             .map(move |link| UrlLink { title: self.title, link: link, })
             .map_err(Box::new)
