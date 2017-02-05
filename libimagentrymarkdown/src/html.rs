@@ -49,7 +49,7 @@ pub mod iter {
 
     impl<I: Iterator<Item = Entry>> ToHtmlIterator<I> {
 
-        fn new(i: I) -> ToHtmlIterator<I> {
+        pub fn new(i: I) -> ToHtmlIterator<I> {
             ToHtmlIterator { i: i }
         }
 
