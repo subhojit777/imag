@@ -226,6 +226,7 @@ macro_rules! generate_error_types {
 
 
 #[cfg(test)]
+#[allow(dead_code)]
 mod test {
 
     generate_error_module!(
