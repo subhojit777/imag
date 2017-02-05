@@ -20,7 +20,6 @@
 use std::path::PathBuf;
 
 use clap::ArgMatches;
-use toml::Value;
 
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
@@ -70,8 +69,7 @@ pub fn print_entry(rt: &Runtime, scmd: &ArgMatches, e: FileLockEntry) {
                 unimplemented!()
             } else {
                 debug!("Printing header as TOML...");
-                // We have to Value::Table() for Display
-                println!("{}", Value::Table(e.get_header().clone().into()))
+                println!("{}", e.get_header())
             }
         }
 

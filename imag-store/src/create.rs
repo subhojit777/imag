@@ -28,10 +28,10 @@ use std::io::stderr;
 use std::process::exit;
 
 use clap::ArgMatches;
+use toml::Value;
 
 use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
-use libimagstore::store::EntryHeader;
 use libimagstore::storeid::StoreId;
 use libimagerror::trace::trace_error_exit;
 use libimagutil::debug_result::*;
@@ -70,10 +70,11 @@ pub fn create(rt: &Runtime) {
                     .or_else(|_| create_with_content_and_header(rt,
                                                                 &path,
                                                                 String::new(),
-                                                                EntryHeader::new()))
+                                                                Entry::default_header()))
             } else {
                 debug!("Creating entry");
-                create_with_content_and_header(rt, &path, String::new(), EntryHeader::new())
+                create_with_content_and_header(rt, &path, String::new(),
+                    Entry::default_header())
             }
             .unwrap_or_else(|e| {
                 error!("Error building Entry");
@@ -100,8 +101,8 @@ fn create_from_cli_spec(rt: &Runtime, matches: &ArgMatches, path: &StoreId) -> R
     debug!("Got content with len = {}", content.len());
 
     let header = matches.subcommand_matches("entry")
-        .map_or_else(EntryHeader::new,
-            |entry_matches| build_toml_header(entry_matches, EntryHeader::new()));
+        .map_or_else(|| Entry::default_header(),
+            |entry_matches| build_toml_header(entry_matches, Entry::default_header()));
 
     create_with_content_and_header(rt, path, content, header)
 }
@@ -138,7 +139,7 @@ fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &StoreId) -> Res
 fn create_with_content_and_header(rt: &Runtime,
                                   path: &StoreId,
                                   content: String,
-                                  header: EntryHeader) -> Result<()>
+                                  header: Value) -> Result<()>
 {
     debug!("Creating entry with content at {:?}", path);
     rt.store()

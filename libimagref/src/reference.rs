@@ -33,6 +33,7 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::Store;
+use libimagstore::toml_ext::TomlValueExt;
 use libimagerror::into::IntoError;
 
 use toml::Value;

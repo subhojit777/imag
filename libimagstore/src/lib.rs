@@ -46,11 +46,13 @@ extern crate walkdir;
 #[macro_use] extern crate libimagerror;
 #[macro_use] extern crate libimagutil;
 
+#[macro_use] mod util;
+
 pub mod storeid;
 pub mod error;
 pub mod hook;
 pub mod store;
 mod configuration;
 mod file_abstraction;
-mod toml_ext;
+pub mod toml_ext;
 

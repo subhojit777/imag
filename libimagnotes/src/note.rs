@@ -30,6 +30,7 @@ use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
+use libimagstore::toml_ext::TomlValueExt;
 use libimagentrytag::tag::{Tag, TagSlice};
 use libimagentrytag::tagable::Tagable;
 use libimagentrytag::result::Result as TagResult;

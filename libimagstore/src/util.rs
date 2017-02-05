@@ -17,41 +17,19 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use libimagstore::store::Entry;
-
-use toml::encode_str;
-
-use viewer::Viewer;
-use result::Result;
-
-pub struct StdoutViewer {
-    view_header: bool,
-    view_content: bool,
+#[cfg(feature = "early-panic")]
+#[macro_export]
+macro_rules! if_cfg_panic {
+    ()                       => { panic!() };
+    ($msg:expr)              => { panic!($msg) };
+    ($fmt:expr, $($arg:tt)+) => { panic!($fmt, $($($arg),*)) };
 }
 
-impl StdoutViewer {
-
-    pub fn new(view_header: bool, view_content: bool) -> StdoutViewer {
-        StdoutViewer {
-            view_header: view_header,
-            view_content: view_content,
-        }
-    }
-
+#[cfg(not(feature = "early-panic"))]
+#[macro_export]
+macro_rules! if_cfg_panic {
+    ()                       => { };
+    ($msg:expr)              => { };
+    ($fmt:expr, $($arg:tt)+) => { };
 }
 
-impl Viewer for StdoutViewer {
-
-    fn view_entry(&self, e: &Entry) -> Result<()> {
-        if self.view_header {
-            println!("{}", encode_str(e.get_header()));
-        }
-
-        if self.view_content {
-            println!("{}", e.get_content());
-        }
-
-        Ok(())
-    }
-
-}
