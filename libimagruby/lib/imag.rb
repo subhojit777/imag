@@ -1,12 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'thermite/fiddle'
-
-toplevel_dir = File.dirname(File.dirname(__FILE__))
-Thermite::Fiddle.load_module('init_imag',
-                             cargo_project_path: toplevel_dir,
-                             ruby_project_path: toplevel_dir)
-
 module Imag
 
   IMAG_INIT_FN_NAME = 'imag_ruby_initialize'
