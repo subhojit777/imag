@@ -7,8 +7,6 @@ let
   ];
 
   dependencies = with pkgs; [
-    ruby
-    bundler
     cmake
     curl
     gcc

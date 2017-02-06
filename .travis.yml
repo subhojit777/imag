@@ -1,40 +1,14 @@
 sudo: false
-os:
-  - linux
-
-dist:
-  - trusty
-
 language: rust
-
-matrix:
-  include:
-    - rust: 1.13.0
-      env: IMAG_RUBY_VERSION=2.3.3
-    - rust: beta
-      env: IMAG_RUBY_VERSION=2.3.3
-    - rust: stable
-      env: IMAG_RUBY_VERSION=2.3.3
-
-cache:
-  cargo: true
-  directories:
-    - $TRAVIS_BUILD_DIR/libimagruby/vendor/bundle
-
-before_install:
-- |
-  rvm install "$IMAG_RUBY_VERSION"
-  rvm use "$IMAG_RUBY_VERSION"
-  ruby --version
-  pushd libimagruby
-  bundle install --jobs=3 --retry=3 --path=$TRAVIS_BUILD_DIR/libimagruby/vendor/bundle
-  popd
-
+rust:
+- 1.13.0
+- beta
+- stable
+cache: cargo
 before_script:
 - |
   pip install 'travis-cargo<0.2' --user &&
   export PATH=$HOME/.local/bin:$PATH
-
 script:
 - |
   make all test
@@ -51,14 +25,12 @@ addons:
     - tree
     sources:
     - kalakris-cmake
-
 after_success:
 - |
   pushd .imag-documentation &&
   travis-cargo --only stable doc &&
   travis-cargo --only stable doc-upload
   popd
-
 notifications:
   email:
     on_success: never
@@ -67,11 +39,7 @@ notifications:
     - chat.freenode.net#imag
     template:
     - "%{repository_name} (%{branch} @ %{commit} by %{author}): %{result}"
-
 env:
   global:
-    - THERMITE_DEBUG_FILENAME=/tmp/thermite-debug.log
-    - secure: D+3exBnbvzFvk7fvLOxkF7UotCc4gBbvvOW4xGr9u6dDjEjV5y6CdDy/OQAkhfKhvSou+lIC22g5MuCBQXFEf/ua7A1XzwBAFeVLK4cWZSa7+ql6LdHKqOg3oF6pQlh095WeWr8S2PYJFFJFg8RGUPnbjqdu1J4KSXqe/7GoZ3lYS69mx7D5Hb93KEN084/KGfBuvyJtMjO1fK3spltL2zV8oqegFpv0gLG5GY4LsJ/7ij4Mc6wepXSyyQbaiA1eKMMwQZDvoi4V1mCulo/jeC3pucGxvgnMV5DZs8aa8R7votltGvSpHCgU78LW19dg8oZqwShQQ+XUYw27H+QK5V1lz1l1MaJLbwS3ySyZBPGH8qUuOzQ3bLp9xhAIRgCui3kX/UDhmeME7nJI6k3UZydh+/ydNB1BZHTKn76XS/yFj0Gcibxg7f5fcAYA6Ge5Sg+YPozuwbcKnKe6IpN2M7qNgWa+6MCSXJ1v4BgPb7kN74EynJUM8+yWEFN7MZtWEUQ4ZsHdCs8Pub4C/zHpYGV8qGenZwQzosAFq56YwoGCvJezz35yg4BDd3IMKenOzNnXLBrdxxqX8ySgwt5B3zBqwve/64Lx6OXjae2m8wZKlsmeqad/s6K7nx0zG15/qqRIzyvgcLXq3jwBaHkteq49FRFWvHQFpBQcsPZ2uH4=
-  matrix:
-    - IMAG_RUBY_VERSION=2.3.3
-    - IMAG_RUBY_VERSION=2.4.0
+  - TRAVIS_CARGO_NIGHTLY_FEATURE=dev
+  - secure: D+3exBnbvzFvk7fvLOxkF7UotCc4gBbvvOW4xGr9u6dDjEjV5y6CdDy/OQAkhfKhvSou+lIC22g5MuCBQXFEf/ua7A1XzwBAFeVLK4cWZSa7+ql6LdHKqOg3oF6pQlh095WeWr8S2PYJFFJFg8RGUPnbjqdu1J4KSXqe/7GoZ3lYS69mx7D5Hb93KEN084/KGfBuvyJtMjO1fK3spltL2zV8oqegFpv0gLG5GY4LsJ/7ij4Mc6wepXSyyQbaiA1eKMMwQZDvoi4V1mCulo/jeC3pucGxvgnMV5DZs8aa8R7votltGvSpHCgU78LW19dg8oZqwShQQ+XUYw27H+QK5V1lz1l1MaJLbwS3ySyZBPGH8qUuOzQ3bLp9xhAIRgCui3kX/UDhmeME7nJI6k3UZydh+/ydNB1BZHTKn76XS/yFj0Gcibxg7f5fcAYA6Ge5Sg+YPozuwbcKnKe6IpN2M7qNgWa+6MCSXJ1v4BgPb7kN74EynJUM8+yWEFN7MZtWEUQ4ZsHdCs8Pub4C/zHpYGV8qGenZwQzosAFq56YwoGCvJezz35yg4BDd3IMKenOzNnXLBrdxxqX8ySgwt5B3zBqwve/64Lx6OXjae2m8wZKlsmeqad/s6K7nx0zG15/qqRIzyvgcLXq3jwBaHkteq49FRFWvHQFpBQcsPZ2uH4=

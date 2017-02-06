@@ -1,5 +1,0 @@
-require 'thermite/tasks'
-
-Thermite::Tasks.new(cargo_project_path: "..", cargo_workspace_member: "libimagruby")
-task default: %w(thermite:build)
-
