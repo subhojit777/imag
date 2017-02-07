@@ -9,7 +9,7 @@ bundle:
 	@$(ECHO) "[BUNDLE]"
 	@$(BUNDLE) install --path vendor/bundle
 
-bundle-rake-thermite-test:
+bundle-rake-thermite-test: bundle
 	@$(ECHO) "[RAKE  ][thermite]"
 	@CARGO_TARGET=debug $(BUNDLE) exec rake thermite:tarball
 
