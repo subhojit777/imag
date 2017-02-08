@@ -9,12 +9,12 @@ bundle:
 	@$(ECHO) "[BUNDLE]"
 	@$(BUNDLE) install --path vendor/bundle
 
-bundle-rake-thermite-test: bundle
+tarball: bundle
 	@$(ECHO) "[RAKE  ][thermite]"
 	@CARGO_TARGET=debug $(BUNDLE) exec rake thermite:tarball
 
-test: lib bundle-rake-thermite-test
-	@$(ECHO) "[TEST  ]"
+test: tarball
+	@$(ECHO) "[TEST  ] Not yet implemented. :-("
 
 .FORCE:
 
