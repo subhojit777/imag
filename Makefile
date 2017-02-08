@@ -47,10 +47,13 @@ bin: $(BIN_TARGETS) imag-bin
 
 bin-test: $(BIN_TARGET_TESTS) imag-bin
 
-lib: $(LIB_TARGETS)
+lib: $(LIB_TARGETS) lib-imag-ruby-tarball
 	@$(ECHO) "\t[ALLLIB ]"
 
 lib-test: $(LIB_TARGETS_TEST)
+
+lib-imag-ruby-tarball:
+	@$(MAKE) -C libimagruby tarball
 
 lib-imag-ruby-test:
 	@$(MAKE) -C libimagruby test
