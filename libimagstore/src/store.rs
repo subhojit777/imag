@@ -358,7 +358,7 @@ impl Store {
 
         WalkDir::new(self.location.clone())
             .into_iter()
-            .map(|res| {
+            .all(|res| {
                 match res {
                     Ok(dent) => {
                         if dent.file_type().is_file() {
@@ -395,7 +395,6 @@ impl Store {
 
                 true
             })
-            .all(|b| b)
     }
 
     /// Creates the Entry at the given location (inside the entry)
