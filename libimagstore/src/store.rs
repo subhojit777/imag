@@ -358,42 +358,43 @@ impl Store {
 
         WalkDir::new(self.location.clone())
             .into_iter()
-            .all(|res| {
-                match res {
-                    Ok(dent) => {
-                        if dent.file_type().is_file() {
-                            match self.get(PathBuf::from(dent.path())) {
-                                Ok(Some(fle)) => {
-                                    let p           = fle.get_location();
-                                    let content_len = fle.get_content().len();
-                                    let header      = if fle.get_header().verify().is_ok() {
-                                        "ok"
-                                    } else {
-                                        "broken"
-                                    };
+            .all(|res| match res {
+                Ok(dent) => {
+                    if dent.file_type().is_file() {
+                        match self.get(PathBuf::from(dent.path())) {
+                            Ok(Some(fle)) => {
+                                let p           = fle.get_location();
+                                let content_len = fle.get_content().len();
+                                let header      = if fle.get_header().verify().is_ok() {
+                                    "ok"
+                                } else {
+                                    "broken"
+                                };
 
-                                    info!("{: >6} | {: >14} | {:?}", header, content_len, p.deref());
-                                },
+                                info!("{: >6} | {: >14} | {:?}", header, content_len, p.deref());
+                                true
+                            },
 
-                                Ok(None) => {
-                                    info!("{: >6} | {: >14} | {:?}", "?", "couldn't load", dent.path());
-                                },
+                            Ok(None) => {
+                                info!("{: >6} | {: >14} | {:?}", "?", "couldn't load", dent.path());
+                                true
+                            },
 
-                                Err(e) => {
-                                    debug!("{:?}", e);
-                                },
-                            }
-                        } else {
-                            info!("{: >6} | {: >14} | {:?}", "?", "<no file>", dent.path());
+                            Err(e) => {
+                                debug!("{:?}", e);
+                                false
+                            },
                         }
-                    },
+                    } else {
+                        info!("{: >6} | {: >14} | {:?}", "?", "<no file>", dent.path());
+                        true
+                    }
+                },
 
-                    Err(e) => {
-                        debug!("{:?}", e);
-                    },
-                }
-
-                true
+                Err(e) => {
+                    debug!("{:?}", e);
+                    false
+                },
             })
     }
 
