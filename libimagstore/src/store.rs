@@ -353,6 +353,8 @@ impl Store {
     /// This function is not intended to be called by normal programs but only by `imag-store`.
     #[cfg(feature = "verify")]
     pub fn verify(&self) -> bool {
+        use libimagerror::trace::trace_error_dbg;
+
         info!("Header | Content length | Path");
         info!("-------+----------------+-----");
 
@@ -381,6 +383,8 @@ impl Store {
                             },
 
                             Err(e) => {
+                                trace_error_dbg(&e);
+                                if_cfg_panic!("Error verifying: {:?}", e);
                                 debug!("{:?}", e);
                                 false
                             },
@@ -392,6 +396,8 @@ impl Store {
                 },
 
                 Err(e) => {
+                    trace_error_dbg(&e);
+                    if_cfg_panic!("Error verifying: {:?}", e);
                     debug!("{:?}", e);
                     false
                 },
@@ -943,7 +949,6 @@ impl<'a> Drop for FileLockEntry<'a> {
     /// This will silently ignore errors, use `Store::update` if you want to catch the errors
     fn drop(&mut self) {
         use libimagerror::trace::trace_error_dbg;
-
         match self.store._update(self, true) {
             Err(e) => {
                 trace_error_dbg(&e);
