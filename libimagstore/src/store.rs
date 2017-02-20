@@ -983,6 +983,12 @@ impl Store {
     }
 
     /// Execute all hooks from all aspects for a Store Id object.
+    ///
+    /// # Return value
+    ///
+    /// - () on success
+    /// - Error on the first failing hook.
+    ///
     fn execute_hooks_for_id(&self,
                             aspects: Arc<Mutex<Vec<Aspect>>>,
                             id: &StoreId)
