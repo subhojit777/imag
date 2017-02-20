@@ -479,6 +479,24 @@ impl Store {
     ///
     /// Implicitely creates a entry in the store if there is no entry with the id `id`. For a
     /// non-implicitely-create look at `Store::get`.
+    ///
+    /// # Executed Hooks
+    ///
+    /// - Pre retrieve aspects
+    /// - post retrieve aspects
+    ///
+    /// # Return value
+    ///
+    /// On success: FileLockEntry
+    ///
+    /// On error:
+    ///  - Errors StoreId::into_storeid() might return
+    ///  - RetrieveCallError(HookExecutionError(PreHookExecuteError(_)))
+    ///    of the first failing pre hook.
+    ///  - RetrieveCallError(HookExecutionError(PostHookExecuteError(_)))
+    ///    of the first failing post hook.
+    ///  - RetrieveCallError(LockPoisoned()) if the internal lock is poisened.
+    ///
     pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
         if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
