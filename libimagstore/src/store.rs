@@ -562,6 +562,16 @@ impl Store {
     }
 
     /// Iterate over all StoreIds for one module name
+    ///
+    /// # Returns
+    ///
+    /// On success: An iterator over all entries in the module
+    ///
+    /// On failure:
+    ///  - RetrieveForModuleCallError(GlobError(EncodingError())) if the path string cannot be
+    ///    encoded
+    ///  - GRetrieveForModuleCallError(GlobError(lobError())) if the glob() failed.
+    ///
     pub fn retrieve_for_module(&self, mod_name: &str) -> Result<StoreIdIterator> {
         let mut path = self.path().clone();
         path.push(mod_name);
