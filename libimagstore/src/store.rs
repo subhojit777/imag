@@ -530,7 +530,19 @@ impl Store {
 
     /// Get an entry from the store if it exists.
     ///
-    /// This executes the {pre,post}_retrieve_aspects hooks.
+    /// # Executed Hooks
+    ///
+    /// - Pre get aspects
+    /// - post get aspects
+    ///
+    /// # Return value
+    ///
+    /// On success: Some(FileLockEntry) or None
+    ///
+    /// On error:
+    ///  - Errors StoreId::into_storeid() might return
+    ///  - Errors Store::retrieve() might return
+    ///
     pub fn get<'a, S: IntoStoreId + Clone>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
 
