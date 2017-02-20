@@ -698,6 +698,25 @@ impl Store {
     }
 
     /// Delete an entry
+    ///
+    /// # Executed Hooks
+    ///
+    /// - Pre delete aspects, if the id can be used
+    /// - Post delete aspects, if the operation succeeded
+    ///
+    /// # Return value
+    ///
+    /// On success: ()
+    ///
+    /// On error:
+    ///  - DeleteCallError(HookExecutionError(PreHookExecuteError(_)))
+    ///    of the first failing pre hook.
+    ///  - DeleteCallError(HookExecutionError(PostHookExecuteError(_)))
+    ///    of the first failing post hook.
+    ///  - DeleteCallError(LockPoisoned()) if the internal write lock cannot be aquierd.
+    ///  - DeleteCallError(FileNotFound()) if the StoreId refers to a non-existing entry.
+    ///  - DeleteCallError(FileError()) if the internals failed to remove the file.
+    ///
     pub fn delete<S: IntoStoreId>(&self, id: S) -> Result<()> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
         if let Err(e) = self.execute_hooks_for_id(self.pre_delete_aspects.clone(), &id) {
