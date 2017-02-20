@@ -607,8 +607,29 @@ impl Store {
     /// Internal method to write to the filesystem store.
     ///
     /// # Assumptions
+    ///
     /// This method assumes that entry is dropped _right after_ the call, hence
     /// it is not public.
+    ///
+    /// # Executed Hooks
+    ///
+    /// - Pre update aspects
+    /// - post update aspects
+    ///
+    /// # Return value
+    ///
+    /// On success: Entry
+    ///
+    /// On error:
+    ///  - UpdateCallError(HookExecutionError(PreHookExecuteError(_)))
+    ///    of the first failing pre hook.
+    ///  - UpdateCallError(HookExecutionError(PostHookExecuteError(_)))
+    ///    of the first failing post hook.
+    ///  - UpdateCallError(LockPoisoned()) if the internal write lock cannot be aquierd.
+    ///  - IdNotFound() if the entry was not found in the stor
+    ///  - Errors Entry::verify() might return
+    ///  - Errors StoreEntry::write_entry() might return
+    ///
     fn _update<'a>(&'a self, mut entry: &mut FileLockEntry<'a>, modify_presence: bool) -> Result<()> {
         let _ = try!(self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), &mut entry)
             .map_err_into(SEK::PreHookExecuteError)
@@ -633,7 +654,6 @@ impl Store {
         if modify_presence {
             se.status = StoreEntryStatus::Present;
         }
-
 
         self.execute_hooks_for_mut_file(self.post_update_aspects.clone(), &mut entry)
             .map_err_into(SEK::PostHookExecuteError)
