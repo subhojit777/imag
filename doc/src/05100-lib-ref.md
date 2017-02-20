@@ -52,3 +52,18 @@ content hash (which is stored in the header of the store entry).
 
 The reference object can, after the path was re-found, be updated.
 
+### Long-term TODO
+
+Things which have to be done here or are not yet properly tested:
+
+- [ ] Testing of different Hashers
+- [ ] Testing of re-finding of objects, including:
+  - [ ] Can a moved file automatically be found by content hash?
+  - [ ] Does a store-reference get updated automatically if it was moved,
+    including links (as in `libimaglink`)?
+  - [ ] If the content of a file changes, does the content hash get updated
+    automatically?
+
+("automatically" is a strechable term here, as these things have to be triggered
+by the user anyways)
+
