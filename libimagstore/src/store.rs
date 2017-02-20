@@ -212,19 +212,42 @@ pub struct Store {
     pre_move_aspects      : Arc<Mutex<Vec<Aspect>>>,
     post_move_aspects     : Arc<Mutex<Vec<Aspect>>>,
 
-    /**
-     * Internal Path->File cache map
-     *
-     * Caches the files, so they remain flock()ed
-     *
-     * Could be optimized for a threadsafe HashMap
-     */
+    ///
+    /// Internal Path->File cache map
+    ///
+    /// Caches the files, so they remain flock()ed
+    ///
+    /// Could be optimized for a threadsafe HashMap
+    ///
     entries: Arc<RwLock<HashMap<StoreId, StoreEntry>>>,
 }
 
 impl Store {
 
     /// Create a new Store object
+    ///
+    /// This opens a Store in `location` using the configuration from `store_config` (if absent, it
+    /// uses defaults).
+    ///
+    /// If the configuration is not valid, this fails.
+    ///
+    /// If the location does not exist, creating directories is by default denied and the operation
+    /// fails, if not configured otherwise.
+    /// An error is returned in this case.
+    ///
+    /// If the path exists and is a file, the operation is aborted as well, an error is returned.
+    ///
+    /// After that, the store hook aspects are created and registered in the store.
+    ///
+    /// # Return values
+    ///
+    /// - On success: Store object
+    /// - On Failure:
+    ///   - ConfigurationError if config is faulty
+    ///   - IoError(FileError(CreateStoreDirDenied())) if store location does not exist and creating
+    ///     is denied
+    ///   - StorePathCreate(_) if creating the store directory failed
+    ///   - StorePathExists() if location exists but is a file
     pub fn new(location: PathBuf, store_config: Option<Value>) -> Result<Store> {
         use configuration::*;
 
