@@ -422,6 +422,25 @@ impl Store {
     }
 
     /// Creates the Entry at the given location (inside the entry)
+    ///
+    /// # Executed Hooks
+    ///
+    /// - Pre create aspects
+    /// - post create aspects
+    ///
+    /// # Return value
+    ///
+    /// On success: FileLockEntry
+    ///
+    /// On error:
+    ///  - Errors StoreId::into_storeid() might return
+    ///  - CreateCallError(HookExecutionError(PreHookExecuteError(_)))
+    ///    of the first failing pre hook.
+    ///  - CreateCallError(HookExecutionError(PostHookExecuteError(_)))
+    ///    of the first failing post hook.
+    ///  - CreateCallError(LockPoisoned()) if the internal lock is poisened.
+    ///  - CreateCallError(EntryAlreadyExists()) if the entry exists already.
+    ///
     pub fn create<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
         if let Err(e) = self.execute_hooks_for_id(self.pre_create_aspects.clone(), &id) {
