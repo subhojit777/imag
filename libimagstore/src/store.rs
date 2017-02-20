@@ -588,7 +588,10 @@ impl Store {
             .map_err_into(SEK::RetrieveForModuleCallError)
     }
 
-    // Walk the store tree for the module
+    /// Walk the store tree for the module
+    ///
+    /// The difference between a `Walk` and a `StoreIdIterator` is that with a `Walk`, one can find
+    /// "collections" (folders).
     pub fn walk<'a>(&'a self, mod_name: &str) -> Walk {
         Walk::new(self.path().clone(), mod_name)
     }
