@@ -984,21 +984,21 @@ impl<'a> Drop for FileLockEntry<'a> {
 
 #[cfg(test)]
 impl<'a> Drop for FileLockEntry<'a> {
+
     /// This will not silently ignore errors but prints the result of the _update() call for testing
     fn drop(&mut self) {
         let _ = self.store._update(self, true).map_err(|e| trace_error(&e));
     }
+
 }
 
 
 /// `EntryContent` type
 pub type EntryContent = String;
 
-/**
- * An Entry of the store
- *
- * Contains location, header and content part.
- */
+/// An Entry of the store
+//
+/// Contains location, header and content part.
 #[derive(Debug, Clone)]
 pub struct Entry {
     location: StoreId,
@@ -1008,6 +1008,10 @@ pub struct Entry {
 
 impl Entry {
 
+    /// Create a new store entry with its location at `loc`.
+    ///
+    /// This creates the entry with the default header from `Entry::default_header()` and an empty
+    /// content.
     pub fn new(loc: StoreId) -> Entry {
         Entry {
             location: loc,
@@ -1016,10 +1020,16 @@ impl Entry {
         }
     }
 
+    /// Get the default Header for an Entry.
+    ///
+    /// This function should be used to get a new Header, as the default header may change. Via
+    /// this function, compatibility is ensured.
     pub fn default_header() -> Value { // BTreeMap<String, Value>
         Value::default_header()
     }
 
+    /// See `Entry::from_str()`, as this function is used internally. This is just a wrapper for
+    /// convenience.
     pub fn from_reader<S: IntoStoreId>(loc: S, file: &mut Read) -> Result<Entry> {
         let text = {
             let mut s = String::new();
@@ -1029,6 +1039,18 @@ impl Entry {
         Self::from_str(loc, &text[..])
     }
 
+    /// Create a new Entry, with contents from the string passed.
+    ///
+    /// The passed string _must_ be a complete valid store entry, including header. So this is
+    /// probably not what end-users want to call.
+    ///
+    /// # Return value
+    ///
+    /// This errors if
+    ///
+    /// - String cannot be matched on regex to find header and content
+    /// - Header cannot be parsed into a TOML object
+    ///
     pub fn from_str<S: IntoStoreId>(loc: S, s: &str) -> Result<Entry> {
         debug!("Building entry from string");
         lazy_static! {
@@ -1060,32 +1082,44 @@ impl Entry {
         })
     }
 
+    /// Return the string representation of this entry
+    ///
+    /// This means not only the content of the entry, but the complete entry (from memory, not from
+    /// disk).
     pub fn to_str(&self) -> String {
         format!("---\n{header}---\n{content}",
                 header  = ::toml::encode_str(&self.header),
                 content = self.content)
     }
 
+    /// Get the location of the Entry
     pub fn get_location(&self) -> &StoreId {
         &self.location
     }
 
+    /// Get the header of the Entry
     pub fn get_header(&self) -> &Value {
         &self.header
     }
 
+    /// Get the header mutably of the Entry
     pub fn get_header_mut(&mut self) -> &mut Value {
         &mut self.header
     }
 
+    /// Get the content of the Entry
     pub fn get_content(&self) -> &EntryContent {
         &self.content
     }
 
+    /// Get the content mutably of the Entry
     pub fn get_content_mut(&mut self) -> &mut EntryContent {
         &mut self.content
     }
 
+    /// Verify the entry.
+    ///
+    /// Currently, this only verifies the header. This might change in the future.
     pub fn verify(&self) -> Result<()> {
         self.header.verify()
     }
