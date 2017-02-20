@@ -597,6 +597,9 @@ impl Store {
     }
 
     /// Return the `FileLockEntry` and write to disk
+    ///
+    /// See `Store::_update()`.
+    ///
     pub fn update<'a>(&'a self, mut entry: FileLockEntry<'a>) -> Result<()> {
         self._update(&mut entry, false).map_err_into(SEK::UpdateCallError)
     }
