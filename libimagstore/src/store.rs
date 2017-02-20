@@ -929,6 +929,10 @@ pub struct FileLockEntry<'a> {
 }
 
 impl<'a> FileLockEntry<'a, > {
+
+    /// Create a new FileLockEntry based on a `Entry` object.
+    ///
+    /// Only for internal use.
     fn new(store: &'a Store, entry: Entry) -> FileLockEntry<'a> {
         FileLockEntry {
             store: store,
@@ -960,7 +964,11 @@ impl<'a> DerefMut for FileLockEntry<'a> {
 
 #[cfg(not(test))]
 impl<'a> Drop for FileLockEntry<'a> {
+
     /// This will silently ignore errors, use `Store::update` if you want to catch the errors
+    ///
+    /// This might panic if the store was compiled with the early-panic feature (which is not
+    /// intended for production use, though).
     fn drop(&mut self) {
         use libimagerror::trace::trace_error_dbg;
 
