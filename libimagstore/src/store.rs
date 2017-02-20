@@ -758,6 +758,21 @@ impl Store {
         &self.location
     }
 
+    /// Register a hook in the store.
+    ///
+    /// A hook is registered by a position (when should the hook be executed) and an aspect name.
+    /// The aspect name must be in the configuration file, so the configuration for the hook can be
+    /// passed to the `Hook` object.
+    ///
+    /// # Available Hook positions
+    ///
+    /// The hook positions are described in the type description of `HookPosition`.
+    ///
+    /// # Aspect names
+    ///
+    /// Aspect names are arbitrary, though sane things like "debug" or "vcs" are encouraged.
+    /// Refer to the documentation for more information.
+    ///
     pub fn register_hook(&mut self,
                          position: HookPosition,
                          aspect_name: &str,
@@ -800,6 +815,7 @@ impl Store {
         Err(SEK::HookRegisterError.into_error_with_cause(Box::new(annfe)))
     }
 
+    /// Get the configuration for a hook by the name of the hook, from the configuration file.
     fn get_config_for_hook(&self, name: &str) -> Option<&Value> {
         match self.configuration {
             Some(Value::Table(ref tabl)) => {
@@ -819,6 +835,7 @@ impl Store {
         }
     }
 
+    /// Execute all hooks from all aspects for a Store Id object.
     fn execute_hooks_for_id(&self,
                             aspects: Arc<Mutex<Vec<Aspect>>>,
                             id: &StoreId)
@@ -834,6 +851,7 @@ impl Store {
             .map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
     }
 
+    /// Execute all hooks from all aspects for a mutable `FileLockEntry` object.
     fn execute_hooks_for_mut_file(&self,
                                   aspects: Arc<Mutex<Vec<Aspect>>>,
                                   fle: &mut FileLockEntry)
@@ -853,6 +871,7 @@ impl Store {
 
 impl Debug for Store {
 
+    /// TODO: Make pretty.
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FMTError> {
         try!(write!(fmt, " --- Store ---\n"));
         try!(write!(fmt, "\n"));
@@ -877,11 +896,12 @@ impl Debug for Store {
 
 impl Drop for Store {
 
-    /**
-     * Unlock all files on drop
-     *
-     * TODO: Unlock them
-     */
+    ///
+    /// Unlock all files on drop
+    //
+    /// TODO: Unlock them
+    /// TODO: Resolve this dirty hack with the StoreId for the Store drop hooks.
+    ///
     fn drop(&mut self) {
         match StoreId::new(Some(self.location.clone()), PathBuf::from(".")) {
             Err(e) => {
