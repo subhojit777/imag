@@ -190,14 +190,14 @@ impl StoreEntry {
 pub struct Store {
     location: PathBuf,
 
-    /**
-     * Configuration object of the store
-     */
+    ///
+    /// Configuration object of the store
+    ///
     configuration: Option<Value>,
 
-    /*
-     * Registered hooks
-     */
+    //
+    // Registered hooks
+    //
 
     store_unload_aspects  : Arc<Mutex<Vec<Aspect>>>,
 
