@@ -663,6 +663,22 @@ impl Store {
 
     /// Retrieve a copy of a given entry, this cannot be used to mutate
     /// the one on disk
+    ///
+    /// TODO: Create Hooks for retrieving a copy
+    ///
+    /// # Executed Hooks
+    ///
+    /// - (none yet)
+    ///
+    /// # Return value
+    ///
+    /// On success: Entry
+    ///
+    /// On error:
+    ///  - RetrieveCopyCallError(LockPoisoned()) if the internal write lock cannot be aquierd.
+    ///  - RetrieveCopyCallError(IdLocked()) if the Entry is borrowed currently
+    ///  - Errors StoreEntry::new() might return
+    ///
     pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
         let entries = match self.entries.write() {
