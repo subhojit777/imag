@@ -1005,6 +1005,12 @@ impl Store {
     }
 
     /// Execute all hooks from all aspects for a mutable `FileLockEntry` object.
+    ///
+    /// # Return value
+    ///
+    /// - () on success
+    /// - Error on the first failing hook.
+    ///
     fn execute_hooks_for_mut_file(&self,
                                   aspects: Arc<Mutex<Vec<Aspect>>>,
                                   fle: &mut FileLockEntry)
