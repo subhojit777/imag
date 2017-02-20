@@ -769,6 +769,8 @@ impl Store {
     /// Save an Entry in another place
     /// Removes the original entry
     /// Executes the post_move_aspects for the new id
+    ///
+    /// TODO: Introduce new aspect for `save_as()`.
     pub fn save_as(&self, entry: FileLockEntry, new_id: StoreId) -> Result<()> {
         self.save_to_other_location(&entry, new_id, true)
     }
