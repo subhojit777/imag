@@ -13,7 +13,10 @@ module Imag
 
   module Logger
 
-    def self.init debug, verbose, color
+    def self.init cfg
+      debug   = !!cfg[:debug]
+      verbose = !!cfg[:verbose]
+      color   = !!cfg[:color]
       RImag.init_logger debug, verbose, color
     end
 
@@ -86,7 +89,7 @@ if __FILE__ == $0
     exit 1
   end
 
-  Imag::Logger.init true, true, true
+  Imag::Logger.init debug: true, verbose: true, color: true
   Imag::Logger.info "The Logger should work now"
 
   Imag::Logger.info "Lets see whether we have properly setup StoreId"
