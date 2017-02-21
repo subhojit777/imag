@@ -37,6 +37,9 @@ use logger::ImagLogger;
 
 use libimagstore::store::Store;
 
+/// The Runtime object
+///
+/// This object contains the complete runtime environment of the imag application running.
 #[derive(Debug)]
 pub struct Runtime<'a> {
     rtp: PathBuf,
@@ -47,14 +50,11 @@ pub struct Runtime<'a> {
 
 impl<'a> Runtime<'a> {
 
-    /**
-     * Gets the CLI spec for the program and retreives the config file path (or uses the default on
-     * in $HOME/.imag/config, $XDG_CONFIG_DIR/imag/config or from env("$IMAG_CONFIG")
-     * and builds the Runtime object with it.
-     *
-     * The cli_spec object should be initially build with the ::get_default_cli_builder() function.
-     *
-     */
+    /// Gets the CLI spec for the program and retreives the config file path (or uses the default on
+    /// in $HOME/.imag/config, $XDG_CONFIG_DIR/imag/config or from env("$IMAG_CONFIG")
+    /// and builds the Runtime object with it.
+    ///
+    /// The cli_spec object should be initially build with the ::get_default_cli_builder() function.
     pub fn new(mut cli_spec: App<'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
         use std::env;
         use std::io::stdout;
@@ -198,19 +198,19 @@ impl<'a> Runtime<'a> {
         .map_err_into(RuntimeErrorKind::Instantiate)
     }
 
-    /**
-     * Get a commandline-interface builder object from `clap`
-     *
-     * This commandline interface builder object already contains some predefined interface flags:
-     *   * -v | --verbose for verbosity
-     *   * --debug for debugging
-     *   * -c <file> | --config <file> for alternative configuration file
-     *   * -r <path> | --rtp <path> for alternative runtimepath
-     *   * --store <path> for alternative store path
-     * Each has the appropriate help text included.
-     *
-     * The `appname` shall be "imag-<command>".
-     */
+    ///
+    /// Get a commandline-interface builder object from `clap`
+    ///
+    /// This commandline interface builder object already contains some predefined interface flags:
+    ///   * -v | --verbose for verbosity
+    ///   * --debug for debugging
+    ///   * -c <file> | --config <file> for alternative configuration file
+    ///   * -r <path> | --rtp <path> for alternative runtimepath
+    ///   * --store <path> for alternative store path
+    /// Each has the appropriate help text included.
+    ///
+    /// The `appname` shall be "imag-<command>".
+    ///
     pub fn get_default_cli_builder(appname: &'a str,
                                    version: &'a str,
                                    about: &'a str)
@@ -279,6 +279,7 @@ impl<'a> Runtime<'a> {
 
     }
 
+    /// Get the argument names of the Runtime which are available
     pub fn arg_names() -> Vec<&'static str> {
         vec![
             Runtime::arg_verbosity_name(),
@@ -292,45 +293,52 @@ impl<'a> Runtime<'a> {
         ]
     }
 
+    /// Get the verbosity argument name for the Runtime
     pub fn arg_verbosity_name() -> &'static str {
         "verbosity"
     }
 
+    /// Get the debugging argument name for the Runtime
     pub fn arg_debugging_name() -> &'static str {
         "debugging"
     }
 
+    /// Get the argument name for no color output of the Runtime
     pub fn arg_no_color_output_name() -> &'static str {
         "no-color-output"
     }
 
+    /// Get the config argument name for the Runtime
     pub fn arg_config_name() -> &'static str {
         "config"
     }
 
+    /// Get the config-override argument name for the Runtime
     pub fn arg_config_override_name() -> &'static str {
         "config-override"
     }
 
+    /// Get the runtime argument name for the Runtime
     pub fn arg_runtimepath_name() -> &'static str {
         "runtimepath"
     }
 
+    /// Get the storepath argument name for the Runtime
     pub fn arg_storepath_name() -> &'static str {
         "storepath"
     }
 
+    /// Get the editor argument name for the Runtime
     pub fn arg_editor_name() -> &'static str {
         "editor"
     }
 
+    /// Get the argument name for generating the completion
     pub fn arg_generate_compl() -> &'static str {
         "generate-completion"
     }
 
-    /**
-     * Initialize the internal logger
-     */
+    /// Initialize the internal logger
     fn init_logger(is_debugging: bool, is_verbose: bool, colored: bool) {
         use std::env::var as env_var;
         use env_logger;
@@ -358,48 +366,37 @@ impl<'a> Runtime<'a> {
         }
     }
 
-    /**
-     * Get the verbosity flag value
-     */
+    /// Get the verbosity flag value
     pub fn is_verbose(&self) -> bool {
         self.cli_matches.is_present("verbosity")
     }
 
-    /**
-     * Get the debugging flag value
-     */
+    /// Get the debugging flag value
     pub fn is_debugging(&self) -> bool {
         self.cli_matches.is_present("debugging")
     }
 
-    /**
-     * Get the runtimepath
-     */
+    /// Get the runtimepath
     pub fn rtp(&self) -> &PathBuf {
         &self.rtp
     }
 
-    /**
-     * Get the commandline interface matches
-     */
+    /// Get the commandline interface matches
     pub fn cli(&self) -> &ArgMatches {
         &self.cli_matches
     }
 
-    /**
-     * Get the configuration object
-     */
+    /// Get the configuration object
     pub fn config(&self) -> Option<&Configuration> {
         self.configuration.as_ref()
     }
 
-    /**
-     * Get the store object
-     */
+    /// Get the store object
     pub fn store(&self) -> &Store {
         &self.store
     }
 
+    /// Get a editor command object which can be called to open the $EDITOR
     pub fn editor(&self) -> Option<Command> {
         self.cli()
             .value_of("editor")
