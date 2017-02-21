@@ -190,14 +190,14 @@ impl StoreEntry {
 pub struct Store {
     location: PathBuf,
 
-    /**
-     * Configuration object of the store
-     */
+    ///
+    /// Configuration object of the store
+    ///
     configuration: Option<Value>,
 
-    /*
-     * Registered hooks
-     */
+    //
+    // Registered hooks
+    //
 
     store_unload_aspects  : Arc<Mutex<Vec<Aspect>>>,
 
@@ -212,19 +212,42 @@ pub struct Store {
     pre_move_aspects      : Arc<Mutex<Vec<Aspect>>>,
     post_move_aspects     : Arc<Mutex<Vec<Aspect>>>,
 
-    /**
-     * Internal Path->File cache map
-     *
-     * Caches the files, so they remain flock()ed
-     *
-     * Could be optimized for a threadsafe HashMap
-     */
+    ///
+    /// Internal Path->File cache map
+    ///
+    /// Caches the files, so they remain flock()ed
+    ///
+    /// Could be optimized for a threadsafe HashMap
+    ///
     entries: Arc<RwLock<HashMap<StoreId, StoreEntry>>>,
 }
 
 impl Store {
 
     /// Create a new Store object
+    ///
+    /// This opens a Store in `location` using the configuration from `store_config` (if absent, it
+    /// uses defaults).
+    ///
+    /// If the configuration is not valid, this fails.
+    ///
+    /// If the location does not exist, creating directories is by default denied and the operation
+    /// fails, if not configured otherwise.
+    /// An error is returned in this case.
+    ///
+    /// If the path exists and is a file, the operation is aborted as well, an error is returned.
+    ///
+    /// After that, the store hook aspects are created and registered in the store.
+    ///
+    /// # Return values
+    ///
+    /// - On success: Store object
+    /// - On Failure:
+    ///   - ConfigurationError if config is faulty
+    ///   - IoError(FileError(CreateStoreDirDenied())) if store location does not exist and creating
+    ///     is denied
+    ///   - StorePathCreate(_) if creating the store directory failed
+    ///   - StorePathExists() if location exists but is a file
     pub fn new(location: PathBuf, store_config: Option<Value>) -> Result<Store> {
         use configuration::*;
 
@@ -399,6 +422,25 @@ impl Store {
     }
 
     /// Creates the Entry at the given location (inside the entry)
+    ///
+    /// # Executed Hooks
+    ///
+    /// - Pre create aspects
+    /// - post create aspects
+    ///
+    /// # Return value
+    ///
+    /// On success: FileLockEntry
+    ///
+    /// On error:
+    ///  - Errors StoreId::into_storeid() might return
+    ///  - CreateCallError(HookExecutionError(PreHookExecuteError(_)))
+    ///    of the first failing pre hook.
+    ///  - CreateCallError(HookExecutionError(PostHookExecuteError(_)))
+    ///    of the first failing post hook.
+    ///  - CreateCallError(LockPoisoned()) if the internal lock is poisened.
+    ///  - CreateCallError(EntryAlreadyExists()) if the entry exists already.
+    ///
     pub fn create<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
         if let Err(e) = self.execute_hooks_for_id(self.pre_create_aspects.clone(), &id) {
@@ -437,6 +479,24 @@ impl Store {
     ///
     /// Implicitely creates a entry in the store if there is no entry with the id `id`. For a
     /// non-implicitely-create look at `Store::get`.
+    ///
+    /// # Executed Hooks
+    ///
+    /// - Pre retrieve aspects
+    /// - post retrieve aspects
+    ///
+    /// # Return value
+    ///
+    /// On success: FileLockEntry
+    ///
+    /// On error:
+    ///  - Errors StoreId::into_storeid() might return
+    ///  - RetrieveCallError(HookExecutionError(PreHookExecuteError(_)))
+    ///    of the first failing pre hook.
+    ///  - RetrieveCallError(HookExecutionError(PostHookExecuteError(_)))
+    ///    of the first failing post hook.
+    ///  - RetrieveCallError(LockPoisoned()) if the internal lock is poisened.
+    ///
     pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
         if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
@@ -470,7 +530,19 @@ impl Store {
 
     /// Get an entry from the store if it exists.
     ///
-    /// This executes the {pre,post}_retrieve_aspects hooks.
+    /// # Executed Hooks
+    ///
+    /// - Pre get aspects
+    /// - post get aspects
+    ///
+    /// # Return value
+    ///
+    /// On success: Some(FileLockEntry) or None
+    ///
+    /// On error:
+    ///  - Errors StoreId::into_storeid() might return
+    ///  - Errors Store::retrieve() might return
+    ///
     pub fn get<'a, S: IntoStoreId + Clone>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
 
@@ -490,6 +562,16 @@ impl Store {
     }
 
     /// Iterate over all StoreIds for one module name
+    ///
+    /// # Returns
+    ///
+    /// On success: An iterator over all entries in the module
+    ///
+    /// On failure:
+    ///  - RetrieveForModuleCallError(GlobError(EncodingError())) if the path string cannot be
+    ///    encoded
+    ///  - GRetrieveForModuleCallError(GlobError(lobError())) if the glob() failed.
+    ///
     pub fn retrieve_for_module(&self, mod_name: &str) -> Result<StoreIdIterator> {
         let mut path = self.path().clone();
         path.push(mod_name);
@@ -506,12 +588,18 @@ impl Store {
             .map_err_into(SEK::RetrieveForModuleCallError)
     }
 
-    // Walk the store tree for the module
+    /// Walk the store tree for the module
+    ///
+    /// The difference between a `Walk` and a `StoreIdIterator` is that with a `Walk`, one can find
+    /// "collections" (folders).
     pub fn walk<'a>(&'a self, mod_name: &str) -> Walk {
         Walk::new(self.path().clone(), mod_name)
     }
 
     /// Return the `FileLockEntry` and write to disk
+    ///
+    /// See `Store::_update()`.
+    ///
     pub fn update<'a>(&'a self, mut entry: FileLockEntry<'a>) -> Result<()> {
         self._update(&mut entry, false).map_err_into(SEK::UpdateCallError)
     }
@@ -519,8 +607,29 @@ impl Store {
     /// Internal method to write to the filesystem store.
     ///
     /// # Assumptions
+    ///
     /// This method assumes that entry is dropped _right after_ the call, hence
     /// it is not public.
+    ///
+    /// # Executed Hooks
+    ///
+    /// - Pre update aspects
+    /// - post update aspects
+    ///
+    /// # Return value
+    ///
+    /// On success: Entry
+    ///
+    /// On error:
+    ///  - UpdateCallError(HookExecutionError(PreHookExecuteError(_)))
+    ///    of the first failing pre hook.
+    ///  - UpdateCallError(HookExecutionError(PostHookExecuteError(_)))
+    ///    of the first failing post hook.
+    ///  - UpdateCallError(LockPoisoned()) if the internal write lock cannot be aquierd.
+    ///  - IdNotFound() if the entry was not found in the stor
+    ///  - Errors Entry::verify() might return
+    ///  - Errors StoreEntry::write_entry() might return
+    ///
     fn _update<'a>(&'a self, mut entry: &mut FileLockEntry<'a>, modify_presence: bool) -> Result<()> {
         let _ = try!(self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), &mut entry)
             .map_err_into(SEK::PreHookExecuteError)
@@ -546,7 +655,6 @@ impl Store {
             se.status = StoreEntryStatus::Present;
         }
 
-
         self.execute_hooks_for_mut_file(self.post_update_aspects.clone(), &mut entry)
             .map_err_into(SEK::PostHookExecuteError)
             .map_err_into(SEK::HookExecutionError)
@@ -555,6 +663,22 @@ impl Store {
 
     /// Retrieve a copy of a given entry, this cannot be used to mutate
     /// the one on disk
+    ///
+    /// TODO: Create Hooks for retrieving a copy
+    ///
+    /// # Executed Hooks
+    ///
+    /// - (none yet)
+    ///
+    /// # Return value
+    ///
+    /// On success: Entry
+    ///
+    /// On error:
+    ///  - RetrieveCopyCallError(LockPoisoned()) if the internal write lock cannot be aquierd.
+    ///  - RetrieveCopyCallError(IdLocked()) if the Entry is borrowed currently
+    ///  - Errors StoreEntry::new() might return
+    ///
     pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
         let entries = match self.entries.write() {
@@ -574,6 +698,25 @@ impl Store {
     }
 
     /// Delete an entry
+    ///
+    /// # Executed Hooks
+    ///
+    /// - Pre delete aspects, if the id can be used
+    /// - Post delete aspects, if the operation succeeded
+    ///
+    /// # Return value
+    ///
+    /// On success: ()
+    ///
+    /// On error:
+    ///  - DeleteCallError(HookExecutionError(PreHookExecuteError(_)))
+    ///    of the first failing pre hook.
+    ///  - DeleteCallError(HookExecutionError(PostHookExecuteError(_)))
+    ///    of the first failing post hook.
+    ///  - DeleteCallError(LockPoisoned()) if the internal write lock cannot be aquierd.
+    ///  - DeleteCallError(FileNotFound()) if the StoreId refers to a non-existing entry.
+    ///  - DeleteCallError(FileError()) if the internals failed to remove the file.
+    ///
     pub fn delete<S: IntoStoreId>(&self, id: S) -> Result<()> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
         if let Err(e) = self.execute_hooks_for_id(self.pre_delete_aspects.clone(), &id) {
@@ -617,6 +760,8 @@ impl Store {
 
     /// Save a copy of the Entry in another place
     /// Executes the post_move_aspects for the new id
+    ///
+    /// TODO: Introduce new aspect for `save_to()`.
     pub fn save_to(&self, entry: &FileLockEntry, new_id: StoreId) -> Result<()> {
         self.save_to_other_location(entry, new_id, false)
     }
@@ -624,6 +769,8 @@ impl Store {
     /// Save an Entry in another place
     /// Removes the original entry
     /// Executes the post_move_aspects for the new id
+    ///
+    /// TODO: Introduce new aspect for `save_as()`.
     pub fn save_as(&self, entry: FileLockEntry, new_id: StoreId) -> Result<()> {
         self.save_to_other_location(&entry, new_id, true)
     }
@@ -758,6 +905,21 @@ impl Store {
         &self.location
     }
 
+    /// Register a hook in the store.
+    ///
+    /// A hook is registered by a position (when should the hook be executed) and an aspect name.
+    /// The aspect name must be in the configuration file, so the configuration for the hook can be
+    /// passed to the `Hook` object.
+    ///
+    /// # Available Hook positions
+    ///
+    /// The hook positions are described in the type description of `HookPosition`.
+    ///
+    /// # Aspect names
+    ///
+    /// Aspect names are arbitrary, though sane things like "debug" or "vcs" are encouraged.
+    /// Refer to the documentation for more information.
+    ///
     pub fn register_hook(&mut self,
                          position: HookPosition,
                          aspect_name: &str,
@@ -800,6 +962,7 @@ impl Store {
         Err(SEK::HookRegisterError.into_error_with_cause(Box::new(annfe)))
     }
 
+    /// Get the configuration for a hook by the name of the hook, from the configuration file.
     fn get_config_for_hook(&self, name: &str) -> Option<&Value> {
         match self.configuration {
             Some(Value::Table(ref tabl)) => {
@@ -819,6 +982,13 @@ impl Store {
         }
     }
 
+    /// Execute all hooks from all aspects for a Store Id object.
+    ///
+    /// # Return value
+    ///
+    /// - () on success
+    /// - Error on the first failing hook.
+    ///
     fn execute_hooks_for_id(&self,
                             aspects: Arc<Mutex<Vec<Aspect>>>,
                             id: &StoreId)
@@ -834,6 +1004,13 @@ impl Store {
             .map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
     }
 
+    /// Execute all hooks from all aspects for a mutable `FileLockEntry` object.
+    ///
+    /// # Return value
+    ///
+    /// - () on success
+    /// - Error on the first failing hook.
+    ///
     fn execute_hooks_for_mut_file(&self,
                                   aspects: Arc<Mutex<Vec<Aspect>>>,
                                   fle: &mut FileLockEntry)
@@ -853,6 +1030,7 @@ impl Store {
 
 impl Debug for Store {
 
+    /// TODO: Make pretty.
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FMTError> {
         try!(write!(fmt, " --- Store ---\n"));
         try!(write!(fmt, "\n"));
@@ -877,11 +1055,12 @@ impl Debug for Store {
 
 impl Drop for Store {
 
-    /**
-     * Unlock all files on drop
-     *
-     * TODO: Unlock them
-     */
+    ///
+    /// Unlock all files on drop
+    //
+    /// TODO: Unlock them
+    /// TODO: Resolve this dirty hack with the StoreId for the Store drop hooks.
+    ///
     fn drop(&mut self) {
         match StoreId::new(Some(self.location.clone()), PathBuf::from(".")) {
             Err(e) => {
@@ -909,6 +1088,10 @@ pub struct FileLockEntry<'a> {
 }
 
 impl<'a> FileLockEntry<'a, > {
+
+    /// Create a new FileLockEntry based on a `Entry` object.
+    ///
+    /// Only for internal use.
     fn new(store: &'a Store, entry: Entry) -> FileLockEntry<'a> {
         FileLockEntry {
             store: store,
@@ -940,7 +1123,11 @@ impl<'a> DerefMut for FileLockEntry<'a> {
 
 #[cfg(not(test))]
 impl<'a> Drop for FileLockEntry<'a> {
+
     /// This will silently ignore errors, use `Store::update` if you want to catch the errors
+    ///
+    /// This might panic if the store was compiled with the early-panic feature (which is not
+    /// intended for production use, though).
     fn drop(&mut self) {
         use libimagerror::trace::trace_error_dbg;
 
@@ -956,21 +1143,21 @@ impl<'a> Drop for FileLockEntry<'a> {
 
 #[cfg(test)]
 impl<'a> Drop for FileLockEntry<'a> {
+
     /// This will not silently ignore errors but prints the result of the _update() call for testing
     fn drop(&mut self) {
         let _ = self.store._update(self, true).map_err(|e| trace_error(&e));
     }
+
 }
 
 
 /// `EntryContent` type
 pub type EntryContent = String;
 
-/**
- * An Entry of the store
- *
- * Contains location, header and content part.
- */
+/// An Entry of the store
+//
+/// Contains location, header and content part.
 #[derive(Debug, Clone)]
 pub struct Entry {
     location: StoreId,
@@ -980,6 +1167,10 @@ pub struct Entry {
 
 impl Entry {
 
+    /// Create a new store entry with its location at `loc`.
+    ///
+    /// This creates the entry with the default header from `Entry::default_header()` and an empty
+    /// content.
     pub fn new(loc: StoreId) -> Entry {
         Entry {
             location: loc,
@@ -988,10 +1179,16 @@ impl Entry {
         }
     }
 
+    /// Get the default Header for an Entry.
+    ///
+    /// This function should be used to get a new Header, as the default header may change. Via
+    /// this function, compatibility is ensured.
     pub fn default_header() -> Value { // BTreeMap<String, Value>
         Value::default_header()
     }
 
+    /// See `Entry::from_str()`, as this function is used internally. This is just a wrapper for
+    /// convenience.
     pub fn from_reader<S: IntoStoreId>(loc: S, file: &mut Read) -> Result<Entry> {
         let text = {
             let mut s = String::new();
@@ -1001,6 +1198,18 @@ impl Entry {
         Self::from_str(loc, &text[..])
     }
 
+    /// Create a new Entry, with contents from the string passed.
+    ///
+    /// The passed string _must_ be a complete valid store entry, including header. So this is
+    /// probably not what end-users want to call.
+    ///
+    /// # Return value
+    ///
+    /// This errors if
+    ///
+    /// - String cannot be matched on regex to find header and content
+    /// - Header cannot be parsed into a TOML object
+    ///
     pub fn from_str<S: IntoStoreId>(loc: S, s: &str) -> Result<Entry> {
         debug!("Building entry from string");
         lazy_static! {
@@ -1032,32 +1241,44 @@ impl Entry {
         })
     }
 
+    /// Return the string representation of this entry
+    ///
+    /// This means not only the content of the entry, but the complete entry (from memory, not from
+    /// disk).
     pub fn to_str(&self) -> String {
         format!("---\n{header}---\n{content}",
                 header  = ::toml::encode_str(&self.header),
                 content = self.content)
     }
 
+    /// Get the location of the Entry
     pub fn get_location(&self) -> &StoreId {
         &self.location
     }
 
+    /// Get the header of the Entry
     pub fn get_header(&self) -> &Value {
         &self.header
     }
 
+    /// Get the header mutably of the Entry
     pub fn get_header_mut(&mut self) -> &mut Value {
         &mut self.header
     }
 
+    /// Get the content of the Entry
     pub fn get_content(&self) -> &EntryContent {
         &self.content
     }
 
+    /// Get the content mutably of the Entry
     pub fn get_content_mut(&mut self) -> &mut EntryContent {
         &mut self.content
     }
 
+    /// Verify the entry.
+    ///
+    /// Currently, this only verifies the header. This might change in the future.
     pub fn verify(&self) -> Result<()> {
         self.header.verify()
     }
