@@ -26,6 +26,7 @@ use ansi_term::Style;
 use ansi_term::Colour;
 use ansi_term::ANSIString;
 
+/// Logger implementation for `log` crate.
 pub struct ImagLogger {
     prefix: String,
     dbg_fileline: bool,
@@ -35,6 +36,7 @@ pub struct ImagLogger {
 
 impl ImagLogger {
 
+    /// Create a new ImagLogger object with a certain level
     pub fn new(lvl: LogLevel) -> ImagLogger {
         ImagLogger {
             prefix: "[imag]".to_owned(),
@@ -44,21 +46,25 @@ impl ImagLogger {
         }
     }
 
+    /// Set debugging to include file and line
     pub fn with_dbg_file_and_line(mut self, b: bool) -> ImagLogger {
         self.dbg_fileline = b;
         self
     }
 
+    /// Set debugging to include prefix
     pub fn with_prefix(mut self, pref: String) -> ImagLogger {
         self.prefix = pref;
         self
     }
 
+    /// Set debugging to have color
     pub fn with_color(mut self, b: bool) -> ImagLogger {
         self.color_enabled = b;
         self
     }
 
+    /// Helper function to colorize a string with a certain Style
     fn style_or_not(&self, c: Style, s: String) -> ANSIString {
         if self.color_enabled {
             c.paint(s)
@@ -67,6 +73,7 @@ impl ImagLogger {
         }
     }
 
+    /// Helper function to colorize a string with a certain Color
     fn color_or_not(&self, c: Colour, s: String) -> ANSIString {
         if self.color_enabled {
             c.paint(s)
