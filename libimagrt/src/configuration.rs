@@ -36,9 +36,7 @@ generate_error_module!(
 
 pub use self::error::{ConfigError, ConfigErrorKind};
 
-/**
- * Result type of this module. Either `T` or `ConfigError`
- */
+/// Result type of this module. Either `T` or `ConfigError`
 pub type Result<T> = RResult<T, ConfigError>;
 
 /// `Configuration` object
@@ -90,15 +88,18 @@ impl Configuration {
         })
     }
 
+    /// Get the Editor setting from the configuration
     pub fn editor(&self) -> Option<&String> {
         self.editor.as_ref()
     }
 
     #[allow(dead_code)] // Why do I actually need this annotation on a pub function?
+    /// Get the underlying configuration TOML object
     pub fn config(&self) -> &Value {
         &self.config
     }
 
+    /// Get the configuration of the store, if any.
     pub fn store_config(&self) -> Option<&Value> {
         match self.config {
             Value::Table(ref tabl) => tabl.get("store"),
@@ -208,11 +209,9 @@ fn get_editor_opts(v: &Value) -> String {
     }
 }
 
-/**
- * Helper to fetch the config file
- *
- * Tests several variants for the config file path and uses the first one which works.
- */
+/// Helper to fetch the config file
+///
+/// Tests several variants for the config file path and uses the first one which works.
 fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     use std::env;
     use std::fs::File;
