@@ -494,19 +494,49 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<LinkIter> {
         }
     };
 
-    if !links.iter().all(|l| is_match!(*l, Value::String(_))) {
-        debug!("At least one of the Values which were expected in the Array of links is a non-String!");
+    if !links.iter().all(|l| is_match!(*l, Value::String(_)) || is_match!(*l, Value::Table(_))) {
+        debug!("At least one of the Values which were expected in the Array of links is not a String or a Table!");
         debug!("Generating LinkError");
         return Err(LEK::ExistingLinkTypeWrong.into());
     }
 
     let links : Vec<Link> = try!(links.into_iter()
         .map(|link| {
+            debug!("Matching the link: {:?}", link);
             match link {
                 Value::String(s) => StoreId::new_baseless(PathBuf::from(s))
                     .map_err_into(LEK::StoreIdError)
                     .map(|s| Link::Id { link: s })
                     ,
+                Value::Table(mut tab) => {
+                    debug!("Destructuring table");
+                    if !tab.contains_key("link")
+                    || !tab.contains_key("annotation") {
+                        debug!("Things missing... returning Error instance");
+                        Err(LEK::LinkParserError.into_error())
+                    } else {
+                        let link = try!(tab.remove("link")
+                            .ok_or(LEK::LinkParserFieldMissingError.into_error()));
+
+                        let anno = try!(tab.remove("annotation")
+                            .ok_or(LEK::LinkParserFieldMissingError.into_error()));
+
+                        debug!("Ok, here we go with building a Link::Annotated");
+                        match (link, anno) {
+                            (Value::String(link), Value::String(anno)) => {
+                                StoreId::new_baseless(PathBuf::from(link))
+                                    .map_err_into(LEK::StoreIdError)
+                                    .map(|link| {
+                                        Link::Annotated {
+                                            link: link,
+                                            annotation: anno,
+                                        }
+                                    })
+                            },
+                            _ => Err(LEK::LinkParserFieldTypeError.into_error()),
+                        }
+                    }
+                }
                 _ => unreachable!(),
             }
         })
