@@ -151,6 +151,8 @@ pub trait InternalLinker {
     /// Remove an internal link from the implementor object
     fn remove_internal_link(&mut self, link: &mut Entry) -> Result<()>;
 
+    /// Add internal annotated link
+    fn add_internal_annotated_link(&mut self, link: &mut Entry, annotation: String) -> Result<()>;
 }
 
 pub mod iter {
@@ -394,18 +396,8 @@ impl InternalLinker for Entry {
     }
 
     fn add_internal_link(&mut self, link: &mut Entry) -> Result<()> {
-        let new_link = link.get_location().clone().into();
-
-        debug!("Adding internal link from {:?} to {:?}", self.get_location(), new_link);
-
-        add_foreign_link(link, self.get_location().clone())
-            .and_then(|_| {
-                self.get_internal_links()
-                    .and_then(|links| {
-                        let links = links.chain(LinkIter::new(vec![new_link]));
-                        rewrite_links(self.get_header_mut(), links)
-                    })
-            })
+        let location = link.get_location().clone().into();
+        add_internal_link_with_instance(self, link, location)
     }
 
     fn remove_internal_link(&mut self, link: &mut Entry) -> Result<()> {
@@ -430,6 +422,28 @@ impl InternalLinker for Entry {
             })
     }
 
+    fn add_internal_annotated_link(&mut self, link: &mut Entry, annotation: String) -> Result<()> {
+        let new_link = Link::Annotated {
+            link: link.get_location().clone(),
+            annotation: annotation,
+        };
+
+        add_internal_link_with_instance(self, link, new_link)
+    }
+
+}
+
+fn add_internal_link_with_instance(this: &mut Entry, link: &mut Entry, instance: Link) -> Result<()> {
+    debug!("Adding internal link from {:?} to {:?}", this.get_location(), instance);
+
+    add_foreign_link(link, this.get_location().clone())
+        .and_then(|_| {
+            this.get_internal_links()
+                .and_then(|links| {
+                    let links = links.chain(LinkIter::new(vec![instance]));
+                    rewrite_links(this.get_header_mut(), links)
+                })
+        })
 }
 
 fn rewrite_links<I: Iterator<Item = Link>>(header: &mut Value, links: I) -> Result<()> {
