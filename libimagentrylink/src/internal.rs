@@ -18,6 +18,8 @@
 //
 
 use std::collections::BTreeMap;
+#[cfg(test)]
+use std::path::PathBuf;
 
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
@@ -55,6 +57,16 @@ impl Link {
             Link::Id { link: s } => Link::Id { link: s.without_base() },
             Link::Annotated { link: s, annotation: ann } =>
                 Link::Annotated { link: s.without_base(), annotation: ann },
+        }
+    }
+
+    /// Helper wrapper around Link for StoreId
+    #[cfg(test)]
+    fn with_base(self, pb: PathBuf) -> Link {
+        match self {
+            Link::Id { link: s } => Link::Id { link: s.with_base(pb) },
+            Link::Annotated { link: s, annotation: ann } =>
+                Link::Annotated { link: s.with_base(pb), annotation: ann },
         }
     }
 
@@ -554,8 +566,8 @@ mod test {
             assert_eq!(e1_links.len(), 1);
             assert_eq!(e2_links.len(), 1);
 
-            assert!(e1_links.first().map(|l| l.clone().with_base(store.path().clone()) == *e2.get_location()).unwrap_or(false));
-            assert!(e2_links.first().map(|l| l.clone().with_base(store.path().clone()) == *e1.get_location()).unwrap_or(false));
+            assert!(e1_links.first().map(|l| l.clone().with_base(store.path().clone()).eq_store_id(e2.get_location())).unwrap_or(false));
+            assert!(e2_links.first().map(|l| l.clone().with_base(store.path().clone()).eq_store_id(e1.get_location())).unwrap_or(false));
         }
 
         {
