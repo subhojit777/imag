@@ -17,7 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::collections::BTreeMap;
+
 use libimagstore::storeid::StoreId;
+use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::Entry;
 use libimagstore::store::Result as StoreResult;
 use libimagstore::toml_ext::TomlValueExt;
@@ -31,7 +34,96 @@ use self::iter::IntoValues;
 
 use toml::Value;
 
-pub type Link = StoreId;
+#[derive(Eq, PartialOrd, Ord, Hash, Debug, Clone)]
+pub enum Link {
+    Id          { link: StoreId },
+    Annotated   { link: StoreId, annotation: String },
+}
+
+impl Link {
+
+    fn eq_store_id(&self, id: &StoreId) -> bool {
+        match self {
+            &Link::Id { link: ref s }             => s.eq(id),
+            &Link::Annotated { link: ref s, .. }  => s.eq(id),
+        }
+    }
+
+    /// Helper wrapper around Link for StoreId
+    fn without_base(self) -> Link {
+        match self {
+            Link::Id { link: s } => Link::Id { link: s.without_base() },
+            Link::Annotated { link: s, annotation: ann } =>
+                Link::Annotated { link: s.without_base(), annotation: ann },
+        }
+    }
+
+    fn to_value(&self) -> Result<Value> {
+        match self {
+            &Link::Id { link: ref s } =>
+                s.to_str().map(Value::String).map_err_into(LEK::InternalConversionError),
+            &Link::Annotated { ref link, annotation: ref anno } => {
+                link.to_str()
+                    .map(Value::String)
+                    .map_err_into(LEK::InternalConversionError)
+                    .map(|link| {
+                        let mut tab = BTreeMap::new();
+
+                        tab.insert("link".to_owned(),       link);
+                        tab.insert("annotation".to_owned(), Value::String(anno.clone()));
+                        Value::Table(tab)
+                    })
+            }
+        }
+    }
+
+}
+
+impl ::std::cmp::PartialEq for Link {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (&Link::Id { link: ref a }, &Link::Id { link: ref b }) => a.eq(&b),
+            (&Link::Annotated { link: ref a, annotation: ref ann1 },
+             &Link::Annotated { link: ref b, annotation: ref ann2 }) =>
+                (a, ann1).eq(&(b, ann2)),
+            _ => false,
+        }
+    }
+}
+
+impl From<StoreId> for Link {
+
+    fn from(s: StoreId) -> Link {
+        Link::Id { link: s }
+    }
+}
+
+impl Into<StoreId> for Link {
+    fn into(self) -> StoreId {
+        match self {
+            Link::Id { link }            => link,
+            Link::Annotated { link, .. } => link,
+        }
+    }
+}
+
+impl IntoStoreId for Link {
+    fn into_storeid(self) -> StoreResult<StoreId> {
+        match self {
+            Link::Id { link }            => Ok(link),
+            Link::Annotated { link, .. } => Ok(link),
+        }
+    }
+}
+
+impl AsRef<StoreId> for Link {
+    fn as_ref(&self) -> &StoreId {
+        match self {
+            &Link::Id { ref link }            => &link,
+            &Link::Annotated { ref link, .. } => &link,
+        }
+    }
+}
 
 pub trait InternalLinker {
 
@@ -51,7 +143,6 @@ pub trait InternalLinker {
 
 pub mod iter {
     use std::vec::IntoIter;
-    use std::cmp::Ordering;
     use super::Link;
 
     use error::LinkErrorKind as LEK;
@@ -87,27 +178,17 @@ pub mod iter {
     }
 
     pub trait IntoValues {
-        fn into_values(self) -> IntoIter<Result<Value>>;
+        fn into_values(self) -> Vec<Result<Value>>;
     }
 
     impl<I: Iterator<Item = Link>> IntoValues for I {
-        fn into_values(self) -> IntoIter<Result<Value>> {
-            self.map(|s| s.without_base().to_str().map_err_into(LEK::InternalConversionError))
-                .unique_by(|entry| {
-                    match entry {
-                        &Ok(ref e) => Some(e.clone()),
-                        &Err(_) => None,
-                    }
-                })
-                .map(|elem| elem.map(Value::String))
-                .sorted_by(|a, b| {
-                    match (a, b) {
-                        (&Ok(Value::String(ref a)), &Ok(Value::String(ref b))) => Ord::cmp(a, b),
-                        (&Err(_), _) | (_, &Err(_)) => Ordering::Equal,
-                        _ => unreachable!()
-                    }
-                })
-                .into_iter()
+        fn into_values(self) -> Vec<Result<Value>> {
+            self.map(|s| s.without_base())
+                .unique()
+                .sorted()
+                .into_iter() // Cannot sort toml::Value, hence uglyness here
+                .map(|link| link.to_value().map_err_into(LEK::InternalConversionError))
+                .collect()
         }
     }
 
@@ -282,12 +363,12 @@ impl InternalLinker for Entry {
             if let Err(e) = add_foreign_link(link, self_location.clone()) {
                 return Err(e);
             }
-            let link = link.get_location().clone();
-            new_links.push(link);
+            new_links.push(link.get_location().clone().into());
         }
 
         let new_links = try!(LinkIter::new(new_links)
                              .into_values()
+                             .into_iter()
                              .fold(Ok(vec![]), |acc, elem| {
                                 acc.and_then(move |mut v| {
                                     elem.map_err_into(LEK::InternalConversionError)
@@ -301,7 +382,7 @@ impl InternalLinker for Entry {
     }
 
     fn add_internal_link(&mut self, link: &mut Entry) -> Result<()> {
-        let new_link = link.get_location().clone();
+        let new_link = link.get_location().clone().into();
 
         debug!("Adding internal link from {:?} to {:?}", self.get_location(), new_link);
 
@@ -324,13 +405,15 @@ impl InternalLinker for Entry {
         link.get_internal_links()
             .and_then(|links| {
                 debug!("Rewriting own links for {:?}, without {:?}", other_loc, own_loc);
-                rewrite_links(link.get_header_mut(), links.filter(|l| *l != own_loc))
+                let links = links.filter(|l| !l.eq_store_id(&own_loc));
+                rewrite_links(link.get_header_mut(), links)
             })
             .and_then(|_| {
                 self.get_internal_links()
                     .and_then(|links| {
                         debug!("Rewriting own links for {:?}, without {:?}", own_loc, other_loc);
-                        rewrite_links(self.get_header_mut(), links.filter(|l| *l != other_loc))
+                        let links = links.filter(|l| !l.eq_store_id(&other_loc));
+                        rewrite_links(self.get_header_mut(), links)
                     })
             })
     }
@@ -339,6 +422,7 @@ impl InternalLinker for Entry {
 
 fn rewrite_links<I: Iterator<Item = Link>>(header: &mut Value, links: I) -> Result<()> {
     let links = try!(links.into_values()
+                     .into_iter()
                      .fold(Ok(vec![]), |acc, elem| {
                         acc.and_then(move |mut v| {
                             elem.map_err_into(LEK::InternalConversionError)
@@ -361,8 +445,9 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
     target.get_internal_links()
         .and_then(|links| {
             let links = try!(links
-                             .chain(LinkIter::new(vec![from]))
+                             .chain(LinkIter::new(vec![from.into()]))
                              .into_values()
+                             .into_iter()
                              .fold(Ok(vec![]), |acc, elem| {
                                 acc.and_then(move |mut v| {
                                     elem.map_err_into(LEK::InternalConversionError)
@@ -407,7 +492,9 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<LinkIter> {
         .map(|link| {
             match link {
                 Value::String(s) => StoreId::new_baseless(PathBuf::from(s))
-                    .map_err_into(LEK::StoreIdError),
+                    .map_err_into(LEK::StoreIdError)
+                    .map(|s| Link::Id { link: s })
+                    ,
                 _ => unreachable!(),
             }
         })
