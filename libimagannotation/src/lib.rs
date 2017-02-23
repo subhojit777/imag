@@ -23,11 +23,8 @@ extern crate toml;
 #[macro_use] extern crate libimagerror;
 #[macro_use] extern crate libimagstore;
 extern crate libimagentrylink;
+extern crate libimagnotes;
 extern crate libimagutil;
-
-pub static MODULE_ENTRY_PATH_NAME: &'static str = "annotation";
-
-module_entry_path_mod!(MODULE_ENTRY_PATH_NAME);
 
 pub mod annotation;
 pub mod error;
