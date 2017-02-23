@@ -44,6 +44,13 @@ pub enum Link {
 
 impl Link {
 
+    pub fn exists(&self) -> bool {
+        match *self {
+            Link::Id { ref link }             => link.exists(),
+            Link::Annotated { ref link, .. }  => link.exists(),
+        }
+    }
+
     fn eq_store_id(&self, id: &StoreId) -> bool {
         match self {
             &Link::Id { link: ref s }             => s.eq(id),
