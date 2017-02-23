@@ -27,6 +27,7 @@ extern crate libimagnotes;
 extern crate libimagutil;
 
 pub mod annotateable;
+pub mod annotation_fetcher;
 pub mod error;
 pub mod result;
 

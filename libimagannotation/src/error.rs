@@ -23,7 +23,9 @@ generate_error_module!(
         StoreWriteError  => "Store write error",
 
         LinkingError     => "Error while linking",
-        HeaderWriteError => "Couldn't write Header for annotation"
+        HeaderWriteError => "Couldn't write Header for annotation",
+        HeaderReadError  => "Couldn't read Header of Entry",
+        HeaderTypeError  => "Header field has unexpected type"
     );
 );
 
