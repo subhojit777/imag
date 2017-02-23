@@ -51,6 +51,15 @@ impl Link {
         }
     }
 
+    pub fn to_str(&self) -> Result<String> {
+        match *self {
+            Link::Id { ref link }             => link.to_str(),
+            Link::Annotated { ref link, .. }  => link.to_str(),
+        }
+        .map_err_into(LEK::StoreReadError)
+    }
+
+
     fn eq_store_id(&self, id: &StoreId) -> bool {
         match self {
             &Link::Id { link: ref s }             => s.eq(id),
