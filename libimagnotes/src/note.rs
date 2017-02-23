@@ -31,9 +31,6 @@ use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagstore::toml_ext::TomlValueExt;
-use libimagentrytag::tag::{Tag, TagSlice};
-use libimagentrytag::tagable::Tagable;
-use libimagentrytag::result::Result as TagResult;
 
 use module_path::ModuleEntryPath;
 use result::Result;
@@ -147,34 +144,6 @@ impl<'a> Edit for Note<'a> {
 
     fn edit_content(&mut self, rt: &Runtime) -> EditResult<()> {
         self.entry.edit_content(rt)
-    }
-
-}
-
-impl<'a> Tagable for Note<'a> {
-
-    fn get_tags(&self) -> TagResult<Vec<Tag>> {
-        self.entry.get_tags()
-    }
-
-    fn set_tags(&mut self, ts: &[Tag]) -> TagResult<()> {
-        self.entry.set_tags(ts)
-    }
-
-    fn add_tag(&mut self, t: Tag) -> TagResult<()> {
-        self.entry.add_tag(t)
-    }
-
-    fn remove_tag(&mut self, t: Tag) -> TagResult<()> {
-        self.entry.remove_tag(t)
-    }
-
-    fn has_tag(&self, t: TagSlice) -> TagResult<bool> {
-        self.entry.has_tag(t)
-    }
-
-    fn has_tags(&self, ts: &[Tag]) -> TagResult<bool> {
-        self.entry.has_tags(ts)
     }
 
 }
