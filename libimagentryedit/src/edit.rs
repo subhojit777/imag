@@ -49,14 +49,6 @@ impl Edit for Entry {
 
 }
 
-impl<'a> Edit for FileLockEntry<'a> {
-
-    fn edit_content(&mut self, rt: &Runtime) -> Result<()> {
-        self.deref_mut().edit_content(rt)
-    }
-
-}
-
 pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> Result<()> {
     use libimagutil::edit::edit_in_tmpfile_with_command;
 
