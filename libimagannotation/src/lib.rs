@@ -21,7 +21,7 @@ extern crate uuid;
 
 #[macro_use] extern crate libimagerror;
 #[macro_use] extern crate libimagstore;
-extern crate libimaglink;
+extern crate libimagentrylink;
 extern crate libimagutil;
 
 pub static MODULE_ENTRY_PATH_NAME: &'static str = "annotation";
