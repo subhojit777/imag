@@ -1,0 +1,25 @@
+[package]
+name = "libimagannotation"
+version = "0.2.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+[dependencies]
+uuid = { version = "0.3.1", features = ["v4"] }
+lazy_static = "0.1.15"
+toml = "0.2.*"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagnotes]
+path = "../libimagnotes"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagentrylink]
+path = "../libimagentrylink"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
