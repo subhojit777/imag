@@ -376,49 +376,55 @@ impl Store {
     /// This function is not intended to be called by normal programs but only by `imag-store`.
     #[cfg(feature = "verify")]
     pub fn verify(&self) -> bool {
+        use libimagerror::trace::trace_error_dbg;
+
         info!("Header | Content length | Path");
         info!("-------+----------------+-----");
 
         WalkDir::new(self.location.clone())
             .into_iter()
-            .map(|res| {
-                match res {
-                    Ok(dent) => {
-                        if dent.file_type().is_file() {
-                            match self.get(PathBuf::from(dent.path())) {
-                                Ok(Some(fle)) => {
-                                    let p           = fle.get_location();
-                                    let content_len = fle.get_content().len();
-                                    let header      = if fle.get_header().verify().is_ok() {
-                                        "ok"
-                                    } else {
-                                        "broken"
-                                    };
+            .all(|res| match res {
+                Ok(dent) => {
+                    if dent.file_type().is_file() {
+                        match self.get(PathBuf::from(dent.path())) {
+                            Ok(Some(fle)) => {
+                                let p           = fle.get_location();
+                                let content_len = fle.get_content().len();
+                                let header      = if fle.get_header().verify().is_ok() {
+                                    "ok"
+                                } else {
+                                    "broken"
+                                };
 
-                                    info!("{: >6} | {: >14} | {:?}", header, content_len, p.deref());
-                                },
+                                info!("{: >6} | {: >14} | {:?}", header, content_len, p.deref());
+                                true
+                            },
 
-                                Ok(None) => {
-                                    info!("{: >6} | {: >14} | {:?}", "?", "couldn't load", dent.path());
-                                },
+                            Ok(None) => {
+                                info!("{: >6} | {: >14} | {:?}", "?", "couldn't load", dent.path());
+                                true
+                            },
 
-                                Err(e) => {
-                                    debug!("{:?}", e);
-                                },
-                            }
-                        } else {
-                            info!("{: >6} | {: >14} | {:?}", "?", "<no file>", dent.path());
+                            Err(e) => {
+                                trace_error_dbg(&e);
+                                if_cfg_panic!("Error verifying: {:?}", e);
+                                debug!("{:?}", e);
+                                false
+                            },
                         }
-                    },
+                    } else {
+                        info!("{: >6} | {: >14} | {:?}", "?", "<no file>", dent.path());
+                        true
+                    }
+                },
 
-                    Err(e) => {
-                        debug!("{:?}", e);
-                    },
-                }
-
-                true
+                Err(e) => {
+                    trace_error_dbg(&e);
+                    if_cfg_panic!("Error verifying: {:?}", e);
+                    debug!("{:?}", e);
+                    false
+                },
             })
-            .all(|b| b)
     }
 
     /// Creates the Entry at the given location (inside the entry)
@@ -1130,7 +1136,6 @@ impl<'a> Drop for FileLockEntry<'a> {
     /// intended for production use, though).
     fn drop(&mut self) {
         use libimagerror::trace::trace_error_dbg;
-
         match self.store._update(self, true) {
             Err(e) => {
                 trace_error_dbg(&e);
