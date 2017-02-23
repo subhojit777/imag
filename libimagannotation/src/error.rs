@@ -19,18 +19,15 @@
 
 generate_error_module!(
     generate_error_types!(AnnotationError, AnnotationErrorKind,
-        StoreReadError         => "Store read error",
-        StoreWriteError        => "Store write error",
-        StoreIdGenerationError => "Error generating StoreId object",
+        StoreReadError   => "Store read error",
+        StoreWriteError  => "Store write error",
 
-        LinkError              => "Link error",
-        LinkingError           => "Error while linking"
-
+        LinkingError     => "Error while linking",
+        HeaderWriteError => "Couldn't write Header for annotation"
     );
 );
 
 pub use self::error::AnnotationError;
 pub use self::error::AnnotationErrorKind;
 pub use self::error::MapErrInto;
-
 
