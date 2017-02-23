@@ -121,13 +121,13 @@ pub fn ask_string(s: &str,
                 &mut BufReader::new(stdin()))
 }
 
-pub fn ask_string_<R: BufRead>(s: &str,
-                               default: Option<String>,
-                               permit_empty: bool,
-                               permit_multiline: bool,
-                               eof: Option<&str>,
-                               prompt: &str,
-                               input: &mut R)
+fn ask_string_<R: BufRead>(s: &str,
+                           default: Option<String>,
+                           permit_empty: bool,
+                           permit_multiline: bool,
+                           eof: Option<&str>,
+                           prompt: &str,
+                           input: &mut R)
     -> String
 {
     let mut v = vec![];
