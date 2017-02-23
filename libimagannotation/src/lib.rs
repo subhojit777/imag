@@ -26,7 +26,7 @@ extern crate libimagentrylink;
 extern crate libimagnotes;
 extern crate libimagutil;
 
-pub mod annotation;
+pub mod annotateable;
 pub mod error;
 pub mod result;
 
