@@ -606,8 +606,8 @@ impl Store {
     ///
     /// See `Store::_update()`.
     ///
-    pub fn update<'a>(&'a self, mut entry: FileLockEntry<'a>) -> Result<()> {
-        self._update(&mut entry, false).map_err_into(SEK::UpdateCallError)
+    pub fn update<'a>(&'a self, mut entry: &FileLockEntry<'a>) -> Result<()> {
+        self._update(entry, false).map_err_into(SEK::UpdateCallError)
     }
 
     /// Internal method to write to the filesystem store.
