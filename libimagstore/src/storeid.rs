@@ -95,9 +95,8 @@ impl StoreId {
         Ok(base)
     }
 
-    pub fn exists(&self) -> bool {
-        // TODO: hiding error here.
-        self.clone().into_pathbuf().map(|pb| pb.exists()).unwrap_or(false)
+    pub fn exists(&self) -> Result<bool> {
+        self.clone().into_pathbuf().map(|pb| pb.exists())
     }
 
     pub fn to_str(&self) -> Result<String> {
