@@ -68,20 +68,25 @@ impl HookDataAccessorProvider for LinkedEntriesExistHook {
 impl NonMutableHookDataAccessor for LinkedEntriesExistHook {
 
     fn access(&self, fle: &FileLockEntry) -> HookResult<()> {
+        use libimagstore::hook::error::HookErrorKind;
+        use libimagstore::hook::error::MapErrInto;
+
         debug!("[LINKVERIFY HOOK] {:?}", fle.get_location());
-        let _ = fle.get_internal_links()
-            .map(|links| {
+        match fle.get_internal_links() {
+            Ok(links) => {
                 for link in links {
-                    if !link.exists() {
+                    if !try!(link.exists().map_err_into(HookErrorKind::HookExecutionError)) {
                         warn!("File link does not exist: {:?} -> {:?}", fle.get_location(), link);
                     }
                 }
-            })
-            .map_err(|e| {
+                Ok(())
+            },
+            Err(e) => {
                 warn!("Couldn't execute Link-Verify hook");
                 trace_error(&e);
-            });
-        Ok(())
+                Err(e).map_err_into(HookErrorKind::HookExecutionError)
+            }
+        }
     }
 
 }
