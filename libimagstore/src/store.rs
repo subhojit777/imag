@@ -552,14 +552,14 @@ impl Store {
     pub fn get<'a, S: IntoStoreId + Clone>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
 
-        let exists = try!(self.entries
+        let exists = try!(id.exists()) || try!(self.entries
             .read()
             .map(|map| map.contains_key(&id))
             .map_err(|_| SE::new(SEK::LockPoisoned, None))
             .map_err_into(SEK::GetCallError)
         );
 
-        if !exists && !id.exists() {
+        if !exists {
             debug!("Does not exist in internal cache or filesystem: {:?}", id);
             return Ok(None);
         }
