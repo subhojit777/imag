@@ -30,6 +30,31 @@ end
 
 puts "---"
 
+[
+    :RImag,
+    :RStoreId,
+    :RStoreHandle,
+    :RFileLockEntryHandle,
+    :REntryHeader,
+    :REntryContent,
+    :RImagError,
+    :RImagObjDoesNotExistError,
+    :RImagStoreError,
+    :RImagStoreWriteError,
+    :RImagStoreReadError,
+    :RImagEntryError,
+    :RImagEntryHeaderError,
+    :RImagEntryHeaderReadError,
+    :RImagEntryHeaderWriteError,
+    :RImagTypeError,
+].each do |sym|
+  if Kernel.const_defined? sym
+    RImag.info "Exists: #{sym}"
+  else
+    RImag.error "#{sym} not defined"
+  end
+end
+
 works "RStoreId.new_baseless", (not RStoreId.new_baseless("test").nil?)
 
 works "RStoreHandle.respond_to? :new", (RStoreHandle.respond_to? :new)
