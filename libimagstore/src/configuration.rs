@@ -20,6 +20,7 @@
 use toml::Value;
 
 use libimagerror::into::IntoError;
+use libimagutil::iter::FoldResult;
 
 use store::Result;
 
@@ -86,15 +87,11 @@ pub fn config_is_valid(config: &Option<Value>) -> Result<()> {
             })
             .and_then(|t| match *t {
                 Value::Array(ref a) => {
-                    a.iter().fold(Ok(()), |acc, elem| {
-                        acc.and_then(|_| {
-                            if is_match!(*elem, Value::String(_)) {
-                                Ok(())
-                            } else {
-                                let cause = Box::new(kind.into_error());
-                                Err(SEK::ConfigTypeError.into_error_with_cause(cause))
-                            }
-                        })
+                    a.iter().fold_defresult(|elem| if is_match!(*elem, Value::String(_)) {
+                        Ok(())
+                    } else {
+                        let cause = Box::new(kind.into_error());
+                        Err(SEK::ConfigTypeError.into_error_with_cause(cause))
                     })
                 },
                 _ => {
@@ -125,29 +122,27 @@ pub fn config_is_valid(config: &Option<Value>) -> Result<()> {
             })
             .and_then(|section_table| match *section_table { // which is
                 Value::Table(ref section_table) => // a table
-                    section_table.iter().fold(Ok(()), |acc, (inner_key, cfg)| {
-                        acc.and_then(|_| {
-                            match *cfg {
-                                Value::Table(ref hook_config) => { // are tables
-                                    // with a key
-                                    let hook_aspect_is_valid = try!(hook_config.get(key)
-                                        .map(|hook_aspect| f(&hook_aspect))
-                                        .ok_or(SEK::ConfigKeyMissingError.into_error())
-                                    );
+                    section_table.iter().fold_defresult(|(inner_key, cfg)| {
+                        match *cfg {
+                            Value::Table(ref hook_config) => { // are tables
+                                // with a key
+                                let hook_aspect_is_valid = try!(hook_config.get(key)
+                                    .map(|hook_aspect| f(&hook_aspect))
+                                    .ok_or(SEK::ConfigKeyMissingError.into_error())
+                                );
 
-                                    if !hook_aspect_is_valid {
-                                        Err(SEK::ConfigTypeError.into_error())
-                                    } else {
-                                        Ok(())
-                                    }
-                                },
-                                _ => {
-                                    warn!("Store config expects '{}' to be in '{}.{}', but isn't.",
-                                             key, section, inner_key);
-                                    Err(SEK::ConfigKeyMissingError.into_error())
+                                if !hook_aspect_is_valid {
+                                    Err(SEK::ConfigTypeError.into_error())
+                                } else {
+                                    Ok(())
                                 }
+                            },
+                            _ => {
+                                warn!("Store config expects '{}' to be in '{}.{}', but isn't.",
+                                         key, section, inner_key);
+                                Err(SEK::ConfigKeyMissingError.into_error())
                             }
-                        })
+                        }
                     }),
                 _ => {
                     warn!("Store config expects '{}' to be a Table, but isn't.", section);
