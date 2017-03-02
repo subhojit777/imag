@@ -18,8 +18,6 @@ LIB_TARGETS_TEST=$(foreach x,$(subst ./,,$(LIBS)),$(x)-test)
 TARGETS=$(BIN_TARGETS) $(LIB_TARGETS)
 RELEASE_TARGETS=$(foreach x,$(TARGETS),$(x)-release)
 INSTALL_TARGETS=$(foreach x,$(BIN_TARGETS),$(x)-install)
-UPDATE_TARGETS=$(foreach x,$(TARGETS),$(x)-update)
-CLEAN_TARGETS=$(foreach x,$(TARGETS),$(x)-clean)
 CHECK_TARGETS=$(foreach x,$(TARGETS),$(x)-check)
 CHECK_OUTDATED_TARGETS=$(foreach x,$(TARGETS),$(x)-check-outdated)
 
@@ -37,10 +35,6 @@ imag-bin-release:
 imag-bin-install:
 	@$(ECHO) "\t[IMAG   ][INSTALL]"
 	@$(CARGO) install --force --path ./bin
-
-imag-bin-clean:
-	@$(ECHO) "\t[IMAG   ][CLEAN  ]"
-	@$(CARGO) clean --manifest-path ./bin/Cargo.toml
 
 imag-bin-check:
 	@$(ECHO) "\t[IMAG   ][CHECK  ]"
@@ -75,8 +69,9 @@ update:
 	@$(ECHO) "\t[UPDATE ]"
 	@$(CARGO) update
 
-clean: $(CLEAN_TARGETS) imag-bin-clean
+clean:
 	@$(ECHO) "\t[CLEAN  ]"
+	@$(CARGO) clean
 
 check: $(CHECK_TARGETS) imag-bin-check
 
@@ -103,10 +98,6 @@ $(LIB_TARGETS_TEST): %: .FORCE
 $(INSTALL_TARGETS): %: .FORCE imag-bin-install
 	@$(ECHO) "\t[INSTALL]:\t$(subst -install,,$@)"
 	@$(CARGO) install --force --path ./$(subst -install,,$@)
-
-$(CLEAN_TARGETS): %: .FORCE
-	@$(ECHO) "\t[CLEAN  ]:\t$(subst -clean,,$@)"
-	@$(CARGO) clean --manifest-path ./$(subst -clean,,$@)/Cargo.toml
 
 $(CHECK_TARGETS): %: .FORCE
 	@$(ECHO) "\t[CHECK  ]:\t$(subst -check,,$@)"
