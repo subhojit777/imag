@@ -34,10 +34,6 @@ imag-bin-release:
 	@$(ECHO) "\t[IMAG   ][RELEASE]"
 	@$(CARGO) build --release --manifest-path ./bin/Cargo.toml
 
-imag-bin-update:
-	@$(ECHO) "\t[IMAG   ][UPDATE ]"
-	@$(CARGO) update --manifest-path ./bin/Cargo.toml
-
 imag-bin-install:
 	@$(ECHO) "\t[IMAG   ][INSTALL]"
 	@$(CARGO) install --force --path ./bin
@@ -75,8 +71,9 @@ test: bin-test lib-test
 install: $(INSTALL_TARGETS) imag-bin-install
 	@$(ECHO) "\t[INSTALL]"
 
-update: $(UPDATE_TARGETS) imag-bin-update
+update:
 	@$(ECHO) "\t[UPDATE ]"
+	@$(CARGO) update
 
 clean: $(CLEAN_TARGETS) imag-bin-clean
 	@$(ECHO) "\t[CLEAN  ]"
@@ -106,10 +103,6 @@ $(LIB_TARGETS_TEST): %: .FORCE
 $(INSTALL_TARGETS): %: .FORCE imag-bin-install
 	@$(ECHO) "\t[INSTALL]:\t$(subst -install,,$@)"
 	@$(CARGO) install --force --path ./$(subst -install,,$@)
-
-$(UPDATE_TARGETS): %: .FORCE
-	@$(ECHO) "\t[UPDATE ]:\t$(subst -update,,$@)"
-	@$(CARGO) update --manifest-path ./$(subst -update,,$@)/Cargo.toml
 
 $(CLEAN_TARGETS): %: .FORCE
 	@$(ECHO) "\t[CLEAN  ]:\t$(subst -clean,,$@)"
