@@ -50,18 +50,19 @@ might think!
 
 There are several targets for each of the sub-crates in the Makefile:
 
-| Target   | Multi | Purpose                                  | Example         |
-| :---     | ----- | :---                                     | :---            |
-| all      |       | Build everything, debug mode             | `make all`      |
-| bin      |       | Build all binaries, debug mode           | `make bin`      |
-| lib      |       | Build all libraries, debug mode          | `make lib`      |
-| lib-test |       | Test all libraries                       | `make lib-test` |
-| imag-bin |       | Build only the `imag` binary, debug mode | `make imag-bin` |
-| check    | *     | Run `cargo check`                        | `make check`    |
-| clean    | *     | Remove build artifacts                   | `make clean`    |
-| install  | *     | Build everything, release mode, install  | `make install`  |
-| release  | *     | Build everything, release mode           | `make release`  |
-| update   | *     | Run `cargo update`                       | `make update`   |
+| Target         | Multi | Purpose                                  | Example              |
+| :---           | ----- | :---                                     | :---                 |
+| all            |       | Build everything, debug mode             | `make all`           |
+| bin            |       | Build all binaries, debug mode           | `make bin`           |
+| lib            |       | Build all libraries, debug mode          | `make lib`           |
+| lib-test       |       | Test all libraries                       | `make lib-test`      |
+| imag-bin       |       | Build only the `imag` binary, debug mode | `make imag-bin`      |
+| clean          |       | Remove build artifacts                   | `make clean`         |
+| update         |       | Run `cargo update`                       | `make update`        |
+| check-outdated |       | Run `cargo outdated`                     | `make check-outdated`|
+| check          | *     | Run `cargo check`                        | `make check`         |
+| install        | *     | Build everything, release mode, install  | `make install`       |
+| release        | *     | Build everything, release mode           | `make release`       |
 
 The `Multi` targets are callable for each sub-crate. For example you can call
 `make imag-store-check` to run `cargo check` on the `imag-store` crate.
