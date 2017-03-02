@@ -19,7 +19,6 @@ TARGETS=$(BIN_TARGETS) $(LIB_TARGETS)
 RELEASE_TARGETS=$(foreach x,$(TARGETS),$(x)-release)
 INSTALL_TARGETS=$(foreach x,$(BIN_TARGETS),$(x)-install)
 CHECK_TARGETS=$(foreach x,$(TARGETS),$(x)-check)
-CHECK_OUTDATED_TARGETS=$(foreach x,$(TARGETS),$(x)-check-outdated)
 
 all: $(TARGETS) imag-bin
 	@$(ECHO) "\t[ALL    ]"
@@ -39,10 +38,6 @@ imag-bin-install:
 imag-bin-check:
 	@$(ECHO) "\t[IMAG   ][CHECK  ]"
 	@$(CARGO) check --manifest-path ./bin/Cargo.toml
-
-imag-bin-check-outdated:
-	@$(ECHO) "\t[IMAG   ][CHECK  ]"
-	@$(CARGO) outdated --manifest-path ./bin/Cargo.toml --lockfile-path ./bin/Cargo.lock
 
 release: $(RELEASE_TARGETS) imag-bin-release
 	@$(ECHO) "\t[RELEASE]"
@@ -75,7 +70,9 @@ clean:
 
 check: $(CHECK_TARGETS) imag-bin-check
 
-check-outdated: $(CHECK_OUTDATED_TARGETS) imag-bin-check-outdated
+check-outdated:
+	@$(ECHO) "\t[OUTDATED]"
+	@$(CARGO) outdated
 
 $(TARGETS): %: .FORCE
 	@$(ECHO) "\t[CARGO  ]:\t$@"
@@ -102,12 +99,6 @@ $(INSTALL_TARGETS): %: .FORCE imag-bin-install
 $(CHECK_TARGETS): %: .FORCE
 	@$(ECHO) "\t[CHECK  ]:\t$(subst -check,,$@)"
 	@$(CARGO) check --manifest-path ./$(subst -check,,$@)/Cargo.toml
-
-$(CHECK_OUTDATED_TARGETS): %: .FORCE $(subst -check-outdated,-update,$@)
-	@$(ECHO) "\t[OUTDATE]:\t$(subst -check-outdated,,$@)"
-	@$(CARGO) outdated -R										  \
-		--manifest-path $(PWD)/$(subst -check-outdated,,$@)/Cargo.toml \
-		--lockfile-path $(PWD)/$(subst -check-outdated,,$@)/Cargo.lock
 
 .FORCE:
 
