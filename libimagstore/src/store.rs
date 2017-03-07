@@ -2007,7 +2007,7 @@ aspect = "test"
         {
             println!("Getting {:?} -> Some -> updating", pb_moved);
             assert!(match store.get(pb_moved.clone()).map_err(|e| println!("ERROR GETTING: {:?}", e)) {
-                Ok(Some(fle)) => store.update(&mut fle)
+                Ok(Some(mut fle)) => store.update(&mut fle)
                                       .map_err(|e| println!("ERROR UPDATING: {:?}", e)).is_ok(),
                 _             => false,
             });
@@ -2111,7 +2111,7 @@ aspect = "test"
     fn test_pre_update_error() {
         let storeid = StoreId::new_baseless(PathBuf::from("test_pre_update_error")).unwrap();
         let store   = get_store_with_aborting_hook_at_pos(HP::PreUpdate);
-        let fle     = store.create(storeid).unwrap();
+        let mut fle = store.create(storeid).unwrap();
 
         assert!(store.update(&mut fle).is_err());
     }
@@ -2156,7 +2156,7 @@ aspect = "test"
     fn test_post_update_error() {
         let store   = get_store_with_aborting_hook_at_pos(HP::PostUpdate);
         let pb      = StoreId::new_baseless(PathBuf::from("test_post_update_error")).unwrap();
-        let fle     = store.create(pb.clone()).unwrap();
+        let mut fle = store.create(pb.clone()).unwrap();
         let pb      = pb.with_base(store.path().clone());
 
         assert!(store.entries.read().unwrap().get(&pb).is_some());
@@ -2197,7 +2197,7 @@ aspect = "test"
     fn test_pre_update_allowed_error() {
         let storeid = StoreId::new_baseless(PathBuf::from("test_pre_update_allowed_error")).unwrap();
         let store   = get_store_with_allowed_error_hook_at_pos(HP::PreUpdate);
-        let fle     = store.create(storeid).unwrap();
+        let mut fle = store.create(storeid).unwrap();
 
         assert!(store.update(&mut fle).is_ok());
     }
@@ -2242,7 +2242,7 @@ aspect = "test"
     fn test_post_update_allowed_error() {
         let store   = get_store_with_allowed_error_hook_at_pos(HP::PostUpdate);
         let pb      = StoreId::new_baseless(PathBuf::from("test_pre_update_allowed_error")).unwrap();
-        let fle     = store.create(pb.clone()).unwrap();
+        let mut fle = store.create(pb.clone()).unwrap();
         let pb      = pb.with_base(store.path().clone());
 
         assert!(store.entries.read().unwrap().get(&pb).is_some());
