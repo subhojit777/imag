@@ -61,14 +61,14 @@ macro_rules! call_on_store_by_handle {
                     match hm.get($store_handle) {
                         Some($name) => { $operation },
                         None => {
-                            VM::raise(Class::from_existing("RuntimeError"),
+                            VM::raise(Class::from_existing("RImagStoreReadError"),
                                     "Tried to operate on non-existing object");
                             $ex
                         }
                     }
                 },
                 Err(e) => {
-                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                    VM::raise(Class::from_existing("RImagError"), e.description());
                     $ex
                 }
             }
@@ -102,11 +102,11 @@ macro_rules! call_on_store {
                 let $fle_name = match $store_name.get($fle_handle_name) {
                     Ok(Some(fle)) => fle,
                     Ok(None) => {
-                        VM::raise(Class::from_existing("RuntimeError"), "Obj does not exist");
+                        VM::raise(Class::from_existing("RImagStoreReadError"), "Obj does not exist");
                         return $fail_expr
                     },
                     Err(e) => {
-                        VM::raise(Class::from_existing("RuntimeError"), e.description());
+                        VM::raise(Class::from_existing("RImagStoreReadError"), e.description());
                         return $fail_expr
                     },
                 };
@@ -174,14 +174,14 @@ methods!(
         let rtp = PathBuf::from(typecheck!(rtp or return any NilClass::new()).to_string());
 
         if !rtp.exists() || !rtp.is_dir() {
-            VM::raise(Class::from_existing("RuntimeError"), "Runtimepath not a directory");
+            VM::raise(Class::from_existing("RImagError"), "Runtimepath not a directory");
             return NilClass::new().to_any_object();
         }
 
         let store_config = match Configuration::new(&rtp) {
             Ok(mut cfg) => cfg.store_config().cloned(),
             Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
-                VM::raise(Class::from_existing("RuntimeError"), e.description());
+                VM::raise(Class::from_existing("RImagError"), e.description());
                 return NilClass::new().to_any_object();
             } else {
                 warn!("No config file found.");
@@ -248,7 +248,7 @@ methods!(
         let store = match store {
             Ok(s) => s,
             Err(e) => {
-                VM::raise(Class::from_existing("RuntimeError"), e.description());
+                VM::raise(Class::from_existing("RImagStoreError"), e.description());
                 return NilClass::new().to_any_object();
             },
         };
@@ -264,7 +264,7 @@ methods!(
                     return store_handle.wrap().to_any_object();
                 },
                 Err(e) => {
-                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                    VM::raise(Class::from_existing("RImagError"), e.description());
                     return NilClass::new().to_any_object();
                 }
             }
@@ -291,7 +291,7 @@ methods!(
                 match store.create(sid.clone()) {
                     Err(e) => {
                         trace_error(&e);
-                        VM::raise(Class::from_existing("RuntimeError"), e.description());
+                        VM::raise(Class::from_existing("RImagStoreWriteError"), e.description());
                         NilClass::new().to_any_object()
                     },
                     Ok(entry) => {
@@ -325,7 +325,7 @@ methods!(
                 match store.retrieve(sid.clone()) {
                     Err(e) => {
                         trace_error(&e);
-                        VM::raise(Class::from_existing("RuntimeError"), e.description());
+                        VM::raise(Class::from_existing("RImagStoreWriteError"), e.description());
                         NilClass::new().to_any_object()
                     },
                     Ok(entry) => {
@@ -360,7 +360,7 @@ methods!(
                 match store.get(sid.clone()) {
                     Err(e) => {
                         trace_error(&e);
-                        VM::raise(Class::from_existing("RuntimeError"), e.description());
+                        VM::raise(Class::from_existing("RImagStoreWriteError"), e.description());
                         NilClass::new().to_any_object()
                     },
                     Ok(None) => NilClass::new().to_any_object(),
@@ -397,7 +397,7 @@ methods!(
                 match store.retrieve_for_module(&name) {
                     Err(e) => {
                         trace_error(&e);
-                        VM::raise(Class::from_existing("RuntimeError"), e.description());
+                        VM::raise(Class::from_existing("RImagStoreWriteError"), e.description());
                         NilClass::new().to_any_object()
                     },
                     Ok(iter) => {
@@ -428,7 +428,7 @@ methods!(
             operation {
                 if let Err(e) = store.update(real_fle) {
                     trace_error(&e);
-                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                    VM::raise(Class::from_existing("RImagStoreWriteError"), e.description());
                 }
                 NilClass::new()
             },
@@ -451,7 +451,7 @@ methods!(
             operation {
                 if let Err(e) = store.delete(sid) {
                     trace_error(&e);
-                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                    VM::raise(Class::from_existing("RImagStoreWriteError"), e.description());
                 }
                 NilClass::new()
             },
@@ -476,7 +476,7 @@ methods!(
             operation {
                 if let Err(e) = store.save_to(&real_fle, sid) {
                     trace_error(&e);
-                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                    VM::raise(Class::from_existing("RImagStoreWriteError"), e.description());
                 }
                 NilClass::new()
             },
@@ -501,7 +501,7 @@ methods!(
             operation {
                 if let Err(e) = store.save_as(real_fle, sid) {
                     trace_error(&e);
-                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                    VM::raise(Class::from_existing("RImagStoreWriteError"), e.description());
                 }
                 NilClass::new()
             },
@@ -525,7 +525,7 @@ methods!(
             operation {
                 if let Err(e) = store.move_by_id(old, nw) {
                     trace_error(&e);
-                    VM::raise(Class::from_existing("RuntimeError"), e.description());
+                    VM::raise(Class::from_existing("RImagStoreWriteError"), e.description());
                 }
                 NilClass::new()
             },

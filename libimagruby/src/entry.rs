@@ -79,11 +79,11 @@ macro_rules! call_on_fle_from_store {
                         $operation
                     },
                     Ok(None) => {
-                        VM::raise(Class::from_existing("RuntimeError"), "Obj does not exist");
+                        VM::raise(Class::from_existing("RImagStoreReadError"), "Obj does not exist");
                         NilClass::new().to_any_object()
                     },
                     Err(e) => {
-                        VM::raise(Class::from_existing("RuntimeError"), e.description());
+                        VM::raise(Class::from_existing("RImagStoreReadError"), e.description());
                         NilClass::new().to_any_object()
                     },
                 }
@@ -100,11 +100,11 @@ macro_rules! call_on_fle_from_store {
                         $operation
                     },
                     Ok(None) => {
-                        VM::raise(Class::from_existing("RuntimeError"), "Obj does not exist");
+                        VM::raise(Class::from_existing("RImagStoreReadError"), "Obj does not exist");
                         $ex
                     },
                     Err(e) => {
-                        VM::raise(Class::from_existing("RuntimeError"), e.description());
+                        VM::raise(Class::from_existing("RImagStoreReadError"), e.description());
                         $ex
                     },
                 }
@@ -133,7 +133,7 @@ methods!(
         let entryheader = match typecheck!(hdr or return NilClass::new()).into_toml() {
             Value::Table(t) => Value::Table(t),
             _ => {
-                let ec = Class::from_existing("RuntimeError");
+                let ec = Class::from_existing("RImagEntryHeaderWriteError");
                 VM::raise(ec, "Something weird happened. Hash seems to be not a Hash");
                 return NilClass::new();
             },
@@ -160,7 +160,7 @@ methods!(
         let content = match typecheck!(ctt).into_toml() {
             Value::String(s) => s,
             _ => {
-                let ec = Class::from_existing("RuntimeError");
+                let ec = Class::from_existing("RImagEntryError");
                 VM::raise(ec, "Something weird happened. String seems to be not a String");
                 return NilClass::new();
             },
@@ -197,7 +197,7 @@ methods!(
         match itself.get_data(&*ENTRY_HEADER_WRAPPER).insert(&spec, obj.into_toml()) {
             Ok(b) => Boolean::new(b),
             Err(e) => {
-                VM::raise(Class::from_existing("RuntimeError"), e.description());
+                VM::raise(Class::from_existing("RImagEntryHeaderWriteError"), e.description());
                 Boolean::new(false)
             }
         }
@@ -213,7 +213,7 @@ methods!(
             Ok(Some(v)) => v.into_ruby(),
             Ok(None)    => NilClass::new().to_any_object(),
             Err(e) => {
-                VM::raise(Class::from_existing("RuntimeError"), e.description());
+                VM::raise(Class::from_existing("RImagEntryHeaderWriteError"), e.description());
                 return Boolean::new(false).to_any_object();
             }
         }
@@ -228,7 +228,7 @@ methods!(
             Ok(Some(v)) => v.into_ruby(),
             Ok(None)    => NilClass::new().to_any_object(),
             Err(e) => {
-                VM::raise(Class::from_existing("RuntimeError"), e.description());
+                VM::raise(Class::from_existing("RImagEntryHeaderReadError"), e.description());
                 return Boolean::new(false).to_any_object();
             }
         }
