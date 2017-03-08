@@ -426,7 +426,8 @@ methods!(
             store <- itself wrapped inside STORE_WRAPPER,
             real_fle <- fetch fle,
             operation {
-                if let Err(e) = store.update(real_fle) {
+                let mut real_fle = real_fle; // rebind for mut
+                if let Err(e) = store.update(&mut real_fle) {
                     trace_error(&e);
                     VM::raise(Class::from_existing("RImagStoreWriteError"), e.description());
                 }
