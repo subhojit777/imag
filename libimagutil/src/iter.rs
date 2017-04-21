@@ -28,8 +28,9 @@ pub trait FoldResult: Sized {
     /// `Ok(())` idiom. To retrieve the values of your application, include an
     /// accumulator in `func`. This is the intended reason for the permissive
     /// `FnMut` type.
-    fn fold_result<R, E, F>(self, mut func: F) -> Result<(), E>
+    fn fold_result<R, E, F>(self, func: F) -> Result<(), E>
         where F: FnMut(Self::Item) -> Result<R, E>;
+
 }
 
 impl<X, I: Iterator<Item = X>> FoldResult for I {
