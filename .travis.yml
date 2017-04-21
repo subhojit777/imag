@@ -11,8 +11,8 @@ matrix:
   include:
     - rust: 1.13.0
       env: IMAG_RUBY_VERSION=2.3.3
-    - rust: stable
-      env: IMAG_RUBY_VERSION=2.3.3
+    - rust: 1.13.0
+      env: IMAG_RUBY_VERSION=2.4.0
 
 cache:
   cargo: true
