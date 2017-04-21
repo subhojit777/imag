@@ -58,8 +58,7 @@ impl<'a> AnnotationFetcher<'a> for Store {
     fn annotations_for_entry(&'a self, entry: &Entry) -> Result<AnnotationIter<'a>> {
         entry.get_internal_links()
             .map_err_into(AEK::StoreReadError)
-            .map(Box::new)
-            .map(|iter| StoreIdIterator::new(iter))
+            .map(|iter| StoreIdIterator::new(Box::new(iter.map(|e| e.get_store_id().clone()))))
             .map(|iter| NoteIterator::new(self, iter))
             .map(|iter| AnnotationIter::new(iter))
     }
