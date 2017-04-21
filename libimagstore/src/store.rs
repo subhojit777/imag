@@ -1948,7 +1948,6 @@ aspect = "test"
 
     fn test_hook_execution(hook_positions: &[HP], storeid_name: &str) {
         let mut store = get_store_with_config();
-        let pos       = HP::PreCreate;
 
         println!("Registering hooks...");
         for pos in hook_positions {
