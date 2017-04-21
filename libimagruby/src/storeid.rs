@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+#[allow(unused_variables)]
+
 use std::path::PathBuf;
 
 use ruru::{Class, Object, AnyObject, Boolean, RString, NilClass, VerifiedObject};
