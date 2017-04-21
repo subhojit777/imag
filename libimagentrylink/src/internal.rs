@@ -67,6 +67,14 @@ impl Link {
         }
     }
 
+    /// Get the StoreId inside the Link, which is always present
+    pub fn get_store_id(&self) -> &StoreId {
+        match self {
+            &Link::Id { link: ref s }             => s,
+            &Link::Annotated { link: ref s, .. }  => s,
+        }
+    }
+
     /// Helper wrapper around Link for StoreId
     fn without_base(self) -> Link {
         match self {
