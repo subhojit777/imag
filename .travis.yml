@@ -63,9 +63,9 @@ notifications:
     on_success: never
   irc:
     channels:
-    - chat.freenode.net#imag
+      - chat.freenode.net#imag
     template:
-    - "%{repository_name} (%{branch} @ %{commit} by %{author}): %{result}"
+      - "%{repository_name} (%{branch} @ %{commit} by %{author}): %{result}"
 
 env:
   global:
