@@ -87,7 +87,7 @@ pub fn config_is_valid(config: &Option<Value>) -> Result<()> {
             })
             .and_then(|t| match *t {
                 Value::Array(ref a) => {
-                    a.iter().fold_defresult(|elem| if is_match!(*elem, Value::String(_)) {
+                    a.iter().fold_result(|elem| if is_match!(*elem, Value::String(_)) {
                         Ok(())
                     } else {
                         let cause = Box::new(kind.into_error());
@@ -122,7 +122,7 @@ pub fn config_is_valid(config: &Option<Value>) -> Result<()> {
             })
             .and_then(|section_table| match *section_table { // which is
                 Value::Table(ref section_table) => // a table
-                    section_table.iter().fold_defresult(|(inner_key, cfg)| {
+                    section_table.iter().fold_result(|(inner_key, cfg)| {
                         match *cfg {
                             Value::Table(ref hook_config) => { // are tables
                                 // with a key

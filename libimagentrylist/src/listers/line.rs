@@ -46,7 +46,7 @@ impl<'a> Lister for LineLister<'a> {
         use error::ListError as LE;
         use error::ListErrorKind as LEK;
 
-        entries.fold_defresult(|entry| {
+        entries.fold_result(|entry| {
             let s = entry.get_location().to_str().unwrap_or(String::from(self.unknown_output));
             write!(stdout(), "{:?}\n", s).map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))
         })

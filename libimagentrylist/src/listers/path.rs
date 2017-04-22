@@ -47,7 +47,7 @@ impl Lister for PathLister {
         use error::ListError as LE;
         use error::ListErrorKind as LEK;
 
-        entries.fold_defresult(|entry| {
+        entries.fold_result(|entry| {
             Ok(entry.get_location().clone())
                 .and_then(|pb| pb.into_pathbuf().map_err_into(LEK::FormatError))
                 .and_then(|pb| {

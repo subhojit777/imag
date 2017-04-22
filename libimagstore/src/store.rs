@@ -1003,7 +1003,7 @@ impl Store {
         match aspects.lock() {
             Err(_) => return Err(HookErrorKind::HookExecutionError.into()),
             Ok(g) => g
-        }.iter().fold_defresult(|aspect| {
+        }.iter().fold_result(|aspect| {
             debug!("[Aspect][exec]: {:?}", aspect);
             (aspect as &StoreIdAccessor).access(id)
         }).map_err(Box::new)
@@ -1025,7 +1025,7 @@ impl Store {
         match aspects.lock() {
             Err(_) => return Err(HookErrorKind::HookExecutionError.into()),
             Ok(g) => g
-        }.iter().fold_defresult(|aspect| {
+        }.iter().fold_result(|aspect| {
             debug!("[Aspect][exec]: {:?}", aspect);
             aspect.access_mut(fle)
         }).map_err(Box::new)
@@ -2248,4 +2248,3 @@ aspect = "test"
         assert!(store.update(&mut fle).is_ok());
     }
 }
-
