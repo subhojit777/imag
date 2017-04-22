@@ -36,37 +36,37 @@ module Imag
       debug   = !!cfg[:debug]
       verbose = !!cfg[:verbose]
       color   = !!cfg[:color]
-      RImag.init_logger debug, verbose, color
+      ::RImag.init_logger debug, verbose, color
     end
 
     # Log text with "trace" level in imag
     def self.trace msg
-      RImag.trace msg
+      ::RImag.trace msg
     end
 
     # Log text with "debug" level in imag
     def self.dbg msg
-      RImag.dbg msg
+      ::RImag.dbg msg
     end
 
     # Log text with "debug" level in imag (alias for Imag::Logger::dbg)
     def self.debug msg
-      RImag.debug msg
+      ::RImag.debug msg
     end
 
     # Log text with "info" level in imag
     def self.info msg
-      RImag.info msg
+      ::RImag.info msg
     end
 
     # Log text with "warning" level in imag
     def self.warn msg
-      RImag.warn msg
+      ::RImag.warn msg
     end
 
     # Log text with "error" level in imag
     def self.error msg
-      RImag.error msg
+      ::RImag.error msg
     end
 
   end
