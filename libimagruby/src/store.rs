@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+#[allow(unused_variables)]
+
 use libimagstore::store::Store;
 use libimagerror::trace::trace_error;
 use std::error::Error;
