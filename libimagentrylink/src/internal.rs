@@ -17,7 +17,12 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::collections::BTreeMap;
+#[cfg(test)]
+use std::path::PathBuf;
+
 use libimagstore::storeid::StoreId;
+use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::Entry;
 use libimagstore::store::Result as StoreResult;
 use libimagstore::toml_ext::TomlValueExt;
@@ -31,7 +36,130 @@ use self::iter::IntoValues;
 
 use toml::Value;
 
-pub type Link = StoreId;
+#[derive(Eq, PartialOrd, Ord, Hash, Debug, Clone)]
+pub enum Link {
+    Id          { link: StoreId },
+    Annotated   { link: StoreId, annotation: String },
+}
+
+impl Link {
+
+    pub fn exists(&self) -> bool {
+        match *self {
+            Link::Id { ref link }             => link.exists(),
+            Link::Annotated { ref link, .. }  => link.exists(),
+        }
+    }
+
+    pub fn to_str(&self) -> Result<String> {
+        match *self {
+            Link::Id { ref link }             => link.to_str(),
+            Link::Annotated { ref link, .. }  => link.to_str(),
+        }
+        .map_err_into(LEK::StoreReadError)
+    }
+
+
+    fn eq_store_id(&self, id: &StoreId) -> bool {
+        match self {
+            &Link::Id { link: ref s }             => s.eq(id),
+            &Link::Annotated { link: ref s, .. }  => s.eq(id),
+        }
+    }
+
+    /// Get the StoreId inside the Link, which is always present
+    pub fn get_store_id(&self) -> &StoreId {
+        match self {
+            &Link::Id { link: ref s }             => s,
+            &Link::Annotated { link: ref s, .. }  => s,
+        }
+    }
+
+    /// Helper wrapper around Link for StoreId
+    fn without_base(self) -> Link {
+        match self {
+            Link::Id { link: s } => Link::Id { link: s.without_base() },
+            Link::Annotated { link: s, annotation: ann } =>
+                Link::Annotated { link: s.without_base(), annotation: ann },
+        }
+    }
+
+    /// Helper wrapper around Link for StoreId
+    #[cfg(test)]
+    fn with_base(self, pb: PathBuf) -> Link {
+        match self {
+            Link::Id { link: s } => Link::Id { link: s.with_base(pb) },
+            Link::Annotated { link: s, annotation: ann } =>
+                Link::Annotated { link: s.with_base(pb), annotation: ann },
+        }
+    }
+
+    fn to_value(&self) -> Result<Value> {
+        match self {
+            &Link::Id { link: ref s } =>
+                s.to_str().map(Value::String).map_err_into(LEK::InternalConversionError),
+            &Link::Annotated { ref link, annotation: ref anno } => {
+                link.to_str()
+                    .map(Value::String)
+                    .map_err_into(LEK::InternalConversionError)
+                    .map(|link| {
+                        let mut tab = BTreeMap::new();
+
+                        tab.insert("link".to_owned(),       link);
+                        tab.insert("annotation".to_owned(), Value::String(anno.clone()));
+                        Value::Table(tab)
+                    })
+            }
+        }
+    }
+
+}
+
+impl ::std::cmp::PartialEq for Link {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (&Link::Id { link: ref a }, &Link::Id { link: ref b }) => a.eq(&b),
+            (&Link::Annotated { link: ref a, annotation: ref ann1 },
+             &Link::Annotated { link: ref b, annotation: ref ann2 }) =>
+                (a, ann1).eq(&(b, ann2)),
+            _ => false,
+        }
+    }
+}
+
+impl From<StoreId> for Link {
+
+    fn from(s: StoreId) -> Link {
+        Link::Id { link: s }
+    }
+}
+
+impl Into<StoreId> for Link {
+    fn into(self) -> StoreId {
+        match self {
+            Link::Id { link }            => link,
+            Link::Annotated { link, .. } => link,
+        }
+    }
+}
+
+impl IntoStoreId for Link {
+    fn into_storeid(self) -> StoreResult<StoreId> {
+        match self {
+            Link::Id { link }            => Ok(link),
+            Link::Annotated { link, .. } => Ok(link),
+        }
+    }
+}
+
+impl AsRef<StoreId> for Link {
+    fn as_ref(&self) -> &StoreId {
+        match self {
+            &Link::Id { ref link }            => &link,
+            &Link::Annotated { ref link, .. } => &link,
+        }
+    }
+}
 
 pub trait InternalLinker {
 
@@ -47,11 +175,12 @@ pub trait InternalLinker {
     /// Remove an internal link from the implementor object
     fn remove_internal_link(&mut self, link: &mut Entry) -> Result<()>;
 
+    /// Add internal annotated link
+    fn add_internal_annotated_link(&mut self, link: &mut Entry, annotation: String) -> Result<()>;
 }
 
 pub mod iter {
     use std::vec::IntoIter;
-    use std::cmp::Ordering;
     use super::Link;
 
     use error::LinkErrorKind as LEK;
@@ -87,27 +216,17 @@ pub mod iter {
     }
 
     pub trait IntoValues {
-        fn into_values(self) -> IntoIter<Result<Value>>;
+        fn into_values(self) -> Vec<Result<Value>>;
     }
 
     impl<I: Iterator<Item = Link>> IntoValues for I {
-        fn into_values(self) -> IntoIter<Result<Value>> {
-            self.map(|s| s.without_base().to_str().map_err_into(LEK::InternalConversionError))
-                .unique_by(|entry| {
-                    match entry {
-                        &Ok(ref e) => Some(e.clone()),
-                        &Err(_) => None,
-                    }
-                })
-                .map(|elem| elem.map(Value::String))
-                .sorted_by(|a, b| {
-                    match (a, b) {
-                        (&Ok(Value::String(ref a)), &Ok(Value::String(ref b))) => Ord::cmp(a, b),
-                        (&Err(_), _) | (_, &Err(_)) => Ordering::Equal,
-                        _ => unreachable!()
-                    }
-                })
-                .into_iter()
+        fn into_values(self) -> Vec<Result<Value>> {
+            self.map(|s| s.without_base())
+                .unique()
+                .sorted()
+                .into_iter() // Cannot sort toml::Value, hence uglyness here
+                .map(|link| link.to_value().map_err_into(LEK::InternalConversionError))
+                .collect()
         }
     }
 
@@ -282,12 +401,12 @@ impl InternalLinker for Entry {
             if let Err(e) = add_foreign_link(link, self_location.clone()) {
                 return Err(e);
             }
-            let link = link.get_location().clone();
-            new_links.push(link);
+            new_links.push(link.get_location().clone().into());
         }
 
         let new_links = try!(LinkIter::new(new_links)
                              .into_values()
+                             .into_iter()
                              .fold(Ok(vec![]), |acc, elem| {
                                 acc.and_then(move |mut v| {
                                     elem.map_err_into(LEK::InternalConversionError)
@@ -301,18 +420,8 @@ impl InternalLinker for Entry {
     }
 
     fn add_internal_link(&mut self, link: &mut Entry) -> Result<()> {
-        let new_link = link.get_location().clone();
-
-        debug!("Adding internal link from {:?} to {:?}", self.get_location(), new_link);
-
-        add_foreign_link(link, self.get_location().clone())
-            .and_then(|_| {
-                self.get_internal_links()
-                    .and_then(|links| {
-                        let links = links.chain(LinkIter::new(vec![new_link]));
-                        rewrite_links(self.get_header_mut(), links)
-                    })
-            })
+        let location = link.get_location().clone().into();
+        add_internal_link_with_instance(self, link, location)
     }
 
     fn remove_internal_link(&mut self, link: &mut Entry) -> Result<()> {
@@ -324,21 +433,46 @@ impl InternalLinker for Entry {
         link.get_internal_links()
             .and_then(|links| {
                 debug!("Rewriting own links for {:?}, without {:?}", other_loc, own_loc);
-                rewrite_links(link.get_header_mut(), links.filter(|l| *l != own_loc))
+                let links = links.filter(|l| !l.eq_store_id(&own_loc));
+                rewrite_links(link.get_header_mut(), links)
             })
             .and_then(|_| {
                 self.get_internal_links()
                     .and_then(|links| {
                         debug!("Rewriting own links for {:?}, without {:?}", own_loc, other_loc);
-                        rewrite_links(self.get_header_mut(), links.filter(|l| *l != other_loc))
+                        let links = links.filter(|l| !l.eq_store_id(&other_loc));
+                        rewrite_links(self.get_header_mut(), links)
                     })
             })
     }
 
+    fn add_internal_annotated_link(&mut self, link: &mut Entry, annotation: String) -> Result<()> {
+        let new_link = Link::Annotated {
+            link: link.get_location().clone(),
+            annotation: annotation,
+        };
+
+        add_internal_link_with_instance(self, link, new_link)
+    }
+
+}
+
+fn add_internal_link_with_instance(this: &mut Entry, link: &mut Entry, instance: Link) -> Result<()> {
+    debug!("Adding internal link from {:?} to {:?}", this.get_location(), instance);
+
+    add_foreign_link(link, this.get_location().clone())
+        .and_then(|_| {
+            this.get_internal_links()
+                .and_then(|links| {
+                    let links = links.chain(LinkIter::new(vec![instance]));
+                    rewrite_links(this.get_header_mut(), links)
+                })
+        })
 }
 
 fn rewrite_links<I: Iterator<Item = Link>>(header: &mut Value, links: I) -> Result<()> {
     let links = try!(links.into_values()
+                     .into_iter()
                      .fold(Ok(vec![]), |acc, elem| {
                         acc.and_then(move |mut v| {
                             elem.map_err_into(LEK::InternalConversionError)
@@ -361,8 +495,9 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
     target.get_internal_links()
         .and_then(|links| {
             let links = try!(links
-                             .chain(LinkIter::new(vec![from]))
+                             .chain(LinkIter::new(vec![from.into()]))
                              .into_values()
+                             .into_iter()
                              .fold(Ok(vec![]), |acc, elem| {
                                 acc.and_then(move |mut v| {
                                     elem.map_err_into(LEK::InternalConversionError)
@@ -397,17 +532,49 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<LinkIter> {
         }
     };
 
-    if !links.iter().all(|l| is_match!(*l, Value::String(_))) {
-        debug!("At least one of the Values which were expected in the Array of links is a non-String!");
+    if !links.iter().all(|l| is_match!(*l, Value::String(_)) || is_match!(*l, Value::Table(_))) {
+        debug!("At least one of the Values which were expected in the Array of links is not a String or a Table!");
         debug!("Generating LinkError");
         return Err(LEK::ExistingLinkTypeWrong.into());
     }
 
     let links : Vec<Link> = try!(links.into_iter()
         .map(|link| {
+            debug!("Matching the link: {:?}", link);
             match link {
                 Value::String(s) => StoreId::new_baseless(PathBuf::from(s))
-                    .map_err_into(LEK::StoreIdError),
+                    .map_err_into(LEK::StoreIdError)
+                    .map(|s| Link::Id { link: s })
+                    ,
+                Value::Table(mut tab) => {
+                    debug!("Destructuring table");
+                    if !tab.contains_key("link")
+                    || !tab.contains_key("annotation") {
+                        debug!("Things missing... returning Error instance");
+                        Err(LEK::LinkParserError.into_error())
+                    } else {
+                        let link = try!(tab.remove("link")
+                            .ok_or(LEK::LinkParserFieldMissingError.into_error()));
+
+                        let anno = try!(tab.remove("annotation")
+                            .ok_or(LEK::LinkParserFieldMissingError.into_error()));
+
+                        debug!("Ok, here we go with building a Link::Annotated");
+                        match (link, anno) {
+                            (Value::String(link), Value::String(anno)) => {
+                                StoreId::new_baseless(PathBuf::from(link))
+                                    .map_err_into(LEK::StoreIdError)
+                                    .map(|link| {
+                                        Link::Annotated {
+                                            link: link,
+                                            annotation: anno,
+                                        }
+                                    })
+                            },
+                            _ => Err(LEK::LinkParserFieldTypeError.into_error()),
+                        }
+                    }
+                }
                 _ => unreachable!(),
             }
         })
@@ -467,8 +634,8 @@ mod test {
             assert_eq!(e1_links.len(), 1);
             assert_eq!(e2_links.len(), 1);
 
-            assert!(e1_links.first().map(|l| l.clone().with_base(store.path().clone()) == *e2.get_location()).unwrap_or(false));
-            assert!(e2_links.first().map(|l| l.clone().with_base(store.path().clone()) == *e1.get_location()).unwrap_or(false));
+            assert!(e1_links.first().map(|l| l.clone().with_base(store.path().clone()).eq_store_id(e2.get_location())).unwrap_or(false));
+            assert!(e2_links.first().map(|l| l.clone().with_base(store.path().clone()).eq_store_id(e1.get_location())).unwrap_or(false));
         }
 
         {

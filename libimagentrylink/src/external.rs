@@ -32,6 +32,7 @@
 
 use std::ops::DerefMut;
 use std::collections::BTreeMap;
+use std::fmt::Debug;
 
 use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
@@ -283,9 +284,9 @@ pub mod iter {
 
 
 /// Check whether the StoreId starts with `/link/external/`
-pub fn is_external_link_storeid(id: &StoreId) -> bool {
+pub fn is_external_link_storeid<A: AsRef<StoreId> + Debug>(id: A) -> bool {
     debug!("Checking whether this is a 'links/external/': '{:?}'", id);
-    id.local().starts_with("links/external")
+    id.as_ref().local().starts_with("links/external")
 }
 
 fn get_external_link_from_file(entry: &FileLockEntry) -> Result<Url> {
