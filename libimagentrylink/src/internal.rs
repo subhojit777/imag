@@ -44,11 +44,12 @@ pub enum Link {
 
 impl Link {
 
-    pub fn exists(&self) -> bool {
+    pub fn exists(&self) -> Result<bool> {
         match *self {
             Link::Id { ref link }             => link.exists(),
             Link::Annotated { ref link, .. }  => link.exists(),
         }
+        .map_err_into(LEK::StoreIdError)
     }
 
     pub fn to_str(&self) -> Result<String> {
