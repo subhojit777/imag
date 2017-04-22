@@ -21,7 +21,7 @@
 
 use std::path::PathBuf;
 
-use ruru::{Class, Object, AnyObject, Boolean, RString, NilClass, VerifiedObject};
+use ruru::{Class, Object, AnyObject, Boolean, RString, NilClass, VerifiedObject, VM};
 
 use libimagstore::storeid::StoreId;
 use util::Unwrap;
@@ -118,7 +118,15 @@ methods!(
     }
 
     fn r_storeid_exists() -> Boolean {
-        Boolean::new(itself.get_data(&*STOREID_WRAPPER).exists())
+        use std::error::Error;
+
+        match itself.get_data(&*STOREID_WRAPPER).exists() {
+            Ok(bool) => Boolean::new(bool),
+            Err(e) => {
+                VM::raise(Class::from_existing("RuntimeError"), e.description());
+                Boolean::new(false)
+            }
+        }
     }
 
     fn r_storeid_to_str() -> AnyObject {
