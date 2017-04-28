@@ -86,7 +86,7 @@ We also have a [mailinglist](http://imag-pim.org/mailinglist/) where I post
 updates and where discussion and questions are encouraged.
 
 There is a blog series which gets an update once a month on my blog, where
-[entries are tagged "imag"](http://beyermatthias.de/tags/imag.html).
+[entries are tagged "imag"](https://beyermatthias.de/tags/imag).
 I also post non-regular posts about imag things there.
 
 I also post these blog posts
