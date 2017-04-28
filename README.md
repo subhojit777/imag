@@ -1,4 +1,4 @@
-# imag - [imag-pim.org](http://imag-pim.org)
+# imag - [imag-pim.org](https://imag-pim.org)
 
 `imag` is a commandline personal information management suite.
 
@@ -78,11 +78,11 @@ install-directory is in your `$PATH`), or install the `imag` binary to call `ima
 
 ## Staying up-to-date
 
-We have a [official website for imag](http://imag-pim.org), where I post
+We have a [official website for imag](https://imag-pim.org), where I post
 [release notes](http://imag-pim.org/releases/).
 There is no RSS feed, though.
 
-We also have a [mailinglist](http://imag-pim.org/mailinglist/) where I post
+We also have a [mailinglist](https://imag-pim.org/mailinglist/) where I post
 updates and where discussion and questions are encouraged.
 
 There is a blog series which gets an update once a month on my blog, where
@@ -122,11 +122,11 @@ Also have a look at [the CONTRIBUTING.md file](./CONTRIBUTING.md)!
 
 ## Contact
 
-Have a look at [our website](http://imag-pim.org) where you can find some
+Have a look at [our website](https://imag-pim.org) where you can find some
 information on how to get in touch and so on.
 
 Feel free to join our new IRC channel at freenode: #imag
-or our [mailinglist](http://imag-pim.org/mailinglist/).
+or our [mailinglist](https://imag-pim.org/mailinglist/).
 
 ## License
 
