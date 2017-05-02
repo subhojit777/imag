@@ -17,12 +17,9 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::ops::DerefMut;
-
 use libimagerror::into::IntoError;
 use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
-use libimagstore::store::FileLockEntry;
 
 use result::Result;
 use error::EditErrorKind;
