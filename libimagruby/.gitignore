@@ -1,5 +1,0 @@
-.bundle
-Gemfile.lock
-lib/liblibimagruby.so
-vendor/bundle
-libimagruby*.tar.gz
