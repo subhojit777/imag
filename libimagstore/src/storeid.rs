@@ -240,7 +240,7 @@ mod test {
     module_entry_path_mod!("test");
 
     #[test]
-    fn correct_path() {
+    fn test_correct_path() {
         let p = module_path::ModuleEntryPath::new("test");
 
         assert_eq!(p.into_storeid().unwrap().to_str().unwrap(), "test/test");
