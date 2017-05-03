@@ -351,4 +351,315 @@ fn get_aspect_names_for_aspect_position(config_name: &'static str, value: &Optio
     v
 }
 
+#[cfg(test)]
+mod tests {
+    use toml::de::from_str as toml_from_str;
+    use configuration::*;
+
+    #[test]
+    fn test_implicit_store_create_allowed_no_toml() {
+        assert!(!config_implicit_store_create_allowed(None));
+    }
+
+    #[test]
+    fn test_implicit_store_create_allowed_toml_empty() {
+        let config = toml_from_str("").unwrap();
+        assert!(!config_implicit_store_create_allowed(Some(config).as_ref()));
+    }
+
+    #[test]
+    fn test_implicit_store_create_allowed_toml_false() {
+        let config = toml_from_str(r#"
+            implicit-create = false
+        "#).unwrap();
+
+        assert!(!config_implicit_store_create_allowed(Some(config).as_ref()));
+    }
+
+    #[test]
+    fn test_implicit_store_create_allowed_toml_true() {
+        let config = toml_from_str(r#"
+            implicit-create = true
+        "#).unwrap();
+
+        assert!(config_implicit_store_create_allowed(Some(config).as_ref()));
+    }
+
+    #[test]
+    fn test_get_store_unload_aspect_names_not_existent() {
+        let config = toml_from_str("").unwrap();
+        let names  = get_store_unload_aspect_names(&Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_store_unload_aspect_names_empty() {
+        let config = toml_from_str(r#"
+            store-unload-hook-aspects  = [ ]
+        "#).unwrap();
+        let names  = get_store_unload_aspect_names(&Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_store_unload_aspect_names_one_elem() {
+        let config = toml_from_str(r#"
+            store-unload-hook-aspects  = [ "example" ]
+        "#).unwrap();
+        let names  = get_store_unload_aspect_names(&Some(config));
+        assert_eq!(1, names.len());
+        assert_eq!("example", names.iter().next().unwrap());
+    }
+
+    #[test]
+    fn test_get_pre_create_aspect_names_not_existent() {
+        let config = toml_from_str("").unwrap();
+        assert!(get_pre_create_aspect_names(&Some(config)).is_empty());
+    }
+
+    #[test]
+    fn test_get_pre_create_aspect_names_empty() {
+        let config = toml_from_str(r#"
+            pre-create-hook-aspects = [ ]
+        "#).unwrap();
+        let names = get_pre_create_aspect_names(&Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_pre_create_aspect_names_one_elem() {
+        let config = toml_from_str(r#"
+            pre-create-hook-aspects = [ "example" ]
+        "#).unwrap();
+        let names = get_pre_create_aspect_names(&Some(config));
+        assert_eq!(1, names.len());
+        assert_eq!("example", names.iter().next().unwrap());
+    }
+
+    #[test]
+    fn test_get_post_create_aspect_names_not_existent() {
+        let config = toml_from_str("").unwrap();
+        assert!(get_post_create_aspect_names(&Some(config)).is_empty());
+    }
+
+    #[test]
+    fn test_get_post_create_aspect_names_empty() {
+        let config = toml_from_str(r#"
+            post-create-hook-aspects = [ ]
+        "#).unwrap();
+        let names = get_post_create_aspect_names(&Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_post_create_aspect_names_one_elem() {
+        let config = toml_from_str(r#"
+            post-create-hook-aspects = [ "example" ]
+        "#).unwrap();
+        let names = get_post_create_aspect_names(&Some(config));
+        assert_eq!(1, names.len());
+        assert_eq!("example", names.iter().next().unwrap());
+    }
+
+    #[test]
+    fn test_get_pre_retrieve_aspect_names_not_existent() {
+        let config = toml_from_str("").unwrap();
+        assert!(get_pre_retrieve_aspect_names(&Some(config)).is_empty());
+    }
+
+    #[test]
+    fn test_get_pre_retrieve_aspect_names_empty() {
+        let config = toml_from_str(r#"
+            pre-retrieve-hook-aspects = [ ]
+        "#).unwrap();
+        let names = get_pre_retrieve_aspect_names(&Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_pre_retrieve_aspect_names_one_elem() {
+        let config = toml_from_str(r#"
+            pre-retrieve-hook-aspects = [ "example" ]
+        "#).unwrap();
+        let names = get_pre_retrieve_aspect_names(&Some(config));
+        assert_eq!(1, names.len());
+        assert_eq!("example", names.iter().next().unwrap());
+    }
+
+    #[test]
+    fn test_get_post_retrieve_aspect_names_not_existent() {
+        let config = toml_from_str("").unwrap();
+        assert!(get_post_retrieve_aspect_names(&Some(config)).is_empty());
+    }
+
+    #[test]
+    fn test_get_post_retrieve_aspect_names_empty() {
+        let config = toml_from_str(r#"
+            post-retrieve-hook-aspects = [ ]
+        "#).unwrap();
+        let names = get_post_retrieve_aspect_names(&Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_post_retrieve_aspect_names_one_elem() {
+        let config = toml_from_str(r#"
+            post-retrieve-hook-aspects = [ "example" ]
+        "#).unwrap();
+        let names = get_post_retrieve_aspect_names(&Some(config));
+        assert_eq!(1, names.len());
+        assert_eq!("example", names.iter().next().unwrap());
+    }
+
+    #[test]
+    fn test_get_pre_update_aspect_names_not_existent() {
+        let config = toml_from_str("").unwrap();
+        assert!(get_pre_update_aspect_names(&Some(config)).is_empty());
+    }
+
+    #[test]
+    fn test_get_pre_update_aspect_names_empty() {
+        let config = toml_from_str(r#"
+            pre-update-hook-aspects = [ ]
+        "#).unwrap();
+        let names = get_pre_update_aspect_names(&Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_pre_update_aspect_names_one_elem() {
+        let config = toml_from_str(r#"
+            pre-update-hook-aspects = [ "example" ]
+        "#).unwrap();
+        let names = get_pre_update_aspect_names(&Some(config));
+        assert_eq!(1, names.len());
+        assert_eq!("example", names.iter().next().unwrap());
+    }
+
+    #[test]
+    fn test_get_post_update_aspect_names_not_existent() {
+        let config = toml_from_str("").unwrap();
+        assert!(get_post_update_aspect_names(&Some(config)).is_empty());
+    }
+
+    #[test]
+    fn test_get_post_update_aspect_names_empty() {
+        let config = toml_from_str(r#"
+            post-update-hook-aspects = [ ]
+        "#).unwrap();
+        let names = get_post_update_aspect_names(&Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_post_update_aspect_names_one_elem() {
+        let config = toml_from_str(r#"
+            post-update-hook-aspects = [ "example" ]
+        "#).unwrap();
+        let names = get_post_update_aspect_names(&Some(config));
+        assert_eq!(1, names.len());
+        assert_eq!("example", names.iter().next().unwrap());
+    }
+
+    #[test]
+    fn test_get_pre_delete_aspect_names_not_existent() {
+        let config = toml_from_str("").unwrap();
+        assert!(get_pre_delete_aspect_names(&Some(config)).is_empty());
+    }
+
+    #[test]
+    fn test_get_pre_delete_aspect_names_empty() {
+        let config = toml_from_str(r#"
+            pre-delete-hook-aspects = [ ]
+        "#).unwrap();
+        let names = get_pre_delete_aspect_names(&Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_pre_delete_aspect_names_one_elem() {
+        let config = toml_from_str(r#"
+            pre-delete-hook-aspects = [ "example" ]
+        "#).unwrap();
+        let names = get_pre_delete_aspect_names(&Some(config));
+        assert_eq!(1, names.len());
+        assert_eq!("example", names.iter().next().unwrap());
+    }
+
+    #[test]
+    fn test_get_post_delete_aspect_names_not_existent() {
+        let config = toml_from_str("").unwrap();
+        assert!(get_post_delete_aspect_names(&Some(config)).is_empty());
+    }
+
+    #[test]
+    fn test_get_post_delete_aspect_names_empty() {
+        let config = toml_from_str(r#"
+            post-delete-hook-aspects = [ ]
+        "#).unwrap();
+        let names = get_post_delete_aspect_names(&Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_post_delete_aspect_names_one_elem() {
+        let config = toml_from_str(r#"
+            post-delete-hook-aspects = [ "example" ]
+        "#).unwrap();
+        let names = get_post_delete_aspect_names(&Some(config));
+        assert_eq!(1, names.len());
+        assert_eq!("example", names.iter().next().unwrap());
+    }
+
+    #[test]
+    fn test_get_pre_move_aspect_names_not_existent() {
+        let config = toml_from_str("").unwrap();
+        assert!(get_pre_move_aspect_names(&Some(config)).is_empty());
+    }
+
+    #[test]
+    fn test_get_pre_move_aspect_names_empty() {
+        let config = toml_from_str(r#"
+            pre-move-hook-aspects = [ ]
+        "#).unwrap();
+        let names = get_pre_move_aspect_names(&Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_pre_move_aspect_names_one_elem() {
+        let config = toml_from_str(r#"
+            pre-move-hook-aspects = [ "example" ]
+        "#).unwrap();
+        let names = get_pre_move_aspect_names(&Some(config));
+        assert_eq!(1, names.len());
+        assert_eq!("example", names.iter().next().unwrap());
+    }
+
+    #[test]
+    fn test_get_post_move_aspect_names_not_existent() {
+        let config = toml_from_str("").unwrap();
+        assert!(get_post_move_aspect_names(&Some(config)).is_empty());
+    }
+
+    #[test]
+    fn test_get_post_move_aspect_names_empty() {
+        let config = toml_from_str(r#"
+            post-move-hook-aspects = [ ]
+        "#).unwrap();
+        let names = get_post_move_aspect_names(&Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_post_move_aspect_names_one_elem() {
+        let config = toml_from_str(r#"
+            post-move-hook-aspects = [ "example" ]
+        "#).unwrap();
+        let names = get_post_move_aspect_names(&Some(config));
+        assert_eq!(1, names.len());
+        assert_eq!("example", names.iter().next().unwrap());
+    }
+
+}
 
