@@ -18,7 +18,7 @@ clap = ">=2.17"
 log = "0.3"
 version = "2.0.1"
 semver = "0.5"
-toml = "0.2.*"
+toml = "^0.4"
 
 [dependencies.libimagstore]
 path = "../libimagstore"

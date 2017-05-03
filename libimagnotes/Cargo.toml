@@ -16,7 +16,7 @@ homepage      = "http://imag-pim.org"
 [dependencies]
 semver = "0.5"
 log = "0.3"
-toml = "0.2.*"
+toml = "^0.4"
 
 [dependencies.libimagstore]
 path = "../libimagstore"

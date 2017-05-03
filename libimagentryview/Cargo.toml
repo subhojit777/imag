@@ -15,7 +15,7 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 log = "0.3"
-toml = "0.2.*"
+toml = "^0.4"
 glob = "0.2"
 
 [dependencies.libimagrt]
