@@ -234,16 +234,110 @@ impl Iterator for StoreIdIterator {
 
 #[cfg(test)]
 mod test {
+    use std::path::PathBuf;
 
+    use storeid::StoreId;
     use storeid::IntoStoreId;
+    use error::StoreErrorKind as SEK;
 
     module_entry_path_mod!("test");
 
     #[test]
-    fn correct_path() {
+    fn test_correct_path() {
         let p = module_path::ModuleEntryPath::new("test");
 
         assert_eq!(p.into_storeid().unwrap().to_str().unwrap(), "test/test");
+    }
+
+    #[test]
+    fn test_baseless_path() {
+        let id = StoreId::new_baseless(PathBuf::from("test"));
+        assert!(id.is_ok());
+        assert_eq!(id.unwrap(), StoreId {
+            base: None,
+            id: PathBuf::from("test")
+        });
+    }
+
+    #[test]
+    fn test_base_path() {
+        let id = StoreId::from_full_path(&PathBuf::from("/tmp/"), PathBuf::from("/tmp/test"));
+        assert!(id.is_ok());
+        assert_eq!(id.unwrap(), StoreId {
+            base: Some(PathBuf::from("/tmp/")),
+            id: PathBuf::from("test")
+        });
+    }
+
+    #[test]
+    fn test_adding_base_to_baseless_path() {
+        let id = StoreId::new_baseless(PathBuf::from("test"));
+
+        assert!(id.is_ok());
+        let id = id.unwrap();
+
+        assert_eq!(id, StoreId { base: None, id: PathBuf::from("test") });
+
+        let id = id.with_base(PathBuf::from("/tmp/"));
+        assert_eq!(id, StoreId {
+            base: Some(PathBuf::from("/tmp/")),
+            id: PathBuf::from("test")
+        });
+    }
+
+    #[test]
+    fn test_removing_base_from_base_path() {
+        let id = StoreId::from_full_path(&PathBuf::from("/tmp/"), PathBuf::from("/tmp/test"));
+
+        assert!(id.is_ok());
+        let id = id.unwrap();
+
+        assert_eq!(id, StoreId {
+            base: Some(PathBuf::from("/tmp/")),
+            id: PathBuf::from("test")
+        });
+
+        let id = id.without_base();
+        assert_eq!(id, StoreId {
+            base: None,
+            id: PathBuf::from("test")
+        });
+    }
+
+    #[test]
+    fn test_baseless_into_pathbuf_is_err() {
+        let id = StoreId::new_baseless(PathBuf::from("test"));
+        assert!(id.is_ok());
+        assert!(id.unwrap().into_pathbuf().is_err());
+    }
+
+    #[test]
+    fn test_baseless_into_pathbuf_is_storeidhasnobaseerror() {
+        let id = StoreId::new_baseless(PathBuf::from("test"));
+        assert!(id.is_ok());
+
+        let pb = id.unwrap().into_pathbuf();
+        assert!(pb.is_err());
+
+        assert_eq!(pb.unwrap_err().err_type(), SEK::StoreIdHasNoBaseError);
+    }
+
+    #[test]
+    fn test_basefull_into_pathbuf_is_ok() {
+        let id = StoreId::from_full_path(&PathBuf::from("/tmp/"), PathBuf::from("/tmp/test"));
+        assert!(id.is_ok());
+        assert!(id.unwrap().into_pathbuf().is_ok());
+    }
+
+    #[test]
+    fn test_basefull_into_pathbuf_is_correct() {
+        let id = StoreId::from_full_path(&PathBuf::from("/tmp/"), PathBuf::from("/tmp/test"));
+        assert!(id.is_ok());
+
+        let pb = id.unwrap().into_pathbuf();
+        assert!(pb.is_ok());
+
+        assert_eq!(pb.unwrap(), PathBuf::from("/tmp/test"));
     }
 
 }
