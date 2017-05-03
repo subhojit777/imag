@@ -42,6 +42,7 @@ extern crate toml;
 extern crate semver;
 extern crate crossbeam;
 extern crate walkdir;
+extern crate itertools;
 
 #[macro_use] extern crate libimagerror;
 #[macro_use] extern crate libimagutil;

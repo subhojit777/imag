@@ -329,6 +329,7 @@ impl AspectConfig {
 }
 
 fn get_aspect_names_for_aspect_position(config_name: &'static str, value: &Option<Value>) -> Vec<String> {
+    use itertools::Itertools;
     let mut v = vec![];
 
     match *value {
@@ -348,7 +349,8 @@ fn get_aspect_names_for_aspect_position(config_name: &'static str, value: &Optio
         None => warn!("No store configuration, cannot get '{}'", config_name),
         _ => warn!("Configuration is not a table"),
     }
-    v
+
+    v.into_iter().unique().collect()
 }
 
 #[cfg(test)]
