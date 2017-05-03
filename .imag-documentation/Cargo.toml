@@ -1,6 +1,6 @@
 [package]
 name = "imag-documentation"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Documentation crate of the imag distribution. Does not contain functionality"

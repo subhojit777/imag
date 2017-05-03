@@ -8,7 +8,7 @@ default_entry() {
 ---
 [imag]
 links = []
-version = "0.2.0"
+version = "0.3.0"
 ---
 
 EOS
@@ -19,7 +19,7 @@ entry_linked_to() {
 ---
 [imag]
 links = [$1]
-version = "0.2.0"
+version = "0.3.0"
 ---
 
 EOS

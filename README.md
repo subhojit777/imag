@@ -25,20 +25,20 @@ try to interface with existing PIM tools (via their API or via some standard
 format they use, e.g. vcard) to make the data they manage _linkable_
 and _queryable_ in an uniform way.
 
-imag consists of _modules_ (e.g. `imag-notes`, `imag-diary`), where each module
-covers one PIM aspect.
+imag consists of _modules_ (e.g. `imag-notes`, `imag-tag`, `imag-view`), where
+each module covers one PIM aspect.
 The initial approach is to use one PIM tool for one module.
-So you can use `imag-todo` with [taskwarrior](https://taskwarrior.org/)
-but `imag-calendar` with [icalendar](https://en.wikipedia.org/wiki/ICalendar)
-files.
+So you can use `imag-todo` with [taskwarrior](https://taskwarrior.org/),
+`imag-mail` with Maildirs and `imag-calendar` with
+[icalendar](https://en.wikipedia.org/wiki/ICalendar) files.
 
 ## Building/Running
 
 Here is how to try `imag` out.
 
-`imag` is a _suite/collection_ of tools and you can build them individually.
-All subdirectories prefixed with "`libimag"` are libraries for the respective
-binaries.
+`imag` is a _suite/collection_ of tools (like git, for example) and you can
+build them individually.
+All subdirectories prefixed with "`libimag"` are libraries.
 All subdirectories prefixed with `"imag-"` are binaries and compiling them will
 give you a commandline application.
 
@@ -86,7 +86,7 @@ We also have a [mailinglist](https://imag-pim.org/mailinglist/) where I post
 updates and where discussion and questions are encouraged.
 
 There is a blog series which gets an update once a month on my blog, where
-[entries are tagged "imag"](https://beyermatthias.de/tags/imag).
+[entries are tagged "imag"](https://beyermatthias.de/tags/imag/).
 I also post non-regular posts about imag things there.
 
 I also post these blog posts
