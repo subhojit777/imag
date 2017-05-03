@@ -1252,7 +1252,7 @@ impl Entry {
     /// disk).
     pub fn to_str(&self) -> String {
         format!("---\n{header}---\n{content}",
-                header  = ::toml::encode_str(&self.header),
+                header  = ::toml::ser::to_string(&self.header).unwrap(),
                 content = self.content)
     }
 
@@ -1915,9 +1915,9 @@ mod store_hook_tests {
     use self::test_hook::TestHook;
 
     fn get_store_with_config() -> Store {
-        use toml::Parser;
+        use toml::de::from_str;
 
-        let cfg = Parser::new(mini_config()).parse().unwrap();
+        let cfg : ::toml::Value = from_str(mini_config()).unwrap();
         println!("Config parsed: {:?}", cfg);
         Store::new(PathBuf::from("/"), Some(cfg.get("store").cloned().unwrap())).unwrap()
     }

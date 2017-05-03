@@ -21,10 +21,11 @@ use std::path::PathBuf;
 use std::result::Result as RResult;
 use std::ops::Deref;
 
-use toml::{Parser, Value};
+use toml::Value;
 
 generate_error_module!(
     generate_error_types!(ConfigError, ConfigErrorKind,
+        TOMLParserError => "TOML Parsing error",
         NoConfigFileFound   => "No config file found",
 
         ConfigOverrideError => "Config override error",
@@ -119,7 +120,9 @@ impl Configuration {
         use libimagutil::key_value_split::*;
         use libimagutil::iter::*;
         use self::error::ConfigErrorKind as CEK;
+        use self::error::MapErrInto;
         use libimagerror::into::IntoError;
+        use libimagstore::toml_ext::TomlValueExt;
 
         v.into_iter()
             .map(|s| { debug!("Trying to process '{}'", s); s })
@@ -133,19 +136,21 @@ impl Configuration {
                 }
             })
             .map(|(k, v)| {
-                match self.config.lookup_mut(&k[..]) {
-                    Some(value) => {
-                        match into_value(value, v) {
-                            Some(v) => {
-                                *value = v;
-                                info!("Successfully overridden: {} = {}", k, value);
-                                Ok(())
-                            },
-                            None => Err(CEK::ConfigOverrideTypeNotMatching.into_error()),
-                        }
-                    },
-                    None => Err(CEK::ConfigOverrideKeyNotAvailable.into_error()),
-                }
+                self.config
+                    .read(&k[..])
+                    .map_err_into(CEK::TOMLParserError)
+                    .map(|toml| match toml {
+                        Some(value) => {
+                            match into_value(value, v) {
+                                Some(v) => {
+                                    info!("Successfully overridden: {} = {}", k, v);
+                                    Ok(v)
+                                },
+                                None => Err(CEK::ConfigOverrideTypeNotMatching.into_error()),
+                            }
+                        },
+                        None => Err(CEK::ConfigOverrideKeyNotAvailable.into_error()),
+                    })
             })
             .fold_result(|i| i)
             .map_err(Box::new)
@@ -158,19 +163,19 @@ impl Configuration {
 /// Returns None if string cannot be converted.
 ///
 /// Arrays and Tables are not supported and will yield `None`.
-fn into_value(value: &Value, s: String) -> Option<Value> {
+fn into_value(value: Value, s: String) -> Option<Value> {
     use std::str::FromStr;
 
     match value {
-        &Value::String(_) => Some(Value::String(s)),
-        &Value::Integer(_) => FromStr::from_str(&s[..]).ok().map(|i| Value::Integer(i)),
-        &Value::Float(_) => FromStr::from_str(&s[..]).ok().map(|f| Value::Float(f)),
-        &Value::Boolean(_) => {
+        Value::String(_) => Some(Value::String(s)),
+        Value::Integer(_) => FromStr::from_str(&s[..]).ok().map(|i| Value::Integer(i)),
+        Value::Float(_) => FromStr::from_str(&s[..]).ok().map(|f| Value::Float(f)),
+        Value::Boolean(_) => {
             if s == "true" { Some(Value::Boolean(true)) }
             else if s == "false" { Some(Value::Boolean(false)) }
             else { None }
         }
-        &Value::Datetime(_) => Some(Value::Datetime(s)),
+        Value::Datetime(_) => Value::try_from(s).ok(),
         _ => None,
     }
 }
@@ -223,6 +228,7 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     use itertools::Itertools;
 
     use libimagutil::variants::generate_variants as gen_vars;
+    use libimagerror::trace::trace_error;
 
     let variants = vec!["config", "config.toml", "imagrc", "imagrc.toml"];
     let modifier = |base: &PathBuf, v: &'static str| {
@@ -255,18 +261,13 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
                 s
             };
 
-            let mut parser = Parser::new(&content[..]);
-            let res = parser.parse();
-
-            if res.is_none() {
-                write!(stderr(), "Config file parser error:").ok();
-                for error in parser.errors {
-                    write!(stderr(), "At [{}][{}] <> {}", error.lo, error.hi, error).ok();
-                    write!(stderr(), "in: '{}'", &content[error.lo..error.hi]).ok();
+            match ::toml::de::from_str(&content[..]) {
+                Ok(res) => res,
+                Err(e) => {
+                    write!(stderr(), "Config file parser error:").ok();
+                    trace_error(&e);
+                    None
                 }
-                None
-            } else {
-                res
             }
         })
         .filter(|loaded| loaded.is_some())

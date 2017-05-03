@@ -20,7 +20,9 @@
 use toml::Value;
 
 use libimagerror::into::IntoError;
+use libimagerror::trace::trace_error;
 use libimagstore::storeid::StoreId;
+use libimagstore::toml_ext::TomlValueExt;
 
 use vcs::git::error::GitHookErrorKind as GHEK;
 use vcs::git::error::MapErrInto;
@@ -32,59 +34,72 @@ use git2::Repository;
 
 /// Check the configuration whether we should commit interactively
 pub fn commit_interactive(config: &Value, action: &StoreAction) -> bool {
-    match config.lookup("commit.interactive") {
-        Some(&Value::Boolean(b)) => b,
-        Some(_) => {
+    match config.read("commit.interactive") {
+        Ok(Some(Value::Boolean(b))) => b,
+        Ok(Some(_)) => {
             warn!("Configuration error, 'store.hooks.stdhook_git_{}.commit.interactive' must be a Boolean.",
                   action);
             warn!("Defaulting to commit.interactive = false");
             false
         }
-        None => {
+        Ok(None) => {
             warn!("Unavailable configuration for");
             warn!("\t'store.hooks.stdhook_git_{}.commit.interactive'", action);
             warn!("Defaulting to false");
             false
-        }
+        },
+        Err(e) => {
+            error!("Error parsing TOML:");
+            trace_error(&e);
+            false
+        },
     }
 }
 
 /// Check the configuration whether we should commit with the editor
 fn commit_with_editor(config: &Value, action: &StoreAction) -> bool {
-    match config.lookup("commit.interactive_editor") {
-        Some(&Value::Boolean(b)) => b,
-        Some(_) => {
+    match config.read("commit.interactive_editor") {
+        Ok(Some(Value::Boolean(b))) => b,
+        Ok(Some(_)) => {
             warn!("Configuration error, 'store.hooks.stdhook_git_{}.commit.interactive_editor' must be a Boolean.",
                   action);
             warn!("Defaulting to commit.interactive_editor = false");
             false
         }
-        None => {
+        Ok(None) => {
             warn!("Unavailable configuration for");
             warn!("\t'store.hooks.stdhook_git_{}.commit.interactive_editor'", action);
             warn!("Defaulting to false");
             false
-        }
+        },
+        Err(e) => {
+            error!("Error parsing TOML:");
+            trace_error(&e);
+            false
+        },
     }
 }
 
 /// Get the commit default message
-fn commit_default_msg<'a>(config: &'a Value, action: &'a StoreAction) -> &'a str {
-    match config.lookup("commit.message") {
-        Some(&Value::String(ref b)) => b,
-        Some(_) => {
-            warn!("Configuration error, 'store.hooks.stdhook_git_{}.commit.message' must be a String.",
-                  action);
-            warn!("Defaulting to commit.message = '{}'", action.as_commit_message());
-            action.as_commit_message()
-        }
-        None => {
-            warn!("Unavailable configuration for");
-            warn!("\t'store.hooks.stdhook_git_{}.commit.message'", action);
-            warn!("Defaulting to commit.message = '{}'", action.as_commit_message());
-            action.as_commit_message()
-        }
-    }
+fn commit_default_msg<'a>(config: &'a Value, action: &'a StoreAction) -> Result<String> {
+    config.read("commit.message")
+        .map(|m| match m {
+            Some(Value::String(b)) => String::from(b),
+            Some(_) => {
+                warn!("Configuration error, 'store.hooks.stdhook_git_{}.commit.message' must be a String.",
+                      action);
+                warn!("Defaulting to commit.message = '{}'", action.as_commit_message());
+                String::from(action.as_commit_message())
+            },
+            None => {
+                warn!("Unavailable configuration for");
+                warn!("\t'store.hooks.stdhook_git_{}.commit.message'", action);
+                warn!("Defaulting to commit.message = '{}'", action.as_commit_message());
+                String::from(action.as_commit_message())
+            },
+        })
+        .map_err_into(GHEK::ConfigError)
+
 }
 
 /// Get the commit template
@@ -129,7 +144,7 @@ pub fn commit_message(repo: &Repository, config: &Value, action: StoreAction, id
             Ok(ask_string("Commit Message", None, false, false, None, "> "))
         }
     } else {
-        Ok(String::from(commit_default_msg(config, &action)))
+        commit_default_msg(config, &action)
     }
 }
 
@@ -145,18 +160,20 @@ pub fn abort_on_repo_init_err(cfg: &Value) -> bool {
 pub fn ensure_branch(cfg: Option<&Value>) -> Result<Option<String>> {
     match cfg {
         Some(cfg) => {
-            match cfg.lookup("ensure_branch") {
-                Some(&Value::String(ref s)) => Ok(Some(s.clone())),
-                Some(_) => {
-                    warn!("Configuration error, 'ensure_branch' must be a String.");
-                    Err(GHEK::ConfigTypeError.into_error())
-                        .map_err_into(GHEK::ConfigTypeError)
-                },
-                None => {
-                    debug!("No key `ensure_branch'");
-                    Ok(None)
-                },
-            }
+            cfg.read("ensure_branch")
+                .map_err_into(GHEK::ConfigError)
+                .and_then(|toml| match toml {
+                    Some(Value::String(ref s)) => Ok(Some(s.clone())),
+                    Some(_) => {
+                        warn!("Configuration error, 'ensure_branch' must be a String.");
+                        Err(GHEK::ConfigTypeError.into_error())
+                            .map_err_into(GHEK::ConfigTypeError)
+                    },
+                    None => {
+                        debug!("No key `ensure_branch'");
+                        Ok(None)
+                    },
+                })
         },
         None => Ok(None),
     }
@@ -170,16 +187,21 @@ pub fn do_checkout_ensure_branch(cfg: Option<&Value>) -> bool {
 /// Helper to get a boolean value from the configuration.
 fn get_bool_cfg(cfg: Option<&Value>, name: &str, on_fail: bool, on_unavail: bool) -> bool {
     cfg.map(|cfg| {
-        match cfg.lookup(name) {
-            Some(&Value::Boolean(b)) => b,
-            Some(_) => {
+        match cfg.read(name) {
+            Ok(Some(Value::Boolean(b))) => b,
+            Ok(Some(_)) => {
                 warn!("Configuration error, '{}' must be a Boolean (true|false).", name);
                 warn!("Assuming '{}' now.", on_fail);
                 on_fail
             },
-            None => {
+            Ok(None) => {
                 warn!("No key '{}' - Assuming '{}'", name, on_unavail);
                 on_unavail
+            },
+            Err(e) => {
+                error!("Error parsing TOML:");
+                trace_error(&e);
+                false
             },
         }
     })
@@ -197,19 +219,20 @@ pub fn is_enabled(cfg: &Value) -> bool {
 
 /// Check whether committing is enabled for a hook.
 pub fn committing_is_enabled(cfg: &Value) -> Result<bool> {
-    match cfg.lookup("commit.enabled") {
-        Some(&Value::Boolean(b)) => Ok(b),
-        Some(_) => {
-            warn!("Config setting whether committing is enabled or not has wrong type.");
-            warn!("Expected Boolean");
-            Err(GHEK::ConfigTypeError.into_error())
-        },
-        None => {
-            warn!("No config setting whether committing is enabled or not.");
-            Err(GHEK::NoConfigError.into_error())
-        },
-    }
-    .map_err_into(GHEK::ConfigError)
+    cfg.read("commit.enabled")
+        .map_err_into(GHEK::ConfigError)
+        .and_then(|toml| match toml {
+            Some(Value::Boolean(b)) => Ok(b),
+            Some(_) => {
+                warn!("Config setting whether committing is enabled or not has wrong type.");
+                warn!("Expected Boolean");
+                Err(GHEK::ConfigTypeError.into_error())
+            },
+            None => {
+                warn!("No config setting whether committing is enabled or not.");
+                Err(GHEK::NoConfigError.into_error())
+            },
+        })
 }
 
 pub fn add_wt_changes_before_committing(cfg: &Value) -> bool {

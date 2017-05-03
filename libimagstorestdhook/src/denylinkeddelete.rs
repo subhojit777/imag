@@ -26,8 +26,9 @@ use libimagstore::hook::accessor::HookDataAccessorProvider;
 use libimagstore::hook::accessor::NonMutableHookDataAccessor;
 use libimagstore::hook::result::HookResult;
 use libimagstore::store::FileLockEntry;
+use libimagstore::toml_ext::TomlValueExt;
 use libimagentrylink::internal::InternalLinker;
-
+use libimagerror::trace::trace_error;
 
 mod error {
     generate_error_imports!();
@@ -60,16 +61,21 @@ impl Hook for DenyDeletionOfLinkedEntriesHook {
     }
 
     fn set_config(&mut self, v: &Value) {
-        self.abort = match v.lookup("aborting") {
-            Some(&Value::Boolean(b)) => b,
-            Some(_) => {
+        self.abort = match v.read("aborting") {
+            Ok(Some(Value::Boolean(b))) => b,
+            Ok(Some(_)) => {
                 warn!("Configuration error, 'aborting' must be a Boolean (true|false).");
                 warn!("Assuming 'true' now.");
                 true
             },
-            None => {
+            Ok(None) => {
                 warn!("No key 'aborting' - Assuming 'true'");
                 true
+            },
+            Err(e) => {
+                error!("Error parsing TOML:");
+                trace_error(&e);
+                false
             },
         };
     }

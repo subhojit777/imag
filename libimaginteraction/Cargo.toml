@@ -20,7 +20,7 @@ interactor = "0.1"
 lazy_static = "0.2.*"
 log = "0.3"
 regex = "0.2"
-toml = "0.2.1"
+toml = "^0.4"
 spinner = "0.4"
 rustyline = "1.0"
 

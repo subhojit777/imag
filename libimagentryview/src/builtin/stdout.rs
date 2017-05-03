@@ -19,7 +19,7 @@
 
 use libimagstore::store::Entry;
 
-use toml::encode_str;
+use toml::ser::to_string;
 
 use viewer::Viewer;
 use result::Result;
@@ -44,7 +44,7 @@ impl Viewer for StdoutViewer {
 
     fn view_entry(&self, e: &Entry) -> Result<()> {
         if self.view_header {
-            println!("{}", encode_str(e.get_header()));
+            println!("{}", to_string(e.get_header()).unwrap_or(String::from("TOML Parser error")));
         }
 
         if self.view_content {

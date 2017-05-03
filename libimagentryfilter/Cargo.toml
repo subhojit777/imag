@@ -20,7 +20,7 @@ itertools = "0.5"
 log = "0.3"
 regex = "0.2"
 semver = "0.5.*"
-toml = "0.2.*"
+toml = "^0.4"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
