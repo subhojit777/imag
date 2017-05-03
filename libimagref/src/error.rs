@@ -24,6 +24,7 @@ generate_error_module!(
         IOError                 => "IO Error",
         UTF8Error               => "UTF8 Error",
         StoreIdError            => "Error with storeid",
+        HeaderTomlError         => "Error while working with TOML Header",
         HeaderTypeError         => "Header type error",
         HeaderFieldMissingError => "Header field missing error",
         HeaderFieldWriteError   => "Header field cannot be written",
