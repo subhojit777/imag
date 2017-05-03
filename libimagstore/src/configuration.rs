@@ -661,5 +661,36 @@ mod tests {
         assert_eq!("example", names.iter().next().unwrap());
     }
 
+    #[test]
+    fn test_get_aspect_names_for_aspect_position_arbitrary_empty() {
+        let config = toml_from_str(r#"
+            test-key = [ ]
+        "#).unwrap();
+        let names = get_aspect_names_for_aspect_position("test-key", &Some(config));
+        assert!(names.is_empty());
+    }
+
+    #[test]
+    fn test_get_aspect_names_for_aspect_position_arbitrary_one() {
+        let config = toml_from_str(r#"
+            test-key = [ "test-value" ]
+        "#).unwrap();
+        let names = get_aspect_names_for_aspect_position("test-key", &Some(config));
+        assert_eq!(1, names.len());
+        assert_eq!("test-value", names.iter().next().unwrap());
+    }
+
+    #[test]
+    fn test_get_aspect_names_for_aspect_position_arbitrary_duplicated() {
+        let config = toml_from_str(r#"
+            test-key = [ "test-value", "test-value" ]
+        "#).unwrap();
+        let names = get_aspect_names_for_aspect_position("test-key", &Some(config));
+        assert_eq!(1, names.len());
+        let mut iter = names.iter();
+        assert_eq!("test-value", iter.next().unwrap());
+        assert!(iter.next().is_none());
+    }
+
 }
 
