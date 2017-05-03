@@ -20,13 +20,15 @@
 use std::result::Result as RResult;
 use std::collections::BTreeMap;
 
-use toml::{Table, Value};
+use toml::Value;
 
 use store::Result;
 use error::StoreError as SE;
 use error::StoreErrorKind as SEK;
 use error::{ParserErrorKind, ParserError};
 use libimagerror::into::IntoError;
+
+type Table = BTreeMap<String, Value>;
 
 pub trait TomlValueExt {
     fn insert_with_sep(&mut self, spec: &str, sep: char, v: Value) -> Result<bool>;
@@ -378,11 +380,10 @@ impl Header for Value {
     }
 
     fn parse(s: &str) -> EntryResult<Value> {
-        use toml::Parser;
+        use toml::de::from_str;
 
-        let mut parser = Parser::new(s);
-        parser.parse()
-            .ok_or(ParserErrorKind::TOMLParserErrors.into())
+        from_str(s)
+            .map_err(|_| ParserErrorKind::TOMLParserErrors.into())
             .and_then(verify_header_consistency)
             .map(Value::Table)
     }
