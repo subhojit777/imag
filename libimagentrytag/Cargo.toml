@@ -19,6 +19,7 @@ log = "0.3"
 regex = "0.2"
 toml = "^0.4"
 itertools = "0.5"
+is-match = "0.1"
 
 [dependencies.libimagstore]
 path = "../libimagstore"

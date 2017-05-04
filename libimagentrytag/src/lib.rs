@@ -36,10 +36,11 @@ extern crate itertools;
 #[macro_use] extern crate log;
 extern crate regex;
 extern crate toml;
+#[macro_use] extern crate is_match;
 
 extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
-#[macro_use] extern crate libimagutil;
+extern crate libimagutil;
 
 pub mod error;
 pub mod exec;
