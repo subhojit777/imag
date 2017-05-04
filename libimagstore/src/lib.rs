@@ -46,7 +46,7 @@ extern crate itertools;
 #[macro_use] extern crate is_match;
 
 #[macro_use] extern crate libimagerror;
-#[macro_use] extern crate libimagutil;
+extern crate libimagutil;
 
 #[macro_use] mod util;
 

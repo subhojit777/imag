@@ -44,7 +44,7 @@ extern crate env_logger;
 
 #[macro_use] extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
-#[macro_use] extern crate libimagutil;
+extern crate libimagutil;
 
 module_entry_path_mod!("links");
 
