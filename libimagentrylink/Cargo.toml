@@ -21,6 +21,7 @@ semver = "0.5"
 url = "1.2"
 rust-crypto = "0.2"
 env_logger = "0.3"
+is-match = "0.1"
 
 [dependencies.libimagstore]
 path = "../libimagstore"

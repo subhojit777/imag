@@ -37,6 +37,7 @@ extern crate toml;
 extern crate semver;
 extern crate url;
 extern crate crypto;
+#[macro_use] extern crate is_match;
 
 #[cfg(test)]
 extern crate env_logger;
