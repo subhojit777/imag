@@ -44,7 +44,6 @@ pub mod cli_validators;
 pub mod debug_result;
 pub mod edit;
 pub mod info_result;
-pub mod ismatch;
 pub mod iter;
 pub mod key_value_split;
 pub mod variants;
