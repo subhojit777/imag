@@ -17,16 +17,9 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#[macro_use] extern crate lazy_static;
-extern crate chrono;
-extern crate toml_query;
-extern crate toml;
+use std::result::Result as RResult;
 
-#[macro_use] extern crate libimagerror;
-extern crate libimagstore;
-extern crate libimagutil;
+use error::DateError;
 
-pub mod entrydate;
-pub mod error;
-pub mod result;
+pub type Result<T> = RResult<T, DateError>;
 

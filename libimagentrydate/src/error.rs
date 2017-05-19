@@ -17,16 +17,17 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#[macro_use] extern crate lazy_static;
-extern crate chrono;
-extern crate toml_query;
-extern crate toml;
+generate_error_module!(
+    generate_error_types!(DateError, DateErrorKind,
+        StoreReadError      => "Store read error",
+        StoreWriteError     => "Store write error",
 
-#[macro_use] extern crate libimagerror;
-extern crate libimagstore;
-extern crate libimagutil;
+        DateHeaderFieldTypeError => "Expected the header field in the entry to have type 'String', but have other type",
+        DateTimeParsingError => "Error parsing DateTime"
+    );
+);
 
-pub mod entrydate;
-pub mod error;
-pub mod result;
+pub use self::error::DateError;
+pub use self::error::DateErrorKind;
+pub use self::error::MapErrInto;
 

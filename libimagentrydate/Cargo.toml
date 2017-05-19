@@ -1,6 +1,30 @@
 [package]
 name = "libimagentrydate"
-version = "0.1.0"
+version = "0.3.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
+description = "Library for the imag core distribution"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+homepage      = "http://imag-pim.org"
+
 [dependencies]
+chrono = "0.3"
+toml-query = "0.1"
+lazy_static = "0.2"
+toml = "0.4"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
