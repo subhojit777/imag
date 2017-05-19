@@ -30,17 +30,26 @@ use error::DateErrorKind as DEK;
 use error::*;
 use result::Result;
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct DateRange(NaiveDateTime, NaiveDateTime);
+
 pub trait EntryDate {
 
     fn delete_date(&mut self) -> Result<()>;
     fn read_date(&self) -> Result<NaiveDateTime>;
     fn set_date(&mut self, d: NaiveDateTime) -> Result<Option<Result<NaiveDateTime>>>;
 
+    fn delete_date_range(&mut self) -> Result<()>;
+    fn read_date_range(&self) -> Result<DateRange>;
+    fn set_date_range(&mut self, start: NaiveDateTime, end: NaiveDateTime) -> Result<Option<Result<DateRange>>>;
+
 }
 
 lazy_static! {
-    static ref DATE_HEADER_LOCATION : String = String::from("date.value");
-    static ref DATE_FMT : &'static str       = "%Y-%m-%d %H:%M:%S";
+    static ref DATE_HEADER_LOCATION : String             = String::from("date.value");
+    static ref DATE_RANGE_START_HEADER_LOCATION : String = String::from("date.range.start");
+    static ref DATE_RANGE_END_HEADER_LOCATION : String   = String::from("date.range.end");
+    static ref DATE_FMT : &'static str                   = "%Y-%m-%d %H:%M:%S";
 }
 
 impl EntryDate for Entry {
@@ -94,6 +103,103 @@ impl EntryDate for Entry {
                 }
             }))
             .map_err_into(DEK::StoreWriteError)
+    }
+
+
+    /// Deletes the date range
+    ///
+    /// # Warning
+    ///
+    /// First deletes the start, then the end. If the first operation fails, this might leave the
+    /// header in an inconsistent state.
+    ///
+    fn delete_date_range(&mut self) -> Result<()> {
+        let _ = try!(self
+             .get_header_mut()
+            .delete(&DATE_RANGE_START_HEADER_LOCATION)
+            .map(|_| ())
+            .map_err_into(DEK::StoreWriteError));
+
+        self.get_header_mut()
+            .delete(&DATE_RANGE_END_HEADER_LOCATION)
+            .map(|_| ())
+            .map_err_into(DEK::StoreWriteError)
+    }
+
+    fn read_date_range(&self) -> Result<DateRange> {
+        let start = try!(self
+            .get_header()
+            .read(&DATE_RANGE_START_HEADER_LOCATION)
+            .map_err_into(DEK::StoreReadError)
+            .and_then(|v| {
+                match v {
+                    &Value::String(ref s) => s.parse::<NaiveDateTime>()
+                        .map_err_into(DEK::DateTimeParsingError),
+                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                }
+            }));
+
+        let end = try!(self
+            .get_header()
+            .read(&DATE_RANGE_START_HEADER_LOCATION)
+            .map_err_into(DEK::StoreReadError)
+            .and_then(|v| {
+                match v {
+                    &Value::String(ref s) => s.parse::<NaiveDateTime>()
+                        .map_err_into(DEK::DateTimeParsingError),
+                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                }
+            }));
+
+        Ok(DateRange(start, end))
+    }
+
+    /// Set the date range
+    ///
+    /// # Warning
+    ///
+    /// This first sets the start, then the end. If the first operation fails, this might leave the
+    /// header in an inconsistent state.
+    ///
+    fn set_date_range(&mut self, start: NaiveDateTime, end: NaiveDateTime)
+        -> Result<Option<Result<DateRange>>>
+    {
+        let start = start.format(&DATE_FMT).to_string();
+        let end   = end.format(&DATE_FMT).to_string();
+
+        let opt_old_start = try!(self
+            .get_header_mut()
+            .insert(&DATE_RANGE_START_HEADER_LOCATION, Value::String(start))
+            .map(|opt| opt.map(|stri| {
+                match stri {
+                    Value::String(ref s) => s.parse::<NaiveDateTime>()
+                                             .map_err_into(DEK::DateTimeParsingError),
+                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                }
+            }))
+            .map_err_into(DEK::StoreWriteError));
+
+        let opt_old_end = try!(self
+            .get_header_mut()
+            .insert(&DATE_RANGE_END_HEADER_LOCATION, Value::String(end))
+            .map(|opt| opt.map(|stri| {
+                match stri {
+                    Value::String(ref s) => s.parse::<NaiveDateTime>()
+                                             .map_err_into(DEK::DateTimeParsingError),
+                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                }
+            }))
+            .map_err_into(DEK::StoreWriteError));
+
+        match (opt_old_start, opt_old_end) {
+            (Some(Ok(old_start)), Some(Ok(old_end))) => Ok(Some(Ok(DateRange(old_start, old_end)))),
+
+            (Some(Err(e)), _) => Err(e),
+            (_, Some(Err(e))) => Err(e),
+            _ => {
+                Ok(None)
+            },
+        }
     }
 
 }
