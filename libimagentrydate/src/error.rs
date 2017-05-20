@@ -19,8 +19,12 @@
 
 generate_error_module!(
     generate_error_types!(DateError, DateErrorKind,
-        StoreReadError      => "Store read error",
-        StoreWriteError     => "Store write error",
+        DeleteDateError      => "Error deleting date",
+        ReadDateError        => "Error reading date",
+        SetDateError         => "Error setting date",
+        DeleteDateRangeError => "Error deleting date range",
+        ReadDateRangeError   => "Error reading date range",
+        SetDateRangeError    => "Error setting date range",
 
         DateHeaderFieldTypeError => "Expected the header field in the entry to have type 'String', but have other type",
         DateTimeParsingError => "Error parsing DateTime"

@@ -58,13 +58,13 @@ impl EntryDate for Entry {
         self.get_header_mut()
             .delete(&DATE_HEADER_LOCATION)
             .map(|_| ())
-            .map_err_into(DEK::StoreWriteError)
+            .map_err_into(DEK::DeleteDateError)
     }
 
     fn read_date(&self) -> Result<NaiveDateTime> {
         self.get_header()
             .read(&DATE_HEADER_LOCATION)
-            .map_err_into(DEK::StoreReadError)
+            .map_err_into(DEK::ReadDateError)
             .and_then(|v| {
                 match v {
                     &Value::String(ref s) => s.parse::<NaiveDateTime>()
@@ -102,7 +102,7 @@ impl EntryDate for Entry {
                     _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
                 }
             }))
-            .map_err_into(DEK::StoreWriteError)
+            .map_err_into(DEK::SetDateError)
     }
 
 
@@ -118,19 +118,19 @@ impl EntryDate for Entry {
              .get_header_mut()
             .delete(&DATE_RANGE_START_HEADER_LOCATION)
             .map(|_| ())
-            .map_err_into(DEK::StoreWriteError));
+            .map_err_into(DEK::DeleteDateRangeError));
 
         self.get_header_mut()
             .delete(&DATE_RANGE_END_HEADER_LOCATION)
             .map(|_| ())
-            .map_err_into(DEK::StoreWriteError)
+            .map_err_into(DEK::DeleteDateRangeError)
     }
 
     fn read_date_range(&self) -> Result<DateRange> {
         let start = try!(self
             .get_header()
             .read(&DATE_RANGE_START_HEADER_LOCATION)
-            .map_err_into(DEK::StoreReadError)
+            .map_err_into(DEK::ReadDateRangeError)
             .and_then(|v| {
                 match v {
                     &Value::String(ref s) => s.parse::<NaiveDateTime>()
@@ -142,7 +142,7 @@ impl EntryDate for Entry {
         let end = try!(self
             .get_header()
             .read(&DATE_RANGE_START_HEADER_LOCATION)
-            .map_err_into(DEK::StoreReadError)
+            .map_err_into(DEK::ReadDateRangeError)
             .and_then(|v| {
                 match v {
                     &Value::String(ref s) => s.parse::<NaiveDateTime>()
@@ -177,7 +177,7 @@ impl EntryDate for Entry {
                     _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
                 }
             }))
-            .map_err_into(DEK::StoreWriteError));
+            .map_err_into(DEK::SetDateRangeError));
 
         let opt_old_end = try!(self
             .get_header_mut()
@@ -189,7 +189,7 @@ impl EntryDate for Entry {
                     _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
                 }
             }))
-            .map_err_into(DEK::StoreWriteError));
+            .map_err_into(DEK::SetDateRangeError));
 
         match (opt_old_start, opt_old_end) {
             (Some(Ok(old_start)), Some(Ok(old_end))) => Ok(Some(Ok(DateRange(old_start, old_end)))),
