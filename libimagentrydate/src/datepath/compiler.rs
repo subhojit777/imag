@@ -25,32 +25,19 @@ use datepath::accuracy::Accuracy;
 use datepath::format::Format;
 use datepath::result::Result;
 
-/// A builder for the DatePath object which can then be used to compile a time definition into a
-/// StoreId.
-#[derive(Builder, Debug)]
-#[builder(setter(prefix = "with"))]
-pub struct DatePathCompilerBuilder {
-
-    /// The accuracy which should be used to compile the time definition.
-    ///
-    /// For example a `Accuracy::Hour` will ignore the minute and second from the time definition,
-    /// a `Accuracy::Month` will ignore days, hours, minutes and seconds.
-    #[builder(default)]
-    accuracy : Accuracy,
-
-    /// The formatter which shall be used to compile the time specification.
-    #[builder(default)]
-    format   : Format,
-
-}
-
-
 pub struct DatePathCompiler {
     accuracy : Accuracy,
     format   : Format,
 }
 
 impl DatePathCompiler {
+
+    pub fn new(accuracy: Accuracy, format: Format) -> DatePathCompiler {
+        DatePathCompiler {
+            accuracy : accuracy,
+            format   : format,
+        }
+    }
 
     /// Compile a NaiveDateTime object into a StoreId object.
     ///
