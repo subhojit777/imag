@@ -20,7 +20,8 @@
 /// Error module for the DatePathCompiler type
 generate_error_module! {
     generate_error_types!(DatePathCompilerError, DatePathCompilerErrorKind,
-        DatePathCompilerError => "Unknown DatePathCompiler error"
+        UnknownDatePathCompilerError => "Unknown DatePathCompiler error",
+        StoreIdBuildFailed           => "Failed building StoreId object"
     );
 }
 pub use self::error::DatePathCompilerError;
