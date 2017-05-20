@@ -17,65 +17,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-/// Error module for the DatePathCompiler type
-generate_error_module! {
-    generate_error_types!(DatePathCompilerError, DatePathCompilerErrorKind,
-        DatePathCompilerError => "Unknown DatePathCompiler error"
-    );
-}
-pub use self::error::DatePathCompilerError;
-pub use self::error::DatePathCompilerErrorKind;
-pub use self::error::MapErrInto;
-
-/// Result type for this module.
-pub mod result {
-    use super::error::DatePathCompilerError as DPCE;
-    use std::result::Result as RResult;
-
-    pub type Result<T> = RResult<T, DPCE>;
-}
-use result::Result;
-
-use chrono::naive::datetime::NaiveDateTime;
-
-use libimagstore::storeid::StoreId;
-
-/// A builder for the DatePath object which can then be used to compile a time definition into a
-/// StoreId.
-#[derive(Builder, Debug)]
-#[builder(setter(prefix = "with"))]
-pub struct DatePathCompilerBuilder {
-
-    /// The accuracy which should be used to compile the time definition.
-    ///
-    /// For example a `Accuracy::Hour` will ignore the minute and second from the time definition,
-    /// a `Accuracy::Month` will ignore days, hours, minutes and seconds.
-    #[builder(default)]
-    accuracy : Accuracy,
-
-    /// The formatter which shall be used to compile the time specification.
-    #[builder(default)]
-    format   : Format,
-
-}
-
-/// The accuracy with which the compiler should compile the time specification
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub enum Accuracy {
-    Year,
-    Month,
-    Day,
-    Hour,
-    Minute,
-    Second
-}
-
-impl Default for Accuracy {
-    fn default() -> Accuracy {
-        Accuracy::Second
-    }
-}
-
 /// The format which should be used to compile the datetime spec into a StoreId object.
 ///
 /// # Warning
@@ -146,48 +87,6 @@ pub enum Format {
 impl Default for Format {
     fn default() -> Format {
         Format::ElementIsFolder
-    }
-}
-
-pub struct DatePathCompiler {
-    accuracy : Accuracy,
-    format   : Format,
-}
-
-impl DatePathCompiler {
-
-    /// Compile a NaiveDateTime object into a StoreId object.
-    ///
-    /// # More information
-    ///
-    /// See the documentations of the `Format` and the `Accuracy` types as well.
-    ///
-    /// # Warnings
-    ///
-    /// This does _not_ guarantee that the StoreId can be created, is not yet in the store or
-    /// anything else. Overall, this is just a `spec->path` compiler which is really stupid.
-    ///
-    /// # Return value
-    ///
-    /// The `StoreId` object on success.
-    ///
-    fn compile(&self, datetime: &NaiveDateTime) -> Result<StoreId> {
-        unimplemented!()
-    }
-
-}
-
-//
-// Extension Trait for NaiveDateTime
-//
-
-pub trait ToStoreId {
-    fn to_store_id(&self, compiler: &DatePathCompiler) -> Result<StoreId>;
-}
-
-impl ToStoreId for NaiveDateTime {
-    fn to_store_id(&self, compiler: &DatePathCompiler) -> Result<StoreId> {
-        compiler.compile(self)
     }
 }
 
