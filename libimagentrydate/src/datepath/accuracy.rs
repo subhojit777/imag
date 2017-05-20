@@ -28,6 +28,82 @@ pub enum Accuracy {
     Second
 }
 
+impl Accuracy {
+
+    /// Check whether the current setting includes a year.
+    pub fn has_year_accuracy(&self) -> bool {
+        match *self {
+            Accuracy::Year   => true,
+            Accuracy::Month  => true,
+            Accuracy::Day    => true,
+            Accuracy::Hour   => true,
+            Accuracy::Minute => true,
+            Accuracy::Second => true,
+        }
+    }
+
+    /// Check whether the current setting includes a month.
+    pub fn has_month_accuracy(&self) -> bool {
+        match *self {
+            Accuracy::Year   => false,
+            Accuracy::Month  => true,
+            Accuracy::Day    => true,
+            Accuracy::Hour   => true,
+            Accuracy::Minute => true,
+            Accuracy::Second => true,
+        }
+    }
+
+    /// Check whether the current setting includes a day.
+    pub fn has_day_accuracy(&self) -> bool {
+        match *self {
+            Accuracy::Year   => false,
+            Accuracy::Month  => false,
+            Accuracy::Day    => true,
+            Accuracy::Hour   => true,
+            Accuracy::Minute => true,
+            Accuracy::Second => true,
+        }
+    }
+
+    /// Check whether the current setting includes a hour.
+    pub fn has_hour_accuracy(&self) -> bool {
+        match *self {
+            Accuracy::Year   => false,
+            Accuracy::Month  => false,
+            Accuracy::Day    => false,
+            Accuracy::Hour   => true,
+            Accuracy::Minute => true,
+            Accuracy::Second => true,
+        }
+    }
+
+    /// Check whether the current setting includes a minute.
+    pub fn has_minute_accuracy(&self) -> bool {
+        match *self {
+            Accuracy::Year   => false,
+            Accuracy::Month  => false,
+            Accuracy::Day    => false,
+            Accuracy::Hour   => false,
+            Accuracy::Minute => true,
+            Accuracy::Second => true,
+        }
+    }
+
+    /// Check whether the current setting includes a second.
+    pub fn has_second_accuracy(&self) -> bool {
+        match *self {
+            Accuracy::Year   => false,
+            Accuracy::Month  => false,
+            Accuracy::Day    => false,
+            Accuracy::Hour   => false,
+            Accuracy::Minute => false,
+            Accuracy::Second => true,
+        }
+    }
+
+}
+
 impl Default for Accuracy {
     fn default() -> Accuracy {
         Accuracy::Second
