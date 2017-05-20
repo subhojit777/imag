@@ -17,13 +17,19 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::path::PathBuf;
+
 use chrono::naive::datetime::NaiveDateTime;
+use chrono::Datelike;
+use chrono::Timelike;
 
 use libimagstore::storeid::StoreId;
 
 use datepath::accuracy::Accuracy;
 use datepath::format::Format;
 use datepath::result::Result;
+use datepath::error::DatePathCompilerErrorKind as DPCEK;
+use datepath::error::MapErrInto;
 
 pub struct DatePathCompiler {
     accuracy : Accuracy,
@@ -54,8 +60,69 @@ impl DatePathCompiler {
     ///
     /// The `StoreId` object on success.
     ///
-    pub fn compile(&self, datetime: &NaiveDateTime) -> Result<StoreId> {
-        unimplemented!()
+    pub fn compile(&self, module_name: &str, datetime: &NaiveDateTime) -> Result<StoreId> {
+        let mut s = format!("{}/", module_name);
+
+        if self.accuracy.has_year_accuracy() /* always true */ {
+            s.push_str(&format!("{}", datetime.year()));
+        }
+
+        if self.accuracy.has_month_accuracy() {
+            match self.format {
+                Format::ElementIsFolder
+                    | Format::DaysAreFolder
+                    | Format::MonthIsFolder
+                    | Format::YearIsFolder
+                    => s.push_str(&format!("/{}", datetime.month())),
+            }
+        }
+
+        if self.accuracy.has_day_accuracy() {
+            match self.format {
+                Format::ElementIsFolder
+                    | Format::DaysAreFolder
+                    | Format::MonthIsFolder
+                    => s.push_str(&format!("/{}", datetime.day())),
+                Format::YearIsFolder
+                    => s.push_str(&format!("-{}", datetime.day())),
+            }
+        }
+
+        if self.accuracy.has_hour_accuracy() {
+            match self.format {
+                Format::ElementIsFolder
+                    | Format::DaysAreFolder
+                    => s.push_str(&format!("/{}", datetime.hour())),
+                Format::YearIsFolder
+                    | Format::MonthIsFolder
+                    => s.push_str(&format!("-{}", datetime.hour())),
+            }
+        }
+
+        if self.accuracy.has_minute_accuracy() {
+            match self.format {
+                Format::ElementIsFolder
+                    => s.push_str(&format!("/{}", datetime.minute())),
+                Format::YearIsFolder
+                    | Format::MonthIsFolder
+                    | Format::DaysAreFolder
+                    => s.push_str(&format!("-{}", datetime.minute())),
+            }
+        }
+
+        if self.accuracy.has_second_accuracy() {
+            match self.format {
+                Format::ElementIsFolder
+                    => s.push_str(&format!("/{}", datetime.second())),
+                Format::YearIsFolder
+                    | Format::MonthIsFolder
+                    | Format::DaysAreFolder
+                    => s.push_str(&format!("-{}", datetime.second())),
+            }
+        }
+
+        StoreId::new_baseless(PathBuf::from(s))
+            .map_err_into(DPCEK::StoreIdBuildFailed)
     }
 
 }
