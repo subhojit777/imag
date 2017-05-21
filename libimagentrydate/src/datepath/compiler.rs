@@ -64,7 +64,7 @@ impl DatePathCompiler {
         let mut s = format!("{}/", module_name);
 
         if self.accuracy.has_year_accuracy() /* always true */ {
-            s.push_str(&format!("{}", datetime.year()));
+            s.push_str(&format!("{:04}", datetime.year()));
         }
 
         if self.accuracy.has_month_accuracy() {
@@ -73,7 +73,7 @@ impl DatePathCompiler {
                     | Format::DaysAreFolder
                     | Format::MonthIsFolder
                     | Format::YearIsFolder
-                    => s.push_str(&format!("/{}", datetime.month())),
+                    => s.push_str(&format!("/{:02}", datetime.month())),
             }
         }
 
@@ -82,9 +82,9 @@ impl DatePathCompiler {
                 Format::ElementIsFolder
                     | Format::DaysAreFolder
                     | Format::MonthIsFolder
-                    => s.push_str(&format!("/{}", datetime.day())),
+                    => s.push_str(&format!("/{:02}", datetime.day())),
                 Format::YearIsFolder
-                    => s.push_str(&format!("-{}", datetime.day())),
+                    => s.push_str(&format!("-{:02}", datetime.day())),
             }
         }
 
@@ -92,32 +92,32 @@ impl DatePathCompiler {
             match self.format {
                 Format::ElementIsFolder
                     | Format::DaysAreFolder
-                    => s.push_str(&format!("/{}", datetime.hour())),
+                    => s.push_str(&format!("/{:02}", datetime.hour())),
                 Format::YearIsFolder
                     | Format::MonthIsFolder
-                    => s.push_str(&format!("-{}", datetime.hour())),
+                    => s.push_str(&format!("-{:02}", datetime.hour())),
             }
         }
 
         if self.accuracy.has_minute_accuracy() {
             match self.format {
                 Format::ElementIsFolder
-                    => s.push_str(&format!("/{}", datetime.minute())),
+                    => s.push_str(&format!("/{:02}", datetime.minute())),
                 Format::YearIsFolder
                     | Format::MonthIsFolder
                     | Format::DaysAreFolder
-                    => s.push_str(&format!("-{}", datetime.minute())),
+                    => s.push_str(&format!("-{:02}", datetime.minute())),
             }
         }
 
         if self.accuracy.has_second_accuracy() {
             match self.format {
                 Format::ElementIsFolder
-                    => s.push_str(&format!("/{}", datetime.second())),
+                    => s.push_str(&format!("/{:02}", datetime.second())),
                 Format::YearIsFolder
                     | Format::MonthIsFolder
                     | Format::DaysAreFolder
-                    => s.push_str(&format!("-{}", datetime.second())),
+                    => s.push_str(&format!("-{:02}", datetime.second())),
             }
         }
 
