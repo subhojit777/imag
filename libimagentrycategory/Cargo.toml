@@ -14,3 +14,13 @@ repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
 [dependencies]
+toml = "0.4"
+toml-query = "0.2"
+is-match = "0.1"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+

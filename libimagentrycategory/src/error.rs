@@ -17,14 +17,15 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-extern crate toml_query;
-extern crate toml;
+generate_error_module!(
+    generate_error_types!(CategoryError, CategoryErrorKind,
+        HeaderReadError  => "Header read error",
+        HeaderWriteError => "Header write error",
+        TypeError        => "Found wrong type in header"
+    );
+);
 
-#[macro_use]
-extern crate libimagerror;
-extern crate libimagstore;
-
-pub mod category;
-pub mod error;
-pub mod result;
+pub use self::error::CategoryError;
+pub use self::error::CategoryErrorKind;
+pub use self::error::MapErrInto;
 
