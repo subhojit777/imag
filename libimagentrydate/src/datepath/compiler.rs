@@ -134,11 +134,12 @@ mod test {
     use datepath::format::Format;
 
     use chrono::naive::date::NaiveDate;
+    use chrono::naive::datetime::NaiveDateTime;
 
     #[test]
     fn test_compiler_compile_simple() {
         let dt       = NaiveDate::from_ymd(2000, 1, 1).and_hms(0, 0, 0);
-        let compiler = DatePathCompiler::new(Accuracy::default(), Format::default())
+        let compiler = DatePathCompiler::new(Accuracy::default(), Format::default());
         let res      = compiler.compile("testmodule", &dt);
 
         assert!(res.is_ok());
@@ -150,6 +151,39 @@ mod test {
         let s = s.unwrap();
 
         assert_eq!("testmodule/2000/1/1/0/0/0", s);
+    }
+
+    fn test_accuracy(acc: Accuracy, dt: NaiveDateTime, modname: &str, matchstr: &str) {
+        let compiler = DatePathCompiler::new(acc, Format::default());
+        let res      = compiler.compile(modname, &dt);
+
+        assert!(res.is_ok());
+        let res = res.unwrap();
+
+        let s = res.to_str();
+
+        assert!(s.is_ok());
+        let s = s.unwrap();
+
+        assert_eq!(matchstr, s);
+    }
+
+    #[test]
+    fn test_compiler_compile_year_accuracy() {
+        let dt = NaiveDate::from_ymd(2000, 1, 1).and_hms(0, 0, 0);
+        test_accuracy(Accuracy::Year, dt, "module", "module/2000");
+    }
+
+    #[test]
+    fn test_compiler_compile_month_accuracy() {
+        let dt = NaiveDate::from_ymd(2000, 1, 1).and_hms(0, 0, 0);
+        test_accuracy(Accuracy::Month, dt, "module", "module/2000/1");
+    }
+
+    #[test]
+    fn test_compiler_compile_day_accuracy() {
+        let dt = NaiveDate::from_ymd(2000, 1, 1).and_hms(0, 0, 0);
+        test_accuracy(Accuracy::Day, dt, "module", "module/2000/1/1");
     }
 
 }
