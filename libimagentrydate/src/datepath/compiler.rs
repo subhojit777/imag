@@ -126,3 +126,31 @@ impl DatePathCompiler {
     }
 
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use datepath::accuracy::Accuracy;
+    use datepath::format::Format;
+
+    use chrono::naive::date::NaiveDate;
+
+    #[test]
+    fn test_compiler_compile_simple() {
+        let dt       = NaiveDate::from_ymd(2000, 1, 1).and_hms(0, 0, 0);
+        let compiler = DatePathCompiler::new(Accuracy::default(), Format::default())
+        let res      = compiler.compile("testmodule", &dt);
+
+        assert!(res.is_ok());
+        let res = res.unwrap();
+
+        let s = res.to_str();
+
+        assert!(s.is_ok());
+        let s = s.unwrap();
+
+        assert_eq!("testmodule/2000/1/1/0/0/0", s);
+    }
+
+}
+
