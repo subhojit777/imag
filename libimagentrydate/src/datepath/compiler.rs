@@ -150,7 +150,7 @@ mod test {
         assert!(s.is_ok());
         let s = s.unwrap();
 
-        assert_eq!("testmodule/2000/1/1/0/0/0", s);
+        assert_eq!("testmodule/2000/01/01/00/00/00", s);
     }
 
     fn test_accuracy(acc: Accuracy, dt: NaiveDateTime, modname: &str, matchstr: &str) {
@@ -177,13 +177,19 @@ mod test {
     #[test]
     fn test_compiler_compile_month_accuracy() {
         let dt = NaiveDate::from_ymd(2000, 1, 1).and_hms(0, 0, 0);
-        test_accuracy(Accuracy::Month, dt, "module", "module/2000/1");
+        test_accuracy(Accuracy::Month, dt, "module", "module/2000/01");
     }
 
     #[test]
     fn test_compiler_compile_day_accuracy() {
         let dt = NaiveDate::from_ymd(2000, 1, 1).and_hms(0, 0, 0);
-        test_accuracy(Accuracy::Day, dt, "module", "module/2000/1/1");
+        test_accuracy(Accuracy::Day, dt, "module", "module/2000/01/01");
+    }
+
+    #[test]
+    fn test_compiler_compile_year_paddning() {
+        let dt = NaiveDate::from_ymd(1, 1, 1).and_hms(0, 0, 0);
+        test_accuracy(Accuracy::Day, dt, "module", "module/0001/01/01");
     }
 
 }
