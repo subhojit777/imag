@@ -1,0 +1,16 @@
+[package]
+name = "libimagentrycategory"
+version = "0.3.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+description = "Library for the imag core distribution"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+homepage      = "http://imag-pim.org"
+
+[dependencies]
