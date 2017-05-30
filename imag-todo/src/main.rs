@@ -23,6 +23,8 @@ extern crate glob;
 extern crate serde_json;
 extern crate semver;
 extern crate toml;
+extern crate toml_query;
+#[macro_use] extern crate is_match;
 #[macro_use] extern crate version;
 
 extern crate task_hookrs;
@@ -84,22 +86,32 @@ fn tw_hook(rt: &Runtime) {
 }
 
 fn list(rt: &Runtime) {
+    use toml_query::read::TomlValueReadExt;
+
     let subcmd  = rt.cli().subcommand_matches("list").unwrap();
     let verbose = subcmd.is_present("verbose");
+
+    // Helper for toml_query::read::TomlValueReadExt::read() return value, which does only
+    // return Result<T> instead of Result<Option<T>>, which is a real inconvenience.
+    //
+    let no_identifier = |e: &::toml_query::error::Error| -> bool {
+        is_match!(e.kind(), &::toml_query::error::ErrorKind::IdentifierNotFoundInDocument(_))
+    };
 
     let res = Task::all(rt.store()) // get all tasks
         .map(|iter| { // and if this succeeded
             // filter out the ones were we can read the uuid
             let uuids : Vec<_> = iter.filter_map(|t| match t {
-                Ok(v) => match v.get_header().read("todo.uuid") {
-                    Ok(Some(Value::String(ref u))) => Some(u.clone()),
-                    Ok(Some(_)) => {
+                Ok(v) => match v.get_header().read(&String::from("todo.uuid")) {
+                    Ok(&Value::String(ref u)) => Some(u.clone()),
+                    Ok(_) => {
                         warn!("Header type error");
                         None
                     },
-                    Ok(None) => None,
                     Err(e) => {
-                        trace_error(&e);
+                        if !no_identifier(&e) {
+                            trace_error(&e);
+                        }
                         None
                     }
                 },
