@@ -224,6 +224,17 @@ pub trait IntoTask<'a> {
 impl<'a> IntoTask<'a> for TTask {
 
     fn into_task(self, store : &'a Store) -> Result<Task<'a>> {
+        use toml_query::read::TomlValueReadExt;
+        use toml_query::set::TomlValueSetExt;
+        use libimagerror::into::IntoError;
+
+        // Helper for toml_query::read::TomlValueReadExt::read() return value, which does only
+        // return Result<T> instead of Result<Option<T>>, which is a real inconvenience.
+        //
+        let no_identifier = |e: &::toml_query::error::Error| -> bool {
+            is_match!(e.kind(), &::toml_query::error::ErrorKind::IdentifierNotFoundInDocument(_))
+        };
+
         let uuid     = self.uuid();
         ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
             .into_storeid()
@@ -234,14 +245,21 @@ impl<'a> IntoTask<'a> for TTask {
                     .and_then(|mut fle| {
                         {
                             let mut hdr = fle.get_header_mut();
-                            let read = hdr.read("todo").map_err_into(TodoErrorKind::StoreError);
-                            if try!(read).is_none() {
-                                try!(hdr
-                                    .set("todo", Value::Table(BTreeMap::new()))
-                                    .map_err_into(TodoErrorKind::StoreError));
+                            let todo_query = String::from("todo");
+
+                            if let Err(e) = hdr.read(&todo_query) {
+                                if no_identifier(&e) {
+                                    try!(hdr
+                                        .set(&String::from("todo"), Value::Table(BTreeMap::new()))
+                                        .map_err_into(TodoErrorKind::StoreError));
+                                } else {
+                                    let e = Box::new(e);
+                                    return Err(TodoErrorKind::StoreError.into_error_with_cause(e))
+                                }
                             }
 
-                            try!(hdr.set("todo.uuid", Value::String(format!("{}",uuid)))
+                            try!(hdr.set(&String::from("todo.uuid"),
+                                         Value::String(format!("{}", uuid)))
                                  .map_err_into(TodoErrorKind::StoreError));
                         }
 

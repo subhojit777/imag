@@ -34,6 +34,8 @@
 extern crate semver;
 extern crate uuid;
 extern crate toml;
+extern crate toml_query;
+#[macro_use] extern crate is_match;
 #[macro_use] extern crate log;
 extern crate serde_json;
 
