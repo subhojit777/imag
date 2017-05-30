@@ -1,0 +1,42 @@
+[package]
+name = "libimagdiary"
+version = "0.2.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+description = "Library for the imag core distribution"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+homepage      = "http://imag-pim.org"
+
+[dependencies]
+chrono = "0.2"
+log = "0.3"
+semver = "0.5"
+toml = "0.2.*"
+regex = "0.1"
+lazy_static = "0.2"
+itertools = "0.5"
+
+[dependencies.libimagstore]
+path = "../libimagstore"
+
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
+
+[dependencies.libimagrt]
+path = "../libimagrt"
+
+[dependencies.libimagentryedit]
+path = "../libimagentryedit"
+
+[dependencies.libimagentryview]
+path = "../libimagentryview"
+
