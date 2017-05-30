@@ -20,6 +20,8 @@
 use std::ops::DerefMut;
 
 use toml::Value;
+use toml_query::read::TomlValueReadExt;
+use toml_query::set::TomlValueSetExt;
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -75,17 +77,17 @@ impl<'a> Counter<'a> {
             {
                 let mut entry  = lockentry.deref_mut();
                 let mut header = entry.get_header_mut();
-                let setres = header.set("counter", Value::Table(BTreeMap::new()));
+                let setres = header.set(&String::from("counter"), Value::Table(BTreeMap::new()));
                 if setres.is_err() {
                     return Err(CEK::StoreWriteError.into_error());
                 }
 
-                let setres = header.set("counter.name", Value::String(name));
+                let setres = header.set(&String::from("counter.name"), Value::String(name));
                 if setres.is_err() {
                     return Err(CEK::StoreWriteError.into_error())
                 }
 
-                let setres = header.set("counter.value", Value::Integer(init));
+                let setres = header.set(&String::from("counter.value"), Value::Integer(init));
                 if setres.is_err() {
                     return Err(CEK::StoreWriteError.into_error())
                 }
@@ -102,7 +104,7 @@ impl<'a> Counter<'a> {
 
         if let Some(u) = self.unit.clone() {
             let mut header = self.fle.deref_mut().get_header_mut();
-            let setres = header.set("counter.unit", Value::String(u.0));
+            let setres = header.set(&String::from("counter.unit"), Value::String(u.0));
             if setres.is_err() {
                 self.unit = None;
                 return Err(CEK::StoreWriteError.into_error())
@@ -113,26 +115,26 @@ impl<'a> Counter<'a> {
 
     pub fn inc(&mut self) -> Result<()> {
         let mut header = self.fle.deref_mut().get_header_mut();
-        match header.read("counter.value") {
-            Ok(Some(Value::Integer(i))) => {
-                header.set("counter.value", Value::Integer(i + 1))
+        let query = String::from("counter.value");
+        match try!(header.read(&query).map_err_into(CEK::StoreReadError)) {
+            &Value::Integer(i) => {
+                header.set(&query, Value::Integer(i + 1))
                     .map_err_into(CEK::StoreWriteError)
                     .map(|_| ())
             },
-            Err(e) => Err(CE::new(CEK::StoreReadError, Some(Box::new(e)))),
             _ => Err(CE::new(CEK::StoreReadError, None)),
         }
     }
 
     pub fn dec(&mut self) -> Result<()> {
         let mut header = self.fle.deref_mut().get_header_mut();
-        match header.read("counter.value") {
-            Ok(Some(Value::Integer(i))) => {
-                header.set("counter.value", Value::Integer(i - 1))
+        let query = String::from("counter.value");
+        match try!(header.read(&query).map_err_into(CEK::StoreReadError)) {
+            &Value::Integer(i) => {
+                header.set(&query, Value::Integer(i - 1))
                     .map_err_into(CEK::StoreWriteError)
                     .map(|_| ())
             },
-            Err(e) => Err(CE::new(CEK::StoreReadError, Some(Box::new(e)))),
             _ => Err(CE::new(CEK::StoreReadError, None)),
         }
     }
@@ -143,21 +145,21 @@ impl<'a> Counter<'a> {
 
     pub fn set(&mut self, v: i64) -> Result<()> {
         let mut header = self.fle.deref_mut().get_header_mut();
-        header.set("counter.value", Value::Integer(v))
+        header.set(&String::from("counter.value"), Value::Integer(v))
             .map_err_into(CEK::StoreWriteError)
             .map(|_| ())
     }
 
     pub fn name(&self) -> Result<CounterName> {
         self.read_header_at("counter.name", |v| match v {
-            Some(Value::String(s)) => Ok(s),
+            &Value::String(ref s) => Ok(s.clone()),
             _ => Err(CEK::HeaderTypeError.into_error()),
         })
     }
 
     pub fn value(&self) -> Result<i64> {
         self.read_header_at("counter.value", |v| match v {
-            Some(Value::Integer(i)) => Ok(i),
+            &Value::Integer(i) => Ok(i),
             _ => Err(CEK::HeaderTypeError.into_error()),
         })
     }
@@ -168,16 +170,20 @@ impl<'a> Counter<'a> {
 
     pub fn read_unit(&self) -> Result<Option<CounterUnit>> {
         self.read_header_at("counter.unit", |s| match s {
-            Some(Value::String(s)) => Ok(Some(CounterUnit::new(s))),
-            Some(_) => Err(CEK::HeaderTypeError.into_error()),
-            None => Ok(None),
+            &Value::String(ref s) => Ok(Some(CounterUnit::new(s.clone()))),
+            _ => Err(CEK::HeaderTypeError.into_error()),
         })
     }
 
     fn read_header_at<T, F>(&self, name: &str, f: F) -> Result<T>
-        where F: FnOnce(Option<Value>) -> Result<T>
+        where F: FnOnce(&Value) -> Result<T>
     {
-        self.fle.get_header().read(name).map_err_into(CEK::StoreWriteError).and_then(f)
+
+        self.fle
+            .get_header()
+            .read(&String::from(name))
+            .map_err_into(CEK::StoreWriteError)
+            .and_then(f)
     }
 
     pub fn load(name: CounterName, store: &Store) -> Result<Counter> {
