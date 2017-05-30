@@ -38,6 +38,7 @@ extern crate chrono;
 #[macro_use] extern crate lazy_static;
 extern crate semver;
 extern crate toml;
+extern crate toml_query;
 extern crate regex;
 extern crate itertools;
 
