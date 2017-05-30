@@ -87,7 +87,7 @@ fn add(rt: &Runtime) {
         .and_then(|mut collection| {
             scmd.values_of("urls")
                 .unwrap() // enforced by clap
-                .fold_defresult(|url| collection.add_link(BookmarkLink::from(url)))
+                .fold_result(|url| collection.add_link(BookmarkLink::from(url)))
         })
         .map_err_trace()
         .map_info_str("Ready")
