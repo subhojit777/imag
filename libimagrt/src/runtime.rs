@@ -36,6 +36,7 @@ use error::MapErrInto;
 use logger::ImagLogger;
 
 use libimagstore::store::Store;
+use spec::CliSpec;
 
 /// The Runtime object
 ///
@@ -55,7 +56,7 @@ impl<'a> Runtime<'a> {
     /// and builds the Runtime object with it.
     ///
     /// The cli_spec object should be initially build with the ::get_default_cli_builder() function.
-    pub fn new(mut cli_spec: App<'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
+    pub fn new<C: Clone + CliSpec<'a>>(mut cli_spec: C) -> Result<Runtime<'a>, RuntimeError> {
         use std::env;
         use std::io::stdout;
 
@@ -66,7 +67,7 @@ impl<'a> Runtime<'a> {
 
         use configuration::error::ConfigErrorKind;
 
-        let matches = cli_spec.clone().get_matches();
+        let matches = cli_spec.clone().matches();
 
         let is_debugging = matches.is_present("debugging");
         let is_verbose   = matches.is_present("verbosity");
@@ -78,8 +79,8 @@ impl<'a> Runtime<'a> {
             Some(shell) => {
                 debug!("Generating shell completion script, writing to stdout");
                 let shell   = shell.parse::<Shell>().unwrap(); // clap has our back here.
-                let appname = String::from(cli_spec.get_name());
-                cli_spec.gen_completions_to(appname, shell, &mut stdout());
+                let appname = String::from(cli_spec.name());
+                cli_spec.completions(appname, shell, &mut stdout());
             },
             _ => debug!("Not generating shell completion script"),
         }
