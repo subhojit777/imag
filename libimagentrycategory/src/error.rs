@@ -19,6 +19,9 @@
 
 generate_error_module!(
     generate_error_types!(CategoryError, CategoryErrorKind,
+        StoreReadError => "Store Read error",
+        StoreWriteError => "Store Write error",
+        StoreIdHandlingError => "StoreId handling error",
         HeaderReadError  => "Header read error",
         HeaderWriteError => "Header write error",
         TypeError        => "Found wrong type in header"
