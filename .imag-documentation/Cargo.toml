@@ -15,6 +15,15 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 
+[dependencies.libimagbookmark]
+path = "../libimagbookmark"
+
+[dependencies.libimagcounter]
+path = "../libimagcounter"
+
+[dependencies.libimagdiary]
+path = "../libimagdiary"
+
 [dependencies.libimagentryfilter]
 path = "../libimagentryfilter"
 
