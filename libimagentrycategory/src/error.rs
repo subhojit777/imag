@@ -24,7 +24,9 @@ generate_error_module!(
         StoreIdHandlingError => "StoreId handling error",
         HeaderReadError  => "Header read error",
         HeaderWriteError => "Header write error",
-        TypeError        => "Found wrong type in header"
+        TypeError        => "Found wrong type in header",
+
+        CategoryDoesNotExist => "Category does not exist"
     );
 );
 

@@ -28,6 +28,7 @@ use libimagerror::into::IntoError;
 use error::CategoryErrorKind as CEK;
 use error::MapErrInto;
 use result::Result;
+use register::CategoryRegister;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Category(String);
@@ -49,6 +50,9 @@ impl Into<String> for Category {
 pub trait EntryCategory {
 
     fn set_category(&mut self, s: Category) -> Result<()>;
+
+    fn set_category_checked(&mut self, register: &CategoryRegister, s: Category) -> Result<()>;
+
     fn get_category(&self) -> Result<Option<Category>>;
 
     fn has_category(&self) -> Result<bool>;
@@ -62,6 +66,18 @@ impl EntryCategory for Entry {
             .insert(&String::from("category.value"), Value::String(s.into()))
             .map_err_into(CEK::HeaderWriteError)
             .map(|_| ())
+    }
+
+    /// Check whether a category exists before setting it.
+    ///
+    /// This function should be used by default over EntryCategory::set_category()!
+    fn set_category_checked(&mut self, register: &CategoryRegister, s: Category) -> Result<()> {
+        register.category_exists(&s.0)
+            .and_then(|bl| if bl {
+                self.set_category(s)
+            } else {
+                Err(CEK::CategoryDoesNotExist.into_error())
+            })
     }
 
     fn get_category(&self) -> Result<Option<Category>> {
