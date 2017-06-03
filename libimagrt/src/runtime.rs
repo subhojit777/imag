@@ -394,11 +394,9 @@ impl<'a> Runtime<'a> {
         self.cli()
             .value_of("editor")
             .map(String::from)
-            .or({
-                match self.configuration {
-                    Some(ref c) => c.editor().cloned(),
-                    _ => None,
-                }
+            .or(match self.configuration {
+                Some(ref c) => c.editor().cloned(),
+                _ => None,
             })
             .or(env::var("EDITOR").ok())
             .map(Command::new)
