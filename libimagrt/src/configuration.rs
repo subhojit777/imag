@@ -22,6 +22,7 @@ use std::result::Result as RResult;
 use std::ops::Deref;
 
 use toml::Value;
+use clap::App;
 
 use error::RuntimeErrorKind as REK;
 use libimagerror::into::IntoError;
@@ -72,24 +73,22 @@ impl Configuration {
     /// with all variants.
     ///
     /// If that doesn't work either, an error is returned.
-    pub fn new(rtp: &PathBuf) -> Result<Configuration> {
-        fetch_config(&rtp).map(|cfg| {
-            let verbosity   = get_verbosity(&cfg);
-            let editor      = get_editor(&cfg);
-            let editor_opts = get_editor_opts(&cfg);
+    pub fn new(toml_config: Value) -> Configuration {
+        let verbosity   = get_verbosity(&toml_config);
+        let editor      = get_editor(&toml_config);
+        let editor_opts = get_editor_opts(&toml_config);
 
-            debug!("Building configuration");
-            debug!("  - verbosity  : {:?}", verbosity);
-            debug!("  - editor     : {:?}", editor);
-            debug!("  - editor-opts: {}", editor_opts);
+        debug!("Building configuration");
+        debug!("  - verbosity  : {:?}", verbosity);
+        debug!("  - editor     : {:?}", editor);
+        debug!("  - editor-opts: {}", editor_opts);
 
-            Configuration {
-                config: cfg,
-                verbosity: verbosity,
-                editor: editor,
-                editor_opts: editor_opts,
-            }
-        })
+        Configuration {
+            config: toml_config,
+            verbosity: verbosity,
+            editor: editor,
+            editor_opts: editor_opts,
+        }
     }
 
     /// Get the Editor setting from the configuration
@@ -274,3 +273,23 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
         .nth(0)
         .ok_or(ConfigErrorKind::NoConfigFileFound.into())
 }
+
+pub trait GetConfiguration {
+    fn get_configuration(rtp: &PathBuf) -> Result<Configuration> {
+        fetch_config(rtp).map(Configuration::new)
+    }
+}
+
+impl<'a> GetConfiguration for App<'a, 'a> {}
+
+pub trait InternalConfiguration {
+    fn enable_hooks() -> bool {
+        true
+    }
+
+    fn enable_logging() -> bool {
+        true
+    }
+}
+
+impl<'a> InternalConfiguration for App<'a, 'a> {}

@@ -29,7 +29,7 @@ use clap::{Arg, ArgMatches};
 use log;
 use log::LogLevelFilter;
 
-use configuration::Configuration;
+use configuration::{Configuration, GetConfiguration, InternalConfiguration};
 use error::RuntimeError;
 use error::RuntimeErrorKind;
 use error::MapErrInto;
@@ -55,8 +55,10 @@ impl<'a> Runtime<'a> {
     /// in $HOME/.imag/config, $XDG_CONFIG_DIR/imag/config or from env("$IMAG_CONFIG")
     /// and builds the Runtime object with it.
     ///
-    /// The cli_spec object should be initially build with the ::get_default_cli_builder() function.
-    pub fn new<C: Clone + CliSpec<'a>>(mut cli_spec: C) -> Result<Runtime<'a>, RuntimeError> {
+    /// The cli_app object should be initially build with the ::get_default_cli_builder() function.
+    pub fn new<C>(mut cli_app: C) -> Result<Runtime<'a>, RuntimeError>
+        where C: Clone + CliSpec<'a> + GetConfiguration + InternalConfiguration
+    {
         use std::env;
         use std::io::stdout;
 
@@ -67,20 +69,22 @@ impl<'a> Runtime<'a> {
 
         use configuration::error::ConfigErrorKind;
 
-        let matches = cli_spec.clone().matches();
+        let matches = cli_app.clone().matches();
 
         let is_debugging = matches.is_present("debugging");
         let is_verbose   = matches.is_present("verbosity");
         let colored      = !matches.is_present("no-color-output");
 
-        Runtime::init_logger(is_debugging, is_verbose, colored);
+        if C::enable_logging() {
+            Runtime::init_logger(is_debugging, is_verbose, colored);
+        }
 
         match matches.value_of(Runtime::arg_generate_compl()) {
             Some(shell) => {
                 debug!("Generating shell completion script, writing to stdout");
                 let shell   = shell.parse::<Shell>().unwrap(); // clap has our back here.
-                let appname = String::from(cli_spec.name());
-                cli_spec.completions(appname, shell, &mut stdout());
+                let appname = String::from(cli_app.name());
+                cli_app.completions(appname, shell, &mut stdout());
             },
             _ => debug!("Not generating shell completion script"),
         }
@@ -108,7 +112,7 @@ impl<'a> Runtime<'a> {
         debug!("Store path  = {:?}", storepath);
         debug!("Config path = {:?}", configpath);
 
-        let cfg = match Configuration::new(&configpath) {
+        let cfg = match C::get_configuration(&configpath) {
             Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
                 return Err(RuntimeErrorKind::Instantiate.into_error_with_cause(Box::new(e)));
             } else {
