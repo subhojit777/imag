@@ -128,13 +128,11 @@ impl Configuration {
 
         v.into_iter()
             .map(|s| { debug!("Trying to process '{}'", s); s })
-            .filter_map(|s| {
-                match s.into_kv() {
-                    Some(kv) => Some(kv.into()),
-                    None => {
-                        warn!("Could split at '=' - will be ignore override");
-                        None
-                    }
+            .filter_map(|s| match s.into_kv() {
+                Some(kv) => Some(kv.into()),
+                None => {
+                    warn!("Could split at '=' - will be ignore override");
+                    None
                 }
             })
             .map(|(k, v)| {
