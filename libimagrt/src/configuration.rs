@@ -135,23 +135,21 @@ impl Configuration {
                     None
                 }
             })
-            .map(|(k, v)| {
-                self.config
-                    .read(&k[..])
-                    .map_err_into(CEK::TOMLParserError)
-                    .map(|toml| match toml {
-                        Some(value) => {
-                            match into_value(value, v) {
-                                Some(v) => {
-                                    info!("Successfully overridden: {} = {}", k, v);
-                                    Ok(v)
-                                },
-                                None => Err(CEK::ConfigOverrideTypeNotMatching.into_error()),
-                            }
+            .map(|(k, v)| self
+                 .config
+                 .read(&k[..])
+                 .map_err_into(CEK::TOMLParserError)
+                 .map(|toml| match toml {
+                    Some(value) => match into_value(value, v) {
+                        Some(v) => {
+                            info!("Successfully overridden: {} = {}", k, v);
+                            Ok(v)
                         },
-                        None => Err(CEK::ConfigOverrideKeyNotAvailable.into_error()),
-                    })
-            })
+                        None => Err(CEK::ConfigOverrideTypeNotMatching.into_error()),
+                    },
+                    None => Err(CEK::ConfigOverrideKeyNotAvailable.into_error()),
+                })
+            )
             .fold_result(|i| i)
             .map_err(Box::new)
             .map_err(|e| CEK::ConfigOverrideError.into_error_with_cause(e))
