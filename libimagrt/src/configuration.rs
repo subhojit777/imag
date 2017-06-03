@@ -165,9 +165,9 @@ fn into_value(value: Value, s: String) -> Option<Value> {
     use std::str::FromStr;
 
     match value {
-        Value::String(_) => Some(Value::String(s)),
-        Value::Integer(_) => FromStr::from_str(&s[..]).ok().map(|i| Value::Integer(i)),
-        Value::Float(_) => FromStr::from_str(&s[..]).ok().map(|f| Value::Float(f)),
+        Value::String(_)  => Some(Value::String(s)),
+        Value::Integer(_) => FromStr::from_str(&s[..]).ok().map(Value::Integer),
+        Value::Float(_)   => FromStr::from_str(&s[..]).ok().map(Value::Float),
         Value::Boolean(_) => {
             if s == "true" { Some(Value::Boolean(true)) }
             else if s == "false" { Some(Value::Boolean(false)) }
