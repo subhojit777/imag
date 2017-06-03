@@ -310,9 +310,7 @@ impl<'a> Runtime<'a> {
                 debug!("Init logger with {}", lvl);
                 Box::new(ImagLogger::new(lvl.to_log_level().unwrap()).with_color(colored))
             })
-            .map_err(|_| {
-                panic!("Could not setup logger");
-            })
+            .map_err(|e| panic!("Could not setup logger: {:?}", e))
             .ok();
         }
     }
