@@ -245,7 +245,7 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     ].iter()
         .flatten()
         .filter(|path| path.exists() && path.is_file())
-        .map(|path| {
+        .filter_map(|path| if path.exists() && path.is_file() {
             debug!("Reading {:?}", path);
             let content = {
                 let mut s = String::new();
@@ -266,8 +266,9 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
                 .map_err(|e| REK::Instantiate.into_error_with_cause(e));
 
             Some(toml)
+        } else {
+            None
         })
-        .filter_map(|x| x)
         .filter(|loaded| loaded.is_ok())
         .map(|inner| Value::Table(inner.unwrap()))
         .nth(0)
