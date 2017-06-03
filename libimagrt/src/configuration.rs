@@ -97,7 +97,6 @@ impl Configuration {
         self.editor.as_ref()
     }
 
-    #[allow(dead_code)] // Why do I actually need this annotation on a pub function?
     /// Get the underlying configuration TOML object
     pub fn config(&self) -> &Value {
         &self.config
