@@ -42,6 +42,7 @@ extern crate ansi_term;
 
 extern crate clap;
 extern crate toml;
+#[macro_use] extern crate is_match;
 
 extern crate libimagstore;
 extern crate libimagutil;

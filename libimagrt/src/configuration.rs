@@ -190,7 +190,7 @@ impl Deref for Configuration {
 fn get_verbosity(v: &Value) -> bool {
     match *v {
         Value::Table(ref t) => t.get("verbose")
-                .map_or(false, |v| match *v { Value::Boolean(b) => b, _ => false, }),
+                .map_or(false, |v| is_match!(v, &Value::Boolean(true))),
         _ => false,
     }
 }
