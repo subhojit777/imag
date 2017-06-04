@@ -585,6 +585,57 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<LinkIter> {
     Ok(LinkIter::new(links))
 }
 
+pub mod store_check {
+
+    pub mod error {
+        generate_error_imports!();
+
+        use libimagstore::storeid::StoreId;
+
+        #[derive(Debug)]
+        pub enum StoreLinkConsistencyErrorCustomData {
+            DeadLink {
+                target: StoreId
+            },
+            OneDirectionalLink {
+                source: StoreId,
+                target: StoreId
+            },
+        }
+
+        impl Display for StoreLinkConsistencyErrorCustomData {
+        }
+
+        generate_custom_error_types!(
+            StoreLinkConsistencyError,
+            StoreLinkConsistencyErrorKind,
+            StoreLinkConsistencyErrorCustomData,
+            StoreLinkConsistencyError => "Links in the store are not consistent"
+        );
+
+        generate_result_helper!(StoreLinkConsistencyError, StoreLinkConsistencyErrorKind);
+        generate_option_helper!(StoreLinkConsistencyError, StoreLinkConsistencyErrorKind);
+    }
+
+    pub use self::error::StoreLinkConsistencyError;
+    pub use self::error::StoreLinkConsistencyErrorKind;
+    pub use self::error::MapErrInto;
+
+    pub mod result {
+        use std::result::Result as RResult;
+        use internal::store_check::error::StoreLinkConsistencyError as SLCE;
+
+        pub type Result<T> = RResult<T, SLCE>;
+    }
+
+    pub trait StoreLinkConsistentExt {
+        fn check_link_consistency(&self) -> Result<()> {
+            unimplemented!()
+        }
+    }
+
+}
+
 #[cfg(test)]
 mod test {
     use std::path::PathBuf;
