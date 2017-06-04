@@ -457,6 +457,7 @@ impl Store {
     /// The difference between a `Walk` and a `StoreIdIterator` is that with a `Walk`, one can find
     /// "collections" (folders).
     pub fn walk<'a>(&'a self, mod_name: &str) -> Walk {
+        debug!("Creating Walk object for {}", mod_name);
         Walk::new(self.path().clone(), mod_name)
     }
 
