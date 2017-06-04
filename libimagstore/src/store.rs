@@ -668,6 +668,8 @@ impl Store {
         let new_id = new_id.with_base(self.path().clone());
         let old_id = old_id.with_base(self.path().clone());
 
+        debug!("Moving '{}' to '{}'", old_id, new_id);
+
         {
             let mut hsmap = match self.entries.write() {
                 Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
@@ -706,6 +708,7 @@ impl Store {
 
         }
 
+        debug!("Moved");
         Ok(())
     }
 
