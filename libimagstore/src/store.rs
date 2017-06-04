@@ -595,6 +595,7 @@ impl Store {
     /// Save an Entry in another place
     /// Removes the original entry
     pub fn save_as(&self, entry: FileLockEntry, new_id: StoreId) -> Result<()> {
+        debug!("Saving '{}' as '{}'", entry.get_location(), new_id);
         self.save_to_other_location(&entry, new_id, true)
     }
 
