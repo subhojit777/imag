@@ -406,6 +406,8 @@ impl Store {
     pub fn get<'a, S: IntoStoreId + Clone>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
 
+        debug!("Getting id: '{}'", id);
+
         let exists = try!(id.exists()) || try!(self.entries
             .read()
             .map(|map| map.contains_key(&id))
