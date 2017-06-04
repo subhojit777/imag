@@ -60,9 +60,6 @@ path = "../libimagrt"
 [dependencies.libimagstore]
 path = "../libimagstore"
 
-[dependencies.libimagstorestdhook]
-path = "../libimagstorestdhook"
-
 [dependencies.libimagtimeui]
 path = "../libimagtimeui"
 

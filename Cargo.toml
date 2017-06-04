@@ -31,7 +31,6 @@ members = [
     "libimagref",
     "libimagrt",
     "libimagstore",
-    "libimagstorestdhook",
     "libimagtimeui",
     "libimagtodo",
     "libimagutil",
