@@ -588,6 +588,7 @@ impl Store {
 
     /// Save a copy of the Entry in another place
     pub fn save_to(&self, entry: &FileLockEntry, new_id: StoreId) -> Result<()> {
+        debug!("Saving '{}' to '{}'", entry.get_location(), new_id);
         self.save_to_other_location(entry, new_id, false)
     }
 
