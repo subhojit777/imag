@@ -438,6 +438,8 @@ impl Store {
         let mut path = self.path().clone();
         path.push(mod_name);
 
+        debug!("Retrieving for module: '{}'", mod_name);
+
         path.to_str()
             .ok_or(SE::new(SEK::EncodingError, None))
             .and_then(|path| {
