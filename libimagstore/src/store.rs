@@ -621,6 +621,7 @@ impl Store {
         FileAbstraction::copy(&old_id_as_path, &new_id_as_path)
             .and_then(|_| {
                 if remove_old {
+                    debug!("Removing old '{:?}'", old_id_as_path);
                     FileAbstraction::remove_file(&old_id_as_path)
                 } else {
                     Ok(())
