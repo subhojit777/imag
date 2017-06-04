@@ -26,7 +26,6 @@ use std::sync::RwLock;
 use std::io::Read;
 use std::convert::From;
 use std::convert::Into;
-use std::sync::Mutex;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::fmt::Formatter;
@@ -45,17 +44,8 @@ use storeid::{IntoStoreId, StoreId, StoreIdIterator};
 use file_abstraction::FileAbstraction;
 use toml_ext::*;
 
-use hook::aspect::Aspect;
-use hook::error::HookErrorKind;
-use hook::result::HookResult;
-use hook::accessor::{ MutableHookDataAccessor,
-            StoreIdAccessor};
-use hook::position::HookPosition;
-use hook::Hook;
-
 use libimagerror::into::IntoError;
 use libimagerror::trace::trace_error;
-use libimagutil::iter::FoldResult;
 use libimagutil::debug_result::*;
 
 use self::glob_store_iter::*;
@@ -195,23 +185,6 @@ pub struct Store {
     ///
     configuration: Option<Value>,
 
-    //
-    // Registered hooks
-    //
-
-    store_unload_aspects  : Arc<Mutex<Vec<Aspect>>>,
-
-    pre_create_aspects    : Arc<Mutex<Vec<Aspect>>>,
-    post_create_aspects   : Arc<Mutex<Vec<Aspect>>>,
-    pre_retrieve_aspects  : Arc<Mutex<Vec<Aspect>>>,
-    post_retrieve_aspects : Arc<Mutex<Vec<Aspect>>>,
-    pre_update_aspects    : Arc<Mutex<Vec<Aspect>>>,
-    post_update_aspects   : Arc<Mutex<Vec<Aspect>>>,
-    pre_delete_aspects    : Arc<Mutex<Vec<Aspect>>>,
-    post_delete_aspects   : Arc<Mutex<Vec<Aspect>>>,
-    pre_move_aspects      : Arc<Mutex<Vec<Aspect>>>,
-    post_move_aspects     : Arc<Mutex<Vec<Aspect>>>,
-
     ///
     /// Internal Path->File cache map
     ///
@@ -236,8 +209,6 @@ impl Store {
     /// An error is returned in this case.
     ///
     /// If the path exists and is a file, the operation is aborted as well, an error is returned.
-    ///
-    /// After that, the store hook aspects are created and registered in the store.
     ///
     /// # Return values
     ///
@@ -273,88 +244,9 @@ impl Store {
             return Err(SEK::StorePathExists.into_error());
         }
 
-        let store_unload_aspects = get_store_unload_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
-
-        let pre_create_aspects = get_pre_create_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
-
-        let post_create_aspects = get_post_create_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
-
-        let pre_retrieve_aspects = get_pre_retrieve_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
-
-        let post_retrieve_aspects = get_post_retrieve_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
-
-        let pre_update_aspects = get_pre_update_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
-
-        let post_update_aspects = get_post_update_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
-
-        let pre_delete_aspects = get_pre_delete_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
-
-        let post_delete_aspects = get_post_delete_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
-
-        let pre_move_aspects = get_pre_move_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
-
-        let post_move_aspects = get_post_move_aspect_names(&store_config)
-            .into_iter().map(|n| {
-                let cfg = AspectConfig::get_for(&store_config, n.clone());
-                Aspect::new(n, cfg)
-            }).collect();
-
         let store = Store {
             location: location.clone(),
             configuration: store_config,
-
-            store_unload_aspects  : Arc::new(Mutex::new(store_unload_aspects)),
-
-            pre_create_aspects    : Arc::new(Mutex::new(pre_create_aspects)),
-            post_create_aspects   : Arc::new(Mutex::new(post_create_aspects)),
-            pre_retrieve_aspects  : Arc::new(Mutex::new(pre_retrieve_aspects)),
-            post_retrieve_aspects : Arc::new(Mutex::new(post_retrieve_aspects)),
-            pre_update_aspects    : Arc::new(Mutex::new(pre_update_aspects)),
-            post_update_aspects   : Arc::new(Mutex::new(post_update_aspects)),
-            pre_delete_aspects    : Arc::new(Mutex::new(pre_delete_aspects)),
-            post_delete_aspects   : Arc::new(Mutex::new(post_delete_aspects)),
-            pre_move_aspects    : Arc::new(Mutex::new(pre_move_aspects)),
-            post_move_aspects   : Arc::new(Mutex::new(post_move_aspects)),
             entries: Arc::new(RwLock::new(HashMap::new())),
         };
 
@@ -429,32 +321,17 @@ impl Store {
 
     /// Creates the Entry at the given location (inside the entry)
     ///
-    /// # Executed Hooks
-    ///
-    /// - Pre create aspects
-    /// - post create aspects
-    ///
     /// # Return value
     ///
     /// On success: FileLockEntry
     ///
     /// On error:
     ///  - Errors StoreId::into_storeid() might return
-    ///  - CreateCallError(HookExecutionError(PreHookExecuteError(_)))
-    ///    of the first failing pre hook.
-    ///  - CreateCallError(HookExecutionError(PostHookExecuteError(_)))
-    ///    of the first failing post hook.
     ///  - CreateCallError(LockPoisoned()) if the internal lock is poisened.
     ///  - CreateCallError(EntryAlreadyExists()) if the entry exists already.
     ///
     pub fn create<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
-        if let Err(e) = self.execute_hooks_for_id(self.pre_create_aspects.clone(), &id) {
-            return Err(e)
-                .map_err_into(SEK::PreHookExecuteError)
-                .map_err_into(SEK::HookExecutionError)
-                .map_err_into(SEK::CreateCallError)
-        }
 
         {
             let mut hsmap = match self.entries.write() {
@@ -472,12 +349,7 @@ impl Store {
             });
         }
 
-        let mut fle = FileLockEntry::new(self, Entry::new(id));
-        self.execute_hooks_for_mut_file(self.post_create_aspects.clone(), &mut fle)
-            .map_err_into(SEK::PostHookExecuteError)
-            .map_err_into(SEK::HookExecutionError)
-            .map_err_into(SEK::CreateCallError)
-            .map(|_| fle)
+        Ok(FileLockEntry::new(self, Entry::new(id)))
     }
 
     /// Borrow a given Entry. When the `FileLockEntry` is either `update`d or
@@ -486,32 +358,16 @@ impl Store {
     /// Implicitely creates a entry in the store if there is no entry with the id `id`. For a
     /// non-implicitely-create look at `Store::get`.
     ///
-    /// # Executed Hooks
-    ///
-    /// - Pre retrieve aspects
-    /// - post retrieve aspects
-    ///
     /// # Return value
     ///
     /// On success: FileLockEntry
     ///
     /// On error:
     ///  - Errors StoreId::into_storeid() might return
-    ///  - RetrieveCallError(HookExecutionError(PreHookExecuteError(_)))
-    ///    of the first failing pre hook.
-    ///  - RetrieveCallError(HookExecutionError(PostHookExecuteError(_)))
-    ///    of the first failing post hook.
     ///  - RetrieveCallError(LockPoisoned()) if the internal lock is poisened.
     ///
     pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
-        if let Err(e) = self.execute_hooks_for_id(self.pre_retrieve_aspects.clone(), &id) {
-            return Err(e)
-                .map_err_into(SEK::PreHookExecuteError)
-                .map_err_into(SEK::HookExecutionError)
-                .map_err_into(SEK::RetrieveCallError)
-        }
-
         let entry = try!({
             self.entries
                 .write()
@@ -526,20 +382,10 @@ impl Store {
                 .map_err_into(SEK::RetrieveCallError)
         });
 
-        let mut fle = FileLockEntry::new(self, entry);
-        self.execute_hooks_for_mut_file(self.post_retrieve_aspects.clone(), &mut fle)
-            .map_err_into(SEK::PostHookExecuteError)
-            .map_err_into(SEK::HookExecutionError)
-            .map_err_into(SEK::RetrieveCallError)
-            .and(Ok(fle))
+        Ok(FileLockEntry::new(self, entry))
     }
 
     /// Get an entry from the store if it exists.
-    ///
-    /// # Executed Hooks
-    ///
-    /// - Pre get aspects
-    /// - post get aspects
     ///
     /// # Return value
     ///
@@ -617,32 +463,17 @@ impl Store {
     /// This method assumes that entry is dropped _right after_ the call, hence
     /// it is not public.
     ///
-    /// # Executed Hooks
-    ///
-    /// - Pre update aspects
-    /// - post update aspects
-    ///
     /// # Return value
     ///
     /// On success: Entry
     ///
     /// On error:
-    ///  - UpdateCallError(HookExecutionError(PreHookExecuteError(_)))
-    ///    of the first failing pre hook.
-    ///  - UpdateCallError(HookExecutionError(PostHookExecuteError(_)))
-    ///    of the first failing post hook.
     ///  - UpdateCallError(LockPoisoned()) if the internal write lock cannot be aquierd.
     ///  - IdNotFound() if the entry was not found in the stor
     ///  - Errors Entry::verify() might return
     ///  - Errors StoreEntry::write_entry() might return
     ///
-    fn _update<'a>(&'a self, mut entry: &mut FileLockEntry<'a>, modify_presence: bool) -> Result<()> {
-        let _ = try!(self.execute_hooks_for_mut_file(self.pre_update_aspects.clone(), &mut entry)
-            .map_err_into(SEK::PreHookExecuteError)
-            .map_err_into(SEK::HookExecutionError)
-            .map_err_into(SEK::UpdateCallError)
-        );
-
+    fn _update<'a>(&'a self, entry: &mut FileLockEntry<'a>, modify_presence: bool) -> Result<()> {
         let mut hsmap = match self.entries.write() {
             Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
             Ok(e) => e,
@@ -661,20 +492,11 @@ impl Store {
             se.status = StoreEntryStatus::Present;
         }
 
-        self.execute_hooks_for_mut_file(self.post_update_aspects.clone(), &mut entry)
-            .map_err_into(SEK::PostHookExecuteError)
-            .map_err_into(SEK::HookExecutionError)
-            .map_err_into(SEK::UpdateCallError)
+        Ok(())
     }
 
     /// Retrieve a copy of a given entry, this cannot be used to mutate
     /// the one on disk
-    ///
-    /// TODO: Create Hooks for retrieving a copy
-    ///
-    /// # Executed Hooks
-    ///
-    /// - (none yet)
     ///
     /// # Return value
     ///
@@ -705,32 +527,17 @@ impl Store {
 
     /// Delete an entry
     ///
-    /// # Executed Hooks
-    ///
-    /// - Pre delete aspects, if the id can be used
-    /// - Post delete aspects, if the operation succeeded
-    ///
     /// # Return value
     ///
     /// On success: ()
     ///
     /// On error:
-    ///  - DeleteCallError(HookExecutionError(PreHookExecuteError(_)))
-    ///    of the first failing pre hook.
-    ///  - DeleteCallError(HookExecutionError(PostHookExecuteError(_)))
-    ///    of the first failing post hook.
     ///  - DeleteCallError(LockPoisoned()) if the internal write lock cannot be aquierd.
     ///  - DeleteCallError(FileNotFound()) if the StoreId refers to a non-existing entry.
     ///  - DeleteCallError(FileError()) if the internals failed to remove the file.
     ///
     pub fn delete<S: IntoStoreId>(&self, id: S) -> Result<()> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
-        if let Err(e) = self.execute_hooks_for_id(self.pre_delete_aspects.clone(), &id) {
-            return Err(e)
-                .map_err_into(SEK::PreHookExecuteError)
-                .map_err_into(SEK::HookExecutionError)
-                .map_err_into(SEK::DeleteCallError)
-        }
 
         {
             let mut entries = match self.entries.write() {
@@ -758,25 +565,16 @@ impl Store {
             }
         }
 
-        self.execute_hooks_for_id(self.post_delete_aspects.clone(), &id)
-            .map_err_into(SEK::PostHookExecuteError)
-            .map_err_into(SEK::HookExecutionError)
-            .map_err_into(SEK::DeleteCallError)
+        Ok(())
     }
 
     /// Save a copy of the Entry in another place
-    /// Executes the post_move_aspects for the new id
-    ///
-    /// TODO: Introduce new aspect for `save_to()`.
     pub fn save_to(&self, entry: &FileLockEntry, new_id: StoreId) -> Result<()> {
         self.save_to_other_location(entry, new_id, false)
     }
 
     /// Save an Entry in another place
     /// Removes the original entry
-    /// Executes the post_move_aspects for the new id
-    ///
-    /// TODO: Introduce new aspect for `save_as()`.
     pub fn save_as(&self, entry: FileLockEntry, new_id: StoreId) -> Result<()> {
         self.save_to_other_location(&entry, new_id, true)
     }
@@ -809,9 +607,6 @@ impl Store {
                 }
             })
             .map_err_into(SEK::FileError)
-            .and_then(|_| self.execute_hooks_for_id(self.post_move_aspects.clone(), &new_id)
-                    .map_err_into(SEK::PostHookExecuteError)
-                    .map_err_into(SEK::HookExecutionError))
             .map_err_into(SEK::MoveCallError)
     }
 
@@ -826,14 +621,11 @@ impl Store {
     ///
     /// This function returns an error in certain cases:
     ///
-    /// * If pre-move-hooks error (if they return an error which indicates that the action should be
-    ///   aborted)
     /// * If the about-to-be-moved entry is borrowed
     /// * If the lock on the internal data structure cannot be aquired
     /// * If the new path already exists
     /// * If the about-to-be-moved entry does not exist
     /// * If the FS-operation failed
-    /// * If the post-move-hooks error (though the operation has succeeded then).
     ///
     /// # Warnings
     ///
@@ -854,13 +646,6 @@ impl Store {
     pub fn move_by_id(&self, old_id: StoreId, new_id: StoreId) -> Result<()> {
         let new_id = new_id.with_base(self.path().clone());
         let old_id = old_id.with_base(self.path().clone());
-
-        if let Err(e) = self.execute_hooks_for_id(self.pre_move_aspects.clone(), &old_id) {
-            return Err(e)
-                .map_err_into(SEK::PreHookExecuteError)
-                .map_err_into(SEK::HookExecutionError)
-                .map_err_into(SEK::MoveByIdCallError)
-        }
 
         {
             let mut hsmap = match self.entries.write() {
@@ -900,136 +685,12 @@ impl Store {
 
         }
 
-        self.execute_hooks_for_id(self.pre_move_aspects.clone(), &new_id)
-            .map_err_into(SEK::PostHookExecuteError)
-            .map_err_into(SEK::HookExecutionError)
-            .map_err_into(SEK::MoveByIdCallError)
+        Ok(())
     }
 
     /// Gets the path where this store is on the disk
     pub fn path(&self) -> &PathBuf {
         &self.location
-    }
-
-    /// Register a hook in the store.
-    ///
-    /// A hook is registered by a position (when should the hook be executed) and an aspect name.
-    /// The aspect name must be in the configuration file, so the configuration for the hook can be
-    /// passed to the `Hook` object.
-    ///
-    /// # Available Hook positions
-    ///
-    /// The hook positions are described in the type description of `HookPosition`.
-    ///
-    /// # Aspect names
-    ///
-    /// Aspect names are arbitrary, though sane things like "debug" or "vcs" are encouraged.
-    /// Refer to the documentation for more information.
-    ///
-    pub fn register_hook(&mut self,
-                         position: HookPosition,
-                         aspect_name: &str,
-                         mut h: Box<Hook>)
-        -> Result<()>
-    {
-        debug!("Registering hook: {:?}", h);
-        debug!("     in position: {:?}", position);
-        debug!("     with aspect: {:?}", aspect_name);
-
-        let guard = match position {
-                HookPosition::StoreUnload  => self.store_unload_aspects.clone(),
-
-                HookPosition::PreCreate    => self.pre_create_aspects.clone(),
-                HookPosition::PostCreate   => self.post_create_aspects.clone(),
-                HookPosition::PreRetrieve  => self.pre_retrieve_aspects.clone(),
-                HookPosition::PostRetrieve => self.post_retrieve_aspects.clone(),
-                HookPosition::PreUpdate    => self.pre_update_aspects.clone(),
-                HookPosition::PostUpdate   => self.post_update_aspects.clone(),
-                HookPosition::PreDelete    => self.pre_delete_aspects.clone(),
-                HookPosition::PostDelete   => self.post_delete_aspects.clone(),
-            };
-
-        let mut guard = match guard.deref().lock().map_err(|_| SE::new(SEK::LockError, None)) {
-            Err(e) => return Err(SEK::HookRegisterError.into_error_with_cause(Box::new(e))),
-            Ok(g) => g,
-        };
-
-        for mut aspect in guard.deref_mut() {
-            if aspect.name().clone() == aspect_name.clone() {
-                debug!("Trying to find configuration for hook: {:?}", h);
-                self.get_config_for_hook(h.name()).map(|config| h.set_config(config));
-                debug!("Trying to register hook in aspect: {:?} <- {:?}", aspect, h);
-                aspect.register_hook(h);
-                return Ok(());
-            }
-        }
-
-        let annfe = SEK::AspectNameNotFoundError.into_error();
-        Err(SEK::HookRegisterError.into_error_with_cause(Box::new(annfe)))
-    }
-
-    /// Get the configuration for a hook by the name of the hook, from the configuration file.
-    fn get_config_for_hook(&self, name: &str) -> Option<&Value> {
-        match self.configuration {
-            Some(Value::Table(ref tabl)) => {
-                debug!("Trying to head 'hooks' section from {:?}", tabl);
-                tabl.get("hooks")
-                    .map(|hook_section| {
-                        debug!("Found hook section:  {:?}", hook_section);
-                        debug!("Reading section key: {:?}", name);
-                        match *hook_section {
-                            Value::Table(ref tabl) => tabl.get(name),
-                            _ => None
-                        }
-                    })
-                    .unwrap_or(None)
-            },
-            _ => None,
-        }
-    }
-
-    /// Execute all hooks from all aspects for a Store Id object.
-    ///
-    /// # Return value
-    ///
-    /// - () on success
-    /// - Error on the first failing hook.
-    ///
-    fn execute_hooks_for_id(&self,
-                            aspects: Arc<Mutex<Vec<Aspect>>>,
-                            id: &StoreId)
-        -> HookResult<()>
-    {
-        match aspects.lock() {
-            Err(_) => return Err(HookErrorKind::HookExecutionError.into()),
-            Ok(g) => g
-        }.iter().fold_result(|aspect| {
-            debug!("[Aspect][exec]: {:?}", aspect);
-            (aspect as &StoreIdAccessor).access(id)
-        }).map_err(Box::new)
-            .map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
-    }
-
-    /// Execute all hooks from all aspects for a mutable `FileLockEntry` object.
-    ///
-    /// # Return value
-    ///
-    /// - () on success
-    /// - Error on the first failing hook.
-    ///
-    fn execute_hooks_for_mut_file(&self,
-                                  aspects: Arc<Mutex<Vec<Aspect>>>,
-                                  fle: &mut FileLockEntry)
-        -> HookResult<()>
-    {
-        match aspects.lock() {
-            Err(_) => return Err(HookErrorKind::HookExecutionError.into()),
-            Ok(g) => g
-        }.iter().fold_result(|aspect| {
-            debug!("[Aspect][exec]: {:?}", aspect);
-            aspect.access_mut(fle)
-        }).map_err(Box::new)
-            .map_err(|e| HookErrorKind::HookExecutionError.into_error_with_cause(e))
     }
 
 }
@@ -1042,14 +703,6 @@ impl Debug for Store {
         try!(write!(fmt, "\n"));
         try!(write!(fmt, " - location               : {:?}\n", self.location));
         try!(write!(fmt, " - configuration          : {:?}\n", self.configuration));
-        try!(write!(fmt, " - pre_create_aspects     : {:?}\n", self.pre_create_aspects    ));
-        try!(write!(fmt, " - post_create_aspects    : {:?}\n", self.post_create_aspects   ));
-        try!(write!(fmt, " - pre_retrieve_aspects   : {:?}\n", self.pre_retrieve_aspects  ));
-        try!(write!(fmt, " - post_retrieve_aspects  : {:?}\n", self.post_retrieve_aspects ));
-        try!(write!(fmt, " - pre_update_aspects     : {:?}\n", self.pre_update_aspects    ));
-        try!(write!(fmt, " - post_update_aspects    : {:?}\n", self.post_update_aspects   ));
-        try!(write!(fmt, " - pre_delete_aspects     : {:?}\n", self.pre_delete_aspects    ));
-        try!(write!(fmt, " - post_delete_aspects    : {:?}\n", self.post_delete_aspects   ));
         try!(write!(fmt, "\n"));
         try!(write!(fmt, "Entries:\n"));
         try!(write!(fmt, "{:?}", self.entries));
@@ -1065,23 +718,8 @@ impl Drop for Store {
     /// Unlock all files on drop
     //
     /// TODO: Unlock them
-    /// TODO: Resolve this dirty hack with the StoreId for the Store drop hooks.
     ///
     fn drop(&mut self) {
-        match StoreId::new(Some(self.location.clone()), PathBuf::from(".")) {
-            Err(e) => {
-                trace_error(&e);
-                warn!("Cannot construct StoreId for Store to execute hooks!");
-                warn!("Will close Store without executing hooks!");
-            },
-            Ok(store_id) => {
-                if let Err(e) = self.execute_hooks_for_id(self.store_unload_aspects.clone(), &store_id) {
-                    debug!("Store-load hooks execution failed. Cannot create store object.");
-                    warn!("Store Unload Hook error: {:?}", e);
-                }
-            },
-        };
-
         debug!("Dropping store");
     }
 
@@ -1541,19 +1179,6 @@ mod store_tests {
 
         assert_eq!(store.location, PathBuf::from("/"));
         assert!(store.entries.read().unwrap().is_empty());
-
-        assert!(store.store_unload_aspects.lock().unwrap().is_empty());
-
-        assert!(store.pre_create_aspects.lock().unwrap().is_empty());
-        assert!(store.post_create_aspects.lock().unwrap().is_empty());
-        assert!(store.pre_retrieve_aspects.lock().unwrap().is_empty());
-        assert!(store.post_retrieve_aspects.lock().unwrap().is_empty());
-        assert!(store.pre_update_aspects.lock().unwrap().is_empty());
-        assert!(store.post_update_aspects.lock().unwrap().is_empty());
-        assert!(store.pre_delete_aspects.lock().unwrap().is_empty());
-        assert!(store.post_delete_aspects.lock().unwrap().is_empty());
-        assert!(store.pre_move_aspects.lock().unwrap().is_empty());
-        assert!(store.post_move_aspects.lock().unwrap().is_empty());
     }
 
     #[test]
@@ -1775,476 +1400,3 @@ mod store_tests {
 
 }
 
-#[cfg(test)]
-mod store_hook_tests {
-
-    mod test_hook {
-        use hook::Hook;
-        use hook::accessor::HookDataAccessor;
-        use hook::accessor::HookDataAccessorProvider;
-        use hook::position::HookPosition;
-
-        use self::accessor::TestHookAccessor as DHA;
-
-        use toml::Value;
-
-        #[derive(Debug)]
-        pub struct TestHook {
-            position: HookPosition,
-            accessor: DHA,
-        }
-
-        impl TestHook {
-
-            pub fn new(pos: HookPosition, succeed: bool, error_aborting: bool) -> TestHook {
-                TestHook { position: pos.clone(), accessor: DHA::new(pos, succeed, error_aborting) }
-            }
-
-        }
-
-        impl Hook for TestHook {
-            fn name(&self) -> &'static str { "testhook_succeeding" }
-            fn set_config(&mut self, _: &Value) { }
-        }
-
-        impl HookDataAccessorProvider for TestHook {
-
-            fn accessor(&self) -> HookDataAccessor {
-                use hook::position::HookPosition as HP;
-                use hook::accessor::HookDataAccessor as HDA;
-
-                match self.position {
-                    HP::StoreUnload  |
-                    HP::PreCreate    |
-                    HP::PreRetrieve  |
-                    HP::PreDelete    |
-                    HP::PostDelete   => HDA::StoreIdAccess(&self.accessor),
-                    HP::PostCreate   |
-                    HP::PostRetrieve |
-                    HP::PreUpdate    |
-                    HP::PostUpdate   => HDA::MutableAccess(&self.accessor),
-                }
-            }
-
-        }
-
-        pub mod accessor {
-            use hook::result::HookResult;
-            use hook::accessor::MutableHookDataAccessor;
-            use hook::accessor::NonMutableHookDataAccessor;
-            use hook::accessor::StoreIdAccessor;
-            use hook::position::HookPosition;
-            use store::FileLockEntry;
-            use storeid::StoreId;
-            use hook::error::HookErrorKind as HEK;
-            use hook::error::CustomData;
-            use libimagerror::into::IntoError;
-
-            #[derive(Debug)]
-            pub struct TestHookAccessor {
-                pos: HookPosition,
-                succeed: bool,
-                error_aborting: bool
-            }
-
-            impl TestHookAccessor {
-
-                pub fn new(position: HookPosition, succeed: bool, error_aborting: bool)
-                    -> TestHookAccessor
-                {
-                    TestHookAccessor {
-                        pos: position,
-                        succeed: succeed,
-                        error_aborting: error_aborting,
-                    }
-                }
-
-            }
-
-            fn get_result(succeed: bool, abort: bool) -> HookResult<()> {
-                println!("Generting result: succeed = {}, abort = {}", succeed, abort);
-                if succeed {
-                    println!("Generating result: Ok(())");
-                    Ok(())
-                } else {
-                    if abort {
-                        println!("Generating result: Err(_), aborting");
-                        Err(HEK::HookExecutionError.into_error())
-                    } else {
-                        println!("Generating result: Err(_), not aborting");
-                        let custom = CustomData::default().aborting(false);
-                        Err(HEK::HookExecutionError.into_error().with_custom_data(custom))
-                    }
-                }
-            }
-
-            impl StoreIdAccessor for TestHookAccessor {
-
-                fn access(&self, _: &StoreId) -> HookResult<()> {
-                    get_result(self.succeed, self.error_aborting)
-                }
-
-            }
-
-            impl MutableHookDataAccessor for TestHookAccessor {
-
-                fn access_mut(&self, _: &mut FileLockEntry) -> HookResult<()> {
-                    get_result(self.succeed, self.error_aborting)
-                }
-
-            }
-
-            impl NonMutableHookDataAccessor for TestHookAccessor {
-
-                fn access(&self, _: &FileLockEntry) -> HookResult<()> {
-                    get_result(self.succeed, self.error_aborting)
-                }
-
-            }
-
-        }
-
-    }
-
-    use std::path::PathBuf;
-
-    use hook::position::HookPosition as HP;
-    use storeid::StoreId;
-    use store::Store;
-
-    use self::test_hook::TestHook;
-
-    fn get_store_with_config() -> Store {
-        use toml::de::from_str;
-
-        let cfg : ::toml::Value = from_str(mini_config()).unwrap();
-        println!("Config parsed: {:?}", cfg);
-        Store::new(PathBuf::from("/"), Some(cfg.get("store").cloned().unwrap())).unwrap()
-    }
-
-    fn mini_config() -> &'static str {
-        r#"
-[store]
-store-unload-hook-aspects  = [ "test" ]
-pre-create-hook-aspects    = [ "test" ]
-post-create-hook-aspects   = [ "test" ]
-pre-move-hook-aspects      = [ "test" ]
-post-move-hook-aspects     = [ "test" ]
-pre-retrieve-hook-aspects  = [ "test" ]
-post-retrieve-hook-aspects = [ "test" ]
-pre-update-hook-aspects    = [ "test" ]
-post-update-hook-aspects   = [ "test" ]
-pre-delete-hook-aspects    = [ "test" ]
-post-delete-hook-aspects   = [ "test" ]
-
-[store.aspects.test]
-parallel = false
-mutable_hooks = true
-
-[store.hooks.testhook_succeeding]
-aspect = "test"
-        "#
-    }
-
-    fn test_hook_execution(hook_positions: &[HP], storeid_name: &str) {
-        let mut store = get_store_with_config();
-
-        println!("Registering hooks...");
-        for pos in hook_positions {
-            let hook = TestHook::new(pos.clone(), true, false);
-            println!("\tRegistering: {:?}", pos);
-            assert!(store.register_hook(pos.clone(), "test", Box::new(hook))
-                    .map_err(|e| println!("{:?}", e))
-                    .is_ok()
-            );
-        }
-        println!("... done.");
-
-        let pb       = StoreId::new_baseless(PathBuf::from(storeid_name)).unwrap();
-        let pb_moved = StoreId::new_baseless(PathBuf::from(format!("{}-moved", storeid_name))).unwrap();
-
-        println!("Creating {:?}", pb);
-        assert!(store.create(pb.clone()).is_ok());
-
-        {
-            println!("Getting {:?} -> Some?", pb);
-            assert!(match store.get(pb.clone()) {
-                Ok(Some(_)) => true,
-                _           => false,
-            });
-        }
-
-        {
-            println!("Getting {:?} -> None?", pb_moved);
-            assert!(match store.get(pb_moved.clone()) {
-                Ok(None) => true,
-                _        => false,
-            });
-        }
-
-        {
-            println!("Moving {:?} -> {:?}", pb, pb_moved);
-            assert!(store.move_by_id(pb.clone(), pb_moved.clone()).map_err(|e| println!("ERROR MOVING: {:?}", e)).is_ok());
-        }
-
-        {
-            println!("Getting {:?} -> None", pb);
-            assert!(match store.get(pb.clone()) {
-                Ok(None) => true,
-                _        => false,
-            });
-        }
-
-        {
-            println!("Getting {:?} -> Some", pb_moved);
-            assert!(match store.get(pb_moved.clone()) {
-                Ok(Some(_)) => true,
-                _           => false,
-            });
-        }
-
-        {
-            println!("Getting {:?} -> Some -> updating", pb_moved);
-            assert!(match store.get(pb_moved.clone()).map_err(|e| println!("ERROR GETTING: {:?}", e)) {
-                Ok(Some(mut fle)) => store.update(&mut fle)
-                                      .map_err(|e| println!("ERROR UPDATING: {:?}", e)).is_ok(),
-                _             => false,
-            });
-        }
-
-        println!("Deleting {:?}", pb_moved);
-        assert!(store.delete(pb_moved).is_ok());
-    }
-
-    #[test]
-    fn test_storeunload() {
-        test_hook_execution(&[HP::StoreUnload], "test_storeunload");
-    }
-
-    #[test]
-    fn test_precreate() {
-        test_hook_execution(&[HP::PreCreate], "test_precreate");
-    }
-
-    #[test]
-    fn test_postcreate() {
-        test_hook_execution(&[HP::PostCreate], "test_postcreate");
-    }
-
-    #[test]
-    fn test_preretrieve() {
-        test_hook_execution(&[HP::PreRetrieve], "test_preretrieve");
-    }
-
-    #[test]
-    fn test_postretrieve() {
-        test_hook_execution(&[HP::PostRetrieve], "test_postretrieve");
-    }
-
-    #[test]
-    fn test_preupdate() {
-        test_hook_execution(&[HP::PreUpdate], "test_preupdate");
-    }
-
-    #[test]
-    fn test_postupdate() {
-        test_hook_execution(&[HP::PostUpdate], "test_postupdate");
-    }
-
-    #[test]
-    fn test_predelete() {
-        test_hook_execution(&[HP::PreDelete], "test_predelete");
-    }
-
-    #[test]
-    fn test_postdelete() {
-        test_hook_execution(&[HP::PostDelete], "test_postdelete");
-    }
-
-    #[test]
-    fn test_multiple_same_position() {
-        let positions = [ HP::StoreUnload, HP::PreCreate, HP::PostCreate, HP::PreRetrieve,
-            HP::PostRetrieve, HP::PreUpdate, HP::PostUpdate, HP::PreDelete, HP::PostDelete ];
-
-        for position in positions.iter() {
-            for n in 2..10 {
-                let mut v = Vec::with_capacity(n);
-                for _ in 0..n { v.push(position.clone()); }
-
-                test_hook_execution(&v, "test_multiple_same_position");
-            }
-        }
-    }
-
-
-    fn get_store_with_aborting_hook_at_pos(pos: HP) -> Store {
-        let mut store = get_store_with_config();
-        let hook      = TestHook::new(pos.clone(), false, true);
-
-        assert!(store.register_hook(pos, "test", Box::new(hook)).map_err(|e| println!("{:?}", e)).is_ok());
-        store
-    }
-
-    #[test]
-    fn test_pre_create_error() {
-        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_create_error")).unwrap();
-        let store   = get_store_with_aborting_hook_at_pos(HP::PreCreate);
-        assert!(store.create(storeid).is_err());
-    }
-
-    #[test]
-    fn test_pre_retrieve_error() {
-        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_retrieve_error")).unwrap();
-        let store   = get_store_with_aborting_hook_at_pos(HP::PreRetrieve);
-        assert!(store.retrieve(storeid).is_err());
-    }
-
-    #[test]
-    fn test_pre_delete_error() {
-        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_delete_error")).unwrap();
-        let store   = get_store_with_aborting_hook_at_pos(HP::PreDelete);
-        assert!(store.delete(storeid).is_err());
-    }
-
-    #[test]
-    fn test_pre_update_error() {
-        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_update_error")).unwrap();
-        let store   = get_store_with_aborting_hook_at_pos(HP::PreUpdate);
-        let mut fle = store.create(storeid).unwrap();
-
-        assert!(store.update(&mut fle).is_err());
-    }
-
-    #[test]
-    fn test_post_create_error() {
-        let store   = get_store_with_aborting_hook_at_pos(HP::PostCreate);
-        let pb      = StoreId::new_baseless(PathBuf::from("test_post_create_error")).unwrap();
-
-        assert!(store.create(pb.clone()).is_err());
-
-        // But the entry exists, as the hook fails post-create
-        assert!(store.entries.read().unwrap().get(&pb.with_base(store.path().clone())).is_some());
-    }
-
-    #[test]
-    fn test_post_retrieve_error() {
-        let store   = get_store_with_aborting_hook_at_pos(HP::PostRetrieve);
-        let pb      = StoreId::new_baseless(PathBuf::from("test_post_retrieve_error")).unwrap();
-
-        assert!(store.retrieve(pb.clone()).is_err());
-
-        // But the entry exists, as the hook fails post-retrieve
-        assert!(store.entries.read().unwrap().get(&pb.with_base(store.path().clone())).is_some());
-    }
-
-    #[test]
-    fn test_post_delete_error() {
-        let store   = get_store_with_aborting_hook_at_pos(HP::PostDelete);
-        let pb      = StoreId::new_baseless(PathBuf::from("test_post_delete_error")).unwrap();
-
-        assert!(store.create(pb.clone()).is_ok());
-        let pb = pb.with_base(store.path().clone());
-        assert!(store.entries.read().unwrap().get(&pb).is_some());
-
-        assert!(store.delete(pb.clone()).is_err());
-        // But the entry is removed, as we fail post-delete
-        assert!(store.entries.read().unwrap().get(&pb).is_none());
-    }
-
-    #[test]
-    fn test_post_update_error() {
-        let store   = get_store_with_aborting_hook_at_pos(HP::PostUpdate);
-        let pb      = StoreId::new_baseless(PathBuf::from("test_post_update_error")).unwrap();
-        let mut fle = store.create(pb.clone()).unwrap();
-        let pb      = pb.with_base(store.path().clone());
-
-        assert!(store.entries.read().unwrap().get(&pb).is_some());
-        assert!(store.update(&mut fle).is_err());
-    }
-
-    fn get_store_with_allowed_error_hook_at_pos(pos: HP) -> Store {
-        let mut store = get_store_with_config();
-        let hook      = TestHook::new(pos.clone(), false, false);
-
-        assert!(store.register_hook(pos, "test", Box::new(hook)).map_err(|e| println!("{:?}", e)).is_ok());
-        store
-    }
-
-    #[test]
-    fn test_pre_create_allowed_error() {
-        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_create_allowed_error")).unwrap();
-        let store   = get_store_with_allowed_error_hook_at_pos(HP::PreCreate);
-        assert!(store.create(storeid).is_ok());
-    }
-
-    #[test]
-    fn test_pre_retrieve_allowed_error() {
-        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_retrieve_allowed_error")).unwrap();
-        let store   = get_store_with_allowed_error_hook_at_pos(HP::PreRetrieve);
-        assert!(store.retrieve(storeid).is_ok());
-    }
-
-    #[test]
-    fn test_pre_delete_allowed_error() {
-        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_delete_allowed_error")).unwrap();
-        let store   = get_store_with_allowed_error_hook_at_pos(HP::PreDelete);
-        assert!(store.retrieve(storeid.clone()).is_ok());
-        assert!(store.delete(storeid).map_err(|e| println!("{:?}", e)).is_ok());
-    }
-
-    #[test]
-    fn test_pre_update_allowed_error() {
-        let storeid = StoreId::new_baseless(PathBuf::from("test_pre_update_allowed_error")).unwrap();
-        let store   = get_store_with_allowed_error_hook_at_pos(HP::PreUpdate);
-        let mut fle = store.create(storeid).unwrap();
-
-        assert!(store.update(&mut fle).is_ok());
-    }
-
-    #[test]
-    fn test_post_create_allowed_error() {
-        let store   = get_store_with_allowed_error_hook_at_pos(HP::PostCreate);
-        let pb      = StoreId::new_baseless(PathBuf::from("test_pre_create_allowed_error")).unwrap();
-
-        assert!(store.create(pb.clone()).is_ok());
-
-        // But the entry exists, as the hook fails post-create
-        assert!(store.entries.read().unwrap().get(&pb.with_base(store.path().clone())).is_some());
-    }
-
-    #[test]
-    fn test_post_retrieve_allowed_error() {
-        let store   = get_store_with_allowed_error_hook_at_pos(HP::PostRetrieve);
-        let pb      = StoreId::new_baseless(PathBuf::from("test_pre_retrieve_allowed_error")).unwrap();
-
-        assert!(store.retrieve(pb.clone()).is_ok());
-
-        // But the entry exists, as the hook fails post-retrieve
-        assert!(store.entries.read().unwrap().get(&pb.with_base(store.path().clone())).is_some());
-    }
-
-    #[test]
-    fn test_post_delete_allowed_error() {
-        let store   = get_store_with_allowed_error_hook_at_pos(HP::PostDelete);
-        let pb      = StoreId::new_baseless(PathBuf::from("test_post_delete_allowed_error")).unwrap();
-
-        assert!(store.create(pb.clone()).is_ok());
-        let pb = pb.with_base(store.path().clone());
-        assert!(store.entries.read().unwrap().get(&pb).is_some());
-
-        assert!(store.delete(pb.clone()).is_ok());
-        // But the entry is removed, as we fail post-delete
-        assert!(store.entries.read().unwrap().get(&pb).is_none());
-    }
-
-    #[test]
-    fn test_post_update_allowed_error() {
-        let store   = get_store_with_allowed_error_hook_at_pos(HP::PostUpdate);
-        let pb      = StoreId::new_baseless(PathBuf::from("test_pre_update_allowed_error")).unwrap();
-        let mut fle = store.create(pb.clone()).unwrap();
-        let pb      = pb.with_base(store.path().clone());
-
-        assert!(store.entries.read().unwrap().get(&pb).is_some());
-        assert!(store.update(&mut fle).is_ok());
-    }
-}
