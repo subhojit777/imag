@@ -66,3 +66,8 @@ verify  = []
 #
 early-panic=[]
 
+# File system locking
+#
+# Enable this feature to enable file-system locking in the store.
+fs-locking = []
+

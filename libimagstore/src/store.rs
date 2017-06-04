@@ -130,11 +130,18 @@ impl Iterator for Walk {
     }
 }
 
-
 impl StoreEntry {
 
     fn new(id: StoreId) -> Result<StoreEntry> {
         let pb = try!(id.clone().into_pathbuf());
+
+        #[cfg(feature = "fs-lock")]
+        {
+            try!(open_file(pb.clone())
+                .and_then(|f| f.lock_exclusive().map_err_into(SEK::FileError))
+                .map_err_into(SEK::IoError));
+        }
+
         Ok(StoreEntry {
             id: id,
             file: FileAbstraction::Absent(pb),
@@ -175,6 +182,19 @@ impl StoreEntry {
         }
     }
 }
+
+#[cfg(feature = "fs-lock")]
+impl Drop for StoreEntry {
+
+    fn drop(self) {
+        self.get_entry()
+            .and_then(|entry| open_file(entry.get_location().clone()).map_err_into(SEK::IoError))
+            .and_then(|f| f.unlock().map_err_into(SEK::FileError))
+            .map_err_into(SEK::IoError)
+    }
+
+}
+
 
 /// The Store itself, through this object one can interact with IMAG's entries
 pub struct Store {
