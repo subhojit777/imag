@@ -374,6 +374,7 @@ impl Store {
     ///
     pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
+        debug!("Retrieving id: '{}'", id);
         let entry = try!({
             self.entries
                 .write()
@@ -388,6 +389,7 @@ impl Store {
                 .map_err_into(SEK::RetrieveCallError)
         });
 
+        debug!("Constructing FileLockEntry: '{}'", id);
         Ok(FileLockEntry::new(self, entry))
     }
 
