@@ -523,6 +523,7 @@ impl Store {
     ///
     pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
+        debug!("Retrieving copy of '{}'", id);
         let entries = match self.entries.write() {
             Err(_) => {
                 return Err(SE::new(SEK::LockPoisoned, None))
