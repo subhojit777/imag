@@ -466,6 +466,7 @@ impl Store {
     /// See `Store::_update()`.
     ///
     pub fn update<'a>(&'a self, entry: &mut FileLockEntry<'a>) -> Result<()> {
+        debug!("Updating FileLockEntry at '{}'", entry.get_location());
         self._update(entry, false).map_err_into(SEK::UpdateCallError)
     }
 
