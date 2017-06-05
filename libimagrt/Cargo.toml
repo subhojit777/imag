@@ -26,9 +26,6 @@ ansi_term = "0.9"
 [dependencies.libimagstore]
 path = "../libimagstore"
 
-[dependencies.libimagstorestdhook]
-path = "../libimagstorestdhook"
-
 [dependencies.libimagutil]
 path = "../libimagutil"
 
