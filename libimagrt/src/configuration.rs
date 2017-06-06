@@ -211,72 +211,69 @@ fn get_editor_opts(v: &Value) -> String {
     }
 }
 
-/// Helper to fetch the config file
-///
-/// Tests several variants for the config file path and uses the first one which works.
-fn fetch_config(rtp: &PathBuf) -> Result<Value> {
-    use std::env;
-    use std::fs::File;
-    use std::io::Read;
-
-    use xdg_basedir;
-    use itertools::Itertools;
-
-    use libimagutil::variants::generate_variants as gen_vars;
-    use self::error::MapErrInto;
-
-    let variants = vec!["config", "config.toml", "imagrc", "imagrc.toml"];
-    let modifier = |base: &PathBuf, v: &'static str| {
-        let mut base = base.clone();
-        base.push(String::from(v));
-        base
-    };
-
-    vec![
-        vec![rtp.clone()],
-        gen_vars(rtp.clone(), variants.clone(), &modifier),
-
-        env::var("HOME").map(|home| gen_vars(PathBuf::from(home), variants.clone(), &modifier))
-                        .unwrap_or(vec![]),
-
-        xdg_basedir::get_data_home().map(|data_dir| gen_vars(data_dir, variants.clone(), &modifier))
-                                    .unwrap_or(vec![]),
-    ].iter()
-        .flatten()
-        .filter(|path| path.exists() && path.is_file())
-        .filter_map(|path| if path.exists() && path.is_file() {
-            debug!("Reading {:?}", path);
-            let content = {
-                let mut s = String::new();
-                let f = File::open(path);
-                if f.is_err() {
-                    return None
-                }
-                let mut f = f.unwrap();
-                f.read_to_string(&mut s).ok();
-                s
-            };
-
-            trace!("Contents of config file: \n---\n{}\n---", content);
-
-            let toml = ::toml::de::from_str(&content[..])
-                .map_err_into(ConfigErrorKind::TOMLParserError)
-                .map_err(Box::new)
-                .map_err(|e| REK::Instantiate.into_error_with_cause(e));
-
-            Some(toml)
-        } else {
-            None
-        })
-        .filter(|loaded| loaded.is_ok())
-        .map(|inner| Value::Table(inner.unwrap()))
-        .nth(0)
-        .ok_or(ConfigErrorKind::NoConfigFileFound.into())
-}
-
 pub trait GetConfiguration {
+    /// Helper to fetch the config file
+    ///
+    /// Default implementation tests several variants for the config file path and uses the first
+    /// one which works.
     fn get_configuration(rtp: &PathBuf) -> Result<Configuration> {
-        fetch_config(rtp).map(Configuration::new)
+        use std::env;
+        use std::fs::File;
+        use std::io::Read;
+        use std::io::Write;
+        use std::io::stderr;
+
+        use xdg_basedir;
+        use itertools::Itertools;
+
+        use libimagutil::variants::generate_variants as gen_vars;
+        use libimagerror::trace::trace_error;
+
+        let variants = vec!["config", "config.toml", "imagrc", "imagrc.toml"];
+        let modifier = |base: &PathBuf, v: &'static str| {
+            let mut base = base.clone();
+            base.push(String::from(v));
+            base
+        };
+
+        vec![
+            vec![rtp.clone()],
+            gen_vars(rtp.clone(), variants.clone(), &modifier),
+
+            env::var("HOME").map(|home| gen_vars(PathBuf::from(home), variants.clone(), &modifier))
+                            .unwrap_or(vec![]),
+
+            xdg_basedir::get_data_home().map(|data_dir| gen_vars(data_dir, variants.clone(), &modifier))
+                                        .unwrap_or(vec![]),
+        ].iter()
+            .flatten()
+            .filter(|path| path.exists() && path.is_file())
+            .map(|path| {
+                let content = {
+                    let mut s = String::new();
+                    let f = File::open(path);
+                    if f.is_err() {
+                        return None
+                    }
+                    let mut f = f.unwrap();
+                    f.read_to_string(&mut s).ok();
+                    s
+                };
+
+                match ::toml::de::from_str(&content[..]) {
+                    Ok(res) => res,
+                    Err(e) => {
+                        write!(stderr(), "Config file parser error:").ok();
+                        trace_error(&e);
+                        None
+                    }
+                }
+            })
+            .filter(|loaded| loaded.is_some())
+            .nth(0)
+            .map(|inner| Value::Table(inner.unwrap()))
+            .ok_or(ConfigErrorKind::NoConfigFileFound.into())
+            .map(Configuration::new)
     }
 }
 
