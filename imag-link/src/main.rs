@@ -349,6 +349,8 @@ mod tests {
     use libimagrt::error::RuntimeError;
     use libimagrt::configuration::{Configuration, GetConfiguration, InternalConfiguration,
                                    Result as ConfigResult, ConfigErrorKind};
+    use libimagrt::configuration::error::MapErrInto;
+
     use libimagstore::storeid::StoreId;
     use libimagstore::store::{Result as StoreResult, FileLockEntry};
 
@@ -390,9 +392,7 @@ version = \"0.3.0\"\
     impl<'a> GetConfiguration for MockLinkApp<'a> {
         fn get_configuration(&self, _: &PathBuf) -> ConfigResult<Configuration> {
             ::toml::de::from_slice(TOML_CONFIG_FILE)
-                .map_err(|_| {
-                             ConfigErrorKind::TOMLParserError.into()
-                         })
+                .map_err_into(ConfigErrorKind::TOMLParserError)
                 .map(Configuration::new)
         }
     }
