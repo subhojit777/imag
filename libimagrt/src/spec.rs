@@ -2,6 +2,9 @@ use std::io::Write;
 
 use clap::{App, ArgMatches, Shell};
 
+/// An abstraction over `clap::App` functionality needed for initializing `Runtime`. Different
+/// implementations can be used for testing `imag` binaries without running them as separate
+/// processes.
 pub trait CliSpec<'a> {
     fn name(&self) -> &str;
     fn matches(self) -> ArgMatches<'a>;
