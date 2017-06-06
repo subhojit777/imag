@@ -23,6 +23,12 @@ use std::convert::From;
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
 pub struct CustomErrorData {}
 
+impl Display for CustomErrorData {
+    fn fmt(&self, _: &mut Formatter) -> Result<(), FmtError> {
+        Ok(()) // Do nothing here, we don't need to print smth
+    }
+}
+
 generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     ConfigurationError      => "Store Configuration Error",
     ConfigTypeError         => "Store configuration type error",
