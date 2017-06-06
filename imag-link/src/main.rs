@@ -36,6 +36,7 @@
 extern crate clap;
 extern crate semver;
 extern crate toml;
+extern crate toml_query;
 extern crate url;
 #[macro_use] extern crate version;
 
@@ -343,6 +344,8 @@ mod tests {
 
     use clap::{App, ArgMatches};
     use toml::value::Value;
+    use toml_query::read::TomlValueReadExt;
+    use toml_query::error::Result as TomlQueryResult;
 
     use libimagrt::spec::CliSpec;
     use libimagrt::runtime::Runtime;
@@ -432,11 +435,8 @@ version = \"0.3.0\"\
         Ok(id)
     }
 
-    fn get_entry_links<'a>(entry: &'a FileLockEntry<'a>) -> Option<&'a Value> {
-        entry
-            .get_header()
-            .get("imag")
-            .and_then(|ih| ih.get("links"))
+    fn get_entry_links<'a>(entry: &'a FileLockEntry<'a>) -> TomlQueryResult<&'a Value> {
+        entry.get_header().read(&"imag.links".to_owned())
     }
 
     fn links_toml_value<'a, I: IntoIterator<Item = &'static str>>(links: I) -> Value {
