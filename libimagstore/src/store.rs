@@ -353,6 +353,8 @@ impl Store {
     pub fn create<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
 
+        debug!("Creating id: '{}'", id);
+
         {
             let mut hsmap = match self.entries.write() {
                 Err(_) => return Err(SEK::LockPoisoned.into_error()).map_err_into(SEK::CreateCallError),
@@ -360,14 +362,18 @@ impl Store {
             };
 
             if hsmap.contains_key(&id) {
+                debug!("Cannot create, internal cache already contains: '{}'", id);
                 return Err(SEK::EntryAlreadyExists.into_error()).map_err_into(SEK::CreateCallError);
             }
             hsmap.insert(id.clone(), {
+                debug!("Creating: '{}'", id);
                 let mut se = try!(StoreEntry::new(id.clone()));
                 se.status = StoreEntryStatus::Borrowed;
                 se
             });
         }
+
+        debug!("Constructing FileLockEntry: '{}'", id);
 
         Ok(FileLockEntry::new(self, Entry::new(id)))
     }
@@ -388,6 +394,7 @@ impl Store {
     ///
     pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
+        debug!("Retrieving id: '{}'", id);
         let entry = try!({
             self.entries
                 .write()
@@ -402,6 +409,7 @@ impl Store {
                 .map_err_into(SEK::RetrieveCallError)
         });
 
+        debug!("Constructing FileLockEntry: '{}'", id);
         Ok(FileLockEntry::new(self, entry))
     }
 
@@ -417,6 +425,8 @@ impl Store {
     ///
     pub fn get<'a, S: IntoStoreId + Clone>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
+
+        debug!("Getting id: '{}'", id);
 
         let exists = try!(id.exists()) || try!(self.entries
             .read()
@@ -448,6 +458,8 @@ impl Store {
         let mut path = self.path().clone();
         path.push(mod_name);
 
+        debug!("Retrieving for module: '{}'", mod_name);
+
         path.to_str()
             .ok_or(SE::new(SEK::EncodingError, None))
             .and_then(|path| {
@@ -465,6 +477,7 @@ impl Store {
     /// The difference between a `Walk` and a `StoreIdIterator` is that with a `Walk`, one can find
     /// "collections" (folders).
     pub fn walk<'a>(&'a self, mod_name: &str) -> Walk {
+        debug!("Creating Walk object for {}", mod_name);
         Walk::new(self.path().clone(), mod_name)
     }
 
@@ -473,6 +486,7 @@ impl Store {
     /// See `Store::_update()`.
     ///
     pub fn update<'a>(&'a self, entry: &mut FileLockEntry<'a>) -> Result<()> {
+        debug!("Updating FileLockEntry at '{}'", entry.get_location());
         self._update(entry, false).map_err_into(SEK::UpdateCallError)
     }
 
@@ -529,6 +543,7 @@ impl Store {
     ///
     pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
+        debug!("Retrieving copy of '{}'", id);
         let entries = match self.entries.write() {
             Err(_) => {
                 return Err(SE::new(SEK::LockPoisoned, None))
@@ -559,6 +574,8 @@ impl Store {
     pub fn delete<S: IntoStoreId>(&self, id: S) -> Result<()> {
         let id = try!(id.into_storeid()).with_base(self.path().clone());
 
+        debug!("Deleting id: '{}'", id);
+
         {
             let mut entries = match self.entries.write() {
                 Err(_) => return Err(SE::new(SEK::LockPoisoned, None))
@@ -585,17 +602,20 @@ impl Store {
             }
         }
 
+        debug!("Deleted");
         Ok(())
     }
 
     /// Save a copy of the Entry in another place
     pub fn save_to(&self, entry: &FileLockEntry, new_id: StoreId) -> Result<()> {
+        debug!("Saving '{}' to '{}'", entry.get_location(), new_id);
         self.save_to_other_location(entry, new_id, false)
     }
 
     /// Save an Entry in another place
     /// Removes the original entry
     pub fn save_as(&self, entry: FileLockEntry, new_id: StoreId) -> Result<()> {
+        debug!("Saving '{}' as '{}'", entry.get_location(), new_id);
         self.save_to_other_location(&entry, new_id, true)
     }
 
@@ -621,6 +641,7 @@ impl Store {
         FileAbstraction::copy(&old_id_as_path, &new_id_as_path)
             .and_then(|_| {
                 if remove_old {
+                    debug!("Removing old '{:?}'", old_id_as_path);
                     FileAbstraction::remove_file(&old_id_as_path)
                 } else {
                     Ok(())
@@ -667,6 +688,8 @@ impl Store {
         let new_id = new_id.with_base(self.path().clone());
         let old_id = old_id.with_base(self.path().clone());
 
+        debug!("Moving '{}' to '{}'", old_id, new_id);
+
         {
             let mut hsmap = match self.entries.write() {
                 Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
@@ -705,6 +728,7 @@ impl Store {
 
         }
 
+        debug!("Moved");
         Ok(())
     }
 
