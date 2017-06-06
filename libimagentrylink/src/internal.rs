@@ -605,6 +605,23 @@ pub mod store_check {
         }
 
         impl Display for StoreLinkConsistencyErrorCustomData {
+
+            fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
+                use self::StoreLinkConsistencyErrorCustomData as SLCECD;
+                match self {
+                    &SLCECD::DeadLink { ref target } => {
+                        try!(write!(fmt, "Dead Link to '{}'", target))
+                    },
+
+                    &SLCECD::OneDirectionalLink { ref source, ref target } => {
+                        try!(write!(fmt,
+                                    "Link from '{}' to '{}' does exist, but not other way round",
+                                    source, target))
+                    }
+                };
+                Ok(())
+            }
+
         }
 
         generate_custom_error_types!(
@@ -630,6 +647,8 @@ pub mod store_check {
 
         pub type Result<T> = RResult<T, SLCE>;
     }
+
+    use self::result::Result;
 
     pub trait StoreLinkConsistentExt {
         fn check_link_consistency(&self) -> Result<()>;
