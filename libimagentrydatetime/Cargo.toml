@@ -1,5 +1,5 @@
 [package]
-name = "libimagentrydate"
+name = "libimagentrydatetime"
 version = "0.3.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
