@@ -27,7 +27,7 @@ extern crate libimagstore;
 extern crate libimagutil;
 
 pub mod datepath;
-pub mod entrydate;
+pub mod datetime;
 pub mod error;
 pub mod result;
 
