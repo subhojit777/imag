@@ -216,7 +216,7 @@ pub trait GetConfiguration {
     ///
     /// Default implementation tests several variants for the config file path and uses the first
     /// one which works.
-    fn get_configuration(rtp: &PathBuf) -> Result<Configuration> {
+    fn get_configuration(&self, rtp: &PathBuf) -> Result<Configuration> {
         use std::env;
         use std::fs::File;
         use std::io::Read;
@@ -280,11 +280,11 @@ pub trait GetConfiguration {
 impl<'a> GetConfiguration for App<'a, 'a> {}
 
 pub trait InternalConfiguration {
-    fn enable_hooks() -> bool {
+    fn enable_hooks(&self) -> bool {
         true
     }
 
-    fn enable_logging() -> bool {
+    fn enable_logging(&self) -> bool {
         true
     }
 }

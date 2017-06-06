@@ -388,7 +388,7 @@ version = \"0.3.0\"\
     }
 
     impl<'a> GetConfiguration for MockLinkApp<'a> {
-        fn get_configuration(_: &PathBuf) -> ConfigResult<Configuration> {
+        fn get_configuration(&self, _: &PathBuf) -> ConfigResult<Configuration> {
             ::toml::de::from_slice(TOML_CONFIG_FILE)
                 .map_err(|_| {
                              ConfigErrorKind::TOMLParserError.into()
@@ -398,11 +398,11 @@ version = \"0.3.0\"\
     }
 
     impl<'a> InternalConfiguration for MockLinkApp<'a> {
-        fn enable_hooks() -> bool {
+        fn enable_hooks(&self) -> bool {
             false
         }
 
-        fn enable_logging() -> bool {
+        fn enable_logging(&self) -> bool {
             false
         }
     }

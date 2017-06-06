@@ -75,7 +75,7 @@ impl<'a> Runtime<'a> {
         let is_verbose   = matches.is_present("verbosity");
         let colored      = !matches.is_present("no-color-output");
 
-        if C::enable_logging() {
+        if cli_app.enable_logging() {
             Runtime::init_logger(is_debugging, is_verbose, colored);
         }
 
@@ -112,7 +112,7 @@ impl<'a> Runtime<'a> {
         debug!("Store path  = {:?}", storepath);
         debug!("Config path = {:?}", configpath);
 
-        let cfg = match C::get_configuration(&configpath) {
+        let cfg = match cli_app.get_configuration(&configpath) {
             Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
                 return Err(RuntimeErrorKind::Instantiate.into_error_with_cause(Box::new(e)));
             } else {
