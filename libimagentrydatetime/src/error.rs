@@ -22,9 +22,11 @@ generate_error_module!(
         DeleteDateError      => "Error deleting date",
         ReadDateError        => "Error reading date",
         SetDateError         => "Error setting date",
-        DeleteDateRangeError => "Error deleting date range",
-        ReadDateRangeError   => "Error reading date range",
-        SetDateRangeError    => "Error setting date range",
+        DeleteDateTimeRangeError => "Error deleting date-time range",
+        ReadDateTimeRangeError   => "Error reading date-time range",
+        SetDateTimeRangeError    => "Error setting date-time range",
+
+        DateTimeRangeError  => "DateTime Range error",
 
         DateHeaderFieldTypeError => "Expected the header field in the entry to have type 'String', but have other type",
         DateTimeParsingError => "Error parsing DateTime"

@@ -29,9 +29,7 @@ use libimagerror::into::IntoError;
 use error::DateErrorKind as DEK;
 use error::*;
 use result::Result;
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DateRange(NaiveDateTime, NaiveDateTime);
+use range::DateTimeRange;
 
 pub trait EntryDate {
 
@@ -40,8 +38,8 @@ pub trait EntryDate {
     fn set_date(&mut self, d: NaiveDateTime) -> Result<Option<Result<NaiveDateTime>>>;
 
     fn delete_date_range(&mut self) -> Result<()>;
-    fn read_date_range(&self) -> Result<DateRange>;
-    fn set_date_range(&mut self, start: NaiveDateTime, end: NaiveDateTime) -> Result<Option<Result<DateRange>>>;
+    fn read_date_range(&self) -> Result<DateTimeRange>;
+    fn set_date_range(&mut self, start: NaiveDateTime, end: NaiveDateTime) -> Result<Option<Result<DateTimeRange>>>;
 
 }
 
@@ -118,19 +116,19 @@ impl EntryDate for Entry {
              .get_header_mut()
             .delete(&DATE_RANGE_START_HEADER_LOCATION)
             .map(|_| ())
-            .map_err_into(DEK::DeleteDateRangeError));
+            .map_err_into(DEK::DeleteDateTimeRangeError));
 
         self.get_header_mut()
             .delete(&DATE_RANGE_END_HEADER_LOCATION)
             .map(|_| ())
-            .map_err_into(DEK::DeleteDateRangeError)
+            .map_err_into(DEK::DeleteDateTimeRangeError)
     }
 
-    fn read_date_range(&self) -> Result<DateRange> {
+    fn read_date_range(&self) -> Result<DateTimeRange> {
         let start = try!(self
             .get_header()
             .read(&DATE_RANGE_START_HEADER_LOCATION)
-            .map_err_into(DEK::ReadDateRangeError)
+            .map_err_into(DEK::ReadDateTimeRangeError)
             .and_then(|v| {
                 match v {
                     &Value::String(ref s) => s.parse::<NaiveDateTime>()
@@ -142,7 +140,7 @@ impl EntryDate for Entry {
         let end = try!(self
             .get_header()
             .read(&DATE_RANGE_START_HEADER_LOCATION)
-            .map_err_into(DEK::ReadDateRangeError)
+            .map_err_into(DEK::ReadDateTimeRangeError)
             .and_then(|v| {
                 match v {
                     &Value::String(ref s) => s.parse::<NaiveDateTime>()
@@ -151,7 +149,8 @@ impl EntryDate for Entry {
                 }
             }));
 
-        Ok(DateRange(start, end))
+        DateTimeRange::new(start, end)
+            .map_err_into(DEK::DateTimeRangeError)
     }
 
     /// Set the date range
@@ -162,7 +161,7 @@ impl EntryDate for Entry {
     /// header in an inconsistent state.
     ///
     fn set_date_range(&mut self, start: NaiveDateTime, end: NaiveDateTime)
-        -> Result<Option<Result<DateRange>>>
+        -> Result<Option<Result<DateTimeRange>>>
     {
         let start = start.format(&DATE_FMT).to_string();
         let end   = end.format(&DATE_FMT).to_string();
@@ -177,7 +176,7 @@ impl EntryDate for Entry {
                     _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
                 }
             }))
-            .map_err_into(DEK::SetDateRangeError));
+            .map_err_into(DEK::SetDateTimeRangeError));
 
         let opt_old_end = try!(self
             .get_header_mut()
@@ -189,10 +188,15 @@ impl EntryDate for Entry {
                     _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
                 }
             }))
-            .map_err_into(DEK::SetDateRangeError));
+            .map_err_into(DEK::SetDateTimeRangeError));
 
         match (opt_old_start, opt_old_end) {
-            (Some(Ok(old_start)), Some(Ok(old_end))) => Ok(Some(Ok(DateRange(old_start, old_end)))),
+            (Some(Ok(old_start)), Some(Ok(old_end))) => {
+                let dr = DateTimeRange::new(old_start, old_end)
+                    .map_err_into(DEK::DateTimeRangeError);
+
+                Ok(Some(dr))
+            },
 
             (Some(Err(e)), _) => Err(e),
             (_, Some(Err(e))) => Err(e),
