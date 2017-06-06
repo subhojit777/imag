@@ -26,6 +26,9 @@ extern crate toml;
 extern crate libimagstore;
 extern crate libimagutil;
 
+#[cfg(test)]
+#[macro_use] extern crate is_match;
+
 pub mod datepath;
 pub mod datetime;
 pub mod error;

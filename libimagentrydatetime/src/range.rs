@@ -66,3 +66,46 @@ impl DateTimeRange {
 
 }
 
+#[cfg(test)]
+mod tests {
+
+    use chrono::naive::datetime::NaiveDateTime;
+    use chrono::naive::date::NaiveDate;
+    use chrono::naive::time::NaiveTime;
+
+    use super::DateTimeRange;
+
+    #[test]
+    fn test_new_returns_error_if_start_after_end_date() {
+        let start = NaiveDateTime::new(
+            NaiveDate::from_ymd(2000, 02, 02),
+            NaiveTime::from_hms(12, 00, 02)
+        );
+
+        let end = NaiveDateTime::new(
+            NaiveDate::from_ymd(2000, 02, 02),
+            NaiveTime::from_hms(12, 00, 01)
+        );
+
+        let res = DateTimeRange::new(start, end);
+
+        assert!(res.is_err());
+    }
+
+    #[test]
+    fn test_new_returns_ok_if_start_is_before_end() {
+        let start = NaiveDateTime::new(
+            NaiveDate::from_ymd(2000, 02, 02),
+            NaiveTime::from_hms(12, 00, 01)
+        );
+
+        let end = NaiveDateTime::new(
+            NaiveDate::from_ymd(2000, 02, 02),
+            NaiveTime::from_hms(12, 00, 02)
+        );
+
+        let res = DateTimeRange::new(start, end);
+
+        assert!(res.is_ok());
+    }
+}
