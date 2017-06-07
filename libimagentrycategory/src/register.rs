@@ -118,6 +118,93 @@ impl CategoryRegister for Store {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    extern crate env_logger;
+    use std::path::PathBuf;
+
+    use super::*;
+
+    use libimagstore::store::Store;
+
+    pub fn get_store() -> Store {
+        use libimagstore::store::InMemoryFileAbstraction;
+        let backend = Box::new(InMemoryFileAbstraction::new());
+        Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+    }
+
+    #[test]
+    fn test_non_existing_category_exists() {
+        let exists = get_store().category_exists("nonexistent");
+
+        assert!(exists.is_ok(), format!("Expected Ok(_), got: {:?}", exists));
+        let exists = exists.unwrap();
+
+        assert!(!exists);
+    }
+
+    #[test]
+    fn test_creating_category() {
+        let category_name = "examplecategory";
+        let store         = get_store();
+        let res           = store.create_category(category_name);
+
+        assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
+        let res = res.unwrap();
+        assert!(res);
+    }
+
+    #[test]
+    fn test_creating_category_creates_store_entry() {
+        let category_name = "examplecategory";
+        let store         = get_store();
+
+        let res           = store.create_category(category_name);
+
+        assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
+        let res = res.unwrap();
+        assert!(res);
+
+        let category = store.get(PathBuf::from(format!("category/{}", category_name)));
+
+        assert!(category.is_ok(), format!("Expected Ok(_), got: {:?}", category));
+        let category = category.unwrap();
+
+        assert!(category.is_some());
+    }
+
+    #[test]
+    fn test_creating_category_creates_store_entry_with_header_field_set() {
+        let _ = env_logger::init();
+        let category_name = "examplecategory";
+        let store         = get_store();
+        let res           = store.create_category(category_name);
+
+        assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
+        let res = res.unwrap();
+        assert!(res);
+
+        let id = PathBuf::from(format!("category/{}", category_name));
+        println!("Trying: {:?}", id);
+        let category = store.get(id);
+
+        assert!(category.is_ok(), format!("Expected Ok(_), got: {:?}", category));
+        let category = category.unwrap();
+
+        assert!(category.is_some());
+        let category = category.unwrap();
+
+        let header_field = category.get_header().read(CATEGORY_REGISTER_NAME_FIELD_PATH);
+        assert!(header_field.is_ok(), format!("Expected Ok(_), got: {:?}", header_field));
+        let header_field = header_field.unwrap();
+
+        match *header_field {
+            Value::String(ref s) => assert_eq!(category_name, s),
+            _ => assert!(false, "Header field has wrong type"),
+        }
+    }
+}
+
 #[inline]
 fn mk_category_storeid(base: PathBuf, s: &str) -> Result<StoreId> {
     use libimagstore::storeid::IntoStoreId;
