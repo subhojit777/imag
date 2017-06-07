@@ -280,10 +280,6 @@ pub trait GetConfiguration {
 impl<'a> GetConfiguration for App<'a, 'a> {}
 
 pub trait InternalConfiguration {
-    fn enable_hooks(&self) -> bool {
-        true
-    }
-
     fn enable_logging(&self) -> bool {
         true
     }

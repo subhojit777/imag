@@ -401,10 +401,6 @@ version = \"0.3.0\"\
     }
 
     impl<'a> InternalConfiguration for MockLinkApp<'a> {
-        fn enable_hooks(&self) -> bool {
-            false
-        }
-
         fn enable_logging(&self) -> bool {
             false
         }
