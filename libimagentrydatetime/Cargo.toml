@@ -15,7 +15,7 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 chrono = "0.3"
-toml-query = "0.1"
+toml-query = "0.2"
 lazy_static = "0.2"
 toml = "0.4"
 
