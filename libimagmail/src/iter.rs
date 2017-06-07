@@ -12,7 +12,7 @@ use libimagref::reference::Ref;
 
 use std::marker::PhantomData;
 
-struct MailIter<'a, I: 'a + Iterator<Item = Ref<'a>>> {
+pub struct MailIter<'a, I: 'a + Iterator<Item = Ref<'a>>> {
     _marker: PhantomData<&'a I>,
     i: I,
 }
