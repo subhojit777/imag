@@ -44,10 +44,10 @@ pub trait EntryDate {
 }
 
 lazy_static! {
-    static ref DATE_HEADER_LOCATION : String             = String::from("date.value");
-    static ref DATE_RANGE_START_HEADER_LOCATION : String = String::from("date.range.start");
-    static ref DATE_RANGE_END_HEADER_LOCATION : String   = String::from("date.range.end");
-    static ref DATE_FMT : &'static str                   = "%Y-%m-%d %H:%M:%S";
+    static ref DATE_HEADER_LOCATION : &'static str              = "date.value";
+    static ref DATE_RANGE_START_HEADER_LOCATION : &'static str  = "date.range.start";
+    static ref DATE_RANGE_END_HEADER_LOCATION : &'static str    = "date.range.end";
+    static ref DATE_FMT : &'static str                          = "%Y-%m-%dT%H:%M:%S";
 }
 
 impl EntryDate for Entry {
@@ -206,5 +206,54 @@ impl EntryDate for Entry {
         }
     }
 
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::*;
+
+    use libimagstore::store::Store;
+
+    use chrono::naive::datetime::NaiveDateTime;
+    use chrono::naive::date::NaiveDate;
+    use chrono::naive::time::NaiveTime;
+
+    pub fn get_store() -> Store {
+        Store::new(PathBuf::from("/"), None).unwrap()
+    }
+
+    #[test]
+    fn test_set_date() {
+        let store = get_store();
+
+        let date = {
+            let date = NaiveDate::from_ymd(2000, 01, 02);
+            let time = NaiveTime::from_hms(03, 04, 05);
+
+            NaiveDateTime::new(date, time)
+        };
+
+        let mut entry   = store.create(PathBuf::from("test")).unwrap();
+        let res         = entry.set_date(date);
+
+        assert!(res.is_ok(), format!("Error: {:?}", res));
+        let res = res.unwrap();
+
+        assert!(res.is_none()); // There shouldn't be an existing value
+
+        // Check whether the header is set correctly
+
+        let hdr_field = entry.get_header().read(&DATE_HEADER_LOCATION);
+
+        assert!(hdr_field.is_ok());
+        let hdr_field = hdr_field.unwrap();
+
+        match *hdr_field {
+            Value::String(ref s) => assert_eq!("2000-01-02T03:04:05", s),
+            _ => assert!(false, "Wrong header type"),
+        }
+    }
 }
 
