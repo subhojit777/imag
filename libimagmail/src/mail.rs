@@ -1,10 +1,9 @@
-use std::result::Result as RResult;
 use std::path::Path;
 use std::path::PathBuf;
 use std::fs::File;
 use std::io::Read;
 
-use libimagstore::store::{FileLockEntry, Store};
+use libimagstore::store::Store;
 use libimagref::reference::Ref;
 use libimagref::flags::RefFlags;
 
