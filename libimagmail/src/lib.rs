@@ -1,5 +1,5 @@
 #[macro_use] extern crate log;
-extern crate mailparse;
+extern crate email;
 extern crate semver;
 extern crate toml;
 extern crate filters;

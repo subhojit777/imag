@@ -1,7 +1,7 @@
 use std::io::Read;
 use std::path::PathBuf;
 
-use mailparse::{MailHeader, parse_mail};
+use email::MimeMessage;
 
 use libimagref::hasher::Hasher;
 use libimagref::hasher::DefaultHasher;
@@ -32,27 +32,28 @@ impl Hasher for MailHasher {
 
     fn create_hash<R: Read>(&mut self, pb: &PathBuf, c: &mut R) -> RResult<String> {
         use filters::filter::Filter;
+        use email::Header;
 
         let mut s = String::new();
         try!(c.read_to_string(&mut s).map_err_into(REK::UTF8Error).map_err_into(REK::IOError));
 
-        parse_mail(&s.as_bytes())
+        MimeMessage::parse(&s)
             .map_err(Box::new)
             .map_err(|e| MEK::MailParsingError.into_error_with_cause(e))
             .map_err_into(REK::RefHashingError)
             .and_then(|mail| {
-                let has_key = |hdr: &MailHeader, exp: &str|
-                    hdr.get_key().map(|s| s == exp).unwrap_or(false);
+                let has_key = |hdr: &Header, exp: &str| hdr.name == exp;
 
-                let subject_filter = |hdr: &MailHeader| has_key(hdr, "Subject");
-                let from_filter    = |hdr: &MailHeader| has_key(hdr, "From");
-                let to_filter      = |hdr: &MailHeader| has_key(hdr, "To");
+                let subject_filter = |hdr: &Header| has_key(hdr, "Subject");
+                let from_filter    = |hdr: &Header| has_key(hdr, "From");
+                let to_filter      = |hdr: &Header| has_key(hdr, "To");
 
                 let filter = subject_filter.or(from_filter).or(to_filter);
 
-                let mut v = vec![];
+                let mut v : Vec<String> = vec![];
                 for hdr in mail.headers.iter().filter(|item| filter.filter(item)) {
-                    let s = try!(hdr.get_value()
+                    let s = try!(hdr
+                        .get_value()
                         .map_err(Box::new)
                         .map_err(|e| REK::RefHashingError.into_error_with_cause(e)));
 

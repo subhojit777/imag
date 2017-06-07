@@ -8,7 +8,8 @@ use libimagstore::store::{FileLockEntry, Store};
 use libimagref::reference::Ref;
 use libimagref::flags::RefFlags;
 
-use mailparse::{MailParseError, ParsedMail, parse_mail};
+use email::MimeMessage;
+use email::results::ParsingResult as EmailParsingResult;
 
 use hasher::MailHasher;
 use result::Result;
@@ -17,8 +18,8 @@ use error::{MapErrInto, MailErrorKind as MEK};
 struct Buffer(String);
 
 impl Buffer {
-    pub fn parsed<'a>(&'a self) -> RResult<ParsedMail<'a>, MailParseError> {
-        parse_mail(self.0.as_bytes())
+    pub fn parsed(&self) -> EmailParsingResult<MimeMessage> {
+        MimeMessage::parse(&self.0)
     }
 }
 
@@ -83,16 +84,14 @@ impl<'a> Mail<'a> {
     }
 
     pub fn get_field(&self, field: &str) -> Result<Option<String>> {
-        use mailparse::MailHeader;
-
         self.1
             .parsed()
             .map_err_into(MEK::MailParsingError)
             .map(|parsed| {
                 parsed.headers
                     .iter()
-                    .filter(|hdr| hdr.get_key().map(|n| n == field).unwrap_or(false))
-                    .next()
+                    .filter(|hdr| hdr.name == field)
+                    .nth(0)
                     .and_then(|field| field.get_value().ok())
             })
     }
