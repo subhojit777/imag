@@ -44,9 +44,9 @@ pub trait EntryDate {
 }
 
 lazy_static! {
-    static ref DATE_HEADER_LOCATION : &'static str              = "date.value";
-    static ref DATE_RANGE_START_HEADER_LOCATION : &'static str  = "date.range.start";
-    static ref DATE_RANGE_END_HEADER_LOCATION : &'static str    = "date.range.end";
+    static ref DATE_HEADER_LOCATION : &'static str              = "datetime.value";
+    static ref DATE_RANGE_START_HEADER_LOCATION : &'static str  = "datetime.range.start";
+    static ref DATE_RANGE_END_HEADER_LOCATION : &'static str    = "datetime.range.end";
     static ref DATE_FMT : &'static str                          = "%Y-%m-%dT%H:%M:%S";
 }
 
