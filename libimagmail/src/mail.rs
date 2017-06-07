@@ -1,14 +1,33 @@
-use std::result::Result as RResult;
+//
+// imag - the personal information management suite for the commandline
+// Copyright (C) 2015, 2016 Matthias Beyer <mail@beyermatthias.de> and contributors
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; version
+// 2.1 of the License.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+
 use std::path::Path;
 use std::path::PathBuf;
 use std::fs::File;
 use std::io::Read;
 
-use libimagstore::store::{FileLockEntry, Store};
+use libimagstore::store::Store;
 use libimagref::reference::Ref;
 use libimagref::flags::RefFlags;
 
-use mailparse::{MailParseError, ParsedMail, parse_mail};
+use email::MimeMessage;
+use email::results::ParsingResult as EmailParsingResult;
 
 use hasher::MailHasher;
 use result::Result;
@@ -17,8 +36,8 @@ use error::{MapErrInto, MailErrorKind as MEK};
 struct Buffer(String);
 
 impl Buffer {
-    pub fn parsed<'a>(&'a self) -> RResult<ParsedMail<'a>, MailParseError> {
-        parse_mail(self.0.as_bytes())
+    pub fn parsed(&self) -> EmailParsingResult<MimeMessage> {
+        MimeMessage::parse(&self.0)
     }
 }
 
@@ -83,16 +102,14 @@ impl<'a> Mail<'a> {
     }
 
     pub fn get_field(&self, field: &str) -> Result<Option<String>> {
-        use mailparse::MailHeader;
-
         self.1
             .parsed()
             .map_err_into(MEK::MailParsingError)
             .map(|parsed| {
                 parsed.headers
                     .iter()
-                    .filter(|hdr| hdr.get_key().map(|n| n == field).unwrap_or(false))
-                    .next()
+                    .filter(|hdr| hdr.name == field)
+                    .nth(0)
                     .and_then(|field| field.get_value().ok())
             })
     }
