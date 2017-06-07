@@ -585,6 +585,265 @@ fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<LinkIter> {
     Ok(LinkIter::new(links))
 }
 
+pub mod store_check {
+    use libimagstore::store::Store;
+
+    pub mod error {
+        generate_error_imports!();
+
+        use libimagstore::storeid::StoreId;
+
+        #[derive(Debug)]
+        pub enum StoreLinkConsistencyErrorCustomData {
+            DeadLink {
+                target: StoreId
+            },
+            OneDirectionalLink {
+                source: StoreId,
+                target: StoreId
+            },
+        }
+
+        impl Display for StoreLinkConsistencyErrorCustomData {
+
+            fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
+                use self::StoreLinkConsistencyErrorCustomData as SLCECD;
+                match self {
+                    &SLCECD::DeadLink { ref target } => {
+                        try!(write!(fmt, "Dead Link to '{}'", target))
+                    },
+
+                    &SLCECD::OneDirectionalLink { ref source, ref target } => {
+                        try!(write!(fmt,
+                                    "Link from '{}' to '{}' does exist, but not other way round",
+                                    source, target))
+                    }
+                };
+                Ok(())
+            }
+
+        }
+
+        generate_custom_error_types!(
+            StoreLinkConsistencyError,
+            StoreLinkConsistencyErrorKind,
+            StoreLinkConsistencyErrorCustomData,
+            StoreLinkConsistencyError => "Links in the store are not consistent",
+            LinkHandlingError         => "Error in link handling",
+            StoreError                => "Error while talking to the store"
+        );
+
+        generate_result_helper!(StoreLinkConsistencyError, StoreLinkConsistencyErrorKind);
+        generate_option_helper!(StoreLinkConsistencyError, StoreLinkConsistencyErrorKind);
+    }
+
+    pub use self::error::StoreLinkConsistencyError;
+    pub use self::error::StoreLinkConsistencyErrorKind;
+    pub use self::error::MapErrInto;
+
+    pub mod result {
+        use std::result::Result as RResult;
+        use internal::store_check::error::StoreLinkConsistencyError as SLCE;
+
+        pub type Result<T> = RResult<T, SLCE>;
+    }
+
+    use self::result::Result;
+
+    pub trait StoreLinkConsistentExt {
+        fn check_link_consistency(&self) -> Result<()>;
+    }
+
+    impl StoreLinkConsistentExt for Store {
+        fn check_link_consistency(&self) -> Result<()> {
+            use std::collections::HashMap;
+
+            use self::error::StoreLinkConsistencyErrorKind as SLCEK;
+            use self::error::StoreLinkConsistencyError as SLCE;
+            use self::error::StoreLinkConsistencyErrorCustomData as SLCECD;
+            use error::LinkErrorKind as LEK;
+            use result::Result as LResult;
+            use internal::InternalLinker;
+
+            use libimagstore::store::StoreObject;
+            use libimagstore::storeid::StoreId;
+            use libimagerror::iter::TraceIterator;
+            use libimagerror::into::IntoError;
+            use libimagutil::iter::FoldResult;
+
+            // Helper data structure to collect incoming and outgoing links for each StoreId
+            #[derive(Debug, Default)]
+            struct Linking {
+                outgoing: Vec<StoreId>,
+                incoming: Vec<StoreId>,
+            }
+
+            /// Helper function to aggregate the Link network
+            ///
+            /// This function aggregates a HashMap which maps each StoreId object in the store onto
+            /// a Linking object, which contains a list of StoreIds which this entry links to and a
+            /// list of StoreIds which link to the current one.
+            ///
+            /// The lambda returns an error if something fails
+            let aggregate_link_network = |store: &Store| -> Result<HashMap<StoreId, Linking>> {
+                store
+                    .walk("") // this is a hack... I know...
+                    .filter_map(|obj: StoreObject| match obj {
+                        StoreObject::Id(id) => Some(id),
+                        _ => None
+                    }) //  Only ids are interesting
+                    .fold(Ok(HashMap::new()), |acc, sid| {
+                        acc.and_then(|mut state| {
+                            debug!("Checking entry: '{}'", sid);
+
+                            match try!(self.get(sid).map_err_into(SLCEK::StoreError)) {
+                                Some(fle) => {
+                                    debug!("Found FileLockEntry");
+
+                                    let fle_loc = fle.get_location();
+
+                                    let internal_links = fle
+                                        .get_internal_links()
+                                        .map_err_into(SLCEK::StoreError)?
+                                        .into_getter(self) // get the FLEs from the Store
+                                        .trace_unwrap(); // trace all Err(e)s and get the Ok(fle)s
+
+                                    for internal_link in internal_links {
+                                        let il_loc = internal_link.get_location();
+
+                                        state
+                                            .entry(il_loc.clone())
+                                            .or_insert(Linking::default())
+                                            .incoming
+                                            .push(fle_loc.clone());
+
+                                        // Make sure an empty linking object is present for the
+                                        // current StoreId object
+                                        state
+                                            .entry(fle_loc.clone())
+                                            .or_insert(Linking::default())
+                                            .outgoing
+                                            .push(il_loc.clone());
+                                    }
+
+                                    Ok(state)
+                                },
+                                None => {
+                                    debug!("No entry");
+                                    Ok(state)
+                                }
+                            }
+                        })
+                    })
+            };
+
+            /// Helper to check whethre all StoreIds in the network actually exists
+            ///
+            /// Because why not?
+            let all_collected_storeids_exist = |network: &HashMap<StoreId, Linking>| -> LResult<()> {
+                network
+                    .iter()
+                    .fold_result(|(id, _)| {
+                        if is_match!(self.get(id.clone()), Ok(Some(_))) {
+                            debug!("Exists in store: {:?}", id);
+
+                            let exists = {
+                                use error::MapErrInto as MEI;
+                                try!(MEI::map_err_into(id.exists(), LEK::StoreReadError))
+                            };
+
+                            if !exists {
+                                warn!("Does exist in store but not on FS: {:?}", id);
+                                Err(LEK::LinkTargetDoesNotExist.into_error())
+                            } else {
+                                Ok(())
+                            }
+                        } else {
+                            warn!("Does not exist in store: {:?}", id);
+                            Err(LEK::LinkTargetDoesNotExist.into_error())
+                        }
+                    })
+            };
+
+            /// Helper function to create a SLCECD::OneDirectionalLink error object
+            #[inline]
+            let mk_one_directional_link_err = |src: StoreId, target: StoreId| -> SLCE {
+                // construct the error
+                let custom = SLCECD::OneDirectionalLink {
+                    source: src,
+                    target: target,
+                };
+
+                SLCEK::StoreLinkConsistencyError
+                    .into_error()
+                    .with_custom_data(custom)
+            };
+
+            /// Helper lambda to check whether the _incoming_ links of each entry actually also
+            /// appear in the _outgoing_ list of the linked entry
+            let incoming_links_exists_as_outgoing_links =
+                |src: &StoreId, linking: &Linking, network: &HashMap<StoreId, Linking>| -> Result<()> {
+                    linking
+                        .incoming
+                        .iter()
+                        .fold_result(|link| {
+
+                            // Check whether the links which are _incoming_ on _src_ are outgoing
+                            // in each of the links in the incoming list.
+                            let incoming_consistent = network.get(link)
+                                .map(|l| l.outgoing.contains(src))
+                                .unwrap_or(false);
+
+                            if !incoming_consistent {
+                                Err(mk_one_directional_link_err(src.clone(), link.clone()))
+                            } else {
+                                Ok(())
+                            }
+                        })
+                };
+
+            /// Helper lambda to check whether the _outgoing links of each entry actually also
+            /// appear in the _incoming_ list of the linked entry
+            let outgoing_links_exist_as_incoming_links =
+                |src: &StoreId, linking: &Linking, network: &HashMap<StoreId, Linking>| -> Result<()> {
+                    linking
+                        .outgoing
+                        .iter()
+                        .fold_result(|link| {
+
+                            // Check whether the links which are _outgoing_ on _src_ are incoming
+                            // in each of the links in the outgoing list.
+                            let outgoing_consistent = network.get(link)
+                                .map(|l| l.incoming.contains(src))
+                                .unwrap_or(false);
+
+                            if !outgoing_consistent {
+                                Err(mk_one_directional_link_err(link.clone(), src.clone()))
+                            } else {
+                                Ok(())
+                            }
+                        })
+                };
+
+            aggregate_link_network(&self)
+                .and_then(|nw| {
+                    all_collected_storeids_exist(&nw)
+                        .map(|_| nw)
+                        .map_err_into(SLCEK::LinkHandlingError)
+                })
+                .and_then(|nw| {
+                    nw.iter().fold_result(|(id, linking)| {
+                        try!(incoming_links_exists_as_outgoing_links(id, linking, &nw));
+                        try!(outgoing_links_exist_as_incoming_links(id, linking, &nw));
+                        Ok(())
+                    })
+                })
+                .map(|_| ())
+        }
+    }
+
+}
+
 #[cfg(test)]
 mod test {
     use std::path::PathBuf;

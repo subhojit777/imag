@@ -1,1 +1,0 @@
-../doc/src/05100-lib-store-std-hook.md

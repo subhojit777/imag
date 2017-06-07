@@ -61,15 +61,7 @@ impl<'a> Runtime<'a> {
 
         use clap::Shell;
 
-        use libimagstore::hook::position::HookPosition as HP;
-        use libimagstore::hook::Hook;
-        use libimagstore::error::StoreErrorKind;
-        use libimagstorestdhook::debug::DebugHook;
-        use libimagstorestdhook::vcs::git::delete::DeleteHook as GitDeleteHook;
-        use libimagstorestdhook::vcs::git::update::UpdateHook as GitUpdateHook;
-        use libimagstorestdhook::vcs::git::store_unload::StoreUnloadHook as GitStoreUnloadHook;
         use libimagerror::trace::trace_error;
-        use libimagerror::trace::trace_error_dbg;
         use libimagerror::into::IntoError;
 
         use configuration::error::ConfigErrorKind;
@@ -142,52 +134,7 @@ impl<'a> Runtime<'a> {
             write!(stderr(), "Store-config: {:?}\n", store_config).ok();
         }
 
-        Store::new(storepath.clone(), store_config).map(|mut store| {
-            // If we are debugging, generate hooks for all positions
-            if is_debugging {
-                let hooks : Vec<(Box<Hook>, &str, HP)> = vec![
-                    (Box::new(DebugHook::new(HP::PreCreate))          , "debug", HP::PreCreate),
-                    (Box::new(DebugHook::new(HP::PostCreate))         , "debug", HP::PostCreate),
-                    (Box::new(DebugHook::new(HP::PreRetrieve))        , "debug", HP::PreRetrieve),
-                    (Box::new(DebugHook::new(HP::PostRetrieve))       , "debug", HP::PostRetrieve),
-                    (Box::new(DebugHook::new(HP::PreUpdate))          , "debug", HP::PreUpdate),
-                    (Box::new(DebugHook::new(HP::PostUpdate))         , "debug", HP::PostUpdate),
-                    (Box::new(DebugHook::new(HP::PreDelete))          , "debug", HP::PreDelete),
-                    (Box::new(DebugHook::new(HP::PostDelete))         , "debug", HP::PostDelete),
-                ];
-
-                // If hook registration fails, trace the error and warn, but continue.
-                for (hook, aspectname, position) in hooks {
-                    if let Err(e) = store.register_hook(position, &String::from(aspectname), hook) {
-                        if e.err_type() == StoreErrorKind::HookRegisterError {
-                            trace_error_dbg(&e);
-                            warn!("Registering debug hook with store failed");
-                        } else {
-                            trace_error(&e);
-                        };
-                    }
-                }
-            }
-
-            let sp = storepath;
-
-            let hooks : Vec<(Box<Hook>, &str, HP)> = vec![
-                (Box::new(GitDeleteHook::new(sp.clone(), HP::PostDelete)), "vcs", HP::PostDelete),
-                (Box::new(GitUpdateHook::new(sp.clone(), HP::PostUpdate)), "vcs", HP::PostUpdate),
-                (Box::new(GitStoreUnloadHook::new(sp)),                    "vcs", HP::StoreUnload),
-            ];
-
-            for (hook, aspectname, position) in hooks {
-                if let Err(e) = store.register_hook(position, &String::from(aspectname), hook) {
-                    if e.err_type() == StoreErrorKind::HookRegisterError {
-                        trace_error_dbg(&e);
-                        warn!("Registering git hook with store failed");
-                    } else {
-                        trace_error(&e);
-                    };
-                }
-            }
-
+        Store::new(storepath.clone(), store_config).map(|store| {
             Runtime {
                 cli_matches: matches,
                 configuration: cfg,

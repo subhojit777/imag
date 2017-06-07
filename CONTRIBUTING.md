@@ -184,7 +184,6 @@ from the others by `"/`". See below:
 | part/lib/imagnotes        | Targets library: imagnotes        | [search][search-part/lib/imagnotes]        |
 | part/lib/imagrt           | Targets library: imagrt           | [search][search-part/lib/imagrt]           |
 | part/lib/imagstore        | Targets library: imagstore        | [search][search-part/lib/imagstore]        |
-| part/lib/imagstorestdhook | Targets library: imagstorestdhook | [search][search-part/lib/imagstorestdhook] |
 | part/lib/imagutil         | Targets library:                  | [search][search-part/lib/imagutil]         |
 | part/_new_binary          | Introduces new binary             | [search][search-part/_new_binary]          |
 | part/_new_library         | Introduces new library            | [search][search-part/_new_library]         |
@@ -283,7 +282,6 @@ _to be written_
 [search-part/lib/imagnotes]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagnotes
 [search-part/lib/imagrt]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagrt
 [search-part/lib/imagstore]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagstore
-[search-part/lib/imagstorestdhook]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagstorestdhook
 [search-part/lib/imagutil]: https://github.com/matthiasbeyer/imag/labels/part%2Flib%2Fimagutil
 [search-part/_new_binary]: https://github.com/matthiasbeyer/imag/labels/part%2F_new_binary
 [search-part/_new_library]: https://github.com/matthiasbeyer/imag/labels/part%2F_new_library

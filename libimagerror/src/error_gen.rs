@@ -118,7 +118,10 @@ macro_rules! generate_custom_error_types {
 
             fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
                 try!(write!(fmt, "[{}]", self.err_type));
-                Ok(())
+                match self.custom_data {
+                    Some(ref c) => write!(fmt, "{}", c),
+                    None => Ok(()),
+                }
             }
 
         }
@@ -215,6 +218,13 @@ macro_rules! generate_error_types {
     ) => {
         #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
         pub struct SomeNotExistingTypeWithATypeNameNoOneWillEverChoose {}
+
+        impl Display for SomeNotExistingTypeWithATypeNameNoOneWillEverChoose {
+            fn fmt(&self, _: &mut Formatter) -> Result<(), FmtError> {
+                Ok(())
+            }
+        }
+
         generate_custom_error_types!($name, $kindname,
                                      SomeNotExistingTypeWithATypeNameNoOneWillEverChoose,
                                      $($kind => $string),*);
@@ -239,6 +249,12 @@ mod test {
     pub struct CustomData {
         pub test: i32,
         pub othr: i64,
+    }
+
+    impl Display for CustomData {
+        fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
+            Ok(())
+        }
     }
 
     generate_error_imports!();

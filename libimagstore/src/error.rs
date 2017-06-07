@@ -23,20 +23,16 @@ use std::convert::From;
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
 pub struct CustomErrorData {}
 
+impl Display for CustomErrorData {
+    fn fmt(&self, _: &mut Formatter) -> Result<(), FmtError> {
+        Ok(()) // Do nothing here, we don't need to print smth
+    }
+}
+
 generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     ConfigurationError      => "Store Configuration Error",
     ConfigTypeError         => "Store configuration type error",
     ConfigKeyMissingError   => "Configuration Key missing",
-
-    ConfigKeyUnloadAspectsError       => "Config Key 'store-unload-hook-aspects' caused an error",
-    ConfigKeyPreCreateAspectsError    => "Config Key 'pre-create-hook-aspects' caused an error",
-    ConfigKeyPostCreateAspectsError   => "Config Key 'post-create-hook-aspects' caused an error",
-    ConfigKeyPreRetrieveAspectsError  => "Config Key 'pre-retrieve-hook-aspect' caused an error",
-    ConfigKeyPostRetrieveAspectsError => "Config Key 'post-retrieve-hook-aspec' caused an error",
-    ConfigKeyPreUpdateAspectsError    => "Config Key 'pre-update-hook-aspects' caused an error",
-    ConfigKeyPostUpdateAspectsError   => "Config Key 'post-update-hook-aspects' caused an error",
-    ConfigKeyPreDeleteAspectsError    => "Config Key 'pre-delete-hook-aspects' caused an error",
-    ConfigKeyPostDeleteAspectsError   => "Config Key 'post-delete-hook-aspects' caused an error",
 
     CreateStoreDirDenied    => "Creating store directory implicitely denied",
     FileError               => "File Error",
@@ -63,11 +59,6 @@ generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     HeaderPathTypeFailure   => "Header has wrong type for path",
     HeaderKeyNotFound       => "Header Key not found",
     HeaderTypeFailure       => "Header type is wrong",
-    HookRegisterError       => "Hook register error",
-    AspectNameNotFoundError => "Aspect name not found",
-    HookExecutionError      => "Hook execution error",
-    PreHookExecuteError     => "Pre-Hook execution error",
-    PostHookExecuteError    => "Post-Hook execution error",
     StorePathLacksVersion   => "The supplied store path has no version part",
     GlobError               => "glob() error",
     EncodingError           => "Encoding error",

@@ -52,7 +52,6 @@ extern crate libimagutil;
 
 pub mod storeid;
 pub mod error;
-pub mod hook;
 pub mod store;
 mod configuration;
 mod file_abstraction;
