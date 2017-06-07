@@ -255,5 +255,67 @@ mod tests {
             _ => assert!(false, "Wrong header type"),
         }
     }
+
+    #[test]
+    fn test_read_date() {
+        use chrono::Datelike;
+        use chrono::Timelike;
+
+        let store = get_store();
+
+        let date = {
+            let date = NaiveDate::from_ymd(2000, 01, 02);
+            let time = NaiveTime::from_hms(03, 04, 05);
+
+            NaiveDateTime::new(date, time)
+        };
+
+        let mut entry   = store.create(PathBuf::from("test")).unwrap();
+        let res         = entry.set_date(date);
+
+        assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
+        let res = res.unwrap();
+
+        assert!(res.is_none()); // There shouldn't be an existing value
+
+        // same as the test above ...
+
+        let d = entry.read_date();
+
+        assert!(d.is_ok(), format!("Expected Ok(_), got: {:?}", d));
+        let d = d.unwrap();
+
+        assert_eq!(d.date().year()   , 2000);
+        assert_eq!(d.date().month()  ,   01);
+        assert_eq!(d.date().day()    ,   02);
+        assert_eq!(d.time().hour()   ,   03);
+        assert_eq!(d.time().minute() ,   04);
+        assert_eq!(d.time().second() ,   05);
+    }
+
+    #[test]
+    fn test_delete_date() {
+        let store = get_store();
+
+        let date = {
+            let date = NaiveDate::from_ymd(2000, 01, 02);
+            let time = NaiveTime::from_hms(03, 04, 05);
+
+            NaiveDateTime::new(date, time)
+        };
+
+        let mut entry   = store.create(PathBuf::from("test")).unwrap();
+        let res         = entry.set_date(date);
+
+        assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
+        let res = res.unwrap();
+        assert!(res.is_none()); // There shouldn't be an existing value
+
+        assert!(entry.delete_date().is_ok());
+
+        let hdr_field = entry.get_header().read(&DATE_HEADER_LOCATION);
+
+        assert!(hdr_field.is_err(), format!("Expected Err(_), got: {:?}", hdr_field));
+    }
 }
 
