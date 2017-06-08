@@ -29,7 +29,7 @@ use clap::{Arg, ArgMatches};
 use log;
 use log::LogLevelFilter;
 
-use configuration::{Configuration, GetConfiguration, InternalConfiguration};
+use configuration::{Configuration, InternalConfiguration};
 use error::RuntimeError;
 use error::RuntimeErrorKind;
 use error::MapErrInto;
@@ -56,14 +56,9 @@ impl<'a> Runtime<'a> {
     /// and builds the Runtime object with it.
     ///
     /// The cli_app object should be initially build with the ::get_default_cli_builder() function.
-    pub fn new<C>(mut cli_app: C) -> Result<Runtime<'a>, RuntimeError>
-        where C: Clone + CliSpec<'a> + GetConfiguration + InternalConfiguration
+    pub fn new<C>(cli_app: C) -> Result<Runtime<'a>, RuntimeError>
+        where C: Clone + CliSpec<'a> + InternalConfiguration
     {
-        use std::env;
-        use std::io::stdout;
-
-        use clap::Shell;
-
         use libimagerror::trace::trace_error;
         use libimagerror::into::IntoError;
 
@@ -71,11 +66,51 @@ impl<'a> Runtime<'a> {
 
         let matches = cli_app.clone().matches();
 
-        let is_debugging = matches.is_present("debugging");
-        let is_verbose   = matches.is_present("verbosity");
-        let colored      = !matches.is_present("no-color-output");
+        let rtp = get_rtp_match(&matches);
+
+        let configpath = matches.value_of(Runtime::arg_config_name())
+                                .map_or_else(|| rtp.clone(), PathBuf::from);
+
+        let config = match Configuration::new(&configpath) {
+            Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
+                return Err(RuntimeErrorKind::Instantiate.into_error_with_cause(Box::new(e)));
+            } else {
+                warn!("No config file found.");
+                warn!("Continuing without configuration file");
+                None
+            },
+
+            Ok(mut config) => {
+                if let Err(e) = config.override_config(get_override_specs(&matches)) {
+                    error!("Could not apply config overrides");
+                    trace_error(&e);
+
+                    // TODO: continue question (interactive)
+                }
+
+                Some(config)
+            }
+        };
+
+        Runtime::with_configuration(cli_app, config)
+    }
+
+    /// Builds the Runtime object using the given `config`.
+    pub fn with_configuration<C>(mut cli_app: C, config: Option<Configuration>) -> Result<Runtime<'a>, RuntimeError>
+        where C: Clone + CliSpec<'a> + InternalConfiguration
+    {
+        use std::io::stdout;
+
+        use clap::Shell;
+
+        let matches = cli_app.clone().matches();
+
+        let is_debugging = matches.is_present(Runtime::arg_debugging_name());
 
         if cli_app.enable_logging() {
+            let is_verbose = matches.is_present(Runtime::arg_verbosity_name());
+            let colored    = !matches.is_present(Runtime::arg_no_color_output_name());
+
             Runtime::init_logger(is_debugging, is_verbose, colored);
         }
 
@@ -89,64 +124,29 @@ impl<'a> Runtime<'a> {
             _ => debug!("Not generating shell completion script"),
         }
 
-        let rtp : PathBuf = matches.value_of("runtimepath")
-            .map_or_else(|| {
-                env::var("HOME")
-                    .map(PathBuf::from)
-                    .map(|mut p| { p.push(".imag"); p})
-                    .unwrap_or_else(|_| {
-                        panic!("You seem to be $HOME-less. Please get a $HOME before using this software. We are sorry for you and hope you have some accommodation anyways.");
-                    })
-            }, PathBuf::from);
-        let storepath = matches.value_of("storepath")
+        let rtp = get_rtp_match(&matches);
+
+        let storepath = matches.value_of(Runtime::arg_storepath_name())
                                 .map_or_else(|| {
                                     let mut spath = rtp.clone();
                                     spath.push("store");
                                     spath
                                 }, PathBuf::from);
 
-        let configpath = matches.value_of("config")
-                                .map_or_else(|| rtp.clone(), PathBuf::from);
-
-        debug!("RTP path    = {:?}", rtp);
-        debug!("Store path  = {:?}", storepath);
-        debug!("Config path = {:?}", configpath);
-
-        let cfg = match cli_app.get_configuration(&configpath) {
-            Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
-                return Err(RuntimeErrorKind::Instantiate.into_error_with_cause(Box::new(e)));
-            } else {
-                warn!("No config file found.");
-                warn!("Continuing without configuration file");
-                None
-            },
-
-            Ok(mut cfg) => {
-                if let Err(e) = cfg.override_config(get_override_specs(&matches)) {
-                    error!("Could not apply config overrides");
-                    trace_error(&e);
-
-                    // TODO: continue question (interactive)
-                }
-
-                Some(cfg)
-            }
-        };
-
-        let store_config = match cfg {
+        let store_config = match config {
             Some(ref c) => c.store_config().cloned(),
             None        => None,
         };
 
         if is_debugging {
-            write!(stderr(), "Config: {:?}\n", cfg).ok();
+            write!(stderr(), "Config: {:?}\n", config).ok();
             write!(stderr(), "Store-config: {:?}\n", store_config).ok();
         }
 
-        Store::new(storepath.clone(), store_config).map(|store| {
+        Store::new(storepath, store_config).map(|store| {
             Runtime {
                 cli_matches: matches,
-                configuration: cfg,
+                configuration: config,
                 rtp: rtp,
                 store: store,
             }
@@ -406,6 +406,22 @@ impl<'a> Runtime<'a> {
             .or(env::var("EDITOR").ok())
             .map(Command::new)
     }
+}
+
+fn get_rtp_match<'a>(matches: &ArgMatches<'a>) -> PathBuf {
+    use std::env;
+
+    matches.value_of(Runtime::arg_runtimepath_name())
+        .map_or_else(|| {
+            env::var("HOME")
+                .map(PathBuf::from)
+                .map(|mut p| { p.push(".imag"); p })
+                .unwrap_or_else(|_| {
+                    panic!("You seem to be $HOME-less. Please get a $HOME before using this \
+                            software. We are sorry for you and hope you have some \
+                            accommodation anyways.");
+                })
+        }, PathBuf::from)
 }
 
 fn get_override_specs(matches: &ArgMatches) -> Vec<String> {

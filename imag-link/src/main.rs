@@ -350,14 +350,11 @@ mod tests {
     use libimagrt::spec::CliSpec;
     use libimagrt::runtime::Runtime;
     use libimagrt::error::RuntimeError;
-    use libimagrt::configuration::{Configuration, GetConfiguration, InternalConfiguration,
-                                   Result as ConfigResult, ConfigErrorKind};
-    use libimagrt::configuration::error::MapErrInto;
+    use libimagrt::configuration::{Configuration, InternalConfiguration};
 
     use libimagstore::storeid::StoreId;
     use libimagstore::store::{Result as StoreResult, FileLockEntry};
 
-    static TOML_CONFIG_FILE: &[u8] = include_bytes!("../test_config.toml");
     static DEFAULT_ENTRY: &str = "\
 ---\
 [imag]\
@@ -392,18 +389,16 @@ version = \"0.3.0\"\
         }
     }
 
-    impl<'a> GetConfiguration for MockLinkApp<'a> {
-        fn get_configuration(&self, _: &PathBuf) -> ConfigResult<Configuration> {
-            ::toml::de::from_slice(TOML_CONFIG_FILE)
-                .map_err_into(ConfigErrorKind::TOMLParserError)
-                .map(Configuration::new)
-        }
-    }
-
     impl<'a> InternalConfiguration for MockLinkApp<'a> {
         fn enable_logging(&self) -> bool {
             false
         }
+    }
+
+    fn generate_test_config() -> Option<Configuration> {
+        ::toml::de::from_str("[store]\nimplicit-create=true")
+                    .map(Configuration::with_value)
+                    .ok()
     }
 
     fn generate_test_runtime<'a>(mut args: Vec<&'static str>) -> Result<Runtime<'a>, RuntimeError> {
@@ -417,7 +412,7 @@ version = \"0.3.0\"\
         cli_args.append(&mut args);
 
         let cli_app = MockLinkApp::new(cli_args);
-        Runtime::new(cli_app)
+        Runtime::with_configuration(cli_app, generate_test_config())
     }
 
     fn create_test_entry<'a, S: AsRef<OsStr>>(rt: &'a Runtime, name: S) -> StoreResult<StoreId> {

@@ -73,21 +73,33 @@ impl Configuration {
     /// with all variants.
     ///
     /// If that doesn't work either, an error is returned.
-    pub fn new(toml_config: Value) -> Configuration {
-        let verbosity   = get_verbosity(&toml_config);
-        let editor      = get_editor(&toml_config);
-        let editor_opts = get_editor_opts(&toml_config);
+    pub fn new(rtp: &PathBuf) -> Result<Configuration> {
+        fetch_config(&rtp).map(|cfg| {
+            let verbosity   = get_verbosity(&cfg);
+            let editor      = get_editor(&cfg);
+            let editor_opts = get_editor_opts(&cfg);
 
-        debug!("Building configuration");
-        debug!("  - verbosity  : {:?}", verbosity);
-        debug!("  - editor     : {:?}", editor);
-        debug!("  - editor-opts: {}", editor_opts);
+            debug!("Building configuration");
+            debug!("  - verbosity  : {:?}", verbosity);
+            debug!("  - editor     : {:?}", editor);
+            debug!("  - editor-opts: {}", editor_opts);
 
-        Configuration {
-            config: toml_config,
-            verbosity: verbosity,
-            editor: editor,
-            editor_opts: editor_opts,
+            Configuration {
+                config: cfg,
+                verbosity: verbosity,
+                editor: editor,
+                editor_opts: editor_opts,
+            }
+        })
+    }
+
+    /// Get a new configuration object built from the given toml value.
+    pub fn with_value(value: Value) -> Configuration {
+        Configuration{
+            verbosity: get_verbosity(&value),
+            editor: get_editor(&value),
+            editor_opts: get_editor_opts(&value),
+            config: value,
         }
     }
 
@@ -211,73 +223,67 @@ fn get_editor_opts(v: &Value) -> String {
     }
 }
 
-pub trait GetConfiguration {
-    /// Helper to fetch the config file
-    ///
-    /// Default implementation tests several variants for the config file path and uses the first
-    /// one which works.
-    fn get_configuration(&self, rtp: &PathBuf) -> Result<Configuration> {
-        use std::env;
-        use std::fs::File;
-        use std::io::Read;
-        use std::io::Write;
-        use std::io::stderr;
+/// Helper to fetch the config file
+///
+/// Tests several variants for the config file path and uses the first one which works.
+fn fetch_config(rtp: &PathBuf) -> Result<Value> {
+    use std::env;
+    use std::fs::File;
+    use std::io::Read;
+    use std::io::Write;
+    use std::io::stderr;
 
-        use xdg_basedir;
-        use itertools::Itertools;
+    use xdg_basedir;
+    use itertools::Itertools;
 
-        use libimagutil::variants::generate_variants as gen_vars;
-        use libimagerror::trace::trace_error;
+    use libimagutil::variants::generate_variants as gen_vars;
+    use libimagerror::trace::trace_error;
 
-        let variants = vec!["config", "config.toml", "imagrc", "imagrc.toml"];
-        let modifier = |base: &PathBuf, v: &'static str| {
-            let mut base = base.clone();
-            base.push(String::from(v));
-            base
-        };
+    let variants = vec!["config", "config.toml", "imagrc", "imagrc.toml"];
+    let modifier = |base: &PathBuf, v: &'static str| {
+        let mut base = base.clone();
+        base.push(String::from(v));
+        base
+    };
 
-        vec![
-            vec![rtp.clone()],
-            gen_vars(rtp.clone(), variants.clone(), &modifier),
+    vec![
+        vec![rtp.clone()],
+        gen_vars(rtp.clone(), variants.clone(), &modifier),
 
-            env::var("HOME").map(|home| gen_vars(PathBuf::from(home), variants.clone(), &modifier))
-                            .unwrap_or(vec![]),
+        env::var("HOME").map(|home| gen_vars(PathBuf::from(home), variants.clone(), &modifier))
+                        .unwrap_or(vec![]),
 
-            xdg_basedir::get_data_home().map(|data_dir| gen_vars(data_dir, variants.clone(), &modifier))
-                                        .unwrap_or(vec![]),
-        ].iter()
-            .flatten()
-            .filter(|path| path.exists() && path.is_file())
-            .map(|path| {
-                let content = {
-                    let mut s = String::new();
-                    let f = File::open(path);
-                    if f.is_err() {
-                        return None
-                    }
-                    let mut f = f.unwrap();
-                    f.read_to_string(&mut s).ok();
-                    s
-                };
-
-                match ::toml::de::from_str(&content[..]) {
-                    Ok(res) => res,
-                    Err(e) => {
-                        write!(stderr(), "Config file parser error:").ok();
-                        trace_error(&e);
-                        None
-                    }
+        xdg_basedir::get_data_home().map(|data_dir| gen_vars(data_dir, variants.clone(), &modifier))
+                                    .unwrap_or(vec![]),
+    ].iter()
+        .flatten()
+        .filter(|path| path.exists() && path.is_file())
+        .map(|path| {
+            let content = {
+                let mut s = String::new();
+                let f = File::open(path);
+                if f.is_err() {
+                    return None
                 }
-            })
-            .filter(|loaded| loaded.is_some())
-            .nth(0)
-            .map(|inner| Value::Table(inner.unwrap()))
-            .ok_or(ConfigErrorKind::NoConfigFileFound.into())
-            .map(Configuration::new)
-    }
-}
+                let mut f = f.unwrap();
+                f.read_to_string(&mut s).ok();
+                s
+            };
 
-impl<'a> GetConfiguration for App<'a, 'a> {}
+            match ::toml::de::from_str(&content[..]) {
+                Ok(res) => res,
+                Err(e) => {
+                    write!(stderr(), "Config file parser error:").ok();
+                    trace_error(&e);
+                    None
+                }
+            }
+        })
+        .filter(|loaded| loaded.is_some())
+        .nth(0)
+        .map(|inner| Value::Table(inner.unwrap()))
+        .ok_or(ConfigErrorKind::NoConfigFileFound.into())
+}
 
 pub trait InternalConfiguration {
     fn enable_logging(&self) -> bool {
