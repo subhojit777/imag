@@ -1231,9 +1231,11 @@ mod store_tests {
     use std::path::PathBuf;
 
     use super::Store;
+    use file_abstraction::InMemoryFileAbstraction;
 
     pub fn get_store() -> Store {
-        Store::new(PathBuf::from("/"), None).unwrap()
+        let backend = Box::new(InMemoryFileAbstraction::new());
+        Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
     }
 
     #[test]
