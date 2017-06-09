@@ -37,6 +37,7 @@ extern crate itertools;
 extern crate regex;
 extern crate toml;
 #[macro_use] extern crate is_match;
+extern crate filters;
 
 extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
