@@ -134,8 +134,9 @@ mod fs {
                         .map_err_into(SEK::FileNotSeeked));
 
                     let mut s = String::new();
-                    f.read_to_string(&mut s);
-                    Ok(s)
+                    f.read_to_string(&mut s)
+                        .map_err_into(SEK::IoError)
+                        .map(|_| s)
                 },
                 FSFileAbstractionInstance::Absent(ref p) =>
                     (try!(open_file(p).map_err_into(SEK::FileNotFound)), p.clone()),
@@ -143,10 +144,12 @@ mod fs {
             *self = FSFileAbstractionInstance::File(file, path);
             if let FSFileAbstractionInstance::File(ref mut f, _) = *self {
                 let mut s = String::new();
-                f.read_to_string(&mut s);
-                return Ok(s);
+                f.read_to_string(&mut s)
+                    .map_err_into(SEK::IoError)
+                    .map(|_| s)
+            } else {
+                unreachable!()
             }
-            unreachable!()
         }
 
         /**
@@ -241,6 +244,7 @@ mod inmemory {
 
     use super::FileAbstraction;
     use super::FileAbstractionInstance;
+    use error::MapErrInto;
 
     type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Cursor<Vec<u8>>>>>>;
 
@@ -278,10 +282,11 @@ mod inmemory {
                     mtx.get_mut()
                         .get_mut(&p)
                         .ok_or(SEK::FileNotFound.into_error())
-                        .map(|t| {
+                        .and_then(|t| {
                             let mut s = String::new();
-                            t.read_to_string(&mut s);
-                            s
+                            t.read_to_string(&mut s)
+                                .map_err_into(SEK::IoError)
+                                .map(|_| s)
                         })
                 }
 
