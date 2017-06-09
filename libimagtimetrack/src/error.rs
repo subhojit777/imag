@@ -17,24 +17,23 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-extern crate filters;
-extern crate chrono;
-extern crate toml;
-extern crate toml_query;
-#[macro_use]
-extern crate lazy_static;
+generate_error_module!(
+    generate_error_types!(TimeTrackError, TimeTrackErrorKind,
+        StoreReadError   => "Store read error",
+        StoreWriteError  => "Store write error",
 
-#[macro_use]
-extern crate libimagerror;
-extern crate libimagstore;
-extern crate libimagentrydatetime;
-extern crate libimagentrytag;
+        StoreIdError => "Error while handling StoreId",
 
-mod constants;
-pub mod error;
-pub mod event;
-pub mod eventstore;
-pub mod iter;
-pub mod result;
-pub mod tag;
+        TagFormat => "Tag has invalid format",
+
+        HeaderReadError => "Error writing header",
+        HeaderWriteError => "Error writing header",
+        HeaderFieldTypeError => "Type error in header",
+        DateTimeParserError => "Error while parsing DateTime"
+    );
+);
+
+pub use self::error::TimeTrackError;
+pub use self::error::TimeTrackErrorKind;
+pub use self::error::MapErrInto;
 

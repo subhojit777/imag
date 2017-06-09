@@ -17,24 +17,9 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-extern crate filters;
-extern crate chrono;
-extern crate toml;
-extern crate toml_query;
-#[macro_use]
-extern crate lazy_static;
-
-#[macro_use]
-extern crate libimagerror;
-extern crate libimagstore;
-extern crate libimagentrydatetime;
-extern crate libimagentrytag;
-
-mod constants;
-pub mod error;
-pub mod event;
-pub mod eventstore;
-pub mod iter;
-pub mod result;
-pub mod tag;
+pub const CRATE_NAME : &'static str                  = "timetrack";
+pub const DATE_TIME_FORMAT : &'static str            = "%Y-%m-%dT%H:%M:%S";
+pub const DATE_TIME_START_HEADER_PATH : &'static str = "timetrack.start";
+pub const DATE_TIME_END_HEADER_PATH : &'static str   = "timetrack.end";
+pub const DATE_TIME_TAG_HEADER_PATH : &'static str   = "timetrack.tag";
 

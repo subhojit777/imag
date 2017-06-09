@@ -17,24 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-extern crate filters;
-extern crate chrono;
-extern crate toml;
-extern crate toml_query;
-#[macro_use]
-extern crate lazy_static;
+use std::result::Result as RResult;
 
-#[macro_use]
-extern crate libimagerror;
-extern crate libimagstore;
-extern crate libimagentrydatetime;
-extern crate libimagentrytag;
+use error::TimeTrackError;
 
-mod constants;
-pub mod error;
-pub mod event;
-pub mod eventstore;
-pub mod iter;
-pub mod result;
-pub mod tag;
+pub type Result<T> = RResult<T, TimeTrackError>;
+
 
