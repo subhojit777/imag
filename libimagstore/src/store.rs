@@ -41,10 +41,12 @@ use walkdir::Iter as WalkDirIter;
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::MapErrInto;
 use storeid::{IntoStoreId, StoreId, StoreIdIterator};
-use file_abstraction::FileAbstraction;
 use file_abstraction::FileAbstractionInstance;
-use file_abstraction::FSFileAbstraction;
 use toml_ext::*;
+// We re-export the following things so tests can use them
+pub use file_abstraction::FileAbstraction;
+pub use file_abstraction::FSFileAbstraction;
+pub use file_abstraction::InMemoryFileAbstraction;
 
 use libimagerror::into::IntoError;
 use libimagerror::trace::trace_error;
