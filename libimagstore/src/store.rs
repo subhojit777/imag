@@ -41,8 +41,12 @@ use walkdir::Iter as WalkDirIter;
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::MapErrInto;
 use storeid::{IntoStoreId, StoreId, StoreIdIterator};
-use file_abstraction::FileAbstraction;
+use file_abstraction::FileAbstractionInstance;
 use toml_ext::*;
+// We re-export the following things so tests can use them
+pub use file_abstraction::FileAbstraction;
+pub use file_abstraction::FSFileAbstraction;
+pub use file_abstraction::InMemoryFileAbstraction;
 
 use libimagerror::into::IntoError;
 use libimagerror::trace::trace_error;
@@ -65,7 +69,7 @@ enum StoreEntryStatus {
 #[derive(Debug)]
 struct StoreEntry {
     id: StoreId,
-    file: FileAbstraction,
+    file: Box<FileAbstractionInstance>,
     status: StoreEntryStatus,
 }
 
@@ -132,7 +136,7 @@ impl Iterator for Walk {
 
 impl StoreEntry {
 
-    fn new(id: StoreId) -> Result<StoreEntry> {
+    fn new(id: StoreId, backend: &Box<FileAbstraction>) -> Result<StoreEntry> {
         let pb = try!(id.clone().into_pathbuf());
 
         #[cfg(feature = "fs-lock")]
@@ -144,7 +148,7 @@ impl StoreEntry {
 
         Ok(StoreEntry {
             id: id,
-            file: FileAbstraction::Absent(pb),
+            file: backend.new_instance(pb),
             status: StoreEntryStatus::Present,
         })
     }
@@ -160,7 +164,7 @@ impl StoreEntry {
         if !self.is_borrowed() {
             self.file
                 .get_file_content()
-                .and_then(|mut file| Entry::from_reader(id.clone(), &mut file))
+                .and_then(|content| Entry::from_str(id.clone(), &content))
                 .or_else(|err| if err.err_type() == SEK::FileNotFound {
                     Ok(Entry::new(id.clone()))
                 } else {
@@ -213,6 +217,11 @@ pub struct Store {
     /// Could be optimized for a threadsafe HashMap
     ///
     entries: Arc<RwLock<HashMap<StoreId, StoreEntry>>>,
+
+    /// The backend to use
+    ///
+    /// This provides the filesystem-operation functions (or pretends to)
+    backend: Box<FileAbstraction>,
 }
 
 impl Store {
@@ -240,6 +249,17 @@ impl Store {
     ///   - StorePathCreate(_) if creating the store directory failed
     ///   - StorePathExists() if location exists but is a file
     pub fn new(location: PathBuf, store_config: Option<Value>) -> Result<Store> {
+        let backend = Box::new(FSFileAbstraction::new());
+        Store::new_with_backend(location, store_config, backend)
+    }
+
+    /// Create a Store object as descripbed in `Store::new()` documentation, but with an alternative
+    /// backend implementation.
+    ///
+    /// Do not use directly, only for testing purposes.
+    pub fn new_with_backend(location: PathBuf,
+                            store_config: Option<Value>,
+                            backend: Box<FileAbstraction>) -> Result<Store> {
         use configuration::*;
 
         debug!("Validating Store configuration");
@@ -256,7 +276,7 @@ impl Store {
                     .map_err_into(SEK::IoError);
             }
 
-            try!(FileAbstraction::create_dir_all(&location)
+            try!(backend.create_dir_all(&location)
                  .map_err_into(SEK::StorePathCreate)
                  .map_dbg_err_str("Failed"));
         } else if location.is_file() {
@@ -268,6 +288,7 @@ impl Store {
             location: location.clone(),
             configuration: store_config,
             entries: Arc::new(RwLock::new(HashMap::new())),
+            backend: backend,
         };
 
         debug!("Store building succeeded");
@@ -367,7 +388,7 @@ impl Store {
             }
             hsmap.insert(id.clone(), {
                 debug!("Creating: '{}'", id);
-                let mut se = try!(StoreEntry::new(id.clone()));
+                let mut se = try!(StoreEntry::new(id.clone(), &self.backend));
                 se.status = StoreEntryStatus::Borrowed;
                 se
             });
@@ -400,7 +421,7 @@ impl Store {
                 .write()
                 .map_err(|_| SE::new(SEK::LockPoisoned, None))
                 .and_then(|mut es| {
-                    let new_se = try!(StoreEntry::new(id.clone()));
+                    let new_se = try!(StoreEntry::new(id.clone(), &self.backend));
                     let mut se = es.entry(id.clone()).or_insert(new_se);
                     let entry = se.get_entry();
                     se.status = StoreEntryStatus::Borrowed;
@@ -557,7 +578,7 @@ impl Store {
             return Err(SE::new(SEK::IdLocked, None)).map_err_into(SEK::RetrieveCopyCallError);
         }
 
-        try!(StoreEntry::new(id)).get_entry()
+        try!(StoreEntry::new(id, &self.backend)).get_entry()
     }
 
     /// Delete an entry
@@ -596,7 +617,7 @@ impl Store {
             // remove the entry first, then the file
             entries.remove(&id);
             let pb = try!(id.clone().with_base(self.path().clone()).into_pathbuf());
-            if let Err(e) = FileAbstraction::remove_file(&pb) {
+            if let Err(e) = self.backend.remove_file(&pb) {
                 return Err(SEK::FileError.into_error_with_cause(Box::new(e)))
                     .map_err_into(SEK::DeleteCallError);
             }
@@ -638,11 +659,11 @@ impl Store {
 
         let old_id_as_path = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
         let new_id_as_path = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
-        FileAbstraction::copy(&old_id_as_path, &new_id_as_path)
+        self.backend.copy(&old_id_as_path, &new_id_as_path)
             .and_then(|_| {
                 if remove_old {
                     debug!("Removing old '{:?}'", old_id_as_path);
-                    FileAbstraction::remove_file(&old_id_as_path)
+                    self.backend.remove_file(&old_id_as_path)
                 } else {
                     Ok(())
                 }
@@ -710,7 +731,7 @@ impl Store {
             let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
             let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
 
-            match FileAbstraction::rename(&old_id_pb, &new_id_pb) {
+            match self.backend.rename(&old_id_pb, &new_id_pb) {
                 Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
                 Ok(_) => {
                     debug!("Rename worked on filesystem");
@@ -1212,9 +1233,11 @@ mod store_tests {
     use std::path::PathBuf;
 
     use super::Store;
+    use file_abstraction::InMemoryFileAbstraction;
 
     pub fn get_store() -> Store {
-        Store::new(PathBuf::from("/"), None).unwrap()
+        let backend = Box::new(InMemoryFileAbstraction::new());
+        Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
     }
 
     #[test]
