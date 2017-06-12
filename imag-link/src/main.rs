@@ -402,12 +402,7 @@ version = \"0.3.0\"\
     }
 
     fn generate_test_runtime<'a>(mut args: Vec<&'static str>) -> Result<Runtime<'a>, RuntimeError> {
-        let mut cli_args = vec!["imag-link",
-                                "--no-color",
-                                "--config",
-                                "./imagrc.toml",
-                                "--rtp",
-                                "/tmp"];
+        let mut cli_args = vec!["imag-link", "--rtp", "/tmp"];
 
         cli_args.append(&mut args);
 
