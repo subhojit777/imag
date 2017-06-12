@@ -92,18 +92,25 @@ impl<'a> Runtime<'a> {
             }
         };
 
-        Runtime::with_configuration(cli_app, config)
+        Runtime::_new(cli_app, matches, config)
     }
 
     /// Builds the Runtime object using the given `config`.
-    pub fn with_configuration<C>(mut cli_app: C, config: Option<Configuration>) -> Result<Runtime<'a>, RuntimeError>
+    pub fn with_configuration<C>(cli_app: C, config: Option<Configuration>)
+                                 -> Result<Runtime<'a>, RuntimeError>
         where C: Clone + CliSpec<'a> + InternalConfiguration
+    {
+        let matches = cli_app.clone().matches();
+        Runtime::_new(cli_app, matches, config)
+    }
+
+    fn _new<C>(mut cli_app: C, matches: ArgMatches<'a>, config: Option<Configuration>)
+               -> Result<Runtime<'a>, RuntimeError>
+    where C: Clone + CliSpec<'a> + InternalConfiguration
     {
         use std::io::stdout;
 
         use clap::Shell;
-
-        let matches = cli_app.clone().matches();
 
         let is_debugging = matches.is_present(Runtime::arg_debugging_name());
 
