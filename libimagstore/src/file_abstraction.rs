@@ -375,6 +375,79 @@ mod inmemory {
 
 }
 
+mod stdio {
+    use std::cell::RefCell;
+    use std::collections::HashMap;
+    use std::fmt::Debug;
+    use std::fmt::Error as FmtError;
+    use std::fmt::Formatter;
+    use std::io::Cursor;
+    use std::io::{Read, Write};
+    use std::path::PathBuf;
+    use std::sync::Arc;
+    use std::sync::Mutex;
+
+    use error::StoreError as SE;
+    use super::FileAbstraction;
+    use super::FileAbstractionInstance;
+    use super::InMemoryFileAbstraction;
+
+    // Because this is not exported in super::inmemory;
+    type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Cursor<Vec<u8>>>>>>;
+
+    pub struct StdIoFileAbstraction {
+        mem: InMemoryFileAbstraction,
+        stdin: Box<Read>,
+        stdout: Box<Write>,
+    }
+
+    impl Debug for StdIoFileAbstraction {
+        fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+            write!(f, "StdIoFileAbstraction({:?}", self.mem)
+        }
+    }
+
+    impl StdIoFileAbstraction {
+
+        pub fn new(in_stream: Box<Read>, out_stream: Box<Write>) -> StdIoFileAbstraction {
+            StdIoFileAbstraction {
+                mem: InMemoryFileAbstraction::new(),
+                stdin: in_stream,
+                stdout: out_stream
+            }
+        }
+
+        pub fn backend(&self) -> &Backend {
+            &self.mem.backend()
+        }
+
+    }
+
+    impl FileAbstraction for StdIoFileAbstraction {
+
+        fn remove_file(&self, path: &PathBuf) -> Result<(), SE> {
+            self.mem.remove_file(path)
+        }
+
+        fn copy(&self, from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
+            self.mem.copy(from, to)
+        }
+
+        fn rename(&self, from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
+            self.mem.rename(from, to)
+        }
+
+        fn create_dir_all(&self, pb: &PathBuf) -> Result<(), SE> {
+            self.mem.create_dir_all(pb)
+        }
+
+        fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance> {
+            self.mem.new_instance(p)
+        }
+    }
+
+}
+
 #[cfg(test)]
 mod test {
     use super::FileAbstractionInstance;
