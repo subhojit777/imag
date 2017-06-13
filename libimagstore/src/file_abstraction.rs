@@ -83,10 +83,6 @@ pub use self::fs::FSFileAbstractionInstance;
 pub use self::inmemory::InMemoryFileAbstraction;
 pub use self::inmemory::InMemoryFileAbstractionInstance;
 
-// TODO:
-// This whole thing can be written better with a trait based mechanism that is embedded into the
-// store. However it would mean rewriting most things to be generic which can be a pain in the ass.
-
 /// An abstraction trait over filesystem actions
 pub trait FileAbstraction : Debug {
     fn remove_file(&self, path: &PathBuf) -> Result<(), SE>;
