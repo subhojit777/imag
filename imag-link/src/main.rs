@@ -355,7 +355,7 @@ mod tests {
     use libimagstore::storeid::StoreId;
     use libimagstore::store::{Result as StoreResult, FileLockEntry};
 
-    static DEFAULT_ENTRY: &str = "\
+    static DEFAULT_ENTRY: &'static str = "\
 ---\
 [imag]\
 links = []\
@@ -370,8 +370,8 @@ version = \"0.3.0\"\
 
     impl<'a> MockLinkApp<'a> {
         fn new(args: Vec<&'static str>) -> Self {
-            Self {
-                args,
+            MockLinkApp {
+                args: args,
                 inner: ::build_ui(Runtime::get_default_cli_builder("imag-link",
                                                                    "0.3.0",
                                                                    "Link entries test")),
