@@ -72,8 +72,8 @@ impl Mapper for JsonMapper {
     fn read_to_fs(&self, mut r: Box<Read>, hm: &mut HashMap<PathBuf, Cursor<Vec<u8>>>)   -> Result<()> {
         let mut document = {
             let mut s = String::new();
-            r.read_to_string(&mut s).expect("Reading failed");
-            let doc : Document = serde_json::from_str(&s).expect("Mapping error");
+            try!(r.read_to_string(&mut s).map_err_into(SEK::IoError));
+            let doc : Document = try!(serde_json::from_str(&s).map_err_into(SEK::IoError));
             doc
         };
 
@@ -133,4 +133,79 @@ impl Mapper for JsonMapper {
     }
 }
 
+#[cfg(test)]
+mod test {
+    use std::io::Cursor;
+
+    use super::*;
+
+    #[test]
+    fn test_json_to_fs() {
+        let json = r#"
+        { "version": "0.3.0",
+          "store": {
+            "/example": {
+                "header": {
+                    "imag": {
+                        "version": "0.3.0"
+                    }
+                },
+                "content": "test"
+            }
+          }
+        }
+        "#;
+        let json    = Cursor::new(String::from(json).into_bytes());
+        let mapper  = JsonMapper::new();
+        let mut hm  = HashMap::new();
+
+        let io_res  = mapper.read_to_fs(Box::new(json), &mut hm);
+        assert!(io_res.is_ok());
+
+        assert_eq!(1, hm.len()); // we should have exactly one entry
+    }
+
+    #[test]
+    fn test_fs_to_json() {
+        let mapper                    = JsonMapper::new();
+        let mut out : Cursor<Vec<u8>> = Cursor::new(vec![]);
+
+        let mut hm = {
+            let mut hm = HashMap::new();
+            let content = r#"---
+[imag]
+version = "0.3.0"
+---
+hi there!"#;
+            hm.insert(PathBuf::from("/example"), Cursor::new(String::from(content).into_bytes()));
+            hm
+        };
+
+        let io_res = mapper.fs_to_write(&mut hm, &mut out);
+        assert!(io_res.is_ok());
+
+        let example = r#"
+        {
+            "version": "0.3.0",
+            "store": {
+                "/example": {
+                    "header": {
+                        "imag": {
+                            "version": "0.3.0"
+                        }
+                    },
+                    "content": "hi there!"
+                }
+            }
+        }
+        "#;
+
+        let example_json : ::serde_json::Value = ::serde_json::from_str(example).unwrap();
+
+        let output_json = String::from_utf8(out.into_inner()).unwrap();
+        let output_json : ::serde_json::Value = ::serde_json::from_str(&output_json).unwrap();
+
+        assert_eq!(example_json, output_json);
+    }
+}
 
