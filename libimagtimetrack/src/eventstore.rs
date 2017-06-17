@@ -69,9 +69,14 @@ impl<'a> TimeTrackStore<'a> for Store {
     }
 
     fn create_timetracking_at(&'a self, start: &NDT, ts: &TTT) -> Result<FileLockEntry<'a>> {
+        use std::path::PathBuf;
+
         COMPILER.compile(CRATE_NAME, start)
             .map_err_into(TTEK::StoreIdError)
-            .and_then(|id| enhance_id_with_tag(id, ts))
+            .map(|mut id| {
+                id.local_push(PathBuf::from(ts.as_str()));
+                id
+            })
             .and_then(|id| self.create(id).map_err_into(TTEK::StoreWriteError))
             .and_then(|mut fle| {
                 let v = Value::String(ts.as_str().to_owned());
@@ -106,15 +111,5 @@ impl<'a> TimeTrackStore<'a> for Store {
             .map(|iter| GetTimeTrackIter::new(iter, self))
     }
 
-}
-
-/// TODO: We need a new function on StoreId to do this in a nice way:
-///
-/// `storeid.append_to_filename(string)`
-///
-fn enhance_id_with_tag(s: StoreId, t: &TTT) -> Result<StoreId> {
-    let mut new = s.local().clone();
-    new.push(t.as_str().to_owned());
-    StoreId::new_baseless(new).map_err_into(TTEK::StoreIdError)
 }
 
