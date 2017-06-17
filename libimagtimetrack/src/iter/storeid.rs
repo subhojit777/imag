@@ -55,20 +55,19 @@ impl Iterator for TagStoreIdIter {
     type Item = Result<(StoreId, NDT), TimeTrackError>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        use module_path::ModuleEntryPath;
+        use libimagstore::storeid::IntoStoreId;
+
         self.inner
             .next()
             .map(|res| {
                 res.and_then(|tag| {
                     let dt = self.datetime.format(DATE_TIME_FORMAT).to_string();
                     let id_str = format!("{}-{}", dt, tag.as_str());
-                    let id_str = PathBuf::from(id_str);
-
-                    StoreId::new_baseless(id_str)
+                    ModuleEntryPath::new(id_str)
+                        .into_storeid()
                         .map_err_into(TTEK::StoreIdError)
-                        .map(|id| (
-                            id,
-                            self.datetime.clone()
-                        ))
+                        .map(|id| (id, self.datetime.clone()))
                 })
             })
     }
