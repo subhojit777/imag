@@ -28,3 +28,5 @@ pub trait Mapper {
     fn fs_to_write(&self, &mut HashMap<PathBuf, Cursor<Vec<u8>>>, &mut Write) -> Result<()>;
 }
 
+pub mod json;
+
