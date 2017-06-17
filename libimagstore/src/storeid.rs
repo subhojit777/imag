@@ -123,6 +123,10 @@ impl StoreId {
         &self.id
     }
 
+    pub fn local_push<P: AsRef<Path>>(&mut self, path: P) {
+        self.id.push(path)
+    }
+
 }
 
 impl Display for StoreId {
