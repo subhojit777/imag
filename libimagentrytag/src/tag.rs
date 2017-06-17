@@ -22,13 +22,17 @@ pub type TagSlice<'a> = &'a str;
 
 /// validator which can be used by clap to validate that a string is a valid tag
 pub fn is_tag(s: String) -> Result<(), String> {
+    is_tag_str(&s)
+}
+
+pub fn is_tag_str(s: &String) -> Result<(), String> {
     use filters::filter::Filter;
 
     let is_lower      = |s: &String| s.chars().all(|c| c.is_lowercase());
     let no_whitespace = |s: &String| s.chars().all(|c| !c.is_whitespace());
     let is_alphanum   = |s: &String| s.chars().all(|c| c.is_alphanumeric());
 
-    if is_lower.and(no_whitespace).and(is_alphanum).filter(&s) {
+    if is_lower.and(no_whitespace).and(is_alphanum).filter(s) {
         Ok(())
     } else {
         Err(format!("The string '{}' is not a valid tag", s))
