@@ -1263,6 +1263,96 @@ mod store_tests {
     }
 
     #[test]
+    fn test_store_create_with_io_backend() {
+        use std::io::Cursor;
+        use std::rc::Rc;
+        use std::cell::RefCell;
+        use serde_json::Value;
+
+        //let sink = vec![];
+        //let output : Cursor<&mut [u8]> = Cursor::new(&mut sink);
+        //let output = Rc::new(RefCell::new(output));
+        let output = Rc::new(RefCell::new(vec![]));
+
+        {
+            let store = {
+                use file_abstraction::stdio::StdIoFileAbstraction;
+                use file_abstraction::stdio::mapper::json::JsonMapper;
+
+                // Lets have an empty store as input
+                let mut input = Cursor::new(r#"
+                { "version": "0.3.0",
+                    "store": { }
+                }
+                "#);
+
+                let mapper  = JsonMapper::new();
+                let backend = StdIoFileAbstraction::new(&mut input, output.clone(), mapper).unwrap();
+                let backend = Box::new(backend);
+
+                Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+            };
+
+            for n in 1..100 {
+                let s = format!("test-{}", n);
+                let entry = store.create(PathBuf::from(s.clone())).unwrap();
+                assert!(entry.verify().is_ok());
+                let loc = entry.get_location().clone().into_pathbuf().unwrap();
+                assert!(loc.starts_with("/"));
+                assert!(loc.ends_with(s));
+            }
+        }
+
+        let vec    = Rc::try_unwrap(output).unwrap().into_inner();
+
+        let errstr = format!("Not UTF8: '{:?}'", vec);
+        let string = String::from_utf8(vec);
+        assert!(string.is_ok(), errstr);
+        let string = string.unwrap();
+
+        assert!(!string.is_empty(), format!("Expected not to be empty: '{}'", string));
+
+        let json : ::serde_json::Value = ::serde_json::from_str(&string).unwrap();
+
+        match json {
+            Value::Object(ref map) => {
+                assert!(map.get("version").is_some(), format!("No 'version' in JSON"));
+                match map.get("version").unwrap() {
+                    &Value::String(ref s) => assert_eq!("0.3.0", s),
+                    _ => panic!("Wrong type in JSON at 'version'"),
+                }
+
+                assert!(map.get("store").is_some(), format!("No 'store' in JSON"));
+                match map.get("store").unwrap() {
+                    &Value::Object(ref objs) => {
+                        for n in 1..100 {
+                            let s = format!("/test-{}", n);
+                            assert!(objs.get(&s).is_some(), format!("No entry: '{}'", s));
+                            match objs.get(&s).unwrap() {
+                                &Value::Object(ref entry) => {
+                                    match entry.get("header").unwrap() {
+                                        &Value::Object(_) => assert!(true),
+                                        _ => panic!("Wrong type in JSON at 'store.'{}'.header'", s),
+                                    }
+
+                                    match entry.get("content").unwrap() {
+                                        &Value::String(_) => assert!(true),
+                                        _ => panic!("Wrong type in JSON at 'store.'{}'.content'", s),
+                                    }
+                                },
+                                _ => panic!("Wrong type in JSON at 'store.'{}''", s),
+                            }
+                        }
+                    },
+                    _ => panic!("Wrong type in JSON at 'store'"),
+                }
+            },
+            _ => panic!("Wrong type in JSON at top level"),
+        }
+
+    }
+
+    #[test]
     fn test_store_get_create_get_delete_get() {
         let store = get_store();
 

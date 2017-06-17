@@ -22,6 +22,11 @@ use std::fmt::Debug;
 
 use error::StoreError as SE;
 
+
+mod fs;
+mod inmemory;
+pub mod stdio;
+
 pub use self::fs::FSFileAbstraction;
 pub use self::fs::FSFileAbstractionInstance;
 pub use self::inmemory::InMemoryFileAbstraction;
@@ -42,10 +47,6 @@ pub trait FileAbstractionInstance : Debug {
     fn get_file_content(&mut self) -> Result<String, SE>;
     fn write_file_content(&mut self, buf: &[u8]) -> Result<(), SE>;
 }
-
-mod fs;
-mod inmemory;
-mod stdio;
 
 #[cfg(test)]
 mod test {
