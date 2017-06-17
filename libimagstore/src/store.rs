@@ -24,7 +24,6 @@ use std::result::Result as RResult;
 use std::sync::Arc;
 use std::sync::RwLock;
 use std::io::Read;
-use std::convert::From;
 use std::convert::Into;
 use std::ops::Deref;
 use std::ops::DerefMut;
@@ -33,7 +32,6 @@ use std::fmt::Debug;
 use std::fmt::Error as FMTError;
 
 use toml::Value;
-use regex::Regex;
 use glob::glob;
 use walkdir::WalkDir;
 use walkdir::Iter as WalkDirIter;
@@ -919,33 +917,14 @@ impl Entry {
     /// - Header cannot be parsed into a TOML object
     ///
     pub fn from_str<S: IntoStoreId>(loc: S, s: &str) -> Result<Entry> {
-        debug!("Building entry from string");
-        lazy_static! {
-            static ref RE: Regex = Regex::new(r"(?smx)
-                ^---$
-                (?P<header>.*) # Header
-                ^---$\n
-                (?P<content>.*) # Content
-            ").unwrap();
-        }
+        use util::entry_buffer_to_header_content;
 
-        let matches = match RE.captures(s) {
-            None    => return Err(SE::new(SEK::MalformedEntry, None)),
-            Some(s) => s,
-        };
+        let (header, content) = try!(entry_buffer_to_header_content(s));
 
-        let header = match matches.name("header") {
-            None    => return Err(SE::new(SEK::MalformedEntry, None)),
-            Some(s) => s
-        };
-
-        let content = matches.name("content").map(|r| r.as_str()).unwrap_or("");
-
-        debug!("Header and content found. Yay! Building Entry object now");
         Ok(Entry {
             location: try!(loc.into_storeid()),
-            header: try!(Value::parse(header.as_str())),
-            content: String::from(content),
+            header: header,
+            content: content,
         })
     }
 
