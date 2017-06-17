@@ -103,10 +103,18 @@ impl Mapper for JsonMapper {
     }
 
     fn fs_to_write<W: Write>(&self, hm: &mut HashMap<PathBuf, Cursor<Vec<u8>>>, out: &mut W) -> Result<()> {
+        use util::entry_buffer_to_header_content;
+
+        #[derive(Serialize, Deserialize)]
+        struct Entry {
+            header: ::toml::Value,
+            content: String,
+        }
+
         #[derive(Serialize)]
         struct OutDocument {
             version: String,
-            store: HashMap<PathBuf, String>,
+            store: HashMap<PathBuf, Entry>,
         }
 
         let mut doc = OutDocument {
@@ -117,8 +125,14 @@ impl Mapper for JsonMapper {
         for (key, value) in hm.drain() {
             let res = String::from_utf8(value.into_inner())
                 .map_err_into(SEK::IoError)
-                .map(|entrystr| {
-                    doc.store.insert(key, entrystr);
+                .and_then(|buf| entry_buffer_to_header_content(&buf))
+                .map(|(header, content)| {
+                    let entry = Entry {
+                        header: header,
+                        content: content
+                    };
+
+                    doc.store.insert(key, entry);
                 })
                 .map(|_| ());
 
