@@ -387,6 +387,10 @@ mod stdio {
     use std::sync::Arc;
     use std::sync::Mutex;
 
+    use libimagerror::into::IntoError;
+    use libimagerror::trace::*;
+
+    use error::StoreErrorKind as SEK;
     use error::StoreError as SE;
     use super::FileAbstraction;
     use super::FileAbstractionInstance;
@@ -395,26 +399,55 @@ mod stdio {
     // Because this is not exported in super::inmemory;
     type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Cursor<Vec<u8>>>>>>;
 
-    pub struct StdIoFileAbstraction {
-        mem: InMemoryFileAbstraction,
-        stdin: Box<Read>,
-        stdout: Box<Write>,
+    mod mapper {
+        use std::collections::HashMap;
+        use std::io::Cursor;
+        use std::io::{Read, Write};
+        use std::path::PathBuf;
+        use store::Result;
+
+        pub trait Mapper {
+            fn read_to_fs(&self, Box<Read>, &mut HashMap<PathBuf, Cursor<Vec<u8>>>)   -> Result<()>;
+            fn fs_to_write(&self, &mut HashMap<PathBuf, Cursor<Vec<u8>>>, &mut Write) -> Result<()>;
+        }
     }
 
-    impl Debug for StdIoFileAbstraction {
+    use self::mapper::Mapper;
+
+    pub struct StdIoFileAbstraction<M: Mapper> {
+        mapper: M,
+        mem: InMemoryFileAbstraction,
+        out: Box<Write>,
+    }
+
+    impl<M> Debug for StdIoFileAbstraction<M>
+        where M: Mapper
+    {
         fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
             write!(f, "StdIoFileAbstraction({:?}", self.mem)
         }
     }
 
-    impl StdIoFileAbstraction {
+    impl<M> StdIoFileAbstraction<M>
+        where M: Mapper
+    {
 
-        pub fn new(in_stream: Box<Read>, out_stream: Box<Write>) -> StdIoFileAbstraction {
-            StdIoFileAbstraction {
-                mem: InMemoryFileAbstraction::new(),
-                stdin: in_stream,
-                stdout: out_stream
+        pub fn new(in_stream: Box<Read>, out_stream: Box<Write>, mapper: M) -> Result<StdIoFileAbstraction<M>, SE> {
+            let mem = InMemoryFileAbstraction::new();
+
+            {
+                let fill_res = match mem.backend().lock() {
+                    Err(_) => Err(SEK::LockError.into_error()),
+                    Ok(mut mtx) => mapper.read_to_fs(in_stream, mtx.get_mut())
+                };
+                let _ = try!(fill_res);
             }
+
+            Ok(StdIoFileAbstraction {
+                mapper: mapper,
+                mem:    mem,
+                out:    out_stream,
+            })
         }
 
         pub fn backend(&self) -> &Backend {
@@ -423,7 +456,23 @@ mod stdio {
 
     }
 
-    impl FileAbstraction for StdIoFileAbstraction {
+    impl<M> Drop for StdIoFileAbstraction<M>
+        where M: Mapper
+    {
+        fn drop(&mut self) {
+            let fill_res = match self.mem.backend().lock() {
+                Err(_) => Err(SEK::LockError.into_error()),
+                Ok(mut mtx) => self.mapper.fs_to_write(mtx.get_mut(), &mut *self.out)
+            };
+
+            // We can do nothing but end this here with a trace.
+            // As this drop gets called when imag almost exits, there is no point in exit()ing here
+            // again.
+            let _ = fill_res.map_err_trace();
+        }
+    }
+
+    impl<M: Mapper> FileAbstraction for StdIoFileAbstraction<M> {
 
         fn remove_file(&self, path: &PathBuf) -> Result<(), SE> {
             self.mem.remove_file(path)
