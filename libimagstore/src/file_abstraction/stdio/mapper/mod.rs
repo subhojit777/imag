@@ -24,8 +24,8 @@ use std::path::PathBuf;
 use store::Result;
 
 pub trait Mapper {
-    fn read_to_fs(&self, Box<Read>, &mut HashMap<PathBuf, Cursor<Vec<u8>>>)   -> Result<()>;
-    fn fs_to_write(&self, &mut HashMap<PathBuf, Cursor<Vec<u8>>>, &mut Write) -> Result<()>;
+    fn read_to_fs<R: Read>(&self, &mut R, &mut HashMap<PathBuf, Cursor<Vec<u8>>>)   -> Result<()>;
+    fn fs_to_write<W: Write>(&self, &mut HashMap<PathBuf, Cursor<Vec<u8>>>, &mut W) -> Result<()>;
 }
 
 pub mod json;

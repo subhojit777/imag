@@ -17,6 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -43,25 +44,27 @@ use self::mapper::Mapper;
 // Because this is not exported in super::inmemory;
 type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Cursor<Vec<u8>>>>>>;
 
-pub struct StdIoFileAbstraction<M: Mapper> {
+pub struct StdIoFileAbstraction<W: Write, M: Mapper> {
     mapper: M,
     mem: InMemoryFileAbstraction,
-    out: Box<Write>,
+    out: Rc<RefCell<W>>,
 }
 
-impl<M> Debug for StdIoFileAbstraction<M>
-    where M: Mapper
+impl<W, M> Debug for StdIoFileAbstraction<W, M>
+    where M: Mapper,
+          W: Write
 {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
         write!(f, "StdIoFileAbstraction({:?}", self.mem)
     }
 }
 
-impl<M> StdIoFileAbstraction<M>
-    where M: Mapper
+impl<W, M> StdIoFileAbstraction<W, M>
+    where M: Mapper,
+          W: Write
 {
 
-    pub fn new(in_stream: Box<Read>, out_stream: Box<Write>, mapper: M) -> Result<StdIoFileAbstraction<M>, SE> {
+    pub fn new<R: Read>(in_stream: &mut R, out_stream: Rc<RefCell<W>>, mapper: M) -> Result<StdIoFileAbstraction<W, M>, SE> {
         let mem = InMemoryFileAbstraction::new();
 
         {
@@ -85,13 +88,18 @@ impl<M> StdIoFileAbstraction<M>
 
 }
 
-impl<M> Drop for StdIoFileAbstraction<M>
-    where M: Mapper
+impl<W, M> Drop for StdIoFileAbstraction<W, M>
+    where M: Mapper,
+          W: Write
 {
     fn drop(&mut self) {
+        use std::ops::DerefMut;
+
         let fill_res = match self.mem.backend().lock() {
             Err(_) => Err(SEK::LockError.into_error()),
-            Ok(mut mtx) => self.mapper.fs_to_write(mtx.get_mut(), &mut *self.out)
+            Ok(mut mtx) => {
+                self.mapper.fs_to_write(mtx.get_mut(), self.out.borrow_mut().deref_mut())
+            },
         };
 
         // We can do nothing but end this here with a trace.
@@ -101,7 +109,7 @@ impl<M> Drop for StdIoFileAbstraction<M>
     }
 }
 
-impl<M: Mapper> FileAbstraction for StdIoFileAbstraction<M> {
+impl<W: Write, M: Mapper> FileAbstraction for StdIoFileAbstraction<W, M> {
 
     fn remove_file(&self, path: &PathBuf) -> Result<(), SE> {
         self.mem.remove_file(path)

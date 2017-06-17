@@ -69,7 +69,7 @@ impl JsonMapper {
 }
 
 impl Mapper for JsonMapper {
-    fn read_to_fs(&self, mut r: Box<Read>, hm: &mut HashMap<PathBuf, Cursor<Vec<u8>>>)   -> Result<()> {
+    fn read_to_fs<R: Read>(&self, r: &mut R, hm: &mut HashMap<PathBuf, Cursor<Vec<u8>>>)   -> Result<()> {
         let mut document = {
             let mut s = String::new();
             try!(r.read_to_string(&mut s).map_err_into(SEK::IoError));
@@ -102,7 +102,7 @@ impl Mapper for JsonMapper {
         Ok(())
     }
 
-    fn fs_to_write(&self, hm: &mut HashMap<PathBuf, Cursor<Vec<u8>>>, out: &mut Write) -> Result<()> {
+    fn fs_to_write<W: Write>(&self, hm: &mut HashMap<PathBuf, Cursor<Vec<u8>>>, out: &mut W) -> Result<()> {
         #[derive(Serialize)]
         struct OutDocument {
             version: String,
@@ -155,11 +155,11 @@ mod test {
           }
         }
         "#;
-        let json    = Cursor::new(String::from(json).into_bytes());
-        let mapper  = JsonMapper::new();
-        let mut hm  = HashMap::new();
+        let mut json = Cursor::new(String::from(json).into_bytes());
+        let mapper   = JsonMapper::new();
+        let mut hm   = HashMap::new();
 
-        let io_res  = mapper.read_to_fs(Box::new(json), &mut hm);
+        let io_res  = mapper.read_to_fs(&mut json, &mut hm);
         assert!(io_res.is_ok());
 
         assert_eq!(1, hm.len()); // we should have exactly one entry
