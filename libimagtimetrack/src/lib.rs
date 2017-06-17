@@ -26,6 +26,7 @@ extern crate lazy_static;
 
 #[macro_use]
 extern crate libimagerror;
+#[macro_use]
 extern crate libimagstore;
 extern crate libimagentrydatetime;
 extern crate libimagentrytag;
@@ -37,4 +38,6 @@ pub mod eventstore;
 pub mod iter;
 pub mod result;
 pub mod tag;
+
+module_entry_path_mod!("timetrack");
 
