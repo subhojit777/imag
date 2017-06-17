@@ -54,6 +54,6 @@ pub mod storeid;
 pub mod error;
 pub mod store;
 mod configuration;
-mod file_abstraction;
+pub mod file_abstraction;
 pub mod toml_ext;
 
