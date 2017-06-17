@@ -17,62 +17,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-//! The filesystem abstraction code
-//!
-//! # Problem
-//!
-//! First, we had a compiletime backend for the store. This means that the actual filesystem
-//! operations were compiled into the store either as real filesystem operations (in a normal debug
-//! or release build) but as a in-memory variant in the 'test' case.
-//! So tests did not hit the filesystem when running.
-//! This gave us us the possibility to run tests concurrently with multiple
-//! stores that did not interfere with eachother.
-//!
-//! This approach worked perfectly well until we started to test not the
-//! store itself but crates that depend on the store implementation.
-//! When running tests in a crate that depends on the store, the store
-//! itself was compiled with the filesystem-hitting-backend.
-//! This was problematic, as tests could not be implemented without hitting
-//! the filesystem.
-//!
-//! Hence we implemented this.
-//!
-//! # Implementation
-//!
-//! The filesystem is abstracted via a trait `FileAbstraction` which
-//! contains the essential functions for working with the filesystem.
-//!
-//! Two implementations are provided in the code:
-//!
-//! * FSFileAbstraction
-//! * InMemoryFileAbstraction
-//!
-//! whereas the first actually works with the filesystem and the latter
-//! works with an in-memory HashMap that is used as filesystem.
-//!
-//! Further, the trait `FileAbstractionInstance` was introduced for
-//! functions which are executed on actual instances of content from the
-//! filesystem, which was previousely tied into the general abstraction
-//! mechanism.
-//!
-//! So, the `FileAbstraction` trait is for working with the filesystem, the
-//! `FileAbstractionInstance` trait is for working with instances of content
-//! from the filesystem (speak: actual Files).
-//!
-//! In case of the `FSFileAbstractionInstance`, which is the implementation
-//! of the `FileAbstractionInstance` for the actual filesystem-hitting code,
-//! the underlying resource is managed like with the old code before.
-//! The `InMemoryFileAbstractionInstance` implementation is corrosponding to
-//! the `InMemoryFileAbstraction` implementation - for the in-memory
-//! "filesystem".
-//!
-//! The implementation of the `get_file_content()` function had to be
-//! changed to return a `String` rather than a `&mut Read` because of
-//! lifetime issues.
-//! This change is store-internally and the API of the store itself was not
-//! affected.
-//!
-
 use std::path::PathBuf;
 use std::fmt::Debug;
 
