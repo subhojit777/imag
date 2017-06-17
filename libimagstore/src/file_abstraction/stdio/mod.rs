@@ -17,6 +17,25 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+//! The StdIo backend
+//!
+//! Sidenote: The name is "StdIo" because its main purpose is Stdin/Stdio, but it is abstracted over
+//! Read/Write actually, so it is also possible to use this backend in other ways, too.
+//!
+//! So what is this about? This is a backend for the imag store which is created from stdin, by
+//! piping contents into the store (via JSON or TOML) and piping the store contents (as JSON or
+//! TOML) to stdout when the the backend is destructed.
+//!
+//! This is one of some components which make command-chaining in imag possible. With this, the
+//! application does not have to know whether the store actually lives on the filesystem or just "in
+//! memory".
+//!
+//! The backend contains a "Mapper" which defines how the contents get mapped into the in-memory
+//! store representation: A JSON implementation or a TOML implementation are possible.
+//!
+//! In fact, a JSON implementation exists in the "json" submodule of this module.
+//!
+
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::Debug;
