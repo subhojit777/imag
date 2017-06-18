@@ -19,6 +19,7 @@
 
 use std::path::PathBuf;
 use std::fmt::Debug;
+use std::collections::HashMap;
 
 use error::StoreError as SE;
 use store::Entry;
@@ -41,6 +42,9 @@ pub trait FileAbstraction : Debug {
     fn create_dir_all(&self, _: &PathBuf) -> Result<(), SE>;
 
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance>;
+
+    fn drain(&self) -> Result<Drain, SE>;
+    fn fill<'a>(&'a mut self, d: Drain) -> Result<(), SE>;
 }
 
 /// An abstraction trait over actions on files
@@ -52,6 +56,34 @@ pub trait FileAbstractionInstance : Debug {
     /// Entry type itself must be constructed with the id.
     fn get_file_content(&mut self, id: StoreId) -> Result<Entry, SE>;
     fn write_file_content(&mut self, buf: &Entry) -> Result<(), SE>;
+}
+
+pub struct Drain(HashMap<PathBuf, Entry>);
+
+impl Drain {
+
+    pub fn new(hm: HashMap<PathBuf, Entry>) -> Drain {
+        Drain(hm)
+    }
+
+    pub fn empty() -> Drain {
+        Drain::new(HashMap::new())
+    }
+
+    pub fn iter<'a>(&'a mut self) -> DrainIter<'a> {
+        DrainIter(self.0.drain())
+    }
+
+}
+
+pub struct DrainIter<'a>(::std::collections::hash_map::Drain<'a, PathBuf, Entry>);
+
+impl<'a> Iterator for DrainIter<'a> {
+    type Item = (PathBuf, Entry);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
 }
 
 #[cfg(test)]
