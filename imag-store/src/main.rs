@@ -64,10 +64,10 @@ use update::update;
 use verify::verify;
 
 fn main() {
-    let rt = generate_runtime_setup("imag-store",
-                                    &version!()[..],
-                                    "Direct interface to the store. Use with great care!",
-                                    build_ui);
+    let mut rt = generate_runtime_setup("imag-store",
+                                        &version!()[..],
+                                        "Direct interface to the store. Use with great care!",
+                                        build_ui);
 
     rt.cli()
         .subcommand_name()
@@ -85,6 +85,7 @@ fn main() {
                     "retrieve" => retrieve(&rt),
                     "update"   => update(&rt),
                     "verify"   => verify(&rt),
+                    "dump"     => dump(&mut rt),
                     _ => {
                         debug!("Unknown command");
                         // More error handling
