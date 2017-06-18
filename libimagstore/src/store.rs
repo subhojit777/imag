@@ -320,9 +320,11 @@ impl Store {
     /// Currently, this is the naive implementatoin which does not transfer contents of the
     /// backends.
     ///
-    pub fn reset_backend(&mut self, backend: Box<FileAbstraction>) -> Result<()> {
-        self.backend = backend;
-        Ok(())
+    pub fn reset_backend(&mut self, mut backend: Box<FileAbstraction>) -> Result<()> {
+        self.backend
+            .drain()
+            .and_then(|drain| backend.fill(drain))
+            .map(|_| self.backend = backend)
     }
 
     /// Get the store configuration
