@@ -32,6 +32,8 @@ use libimagerror::into::IntoError;
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
 use error::MapErrInto;
+use store::Entry;
+use storeid::StoreId;
 
 type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Cursor<Vec<u8>>>>>>;
 
@@ -60,7 +62,7 @@ impl FileAbstractionInstance for InMemoryFileAbstractionInstance {
     /**
      * Get the mutable file behind a InMemoryFileAbstraction object
      */
-    fn get_file_content(&mut self) -> Result<String, SE> {
+    fn get_file_content(&mut self, id: StoreId) -> Result<Entry, SE> {
         debug!("Getting lazy file: {:?}", self);
 
         let p = self.absent_path.clone();
@@ -74,6 +76,7 @@ impl FileAbstractionInstance for InMemoryFileAbstractionInstance {
                         t.read_to_string(&mut s)
                             .map_err_into(SEK::IoError)
                             .map(|_| s)
+                            .and_then(|s| Entry::from_str(id, &s))
                     })
             }
 
@@ -81,7 +84,8 @@ impl FileAbstractionInstance for InMemoryFileAbstractionInstance {
         }
     }
 
-    fn write_file_content(&mut self, buf: &[u8]) -> Result<(), SE> {
+    fn write_file_content(&mut self, buf: &Entry) -> Result<(), SE> {
+        let buf = buf.to_str().into_bytes();
         match *self {
             InMemoryFileAbstractionInstance { ref absent_path, .. } => {
                 let mut mtx = self.fs_abstraction.lock().expect("Locking Mutex failed");
@@ -90,7 +94,7 @@ impl FileAbstractionInstance for InMemoryFileAbstractionInstance {
                 if let Some(ref mut cur) = backend.get_mut(absent_path) {
                     let mut vec = cur.get_mut();
                     vec.clear();
-                    vec.extend_from_slice(buf);
+                    vec.extend_from_slice(&buf);
                     return Ok(());
                 }
                 let vec = Vec::from(buf);

@@ -158,13 +158,11 @@ impl StoreEntry {
     }
 
     fn get_entry(&mut self) -> Result<Entry> {
-        let id = &self.id.clone();
         if !self.is_borrowed() {
             self.file
-                .get_file_content()
-                .and_then(|content| Entry::from_str(id.clone(), &content))
+                .get_file_content(self.id.clone())
                 .or_else(|err| if err.err_type() == SEK::FileNotFound {
-                    Ok(Entry::new(id.clone()))
+                    Ok(Entry::new(self.id.clone()))
                 } else {
                     Err(err)
                 })
@@ -176,7 +174,7 @@ impl StoreEntry {
     fn write_entry(&mut self, entry: &Entry) -> Result<()> {
         if self.is_borrowed() {
             assert_eq!(self.id, entry.location);
-            self.file.write_file_content(entry.to_str().as_bytes())
+            self.file.write_file_content(entry)
                 .map_err_into(SEK::FileError)
                 .map(|_| ())
         } else {

@@ -25,6 +25,8 @@ use error::{MapErrInto, StoreError as SE, StoreErrorKind as SEK};
 
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
+use store::Entry;
+use storeid::StoreId;
 
 #[derive(Debug)]
 pub enum FSFileAbstractionInstance {
@@ -37,7 +39,7 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
     /**
      * Get the content behind this file
      */
-    fn get_file_content(&mut self) -> Result<String, SE> {
+    fn get_file_content(&mut self, id: StoreId) -> Result<Entry, SE> {
         debug!("Getting lazy file: {:?}", self);
         let (file, path) = match *self {
             FSFileAbstractionInstance::File(ref mut f, _) => return {
@@ -50,6 +52,7 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
                 f.read_to_string(&mut s)
                     .map_err_into(SEK::IoError)
                     .map(|_| s)
+                    .and_then(|s| Entry::from_str(id, &s))
             },
             FSFileAbstractionInstance::Absent(ref p) =>
                 (try!(open_file(p).map_err_into(SEK::FileNotFound)), p.clone()),
@@ -60,6 +63,7 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
             f.read_to_string(&mut s)
                 .map_err_into(SEK::IoError)
                 .map(|_| s)
+                .and_then(|s| Entry::from_str(id, &s))
         } else {
             unreachable!()
         }
@@ -68,22 +72,25 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
     /**
      * Write the content of this file
      */
-    fn write_file_content(&mut self, buf: &[u8]) -> Result<(), SE> {
+    fn write_file_content(&mut self, buf: &Entry) -> Result<(), SE> {
         use std::io::Write;
+
+        let buf = buf.to_str().into_bytes();
+
         let (file, path) = match *self {
             FSFileAbstractionInstance::File(ref mut f, _) => return {
                 // We seek to the beginning of the file since we expect each
                 // access to the file to be in a different context
                 try!(f.seek(SeekFrom::Start(0))
                     .map_err_into(SEK::FileNotCreated));
-                f.write_all(buf).map_err_into(SEK::FileNotWritten)
+                f.write_all(&buf).map_err_into(SEK::FileNotWritten)
             },
             FSFileAbstractionInstance::Absent(ref p) =>
                 (try!(create_file(p).map_err_into(SEK::FileNotCreated)), p.clone()),
         };
         *self = FSFileAbstractionInstance::File(file, path);
         if let FSFileAbstractionInstance::File(ref mut f, _) = *self {
-            return f.write_all(buf).map_err_into(SEK::FileNotWritten);
+            return f.write_all(&buf).map_err_into(SEK::FileNotWritten);
         }
         unreachable!();
     }
