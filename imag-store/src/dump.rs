@@ -17,7 +17,35 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::process::exit;
+
+use libimagrt::runtime::Runtime;
+use libimagerror::trace::*;
+
 pub fn dump(rt: &mut Runtime) {
-    unimplemented!()
+    let cachingres = rt
+        .store()
+        .entries()
+        .map_err_trace()
+        .map(|iter| {
+            for elem in iter {
+                debug!("Working on {:?}", elem);
+                if let Ok(_) = rt.store().get(elem.clone()).map_err_dbg_trace() {
+                    info!("Loading entry at {:?} succeeded", elem);
+                } else {
+                    error!("Loading entry at {:?} failed", elem);
+                }
+            }
+        });
+
+    if let Ok(_) = cachingres {
+        if let Err(_) = rt.store_backend_to_stdio().map_err_trace() {
+            error!("Loading Store IO backend failed");
+            exit(1);
+        }
+    } else {
+        error!("Loading entries failed");
+        exit(1);
+    }
 }
 
