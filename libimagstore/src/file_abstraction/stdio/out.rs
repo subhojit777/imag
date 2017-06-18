@@ -17,19 +17,21 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+//! A StdIoFileAbstraction which does not read from stdin.
+
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::io::{Read, Write};
-use std::path::PathBuf;
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::ops::Deref;
 use std::fmt::Debug;
 use std::fmt::Error as FmtError;
 use std::fmt::Formatter;
+use std::io::Write;
+use std::path::PathBuf;
+use std::sync::Arc;
+use std::sync::Mutex;
 
 use libimagerror::into::IntoError;
+use libimagerror::trace::*;
 
 use error::StoreErrorKind as SEK;
 use error::StoreError as SE;
@@ -38,81 +40,91 @@ use super::FileAbstractionInstance;
 use super::InMemoryFileAbstraction;
 use store::Entry;
 
-pub mod mapper;
-pub mod out;
-use self::mapper::Mapper;
-use self::out::StdoutFileAbstraction;
+use super::mapper::Mapper;
 
 // Because this is not exported in super::inmemory;
 type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Entry>>>>;
 
-pub struct StdIoFileAbstraction<W: Write, M: Mapper>(StdoutFileAbstraction<W, M>);
+pub struct StdoutFileAbstraction<W: Write, M: Mapper> {
+    mapper: M,
+    mem: InMemoryFileAbstraction,
+    out: Rc<RefCell<W>>,
+}
 
-impl<W, M> StdIoFileAbstraction<W, M>
+impl<W, M> StdoutFileAbstraction<W, M>
     where M: Mapper,
           W: Write
 {
 
-    pub fn new<R: Read>(in_stream: &mut R, out_stream: Rc<RefCell<W>>, mapper: M) -> Result<StdIoFileAbstraction<W, M>, SE> {
-        StdoutFileAbstraction::new(out_stream, mapper)
-            .and_then(|out| {
-                let fill_res = match out.backend().lock() {
-                    Err(_) => Err(SEK::LockError.into_error()),
-                    Ok(mut mtx) => out.mapper().read_to_fs(in_stream, mtx.get_mut())
-                };
-                let _ = try!(fill_res);
-
-                Ok(StdIoFileAbstraction(out))
-            })
+    pub fn new(out_stream: Rc<RefCell<W>>, mapper: M) -> Result<StdoutFileAbstraction<W, M>, SE> {
+        Ok(StdoutFileAbstraction {
+            mapper: mapper,
+            mem:    InMemoryFileAbstraction::new(),
+            out:    out_stream,
+        })
     }
 
     pub fn backend(&self) -> &Backend {
-        self.0.backend()
+        self.mem.backend()
+    }
+
+    pub fn mapper(&self) -> &M {
+        &self.mapper
     }
 
 }
 
-impl<W, M> Debug for StdIoFileAbstraction<W, M>
+impl<W, M> Debug for StdoutFileAbstraction<W, M>
     where M: Mapper,
           W: Write
 {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-        write!(f, "StdIoFileAbstraction({:?}", self.0)
+        write!(f, "StdoutFileAbstraction({:?}", self.mem)
     }
 }
 
-impl<W, M> Deref for StdIoFileAbstraction<W, M>
+impl<W, M> Drop for StdoutFileAbstraction<W, M>
     where M: Mapper,
           W: Write
 {
-    type Target = StdoutFileAbstraction<W, M>;
+    fn drop(&mut self) {
+        use std::ops::DerefMut;
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
+        let fill_res = match self.mem.backend().lock() {
+            Err(_) => Err(SEK::LockError.into_error()),
+            Ok(mut mtx) => {
+                self.mapper.fs_to_write(mtx.get_mut(), self.out.borrow_mut().deref_mut())
+            },
+        };
+
+        // We can do nothing but end this here with a trace.
+        // As this drop gets called when imag almost exits, there is no point in exit()ing here
+        // again.
+        let _ = fill_res.map_err_trace();
     }
 }
 
-// basically #[derive(FileAbstraction)]
-impl<W: Write, M: Mapper> FileAbstraction for StdIoFileAbstraction<W, M> {
+impl<W: Write, M: Mapper> FileAbstraction for StdoutFileAbstraction<W, M> {
 
     fn remove_file(&self, path: &PathBuf) -> Result<(), SE> {
-        self.0.remove_file(path)
+        self.mem.remove_file(path)
     }
 
     fn copy(&self, from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
-        self.0.copy(from, to)
+        self.mem.copy(from, to)
     }
 
     fn rename(&self, from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
-        self.0.rename(from, to)
+        self.mem.rename(from, to)
     }
 
     fn create_dir_all(&self, pb: &PathBuf) -> Result<(), SE> {
-        self.0.create_dir_all(pb)
+        self.mem.create_dir_all(pb)
     }
 
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance> {
-        self.0.new_instance(p)
+        self.mem.new_instance(p)
     }
 }
+
 
