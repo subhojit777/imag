@@ -18,14 +18,14 @@
 //
 
 use std::collections::HashMap;
-use std::io::Cursor;
 use std::io::{Read, Write};
 use std::path::PathBuf;
 use store::Result;
+use store::Entry;
 
 pub trait Mapper {
-    fn read_to_fs<R: Read>(&self, &mut R, &mut HashMap<PathBuf, Cursor<Vec<u8>>>)   -> Result<()>;
-    fn fs_to_write<W: Write>(&self, &mut HashMap<PathBuf, Cursor<Vec<u8>>>, &mut W) -> Result<()>;
+    fn read_to_fs<R: Read>(&self, &mut R, &mut HashMap<PathBuf, Entry>)   -> Result<()>;
+    fn fs_to_write<W: Write>(&self, &mut HashMap<PathBuf, Entry>, &mut W) -> Result<()>;
 }
 
 pub mod json;

@@ -18,7 +18,6 @@
 //
 
 use std::collections::HashMap;
-use std::io::Cursor;
 use std::io::{Read, Write};
 use std::path::PathBuf;
 
@@ -29,16 +28,18 @@ use error::StoreErrorKind as SEK;
 use error::MapErrInto;
 use super::Mapper;
 use store::Result;
+use store::Entry;
+use storeid::StoreId;
 
 use libimagerror::into::IntoError;
 
 #[derive(Deserialize, Serialize)]
-struct Entry {
+struct BackendEntry {
     header: serde_json::Value,
     content: String,
 }
 
-impl Entry {
+impl BackendEntry {
 
     fn to_string(self) -> Result<String> {
         toml::to_string(&self.header)
@@ -55,7 +56,7 @@ impl Entry {
 #[derive(Deserialize, Serialize)]
 struct Document {
     version: String,
-    store: HashMap<PathBuf, Entry>,
+    store: HashMap<PathBuf, BackendEntry>,
 }
 
 pub struct JsonMapper;
@@ -69,7 +70,7 @@ impl JsonMapper {
 }
 
 impl Mapper for JsonMapper {
-    fn read_to_fs<R: Read>(&self, r: &mut R, hm: &mut HashMap<PathBuf, Cursor<Vec<u8>>>)   -> Result<()> {
+    fn read_to_fs<R: Read>(&self, r: &mut R, hm: &mut HashMap<PathBuf, Entry>)   -> Result<()> {
         let mut document = {
             let mut s = String::new();
             try!(r.read_to_string(&mut s).map_err_into(SEK::IoError));
@@ -93,7 +94,11 @@ impl Mapper for JsonMapper {
         for (key, val) in document.store.drain() {
             let res = val
                 .to_string()
-                .map(|vals| hm.insert(key, Cursor::new(vals.into_bytes())))
+                .and_then(|vals| {
+                    StoreId::new_baseless(key.clone())
+                        .and_then(|id| Entry::from_str(id, &vals))
+                        .map(|entry| hm.insert(key, entry))
+                })
                 .map(|_| ());
 
             let _ = try!(res);
@@ -102,42 +107,37 @@ impl Mapper for JsonMapper {
         Ok(())
     }
 
-    fn fs_to_write<W: Write>(&self, hm: &mut HashMap<PathBuf, Cursor<Vec<u8>>>, out: &mut W) -> Result<()> {
-        use util::entry_buffer_to_header_content;
-
-        #[derive(Serialize, Deserialize)]
-        struct Entry {
+    fn fs_to_write<W: Write>(&self, hm: &mut HashMap<PathBuf, Entry>, out: &mut W) -> Result<()> {
+        #[derive(Serialize)]
+        struct BackendEntry {
             header: ::toml::Value,
             content: String,
+        }
+
+        impl BackendEntry {
+            fn construct_from(e: Entry) -> BackendEntry {
+                BackendEntry {
+                    header:  e.get_header().clone(),
+                    content: e.get_content().clone(),
+                }
+            }
         }
 
         #[derive(Serialize)]
         struct OutDocument {
             version: String,
-            store: HashMap<PathBuf, Entry>,
+            store: HashMap<PathBuf, BackendEntry>,
         }
 
-        let mut doc = OutDocument {
-            version: String::from(version!()),
-            store:   HashMap::new(),
-        };
-
+        let mut store = HashMap::new();
         for (key, value) in hm.drain() {
-            let res = String::from_utf8(value.into_inner())
-                .map_err_into(SEK::IoError)
-                .and_then(|buf| entry_buffer_to_header_content(&buf))
-                .map(|(header, content)| {
-                    let entry = Entry {
-                        header: header,
-                        content: content
-                    };
-
-                    doc.store.insert(key, entry);
-                })
-                .map(|_| ());
-
-            let _ = try!(res);
+            store.insert(key, BackendEntry::construct_from(value));
         }
+
+        let doc = OutDocument {
+            version: String::from(version!()),
+            store:   store,
+        };
 
         serde_json::to_string(&doc)
             .map_err_into(SEK::IoError)
@@ -158,7 +158,7 @@ mod test {
         let json = r#"
         { "version": "0.3.0",
           "store": {
-            "/example": {
+            "example": {
                 "header": {
                     "imag": {
                         "version": "0.3.0"
@@ -191,7 +191,10 @@ mod test {
 version = "0.3.0"
 ---
 hi there!"#;
-            hm.insert(PathBuf::from("/example"), Cursor::new(String::from(content).into_bytes()));
+
+            let id = PathBuf::from("example");
+            let entry = Entry::from_str(id.clone(), content).unwrap();
+            hm.insert(id, entry);
             hm
         };
 
@@ -202,7 +205,7 @@ hi there!"#;
         {
             "version": "0.3.0",
             "store": {
-                "/example": {
+                "example": {
                     "header": {
                         "imag": {
                             "version": "0.3.0"
