@@ -295,6 +295,36 @@ impl Store {
         Ok(store)
     }
 
+    /// Reset the backend of the store during runtime
+    ///
+    /// # Warning
+    ///
+    /// This is dangerous!
+    /// You should not be able to do that in application code, only the libimagrt should be used to
+    /// do this via safe and careful wrapper functions!
+    ///
+    /// If you are able to do this without using `libimagrt`, please file an issue report.
+    ///
+    /// # Purpose
+    ///
+    /// With the I/O backend of the store, the store is able to pipe itself out via (for example)
+    /// JSON. But because we need a functionality where we load contents from the filesystem and
+    /// then pipe it to stdout, we need to be able to replace the backend during runtime.
+    ///
+    /// This also applies the other way round: If we get the store from stdin and have to persist it
+    /// to stdout, we need to be able to replace the in-memory backend with the real filesystem
+    /// backend.
+    ///
+    /// # TODO
+    ///
+    /// Currently, this is the naive implementatoin which does not transfer contents of the
+    /// backends.
+    ///
+    pub fn reset_backend(&mut self, backend: Box<FileAbstraction>) -> Result<()> {
+        self.backend = backend;
+        Ok(())
+    }
+
     /// Get the store configuration
     pub fn config(&self) -> Option<&Value> {
         self.configuration.as_ref()
