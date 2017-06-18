@@ -17,6 +17,15 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use regex::Regex;
+use toml::Value;
+
+use libimagerror::into::IntoError;
+
+use store::Result;
+use error::StoreErrorKind as SEK;
+use toml_ext::Header;
+
 #[cfg(feature = "early-panic")]
 #[macro_export]
 macro_rules! if_cfg_panic {
@@ -31,5 +40,31 @@ macro_rules! if_cfg_panic {
     ()                       => { };
     ($msg:expr)              => { };
     ($fmt:expr, $($arg:tt)+) => { };
+}
+
+pub fn entry_buffer_to_header_content(buf: &str) -> Result<(Value, String)> {
+    debug!("Building entry from string");
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"(?smx)
+            ^---$
+            (?P<header>.*) # Header
+            ^---$\n
+            (?P<content>.*) # Content
+        ").unwrap();
+    }
+
+    let matches = match RE.captures(buf) {
+        None    => return Err(SEK::MalformedEntry.into_error()),
+        Some(s) => s,
+    };
+
+    let header = match matches.name("header") {
+        None    => return Err(SEK::MalformedEntry.into_error()),
+        Some(s) => s
+    };
+
+    let content = matches.name("content").map(|r| r.as_str()).unwrap_or("");
+
+    Ok((try!(Value::parse(header.as_str())), String::from(content)))
 }
 

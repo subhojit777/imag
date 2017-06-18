@@ -34,6 +34,8 @@ generate_custom_error_types!(StoreError, StoreErrorKind, CustomErrorData,
     ConfigTypeError         => "Store configuration type error",
     ConfigKeyMissingError   => "Configuration Key missing",
 
+    VersionError            => "Incompatible store versions detected",
+
     CreateStoreDirDenied    => "Creating store directory implicitely denied",
     FileError               => "File Error",
     IoError                 => "IO Error",

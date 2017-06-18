@@ -44,6 +44,9 @@ extern crate crossbeam;
 extern crate walkdir;
 extern crate itertools;
 #[macro_use] extern crate is_match;
+#[macro_use] extern crate serde;
+#[macro_use] extern crate serde_json;
+#[macro_use] extern crate serde_derive;
 
 #[macro_use] extern crate libimagerror;
 extern crate libimagutil;
