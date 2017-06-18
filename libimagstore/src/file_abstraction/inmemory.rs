@@ -62,11 +62,10 @@ impl FileAbstractionInstance for InMemoryFileAbstractionInstance {
     fn get_file_content(&mut self, _: StoreId) -> Result<Entry, SE> {
         debug!("Getting lazy file: {:?}", self);
 
-        let p = self.absent_path.clone();
         match self.fs_abstraction.lock() {
             Ok(mut mtx) => {
                 mtx.get_mut()
-                    .get(&p)
+                    .get(&self.absent_path)
                     .cloned()
                     .ok_or(SEK::FileNotFound.into_error())
             }
