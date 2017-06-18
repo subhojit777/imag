@@ -749,6 +749,18 @@ impl Store {
         Ok(())
     }
 
+    /// Get _all_ entries in the store (by id as iterator)
+    pub fn entries(&self) -> Result<StoreIdIterator> {
+        let iter = Walk::new(self.path().clone(), "")
+            .filter_map(|id| match id {
+                StoreObject::Id(sid) => Some(sid),
+                _       => None
+            });
+
+        Ok(StoreIdIterator::new(Box::new(iter)))
+
+    }
+
     /// Gets the path where this store is on the disk
     pub fn path(&self) -> &PathBuf {
         &self.location
