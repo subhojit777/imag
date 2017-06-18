@@ -1562,5 +1562,149 @@ mod store_tests {
         }
     }
 
+    #[test]
+    fn test_swap_backend_during_runtime() {
+        use file_abstraction::InMemoryFileAbstraction;
+
+        let mut store = {
+            let backend = InMemoryFileAbstraction::new();
+            let backend = Box::new(backend);
+
+            Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+        };
+
+        for n in 1..100 {
+            let s = format!("test-{}", n);
+            let entry = store.create(PathBuf::from(s.clone())).unwrap();
+            assert!(entry.verify().is_ok());
+            let loc = entry.get_location().clone().into_pathbuf().unwrap();
+            assert!(loc.starts_with("/"));
+            assert!(loc.ends_with(s));
+        }
+
+        {
+            let other_backend = InMemoryFileAbstraction::new();
+            let other_backend = Box::new(other_backend);
+
+            assert!(store.reset_backend(other_backend).is_ok())
+        }
+
+        for n in 1..100 {
+            let s = format!("test-{}", n);
+            let entry = store.get(PathBuf::from(s.clone()));
+
+            assert!(entry.is_ok());
+            let entry = entry.unwrap();
+
+            assert!(entry.is_some());
+            let entry = entry.unwrap();
+
+            assert!(entry.verify().is_ok());
+
+            let loc = entry.get_location().clone().into_pathbuf().unwrap();
+            assert!(loc.starts_with("/"));
+            assert!(loc.ends_with(s));
+        }
+    }
+
+    #[test]
+    fn test_swap_backend_during_runtime_with_io() {
+        use std::io::Cursor;
+        use std::rc::Rc;
+        use std::cell::RefCell;
+        use serde_json::Value;
+        use file_abstraction::stdio::out::StdoutFileAbstraction;
+        use file_abstraction::stdio::mapper::json::JsonMapper;
+
+        // The output we later read from and check whether there is an entry
+        let output  = Rc::new(RefCell::new(vec![]));
+
+        {
+            let mut store = {
+                use file_abstraction::stdio::StdIoFileAbstraction;
+                use file_abstraction::stdio::mapper::json::JsonMapper;
+
+                // Lets have an empty store as input
+                let mut input = Cursor::new(r#"
+                { "version": "0.3.0",
+                    "store": {
+                        "example": {
+                            "header": {
+                                "imag": {
+                                    "version": "0.3.0"
+                                }
+                            },
+                            "content": "foobar"
+                        }
+                    }
+                }
+                "#);
+
+                let output  = Rc::new(RefCell::new(::std::io::sink()));
+                let mapper  = JsonMapper::new();
+                let backend = StdIoFileAbstraction::new(&mut input, output, mapper).unwrap();
+                let backend = Box::new(backend);
+
+                Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+            };
+
+            // Replacing the backend
+
+            {
+                let mapper    = JsonMapper::new();
+                let backend   = StdoutFileAbstraction::new(output.clone(), mapper);
+                let _         = assert!(backend.is_ok(), format!("Should be ok: {:?}", backend));
+                let backend   = backend.unwrap();
+                let backend   = Box::new(backend);
+
+                assert!(store.reset_backend(backend).is_ok());
+            }
+        }
+
+        let vec    = Rc::try_unwrap(output).unwrap().into_inner();
+        let errstr = format!("Not UTF8: '{:?}'", vec);
+        let string = String::from_utf8(vec);
+        assert!(string.is_ok(), errstr);
+        let string = string.unwrap();
+
+        assert!(!string.is_empty(), format!("Expected not to be empty: '{}'", string));
+
+        let json : ::serde_json::Value = ::serde_json::from_str(&string).unwrap();
+
+        match json {
+            Value::Object(ref map) => {
+                assert!(map.get("version").is_some(), format!("No 'version' in JSON"));
+                match map.get("version").unwrap() {
+                    &Value::String(ref s) => assert_eq!("0.3.0", s),
+                    _ => panic!("Wrong type in JSON at 'version'"),
+                }
+
+                assert!(map.get("store").is_some(), format!("No 'store' in JSON"));
+                match map.get("store").unwrap() {
+                    &Value::Object(ref objs) => {
+                        let s = String::from("example");
+                        assert!(objs.get(&s).is_some(), format!("No entry: '{}' in \n{:?}", s, objs));
+                        match objs.get(&s).unwrap() {
+                            &Value::Object(ref entry) => {
+                                match entry.get("header").unwrap() {
+                                    &Value::Object(_) => assert!(true),
+                                    _ => panic!("Wrong type in JSON at 'store.'{}'.header'", s),
+                                }
+
+                                match entry.get("content").unwrap() {
+                                    &Value::String(_) => assert!(true),
+                                    _ => panic!("Wrong type in JSON at 'store.'{}'.content'", s),
+                                }
+                            },
+                            _ => panic!("Wrong type in JSON at 'store.'{}''", s),
+                        }
+                    },
+                    _ => panic!("Wrong type in JSON at 'store'"),
+                }
+            },
+            _ => panic!("Wrong type in JSON at top level"),
+        }
+
+    }
 }
 
