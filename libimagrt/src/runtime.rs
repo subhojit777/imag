@@ -343,6 +343,31 @@ impl<'a> Runtime<'a> {
         &self.store
     }
 
+    /// Change the store backend to stdout
+    ///
+    /// For the documentation on purpose and cavecats, have a look at the documentation of the
+    /// `Store::reset_backend()` function.
+    ///
+    pub fn store_backend_to_stdio(&mut self) -> Result<(), RuntimeError> {
+        use libimagstore::file_abstraction::stdio::*;
+        use libimagstore::file_abstraction::stdio::mapper::json::JsonMapper;
+        use std::rc::Rc;
+        use std::cell::RefCell;
+
+        let mut input = ::std::io::empty();
+        let output    = ::std::io::stdout();
+        let output    = Rc::new(RefCell::new(output));
+        let mapper    = JsonMapper::new();
+
+        StdIoFileAbstraction::new(&mut input, output, mapper)
+            .map_err_into(RuntimeErrorKind::Instantiate)
+            .and_then(|backend| {
+                self.store
+                    .reset_backend(Box::new(backend))
+                    .map_err_into(RuntimeErrorKind::Instantiate)
+            })
+    }
+
     /// Get a editor command object which can be called to open the $EDITOR
     pub fn editor(&self) -> Option<Command> {
         self.cli()
