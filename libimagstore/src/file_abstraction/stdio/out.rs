@@ -29,6 +29,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::ops::Deref;
 
 use libimagerror::into::IntoError;
 use libimagerror::trace::*;
@@ -37,6 +38,7 @@ use error::StoreErrorKind as SEK;
 use error::StoreError as SE;
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
+use super::Drain;
 use super::InMemoryFileAbstraction;
 use store::Entry;
 
@@ -66,6 +68,14 @@ impl<W, M> StdoutFileAbstraction<W, M>
 
     pub fn backend(&self) -> &Backend {
         self.mem.backend()
+    }
+
+    fn backend_cloned(&self) -> Result<HashMap<PathBuf, Entry>, SE> {
+        self.mem
+            .backend()
+            .lock()
+            .map_err(|_| SEK::LockError.into_error())
+            .map(|mtx| mtx.deref().borrow().clone())
     }
 
     pub fn mapper(&self) -> &M {
@@ -125,6 +135,23 @@ impl<W: Write, M: Mapper> FileAbstraction for StdoutFileAbstraction<W, M> {
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance> {
         self.mem.new_instance(p)
     }
+
+    fn drain(&self) -> Result<Drain, SE> {
+        self.backend_cloned().map(Drain::new)
+    }
+
+    fn fill(&mut self, mut d: Drain) -> Result<(), SE> {
+        debug!("Draining into : {:?}", self);
+        let mut mtx = try!(self.backend().lock().map_err(|_| SEK::IoError.into_error()));
+        let mut backend = mtx.get_mut();
+
+        for (path, element) in d.iter() {
+            debug!("Drain into {:?}: {:?}", self, path);
+            backend.insert(path, element);
+        }
+        Ok(())
+    }
+
 }
 
 

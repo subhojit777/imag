@@ -35,6 +35,7 @@ use error::StoreErrorKind as SEK;
 use error::StoreError as SE;
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
+use super::Drain;
 use super::InMemoryFileAbstraction;
 use store::Entry;
 
@@ -113,6 +114,14 @@ impl<W: Write, M: Mapper> FileAbstraction for StdIoFileAbstraction<W, M> {
 
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance> {
         self.0.new_instance(p)
+    }
+
+    fn drain(&self) -> Result<Drain, SE> {
+        self.0.drain()
+    }
+
+    fn fill(&mut self, d: Drain) -> Result<(), SE> {
+        self.0.fill(d)
     }
 }
 

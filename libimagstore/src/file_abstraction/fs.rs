@@ -25,6 +25,7 @@ use error::{MapErrInto, StoreError as SE, StoreErrorKind as SEK};
 
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
+use super::Drain;
 use store::Entry;
 use storeid::StoreId;
 
@@ -130,6 +131,20 @@ impl FileAbstraction for FSFileAbstraction {
 
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance> {
         Box::new(FSFileAbstractionInstance::Absent(p))
+    }
+
+    /// We return nothing from the FS here.
+    fn drain(&self) -> Result<Drain, SE> {
+        Ok(Drain::empty())
+    }
+
+    /// FileAbstraction::fill implementation that consumes the Drain and writes everything to the
+    /// filesystem
+    fn fill(&mut self, mut d: Drain) -> Result<(), SE> {
+        d.iter()
+            .fold(Ok(()), |acc, (path, element)| {
+                acc.and_then(|_| self.new_instance(path).write_file_content(&element))
+            })
     }
 }
 

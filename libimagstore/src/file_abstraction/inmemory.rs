@@ -24,11 +24,13 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use std::cell::RefCell;
 use std::sync::Arc;
+use std::ops::Deref;
 
 use libimagerror::into::IntoError;
 
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
+use super::Drain;
 use store::Entry;
 use storeid::StoreId;
 
@@ -104,6 +106,13 @@ impl InMemoryFileAbstraction {
         &self.virtual_filesystem
     }
 
+    fn backend_cloned<'a>(&'a self) -> Result<HashMap<PathBuf, Entry>, SE> {
+        self.virtual_filesystem
+            .lock()
+            .map_err(|_| SEK::LockError.into_error())
+            .map(|mtx| mtx.deref().borrow().clone())
+    }
+
 }
 
 impl FileAbstraction for InMemoryFileAbstraction {
@@ -147,6 +156,23 @@ impl FileAbstraction for InMemoryFileAbstraction {
 
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance> {
         Box::new(InMemoryFileAbstractionInstance::new(self.backend().clone(), p))
+    }
+
+    fn drain(&self) -> Result<Drain, SE> {
+        self.backend_cloned().map(Drain::new)
+    }
+
+    fn fill<'a>(&'a mut self, mut d: Drain) -> Result<(), SE> {
+        debug!("Draining into : {:?}", self);
+        let mut mtx = try!(self.backend().lock().map_err(|_| SEK::LockError.into_error()));
+        let mut backend = mtx.get_mut();
+
+        for (path, element) in d.iter() {
+            debug!("Drain into {:?}: {:?}", self, path);
+            backend.insert(path, element);
+        }
+
+        Ok(())
     }
 }
 
