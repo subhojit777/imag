@@ -21,7 +21,8 @@ use std::path::PathBuf;
 use std::fmt::Debug;
 
 use error::StoreError as SE;
-
+use store::Entry;
+use storeid::StoreId;
 
 mod fs;
 mod inmemory;
@@ -44,27 +45,43 @@ pub trait FileAbstraction : Debug {
 
 /// An abstraction trait over actions on files
 pub trait FileAbstractionInstance : Debug {
-    fn get_file_content(&mut self) -> Result<String, SE>;
-    fn write_file_content(&mut self, buf: &[u8]) -> Result<(), SE>;
+
+    /// Get the contents of the FileAbstractionInstance, as Entry object.
+    ///
+    /// The `StoreId` is passed because the backend does not know where the Entry lives, but the
+    /// Entry type itself must be constructed with the id.
+    fn get_file_content(&mut self, id: StoreId) -> Result<Entry, SE>;
+    fn write_file_content(&mut self, buf: &Entry) -> Result<(), SE>;
 }
 
 #[cfg(test)]
 mod test {
+    use std::path::PathBuf;
+
     use super::FileAbstractionInstance;
     use super::inmemory::InMemoryFileAbstraction;
     use super::inmemory::InMemoryFileAbstractionInstance;
-    use std::path::PathBuf;
+    use storeid::StoreId;
+    use store::Entry;
 
     #[test]
     fn lazy_file() {
         let fs = InMemoryFileAbstraction::new();
 
-        let mut path = PathBuf::from("/tests");
+        let mut path = PathBuf::from("tests");
         path.set_file_name("test1");
-        let mut lf = InMemoryFileAbstractionInstance::new(fs.backend().clone(), path);
-        lf.write_file_content(b"Hello World").unwrap();
-        let bah = lf.get_file_content().unwrap();
-        assert_eq!(bah, "Hello World");
+        let mut lf = InMemoryFileAbstractionInstance::new(fs.backend().clone(), path.clone());
+
+        let loca = StoreId::new_baseless(path).unwrap();
+        let file = Entry::from_str(loca.clone(), r#"---
+[imag]
+version = "0.3.0"
+---
+Hello World"#).unwrap();
+
+        lf.write_file_content(&file).unwrap();
+        let bah = lf.get_file_content(loca).unwrap();
+        assert_eq!(bah.get_content(), "Hello World");
     }
 
 }

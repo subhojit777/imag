@@ -19,8 +19,6 @@
 
 use error::StoreError as SE;
 use error::StoreErrorKind as SEK;
-use std::io::Read;
-use std::io::Cursor;
 use std::path::PathBuf;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -31,9 +29,10 @@ use libimagerror::into::IntoError;
 
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
-use error::MapErrInto;
+use store::Entry;
+use storeid::StoreId;
 
-type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Cursor<Vec<u8>>>>>>;
+type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Entry>>>>;
 
 /// `FileAbstraction` type, this is the Test version!
 ///
@@ -60,41 +59,28 @@ impl FileAbstractionInstance for InMemoryFileAbstractionInstance {
     /**
      * Get the mutable file behind a InMemoryFileAbstraction object
      */
-    fn get_file_content(&mut self) -> Result<String, SE> {
+    fn get_file_content(&mut self, _: StoreId) -> Result<Entry, SE> {
         debug!("Getting lazy file: {:?}", self);
 
         let p = self.absent_path.clone();
         match self.fs_abstraction.lock() {
             Ok(mut mtx) => {
                 mtx.get_mut()
-                    .get_mut(&p)
+                    .get(&p)
+                    .cloned()
                     .ok_or(SEK::FileNotFound.into_error())
-                    .and_then(|t| {
-                        let mut s = String::new();
-                        t.read_to_string(&mut s)
-                            .map_err_into(SEK::IoError)
-                            .map(|_| s)
-                    })
             }
 
             Err(_) => Err(SEK::LockError.into_error())
         }
     }
 
-    fn write_file_content(&mut self, buf: &[u8]) -> Result<(), SE> {
+    fn write_file_content(&mut self, buf: &Entry) -> Result<(), SE> {
         match *self {
             InMemoryFileAbstractionInstance { ref absent_path, .. } => {
                 let mut mtx = self.fs_abstraction.lock().expect("Locking Mutex failed");
                 let mut backend = mtx.get_mut();
-
-                if let Some(ref mut cur) = backend.get_mut(absent_path) {
-                    let mut vec = cur.get_mut();
-                    vec.clear();
-                    vec.extend_from_slice(buf);
-                    return Ok(());
-                }
-                let vec = Vec::from(buf);
-                backend.insert(absent_path.clone(), Cursor::new(vec));
+                let _ = backend.insert(absent_path.clone(), buf.clone());
                 return Ok(());
             },
         };

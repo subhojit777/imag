@@ -23,7 +23,6 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fmt::Error as FmtError;
 use std::fmt::Formatter;
-use std::io::Cursor;
 use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -37,12 +36,13 @@ use error::StoreError as SE;
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
 use super::InMemoryFileAbstraction;
+use store::Entry;
 
 pub mod mapper;
 use self::mapper::Mapper;
 
 // Because this is not exported in super::inmemory;
-type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Cursor<Vec<u8>>>>>>;
+type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Entry>>>>;
 
 pub struct StdIoFileAbstraction<W: Write, M: Mapper> {
     mapper: M,
@@ -83,7 +83,7 @@ impl<W, M> StdIoFileAbstraction<W, M>
     }
 
     pub fn backend(&self) -> &Backend {
-        &self.mem.backend()
+        self.mem.backend()
     }
 
 }
