@@ -33,7 +33,7 @@ use storeid::StoreId;
 
 use libimagerror::into::IntoError;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct BackendEntry {
     header: serde_json::Value,
     content: String,
@@ -53,7 +53,7 @@ impl BackendEntry {
 
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct Document {
     version: String,
     store: HashMap<PathBuf, BackendEntry>,
@@ -72,9 +72,13 @@ impl JsonMapper {
 impl Mapper for JsonMapper {
     fn read_to_fs<R: Read>(&self, r: &mut R, hm: &mut HashMap<PathBuf, Entry>)   -> Result<()> {
         let mut document = {
+            debug!("Reading Document");
             let mut s = String::new();
             try!(r.read_to_string(&mut s).map_err_into(SEK::IoError));
+            debug!("Document = {:?}", s);
+            debug!("Parsing Document");
             let doc : Document = try!(serde_json::from_str(&s).map_err_into(SEK::IoError));
+            debug!("Document = {:?}", doc);
             doc
         };
 
@@ -84,6 +88,10 @@ impl Mapper for JsonMapper {
                 // safe because cargo does not compile if crate version is not valid
                 let crate_version = ::semver::Version::parse(version!()).unwrap();
 
+                debug!("Document version vs. own version: {doc_vers} > {crate_vers}",
+                       doc_vers = doc_vers,
+                       crate_vers = crate_version);
+
                 if doc_vers > crate_version {
                     Err(SEK::VersionError.into_error())
                 } else {
@@ -92,9 +100,11 @@ impl Mapper for JsonMapper {
             }));
 
         for (key, val) in document.store.drain() {
+            debug!("(key, value) ({:?}, {:?})", key, val);
             let res = val
                 .to_string()
                 .and_then(|vals| {
+                    debug!("value string = {:?}", vals);
                     StoreId::new_baseless(key.clone())
                         .and_then(|id| Entry::from_str(id, &vals))
                         .map(|entry| hm.insert(key, entry))
