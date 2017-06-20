@@ -154,6 +154,18 @@ mod test {
     use super::*;
 
     #[test]
+    fn test_empty_json_to_fs() {
+        let json = r#"{"version":"0.3.0","store":{}}"#;
+        let mut json = Cursor::new(String::from(json).into_bytes());
+        let mapper   = JsonMapper::new();
+        let mut hm   = HashMap::new();
+
+        let io_res  = mapper.read_to_fs(&mut json, &mut hm);
+        assert!(io_res.is_ok());
+        assert!(hm.is_empty());
+    }
+
+    #[test]
     fn test_json_to_fs() {
         let json = r#"
         { "version": "0.3.0",
