@@ -115,7 +115,7 @@ impl Iterator for Walk {
                 } else /* if next.file_type().is_file() */ {
                     debug!("Found file...");
                     let n   = next.path().to_path_buf();
-                    let sid = match StoreId::new(Some(self.store_path.clone()), n) {
+                    let sid = match StoreId::from_full_path(&self.store_path, n) {
                         Err(e) => {
                             debug!("Could not construct StoreId object from it");
                             trace_error(&e);
