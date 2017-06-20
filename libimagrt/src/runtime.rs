@@ -103,6 +103,10 @@ impl<'a> Runtime<'a> {
         let configpath = matches.value_of("config")
                                 .map_or_else(|| rtp.clone(), PathBuf::from);
 
+        debug!("RTP path    = {:?}", rtp);
+        debug!("Store path  = {:?}", storepath);
+        debug!("Config path = {:?}", configpath);
+
         let cfg = match Configuration::new(&configpath) {
             Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
                 return Err(RuntimeErrorKind::Instantiate.into_error_with_cause(Box::new(e)));
