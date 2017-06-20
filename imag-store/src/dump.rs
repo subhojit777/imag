@@ -39,7 +39,7 @@ pub fn dump(rt: &mut Runtime) {
         });
 
     if let Ok(_) = cachingres {
-        if let Err(_) = rt.store_backend_to_stdio().map_err_trace() {
+        if let Err(_) = rt.store_backend_to_stdout().map_err_trace() {
             error!("Loading Store IO backend failed");
             exit(1);
         }
