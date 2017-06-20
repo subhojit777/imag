@@ -358,12 +358,31 @@ impl<'a> Runtime<'a> {
         use std::rc::Rc;
         use std::cell::RefCell;
 
-        let mut input = ::std::io::empty();
+        let mut input = ::std::io::stdin();
         let output    = ::std::io::stdout();
         let output    = Rc::new(RefCell::new(output));
         let mapper    = JsonMapper::new();
 
         StdIoFileAbstraction::new(&mut input, output, mapper)
+            .map_err_into(RuntimeErrorKind::Instantiate)
+            .and_then(|backend| {
+                self.store
+                    .reset_backend(Box::new(backend))
+                    .map_err_into(RuntimeErrorKind::Instantiate)
+            })
+    }
+
+    pub fn store_backend_to_stdout(&mut self) -> Result<(), RuntimeError> {
+        use libimagstore::file_abstraction::stdio::mapper::json::JsonMapper;
+        use libimagstore::file_abstraction::stdio::out::StdoutFileAbstraction;
+        use std::rc::Rc;
+        use std::cell::RefCell;
+
+        let output    = ::std::io::stdout();
+        let output    = Rc::new(RefCell::new(output));
+        let mapper    = JsonMapper::new();
+
+        StdoutFileAbstraction::new(output, mapper)
             .map_err_into(RuntimeErrorKind::Instantiate)
             .and_then(|backend| {
                 self.store
