@@ -23,6 +23,9 @@ use std::ops::Deref;
 
 use toml::Value;
 
+use error::RuntimeErrorKind as REK;
+use libimagerror::into::IntoError;
+
 generate_error_module!(
     generate_error_types!(ConfigError, ConfigErrorKind,
         TOMLParserError => "TOML Parsing error",
@@ -221,14 +224,12 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     use std::env;
     use std::fs::File;
     use std::io::Read;
-    use std::io::Write;
-    use std::io::stderr;
 
     use xdg_basedir;
     use itertools::Itertools;
 
     use libimagutil::variants::generate_variants as gen_vars;
-    use libimagerror::trace::trace_error;
+    use self::error::MapErrInto;
 
     let variants = vec!["config", "config.toml", "imagrc", "imagrc.toml"];
     let modifier = |base: &PathBuf, v: &'static str| {
@@ -250,6 +251,7 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
         .flatten()
         .filter(|path| path.exists() && path.is_file())
         .map(|path| {
+            debug!("Reading {:?}", path);
             let content = {
                 let mut s = String::new();
                 let f = File::open(path);
@@ -261,17 +263,18 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
                 s
             };
 
-            match ::toml::de::from_str(&content[..]) {
-                Ok(res) => res,
-                Err(e) => {
-                    write!(stderr(), "Config file parser error:").ok();
-                    trace_error(&e);
-                    None
-                }
-            }
+            trace!("Contents of config file: \n---\n{}\n---", content);
+
+            let toml = ::toml::de::from_str(&content[..])
+                .map_err_into(ConfigErrorKind::TOMLParserError)
+                .map_err(Box::new)
+                .map_err(|e| REK::Instantiate.into_error_with_cause(e));
+
+            Some(toml)
         })
-        .filter(|loaded| loaded.is_some())
-        .nth(0)
+        .filter_map(|x| x)
+        .filter(|loaded| loaded.is_ok())
         .map(|inner| Value::Table(inner.unwrap()))
+        .nth(0)
         .ok_or(ConfigErrorKind::NoConfigFileFound.into())
 }
