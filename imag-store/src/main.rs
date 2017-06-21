@@ -47,6 +47,7 @@ use libimagrt::setup::generate_runtime_setup;
 
 mod create;
 mod delete;
+mod dump;
 mod error;
 mod get;
 mod retrieve;
@@ -55,8 +56,11 @@ mod update;
 mod verify;
 mod util;
 
+use std::ops::Deref;
+
 use create::create;
 use delete::delete;
+use dump::dump;
 use get::get;
 use retrieve::retrieve;
 use ui::build_ui;
@@ -64,33 +68,30 @@ use update::update;
 use verify::verify;
 
 fn main() {
-    let rt = generate_runtime_setup("imag-store",
-                                    &version!()[..],
-                                    "Direct interface to the store. Use with great care!",
-                                    build_ui);
+    let mut rt = generate_runtime_setup("imag-store",
+                                        &version!()[..],
+                                        "Direct interface to the store. Use with great care!",
+                                        build_ui);
 
-    rt.cli()
-        .subcommand_name()
-        .map_or_else(
-            || {
-                debug!("No command");
+    let command = rt.cli().subcommand_name().map(String::from);
+
+    if let Some(command) = command {
+        debug!("Call: {}", command);
+        match command.deref() {
+            "create"   => create(&rt),
+            "delete"   => delete(&rt),
+            "get"      => get(&rt),
+            "retrieve" => retrieve(&rt),
+            "update"   => update(&rt),
+            "verify"   => verify(&rt),
+            "dump"     => dump(&mut rt),
+            _ => {
+                debug!("Unknown command");
                 // More error handling
             },
-            |name| {
-                debug!("Call: {}", name);
-                match name {
-                    "create"   => create(&rt),
-                    "delete"   => delete(&rt),
-                    "get"      => get(&rt),
-                    "retrieve" => retrieve(&rt),
-                    "update"   => update(&rt),
-                    "verify"   => verify(&rt),
-                    _ => {
-                        debug!("Unknown command");
-                        // More error handling
-                    },
-                };
-            }
-        )
+        };
+    } else {
+        debug!("No command");
+    }
 }
 
