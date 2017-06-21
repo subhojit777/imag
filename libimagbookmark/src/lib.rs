@@ -31,7 +31,6 @@
     while_true,
 )]
 
-#[macro_use] extern crate log;
 extern crate semver;
 extern crate url;
 extern crate regex;
