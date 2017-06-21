@@ -7,9 +7,16 @@ dist:
 
 language: rust
 
+rust:
+  - stable
+  - beta
+  - nightly
+
 matrix:
   include:
     - rust: 1.15.0
+  allow_failures:
+    - rust: nightly
 
 cache:
   cargo: true
