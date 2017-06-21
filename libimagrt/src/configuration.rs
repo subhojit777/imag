@@ -97,7 +97,6 @@ impl Configuration {
         self.editor.as_ref()
     }
 
-    #[allow(dead_code)] // Why do I actually need this annotation on a pub function?
     /// Get the underlying configuration TOML object
     pub fn config(&self) -> &Value {
         &self.config
@@ -129,32 +128,28 @@ impl Configuration {
 
         v.into_iter()
             .map(|s| { debug!("Trying to process '{}'", s); s })
-            .filter_map(|s| {
-                match s.into_kv() {
-                    Some(kv) => Some(kv.into()),
-                    None => {
-                        warn!("Could split at '=' - will be ignore override");
-                        None
-                    }
+            .filter_map(|s| match s.into_kv() {
+                Some(kv) => Some(kv.into()),
+                None => {
+                    warn!("Could split at '=' - will be ignore override");
+                    None
                 }
             })
-            .map(|(k, v)| {
-                self.config
-                    .read(&k[..])
-                    .map_err_into(CEK::TOMLParserError)
-                    .map(|toml| match toml {
-                        Some(value) => {
-                            match into_value(value, v) {
-                                Some(v) => {
-                                    info!("Successfully overridden: {} = {}", k, v);
-                                    Ok(v)
-                                },
-                                None => Err(CEK::ConfigOverrideTypeNotMatching.into_error()),
-                            }
+            .map(|(k, v)| self
+                 .config
+                 .read(&k[..])
+                 .map_err_into(CEK::TOMLParserError)
+                 .map(|toml| match toml {
+                    Some(value) => match into_value(value, v) {
+                        Some(v) => {
+                            info!("Successfully overridden: {} = {}", k, v);
+                            Ok(v)
                         },
-                        None => Err(CEK::ConfigOverrideKeyNotAvailable.into_error()),
-                    })
-            })
+                        None => Err(CEK::ConfigOverrideTypeNotMatching.into_error()),
+                    },
+                    None => Err(CEK::ConfigOverrideKeyNotAvailable.into_error()),
+                })
+            )
             .fold_result(|i| i)
             .map_err(Box::new)
             .map_err(|e| CEK::ConfigOverrideError.into_error_with_cause(e))
@@ -170,9 +165,9 @@ fn into_value(value: Value, s: String) -> Option<Value> {
     use std::str::FromStr;
 
     match value {
-        Value::String(_) => Some(Value::String(s)),
-        Value::Integer(_) => FromStr::from_str(&s[..]).ok().map(|i| Value::Integer(i)),
-        Value::Float(_) => FromStr::from_str(&s[..]).ok().map(|f| Value::Float(f)),
+        Value::String(_)  => Some(Value::String(s)),
+        Value::Integer(_) => FromStr::from_str(&s[..]).ok().map(Value::Integer),
+        Value::Float(_)   => FromStr::from_str(&s[..]).ok().map(Value::Float),
         Value::Boolean(_) => {
             if s == "true" { Some(Value::Boolean(true)) }
             else if s == "false" { Some(Value::Boolean(false)) }
@@ -195,7 +190,7 @@ impl Deref for Configuration {
 fn get_verbosity(v: &Value) -> bool {
     match *v {
         Value::Table(ref t) => t.get("verbose")
-                .map_or(false, |v| match *v { Value::Boolean(b) => b, _ => false, }),
+                .map_or(false, |v| is_match!(v, &Value::Boolean(true))),
         _ => false,
     }
 }
@@ -250,7 +245,7 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     ].iter()
         .flatten()
         .filter(|path| path.exists() && path.is_file())
-        .map(|path| {
+        .filter_map(|path| if path.exists() && path.is_file() {
             debug!("Reading {:?}", path);
             let content = {
                 let mut s = String::new();
@@ -271,8 +266,9 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
                 .map_err(|e| REK::Instantiate.into_error_with_cause(e));
 
             Some(toml)
+        } else {
+            None
         })
-        .filter_map(|x| x)
         .filter(|loaded| loaded.is_ok())
         .map(|inner| Value::Table(inner.unwrap()))
         .nth(0)
