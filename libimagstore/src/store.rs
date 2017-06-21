@@ -105,21 +105,26 @@ impl Iterator for Walk {
     type Item = StoreObject;
 
     fn next(&mut self) -> Option<Self::Item> {
+
         while let Some(something) = self.dirwalker.next() {
+            debug!("[Walk] Processing next item: {:?}", something);
             match something {
                 Ok(next) => if next.file_type().is_dir() {
-                                return Some(StoreObject::Collection(next.path().to_path_buf()))
-                            } else if next.file_type().is_file() {
-                                let n   = next.path().to_path_buf();
-                                let sid = match StoreId::new(Some(self.store_path.clone()), n) {
-                                    Err(e) => {
-                                        trace_error(&e);
-                                        continue;
-                                    },
-                                    Ok(o) => o,
-                                };
-                                return Some(StoreObject::Id(sid))
-                            },
+                    debug!("Found directory...");
+                    return Some(StoreObject::Collection(next.path().to_path_buf()))
+                } else /* if next.file_type().is_file() */ {
+                    debug!("Found file...");
+                    let n   = next.path().to_path_buf();
+                    let sid = match StoreId::from_full_path(&self.store_path, n) {
+                        Err(e) => {
+                            debug!("Could not construct StoreId object from it");
+                            trace_error(&e);
+                            continue;
+                        },
+                        Ok(o) => o,
+                    };
+                    return Some(StoreObject::Id(sid))
+                },
                 Err(e) => {
                     warn!("Error in Walker");
                     debug!("{:?}", e);
