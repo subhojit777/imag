@@ -40,12 +40,12 @@ extern crate chrono;
 extern crate libimagdiary;
 extern crate libimagentryedit;
 extern crate libimagentrylist;
+extern crate libimagerror;
 extern crate libimaginteraction;
 extern crate libimagrt;
 extern crate libimagstore;
-extern crate libimagutil;
 extern crate libimagtimeui;
-#[macro_use] extern crate libimagerror;
+extern crate libimagutil;
 
 use std::process::exit;
 

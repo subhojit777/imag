@@ -14,11 +14,9 @@ repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
 [dependencies]
-log = "0.3"
 semver = "0.5"
 url = "1.2"
 regex = "0.1"
-is-match = "0.1"
 
 [dependencies.libimagstore]
 path = "../libimagstore"

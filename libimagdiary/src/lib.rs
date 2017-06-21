@@ -35,7 +35,6 @@
 
 extern crate chrono;
 #[macro_use] extern crate log;
-#[macro_use] extern crate lazy_static;
 extern crate semver;
 extern crate toml;
 extern crate toml_query;
@@ -43,11 +42,11 @@ extern crate regex;
 extern crate itertools;
 
 #[macro_use] extern crate libimagstore;
-#[macro_use] extern crate libimagutil;
 #[macro_use] extern crate libimagerror;
 extern crate libimagentryedit;
 extern crate libimagentryview;
 extern crate libimagrt;
+extern crate libimagutil;
 
 module_entry_path_mod!("diary");
 
