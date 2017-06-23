@@ -17,6 +17,7 @@ members = [
     "libimagbookmark",
     "libimagcounter",
     "libimagdiary",
+    "libimagentrycategory",
     "libimagentrydatetime",
     "libimagentryedit",
     "libimagentryfilter",
