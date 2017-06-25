@@ -71,6 +71,8 @@ impl<'a> Runtime<'a> {
         let configpath = matches.value_of(Runtime::arg_config_name())
                                 .map_or_else(|| rtp.clone(), PathBuf::from);
 
+        debug!("Config path = {:?}", configpath);
+
         let config = match Configuration::new(&configpath) {
             Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
                 return Err(RuntimeErrorKind::Instantiate.into_error_with_cause(Box::new(e)));
@@ -139,6 +141,9 @@ impl<'a> Runtime<'a> {
                                     spath.push("store");
                                     spath
                                 }, PathBuf::from);
+
+        debug!("RTP path    = {:?}", rtp);
+        debug!("Store path  = {:?}", storepath);
 
         let store_config = match config {
             Some(ref c) => c.store_config().cloned(),
