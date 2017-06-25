@@ -24,9 +24,6 @@ use std::ops::Deref;
 use toml::Value;
 use clap::App;
 
-use error::RuntimeErrorKind as REK;
-use libimagerror::into::IntoError;
-
 generate_error_module!(
     generate_error_types!(ConfigError, ConfigErrorKind,
         TOMLParserError => "TOML Parsing error",
