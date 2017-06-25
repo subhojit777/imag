@@ -35,7 +35,7 @@ use error::RuntimeErrorKind;
 use error::MapErrInto;
 use logger::ImagLogger;
 
-use libimagstore::store::Store;
+use libimagstore::store::{Store, InMemoryFileAbstraction};
 use spec::CliSpec;
 
 /// The Runtime object
@@ -150,7 +150,15 @@ impl<'a> Runtime<'a> {
             write!(stderr(), "Store-config: {:?}\n", store_config).ok();
         }
 
-        Store::new(storepath, store_config).map(|store| {
+        let store_result = if cli_app.use_inmemory_fs() {
+            Store::new_with_backend(storepath,
+                                    store_config,
+                                    Box::new(InMemoryFileAbstraction::new()))
+        } else {
+            Store::new(storepath, store_config)
+        };
+
+        store_result.map(|store| {
             Runtime {
                 cli_matches: matches,
                 configuration: config,

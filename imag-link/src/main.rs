@@ -393,6 +393,10 @@ version = \"0.3.0\"\
         fn enable_logging(&self) -> bool {
             false
         }
+
+        fn use_inmemory_fs(&self) -> bool {
+            true
+        }
     }
 
     fn generate_test_config() -> Option<Configuration> {

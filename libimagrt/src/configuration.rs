@@ -289,6 +289,10 @@ pub trait InternalConfiguration {
     fn enable_logging(&self) -> bool {
         true
     }
+
+    fn use_inmemory_fs(&self) -> bool {
+        false
+    }
 }
 
 impl<'a> InternalConfiguration for App<'a, 'a> {}
