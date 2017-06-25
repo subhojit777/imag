@@ -35,7 +35,8 @@ use error::RuntimeErrorKind;
 use error::MapErrInto;
 use logger::ImagLogger;
 
-use libimagstore::store::{Store, InMemoryFileAbstraction};
+use libimagstore::store::Store;
+use libimagstore::file_abstraction::InMemoryFileAbstraction;
 use spec::CliSpec;
 
 /// The Runtime object
