@@ -40,6 +40,9 @@ pub trait Annotateable {
     /// A new annotation also has the field `annotation.is_annotation` set to `true`.
     fn annotate<'a>(&mut self, store: &'a Store, ann_name: &str) -> Result<FileLockEntry<'a>>;
 
+    /// Check whether an entry is an annotation
+    fn is_annotation(&self) -> Result<bool>;
+
 }
 
 impl Annotateable for Entry {
@@ -63,6 +66,17 @@ impl Annotateable for Entry {
                 anno.add_internal_link(self)
                     .map_err_into(AEK::LinkingError)
                     .map(|_| anno)
+            })
+    }
+
+    fn is_annotation(&self) -> Result<bool> {
+        self.get_header()
+            .read("annotation.is_annotation")
+            .map_err_into(AEK::StoreReadError)
+            .and_then(|res| match res {
+                Some(Value::Boolean(b)) => Ok(b),
+                None                    => Ok(false),
+                _                       => Err(AEK::HeaderTypeError.into_error()),
             })
     }
 
