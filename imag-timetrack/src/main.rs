@@ -17,8 +17,55 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+mod cont;
+mod day;
+mod month;
+mod start;
+mod stop;
+mod track;
 mod ui;
+mod week;
+mod year;
+
+use cont::cont;
+use day::day;
+use month::month;
+use start::start;
+use stop::stop;
+use track::track;
+use ui::build_ui;
+use week::week;
+use year::year;
+
+use libimagrt::setup::generate_runtime_setup;
 
 fn main() {
-    println!("Hello, world!");
+    let rt = generate_runtime_setup("imag-timetrack",
+                                    &version!()[..],
+                                    "Time tracking module",
+                                    build_ui);
+
+    let command = rt.cli().subcommand_name();
+    let retval  = if let Some(command) = command {
+        debug!("Call: {}", command);
+        match command {
+            "continue" => cont(&rt),
+            "day"      => day(&rt),
+            "month"    => month(&rt),
+            "start"    => start(&rt),
+            "stop"     => stop(&rt),
+            "track"    => track(&rt),
+            "week"     => week(&rt),
+            "year"     => year(&rt),
+            _ => {
+                error!("Unknown command");
+                1
+            },
+        }
+    } else {
+        error!("No command");
+        1
+    };
+
+    ::std::process::exit(retval);
 }
