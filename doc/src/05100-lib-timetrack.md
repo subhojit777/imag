@@ -50,3 +50,17 @@ The `end` field is, of course, only set if the event already ended.
 The library uses the `libimagentrydatetime::datepath::DatePathBuilder` for
 building `StoreId` objects.
 
+The library offers two central traits:
+
+* `TimeTrackStore`, which extends a `Store` object with functionality to
+  create `FileLockEntry` objects with a certain setting that is used for
+  time-tracking, and
+* `TimeTracking`, which extends `Entry` with helper functions to query the
+  entry-metadata that is used for the time tracking functionality
+
+The library does _not_ provide functionality to implement `imag-timetrack` or
+so, as the core functionality is already given and the commandline application
+can implement the missing bits in few lines of code.
+
+Aggregating functionality might be provided at a later point in time.
+
