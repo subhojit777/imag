@@ -33,6 +33,7 @@ members = [
     "libimagref",
     "libimagrt",
     "libimagstore",
+    "libimagtimetrack",
     "libimagtimeui",
     "libimagtodo",
     "libimagutil",
