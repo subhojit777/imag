@@ -133,20 +133,9 @@ fn handle_internal_linking(rt: &Runtime) {
             debug!("Listing ready!");
         },
         None => {
-            let mut from = match get_from_entry(&rt) {
-                None => warn_exit("No 'from' entry", 1),
-                Some(s) => s,
-            };
-            debug!("Link from = {:?}", from.deref());
-
-            let to = match get_to_entries(&rt) {
-                None => warn_exit("No 'to' entry", 1),
-                Some(to) => to,
-            };
-            debug!("Link to = {:?}", to.iter().map(|f| f.deref()).collect::<Vec<&Entry>>());
-
             match cmd.subcommand_name() {
                 Some("add") => {
+                    let (mut from, to) = get_from_to_entry(&rt, "add");
                     for mut to_entry in to {
                         if let Err(e) = to_entry.add_internal_link(&mut from) {
                             trace_error_exit(&e, 1);
@@ -155,6 +144,7 @@ fn handle_internal_linking(rt: &Runtime) {
                 },
 
                 Some("remove") => {
+                    let (mut from, to) = get_from_to_entry(&rt, "remove");
                     for mut to_entry in to {
                         if let Err(e) = to_entry.remove_internal_link(&mut from) {
                             trace_error_exit(&e, 1);
@@ -168,11 +158,27 @@ fn handle_internal_linking(rt: &Runtime) {
     }
 }
 
-fn get_from_entry<'a>(rt: &'a Runtime) -> Option<FileLockEntry<'a>> {
+fn get_from_to_entry<'a>(rt: &'a Runtime, subcommand: &str) -> (FileLockEntry<'a>, Vec<FileLockEntry<'a>>) {
+    let from = match get_from_entry(&rt, subcommand) {
+        None => warn_exit("No 'from' entry", 1),
+        Some(s) => s,
+    };
+    debug!("Link from = {:?}", from.deref());
+
+    let to = match get_to_entries(&rt, subcommand) {
+        None => warn_exit("No 'to' entry", 1),
+        Some(to) => to,
+    };
+    debug!("Link to = {:?}", to.iter().map(|f| f.deref()).collect::<Vec<&Entry>>());
+
+    (from, to)
+}
+
+fn get_from_entry<'a>(rt: &'a Runtime, subcommand: &str) -> Option<FileLockEntry<'a>> {
     rt.cli()
         .subcommand_matches("internal")
         .unwrap() // safe, we know there is an "internal" subcommand"
-        .subcommand_matches("add")
+        .subcommand_matches(subcommand)
         .unwrap() // safe, we know there is an "add" subcommand
         .value_of("from")
         .and_then(|from_name| {
@@ -188,11 +194,11 @@ fn get_from_entry<'a>(rt: &'a Runtime) -> Option<FileLockEntry<'a>> {
         })
 }
 
-fn get_to_entries<'a>(rt: &'a Runtime) -> Option<Vec<FileLockEntry<'a>>> {
+fn get_to_entries<'a>(rt: &'a Runtime, subcommand: &str) -> Option<Vec<FileLockEntry<'a>>> {
     rt.cli()
         .subcommand_matches("internal")
         .unwrap() // safe, we know there is an "internal" subcommand"
-        .subcommand_matches("add")
+        .subcommand_matches(subcommand)
         .unwrap() // safe, we know there is an "add" subcommand
         .values_of("to")
         .map(|values| {
