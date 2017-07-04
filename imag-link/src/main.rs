@@ -84,9 +84,23 @@ fn main() {
 }
 
 fn handle_internal_linking(rt: &Runtime) {
+    use libimagentrylink::internal::store_check::StoreLinkConsistentExt;
 
     debug!("Handle internal linking call");
     let cmd = rt.cli().subcommand_matches("internal").unwrap();
+
+    if cmd.is_present("check-consistency") {
+        match rt.store().check_link_consistency() {
+            Ok(_) => {
+                info!("Store is consistent");
+                return;
+            }
+            Err(e) => {
+                trace_error(&e);
+                ::std::process::exit(1);
+            }
+        }
+    }
 
     match cmd.value_of("list") {
         Some(list) => handle_internal_linking_list_call(rt, cmd, list),
