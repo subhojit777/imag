@@ -55,6 +55,7 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
 use libimagentrylink::external::ExternalLinker;
+use libimagentrylink::internal::InternalLinker;
 use libimagutil::warn_result::*;
 use libimagutil::warn_exit::warn_exit;
 use libimagutil::info_result::*;
@@ -83,55 +84,12 @@ fn main() {
 }
 
 fn handle_internal_linking(rt: &Runtime) {
-    use libimagentrylink::internal::InternalLinker;
-    use libimagentrylink::external::is_external_link_storeid;
 
     debug!("Handle internal linking call");
     let cmd = rt.cli().subcommand_matches("internal").unwrap();
 
     match cmd.value_of("list") {
-        Some(list) => {
-            debug!("List...");
-            for entry in list.split(',') {
-                debug!("Listing for '{}'", entry);
-                match get_entry_by_name(rt, entry) {
-                    Ok(Some(e)) => {
-                        e.get_internal_links()
-                            .map(|iter| {
-                                iter.filter(move |id| {
-                                    cmd.is_present("list-externals-too") || !is_external_link_storeid(&id)
-                                })
-                            })
-                            .map(|links| {
-                                let i = links
-                                    .filter_map(|l| {
-                                        l.to_str()
-                                            .map_warn_err(|e| format!("Failed to convert StoreId to string: {:?}", e))
-                                            .ok()
-                                    })
-                                    .enumerate();
-
-                                for (i, link) in i {
-                                    println!("{: <3}: {}", i, link);
-                                }
-                            })
-                            .map_err_trace()
-                            .ok();
-                    },
-
-                    Ok(None) => {
-                        warn!("Entry not found: {:?}", entry);
-                        break;
-                    }
-
-                    Err(e) => {
-                        trace_error(&e);
-                        break;
-                    },
-                }
-            }
-            debug!("Listing ready!");
-        },
+        Some(list) => handle_internal_linking_list_call(rt, cmd, list),
         None => {
             match cmd.subcommand_name() {
                 Some("add") => {
@@ -156,6 +114,52 @@ fn handle_internal_linking(rt: &Runtime) {
             };
         }
     }
+}
+
+#[inline]
+fn handle_internal_linking_list_call(rt: &Runtime, cmd: &ArgMatches, list: &str) {
+    use libimagentrylink::external::is_external_link_storeid;
+
+    debug!("List...");
+    for entry in list.split(',') {
+        debug!("Listing for '{}'", entry);
+        match get_entry_by_name(rt, entry) {
+            Ok(Some(e)) => {
+                e.get_internal_links()
+                    .map(|iter| {
+                        iter.filter(move |id| {
+                            cmd.is_present("list-externals-too") || !is_external_link_storeid(&id)
+                        })
+                    })
+                    .map(|links| {
+                        let i = links
+                            .filter_map(|l| {
+                                l.to_str()
+                                    .map_warn_err(|e| format!("Failed to convert StoreId to string: {:?}", e))
+                                    .ok()
+                            })
+                            .enumerate();
+
+                        for (i, link) in i {
+                            println!("{: <3}: {}", i, link);
+                        }
+                    })
+                    .map_err_trace()
+                    .ok();
+            },
+
+            Ok(None) => {
+                warn!("Entry not found: {:?}", entry);
+                break;
+            }
+
+            Err(e) => {
+                trace_error(&e);
+                break;
+            },
+        }
+    }
+    debug!("Listing ready!");
 }
 
 fn get_from_to_entry<'a>(rt: &'a Runtime, subcommand: &str) -> (FileLockEntry<'a>, Vec<FileLockEntry<'a>>) {
