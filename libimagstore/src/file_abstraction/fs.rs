@@ -84,6 +84,9 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
                 // access to the file to be in a different context
                 try!(f.seek(SeekFrom::Start(0))
                     .map_err_into(SEK::FileNotCreated));
+
+                try!(f.set_len(buf.len() as u64).map_err_into(SEK::FileNotWritten));
+
                 f.write_all(&buf).map_err_into(SEK::FileNotWritten)
             },
             FSFileAbstractionInstance::Absent(ref p) =>
