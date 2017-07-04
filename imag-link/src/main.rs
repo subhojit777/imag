@@ -55,6 +55,7 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
 use libimagentrylink::external::ExternalLinker;
+use libimagentrylink::internal::InternalLinker;
 use libimagutil::warn_result::*;
 use libimagutil::warn_exit::warn_exit;
 use libimagutil::info_result::*;
@@ -83,70 +84,16 @@ fn main() {
 }
 
 fn handle_internal_linking(rt: &Runtime) {
-    use libimagentrylink::internal::InternalLinker;
-    use libimagentrylink::external::is_external_link_storeid;
 
     debug!("Handle internal linking call");
     let cmd = rt.cli().subcommand_matches("internal").unwrap();
 
     match cmd.value_of("list") {
-        Some(list) => {
-            debug!("List...");
-            for entry in list.split(',') {
-                debug!("Listing for '{}'", entry);
-                match get_entry_by_name(rt, entry) {
-                    Ok(Some(e)) => {
-                        e.get_internal_links()
-                            .map(|iter| {
-                                iter.filter(move |id| {
-                                    cmd.is_present("list-externals-too") || !is_external_link_storeid(&id)
-                                })
-                            })
-                            .map(|links| {
-                                let i = links
-                                    .filter_map(|l| {
-                                        l.to_str()
-                                            .map_warn_err(|e| format!("Failed to convert StoreId to string: {:?}", e))
-                                            .ok()
-                                    })
-                                    .enumerate();
-
-                                for (i, link) in i {
-                                    println!("{: <3}: {}", i, link);
-                                }
-                            })
-                            .map_err_trace()
-                            .ok();
-                    },
-
-                    Ok(None) => {
-                        warn!("Entry not found: {:?}", entry);
-                        break;
-                    }
-
-                    Err(e) => {
-                        trace_error(&e);
-                        break;
-                    },
-                }
-            }
-            debug!("Listing ready!");
-        },
+        Some(list) => handle_internal_linking_list_call(rt, cmd, list),
         None => {
-            let mut from = match get_from_entry(&rt) {
-                None => warn_exit("No 'from' entry", 1),
-                Some(s) => s,
-            };
-            debug!("Link from = {:?}", from.deref());
-
-            let to = match get_to_entries(&rt) {
-                None => warn_exit("No 'to' entry", 1),
-                Some(to) => to,
-            };
-            debug!("Link to = {:?}", to.iter().map(|f| f.deref()).collect::<Vec<&Entry>>());
-
             match cmd.subcommand_name() {
                 Some("add") => {
+                    let (mut from, to) = get_from_to_entry(&rt, "add");
                     for mut to_entry in to {
                         if let Err(e) = to_entry.add_internal_link(&mut from) {
                             trace_error_exit(&e, 1);
@@ -155,6 +102,7 @@ fn handle_internal_linking(rt: &Runtime) {
                 },
 
                 Some("remove") => {
+                    let (mut from, to) = get_from_to_entry(&rt, "remove");
                     for mut to_entry in to {
                         if let Err(e) = to_entry.remove_internal_link(&mut from) {
                             trace_error_exit(&e, 1);
@@ -168,11 +116,73 @@ fn handle_internal_linking(rt: &Runtime) {
     }
 }
 
-fn get_from_entry<'a>(rt: &'a Runtime) -> Option<FileLockEntry<'a>> {
+#[inline]
+fn handle_internal_linking_list_call(rt: &Runtime, cmd: &ArgMatches, list: &str) {
+    use libimagentrylink::external::is_external_link_storeid;
+
+    debug!("List...");
+    for entry in list.split(',') {
+        debug!("Listing for '{}'", entry);
+        match get_entry_by_name(rt, entry) {
+            Ok(Some(e)) => {
+                e.get_internal_links()
+                    .map(|iter| {
+                        iter.filter(move |id| {
+                            cmd.is_present("list-externals-too") || !is_external_link_storeid(&id)
+                        })
+                    })
+                    .map(|links| {
+                        let i = links
+                            .filter_map(|l| {
+                                l.to_str()
+                                    .map_warn_err(|e| format!("Failed to convert StoreId to string: {:?}", e))
+                                    .ok()
+                            })
+                            .enumerate();
+
+                        for (i, link) in i {
+                            println!("{: <3}: {}", i, link);
+                        }
+                    })
+                    .map_err_trace()
+                    .ok();
+            },
+
+            Ok(None) => {
+                warn!("Entry not found: {:?}", entry);
+                break;
+            }
+
+            Err(e) => {
+                trace_error(&e);
+                break;
+            },
+        }
+    }
+    debug!("Listing ready!");
+}
+
+fn get_from_to_entry<'a>(rt: &'a Runtime, subcommand: &str) -> (FileLockEntry<'a>, Vec<FileLockEntry<'a>>) {
+    let from = match get_from_entry(&rt, subcommand) {
+        None => warn_exit("No 'from' entry", 1),
+        Some(s) => s,
+    };
+    debug!("Link from = {:?}", from.deref());
+
+    let to = match get_to_entries(&rt, subcommand) {
+        None => warn_exit("No 'to' entry", 1),
+        Some(to) => to,
+    };
+    debug!("Link to = {:?}", to.iter().map(|f| f.deref()).collect::<Vec<&Entry>>());
+
+    (from, to)
+}
+
+fn get_from_entry<'a>(rt: &'a Runtime, subcommand: &str) -> Option<FileLockEntry<'a>> {
     rt.cli()
         .subcommand_matches("internal")
         .unwrap() // safe, we know there is an "internal" subcommand"
-        .subcommand_matches("add")
+        .subcommand_matches(subcommand)
         .unwrap() // safe, we know there is an "add" subcommand
         .value_of("from")
         .and_then(|from_name| {
@@ -188,11 +198,11 @@ fn get_from_entry<'a>(rt: &'a Runtime) -> Option<FileLockEntry<'a>> {
         })
 }
 
-fn get_to_entries<'a>(rt: &'a Runtime) -> Option<Vec<FileLockEntry<'a>>> {
+fn get_to_entries<'a>(rt: &'a Runtime, subcommand: &str) -> Option<Vec<FileLockEntry<'a>>> {
     rt.cli()
         .subcommand_matches("internal")
         .unwrap() // safe, we know there is an "internal" subcommand"
-        .subcommand_matches("add")
+        .subcommand_matches(subcommand)
         .unwrap() // safe, we know there is an "add" subcommand
         .values_of("to")
         .map(|values| {
