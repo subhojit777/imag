@@ -78,6 +78,13 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                          .takes_value(false)
                          .required(false)
                          .help("If --list is provided, also list external links (debugging helper that might be removed at some point"))
+
+                    .arg(Arg::with_name("check-consistency")
+                         .long("check-consistency")
+                         .short("C")
+                         .takes_value(false)
+                         .required(false)
+                         .help("Check the link-consistency in the store (might be time-consuming)"))
                     )
         .subcommand(SubCommand::with_name("external")
                     .about("Add and remove external links")
