@@ -17,7 +17,38 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::str::FromStr;
+
+use libimagrt::runtime::Runtime;
+use libimagerror::trace::trace_error;
+use libimagentrytimetrack::tag::TimeTrackingTag;
+use libimagentrytimetrack::timetrackingstore::TimeTrackStore;
+use libimagerror::trace::MapErrTrace;
+
 pub fn start(rt: &Runtime) -> i32 {
-    unimplemented!()
+    let (_, cmd) = rt.cli().subcommand();
+    let cmd = cmd.unwrap(); // checked in main()
+
+    let start = match cmd.value_of("start-time").map(::chrono::naive::NaiveDateTime::from_str) {
+        None          => ::chrono::offset::Local::now().naive_local(),
+        Some(Ok(ndt)) => ndt,
+        Some(Err(e))  => {
+            trace_error(&e);
+            error!("Cannot continue, not having start time");
+            return 1
+        },
+    };
+
+    cmd.values_of("tags")
+        .unwrap() // enforced by clap
+        .map(String::from)
+        .map(TimeTrackingTag::from)
+        .fold(0, |acc, ttt| {
+            rt.store()
+              .create_timetracking_at(&start, &ttt)
+              .map_err_trace()
+              .map(|_| acc)
+              .unwrap_or(1)
+        })
 }
 
