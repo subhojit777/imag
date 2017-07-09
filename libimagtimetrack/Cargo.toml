@@ -17,7 +17,7 @@ homepage      = "http://imag-pim.org"
 filters = "0.1"
 chrono = "0.3"
 toml = "0.4"
-toml-query = "0.2"
+toml-query = "0.3"
 lazy_static = "0.2"
 
 [dependencies.libimagerror]
