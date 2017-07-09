@@ -198,9 +198,10 @@ mod tests {
         assert!(header_field.is_ok(), format!("Expected Ok(_), got: {:?}", header_field));
         let header_field = header_field.unwrap();
 
-        match *header_field {
-            Value::String(ref s) => assert_eq!(category_name, s),
-            _ => assert!(false, "Header field has wrong type"),
+        match header_field {
+            Some(&Value::String(ref s)) => assert_eq!(category_name, s),
+            Some(_) => assert!(false, "Header field has wrong type"),
+            None    => assert!(false, "Header field not present"),
         }
     }
 }
@@ -228,7 +229,7 @@ fn represents_category(store: &Store, sid: StoreId, name: &str) -> Result<bool> 
                                 .read(&String::from(CATEGORY_REGISTER_NAME_FIELD_PATH))
                                 .map_err_into(CEK::HeaderReadError)
                             {
-                                Ok(&Value::String(ref s)) => Ok(s == name),
+                                Ok(Some(&Value::String(ref s))) => Ok(s == name),
                                 Ok(_)                     => Err(CEK::TypeError.into_error()),
                                 Err(e)                    => Err(e).map_err_into(CEK::HeaderReadError),
                             }
@@ -279,7 +280,7 @@ impl<'a> Iterator for CategoryNameIter<'a> {
                     .map_err_into(CEK::StoreReadError)
                     .and_then(|fle| fle.ok_or(CEK::StoreReadError.into_error()))
                     .and_then(|fle| match fle.get_header().read(&query) {
-                        Ok(&Value::String(ref s)) => Ok(Category::from(s.clone())),
+                        Ok(Some(&Value::String(ref s))) => Ok(Category::from(s.clone())),
                         Ok(_)  => Err(CEK::TypeError.into_error()),
                         Err(e) => Err(e).map_err_into(CEK::HeaderReadError),
                     })
