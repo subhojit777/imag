@@ -65,9 +65,10 @@ impl EntryDate for Entry {
             .map_err_into(DEK::ReadDateError)
             .and_then(|v| {
                 match v {
-                    &Value::String(ref s) => s.parse::<NaiveDateTime>()
+                    Some(&Value::String(ref s)) => s.parse::<NaiveDateTime>()
                         .map_err_into(DEK::DateTimeParsingError),
-                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                    Some(_) => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                    _ => Err(DEK::ReadDateError.into_error()),
                 }
             })
     }
@@ -131,9 +132,10 @@ impl EntryDate for Entry {
             .map_err_into(DEK::ReadDateTimeRangeError)
             .and_then(|v| {
                 match v {
-                    &Value::String(ref s) => s.parse::<NaiveDateTime>()
+                    Some(&Value::String(ref s)) => s.parse::<NaiveDateTime>()
                         .map_err_into(DEK::DateTimeParsingError),
-                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                    Some(_) => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                    _ => Err(DEK::ReadDateError.into_error()),
                 }
             }));
 
@@ -143,9 +145,10 @@ impl EntryDate for Entry {
             .map_err_into(DEK::ReadDateTimeRangeError)
             .and_then(|v| {
                 match v {
-                    &Value::String(ref s) => s.parse::<NaiveDateTime>()
+                    Some(&Value::String(ref s)) => s.parse::<NaiveDateTime>()
                         .map_err_into(DEK::DateTimeParsingError),
-                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                    Some(_) => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                    _ => Err(DEK::ReadDateError.into_error()),
                 }
             }));
 
@@ -250,6 +253,9 @@ mod tests {
         assert!(hdr_field.is_ok());
         let hdr_field = hdr_field.unwrap();
 
+        assert!(hdr_field.is_some());
+        let hdr_field = hdr_field.unwrap();
+
         match *hdr_field {
             Value::String(ref s) => assert_eq!("2000-01-02T03:04:05", s),
             _ => assert!(false, "Wrong header type"),
@@ -315,7 +321,10 @@ mod tests {
 
         let hdr_field = entry.get_header().read(&DATE_HEADER_LOCATION);
 
-        assert!(hdr_field.is_err(), format!("Expected Err(_), got: {:?}", hdr_field));
+        assert!(hdr_field.is_ok());
+        let hdr_field = hdr_field.unwrap();
+
+        assert!(hdr_field.is_none());
     }
 }
 
