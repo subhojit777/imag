@@ -117,7 +117,7 @@ impl<'a> Counter<'a> {
         let mut header = self.fle.deref_mut().get_header_mut();
         let query = String::from("counter.value");
         match try!(header.read(&query).map_err_into(CEK::StoreReadError)) {
-            &Value::Integer(i) => {
+            Some(&Value::Integer(i)) => {
                 header.set(&query, Value::Integer(i + 1))
                     .map_err_into(CEK::StoreWriteError)
                     .map(|_| ())
@@ -130,7 +130,7 @@ impl<'a> Counter<'a> {
         let mut header = self.fle.deref_mut().get_header_mut();
         let query = String::from("counter.value");
         match try!(header.read(&query).map_err_into(CEK::StoreReadError)) {
-            &Value::Integer(i) => {
+            Some(&Value::Integer(i)) => {
                 header.set(&query, Value::Integer(i - 1))
                     .map_err_into(CEK::StoreWriteError)
                     .map(|_| ())
@@ -152,15 +152,17 @@ impl<'a> Counter<'a> {
 
     pub fn name(&self) -> Result<CounterName> {
         self.read_header_at("counter.name", |v| match v {
-            &Value::String(ref s) => Ok(s.clone()),
-            _ => Err(CEK::HeaderTypeError.into_error()),
+            Some(&Value::String(ref s)) => Ok(s.clone()),
+            Some(_) => Err(CEK::HeaderTypeError.into_error()),
+            _ => Err(CEK::StoreReadError.into_error()),
         })
     }
 
     pub fn value(&self) -> Result<i64> {
         self.read_header_at("counter.value", |v| match v {
-            &Value::Integer(i) => Ok(i),
-            _ => Err(CEK::HeaderTypeError.into_error()),
+            Some(&Value::Integer(i)) => Ok(i),
+            Some(_) => Err(CEK::HeaderTypeError.into_error()),
+            _ => Err(CEK::StoreReadError.into_error()),
         })
     }
 
@@ -170,13 +172,14 @@ impl<'a> Counter<'a> {
 
     pub fn read_unit(&self) -> Result<Option<CounterUnit>> {
         self.read_header_at("counter.unit", |s| match s {
-            &Value::String(ref s) => Ok(Some(CounterUnit::new(s.clone()))),
-            _ => Err(CEK::HeaderTypeError.into_error()),
+            Some(&Value::String(ref s)) => Ok(Some(CounterUnit::new(s.clone()))),
+            Some(_) => Err(CEK::HeaderTypeError.into_error()),
+            _ => Err(CEK::StoreReadError.into_error()),
         })
     }
 
     fn read_header_at<T, F>(&self, name: &str, f: F) -> Result<T>
-        where F: FnOnce(&Value) -> Result<T>
+        where F: FnOnce(Option<&Value>) -> Result<T>
     {
 
         self.fle
