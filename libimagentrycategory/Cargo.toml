@@ -16,7 +16,7 @@ homepage      = "http://imag-pim.org"
 [dependencies]
 log = "0.3"
 toml = "0.4"
-toml-query = "0.2"
+toml-query = "0.3"
 is-match = "0.1"
 
 [dev-dependencies]

@@ -43,13 +43,13 @@ pub trait TimeTracking {
 
     fn set_start_datetime(&mut self, dt: NaiveDateTime) -> Result<()>;
 
-    fn get_start_datetime(&self) -> Result<NaiveDateTime>;
+    fn get_start_datetime(&self) -> Result<Option<NaiveDateTime>>;
 
     fn delete_start_datetime(&mut self) -> Result<()>;
 
     fn set_end_datetime(&mut self, dt: NaiveDateTime) -> Result<()>;
 
-    fn get_end_datetime(&self) -> Result<NaiveDateTime>;
+    fn get_end_datetime(&self) -> Result<Option<NaiveDateTime>>;
 
     fn delete_end_datetime(&mut self) -> Result<()>;
 
@@ -68,7 +68,7 @@ impl TimeTracking for Entry {
             .map(|_| ())
     }
 
-    fn get_start_datetime(&self) -> Result<NaiveDateTime> {
+    fn get_start_datetime(&self) -> Result<Option<NaiveDateTime>> {
         self.get_header()
             .read(DATE_TIME_START_HEADER_PATH)
             .map_err_into(TTEK::HeaderReadError)
@@ -91,7 +91,7 @@ impl TimeTracking for Entry {
             .map(|_| ())
     }
 
-    fn get_end_datetime(&self) -> Result<NaiveDateTime> {
+    fn get_end_datetime(&self) -> Result<Option<NaiveDateTime>> {
         self.get_header()
             .read(DATE_TIME_END_HEADER_PATH)
             .map_err_into(TTEK::HeaderReadError)
@@ -123,13 +123,16 @@ impl TimeTracking for Entry {
 
 }
 
-fn header_value_to_dt(val: &Value) -> Result<NaiveDateTime> {
+fn header_value_to_dt(val: Option<&Value>) -> Result<Option<NaiveDateTime>> {
     match val {
-        &Value::String(ref s) => {
+        Some(&Value::String(ref s)) => {
             NaiveDateTime::parse_from_str(s, DATE_TIME_FORMAT)
                 .map_err_into(TTEK::DateTimeParserError)
+                .map(Some)
+
         },
-        _ => Err(TTEK::HeaderFieldTypeError.into_error())
+        Some(_) => Err(TTEK::HeaderFieldTypeError.into_error()),
+        None => Ok(None),
     }
 }
 

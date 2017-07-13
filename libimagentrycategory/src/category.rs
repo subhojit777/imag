@@ -88,23 +88,16 @@ impl EntryCategory for Entry {
             }
             .map_err_into(CEK::HeaderReadError),
 
-            Ok(&Value::String(ref s)) => Ok(Some(s.clone().into())),
+            Ok(Some(&Value::String(ref s))) => Ok(Some(s.clone().into())),
+            Ok(None) => Err(CEK::StoreReadError.into_error()).map_err_into(CEK::HeaderReadError),
             Ok(_) => Err(CEK::TypeError.into_error()).map_err_into(CEK::HeaderReadError),
         }
     }
 
     fn has_category(&self) -> Result<bool> {
-        let res = self.get_header().read(&String::from("category.value"));
-        if res.is_err() {
-            let res = res.unwrap_err();
-            match res.kind() {
-                &TQEK::IdentifierNotFoundInDocument(_) => Ok(false),
-                _                                      => Err(res),
-            }
+        self.get_header().read(&String::from("category.value"))
             .map_err_into(CEK::HeaderReadError)
-        } else {
-            Ok(true)
-        }
+            .map(|e| e.is_some())
     }
 
 }

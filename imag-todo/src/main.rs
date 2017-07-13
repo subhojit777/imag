@@ -103,9 +103,13 @@ fn list(rt: &Runtime) {
             // filter out the ones were we can read the uuid
             let uuids : Vec<_> = iter.filter_map(|t| match t {
                 Ok(v) => match v.get_header().read(&String::from("todo.uuid")) {
-                    Ok(&Value::String(ref u)) => Some(u.clone()),
-                    Ok(_) => {
+                    Ok(Some(&Value::String(ref u))) => Some(u.clone()),
+                    Ok(Some(_)) => {
                         warn!("Header type error");
+                        None
+                    },
+                    Ok(None) => {
+                        warn!("Header missing field");
                         None
                     },
                     Err(e) => {
