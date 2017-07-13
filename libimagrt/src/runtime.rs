@@ -29,13 +29,15 @@ use clap::{Arg, ArgMatches};
 use log;
 use log::LogLevelFilter;
 
-use configuration::Configuration;
+use configuration::{Configuration, InternalConfiguration};
 use error::RuntimeError;
 use error::RuntimeErrorKind;
 use error::MapErrInto;
 use logger::ImagLogger;
 
 use libimagstore::store::Store;
+use libimagstore::file_abstraction::InMemoryFileAbstraction;
+use spec::CliSpec;
 
 /// The Runtime object
 ///
@@ -54,60 +56,25 @@ impl<'a> Runtime<'a> {
     /// in $HOME/.imag/config, $XDG_CONFIG_DIR/imag/config or from env("$IMAG_CONFIG")
     /// and builds the Runtime object with it.
     ///
-    /// The cli_spec object should be initially build with the ::get_default_cli_builder() function.
-    pub fn new(mut cli_spec: App<'a, 'a>) -> Result<Runtime<'a>, RuntimeError> {
-        use std::env;
-        use std::io::stdout;
-
-        use clap::Shell;
-
+    /// The cli_app object should be initially build with the ::get_default_cli_builder() function.
+    pub fn new<C>(cli_app: C) -> Result<Runtime<'a>, RuntimeError>
+        where C: Clone + CliSpec<'a> + InternalConfiguration
+    {
         use libimagerror::trace::trace_error;
         use libimagerror::into::IntoError;
 
         use configuration::error::ConfigErrorKind;
 
-        let matches = cli_spec.clone().get_matches();
+        let matches = cli_app.clone().matches();
 
-        let is_debugging = matches.is_present("debugging");
-        let is_verbose   = matches.is_present("verbosity");
-        let colored      = !matches.is_present("no-color-output");
+        let rtp = get_rtp_match(&matches);
 
-        Runtime::init_logger(is_debugging, is_verbose, colored);
-
-        match matches.value_of(Runtime::arg_generate_compl()) {
-            Some(shell) => {
-                debug!("Generating shell completion script, writing to stdout");
-                let shell   = shell.parse::<Shell>().unwrap(); // clap has our back here.
-                let appname = String::from(cli_spec.get_name());
-                cli_spec.gen_completions_to(appname, shell, &mut stdout());
-            },
-            _ => debug!("Not generating shell completion script"),
-        }
-
-        let rtp : PathBuf = matches.value_of("runtimepath")
-            .map_or_else(|| {
-                env::var("HOME")
-                    .map(PathBuf::from)
-                    .map(|mut p| { p.push(".imag"); p})
-                    .unwrap_or_else(|_| {
-                        panic!("You seem to be $HOME-less. Please get a $HOME before using this software. We are sorry for you and hope you have some accommodation anyways.");
-                    })
-            }, PathBuf::from);
-        let storepath = matches.value_of("storepath")
-                                .map_or_else(|| {
-                                    let mut spath = rtp.clone();
-                                    spath.push("store");
-                                    spath
-                                }, PathBuf::from);
-
-        let configpath = matches.value_of("config")
+        let configpath = matches.value_of(Runtime::arg_config_name())
                                 .map_or_else(|| rtp.clone(), PathBuf::from);
 
-        debug!("RTP path    = {:?}", rtp);
-        debug!("Store path  = {:?}", storepath);
         debug!("Config path = {:?}", configpath);
 
-        let cfg = match Configuration::new(&configpath) {
+        let config = match Configuration::new(&configpath) {
             Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
                 return Err(RuntimeErrorKind::Instantiate.into_error_with_cause(Box::new(e)));
             } else {
@@ -116,32 +83,91 @@ impl<'a> Runtime<'a> {
                 None
             },
 
-            Ok(mut cfg) => {
-                if let Err(e) = cfg.override_config(get_override_specs(&matches)) {
+            Ok(mut config) => {
+                if let Err(e) = config.override_config(get_override_specs(&matches)) {
                     error!("Could not apply config overrides");
                     trace_error(&e);
 
                     // TODO: continue question (interactive)
                 }
 
-                Some(cfg)
+                Some(config)
             }
         };
 
-        let store_config = match cfg {
+        Runtime::_new(cli_app, matches, config)
+    }
+
+    /// Builds the Runtime object using the given `config`.
+    pub fn with_configuration<C>(cli_app: C, config: Option<Configuration>)
+                                 -> Result<Runtime<'a>, RuntimeError>
+        where C: Clone + CliSpec<'a> + InternalConfiguration
+    {
+        let matches = cli_app.clone().matches();
+        Runtime::_new(cli_app, matches, config)
+    }
+
+    fn _new<C>(mut cli_app: C, matches: ArgMatches<'a>, config: Option<Configuration>)
+               -> Result<Runtime<'a>, RuntimeError>
+    where C: Clone + CliSpec<'a> + InternalConfiguration
+    {
+        use std::io::stdout;
+
+        use clap::Shell;
+
+        let is_debugging = matches.is_present(Runtime::arg_debugging_name());
+
+        if cli_app.enable_logging() {
+            let is_verbose = matches.is_present(Runtime::arg_verbosity_name());
+            let colored    = !matches.is_present(Runtime::arg_no_color_output_name());
+
+            Runtime::init_logger(is_debugging, is_verbose, colored);
+        }
+
+        match matches.value_of(Runtime::arg_generate_compl()) {
+            Some(shell) => {
+                debug!("Generating shell completion script, writing to stdout");
+                let shell   = shell.parse::<Shell>().unwrap(); // clap has our back here.
+                let appname = String::from(cli_app.name());
+                cli_app.completions(appname, shell, &mut stdout());
+            },
+            _ => debug!("Not generating shell completion script"),
+        }
+
+        let rtp = get_rtp_match(&matches);
+
+        let storepath = matches.value_of(Runtime::arg_storepath_name())
+                                .map_or_else(|| {
+                                    let mut spath = rtp.clone();
+                                    spath.push("store");
+                                    spath
+                                }, PathBuf::from);
+
+        debug!("RTP path    = {:?}", rtp);
+        debug!("Store path  = {:?}", storepath);
+
+        let store_config = match config {
             Some(ref c) => c.store_config().cloned(),
             None        => None,
         };
 
         if is_debugging {
-            write!(stderr(), "Config: {:?}\n", cfg).ok();
+            write!(stderr(), "Config: {:?}\n", config).ok();
             write!(stderr(), "Store-config: {:?}\n", store_config).ok();
         }
 
-        Store::new(storepath.clone(), store_config).map(|store| {
+        let store_result = if cli_app.use_inmemory_fs() {
+            Store::new_with_backend(storepath,
+                                    store_config,
+                                    Box::new(InMemoryFileAbstraction::new()))
+        } else {
+            Store::new(storepath, store_config)
+        };
+
+        store_result.map(|store| {
             Runtime {
                 cli_matches: matches,
-                configuration: cfg,
+                configuration: config,
                 rtp: rtp,
                 store: store,
             }
@@ -401,6 +427,22 @@ impl<'a> Runtime<'a> {
             .or(env::var("EDITOR").ok())
             .map(Command::new)
     }
+}
+
+fn get_rtp_match<'a>(matches: &ArgMatches<'a>) -> PathBuf {
+    use std::env;
+
+    matches.value_of(Runtime::arg_runtimepath_name())
+        .map_or_else(|| {
+            env::var("HOME")
+                .map(PathBuf::from)
+                .map(|mut p| { p.push(".imag"); p })
+                .unwrap_or_else(|_| {
+                    panic!("You seem to be $HOME-less. Please get a $HOME before using this \
+                            software. We are sorry for you and hope you have some \
+                            accommodation anyways.");
+                })
+        }, PathBuf::from)
 }
 
 fn get_override_specs(matches: &ArgMatches) -> Vec<String> {

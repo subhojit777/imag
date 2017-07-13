@@ -36,6 +36,7 @@
 extern crate clap;
 extern crate semver;
 extern crate toml;
+extern crate toml_query;
 extern crate url;
 #[macro_use] extern crate version;
 
@@ -334,3 +335,165 @@ fn list_links_for_entry(store: &Store, entry: &mut FileLockEntry) {
         .ok();
 }
 
+#[cfg(test)]
+mod tests {
+    use handle_internal_linking;
+
+    use std::path::PathBuf;
+    use std::ffi::OsStr;
+
+    use clap::{App, ArgMatches};
+    use toml::value::Value;
+    use toml_query::read::TomlValueReadExt;
+    use toml_query::error::Result as TomlQueryResult;
+
+    use libimagrt::spec::CliSpec;
+    use libimagrt::runtime::Runtime;
+    use libimagrt::error::RuntimeError;
+    use libimagrt::configuration::{Configuration, InternalConfiguration};
+
+    use libimagstore::storeid::StoreId;
+    use libimagstore::store::{Result as StoreResult, FileLockEntry};
+
+    static DEFAULT_ENTRY: &'static str = "\
+---\
+[imag]\
+links = []\
+version = \"0.3.0\"\
+---";
+
+    #[derive(Clone)]
+    struct MockLinkApp<'a> {
+        args: Vec<&'static str>,
+        inner: App<'a, 'a>,
+    }
+
+    impl<'a> MockLinkApp<'a> {
+        fn new(args: Vec<&'static str>) -> Self {
+            MockLinkApp {
+                args: args,
+                inner: ::build_ui(Runtime::get_default_cli_builder("imag-link",
+                                                                   "0.3.0",
+                                                                   "Link entries test")),
+            }
+        }
+    }
+
+    impl<'a> CliSpec<'a> for MockLinkApp<'a> {
+        fn name(&self) -> &str {
+            self.inner.get_name()
+        }
+
+        fn matches(self) -> ArgMatches<'a> {
+            self.inner.get_matches_from(self.args)
+        }
+    }
+
+    impl<'a> InternalConfiguration for MockLinkApp<'a> {
+        fn enable_logging(&self) -> bool {
+            false
+        }
+
+        fn use_inmemory_fs(&self) -> bool {
+            true
+        }
+    }
+
+    fn generate_test_config() -> Option<Configuration> {
+        ::toml::de::from_str("[store]\nimplicit-create=true")
+                    .map(Configuration::with_value)
+                    .ok()
+    }
+
+    fn generate_test_runtime<'a>(mut args: Vec<&'static str>) -> Result<Runtime<'a>, RuntimeError> {
+        let mut cli_args = vec!["imag-link", "--rtp", "/tmp"];
+
+        cli_args.append(&mut args);
+
+        let cli_app = MockLinkApp::new(cli_args);
+        Runtime::with_configuration(cli_app, generate_test_config())
+    }
+
+    fn create_test_entry<'a, S: AsRef<OsStr>>(rt: &'a Runtime, name: S) -> StoreResult<StoreId> {
+        let mut path = PathBuf::new();
+        path.set_file_name(name);
+
+        let id = StoreId::new_baseless(path)?;
+        let mut entry = rt.store().create(id.clone())?;
+        entry.get_content_mut().push_str(DEFAULT_ENTRY);
+
+        Ok(id)
+    }
+
+    fn get_entry_links<'a>(entry: &'a FileLockEntry<'a>) -> TomlQueryResult<&'a Value> {
+        entry.get_header().read(&"imag.links".to_owned())
+    }
+
+    fn links_toml_value<'a, I: IntoIterator<Item = &'static str>>(links: I) -> Value {
+        Value::Array(links
+                         .into_iter()
+                         .map(|s| Value::String(s.to_owned()))
+                         .collect())
+    }
+
+    #[test]
+    fn test_link_modificates() {
+        let rt = generate_test_runtime(vec!["internal", "add", "--from", "test1", "--to", "test2"])
+            .unwrap();
+
+        let test_id1 = create_test_entry(&rt, "test1").unwrap();
+        let test_id2 = create_test_entry(&rt, "test2").unwrap();
+
+        handle_internal_linking(&rt);
+
+        let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
+        let test_links1 = get_entry_links(&test_entry1).unwrap();
+
+        let test_entry2 = rt.store().get(test_id2).unwrap().unwrap();
+        let test_links2 = get_entry_links(&test_entry2).unwrap();
+
+        assert_ne!(*test_links1, links_toml_value(vec![]));
+        assert_ne!(*test_links2, links_toml_value(vec![]));
+    }
+
+    #[test]
+    fn test_linking_links() {
+        let rt = generate_test_runtime(vec!["internal", "add", "--from", "test1", "--to", "test2"])
+            .unwrap();
+
+        let test_id1 = create_test_entry(&rt, "test1").unwrap();
+        let test_id2 = create_test_entry(&rt, "test2").unwrap();
+
+        handle_internal_linking(&rt);
+
+        let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
+        let test_links1 = get_entry_links(&test_entry1).unwrap();
+
+        let test_entry2 = rt.store().get(test_id2).unwrap().unwrap();
+        let test_links2 = get_entry_links(&test_entry2).unwrap();
+
+        assert_eq!(*test_links1, links_toml_value(vec!["test2"]));
+        assert_eq!(*test_links2, links_toml_value(vec!["test1"]));
+    }
+
+    #[test]
+    fn test_multilinking() {
+        let rt = generate_test_runtime(vec!["internal", "add", "--from", "test1", "--to", "test2"])
+            .unwrap();
+
+        let test_id1 = create_test_entry(&rt, "test1").unwrap();
+        let test_id2 = create_test_entry(&rt, "test2").unwrap();
+
+        handle_internal_linking(&rt);
+        handle_internal_linking(&rt);
+
+        let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
+        let test_links1 = get_entry_links(&test_entry1).unwrap();
+
+        let test_entry2 = rt.store().get(test_id2).unwrap().unwrap();
+        let test_links2 = get_entry_links(&test_entry2).unwrap();
+
+        assert_eq!(*test_links1, links_toml_value(vec!["test2"]));
+        assert_eq!(*test_links2, links_toml_value(vec!["test1"]));
+    }
+}

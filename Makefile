@@ -76,6 +76,8 @@ $(TARGETS): %: .FORCE
 	@$(CARGO) build --manifest-path ./$@/Cargo.toml
 
 $(BIN_TARGET_TESTS): %-test: % .FORCE
+	@$(ECHO) "\t[CARGO  ][TEST]: \t$@"
+	@$(CARGO) test --manifest-path ./$(subst -test,,$@)/Cargo.toml
 	@$(ECHO) "\t[BINTEST]:\t$@"
 	if [ -f $(subst -test,,$@)/tests/Makefile ]; then \
 		$(MAKE) -C $(subst -test,,$@)/tests || exit 1;\

@@ -22,9 +22,7 @@ use std::result::Result as RResult;
 use std::ops::Deref;
 
 use toml::Value;
-
-use error::RuntimeErrorKind as REK;
-use libimagerror::into::IntoError;
+use clap::App;
 
 generate_error_module!(
     generate_error_types!(ConfigError, ConfigErrorKind,
@@ -90,6 +88,16 @@ impl Configuration {
                 editor_opts: editor_opts,
             }
         })
+    }
+
+    /// Get a new configuration object built from the given toml value.
+    pub fn with_value(value: Value) -> Configuration {
+        Configuration{
+            verbosity: get_verbosity(&value),
+            editor: get_editor(&value),
+            editor_opts: get_editor_opts(&value),
+            config: value,
+        }
     }
 
     /// Get the Editor setting from the configuration
@@ -219,12 +227,14 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     use std::env;
     use std::fs::File;
     use std::io::Read;
+    use std::io::Write;
+    use std::io::stderr;
 
     use xdg_basedir;
     use itertools::Itertools;
 
     use libimagutil::variants::generate_variants as gen_vars;
-    use self::error::MapErrInto;
+    use libimagerror::trace::trace_error;
 
     let variants = vec!["config", "config.toml", "imagrc", "imagrc.toml"];
     let modifier = |base: &PathBuf, v: &'static str| {
@@ -245,8 +255,7 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     ].iter()
         .flatten()
         .filter(|path| path.exists() && path.is_file())
-        .filter_map(|path| if path.exists() && path.is_file() {
-            debug!("Reading {:?}", path);
+        .map(|path| {
             let content = {
                 let mut s = String::new();
                 let f = File::open(path);
@@ -258,19 +267,29 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
                 s
             };
 
-            trace!("Contents of config file: \n---\n{}\n---", content);
-
-            let toml = ::toml::de::from_str(&content[..])
-                .map_err_into(ConfigErrorKind::TOMLParserError)
-                .map_err(Box::new)
-                .map_err(|e| REK::Instantiate.into_error_with_cause(e));
-
-            Some(toml)
-        } else {
-            None
+            match ::toml::de::from_str(&content[..]) {
+                Ok(res) => res,
+                Err(e) => {
+                    write!(stderr(), "Config file parser error:").ok();
+                    trace_error(&e);
+                    None
+                }
+            }
         })
-        .filter(|loaded| loaded.is_ok())
-        .map(|inner| Value::Table(inner.unwrap()))
+        .filter(|loaded| loaded.is_some())
         .nth(0)
+        .map(|inner| Value::Table(inner.unwrap()))
         .ok_or(ConfigErrorKind::NoConfigFileFound.into())
 }
+
+pub trait InternalConfiguration {
+    fn enable_logging(&self) -> bool {
+        true
+    }
+
+    fn use_inmemory_fs(&self) -> bool {
+        false
+    }
+}
+
+impl<'a> InternalConfiguration for App<'a, 'a> {}
