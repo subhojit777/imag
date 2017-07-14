@@ -42,6 +42,10 @@ extern crate crypto;
 #[cfg(test)]
 extern crate env_logger;
 
+#[cfg(test)]
+#[macro_use]
+extern crate quickcheck;
+
 #[macro_use] extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
 extern crate libimagutil;
