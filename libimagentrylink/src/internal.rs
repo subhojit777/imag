@@ -989,5 +989,27 @@ mod test {
 
     }
 
+    #[test]
+    fn test_link_deleting() {
+        setup_logging();
+        let store = get_store();
+
+        let mut e1 = store.retrieve(PathBuf::from("1")).unwrap();
+        let mut e2 = store.retrieve(PathBuf::from("2")).unwrap();
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+
+        assert!(e1.add_internal_link(&mut e2).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 1);
+
+        assert!(e1.remove_internal_link(&mut e2).is_ok());
+
+        assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+        assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+    }
+
 }
 
