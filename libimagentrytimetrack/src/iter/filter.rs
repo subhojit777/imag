@@ -68,3 +68,42 @@ impl<'a> Iterator for WithOneOf<'a> {
     }
 }
 
+
+pub struct WithNoneOf<'a> {
+    iter: GetTimeTrackIter<'a>,
+    disallowed_tags: &'a Vec<TTT>,
+}
+
+impl<'a> WithNoneOf<'a> {
+
+    pub fn new(iter: GetTimeTrackIter<'a>, disallowed_tags: &'a Vec<TTT>) -> WithNoneOf<'a> {
+        WithNoneOf {
+            iter: iter,
+            disallowed_tags: disallowed_tags
+        }
+    }
+}
+
+impl<'a> Iterator for WithNoneOf<'a> {
+    type Item = Result<FileLockEntry<'a>, TTE>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.iter.next() {
+                Some(Ok(fle)) => {
+                    match fle.get_timetrack_tag() {
+                        Err(e) => return Some(Err(e)),
+                        Ok(t) => if !self.disallowed_tags.contains(&t) {
+                            return Some(Ok(fle))
+                        } else {
+                            // loop
+                        },
+                    }
+                },
+                Some(Err(e)) => return Some(Err(e)),
+                None => return None,
+            }
+        }
+    }
+}
+
