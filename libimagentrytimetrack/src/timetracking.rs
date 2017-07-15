@@ -24,7 +24,7 @@
 //! getting the start and end time and also deleting start and end time.
 //!
 
-use chrono::naive::datetime::NaiveDateTime;
+use chrono::naive::NaiveDateTime;
 
 use libimagstore::store::Entry;
 use libimagerror::into::IntoError;

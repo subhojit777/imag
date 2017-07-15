@@ -26,7 +26,7 @@ pub mod tag;
 
 #[cfg(test)]
 mod test {
-    use chrono::naive::date::NaiveDate;
+    use chrono::naive::NaiveDate;
 
     use libimagstore::store::Store;
 
