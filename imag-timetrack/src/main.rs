@@ -17,6 +17,23 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+#[macro_use]
+extern crate log;
+
+#[macro_use]
+extern crate version;
+
+extern crate clap;
+extern crate semver;
+extern crate toml;
+extern crate chrono;
+
+extern crate libimagerror;
+extern crate libimagstore;
+extern crate libimagrt;
+extern crate libimagentrytimetrack;
+extern crate libimagutil;
+
 mod cont;
 mod day;
 mod month;
