@@ -20,6 +20,7 @@
 use error::TimeTrackError as TTE;
 use error::TimeTrackErrorKind as TTEK;
 use error::MapErrInto;
+use result::Result;
 
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
@@ -30,14 +31,18 @@ use iter::get::GetTimeTrackIter;
 use tag::TimeTrackingTag as TTT;
 use timetracking::TimeTracking;
 
-pub struct WithOneOf<'a> {
-    iter: GetTimeTrackIter<'a>,
+pub struct WithOneOf<'a, I>
+    where I: Iterator<Item = Result<FileLockEntry<'a>>>
+{
+    iter: I,
     allowed_tags: &'a Vec<TTT>,
 }
 
-impl<'a> WithOneOf<'a> {
+impl<'a, I> WithOneOf<'a, I>
+    where I: Iterator<Item = Result<FileLockEntry<'a>>>
+{
 
-    pub fn new(iter: GetTimeTrackIter<'a>, allowed_tags: &'a Vec<TTT>) -> WithOneOf<'a> {
+    pub fn new(iter: I, allowed_tags: &'a Vec<TTT>) -> WithOneOf<'a, I> {
         WithOneOf {
             iter: iter,
             allowed_tags: allowed_tags
@@ -45,8 +50,10 @@ impl<'a> WithOneOf<'a> {
     }
 }
 
-impl<'a> Iterator for WithOneOf<'a> {
-    type Item = Result<FileLockEntry<'a>, TTE>;
+impl<'a, I> Iterator for WithOneOf<'a, I>
+    where I: Iterator<Item = Result<FileLockEntry<'a>>>
+{
+    type Item = Result<FileLockEntry<'a>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -69,14 +76,18 @@ impl<'a> Iterator for WithOneOf<'a> {
 }
 
 
-pub struct WithNoneOf<'a> {
-    iter: GetTimeTrackIter<'a>,
+pub struct WithNoneOf<'a, I>
+    where I: Iterator<Item = Result<FileLockEntry<'a>>>
+{
+    iter: I,
     disallowed_tags: &'a Vec<TTT>,
 }
 
-impl<'a> WithNoneOf<'a> {
+impl<'a, I> WithNoneOf<'a, I>
+    where I: Iterator<Item = Result<FileLockEntry<'a>>>
+{
 
-    pub fn new(iter: GetTimeTrackIter<'a>, disallowed_tags: &'a Vec<TTT>) -> WithNoneOf<'a> {
+    pub fn new(iter: I, disallowed_tags: &'a Vec<TTT>) -> WithNoneOf<'a, I> {
         WithNoneOf {
             iter: iter,
             disallowed_tags: disallowed_tags
@@ -84,8 +95,10 @@ impl<'a> WithNoneOf<'a> {
     }
 }
 
-impl<'a> Iterator for WithNoneOf<'a> {
-    type Item = Result<FileLockEntry<'a>, TTE>;
+impl<'a, I> Iterator for WithNoneOf<'a, I>
+    where I: Iterator<Item = Result<FileLockEntry<'a>>>
+{
+    type Item = Result<FileLockEntry<'a>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
