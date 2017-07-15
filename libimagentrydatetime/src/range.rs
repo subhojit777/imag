@@ -38,7 +38,7 @@ pub mod result {
     pub type Result<T> = RResult<T, DateTimeRangeError>;
 }
 
-use chrono::naive::datetime::NaiveDateTime;
+use chrono::naive::NaiveDateTime;
 use libimagerror::into::IntoError;
 use self::result::Result;
 
@@ -69,9 +69,9 @@ impl DateTimeRange {
 #[cfg(test)]
 mod tests {
 
-    use chrono::naive::datetime::NaiveDateTime;
-    use chrono::naive::date::NaiveDate;
-    use chrono::naive::time::NaiveTime;
+    use chrono::naive::NaiveDateTime;
+    use chrono::naive::NaiveDate;
+    use chrono::naive::NaiveTime;
 
     use super::DateTimeRange;
 
