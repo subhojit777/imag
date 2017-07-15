@@ -29,6 +29,7 @@ use chrono::naive::datetime::NaiveDateTime;
 use libimagstore::store::Entry;
 use libimagerror::into::IntoError;
 
+use tag::TimeTrackingTag as TTT;
 use error::TimeTrackErrorKind as TTEK;
 use error::MapErrInto;
 use result::Result;
@@ -40,6 +41,8 @@ use toml_query::insert::TomlValueInsertExt;
 use toml_query::read::TomlValueReadExt;
 
 pub trait TimeTracking {
+
+    fn get_timetrack_tag(&self) -> Result<TTT>;
 
     fn set_start_datetime(&mut self, dt: NaiveDateTime) -> Result<()>;
 
@@ -58,6 +61,16 @@ pub trait TimeTracking {
 }
 
 impl TimeTracking for Entry {
+
+    fn get_timetrack_tag(&self) -> Result<TTT> {
+        self.get_header()
+            .read(DATE_TIME_TAG_HEADER_PATH)
+            .map_err_into(TTEK::HeaderReadError)
+            .map(|value| match value {
+                Some(&Value::String(ref s)) => s.clone().into(),
+                _ => unimplemented!(),
+            })
+    }
 
     fn set_start_datetime(&mut self, dt: NaiveDateTime) -> Result<()> {
         let s = dt.format(DATE_TIME_FORMAT).to_string();
