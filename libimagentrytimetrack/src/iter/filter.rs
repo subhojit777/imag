@@ -75,6 +75,19 @@ impl<'a, I> Iterator for WithOneOf<'a, I>
     }
 }
 
+pub trait WithOneOfTags<'a> : Sized + Iterator<Item = Result<FileLockEntry<'a>>> {
+    fn with_timetracking_tags(self, tags: &'a Vec<TTT>) -> WithOneOf<'a, Self>;
+}
+
+impl<'a, I> WithOneOfTags<'a> for I
+    where I: Iterator<Item = Result<FileLockEntry<'a>>>,
+          Self: Sized
+{
+    fn with_timetracking_tags(self, tags: &'a Vec<TTT>) -> WithOneOf<'a, Self> {
+        WithOneOf::new(self, tags)
+    }
+}
+
 
 pub struct WithNoneOf<'a, I>
     where I: Iterator<Item = Result<FileLockEntry<'a>>>
@@ -117,6 +130,19 @@ impl<'a, I> Iterator for WithNoneOf<'a, I>
                 None => return None,
             }
         }
+    }
+}
+
+pub trait WithNoneOfTags<'a> : Sized + Iterator<Item = Result<FileLockEntry<'a>>> {
+    fn without_timetracking_tags(self, tags: &'a Vec<TTT>) -> WithNoneOf<'a, Self>;
+}
+
+impl<'a, I> WithNoneOfTags<'a> for I
+    where I: Iterator<Item = Result<FileLockEntry<'a>>>,
+          Self: Sized
+{
+    fn without_timetracking_tags(self, tags: &'a Vec<TTT>) -> WithNoneOf<'a, Self> {
+        WithNoneOf::new(self, tags)
     }
 }
 
