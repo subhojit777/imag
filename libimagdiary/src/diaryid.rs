@@ -20,9 +20,9 @@
 use std::convert::Into;
 use std::fmt::{Display, Formatter, Error as FmtError};
 
-use chrono::naive::datetime::NaiveDateTime;
-use chrono::naive::time::NaiveTime;
-use chrono::naive::date::NaiveDate;
+use chrono::naive::NaiveDateTime;
+use chrono::naive::NaiveTime;
+use chrono::naive::NaiveDate;
 use chrono::Datelike;
 use chrono::Timelike;
 
@@ -119,7 +119,7 @@ impl DiaryId {
     }
 
     pub fn now(name: String) -> DiaryId {
-        use chrono::offset::local::Local;
+        use chrono::offset::Local;
 
         let now = Local::now();
         let now_date = now.date().naive_local();
