@@ -25,6 +25,7 @@ use libimagstore::storeid::StoreId;
 
 /// A tag for time-tracking. This is not a normal `libimagentrytag` tag, because we want the user
 /// give the possibility to use the tagging functionality without interfering with this functionality.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct TimeTrackingTag(String);
 
 impl TimeTrackingTag {
