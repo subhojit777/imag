@@ -28,7 +28,6 @@ use toml_query::insert::TomlValueInsertExt;
 
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
-use libimagstore::storeid::StoreId;
 use libimagentrydatetime::datepath::compiler::DatePathCompiler;
 
 use result::Result;

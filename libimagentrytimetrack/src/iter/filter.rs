@@ -17,17 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use error::TimeTrackError as TTE;
-use error::TimeTrackErrorKind as TTEK;
-use error::MapErrInto;
 use result::Result;
 
 use libimagstore::store::FileLockEntry;
-use libimagstore::store::Store;
-use libimagstore::storeid::StoreIdIterator;
-use libimagerror::into::IntoError;
 
-use iter::get::GetTimeTrackIter;
 use tag::TimeTrackingTag as TTT;
 use timetracking::TimeTracking;
 
