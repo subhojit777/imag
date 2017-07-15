@@ -33,8 +33,8 @@ extern crate libimagentrytag;
 
 mod constants;
 pub mod error;
-pub mod event;
-pub mod eventstore;
+pub mod timetracking;
+pub mod timetrackingstore;
 pub mod iter;
 pub mod result;
 pub mod tag;
