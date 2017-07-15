@@ -44,7 +44,7 @@ pub trait TimeTrackStore<'a> {
     fn create_timetracking_at(&'a self, start: &NDT, ts: &TTT)         -> Result<FileLockEntry<'a>>;
     fn create_timetracking(&'a self, start: &NDT, end: &NDT, ts: &TTT) -> Result<FileLockEntry<'a>>;
 
-    fn get_timetrackings<I>(&'a self) -> Result<GetTimeTrackIter<'a>>;
+    fn get_timetrackings(&'a self) -> Result<GetTimeTrackIter<'a>>;
 }
 
 fn now() -> NDT {
@@ -104,7 +104,7 @@ impl<'a> TimeTrackStore<'a> for Store {
             })
     }
 
-    fn get_timetrackings<I>(&'a self) -> Result<GetTimeTrackIter<'a>> {
+    fn get_timetrackings(&'a self) -> Result<GetTimeTrackIter<'a>> {
         self.retrieve_for_module(CRATE_NAME)
             .map_err_into(TTEK::StoreReadError)
             .map(|iter| GetTimeTrackIter::new(iter, self))
