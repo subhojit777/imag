@@ -19,7 +19,7 @@
 
 use toml::Value;
 use toml_query::insert::TomlValueInsertExt;
-use chrono::naive::datetime::NaiveDateTime as NDT;
+use chrono::naive::NaiveDateTime as NDT;
 
 use constants::*;
 use error::TimeTrackError as TTE;

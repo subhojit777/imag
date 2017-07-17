@@ -17,7 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use chrono::naive::datetime::NaiveDateTime;
+use chrono::naive::NaiveDateTime;
 
 use libimagdiary::diary::Diary;
 use libimagdiary::diaryid::DiaryId;

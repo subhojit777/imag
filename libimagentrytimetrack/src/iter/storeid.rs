@@ -17,7 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use chrono::naive::datetime::NaiveDateTime as NDT;
+use chrono::naive::NaiveDateTime as NDT;
 
 use constants::*;
 use error::TimeTrackError;

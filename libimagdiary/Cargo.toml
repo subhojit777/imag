@@ -14,7 +14,7 @@ repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
 [dependencies]
-chrono = "0.2"
+chrono = "0.4"
 log = "0.3"
 semver = "0.5"
 toml = "0.4.*"

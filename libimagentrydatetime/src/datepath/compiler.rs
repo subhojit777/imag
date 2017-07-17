@@ -19,7 +19,7 @@
 
 use std::path::PathBuf;
 
-use chrono::naive::datetime::NaiveDateTime;
+use chrono::naive::NaiveDateTime;
 use chrono::Datelike;
 use chrono::Timelike;
 
@@ -133,8 +133,8 @@ mod test {
     use datepath::accuracy::Accuracy;
     use datepath::format::Format;
 
-    use chrono::naive::date::NaiveDate;
-    use chrono::naive::datetime::NaiveDateTime;
+    use chrono::naive::NaiveDate;
+    use chrono::naive::NaiveDateTime;
 
     #[test]
     fn test_compiler_compile_simple() {

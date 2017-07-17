@@ -17,7 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use chrono::naive::datetime::NaiveDateTime;
+use chrono::naive::NaiveDateTime;
 use toml_query::delete::TomlValueDeleteExt;
 use toml_query::insert::TomlValueInsertExt;
 use toml_query::read::TomlValueReadExt;
@@ -219,9 +219,9 @@ mod tests {
 
     use libimagstore::store::Store;
 
-    use chrono::naive::datetime::NaiveDateTime;
-    use chrono::naive::date::NaiveDate;
-    use chrono::naive::time::NaiveTime;
+    use chrono::naive::NaiveDateTime;
+    use chrono::naive::NaiveDate;
+    use chrono::naive::NaiveTime;
 
     pub fn get_store() -> Store {
         Store::new(PathBuf::from("/"), None).unwrap()

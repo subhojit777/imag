@@ -48,7 +48,7 @@ pub trait TimeTrackStore<'a> {
 }
 
 fn now() -> NDT {
-    use chrono::offset::local::Local;
+    use chrono::offset::Local;
     Local::now().naive_local()
 }
 
