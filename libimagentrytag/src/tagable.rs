@@ -27,7 +27,7 @@ use error::TagErrorKind;
 use error::MapErrInto;
 use result::Result;
 use tag::{Tag, TagSlice};
-use util::is_tag;
+use tag::is_tag_str;
 
 use toml::Value;
 
@@ -55,7 +55,7 @@ impl Tagable for Value {
                     return Err(TagErrorKind::TagTypeError.into());
                 }
                 if tags.iter().any(|t| match *t {
-                    Value::String(ref s) => !is_tag(s),
+                    Value::String(ref s) => !is_tag_str(s).is_ok(),
                     _ => unreachable!()})
                 {
                     return Err(TagErrorKind::NotATag.into());
@@ -77,8 +77,8 @@ impl Tagable for Value {
     }
 
     fn set_tags(&mut self, ts: &[Tag]) -> Result<()> {
-        if ts.iter().any(|tag| !is_tag(tag)) {
-            debug!("Not a tag: '{}'", ts.iter().filter(|t| !is_tag(t)).next().unwrap());
+        if ts.iter().any(|tag| !is_tag_str(tag).is_ok()) {
+            debug!("Not a tag: '{}'", ts.iter().filter(|t| !is_tag_str(t).is_ok()).next().unwrap());
             return Err(TagErrorKind::NotATag.into());
         }
 
@@ -90,7 +90,7 @@ impl Tagable for Value {
     }
 
     fn add_tag(&mut self, t: Tag) -> Result<()> {
-        if !is_tag(&t) {
+        if !try!(is_tag_str(&t).map(|_| true).map_err(|_| TagErrorKind::NotATag.into_error())) {
             debug!("Not a tag: '{}'", t);
             return Err(TagErrorKind::NotATag.into());
         }
@@ -104,7 +104,7 @@ impl Tagable for Value {
     }
 
     fn remove_tag(&mut self, t: Tag) -> Result<()> {
-        if !is_tag(&t) {
+        if !try!(is_tag_str(&t).map(|_| true).map_err(|_| TagErrorKind::NotATag.into_error())) {
             debug!("Not a tag: '{}'", t);
             return Err(TagErrorKind::NotATag.into());
         }

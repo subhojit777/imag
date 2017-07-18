@@ -20,8 +20,7 @@
 use clap::{Arg, ArgMatches, App, SubCommand};
 
 use tag::Tag;
-
-use libimagutil::cli_validators::is_tag;
+use tag::is_tag;
 
 /// Generates a `clap::SubCommand` to be integrated in the commandline-ui builder for building a
 /// "tags --add foo --remove bar" subcommand to do tagging action.
