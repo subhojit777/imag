@@ -35,3 +35,8 @@ path = "../libimagentrytag"
 [dependencies.libimagutil]
 path = "../libimagutil"
 
+[dev-dependencies.libimagutil]
+path = "../libimagutil"
+default-features = false
+features         = ["testing"]
+
