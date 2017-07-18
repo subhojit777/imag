@@ -44,6 +44,9 @@ extern crate libimagentrylink;
 extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagerror;
+
+#[allow(unused_imports)]
+#[macro_use]
 extern crate libimagutil;
 
 use std::ops::Deref;
@@ -342,79 +345,24 @@ mod tests {
     use std::path::PathBuf;
     use std::ffi::OsStr;
 
-    use clap::{App, ArgMatches};
     use toml::value::Value;
     use toml_query::read::TomlValueReadExt;
     use toml_query::error::Result as TomlQueryResult;
 
-    use libimagrt::spec::CliSpec;
     use libimagrt::runtime::Runtime;
-    use libimagrt::error::RuntimeError;
-    use libimagrt::configuration::{Configuration, InternalConfiguration};
-
     use libimagstore::storeid::StoreId;
     use libimagstore::store::{Result as StoreResult, FileLockEntry};
 
-    static DEFAULT_ENTRY: &'static str = "\
----\
-[imag]\
-links = []\
-version = \"0.3.0\"\
----";
-
-    #[derive(Clone)]
-    struct MockLinkApp<'a> {
-        args: Vec<&'static str>,
-        inner: App<'a, 'a>,
+    make_mock_app! {
+        app "imag-link";
+        modulename mock;
+        version "0.3.0";
+        with help "imag-link mocking app";
     }
+    use self::mock::generate_test_runtime;
+    use libimagutil::testing::DEFAULT_ENTRY;
 
-    impl<'a> MockLinkApp<'a> {
-        fn new(args: Vec<&'static str>) -> Self {
-            MockLinkApp {
-                args: args,
-                inner: ::build_ui(Runtime::get_default_cli_builder("imag-link",
-                                                                   "0.3.0",
-                                                                   "Link entries test")),
-            }
-        }
-    }
-
-    impl<'a> CliSpec<'a> for MockLinkApp<'a> {
-        fn name(&self) -> &str {
-            self.inner.get_name()
-        }
-
-        fn matches(self) -> ArgMatches<'a> {
-            self.inner.get_matches_from(self.args)
-        }
-    }
-
-    impl<'a> InternalConfiguration for MockLinkApp<'a> {
-        fn enable_logging(&self) -> bool {
-            false
-        }
-
-        fn use_inmemory_fs(&self) -> bool {
-            true
-        }
-    }
-
-    fn generate_test_config() -> Option<Configuration> {
-        ::toml::de::from_str("[store]\nimplicit-create=true")
-                    .map(Configuration::with_value)
-                    .ok()
-    }
-
-    fn generate_test_runtime<'a>(mut args: Vec<&'static str>) -> Result<Runtime<'a>, RuntimeError> {
-        let mut cli_args = vec!["imag-link", "--rtp", "/tmp"];
-
-        cli_args.append(&mut args);
-
-        let cli_app = MockLinkApp::new(cli_args);
-        Runtime::with_configuration(cli_app, generate_test_config())
-    }
-
-    fn create_test_entry<'a, S: AsRef<OsStr>>(rt: &'a Runtime, name: S) -> StoreResult<StoreId> {
+    fn create_test_default_entry<'a, S: AsRef<OsStr>>(rt: &'a Runtime, name: S) -> StoreResult<StoreId> {
         let mut path = PathBuf::new();
         path.set_file_name(name);
 
@@ -441,8 +389,8 @@ version = \"0.3.0\"\
         let rt = generate_test_runtime(vec!["internal", "add", "--from", "test1", "--to", "test2"])
             .unwrap();
 
-        let test_id1 = create_test_entry(&rt, "test1").unwrap();
-        let test_id2 = create_test_entry(&rt, "test2").unwrap();
+        let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
+        let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
 
         handle_internal_linking(&rt);
 
@@ -461,8 +409,8 @@ version = \"0.3.0\"\
         let rt = generate_test_runtime(vec!["internal", "add", "--from", "test1", "--to", "test2"])
             .unwrap();
 
-        let test_id1 = create_test_entry(&rt, "test1").unwrap();
-        let test_id2 = create_test_entry(&rt, "test2").unwrap();
+        let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
+        let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
 
         handle_internal_linking(&rt);
 
@@ -481,8 +429,8 @@ version = \"0.3.0\"\
         let rt = generate_test_runtime(vec!["internal", "add", "--from", "test1", "--to", "test2"])
             .unwrap();
 
-        let test_id1 = create_test_entry(&rt, "test1").unwrap();
-        let test_id2 = create_test_entry(&rt, "test2").unwrap();
+        let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
+        let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
 
         handle_internal_linking(&rt);
         handle_internal_linking(&rt);

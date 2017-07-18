@@ -13,6 +13,12 @@ documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.h
 repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
+[features]
+default = []
+
+# Testing feature to compile testing utilities into the library.
+testing = []
+
 [dependencies]
 url = "1.2"
 boolinator = "2.4.0"
