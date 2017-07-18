@@ -40,3 +40,6 @@ path = "../libimagutil"
 default-features = false
 features         = ["testing"]
 
+[dev-dependencies]
+toml-query = "0.3.0"
+

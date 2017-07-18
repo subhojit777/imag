@@ -27,7 +27,12 @@ extern crate libimagstore;
 extern crate libimagrt;
 extern crate libimagentrytag;
 extern crate libimagerror;
+
+#[macro_use]
 extern crate libimagutil;
+
+#[cfg(test)]
+extern crate toml_query;
 
 use std::path::PathBuf;
 
@@ -167,5 +172,71 @@ fn list(id: PathBuf, rt: &Runtime) {
     if comm_out {
         println!("{}", tags.join(", "));
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+    use std::ffi::OsStr;
+
+    use toml::value::Value;
+    use toml_query::read::TomlValueReadExt;
+    use toml_query::error::Result as TomlQueryResult;
+
+    use libimagentrytag::ui::{get_add_tags, get_remove_tags};
+    use libimagrt::runtime::Runtime;
+    use libimagstore::storeid::StoreId;
+    use libimagstore::store::{Result as StoreResult, FileLockEntry};
+
+    use super::alter;
+
+    make_mock_app! {
+        app "imag-tag";
+        modulename mock;
+        version "0.3.0";
+        with help "imag-tag mocking app";
+    }
+    use self::mock::generate_test_runtime;
+    use libimagutil::testing::DEFAULT_ENTRY;
+
+    fn create_test_default_entry<'a, S: AsRef<OsStr>>(rt: &'a Runtime, name: S) -> StoreResult<StoreId> {
+        let mut path = PathBuf::new();
+        path.set_file_name(name);
+
+        let id = StoreId::new_baseless(path)?;
+        let mut entry = rt.store().create(id.clone())?;
+        entry.get_content_mut().push_str(DEFAULT_ENTRY);
+
+        Ok(id)
+    }
+
+    fn get_entry_tags<'a>(entry: &'a FileLockEntry<'a>) -> TomlQueryResult<Option<&'a Value>> {
+        entry.get_header().read(&"imag.tags".to_owned())
+    }
+
+    fn tags_toml_value<'a, I: IntoIterator<Item = &'static str>>(tags: I) -> Value {
+        Value::Array(tags.into_iter().map(|s| Value::String(s.to_owned())).collect())
+    }
+
+
+    #[test]
+    fn test_tag_add_adds_tag() {
+        let rt = generate_test_runtime(vec!["--id", "test", "--add", "foo"]).unwrap();
+
+        create_test_default_entry(&rt, "test").unwrap();
+        let id = PathBuf::from(String::from("test"));
+
+        let add = get_add_tags(rt.cli());
+        let rem = get_remove_tags(rt.cli());
+        alter(&rt, id.clone(), add, rem);
+
+        let test_entry = rt.store().get(id).unwrap().unwrap();
+        let test_tags  = get_entry_tags(&test_entry).unwrap().unwrap();
+
+        assert_ne!(*test_tags, tags_toml_value(vec![]));
+        assert_eq!(*test_tags, tags_toml_value(vec!["foo"]));
+    }
+
+
 }
 
