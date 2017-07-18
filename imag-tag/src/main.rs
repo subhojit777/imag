@@ -34,6 +34,9 @@ extern crate libimagutil;
 #[cfg(test)]
 extern crate toml_query;
 
+#[cfg(test)]
+extern crate env_logger;
+
 use std::path::PathBuf;
 
 use libimagrt::runtime::Runtime;
@@ -218,17 +221,32 @@ mod tests {
         Value::Array(tags.into_iter().map(|s| Value::String(s.to_owned())).collect())
     }
 
+    fn setup_logging() {
+        use env_logger;
+        let _ = env_logger::init().unwrap();
+    }
 
     #[test]
     fn test_tag_add_adds_tag() {
+        setup_logging();
+        debug!("Generating runtime");
         let rt = generate_test_runtime(vec!["--id", "test", "--add", "foo"]).unwrap();
 
+        debug!("Creating default entry");
         create_test_default_entry(&rt, "test").unwrap();
         let id = PathBuf::from(String::from("test"));
 
+        debug!("Getting 'add' tags");
         let add = get_add_tags(rt.cli());
+        debug!("Add-tags: {:?}", add);
+
+        debug!("Getting 'remove' tags");
         let rem = get_remove_tags(rt.cli());
+        debug!("Rem-tags: {:?}", rem);
+
+        debug!("Altering things");
         alter(&rt, id.clone(), add, rem);
+        debug!("Altered");
 
         let test_entry = rt.store().get(id).unwrap().unwrap();
         let test_tags  = get_entry_tags(&test_entry).unwrap().unwrap();
