@@ -223,7 +223,7 @@ mod tests {
 
     fn setup_logging() {
         use env_logger;
-        let _ = env_logger::init().unwrap();
+        let _ = env_logger::init().unwrap_or(());
     }
 
     #[test]
@@ -255,6 +255,121 @@ mod tests {
         assert_eq!(*test_tags, tags_toml_value(vec!["foo"]));
     }
 
+    #[test]
+    fn test_tag_add_more_than_remove_adds_tags() {
+        setup_logging();
+        debug!("Generating runtime");
+        let rt = generate_test_runtime(vec!["--id", "test",
+                                       "--add", "foo",
+                                       "--add", "bar",
+                                       "--add", "baz",
+                                       "--add", "bub",
+                                       "--remove", "foo",
+                                       "--remove", "bar",
+                                       "--remove", "baz",
+        ]).unwrap();
+
+        debug!("Creating default entry");
+        create_test_default_entry(&rt, "test").unwrap();
+        let id = PathBuf::from(String::from("test"));
+
+        // Manually add tags
+        let add = get_add_tags(rt.cli());
+
+        debug!("Getting 'remove' tags");
+        let rem = get_remove_tags(rt.cli());
+        debug!("Rem-tags: {:?}", rem);
+
+        debug!("Altering things");
+        alter(&rt, id.clone(), add, rem);
+        debug!("Altered");
+
+        let test_entry = rt.store().get(id).unwrap().unwrap();
+        let test_tags  = get_entry_tags(&test_entry).unwrap().unwrap();
+
+        assert_eq!(*test_tags, tags_toml_value(vec!["bub"]));
+    }
+
+    #[test]
+    fn test_tag_remove_removes_tag() {
+        setup_logging();
+        debug!("Generating runtime");
+        let rt = generate_test_runtime(vec!["--id", "test", "--remove", "foo"]).unwrap();
+
+        debug!("Creating default entry");
+        create_test_default_entry(&rt, "test").unwrap();
+        let id = PathBuf::from(String::from("test"));
+
+        // Manually add tags
+        let add = Some(vec![ "foo".to_owned() ]);
+
+        debug!("Getting 'remove' tags");
+        let rem = get_remove_tags(rt.cli());
+        debug!("Rem-tags: {:?}", rem);
+
+        debug!("Altering things");
+        alter(&rt, id.clone(), add, rem);
+        debug!("Altered");
+
+        let test_entry = rt.store().get(id).unwrap().unwrap();
+        let test_tags  = get_entry_tags(&test_entry).unwrap().unwrap();
+
+        assert_eq!(*test_tags, tags_toml_value(vec![]));
+    }
+
+    #[test]
+    fn test_tag_remove_removes_only_to_remove_tag() {
+        setup_logging();
+        debug!("Generating runtime");
+        let rt = generate_test_runtime(vec!["--id", "test", "--remove", "foo"]).unwrap();
+
+        debug!("Creating default entry");
+        create_test_default_entry(&rt, "test").unwrap();
+        let id = PathBuf::from(String::from("test"));
+
+        // Manually add tags
+        let add = Some(vec![ "foo".to_owned(), "bar".to_owned() ]);
+
+        debug!("Getting 'remove' tags");
+        let rem = get_remove_tags(rt.cli());
+        debug!("Rem-tags: {:?}", rem);
+
+        debug!("Altering things");
+        alter(&rt, id.clone(), add, rem);
+        debug!("Altered");
+
+        let test_entry = rt.store().get(id).unwrap().unwrap();
+        let test_tags  = get_entry_tags(&test_entry).unwrap().unwrap();
+
+        assert_eq!(*test_tags, tags_toml_value(vec!["bar"]));
+    }
+
+    #[test]
+    fn test_tag_remove_removes_but_doesnt_crash_on_nonexistent_tag() {
+        setup_logging();
+        debug!("Generating runtime");
+        let rt = generate_test_runtime(vec!["--id", "test", "--remove", "foo", "--remove", "bar"]).unwrap();
+
+        debug!("Creating default entry");
+        create_test_default_entry(&rt, "test").unwrap();
+        let id = PathBuf::from(String::from("test"));
+
+        // Manually add tags
+        let add = Some(vec![ "foo".to_owned() ]);
+
+        debug!("Getting 'remove' tags");
+        let rem = get_remove_tags(rt.cli());
+        debug!("Rem-tags: {:?}", rem);
+
+        debug!("Altering things");
+        alter(&rt, id.clone(), add, rem);
+        debug!("Altered");
+
+        let test_entry = rt.store().get(id).unwrap().unwrap();
+        let test_tags  = get_entry_tags(&test_entry).unwrap().unwrap();
+
+        assert_eq!(*test_tags, tags_toml_value(vec![]));
+    }
 
 }
 
