@@ -28,6 +28,7 @@ extern crate semver;
 extern crate toml;
 extern crate chrono;
 extern crate filters;
+extern crate itertools;
 
 extern crate libimagerror;
 extern crate libimagstore;
