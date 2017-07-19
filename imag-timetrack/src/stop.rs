@@ -19,6 +19,10 @@
 
 use std::str::FromStr;
 
+use filters::filter::Filter;
+
+use common::*;
+
 use libimagerror::trace::trace_error;
 use libimagerror::iter::TraceIterator;
 use libimagrt::runtime::Runtime;
@@ -61,27 +65,12 @@ pub fn stop(rt: &Runtime) -> i32 {
 
     };
 
+    let filter = has_end_time.not().and(HasTagFromList::new(&tags));
+
     // Filter all timetrackings for the ones that are not yet ended.
     iter.trace_unwrap()
         .filter_map(|elem| {
-            // check whether end-time is set
-            let has_end_time = match elem.get_end_datetime() {
-                Ok(x)  => x.is_some(),
-                Err(e) => {
-                    warn!("Error checking {} whether End-time is set", elem.get_location());
-                    trace_error(&e);
-                    false
-                }
-            };
-
-            // Filter the not-yet-ended timetrackings for the ones that should be ended via
-            // the tag specification
-            let stopping_tag_is_present : bool = elem
-                .get_timetrack_tag()
-                .map(|t| tags.contains(&t))
-                .unwrap_or(false);
-
-            if (!has_end_time) && stopping_tag_is_present {
+            if filter.filter(&elem) {
                 Some(elem)
             } else {
                 None
