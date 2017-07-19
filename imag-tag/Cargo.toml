@@ -35,3 +35,12 @@ path = "../libimagentrytag"
 [dependencies.libimagutil]
 path = "../libimagutil"
 
+[dev-dependencies.libimagutil]
+path = "../libimagutil"
+default-features = false
+features         = ["testing"]
+
+[dev-dependencies]
+toml-query = "0.3.0"
+env_logger = "0.3"
+
