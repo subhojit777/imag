@@ -17,9 +17,97 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::cmp::Ord;
+use std::cmp::Ordering;
+
+use filters::ops::not::Not;
+use filters::filter::Filter;
+use itertools::Itertools;
+use itertools::MinMaxResult;
+use chrono::NaiveDateTime;
+
+use common::has_end_time;
+
+use libimagerror::trace::trace_error;
+use libimagerror::trace::MapErrTrace;
+use libimagerror::iter::TraceIterator;
+use libimagentrytimetrack::timetrackingstore::TimeTrackStore;
+use libimagentrytimetrack::timetracking::TimeTracking;
+
 use libimagrt::runtime::Runtime;
 
 pub fn cont(rt: &Runtime) -> i32 {
-    unimplemented!()
+    rt.store()
+        .get_timetrackings()
+        .and_then(|iter| {
+            let groups = iter
+                // unwrap everything, trace errors
+                .trace_unwrap()
+
+                // I want all entries with an end time
+                .filter(|e| has_end_time.filter(&e))
+
+                // Now group them by the end time
+                .group_by(|elem| match elem.get_end_datetime() {
+                    Ok(Some(dt)) => dt,
+                    Ok(None) => {
+                        // error. We expect all of them having an end-time.
+                        error!("Has no end time, but should be filtered out: {:?}", elem);
+                        error!("This is a bug. Please report.");
+                        error!("Will panic now");
+                        panic!("Unknown bug")
+                    }
+                    Err(e) => {
+                        trace_error(&e);
+                        NaiveDateTime::from_timestamp(0, 0) // placeholder
+                    }
+                });
+
+            // sort the trackings by key, so by end datetime
+            let elements = {
+                let mut v = vec![];
+                for (key, value) in groups.into_iter() {
+                    v.push((key, value));
+                }
+
+                v.into_iter()
+                .sorted_by(|t1, t2| {
+                    let (k1, _) = *t1;
+                    let (k2, _) = *t2;
+                    Ord::cmp(&k1, &k2)
+                })
+                .into_iter()
+
+                // get the last one, which should be the highest one
+                .last() // -> Option<_>
+            };
+
+            match elements {
+                Some((_, trackings)) => {
+                    // and then, for all trackings
+                     trackings
+                         .fold(Ok(0), |acc, tracking| {
+                             debug!("Having tracking: {:?}", tracking);
+
+                             acc.and_then(|_| {
+                                // create a new tracking with the same tag
+                                 tracking
+                                     .get_timetrack_tag()
+                                     .and_then(|tag| rt.store().create_timetracking_now(&tag))
+                                     .map(|_| 0)
+                                     .map_err_trace()
+                             })
+                         })
+                },
+
+                None => {
+                    info!("No trackings to continue");
+                    Ok(1)
+                },
+            }
+        })
+        .map(|_| 0)
+        .map_err_trace()
+        .unwrap_or(1)
 }
 
