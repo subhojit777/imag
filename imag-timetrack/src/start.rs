@@ -29,14 +29,16 @@ pub fn start(rt: &Runtime) -> i32 {
     let (_, cmd) = rt.cli().subcommand();
     let cmd = cmd.unwrap(); // checked in main()
 
-    let start = match cmd.value_of("start-time").map(::chrono::naive::NaiveDateTime::from_str) {
-        None          => ::chrono::offset::Local::now().naive_local(),
-        Some(Ok(ndt)) => ndt,
-        Some(Err(e))  => {
-            trace_error(&e);
-            error!("Cannot continue, not having start time");
-            return 1
-        },
+    let start = match cmd.value_of("start-time") {
+        None | Some("now") => ::chrono::offset::Local::now().naive_local(),
+        Some(ndt)          => match ::chrono::naive::NaiveDateTime::from_str(ndt) {
+            Ok(ndt) => ndt,
+            Err(e) =>  {
+                trace_error(&e);
+                error!("Cannot continue, not having start time");
+                return 1
+            },
+        }
     };
 
     cmd.values_of("tags")

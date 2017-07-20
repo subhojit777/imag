@@ -37,15 +37,18 @@ pub fn stop(rt: &Runtime) -> i32 {
     let (_, cmd) = rt.cli().subcommand();
     let cmd = cmd.unwrap(); // checked in main()
 
-    let stop_time = match cmd.value_of("stop-time").map(::chrono::naive::NaiveDateTime::from_str) {
-        None          => ::chrono::offset::Local::now().naive_local(),
-        Some(Ok(ndt)) => ndt,
-        Some(Err(e))  => {
-            trace_error(&e);
-            error!("Cannot continue, not having stop time");
-            return 1
-        },
+    let stop_time = match cmd.value_of("stop-time") {
+        None | Some("now") => ::chrono::offset::Local::now().naive_local(),
+        Some(ndt)          => match ::chrono::naive::NaiveDateTime::from_str(ndt) {
+            Ok(ndt) => ndt,
+            Err(e) =>  {
+                trace_error(&e);
+                error!("Cannot continue, not having start time");
+                return 1
+            },
+        }
     };
+
 
     // TODO: We do not yet support stopping all tags by simply calling the "stop" subcommand!
 
