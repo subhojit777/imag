@@ -20,7 +20,35 @@
 use clap::{Arg, App, SubCommand};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
-    app.subcommand(SubCommand::with_name("start")
+    app
+       .subcommand(SubCommand::with_name("list")
+                   .about("List time trackings")
+                   .version("0.1")
+                   .arg(Arg::with_name("start-time")
+                        .short("f")
+                        .long("from")
+                        .takes_value(true)
+                        .multiple(false)
+                        .required(false)
+                        .help("Set earliest time from which on time trackings should be shown (use 'now' for current time)"))
+                   .arg(Arg::with_name("end-time")
+                        .short("t")
+                        .long("to")
+                        .takes_value(true)
+                        .multiple(false)
+                        .required(false)
+                        .help("Set latest time of time trackings to be shown (use 'now' for current time)"))
+
+                   .arg(Arg::with_name("list-not-ended")
+                        .short("l")
+                        .long("list-not-ended")
+                        .takes_value(false)
+                        .multiple(false)
+                        .required(false)
+                        .help("List not yet ended timetrackings even if after 'end-time'"))
+                   )
+
+       .subcommand(SubCommand::with_name("start")
                    .about("Start time tracking")
                    .version("0.1")
                    .arg(Arg::with_name("start-time")

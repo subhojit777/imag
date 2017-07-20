@@ -38,6 +38,7 @@ extern crate libimagutil;
 
 mod cont;
 mod day;
+mod list;
 mod month;
 mod start;
 mod stop;
@@ -48,6 +49,7 @@ mod year;
 
 use cont::cont;
 use day::day;
+use list::list;
 use month::month;
 use start::start;
 use stop::stop;
@@ -70,6 +72,7 @@ fn main() {
         match command {
             "continue" => cont(&rt),
             "day"      => day(&rt),
+            "list"     => list(&rt),
             "month"    => month(&rt),
             "start"    => start(&rt),
             "stop"     => stop(&rt),
