@@ -26,13 +26,12 @@ use itertools::Itertools;
 use itertools::MinMaxResult;
 use chrono::NaiveDateTime;
 
-use common::has_end_time;
-
 use libimagerror::trace::trace_error;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::iter::TraceIterator;
 use libimagentrytimetrack::timetrackingstore::TimeTrackStore;
 use libimagentrytimetrack::timetracking::TimeTracking;
+use libimagentrytimetrack::iter::filter::*;
 
 use libimagrt::runtime::Runtime;
 

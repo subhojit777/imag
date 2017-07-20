@@ -21,8 +21,6 @@ use std::str::FromStr;
 
 use filters::filter::Filter;
 
-use common::*;
-
 use libimagerror::trace::trace_error;
 use libimagerror::iter::TraceIterator;
 use libimagrt::runtime::Runtime;
@@ -32,6 +30,8 @@ use libimagentrytimetrack::timetracking::TimeTracking;
 use libimagentrytimetrack::tag::TimeTrackingTag;
 use libimagentrytimetrack::timetrackingstore::*;
 use libimagentrytimetrack::iter::get::GetTimeTrackIter;
+use libimagentrytimetrack::iter::filter::has_end_time;
+use libimagentrytimetrack::iter::filter::has_one_of_tags;
 
 pub fn stop(rt: &Runtime) -> i32 {
     let (_, cmd) = rt.cli().subcommand();
@@ -65,7 +65,7 @@ pub fn stop(rt: &Runtime) -> i32 {
 
     };
 
-    let filter = has_end_time.not().and(HasTagFromList::new(&tags));
+    let filter = has_end_time.not().and(has_one_of_tags(&tags));
 
     // Filter all timetrackings for the ones that are not yet ended.
     iter.trace_unwrap()
