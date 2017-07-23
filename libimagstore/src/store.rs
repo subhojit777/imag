@@ -1037,6 +1037,15 @@ mod glob_store_iter {
 
     use libimagerror::trace::trace_error;
 
+    /// An iterator which is constructed from a `glob()` and returns valid `StoreId` objects
+    ///
+    /// # Warning
+    ///
+    /// On error, this iterator currently traces the error and return None (thus ending the
+    /// iteration). This is a known issue and will be resolved at some point.
+    ///
+    /// TODO: See above.
+    ///
     pub struct GlobStoreIdIterator {
         store_path: PathBuf,
         paths: Paths,
@@ -1075,17 +1084,31 @@ mod glob_store_iter {
         type Item = StoreId;
 
         fn next(&mut self) -> Option<StoreId> {
-            self.paths
-                .next()
-                .and_then(|o| {
-                    debug!("GlobStoreIdIterator::next() => {:?}", o);
-                    o.map_err_into(SEK::StoreIdHandlingError)
-                        .and_then(|p| StoreId::from_full_path(&self.store_path, p))
-                        .map_err(|e| {
-                            debug!("GlobStoreIdIterator error: {:?}", e);
-                            trace_error(&e);
-                        }).ok()
-                })
+            while let Some(o) = self.paths.next() {
+                debug!("GlobStoreIdIterator::next() => {:?}", o);
+                match o.map_err_into(SEK::StoreIdHandlingError) {
+                    Ok(path) => {
+                        if path.exists() && path.is_file() {
+                            return match StoreId::from_full_path(&self.store_path, path) {
+                                Ok(id) => Some(id),
+                                Err(e) => {
+                                    trace_error(&e);
+                                    None
+                                }
+                            }
+                        /* } else { */
+                            /* continue */
+                        }
+                    }
+                    Err(e) => {
+                        debug!("GlobStoreIdIterator error: {:?}", e);
+                        trace_error(&e);
+                        return None
+                    }
+                }
+            }
+
+            None
         }
 
     }
