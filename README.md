@@ -21,17 +21,10 @@ Our (long-term) goal is to
 > management, consists of reusable parts and integrates well with known
 > commandline tools.
 
-imag is a PIM _helper_. We do not actually implement the PIM functionality, but
-try to interface with existing PIM tools (via their API or via some standard
-format they use, e.g. vcard) to make the data they manage _linkable_
-and _queryable_ in an uniform way.
+Yes, imag is a rather ambitous project as it tries to reimplement functionality for several "personal information management aspects". It is a hobby project, keep that in mind. We try to use standards like vcard and icalendar whereever possible.
 
 imag consists of _modules_ (e.g. `imag-notes`, `imag-tag`, `imag-view`), where
 each module covers one PIM aspect.
-The initial approach is to use one PIM tool for one module.
-So you can use `imag-todo` with [taskwarrior](https://taskwarrior.org/),
-`imag-mail` with Maildirs and `imag-calendar` with
-[icalendar](https://en.wikipedia.org/wiki/ICalendar) files.
 
 ## Building/Running
 
@@ -47,7 +40,7 @@ give you a commandline application.
 
 We use `make` to automate the build process.
 Make sure to _not_ include some `-j 8` arguments, this will _not_ work as you
-might think!
+might think, as the rust compiler automatically parallelizes stuff and if you `make -j 8`, you end up with a pretty high load!
 
 There are several targets for each of the sub-crates in the Makefile:
 
@@ -80,19 +73,11 @@ install-directory is in your `$PATH`), or install the `imag` binary to call `ima
 ## Staying up-to-date
 
 We have a [official website for imag](https://imag-pim.org), where I post
-[release notes](http://imag-pim.org/releases/).
+[release notes](http://imag-pim.org/releases/) and monthly(ish) updates what's happening in the source tree.
 There is no RSS feed, though.
 
 We also have a [mailinglist](https://imag-pim.org/mailinglist/) where I post
 updates and where discussion and questions are encouraged.
-
-There is a blog series which gets an update once a month on my blog, where
-[entries are tagged "imag"](https://beyermatthias.de/tags/imag/).
-I also post non-regular posts about imag things there.
-
-I also post these blog posts
-[on reddit](https://www.reddit.com/r/rust/search?q=What%27s+coming+up+in+imag&restrict_sr=on)
-and submit them to [this-week-in-rust](https://this-week-in-rust.org/).
 
 ## Documentation
 
@@ -111,10 +96,6 @@ be a bit outdated.
 ## Please contribute!
 
 We are looking for contributors!
-
-There is always a number of
-[complexity/easy tagged issues](https://github.com/matthiasbeyer/imag/issues?q=is%3Aopen+is%3Aissue+label%3Acomplexity%2Feasy)
-available in the issue tracker you can start with and we are open to questions!
 
 Feel free to open issues for asking questions, suggesting features or other
 things!
