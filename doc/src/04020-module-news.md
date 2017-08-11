@@ -1,4 +1,4 @@
 ## News {#sec:modules:news}
 
-The News module.
+The News module is an RSS reader.
 

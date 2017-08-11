@@ -1,7 +1,5 @@
 ## Link {#sec:modules:link}
 
-The Linking module.
-
 The linking module `imag-link` is one of the plumbing modules.
 It offers the possibility to link entries in the store.
 
