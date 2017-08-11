@@ -2,8 +2,6 @@
 
 The Counter module helps you counting things.
 
-### Description
-
 In its current state the counter module is capable of simple counting. You can
 create, list and delete counters which are simply numbers and incremet,
 decrement, set and reset them.
@@ -26,8 +24,4 @@ imag counter --inc example # or -i example
 imag counter --reset example
 imag counter --dec example # or -d example
 ```
-
-### Backends
-
-<!-- Backends the module supports including links to external resources -->
 

@@ -2,8 +2,6 @@
 
 The Diary module.
 
-### Description
-
 The diary module is for keeping your diary notes. It offers a self-implemented
 diary which creates the entries in the store.
 
