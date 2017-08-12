@@ -10,3 +10,5 @@ The goal of the initial implementation is only a CLI, not a TUI like mutt offers
 
 So this module offers functionality to read (Maildir) mailboxes, search for and list mails and mail-threads and reply to mails (by spawning the `$EDITOR`).
 
+Outgoing mails are pushed to a special directory and can later on be send via `imag-mail` which calls a MTA (for example msmtp) and also creates store entries for the outgoing mails.
+
