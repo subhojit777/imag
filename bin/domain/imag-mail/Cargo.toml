@@ -1,0 +1,25 @@
+[package]
+name = "imag-mail"
+version = "0.4.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+description = "Part of the imag core distribution: imag-notes command"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../README.md"
+license     = "LGPL-2.1"
+
+[dependencies]
+semver = "0.5"
+clap = "2.*"
+log = "0.3"
+version = "2.0.1"
+toml = "0.4.*"
+url = "1.2"
+
+libimagrt    = { version = "0.4.0", path = "../../../lib/core/libimagrt" }
+libimagerror = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
+libimagmail  = { version = "0.4.0", path = "../../../lib/domain/libimagmail" }
+libimagref   = { version = "0.4.0", path = "../../../lib/entry/libimagentryref" }
+libimagutil  = { version = "0.4.0", path = "../../../lib/etc/libimagutil" }
+

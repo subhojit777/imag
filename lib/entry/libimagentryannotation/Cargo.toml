@@ -1,0 +1,21 @@
+[package]
+name = "libimagannotation"
+version = "0.4.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+description = "Library for the imag core distribution"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../README.md"
+license     = "LGPL-2.1"
+
+[dependencies]
+uuid = { version = "0.3.1", features = ["v4"] }
+lazy_static = "0.1.15"
+toml = "^0.4"
+
+libimagstore     = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
+libimagnotes     = { version = "0.4.0", path = "../../../lib/domain/libimagnotes" }
+libimagentrylink = { version = "0.4.0", path = "../../../lib/entry/libimagentrylink" }
+libimagutil      = { version = "0.4.0", path = "../../../lib/etc/libimagutil" }

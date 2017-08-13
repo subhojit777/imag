@@ -1,0 +1,28 @@
+[package]
+name = "libimagtodo"
+version = "0.4.0"
+authors = ["mario <mario-krehl@gmx.de>"]
+
+description = "Library for the imag core distribution"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+homepage      = "http://imag-pim.org"
+
+[dependencies]
+semver = "0.2"
+task-hookrs = "0.2.2"
+uuid = "0.3"
+toml = "0.4.*"
+toml-query = "0.3.*"
+is-match = "0.1.*"
+log = "0.3"
+serde_json = "0.8"
+
+libimagstore = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
+libimagerror = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
+libimagutil  = { version = "0.4.0", path = "../../../lib/etc/libimagutil" }

@@ -1,0 +1,26 @@
+[package]
+name = "imag-bookmark"
+version = "0.4.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+description = "Part of the imag core distribution: imag-bookmark command"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+homepage      = "http://imag-pim.org"
+
+[dependencies]
+clap = ">=2.17"
+log = "0.3"
+version = "2.0.1"
+
+libimagrt        = { version = "0.4.0", path = "../../../lib/core/libimagrt" }
+libimagerror     = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
+libimagbookmark  = { version = "0.4.0", path = "../../../lib/domain/libimagbookmark" }
+libimagentrylink = { version = "0.4.0", path = "../../../lib/entry/libimagentrylink" }
+libimagentrytag  = { version = "0.4.0", path = "../../../lib/entry/libimagentrytag" }
+libimagutil      = { version = "0.4.0", path = "../../../lib/etc/libimagutil" }
