@@ -28,7 +28,7 @@ before_script:
 
 script:
 - |
-  make all test
+  cargo build --all --verbose -j 1 && cargo test --all --verbose -j 1
 
 addons:
   apt:
@@ -38,7 +38,6 @@ addons:
     - libdw-dev
     - libelf-dev
     - libzzip-dev
-    - make
     - tree
     sources:
     - kalakris-cmake
