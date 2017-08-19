@@ -204,13 +204,6 @@ fn main() {
                 None => Vec::new()
             };
             
-            // Typos happen, so check if the given subcommand is one found in $PATH
-            if !commands.contains(&String::from(subcommand)) {
-                println!("No such command: 'imag-{}'", subcommand);
-                println!("See 'imag --help' for available subcommands");
-                exit(2);
-            }
-    
             debug!("Calling 'imag-{}' with args: {:?}", subcommand, subcommand_args);
 
             // Create a Command, and pass it the gathered arguments
@@ -235,8 +228,6 @@ fn main() {
                     debug!("Error calling the subcommand");
                     match e.kind() {
                         ErrorKind::NotFound => {
-                            // With the check above, this absolutely should not happen.
-                            // Keeping it to be safe
                             println!("No such command: 'imag-{}'", subcommand);
                             println!("See 'imag --help' for available subcommands");
                             exit(2);
