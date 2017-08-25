@@ -18,15 +18,7 @@ log = "0.3"
 toml = "^0.4"
 glob = "0.2"
 
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagentryedit]
-path = "../libimagentryedit"
-
+libimagrt = "0.3.0"
+libimagstore = "0.3.0"
+libimagerror = "0.3.0"
+libimagentryedit = "0.3.0"

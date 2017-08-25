@@ -21,15 +21,7 @@ toml-query = "0.3"
 lazy_static = "0.2"
 is-match = "0.1"
 
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagentrydatetime]
-path = "../libimagentrydatetime"
-
-[dependencies.libimagentrytag]
-path = "../libimagentrytag"
-
+libimagerror = "0.3.0"
+libimagstore = "0.3.0"
+libimagentrydatetime = "0.3.0"
+libimagentrytag = "0.3.0"

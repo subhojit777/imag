@@ -25,14 +25,6 @@ toml-query = "0.3.*"
 is-match = "0.1.*"
 version = "2.0.1"
 
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagtodo]
-path = "../libimagtodo"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
+libimagrt = "0.3.0"
+libimagstore = "0.3.0"
+libimagtodo = "0.3.0"

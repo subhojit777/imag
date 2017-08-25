@@ -19,12 +19,6 @@ log = "0.3"
 toml = "^0.4"
 prettytable-rs = "0.6.*"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
+libimagstore = "0.3.0"
+libimagerror = "0.3.0"
+libimagutil = "0.3.0"

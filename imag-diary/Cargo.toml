@@ -19,30 +19,12 @@ version = "2.0"
 clap = "2.*"
 log = "0.3"
 
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagdiary]
-path = "../libimagdiary"
-
-[dependencies.libimagentryedit]
-path = "../libimagentryedit"
-
-[dependencies.libimagentrylist]
-path = "../libimagentrylist"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimaginteraction]
-path = "../libimaginteraction"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagtimeui]
-path = "../libimagtimeui"
-
+libimagrt = "0.3.0"
+libimagdiary = "0.3.0"
+libimagentryedit = "0.3.0"
+libimagentrylist = "0.3.0"
+libimagerror = "0.3.0"
+libimaginteraction = "0.3.0"
+libimagutil = "0.3.0"
+libimagstore = "0.3.0"
+libimagtimeui = "0.3.0"

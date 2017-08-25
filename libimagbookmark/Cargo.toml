@@ -18,12 +18,6 @@ semver = "0.5"
 url = "1.2"
 regex = "0.1"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagentrylink]
-path = "../libimagentrylink"
-
+libimagstore = "0.3.0"
+libimagerror = "0.3.0"
+libimagentrylink = "0.3.0"

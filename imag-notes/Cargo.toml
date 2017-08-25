@@ -20,21 +20,9 @@ log = "0.3"
 version = "2.0.1"
 itertools = "0.5"
 
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagnotes]
-path = "../libimagnotes"
-
-[dependencies.libimagentryedit]
-path = "../libimagentryedit"
-
-[dependencies.libimagentrytag]
-path = "../libimagentrytag"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
+libimagrt = "0.3.0"
+libimagnotes = "0.3.0"
+libimagentryedit = "0.3.0"
+libimagentrytag = "0.3.0"
+libimagerror = "0.3.0"
+libimagutil = "0.3.0"

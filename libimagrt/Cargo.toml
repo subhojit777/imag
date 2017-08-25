@@ -24,12 +24,6 @@ tempfile = "2.1"
 ansi_term = "0.9"
 is-match = "0.1"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
+libimagstore = "0.3.0"
+libimagutil = "0.3.0"
+libimagerror = "0.3.0"

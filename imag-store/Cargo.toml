@@ -20,19 +20,14 @@ version = "2.0.1"
 semver = "0.5"
 toml = "^0.4"
 
+libimagrt = "0.3.0"
+libimagutil = "0.3.0"
+libimagerror = "0.3.0"
+
 [dependencies.libimagstore]
-path = "../libimagstore"
+version = "0.3.0"
 default-features = false
 features = ["verify"]
-
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
 
 [features]
 early-panic = [ "libimagstore/early-panic" ]

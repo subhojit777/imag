@@ -15,15 +15,7 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
+libimagerror = "0.3.0"
+libimagrt = "0.3.0"
+libimagstore = "0.3.0"
+libimagutil = "0.3.0"

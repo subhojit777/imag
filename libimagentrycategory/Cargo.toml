@@ -22,9 +22,5 @@ is-match = "0.1"
 [dev-dependencies]
 env_logger = "0.4"
 
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagstore]
-path = "../libimagstore"
-
+libimagerror = "0.3.0"
+libimagstore = "0.3.0"

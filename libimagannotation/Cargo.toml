@@ -8,18 +8,8 @@ uuid = { version = "0.3.1", features = ["v4"] }
 lazy_static = "0.1.15"
 toml = "^0.4"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagnotes]
-path = "../libimagnotes"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagentrylink]
-path = "../libimagentrylink"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
+libimagstore = "0.3.0"
+libimagnotes = "0.3.0"
+libimagerror = "0.3.0"
+libimagentrylink = "0.3.0"
+libimagutil = "0.3.0"

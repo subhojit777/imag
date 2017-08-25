@@ -19,24 +19,10 @@ clap = ">=2.17"
 log = "0.3"
 version = "2.0.1"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagref]
-path = "../libimagref"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimaginteraction]
-path = "../libimaginteraction"
-
-[dependencies.libimagentrylist]
-path = "../libimagentrylist"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
+libimagstore = "0.3.0"
+libimagrt = "0.3.0"
+libimagref = "0.3.0"
+libimagerror = "0.3.0"
+libimaginteraction = "0.3.0"
+libimagentrylist = "0.3.0"
+libimagutil = "0.3.0"

@@ -22,15 +22,7 @@ toml = "^0.4"
 version = "2.0.1"
 walkdir = "1.0.*"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagentrylist]
-path = "../libimagentrylist"
-
+libimagstore = "0.3.0"
+libimagerror = "0.3.0"
+libimagutil = "0.3.0"
+libimagentrylist = "0.3.0"

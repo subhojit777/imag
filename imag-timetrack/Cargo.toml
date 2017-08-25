@@ -23,18 +23,8 @@ chrono = "^0.4"
 filters = "0.1.1"
 itertools = "0.6"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagentrytimetrack]
-path = "../libimagentrytimetrack"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
+libimagstore = "0.3.0"
+libimagrt = "0.3.0"
+libimagerror = "0.3.0"
+libimagentrytimetrack = "0.3.0"
+libimagutil = "0.3.0"

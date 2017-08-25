@@ -30,11 +30,8 @@ serde = "1.0"
 serde_json = "1.0"
 serde_derive = "1.0"
 
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
+libimagerror = "0.3.0"
+libimagutil = "0.3.0"
 
 [dev-dependencies]
 tempdir = "0.3.4"

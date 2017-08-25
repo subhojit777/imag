@@ -22,12 +22,6 @@ itertools = "0.5"
 is-match = "0.1"
 filters = "0.1"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
+libimagstore = "0.3.0"
+libimagerror = "0.3.0"
+libimagutil = "0.3.0"
