@@ -19,12 +19,12 @@ toml = "0.4"
 toml-query = "0.3"
 is-match = "0.1"
 
-[dev-dependencies]
-env_logger = "0.4"
-
 [dependencies.libimagerror]
 path = "../libimagerror"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
+
+[dev-dependencies]
+env_logger = "0.4"
 

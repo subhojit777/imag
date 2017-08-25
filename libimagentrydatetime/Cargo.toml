@@ -19,9 +19,6 @@ toml-query = "0.3"
 lazy_static = "0.2"
 toml = "0.4"
 
-[dev-dependencies]
-is-match = "0.1"
-
 [dependencies.libimagerror]
 path = "../libimagerror"
 
@@ -30,4 +27,7 @@ path = "../libimagstore"
 
 [dependencies.libimagutil]
 path = "../libimagutil"
+
+[dev-dependencies]
+is-match = "0.1"
 
