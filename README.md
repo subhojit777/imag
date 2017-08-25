@@ -21,10 +21,15 @@ Our (long-term) goal is to
 > management, consists of reusable parts and integrates well with known
 > commandline tools.
 
-Yes, imag is a rather ambitous project as it tries to reimplement functionality for several "personal information management aspects". It is a hobby project, keep that in mind. We try to use standards like vcard and icalendar whereever possible.
+Yes, imag is a rather ambitous project as it tries to reimplement functionality
+for several "personal information management aspects". It is a hobby project,
+keep that in mind. We try to use standards like vcard and icalendar wherever
+possible.
 
 imag consists of _modules_ (e.g. `imag-notes`, `imag-tag`, `imag-view`), where
-each module covers one PIM aspect.
+each module covers one PIM aspect. Have a look at
+[the documentation](./doc/) for some more words on this.
+
 
 ## Building/Running
 
