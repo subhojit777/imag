@@ -66,9 +66,10 @@ impl TimeTracking for Entry {
         self.get_header()
             .read(DATE_TIME_TAG_HEADER_PATH)
             .map_err_into(TTEK::HeaderReadError)
-            .map(|value| match value {
-                Some(&Value::String(ref s)) => s.clone().into(),
-                _ => unimplemented!(),
+            .and_then(|value| match value {
+                Some(&Value::String(ref s)) => Ok(s.clone().into()),
+                Some(_) => Err(TTEK::HeaderFieldTypeError.into_error()),
+                _ => Err(TTEK::HeaderReadError.into_error())
             })
     }
 

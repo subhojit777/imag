@@ -17,6 +17,9 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::fmt::Display;
+use std::fmt::Error as FmtError;
+use std::fmt::Formatter;
 use std::path::PathBuf;
 
 use libimagstore::store::Result as StoreResult;
@@ -31,6 +34,12 @@ pub struct TimeTrackingTag(String);
 impl TimeTrackingTag {
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+}
+
+impl Display for TimeTrackingTag {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        self.0.fmt(f)
     }
 }
 

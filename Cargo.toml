@@ -11,6 +11,7 @@ members = [
     "imag-ref",
     "imag-store",
     "imag-tag",
+    "imag-timetrack",
     "imag-todo",
     "imag-view",
     "libimagannotation",

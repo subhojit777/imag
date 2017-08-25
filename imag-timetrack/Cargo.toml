@@ -1,9 +1,9 @@
 [package]
-name = "libimagentrytimetrack"
+name = "imag-timetrack"
 version = "0.3.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
-description = "Library for the imag core distribution"
+description = "Part of the imag core distribution: imag-tag command"
 
 keywords    = ["imag", "PIM", "personal", "information", "management"]
 readme      = "../README.md"
@@ -14,22 +14,27 @@ repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
 [dependencies]
-filters = "0.1"
-chrono = "0.4"
-toml = "0.4"
-toml-query = "0.3"
-lazy_static = "0.2"
-is-match = "0.1"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
+clap = "2.*"
+log = "0.3"
+version = "2.0.1"
+semver = "0.2"
+toml = "^0.4"
+chrono = "^0.4"
+filters = "0.1.1"
+itertools = "0.6"
 
 [dependencies.libimagstore]
 path = "../libimagstore"
 
-[dependencies.libimagentrydatetime]
-path = "../libimagentrydatetime"
+[dependencies.libimagrt]
+path = "../libimagrt"
 
-[dependencies.libimagentrytag]
-path = "../libimagentrytag"
+[dependencies.libimagerror]
+path = "../libimagerror"
+
+[dependencies.libimagentrytimetrack]
+path = "../libimagentrytimetrack"
+
+[dependencies.libimagutil]
+path = "../libimagutil"
 
