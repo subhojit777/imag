@@ -1,12 +1,6 @@
 ## Bookmarks {#sec:modules:bookmarks}
 
-The Bookmarks module.
+The Bookmarks module is for keeping URLs as bookmarks, tagging and categorizing them and
+finally also open them in the browser.
 
-### Description
-
-<!-- Description of the module -->
-
-### Backends
-
-<!-- Backends the module supports including links to external resources -->
 

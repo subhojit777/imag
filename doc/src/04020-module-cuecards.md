@@ -1,12 +1,5 @@
 ## Cuecards {#sec:modules:cuecards}
 
-The Cuecards module.
+The Cuecards module implements "cuacards-learning" like you probably did it in school.
 
-### Description
-
-<!-- Description of the module -->
-
-### Backends
-
-<!-- Backends the module supports including links to external resources -->
 

@@ -1,12 +1,4 @@
 ## Shoppinglists {#sec:modules:shoppinglists}
 
-The Shoppinglists module.
-
-### Description
-
-<!-- Description of the module -->
-
-### Backends
-
-<!-- Backends the module supports including links to external resources -->
+The Shoppinglists module provides functionality for creating shopping lists and organizing them. A shoppinglist can be printed and them be used to go shopping, of course.
 

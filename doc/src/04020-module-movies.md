@@ -1,12 +1,4 @@
 ## Movies {#sec:modules:movies}
 
-The Movies module.
-
-## Description
-
-<!-- Description of the module -->
-
-### Backends
-
-<!-- Backends the module supports including links to external resources -->
+The Movies module is for categorizing, rating and tagging movies.
 
