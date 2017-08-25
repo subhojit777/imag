@@ -70,12 +70,12 @@ macro_rules! build_subcommand {
 
 // Actually generates the module.
 gen_mods_buildui!(
-    ("../imag-link/src/ui.rs",      imaglink),
-    ("../imag-notes/src/ui.rs",     imagnotes),
-    ("../imag-ref/src/ui.rs",       imagref),
-    ("../imag-store/src/ui.rs",     imagstore),
-    ("../imag-tag/src/ui.rs",       imagtag),
-    ("../imag-view/src/ui.rs",      imagview)
+    ("../../../imag-link/src/ui.rs",      imaglink),
+    ("../../../imag-notes/src/ui.rs",     imagnotes),
+    ("../../../imag-ref/src/ui.rs",       imagref),
+    ("../../../imag-store/src/ui.rs",     imagstore),
+    ("../../../imag-tag/src/ui.rs",       imagtag),
+    ("../../../imag-view/src/ui.rs",      imagview)
 );
 
 fn main() {
