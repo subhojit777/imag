@@ -19,9 +19,9 @@ toml-query = "0.3"
 lazy_static = "0.2"
 toml = "0.4"
 
-[dev-dependencies]
-is-match = "0.1"
-
 libimagerror = "0.3.0"
 libimagstore = "0.3.0"
 libimagutil = "0.3.0"
+
+[dev-dependencies]
+is-match = "0.1"
