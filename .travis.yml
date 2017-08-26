@@ -8,13 +8,13 @@ dist:
 language: rust
 
 rust:
+  - 1.17.0
+  - 1.18.0
   - stable
   - beta
   - nightly
 
 matrix:
-  include:
-    - rust: 1.17.0
   allow_failures:
     - rust: nightly
 
