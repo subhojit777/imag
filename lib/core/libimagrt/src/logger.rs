@@ -269,37 +269,84 @@ fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Configura
     }
 }
 
+#[inline]
+fn aggregate_global_format(
+        read_str: &str,
+        cli_match_name: &str,
+        error_kind_if_missing: EK,
+        matches: &ArgMatches,
+        config: Option<&Configuration>
+    )
+-> Result<String>
+{
+    match config {
+        Some(cfg) => match cfg
+            .read(read_str)
+            .map_err_into(EK::ConfigReadError)
+            {
+                Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
+                Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
+                Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
+                Err(e)      => Err(e)
+            },
+        None => match matches.value_of(cli_match_name).map(String::from) {
+            Some(s) => Ok(s),
+            None    => Err(error_kind_if_missing.into_error())
+        }
+    }
+}
+
 fn aggregate_global_format_trace(matches: &ArgMatches, config: Option<&Configuration>)
     -> Result<String>
 {
-    unimplemented!()
+    aggregate_global_format("imag.logging.format.trace",
+                            Runtime::arg_override_trace_logging_format(),
+                            EK::ConfigMissingLoggingFormatTrace,
+                            matches,
+                            config)
 }
 
 fn aggregate_global_format_debug(matches: &ArgMatches, config: Option<&Configuration>)
     -> Result<String>
 {
-    unimplemented!()
+    aggregate_global_format("imag.logging.format.debug",
+                            Runtime::arg_override_debug_logging_format(),
+                            EK::ConfigMissingLoggingFormatDebug,
+                            matches,
+                            config)
 }
 
 fn aggregate_global_format_info(matches: &ArgMatches, config: Option<&Configuration>)
     -> Result<String>
 {
-    unimplemented!()
+    aggregate_global_format("imag.logging.format.info",
+                            Runtime::arg_override_info_logging_format(),
+                            EK::ConfigMissingLoggingFormatInfo,
+                            matches,
+                            config)
 }
 
 fn aggregate_global_format_warn(matches: &ArgMatches, config: Option<&Configuration>)
     -> Result<String>
 {
-    unimplemented!()
+    aggregate_global_format("imag.logging.format.warn",
+                            Runtime::arg_override_warn_logging_format(),
+                            EK::ConfigMissingLoggingFormatWarn,
+                            matches,
+                            config)
 }
 
 fn aggregate_global_format_error(matches: &ArgMatches, config: Option<&Configuration>)
     -> Result<String>
 {
-    unimplemented!()
+    aggregate_global_format("imag.logging.format.error",
+                            Runtime::arg_override_error_logging_format(),
+                            EK::ConfigMissingLoggingFormatError,
+                            matches,
+                            config)
 }
 
-fn aggregate_module_settings(matches: &ArgMatches, config: Option<&Configuration>)
+fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Configuration>)
     -> Result<BTreeMap<ModuleName, ModuleSettings>>
 {
     match config {
