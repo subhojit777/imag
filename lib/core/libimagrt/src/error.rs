@@ -29,7 +29,8 @@ generate_error_types!(RuntimeError, RuntimeErrorKind,
     ConfigTypeError    => "Error while reading the configuration: Type Error",
     GlobalLogLevelConfigMissing => "Global config 'imag.logging.level' missing",
     InvalidLogLevelSpec => "Invalid log level specification: Only 'trace', 'debug', 'info', 'warn', 'error' are allowed",
-    TomlReadError => "Error while reading in TOML document"
+    TomlReadError       => "Error while reading in TOML document",
+    TemplateStringRegistrationError => "Error while registering logging template string"
 );
 
 impl From<IOError> for RuntimeError {

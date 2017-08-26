@@ -33,6 +33,7 @@ use clap::ArgMatches;
 use log::{Log, LogLevel, LogRecord, LogMetadata};
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
+use handlebars::Handlebars;
 
 type ModuleName = String;
 type Result<T> = ::std::result::Result<T, RuntimeError>;
@@ -68,21 +69,56 @@ pub struct ImagLogger {
     // global_format_warn  : ,
     // global_format_error : ,
     module_settings     : BTreeMap<ModuleName, ModuleSettings>,
+
+    handlebars: Handlebars,
 }
 
 impl ImagLogger {
 
     /// Create a new ImagLogger object with a certain level
     pub fn new(matches: &ArgMatches, config: Option<&Configuration>) -> Result<ImagLogger> {
+        let mut handlebars = Handlebars::new();
+
+        handlebars.register_helper("black"  , Box::new(self::template_helpers::ColorizeBlackHelper));
+        handlebars.register_helper("blue"   , Box::new(self::template_helpers::ColorizeBlueHelper));
+        handlebars.register_helper("cyan"   , Box::new(self::template_helpers::ColorizeCyanHelper));
+        handlebars.register_helper("green"  , Box::new(self::template_helpers::ColorizeGreenHelper));
+        handlebars.register_helper("purple" , Box::new(self::template_helpers::ColorizePurpleHelper));
+        handlebars.register_helper("red"    , Box::new(self::template_helpers::ColorizeRedHelper));
+        handlebars.register_helper("white"  , Box::new(self::template_helpers::ColorizeWhiteHelper));
+        handlebars.register_helper("yellow" , Box::new(self::template_helpers::ColorizeYellowHelper));
+
+        {
+            let fmt = try!(aggregate_global_format_trace(matches, config));
+            try!(handlebars.register_template_string("TRACE", fmt) // name must be uppercase
+                .map_err_into(EK::TemplateStringRegistrationError));
+        }
+        {
+            let fmt = try!(aggregate_global_format_debug(matches, config));
+            try!(handlebars.register_template_string("DEBUG", fmt) // name must be uppercase
+                .map_err_into(EK::TemplateStringRegistrationError));
+        }
+        {
+            let fmt = try!(aggregate_global_format_info(matches, config));
+            try!(handlebars.register_template_string("INFO", fmt) // name must be uppercase
+                .map_err_into(EK::TemplateStringRegistrationError));
+        }
+        {
+            let fmt = try!(aggregate_global_format_warn(matches, config));
+            try!(handlebars.register_template_string("WARN", fmt) // name must be uppercase
+                .map_err_into(EK::TemplateStringRegistrationError));
+        }
+        {
+            let fmt = try!(aggregate_global_format_error(matches, config));
+            try!(handlebars.register_template_string("ERROR", fmt) // name must be uppercase
+                .map_err_into(EK::TemplateStringRegistrationError));
+        }
+
         Ok(ImagLogger {
             global_loglevel     : try!(aggregate_global_loglevel(matches, config)),
             global_destinations : try!(aggregate_global_destinations(matches, config)),
-            // global_format_trace : try!(aggregate_global_format_trace(matches, config)),
-            // global_format_debug : try!(aggregate_global_format_debug(matches, config)),
-            // global_format_info  : try!(aggregate_global_format_info(matches, config)),
-            // global_format_warn  : try!(aggregate_global_format_warn(matches, config)),
-            // global_format_error : try!(aggregate_global_format_error(matches, config)),
             module_settings     : try!(aggregate_module_settings(matches, config)),
+            handlebars          : handlebars,
         })
     }
 
@@ -103,17 +139,31 @@ impl Log for ImagLogger {
         let log_location = record.location();
         let log_target = record.target();
 
+        let mut data = BTreeMap::new();
+        {
+            data.insert("level", format!("{}", log_level));
+            data.insert("module_path", String::from(log_location.module_path()));
+            data.insert("file", String::from(log_location.file()));
+            data.insert("line", format!("{}", log_location.line()));
+            data.insert("target", String::from(log_target));
+            data.insert("message", format!("{}", record.args()));
+        }
+        let logtext = self
+            .handlebars
+            .render(&format!("{}", log_level), &data)
+            .unwrap_or_else(|e| format!("Failed rendering logging data: {:?}\n", e));
+
         self.module_settings
             .get(log_target)
             .map(|module_setting| {
                 if module_setting.enabled && module_setting.level >= log_level {
-                    write!(stderr(), "[imag][{}]: {}", log_level, record.args()).ok();
+                    let _ = write!(stderr(), "{}\n", logtext);
                 }
             })
             .unwrap_or_else(|| {
                 if self.global_loglevel >= log_level {
                     // Yes, we log
-                    write!(stderr(), "[imag][{}]: {}", log_level, record.args()).ok();
+                    let _ = write!(stderr(), "{}\n", logtext);
                 }
             });
     }
@@ -219,35 +269,35 @@ fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Configura
     }
 }
 
-// fn aggregate_global_format_trace(matches: &ArgMatches, config: Option<&Configuration>)
-//     ->
-// {
-//     unimplemented!()
-// }
-//
-// fn aggregate_global_format_debug(matches: &ArgMatches, config: Option<&Configuration>)
-//     ->
-// {
-//     unimplemented!()
-// }
-//
-// fn aggregate_global_format_info(matches: &ArgMatches, config: Option<&Configuration>)
-//     ->
-// {
-//     unimplemented!()
-// }
-//
-// fn aggregate_global_format_warn(matches: &ArgMatches, config: Option<&Configuration>)
-//     ->
-// {
-//     unimplemented!()
-// }
-//
-// fn aggregate_global_format_error(matches: &ArgMatches, config: Option<&Configuration>)
-//     ->
-// {
-//     unimplemented!()
-// }
+fn aggregate_global_format_trace(matches: &ArgMatches, config: Option<&Configuration>)
+    -> Result<String>
+{
+    unimplemented!()
+}
+
+fn aggregate_global_format_debug(matches: &ArgMatches, config: Option<&Configuration>)
+    -> Result<String>
+{
+    unimplemented!()
+}
+
+fn aggregate_global_format_info(matches: &ArgMatches, config: Option<&Configuration>)
+    -> Result<String>
+{
+    unimplemented!()
+}
+
+fn aggregate_global_format_warn(matches: &ArgMatches, config: Option<&Configuration>)
+    -> Result<String>
+{
+    unimplemented!()
+}
+
+fn aggregate_global_format_error(matches: &ArgMatches, config: Option<&Configuration>)
+    -> Result<String>
+{
+    unimplemented!()
+}
 
 fn aggregate_module_settings(matches: &ArgMatches, config: Option<&Configuration>)
     -> Result<BTreeMap<ModuleName, ModuleSettings>>
@@ -306,6 +356,91 @@ fn aggregate_module_settings(matches: &ArgMatches, config: Option<&Configuration
 
             Ok(BTreeMap::new())
         }
+    }
+}
+
+mod template_helpers {
+    use handlebars::{Handlebars, HelperDef, RenderError, RenderContext, Helper};
+    use ansi_term::Colour;
+
+    #[derive(Clone, Copy)]
+    pub struct ColorizeBlackHelper;
+
+    impl HelperDef for ColorizeBlackHelper {
+        fn call(&self, h: &Helper, hb: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+            colorize(Colour::Black, h, hb, rc)
+        }
+    }
+
+    #[derive(Clone, Copy)]
+    pub struct ColorizeBlueHelper;
+
+    impl HelperDef for ColorizeBlueHelper {
+        fn call(&self, h: &Helper, hb: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+            colorize(Colour::Blue, h, hb, rc)
+        }
+    }
+
+    #[derive(Clone, Copy)]
+    pub struct ColorizeCyanHelper;
+
+    impl HelperDef for ColorizeCyanHelper {
+        fn call(&self, h: &Helper, hb: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+            colorize(Colour::Cyan, h, hb, rc)
+        }
+    }
+
+    #[derive(Clone, Copy)]
+    pub struct ColorizeGreenHelper;
+
+    impl HelperDef for ColorizeGreenHelper {
+        fn call(&self, h: &Helper, hb: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+            colorize(Colour::Green, h, hb, rc)
+        }
+    }
+
+    #[derive(Clone, Copy)]
+    pub struct ColorizePurpleHelper;
+
+    impl HelperDef for ColorizePurpleHelper {
+        fn call(&self, h: &Helper, hb: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+            colorize(Colour::Purple, h, hb, rc)
+        }
+    }
+
+    #[derive(Clone, Copy)]
+    pub struct ColorizeRedHelper;
+
+    impl HelperDef for ColorizeRedHelper {
+        fn call(&self, h: &Helper, hb: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+            colorize(Colour::Red, h, hb, rc)
+        }
+    }
+
+    #[derive(Clone, Copy)]
+    pub struct ColorizeWhiteHelper;
+
+    impl HelperDef for ColorizeWhiteHelper {
+        fn call(&self, h: &Helper, hb: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+            colorize(Colour::White, h, hb, rc)
+        }
+    }
+
+    #[derive(Clone, Copy)]
+    pub struct ColorizeYellowHelper;
+
+    impl HelperDef for ColorizeYellowHelper {
+        fn call(&self, h: &Helper, hb: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+            colorize(Colour::Yellow, h, hb, rc)
+        }
+    }
+
+    fn colorize(color: Colour, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+        use handlebars::JsonRender;
+        let p = try!(h.param(0).ok_or(RenderError::new("Too few arguments")));
+
+        try!(write!(rc.writer(), "{}", color.paint(p.value().render())));
+        Ok(())
     }
 }
 
