@@ -19,67 +19,75 @@
 
 use std::io::Write;
 use std::io::stderr;
+use std::collections::BTreeMap;
 
+use configuration::Configuration;
+use error::RuntimeErrorKind as EK;
+use error::RuntimeError;
+use error::MapErrInto;
+use runtime::Runtime;
+
+use libimagerror::into::IntoError;
+
+use clap::ArgMatches;
 use log::{Log, LogLevel, LogRecord, LogMetadata};
+use toml::Value;
+use toml_query::read::TomlValueReadExt;
 
-use ansi_term::Style;
-use ansi_term::Colour;
-use ansi_term::ANSIString;
+type ModuleName = String;
+type Result<T> = ::std::result::Result<T, RuntimeError>;
+
+enum LogDestination {
+    Stderr,
+    File(::std::fs::File),
+}
+
+impl Default for LogDestination {
+    fn default() -> LogDestination {
+        LogDestination::Stderr
+    }
+}
+
+struct ModuleSettings {
+    enabled: bool,
+    level: LogLevel,
+
+    #[allow(unused)]
+    destinations: Vec<LogDestination>,
+}
 
 /// Logger implementation for `log` crate.
 pub struct ImagLogger {
-    prefix: String,
-    dbg_fileline: bool,
-    lvl: LogLevel,
-    color_enabled: bool,
+    global_loglevel     : LogLevel,
+
+    #[allow(unused)]
+    global_destinations : Vec<LogDestination>,
+    // global_format_trace : ,
+    // global_format_debug : ,
+    // global_format_info  : ,
+    // global_format_warn  : ,
+    // global_format_error : ,
+    module_settings     : BTreeMap<ModuleName, ModuleSettings>,
 }
 
 impl ImagLogger {
 
     /// Create a new ImagLogger object with a certain level
-    pub fn new(lvl: LogLevel) -> ImagLogger {
-        ImagLogger {
-            prefix: "[imag]".to_owned(),
-            dbg_fileline: true,
-            lvl: lvl,
-            color_enabled: true
-        }
+    pub fn new(matches: &ArgMatches, config: Option<&Configuration>) -> Result<ImagLogger> {
+        Ok(ImagLogger {
+            global_loglevel     : try!(aggregate_global_loglevel(matches, config)),
+            global_destinations : try!(aggregate_global_destinations(matches, config)),
+            // global_format_trace : try!(aggregate_global_format_trace(matches, config)),
+            // global_format_debug : try!(aggregate_global_format_debug(matches, config)),
+            // global_format_info  : try!(aggregate_global_format_info(matches, config)),
+            // global_format_warn  : try!(aggregate_global_format_warn(matches, config)),
+            // global_format_error : try!(aggregate_global_format_error(matches, config)),
+            module_settings     : try!(aggregate_module_settings(matches, config)),
+        })
     }
 
-    /// Set debugging to include file and line
-    pub fn with_dbg_file_and_line(mut self, b: bool) -> ImagLogger {
-        self.dbg_fileline = b;
-        self
-    }
-
-    /// Set debugging to include prefix
-    pub fn with_prefix(mut self, pref: String) -> ImagLogger {
-        self.prefix = pref;
-        self
-    }
-
-    /// Set debugging to have color
-    pub fn with_color(mut self, b: bool) -> ImagLogger {
-        self.color_enabled = b;
-        self
-    }
-
-    /// Helper function to colorize a string with a certain Style
-    fn style_or_not(&self, c: Style, s: String) -> ANSIString {
-        if self.color_enabled {
-            c.paint(s)
-        } else {
-            ANSIString::from(s)
-        }
-    }
-
-    /// Helper function to colorize a string with a certain Color
-    fn color_or_not(&self, c: Colour, s: String) -> ANSIString {
-        if self.color_enabled {
-            c.paint(s)
-        } else {
-            ANSIString::from(s)
-        }
+    pub fn global_loglevel(&self) -> LogLevel {
+        self.global_loglevel
     }
 
 }
@@ -87,46 +95,216 @@ impl ImagLogger {
 impl Log for ImagLogger {
 
     fn enabled(&self, metadata: &LogMetadata) -> bool {
-        metadata.level() <= self.lvl
+        metadata.level() <= self.global_loglevel
     }
 
     fn log(&self, record: &LogRecord) {
-        use ansi_term::Colour::Red;
-        use ansi_term::Colour::Yellow;
-        use ansi_term::Colour::Cyan;
+        let log_level = record.level();
+        let log_location = record.location();
+        let log_target = record.target();
 
-        if self.enabled(record.metadata()) {
-            // TODO: This is just simple logging. Maybe we can enhance this lateron
-            let loc = record.location();
-            match record.metadata().level() {
-                LogLevel::Debug => {
-                    let lvl  = self.color_or_not(Cyan, format!("{}", record.level()));
-                    let args = self.color_or_not(Cyan, format!("{}", record.args()));
-                    if self.dbg_fileline {
-                        let file = self.color_or_not(Cyan, format!("{}", loc.file()));
-                        let ln   = self.color_or_not(Cyan, format!("{}", loc.line()));
+        self.module_settings
+            .get(log_target)
+            .map(|module_setting| {
+                if module_setting.enabled && module_setting.level >= log_level {
+                    write!(stderr(), "[imag][{}]: {}", log_level, record.args()).ok();
+                }
+            })
+            .unwrap_or_else(|| {
+                if self.global_loglevel >= log_level {
+                    // Yes, we log
+                    write!(stderr(), "[imag][{}]: {}", log_level, record.args()).ok();
+                }
+            });
+    }
+}
 
-                        writeln!(stderr(), "{}[{: <5}][{}][{: >5}]: {}", self.prefix, lvl, file, ln, args).ok();
-                    } else {
-                        writeln!(stderr(), "{}[{: <5}]: {}", self.prefix, lvl, args).ok();
-                    }
-                },
-                LogLevel::Warn | LogLevel::Error => {
-                    let lvl  = self.style_or_not(Red.blink(), format!("{}", record.level()));
-                    let args = self.color_or_not(Red, format!("{}", record.args()));
+fn match_log_level_str(s: &str) -> Result<LogLevel> {
+    match s {
+        "trace" => Ok(LogLevel::Trace),
+        "debug" => Ok(LogLevel::Debug),
+        "info"  => Ok(LogLevel::Info),
+        "warn"  => Ok(LogLevel::Warn),
+        "error" => Ok(LogLevel::Error),
+        _       => return Err(EK::InvalidLogLevelSpec.into_error()),
+    }
+}
 
-                    writeln!(stderr(), "{}[{: <5}]: {}", self.prefix, lvl, args).ok();
-                },
-                LogLevel::Info => {
-                    let lvl  = self.color_or_not(Yellow, format!("{}", record.level()));
-                    let args = self.color_or_not(Yellow, format!("{}", record.args()));
-
-                    writeln!(stderr(), "{}[{: <5}]: {}", self.prefix, lvl, args).ok();
-                },
-                _ => {
-                    writeln!(stderr(), "{}[{: <5}]: {}", self.prefix, record.level(), record.args()).ok();
-                },
+fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Configuration>)
+    -> Result<LogLevel>
+{
+    match config {
+        Some(cfg) => match cfg
+            .read("imag.logging.level")
+            .map_err_into(EK::ConfigReadError)
+            {
+                Ok(Some(&Value::String(ref s))) => match_log_level_str(s),
+                Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
+                Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
+                Err(e)      => Err(e)
+            },
+        None => {
+            if matches.is_present(Runtime::arg_debugging_name()) {
+                return Ok(LogLevel::Debug)
             }
+
+            matches
+                .value_of(Runtime::arg_verbosity_name())
+                .map(match_log_level_str)
+                .unwrap_or(Ok(LogLevel::Info))
+        }
+    }
+}
+
+fn translate_destination(raw: &str) -> Result<LogDestination> {
+    use std::fs::OpenOptions;
+
+    match raw {
+        "-" => Ok(LogDestination::Stderr),
+        other => {
+            OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open(other)
+                .map(LogDestination::File)
+                .map_err_into(EK::IOLogFileOpenError)
+        }
+    }
+}
+
+
+fn translate_destinations(raw: &Vec<Value>) -> Result<Vec<LogDestination>> {
+    raw.iter()
+        .fold(Ok(vec![]), |acc, val| {
+            acc.and_then(|mut v| {
+                let dest = match *val {
+                    Value::String(ref s) => try!(translate_destination(s)),
+                    _ => return Err(EK::ConfigTypeError.into_error()),
+                };
+                v.push(dest);
+                Ok(v)
+            })
+        })
+}
+
+fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Configuration>)
+    -> Result<Vec<LogDestination>>
+{
+
+    match config {
+        Some(cfg) => match cfg
+            .read("imag.logging.destinations")
+            .map_err_into(EK::ConfigReadError)
+            {
+                Ok(Some(&Value::Array(ref a))) => translate_destinations(a),
+                Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
+                Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
+                Err(e)      => Err(e)
+            },
+        None => {
+            if let Some(values) = matches.value_of(Runtime::arg_logdest_name()) {
+                // parse logdest specification from commandline
+
+                values.split(",")
+                    .fold(Ok(vec![]), move |acc, dest| {
+                        acc.and_then(|mut v| {
+                            v.push(try!(translate_destination(dest)));
+                            Ok(v)
+                        })
+                    })
+            } else {
+                Ok(vec![ LogDestination::default() ])
+            }
+        }
+    }
+}
+
+// fn aggregate_global_format_trace(matches: &ArgMatches, config: Option<&Configuration>)
+//     ->
+// {
+//     unimplemented!()
+// }
+//
+// fn aggregate_global_format_debug(matches: &ArgMatches, config: Option<&Configuration>)
+//     ->
+// {
+//     unimplemented!()
+// }
+//
+// fn aggregate_global_format_info(matches: &ArgMatches, config: Option<&Configuration>)
+//     ->
+// {
+//     unimplemented!()
+// }
+//
+// fn aggregate_global_format_warn(matches: &ArgMatches, config: Option<&Configuration>)
+//     ->
+// {
+//     unimplemented!()
+// }
+//
+// fn aggregate_global_format_error(matches: &ArgMatches, config: Option<&Configuration>)
+//     ->
+// {
+//     unimplemented!()
+// }
+
+fn aggregate_module_settings(matches: &ArgMatches, config: Option<&Configuration>)
+    -> Result<BTreeMap<ModuleName, ModuleSettings>>
+{
+    match config {
+        Some(cfg) => match cfg
+            .read("imag.logging.modules")
+            .map_err_into(EK::ConfigReadError)
+            {
+                Ok(Some(&Value::Table(ref t))) => {
+                    // translate the module settings from the table `t`
+                    let mut settings = BTreeMap::new();
+
+                    for (module_name, v) in t {
+                        let destinations = try!(match v.read("destinations") {
+                            Ok(Some(&Value::Array(ref a))) => translate_destinations(a),
+                            Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
+                            Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
+                            Err(e)      => Err(e).map_err_into(EK::TomlReadError),
+                        });
+
+                        let level = try!(match v.read("level") {
+                            Ok(Some(&Value::String(ref s))) => match_log_level_str(s),
+                            Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
+                            Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
+                            Err(e)      => Err(e).map_err_into(EK::TomlReadError),
+                        });
+
+                        let enabled = try!(match v.read("enabled") {
+                            Ok(Some(&Value::Boolean(b))) => Ok(b),
+                            Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
+                            Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
+                            Err(e)      => Err(e).map_err_into(EK::TomlReadError),
+                        });
+
+                        let module_settings = ModuleSettings {
+                            enabled: enabled,
+                            level: level,
+                            destinations: destinations,
+                        };
+
+                        // We don't care whether there was a value, we override it.
+                        let _ = settings.insert(module_name.to_owned(), module_settings);
+                    }
+
+                    Ok(settings)
+                },
+                Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
+                Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
+                Err(e)      => Err(e),
+            },
+        None => {
+            write!(stderr(), "No Configuration.").ok();
+            write!(stderr(), "cannot find module-settings for logging.").ok();
+            write!(stderr(), "Will use global defaults").ok();
+
+            Ok(BTreeMap::new())
         }
     }
 }

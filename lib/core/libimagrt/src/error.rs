@@ -23,7 +23,13 @@ use std::io::Error as IOError;
 generate_error_types!(RuntimeError, RuntimeErrorKind,
     Instantiate        => "Could not instantiate",
     IOError            => "IO Error",
-    ProcessExitFailure => "Process exited with failure"
+    IOLogFileOpenError => "IO Error: Could not open logfile",
+    ProcessExitFailure => "Process exited with failure",
+    ConfigReadError    => "Error while reading the configuration",
+    ConfigTypeError    => "Error while reading the configuration: Type Error",
+    GlobalLogLevelConfigMissing => "Global config 'imag.logging.level' missing",
+    InvalidLogLevelSpec => "Invalid log level specification: Only 'trace', 'debug', 'info', 'warn', 'error' are allowed",
+    TomlReadError => "Error while reading in TOML document"
 );
 
 impl From<IOError> for RuntimeError {
