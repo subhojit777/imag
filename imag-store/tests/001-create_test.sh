@@ -42,7 +42,7 @@ test_std_header() {
 ---
 [imag]
 links = []
-version = "0.3.0"
+version = "0.4.0"
 ---
 
 EOS
@@ -63,7 +63,7 @@ test_std_header_plus_custom() {
 ---
 [imag]
 links = []
-version = "0.3.0"
+version = "0.4.0"
 
 [zzz]
 zzz = "z"
@@ -90,7 +90,7 @@ bar = "baz"
 
 [imag]
 links = []
-version = "0.3.0"
+version = "0.4.0"
 
 [zzz]
 zzz = "z"
@@ -116,7 +116,7 @@ test_std_header_plus_custom_multiheader_same_section() {
 ---
 [imag]
 links = []
-version = "0.3.0"
+version = "0.4.0"
 
 [zzz]
 bar = "baz"
@@ -142,7 +142,7 @@ test_std_header_plus_custom_and_content() {
 ---
 [imag]
 links = []
-version = "0.3.0"
+version = "0.4.0"
 
 [zzz]
 zzz = "z"

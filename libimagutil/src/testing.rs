@@ -21,7 +21,7 @@ pub static DEFAULT_ENTRY: &'static str = "\
 ---\
 [imag]\
 links = []\
-version = \"0.3.0\"\
+version = \"0.4.0\"\
 ---";
 
 /// Generator helper macro for mock app (for testing only)
