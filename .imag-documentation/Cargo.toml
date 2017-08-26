@@ -15,6 +15,9 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 
+[dependencies.libimagannotation]
+path = "../libimagannotation"
+
 [dependencies.libimagbookmark]
 path = "../libimagbookmark"
 
@@ -23,6 +26,15 @@ path = "../libimagcounter"
 
 [dependencies.libimagdiary]
 path = "../libimagdiary"
+
+[dependencies.libimagentrycategory]
+path = "../libimagentrycategory"
+
+[dependencies.libimagentrydatetime]
+path = "../libimagentrydatetime"
+
+[dependencies.libimagentryedit]
+path = "../libimagentryedit"
 
 [dependencies.libimagentryfilter]
 path = "../libimagentryfilter"
@@ -39,6 +51,9 @@ path = "../libimagentrymarkdown"
 [dependencies.libimagentrytag]
 path = "../libimagentrytag"
 
+[dependencies.libimagentrytimetrack]
+path = "../libimagentrytimetrack"
+
 [dependencies.libimagentryview]
 path = "../libimagentryview"
 
@@ -47,6 +62,9 @@ path = "../libimagerror"
 
 [dependencies.libimaginteraction]
 path = "../libimaginteraction"
+
+[dependencies.libimagmail]
+path = "../libimagmail"
 
 [dependencies.libimagnotes]
 path = "../libimagnotes"
@@ -62,6 +80,9 @@ path = "../libimagstore"
 
 [dependencies.libimagtimeui]
 path = "../libimagtimeui"
+
+[dependencies.libimagtodo]
+path = "../libimagtodo"
 
 [dependencies.libimagutil]
 path = "../libimagutil"
