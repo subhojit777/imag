@@ -17,7 +17,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-extern crate crossbeam;
 extern crate clap;
 #[macro_use] extern crate version;
 #[macro_use] extern crate log;
@@ -33,7 +32,6 @@ use std::process::Stdio;
 use std::io::ErrorKind;
 
 use walkdir::WalkDir;
-use crossbeam::*;
 use clap::{Arg, AppSettings, SubCommand};
 
 use libimagrt::runtime::Runtime;
@@ -42,7 +40,7 @@ use libimagerror::trace::trace_error;
 /// Returns the helptext, putting the Strings in cmds as possible
 /// subcommands into it
 fn help_text(cmds: Vec<String>) -> String {
-    let text = format!(r#"
+    format!(r#"
 
      _
     (_)_ __ ___   __ _  __ _
@@ -72,59 +70,43 @@ fn help_text(cmds: Vec<String>) -> String {
 
     imag is free software. It is released under the terms of LGPLv2.1
 
-    (c) 2016 Matthias Beyer and contributors"#, imagbins = cmds.into_iter()
-        .map(|cmd| format!("\t{}\n", cmd))
-        .fold(String::new(), |s, c| {
-            let s = s + c.as_str();
-            s
-        }));
-    text
+    (c) 2016 Matthias Beyer and contributors"#,
+        imagbins = cmds
+            .into_iter()
+            .map(|cmd| format!("\t{}\n", cmd))
+            .fold(String::new(), |s, c| {
+                let s = s + c.as_str();
+                s
+            }))
 }
 
 /// Returns the list of imag-* executables found in $PATH
 fn get_commands() -> Vec<String> {
-    let path = env::var("PATH");
-    if path.is_err() {
-        println!("PATH error: {:?}", path);
-        exit(1);
-    }
-    let pathelements = path.unwrap();
-    let pathelements = pathelements.split(":");
+    match env::var("PATH") {
+        Err(e) => {
+            println!("PATH error: {:?}", e);
+            exit(1);
+        },
 
-    let joinhandles : Vec<ScopedJoinHandle<Vec<String>>> = pathelements
-        .map(|elem| {
-            crossbeam::scope(|scope| {
-                scope.spawn(|| {
-                    WalkDir::new(elem)
-                        .max_depth(1)
-                        .into_iter()
-                        .filter(|path| {
-                            match path {
-                                &Ok(ref p) => p.file_name()
-                                    .to_str()
-                                    .map_or(false, |filename| filename.starts_with("imag-")),
-                                &Err(_)   => false,
-                            }
-                        })
-                        .filter_map(|x| x.ok())
-                        .filter_map(|path| {
-                           path.file_name()
-                               .to_str()
-                               .and_then(|s| s.splitn(2, "-").nth(1).map(String::from))
-                        })
-                        .collect()
-                })
+        Ok(path) => path
+            .split(":")
+            .flat_map(|elem| {
+                WalkDir::new(elem)
+                    .max_depth(1)
+                    .into_iter()
+                    .filter(|path| match *path {
+                        Ok(ref p) => p.file_name().to_str().map_or(false, |f| f.starts_with("imag-")),
+                        Err(_)    => false,
+                    })
+                    .filter_map(Result::ok)
+                    .filter_map(|path| path
+                        .file_name()
+                       .to_str()
+                       .and_then(|s| s.splitn(2, "-").nth(1).map(String::from))
+                    )
             })
-        })
-        .collect();
-
-    let mut execs = vec![];
-    for joinhandle in joinhandles.into_iter() {
-        let mut v = joinhandle.join();
-        execs.append(&mut v);
+            .collect()
     }
-
-    execs
 }
 
 
@@ -171,26 +153,27 @@ fn main() {
 
     if matches.is_present("versions") {
         debug!("Showing versions");
-        let mut result = vec![];
-        for command in commands.iter() {
-            result.push(crossbeam::scope(|scope| {
-                scope.spawn(|| {
-                    let v = Command::new(format!("imag-{}",command)).arg("--version").output();
-                    match v {
-                        Ok(v) => match String::from_utf8(v.stdout) {
-                            Ok(s) => format!("{:10} -> {}", command, s),
-                            Err(e) => format!("Failed calling {} -> {:?}", command, e),
-                        },
-                        Err(e) => format!("Failed calling {} -> {:?}", command, e),
-                    }
-                })
-            }))
-        }
+        commands
+            .iter()
+            .map(|command| {
+                match Command::new(format!("imag-{}", command))
+                    .arg("--version")
+                    .output()
+                    .map(|v| v.stdout)
+                {
+                    Ok(s) => match String::from_utf8(s) {
+                        Ok(s) => format!("{:10} -> {}", command, s),
+                        Err(e) => format!("UTF8 Error while working with output of imag{}: {:?}", command, e),
+                    },
+                    Err(e) => format!("Failed calling imag-{} -> {:?}", command, e),
+                }
+            })
+            .fold((), |_, line| {
+                // The amount of newlines may differ depending on the subprocess
+                println!("{}", line.trim());
+            });
 
-        for versionstring in result.into_iter().map(|handle| handle.join()) {
-            // The amount of newlines may differ depending on the subprocess
-            println!("{}", versionstring.trim());
-        }
+        exit(0);
     }
 
     // Matches any subcommand given
@@ -203,7 +186,7 @@ fn main() {
                 Some(values) => values.collect(),
                 None => Vec::new()
             };
-            
+
             debug!("Calling 'imag-{}' with args: {:?}", subcommand, subcommand_args);
 
             // Create a Command, and pass it the gathered arguments
@@ -213,7 +196,7 @@ fn main() {
                 .stderr(Stdio::inherit())
                 .args(&subcommand_args[..])
                 .spawn()
-                .and_then(|mut handle| handle.wait())
+                .and_then(|mut c| c.wait())
             {
                 Ok(exit_status) => {
                     if !exit_status.success() {
@@ -230,7 +213,7 @@ fn main() {
                         ErrorKind::NotFound => {
                             println!("No such command: 'imag-{}'", subcommand);
                             println!("See 'imag --help' for available subcommands");
-                            exit(2);
+                            exit(1);
                         },
                         ErrorKind::PermissionDenied => {
                             println!("No permission to execute: 'imag-{}'", subcommand);
