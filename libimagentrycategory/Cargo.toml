@@ -19,11 +19,8 @@ toml = "0.4"
 toml-query = "0.3"
 is-match = "0.1"
 
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagstore]
-path = "../libimagstore"
+libimagerror = { version = "0.4.0", path = "../libimagerror" }
+libimagstore = { version = "0.4.0", path = "../libimagstore" }
 
 [dev-dependencies]
 env_logger = "0.4"

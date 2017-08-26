@@ -18,21 +18,9 @@ clap = ">=2.17"
 log = "0.3"
 version = "2.0.1"
 
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagbookmark]
-path = "../libimagbookmark"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagentrylink]
-path = "../libimagentrylink"
-
-[dependencies.libimagentrytag]
-path = "../libimagentrytag"
-
+libimagrt        = { version = "0.4.0", path = "../libimagrt" }
+libimagutil      = { version = "0.4.0", path = "../libimagutil" }
+libimagbookmark  = { version = "0.4.0", path = "../libimagbookmark" }
+libimagerror     = { version = "0.4.0", path = "../libimagerror" }
+libimagentrylink = { version = "0.4.0", path = "../libimagentrylink" }
+libimagentrytag  = { version = "0.4.0", path = "../libimagentrytag" }

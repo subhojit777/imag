@@ -24,12 +24,6 @@ tempfile = "2.1"
 ansi_term = "0.9"
 is-match = "0.1"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
+libimagstore = { version = "0.4.0", path = "../libimagstore" }
+libimagutil  = { version = "0.4.0", path = "../libimagutil" }
+libimagerror = { version = "0.4.0", path = "../libimagerror" }

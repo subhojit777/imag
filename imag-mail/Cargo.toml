@@ -17,18 +17,8 @@ version = "2.0.1"
 toml = "0.4.*"
 url = "1.2"
 
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagmail]
-path = "../libimagmail"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagref]
-path = "../libimagref"
-
+libimagrt    = { version = "0.4.0", path = "../libimagrt" }
+libimagmail  = { version = "0.4.0", path = "../libimagmail" }
+libimagerror = { version = "0.4.0", path = "../libimagerror" }
+libimagutil  = { version = "0.4.0", path = "../libimagutil" }
+libimagref   = { version = "0.4.0", path = "../libimagref" }

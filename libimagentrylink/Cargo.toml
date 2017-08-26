@@ -23,12 +23,6 @@ rust-crypto = "0.2"
 env_logger = "0.3"
 is-match = "0.1"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
+libimagstore = { version = "0.4.0", path = "../libimagstore" }
+libimagerror = { version = "0.4.0", path = "../libimagerror" }
+libimagutil  = { version = "0.4.0", path = "../libimagutil" }
