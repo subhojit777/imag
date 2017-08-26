@@ -23,8 +23,8 @@ use toml::Value;
 use libimagerror::into::IntoError;
 
 use store::Result;
+use store::Header;
 use error::StoreErrorKind as SEK;
-use toml_ext::Header;
 
 #[cfg(feature = "early-panic")]
 #[macro_export]

@@ -18,6 +18,7 @@
 //
 
 use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::ops::Drop;
 use std::path::PathBuf;
 use std::result::Result as RResult;
@@ -32,11 +33,12 @@ use std::fmt::Debug;
 use std::fmt::Error as FMTError;
 
 use toml::Value;
+use toml::value::Table;
 use glob::glob;
 use walkdir::WalkDir;
 use walkdir::Iter as WalkDirIter;
 
-use error::{StoreError as SE, StoreErrorKind as SEK};
+use error::{StoreError as SE, StoreErrorKind as SEK, ParserError, ParserErrorKind};
 use error::MapErrInto;
 use storeid::{IntoStoreId, StoreId, StoreIdIterator};
 use file_abstraction::FileAbstractionInstance;
@@ -1115,6 +1117,96 @@ mod glob_store_iter {
 
 }
 
+/// Extension trait for top-level toml::Value::Table, will only yield correct results on the
+/// top-level Value::Table, but not on intermediate tables.
+pub trait Header {
+    fn verify(&self) -> Result<()>;
+    fn parse(s: &str) -> RResult<Value, ParserError>;
+    fn default_header() -> Value;
+}
+
+impl Header for Value {
+
+    fn verify(&self) -> Result<()> {
+        match *self {
+            Value::Table(ref t) => verify_header(&t),
+            _ => Err(SE::new(SEK::HeaderTypeFailure, None)),
+        }
+    }
+
+    fn parse(s: &str) -> RResult<Value, ParserError> {
+        use toml::de::from_str;
+
+        from_str(s)
+            .map_err(|_| ParserErrorKind::TOMLParserErrors.into())
+            .and_then(verify_header_consistency)
+            .map(Value::Table)
+    }
+
+    fn default_header() -> Value {
+        let mut m = BTreeMap::new();
+
+        m.insert(String::from("imag"), {
+            let mut imag_map = BTreeMap::<String, Value>::new();
+
+            imag_map.insert(String::from("version"), Value::String(String::from(version!())));
+            imag_map.insert(String::from("links"), Value::Array(vec![]));
+
+            Value::Table(imag_map)
+        });
+
+        Value::Table(m)
+    }
+
+}
+
+fn verify_header_consistency(t: Table) -> RResult<Table, ParserError> {
+    verify_header(&t)
+        .map_err(Box::new)
+        .map_err(|e| ParserErrorKind::HeaderInconsistency.into_error_with_cause(e))
+        .map(|_| t)
+}
+
+fn verify_header(t: &Table) -> Result<()> {
+    if !has_main_section(t) {
+        Err(SE::from(ParserErrorKind::MissingMainSection.into_error()))
+    } else if !has_imag_version_in_main_section(t) {
+        Err(SE::from(ParserErrorKind::MissingVersionInfo.into_error()))
+    } else if !has_only_tables(t) {
+        debug!("Could not verify that it only has tables in its base table");
+        Err(SE::from(ParserErrorKind::NonTableInBaseTable.into_error()))
+    } else {
+        Ok(())
+    }
+}
+
+fn has_only_tables(t: &Table) -> bool {
+    debug!("Verifying that table has only tables");
+    t.iter().all(|(_, x)| is_match!(*x, Value::Table(_)))
+}
+
+fn has_main_section(t: &Table) -> bool {
+    t.contains_key("imag") && is_match!(t.get("imag"), Some(&Value::Table(_)))
+}
+
+fn has_imag_version_in_main_section(t: &Table) -> bool {
+    use semver::Version;
+
+    match *t.get("imag").unwrap() {
+        Value::Table(ref sec) => {
+            sec.get("version")
+                .and_then(|v| {
+                    match *v {
+                        Value::String(ref s) => Some(Version::parse(&s[..]).is_ok()),
+                        _                    => Some(false),
+                    }
+                })
+            .unwrap_or(false)
+        }
+        _ => false,
+    }
+}
+
 
 #[cfg(test)]
 mod test {
@@ -1122,6 +1214,9 @@ mod test {
 
     use std::collections::BTreeMap;
     use storeid::StoreId;
+    use store::has_main_section;
+    use store::has_imag_version_in_main_section;
+    use store::verify_header_consistency;
 
     use toml::Value;
 
