@@ -133,7 +133,8 @@ impl Configuration {
         use self::error::ConfigErrorKind as CEK;
         use self::error::MapErrInto;
         use libimagerror::into::IntoError;
-        use libimagstore::toml_ext::TomlValueExt;
+
+        use toml_query::read::TomlValueReadExt;
 
         v.into_iter()
             .map(|s| { debug!("Trying to process '{}'", s); s })
@@ -170,10 +171,10 @@ impl Configuration {
 /// Returns None if string cannot be converted.
 ///
 /// Arrays and Tables are not supported and will yield `None`.
-fn into_value(value: Value, s: String) -> Option<Value> {
+fn into_value(value: &Value, s: String) -> Option<Value> {
     use std::str::FromStr;
 
-    match value {
+    match *value {
         Value::String(_)  => Some(Value::String(s)),
         Value::Integer(_) => FromStr::from_str(&s[..]).ok().map(Value::Integer),
         Value::Float(_)   => FromStr::from_str(&s[..]).ok().map(Value::Float),

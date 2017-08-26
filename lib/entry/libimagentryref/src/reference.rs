@@ -33,10 +33,12 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::Store;
-use libimagstore::toml_ext::TomlValueExt;
 use libimagerror::into::IntoError;
 
 use toml::Value;
+use toml_query::read::TomlValueReadExt;
+use toml_query::set::TomlValueSetExt;
+use toml_query::insert::TomlValueInsertExt;
 
 use error::RefErrorKind as REK;
 use error::MapErrInto;
@@ -89,7 +91,7 @@ impl<'a> Ref<'a> {
 
     fn read_reference(fle: &FileLockEntry<'a>) -> Result<PathBuf> {
         match fle.get_header().read("ref.path") {
-            Ok(Some(Value::String(s))) => Ok(PathBuf::from(s)),
+            Ok(Some(&Value::String(ref s))) => Ok(PathBuf::from(s)),
             Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
             Ok(None)    => Err(REK::HeaderFieldMissingError.into_error()),
             Err(e)      => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
@@ -204,18 +206,17 @@ impl<'a> Ref<'a> {
             match tpl {
                 &Some((ref s, ref v)) => {
                     match fle.get_header_mut().insert(s, v.clone()) {
-                        Ok(false) => {
-                            let e = REK::HeaderFieldAlreadyExistsError.into_error();
-                            let e = Box::new(e);
-                            let e = REK::HeaderFieldWriteError.into_error_with_cause(e);
-                            return Err(e);
+                        Ok(None) => {
+                            debug!("Header insert worked");
+                        }
+                        Ok(Some(val)) => {
+                            debug!("Overwrote: {}, which was: {:?}", s, val);
                         },
                         Err(e) => {
                             let e = Box::new(e);
                             let e = REK::HeaderFieldWriteError.into_error_with_cause(e);
                             return Err(e);
                         },
-                        _ => (),
                     }
                 }
                 &None => {
@@ -274,7 +275,7 @@ impl<'a> Ref<'a> {
     pub fn get_stored_hash_with_hasher<H: Hasher>(&self, h: &H) -> Result<String> {
         match self.0.get_header().read(&format!("ref.content_hash.{}", h.hash_name())[..]) {
             // content hash stored...
-            Ok(Some(Value::String(s))) => Ok(s),
+            Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
 
             // content hash header field has wrong type
             Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
@@ -365,7 +366,7 @@ impl<'a> Ref<'a> {
             .map_err(|e| REK::HeaderFieldReadError.into_error_with_cause(e))
             .and_then(|ro| {
                 match ro {
-                    Some(Value::Boolean(b)) => Ok(b),
+                    Some(&Value::Boolean(b)) => Ok(b),
                     Some(_)                 => Err(REK::HeaderTypeError.into_error()),
                     None                    => Err(REK::HeaderFieldMissingError.into_error()),
                 }
@@ -414,7 +415,7 @@ impl<'a> Ref<'a> {
     /// Get the path of the file which is reffered to by this Ref
     pub fn fs_file(&self) -> Result<PathBuf> {
         match self.0.get_header().read("ref.path") {
-            Ok(Some(Value::String(ref s))) => Ok(PathBuf::from(s)),
+            Ok(Some(&Value::String(ref s))) => Ok(PathBuf::from(s)),
             Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
             Ok(None)    => Err(REK::HeaderFieldMissingError.into_error()),
             Err(e)      => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),

@@ -37,6 +37,7 @@ extern crate itertools;
 extern crate regex;
 extern crate semver;
 extern crate toml;
+extern crate toml_query;
 
 extern crate libimagstore;
 extern crate libimagentrytag;

@@ -25,8 +25,10 @@ use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::Entry;
 use libimagstore::store::Result as StoreResult;
-use libimagstore::toml_ext::TomlValueExt;
 use libimagerror::into::IntoError;
+
+use toml_query::read::TomlValueReadExt;
+use toml_query::set::TomlValueSetExt;
 
 use error::LinkErrorKind as LEK;
 use error::MapErrInto;
@@ -388,7 +390,12 @@ pub mod iter {
 impl InternalLinker for Entry {
 
     fn get_internal_links(&self) -> Result<LinkIter> {
-        process_rw_result(self.get_header().read("imag.links"))
+        let res = self
+            .get_header()
+            .read("imag.links")
+            .map_err_into(LEK::EntryHeaderReadError)
+            .map(|r| r.cloned());
+        process_rw_result(res)
     }
 
     /// Set the links in a header and return the old links, if any.
@@ -417,7 +424,11 @@ impl InternalLinker for Entry {
                                         })
                                 })
                             }));
-        process_rw_result(self.get_header_mut().set("imag.links", Value::Array(new_links)))
+        let res = self
+            .get_header_mut()
+            .set("imag.links", Value::Array(new_links))
+            .map_err_into(LEK::EntryHeaderReadError);
+        process_rw_result(res)
     }
 
     fn add_internal_link(&mut self, link: &mut Entry) -> Result<()> {
@@ -485,7 +496,9 @@ fn rewrite_links<I: Iterator<Item = Link>>(header: &mut Value, links: I) -> Resu
                      }));
 
     debug!("Setting new link array: {:?}", links);
-    let process = header.set("imag.links", Value::Array(links));
+    let process = header
+        .set("imag.links", Value::Array(links))
+        .map_err_into(LEK::EntryHeaderReadError);
     process_rw_result(process).map(|_| ())
 }
 
@@ -509,12 +522,17 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
                                 })
                              }));
             debug!("Setting links in {:?}: {:?}", target.get_location(), links);
-            process_rw_result(target.get_header_mut().set("imag.links", Value::Array(links)))
-                .map(|_| ())
+
+            let res = target
+                .get_header_mut()
+                .set("imag.links", Value::Array(links))
+                .map_err_into(LEK::EntryHeaderReadError);
+
+            process_rw_result(res).map(|_| ())
         })
 }
 
-fn process_rw_result(links: StoreResult<Option<Value>>) -> Result<LinkIter> {
+fn process_rw_result(links: Result<Option<Value>>) -> Result<LinkIter> {
     use std::path::PathBuf;
 
     let links = match links {

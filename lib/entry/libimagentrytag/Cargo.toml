@@ -21,6 +21,7 @@ toml = "^0.4"
 itertools = "0.5"
 is-match = "0.1"
 filters = "0.1"
+toml-query = "0.3.0"
 
 libimagstore = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
 libimagerror = { version = "0.4.0", path = "../../../lib/core/libimagerror" }

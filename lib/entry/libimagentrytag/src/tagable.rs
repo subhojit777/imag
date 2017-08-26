@@ -21,7 +21,9 @@ use itertools::Itertools;
 
 use libimagstore::store::Entry;
 use libimagerror::into::IntoError;
-use libimagstore::toml_ext::TomlValueExt;
+
+use toml_query::read::TomlValueReadExt;
+use toml_query::set::TomlValueSetExt;
 
 use error::TagErrorKind;
 use error::MapErrInto;
@@ -50,7 +52,7 @@ impl Tagable for Value {
         let tags = try!(self.read("imag.tags").map_err_into(TagErrorKind::HeaderReadError));
 
         match tags {
-            Some(Value::Array(tags)) => {
+            Some(&Value::Array(ref tags)) => {
                 if !tags.iter().all(|t| is_match!(*t, Value::String(_))) {
                     return Err(TagErrorKind::TagTypeError.into());
                 }
@@ -120,7 +122,7 @@ impl Tagable for Value {
     fn has_tag(&self, t: TagSlice) -> Result<bool> {
         let tags = try!(self.read("imag.tags").map_err_into(TagErrorKind::HeaderReadError));
 
-        if !tags.iter().all(|t| is_match!(*t, Value::String(_))) {
+        if !tags.iter().all(|t| is_match!(*t, &Value::String(_))) {
             return Err(TagErrorKind::TagTypeError.into());
         }
 
@@ -128,7 +130,7 @@ impl Tagable for Value {
            .iter()
            .any(|tag| {
                match *tag {
-                   Value::String(ref s) => { s == t },
+                   &Value::String(ref s) => { s == t },
                    _ => unreachable!()
                }
            }))

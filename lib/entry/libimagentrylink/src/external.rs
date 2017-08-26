@@ -39,8 +39,10 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
-use libimagstore::toml_ext::TomlValueExt;
 use libimagutil::debug_result::*;
+
+use toml_query::read::TomlValueReadExt;
+use toml_query::set::TomlValueSetExt;
 
 use error::LinkError as LE;
 use error::LinkErrorKind as LEK;
@@ -73,7 +75,7 @@ impl<'a> Link<'a> {
             .read("imag.content.url")
             .ok()
             .and_then(|opt| match opt {
-                Some(Value::String(s)) => {
+                Some(&Value::String(ref s)) => {
                     debug!("Found url, parsing: {:?}", s);
                     Url::parse(&s[..]).ok()
                 },
@@ -87,7 +89,7 @@ impl<'a> Link<'a> {
             .read("imag.content.url");
 
         match opt {
-            Ok(Some(Value::String(s))) => {
+            Ok(Some(&Value::String(ref s))) => {
                 Url::parse(&s[..])
                      .map(Some)
                      .map_err(|e| LE::new(LEK::EntryHeaderReadError, Some(Box::new(e))))
@@ -351,7 +353,7 @@ impl ExternalLinker for Entry {
                 let mut hdr = file.deref_mut().get_header_mut();
 
                 let mut table = match hdr.read("imag.content") {
-                    Ok(Some(Value::Table(table))) => table,
+                    Ok(Some(&Value::Table(ref table))) => table.clone(),
                     Ok(Some(_)) => {
                         warn!("There is a value at 'imag.content' which is not a table.");
                         warn!("Going to override this value");

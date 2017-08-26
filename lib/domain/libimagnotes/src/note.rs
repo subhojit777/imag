@@ -30,7 +30,9 @@ use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
-use libimagstore::toml_ext::TomlValueExt;
+
+use toml_query::read::TomlValueReadExt;
+use toml_query::set::TomlValueSetExt;
 
 use module_path::ModuleEntryPath;
 use result::Result;
@@ -92,7 +94,7 @@ impl<'a> Note<'a> {
     pub fn get_name(&self) -> Result<String> {
         let header = self.entry.get_header();
         match header.read("note.name") {
-            Ok(Some(Value::String(s))) => Ok(String::from(s)),
+            Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
             Ok(_)                => {
                 let e = NE::new(NEK::HeaderTypeError, None);
                 Err(NE::new(NEK::StoreReadError, Some(Box::new(e))))

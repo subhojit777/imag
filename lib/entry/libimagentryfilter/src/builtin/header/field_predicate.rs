@@ -18,7 +18,8 @@
 //
 
 use libimagstore::store::Entry;
-use libimagstore::toml_ext::TomlValueExt;
+
+use toml_query::read::TomlValueReadExt;
 
 use builtin::header::field_path::FieldPath;
 use filters::filter::Filter;
@@ -26,7 +27,7 @@ use filters::filter::Filter;
 use toml::Value;
 
 pub trait Predicate {
-    fn evaluate(&self, Value) -> bool;
+    fn evaluate(&self, &Value) -> bool;
 }
 
 /// Check whether certain header field in a entry is equal to a value

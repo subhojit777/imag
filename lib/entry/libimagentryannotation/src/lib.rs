@@ -19,6 +19,7 @@
 
 extern crate uuid;
 extern crate toml;
+extern crate toml_query;
 
 #[macro_use] extern crate libimagerror;
 #[macro_use] extern crate libimagstore;

@@ -68,7 +68,8 @@ impl<'a> AnnotationFetcher<'a> for Store {
 pub mod iter {
     use toml::Value;
 
-    use libimagstore::toml_ext::TomlValueExt;
+    use toml_query::read::TomlValueReadExt;
+
     use libimagerror::into::IntoError;
     use libimagnotes::note::Note;
     use libimagnotes::note::NoteIterator;
@@ -95,10 +96,9 @@ pub mod iter {
             loop {
                 match self.0.next() {
                     Some(Ok(note)) => {
-                        let hdr = note.get_header().read("annotation.is_annotation");
-                        match hdr {
+                        match note.get_header().read("annotation.is_annotation") {
                             Ok(None) => continue, // not an annotation
-                            Ok(Some(Value::Boolean(true))) => return Some(Ok(note)),
+                            Ok(Some(&Value::Boolean(true))) => return Some(Ok(note)),
                             Ok(Some(_)) => return Some(Err(AEK::HeaderTypeError.into_error())),
                             Err(e) => return Some(Err(e).map_err_into(AEK::HeaderReadError)),
                         }
