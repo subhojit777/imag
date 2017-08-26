@@ -53,6 +53,7 @@ impl<'a> Mail<'a> {
 
     /// Imports a mail from the Path passed
     pub fn import_from_path<P: AsRef<Path>>(store: &Store, p: P) -> Result<Mail> {
+        debug!("Importing Mail from path");
         let h = MailHasher::new();
         let f = RefFlags::default().with_content_hashing(true).with_permission_tracking(false);
         let p = PathBuf::from(p.as_ref());
@@ -60,6 +61,7 @@ impl<'a> Mail<'a> {
         Ref::create_with_hasher(store, p, f, h)
             .map_err_into(MEK::RefCreationError)
             .and_then(|reference| {
+                debug!("Build reference file: {:?}", reference);
                 reference.fs_file()
                     .map_err_into(MEK::RefHandlingError)
                     .and_then(|path| File::open(path).map_err_into(MEK::IOError))
@@ -76,6 +78,7 @@ impl<'a> Mail<'a> {
 
     /// Opens a mail by the passed hash
     pub fn open<S: AsRef<str>>(store: &Store, hash: S) -> Result<Option<Mail>> {
+        debug!("Opening Mail by Hash");
         Ref::get_by_hash(store, String::from(hash.as_ref()))
             .map_err_into(MEK::FetchByHashError)
             .map_err_into(MEK::FetchError)
@@ -88,6 +91,7 @@ impl<'a> Mail<'a> {
 
     /// Implement me as TryFrom as soon as it is stable
     pub fn from_ref(r: Ref<'a>) -> Result<Mail> {
+        debug!("Building Mail object from Ref: {:?}", r);
         r.fs_file()
             .map_err_into(MEK::RefHandlingError)
             .and_then(|path| File::open(path).map_err_into(MEK::IOError))
@@ -102,6 +106,7 @@ impl<'a> Mail<'a> {
     }
 
     pub fn get_field(&self, field: &str) -> Result<Option<String>> {
+        debug!("Getting field in mail: {:?}", field);
         self.1
             .parsed()
             .map_err_into(MEK::MailParsingError)
