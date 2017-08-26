@@ -165,7 +165,7 @@ mod test {
 
     #[test]
     fn test_empty_json_to_fs() {
-        let json = r#"{"version":"0.3.0","store":{}}"#;
+        let json = r#"{"version":"0.4.0","store":{}}"#;
         let mut json = Cursor::new(String::from(json).into_bytes());
         let mapper   = JsonMapper::new();
         let mut hm   = HashMap::new();
@@ -178,12 +178,12 @@ mod test {
     #[test]
     fn test_json_to_fs() {
         let json = r#"
-        { "version": "0.3.0",
+        { "version": "0.4.0",
           "store": {
             "example": {
                 "header": {
                     "imag": {
-                        "version": "0.3.0"
+                        "version": "0.4.0"
                     }
                 },
                 "content": "test"
@@ -210,7 +210,7 @@ mod test {
             let mut hm = HashMap::new();
             let content = r#"---
 [imag]
-version = "0.3.0"
+version = "0.4.0"
 ---
 hi there!"#;
 
@@ -225,12 +225,12 @@ hi there!"#;
 
         let example = r#"
         {
-            "version": "0.3.0",
+            "version": "0.4.0",
             "store": {
                 "example": {
                     "header": {
                         "imag": {
-                            "version": "0.3.0"
+                            "version": "0.4.0"
                         }
                     },
                     "content": "hi there!"

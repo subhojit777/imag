@@ -107,7 +107,7 @@ mod test {
         let loca = StoreId::new_baseless(path).unwrap();
         let file = Entry::from_str(loca.clone(), r#"---
 [imag]
-version = "0.3.0"
+version = "0.4.0"
 ---
 Hello World"#).unwrap();
 

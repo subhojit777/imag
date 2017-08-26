@@ -1,6 +1,6 @@
 [package]
 name = "libimagdiary"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"

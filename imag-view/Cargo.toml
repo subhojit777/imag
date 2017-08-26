@@ -1,6 +1,6 @@
 [package]
 name = "imag-view"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-view command"
