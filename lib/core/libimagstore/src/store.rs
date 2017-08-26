@@ -42,7 +42,7 @@ use error::{StoreError as SE, StoreErrorKind as SEK, ParserError, ParserErrorKin
 use error::MapErrInto;
 use storeid::{IntoStoreId, StoreId, StoreIdIterator};
 use file_abstraction::FileAbstractionInstance;
-use toml_ext::*;
+
 // We re-export the following things so tests can use them
 pub use file_abstraction::FileAbstraction;
 pub use file_abstraction::FSFileAbstraction;
@@ -1222,8 +1222,6 @@ mod test {
 
     #[test]
     fn test_imag_section() {
-        use toml_ext::has_main_section;
-
         let mut map = BTreeMap::new();
         map.insert("imag".into(), Value::Table(BTreeMap::new()));
 
@@ -1232,8 +1230,6 @@ mod test {
 
     #[test]
     fn test_imag_invalid_section_type() {
-        use toml_ext::has_main_section;
-
         let mut map = BTreeMap::new();
         map.insert("imag".into(), Value::Boolean(false));
 
@@ -1242,8 +1238,6 @@ mod test {
 
     #[test]
     fn test_imag_abscent_main_section() {
-        use toml_ext::has_main_section;
-
         let mut map = BTreeMap::new();
         map.insert("not_imag".into(), Value::Boolean(false));
 
@@ -1252,8 +1246,6 @@ mod test {
 
     #[test]
     fn test_main_section_without_version() {
-        use toml_ext::has_imag_version_in_main_section;
-
         let mut map = BTreeMap::new();
         map.insert("imag".into(), Value::Table(BTreeMap::new()));
 
@@ -1262,8 +1254,6 @@ mod test {
 
     #[test]
     fn test_main_section_with_version() {
-        use toml_ext::has_imag_version_in_main_section;
-
         let mut map = BTreeMap::new();
         let mut sub = BTreeMap::new();
         sub.insert("version".into(), Value::String("0.0.0".into()));
@@ -1274,8 +1264,6 @@ mod test {
 
     #[test]
     fn test_main_section_with_version_in_wrong_type() {
-        use toml_ext::has_imag_version_in_main_section;
-
         let mut map = BTreeMap::new();
         let mut sub = BTreeMap::new();
         sub.insert("version".into(), Value::Boolean(false));
@@ -1286,8 +1274,6 @@ mod test {
 
     #[test]
     fn test_verification_good() {
-        use toml_ext::verify_header_consistency;
-
         let mut header = BTreeMap::new();
         let sub = {
             let mut sub = BTreeMap::new();
@@ -1303,8 +1289,6 @@ mod test {
 
     #[test]
     fn test_verification_invalid_versionstring() {
-        use toml_ext::verify_header_consistency;
-
         let mut header = BTreeMap::new();
         let sub = {
             let mut sub = BTreeMap::new();
@@ -1321,8 +1305,6 @@ mod test {
 
     #[test]
     fn test_verification_current_version() {
-        use toml_ext::verify_header_consistency;
-
         let mut header = BTreeMap::new();
         let sub = {
             let mut sub = BTreeMap::new();
