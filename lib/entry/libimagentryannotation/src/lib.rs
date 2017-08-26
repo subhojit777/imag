@@ -37,7 +37,7 @@ extern crate uuid;
 extern crate toml;
 
 #[macro_use] extern crate libimagerror;
-#[macro_use] extern crate libimagstore;
+extern crate libimagstore;
 extern crate libimagentrylink;
 extern crate libimagnotes;
 extern crate libimagutil;

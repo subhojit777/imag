@@ -30,10 +30,7 @@ mod test {
 
     use libimagstore::store::Store;
 
-    use super::create::*;
-    use super::get::*;
     use super::setendtime::*;
-    use super::storeid::*;
     use super::tag::*;
 
     fn get_store() -> Store {
@@ -53,7 +50,7 @@ mod test {
 
         let iter = tags.into_iter().map(String::from);
 
-        let iter : SetEndTimeIter = TagIter::new(Box::new(iter))
+        let _ : SetEndTimeIter = TagIter::new(Box::new(iter))
             .create_storeids(now)
             .create_entries(&store)
             .set_end_time(then);
