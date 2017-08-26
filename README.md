@@ -43,28 +43,10 @@ give you a commandline application.
 
 ### Building
 
-We use `make` to automate the build process.
-Make sure to _not_ include some `-j 8` arguments, this will _not_ work as you
-might think, as the rust compiler automatically parallelizes stuff and if you `make -j 8`, you end up with a pretty high load!
-
-There are several targets for each of the sub-crates in the Makefile:
-
-| Target         | Multi | Purpose                                  | Example              |
-| :---           | ----- | :---                                     | :---                 |
-| all            |       | Build everything, debug mode             | `make all`           |
-| bin            |       | Build all binaries, debug mode           | `make bin`           |
-| lib            |       | Build all libraries, debug mode          | `make lib`           |
-| lib-test       |       | Test all libraries                       | `make lib-test`      |
-| imag-bin       |       | Build only the `imag` binary, debug mode | `make imag-bin`      |
-| clean          |       | Remove build artifacts                   | `make clean`         |
-| update         |       | Run `cargo update`                       | `make update`        |
-| check-outdated |       | Run `cargo outdated`                     | `make check-outdated`|
-| check          | *     | Run `cargo check`                        | `make check`         |
-| install        | *     | Build everything, release mode, install  | `make install`       |
-| release        | *     | Build everything, release mode           | `make release`       |
-
-The `Multi` targets are callable for each sub-crate. For example you can call
-`make imag-store-check` to run `cargo check` on the `imag-store` crate.
+We use `cargo` for building all crates in this repository.
+Make sure to use a recent `cargo`, at least one with workspace support.
+Building all crates works with `cargo build --all`, building individual crates
+by `cd`ing to their directory and calling `cargo build`.
 
 ### Running
 
