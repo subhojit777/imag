@@ -48,7 +48,7 @@ impl<'a> Task<'a> {
 
     pub fn import<R: BufRead>(store: &'a Store, mut r: R) -> Result<(Task<'a>, String, Uuid)> {
         let mut line = String::new();
-        r.read_line(&mut line);
+        try!(r.read_line(&mut line).map_err_into(TEK::UTF8Error));
         import_task(&line.as_str())
             .map_err_into(TEK::ImportError)
             .and_then(|t| {
@@ -70,7 +70,7 @@ impl<'a> Task<'a> {
         where R: BufRead
     {
         let mut line = String::new();
-        r.read_line(&mut line);
+        try!(r.read_line(&mut line).map_err_into(TEK::UTF8Error));
         Task::get_from_string(store, line)
     }
 
@@ -104,7 +104,7 @@ impl<'a> Task<'a> {
     /// implicitely create the task if it does not exist.
     pub fn retrieve_from_import<R: BufRead>(store: &'a Store, mut r: R) -> Result<Task<'a>> {
         let mut line = String::new();
-        r.read_line(&mut line);
+        try!(r.read_line(&mut line).map_err_into(TEK::UTF8Error));
         Task::retrieve_from_string(store, line)
     }
 
