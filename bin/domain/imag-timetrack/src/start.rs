@@ -21,8 +21,8 @@ use std::str::FromStr;
 
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error;
-use libimagentrytimetrack::tag::TimeTrackingTag;
-use libimagentrytimetrack::timetrackingstore::TimeTrackStore;
+use libimagtimetrack::tag::TimeTrackingTag;
+use libimagtimetrack::timetrackingstore::TimeTrackStore;
 use libimagerror::trace::MapErrTrace;
 
 pub fn start(rt: &Runtime) -> i32 {

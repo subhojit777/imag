@@ -33,7 +33,7 @@ extern crate itertools;
 extern crate libimagerror;
 extern crate libimagstore;
 extern crate libimagrt;
-extern crate libimagentrytimetrack;
+extern crate libimagtimetrack;
 extern crate libimagutil;
 
 mod cont;

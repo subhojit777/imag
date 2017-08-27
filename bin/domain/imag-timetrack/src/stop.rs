@@ -26,12 +26,12 @@ use libimagerror::iter::TraceIterator;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 
-use libimagentrytimetrack::timetracking::TimeTracking;
-use libimagentrytimetrack::tag::TimeTrackingTag;
-use libimagentrytimetrack::timetrackingstore::*;
-use libimagentrytimetrack::iter::get::GetTimeTrackIter;
-use libimagentrytimetrack::iter::filter::has_end_time;
-use libimagentrytimetrack::iter::filter::has_one_of_tags;
+use libimagtimetrack::timetracking::TimeTracking;
+use libimagtimetrack::tag::TimeTrackingTag;
+use libimagtimetrack::timetrackingstore::*;
+use libimagtimetrack::iter::get::GetTimeTrackIter;
+use libimagtimetrack::iter::filter::has_end_time;
+use libimagtimetrack::iter::filter::has_one_of_tags;
 
 pub fn stop(rt: &Runtime) -> i32 {
     let (_, cmd) = rt.cli().subcommand();
