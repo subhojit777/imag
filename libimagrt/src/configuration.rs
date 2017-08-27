@@ -71,8 +71,8 @@ impl Configuration {
     /// with all variants.
     ///
     /// If that doesn't work either, an error is returned.
-    pub fn new(rtp: &PathBuf) -> Result<Configuration> {
-        fetch_config(&rtp).map(|cfg| {
+    pub fn new(config_searchpath: &PathBuf) -> Result<Configuration> {
+        fetch_config(&config_searchpath).map(|cfg| {
             let verbosity   = get_verbosity(&cfg);
             let editor      = get_editor(&cfg);
             let editor_opts = get_editor_opts(&cfg);
@@ -224,7 +224,7 @@ fn get_editor_opts(v: &Value) -> String {
 /// Helper to fetch the config file
 ///
 /// Tests several variants for the config file path and uses the first one which works.
-fn fetch_config(rtp: &PathBuf) -> Result<Value> {
+fn fetch_config(searchpath: &PathBuf) -> Result<Value> {
     use std::env;
     use std::fs::File;
     use std::io::Read;
@@ -245,8 +245,8 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     };
 
     vec![
-        vec![rtp.clone()],
-        gen_vars(rtp.clone(), variants.clone(), &modifier),
+        vec![searchpath.clone()],
+        gen_vars(searchpath.clone(), variants.clone(), &modifier),
 
         env::var("HOME").map(|home| gen_vars(PathBuf::from(home), variants.clone(), &modifier))
                         .unwrap_or(vec![]),
