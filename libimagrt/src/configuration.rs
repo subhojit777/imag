@@ -36,7 +36,8 @@ generate_error_module!(
     );
 );
 
-pub use self::error::{ConfigError, ConfigErrorKind};
+pub use self::error::{ConfigError, ConfigErrorKind, MapErrInto};
+use libimagerror::into::IntoError;
 
 /// Result type of this module. Either `T` or `ConfigError`
 pub type Result<T> = RResult<T, ConfigError>;
@@ -255,30 +256,37 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     ].iter()
         .flatten()
         .filter(|path| path.exists() && path.is_file())
-        .map(|path| {
+        .filter_map(|path| {
             let content = {
-                let mut s = String::new();
                 let f = File::open(path);
                 if f.is_err() {
+                    let _ = write!(stderr(), "Error opening file: {:?}", f);
                     return None
                 }
                 let mut f = f.unwrap();
+
+                let mut s = String::new();
                 f.read_to_string(&mut s).ok();
                 s
             };
 
-            match ::toml::de::from_str(&content[..]) {
-                Ok(res) => res,
+            match ::toml::de::from_str::<::toml::Value>(&content[..]) {
+                Ok(res) => Some(res),
                 Err(e) => {
-                    write!(stderr(), "Config file parser error:").ok();
-                    trace_error(&e);
+                    let line_col = e
+                        .line_col()
+                        .map(|(line, col)| {
+                            format!("Line {}, Column {}", line, col)
+                        })
+                        .unwrap_or_else(|| String::from("Line unknown, Column unknown"));
+
+                    let _ = write!(stderr(), "Config file parser error at {}", line_col);
+                    trace_error(&ConfigErrorKind::TOMLParserError.into_error_with_cause(Box::new(e)));
                     None
                 }
             }
         })
-        .filter(|loaded| loaded.is_some())
         .nth(0)
-        .map(|inner| Value::Table(inner.unwrap()))
         .ok_or(ConfigErrorKind::NoConfigFileFound.into())
 }
 
