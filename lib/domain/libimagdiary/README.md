@@ -1,1 +1,1 @@
-../doc/src/05100-lib-diary.md
+../../../doc/src/05100-lib-diary.md

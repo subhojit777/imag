@@ -1,1 +1,1 @@
-../doc/src/05100-lib-counter.md
+../../../doc/src/05100-lib-counter.md

@@ -1,1 +1,1 @@
-../doc/src/04020-module-bookmarks.md
+../../../doc/src/04020-module-bookmarks.md

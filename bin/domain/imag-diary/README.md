@@ -1,1 +1,1 @@
-../doc/src/04020-module-diary.md
+../../../doc/src/04020-module-diary.md

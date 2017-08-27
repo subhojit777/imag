@@ -1,1 +1,1 @@
-../doc/src/05100-lib-entrymarkdown.md
+../../../doc/src/05100-lib-entrymarkdown.md

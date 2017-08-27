@@ -1,1 +1,1 @@
-../doc/src/04020-module-mails.md
+../../../doc/src/05100-lib-mails.md

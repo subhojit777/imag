@@ -1,1 +1,1 @@
-../doc/src/05100-lib-store.md
+../../../doc/src/05100-lib-store.md

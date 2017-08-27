@@ -1,1 +1,1 @@
-../doc/src/04020-module-store.md
+../../../doc/src/04020-module-store.md

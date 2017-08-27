@@ -1,1 +1,1 @@
-../doc/src/05100-lib-annotation.md
+../../../doc/src/05100-lib-entryannotation.md

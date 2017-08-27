@@ -1,1 +1,1 @@
-../doc/src/04020-module-counter.md
+../../../doc/src/04020-module-counter.md

@@ -1,1 +1,1 @@
-../doc/src/04020-module-ref.md
+../../../doc/src/04020-module-ref.md

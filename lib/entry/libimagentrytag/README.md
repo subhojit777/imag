@@ -1,1 +1,1 @@
-../doc/src/05100-lib-entrytag.md
+../../../doc/src/05100-lib-entrytag.md

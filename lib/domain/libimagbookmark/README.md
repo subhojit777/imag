@@ -1,1 +1,1 @@
-../doc/src/05100-lib-bookmark.md
+../../../doc/src/05100-lib-bookmark.md

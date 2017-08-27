@@ -1,1 +1,1 @@
-../doc/src/05100-lib-error.md
+../../../doc/src/05100-lib-error.md
