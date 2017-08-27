@@ -69,17 +69,13 @@ impl RefStore for Store {
     /// Check whether there is a reference to the file at `pb`
     fn exists(&self, pb: PathBuf) -> Result<bool> {
         pb.canonicalize()
-            .map_err(Box::new)
-            .map_err(|e| REK::PathCanonicalizationError.into_error_with_cause(e))
-            .and_then(|can| {
-                hash_path(&can)
-                    .map_err(Box::new)
-                    .map_err(|e| REK::PathHashingError.into_error_with_cause(e))
-            })
+            .map_err_into(REK::PathCanonicalizationError)
+            .and_then(|c| hash_path(&c))
+            .map_err_into(REK::PathHashingError)
             .and_then(|hash| {
-                self.retrieve_for_module("ref").map(|iter| (hash, iter))
-                    .map_err(Box::new)
-                    .map_err(|e| REK::StoreReadError.into_error_with_cause(e))
+                self.retrieve_for_module("ref")
+                    .map(|iter| (hash, iter))
+                    .map_err_into(REK::StoreReadError)
             })
             .and_then(|(hash, possible_refs)| {
                 // This is kind of a manual Iterator::filter() call what we do here, but with the
@@ -89,7 +85,8 @@ impl RefStore for Store {
                 for r in possible_refs {
                     let contains_hash = try!(r.to_str()
                         .map_err_into(REK::TypeConversionError)
-                        .map(|s| s.contains(&hash[..])));
+                        .map(|s| s.contains(&hash[..]))
+                    );
 
                     if !contains_hash {
                         continue;
@@ -102,13 +99,8 @@ impl RefStore for Store {
                             }
                         },
 
-                        Ok(None) => { // Something weird just happened
-                            return Err(REK::StoreReadError.into_error());
-                        },
-
-                        Err(e) => {
-                            return Err(REK::StoreReadError.into_error_with_cause(Box::new(e)));
-                        },
+                        Ok(None) => return Err(REK::StoreReadError.into_error()),
+                        Err(e)   => return Err(e).map_err_into(REK::StoreReadError)
                     }
                 }
 
@@ -119,7 +111,7 @@ impl RefStore for Store {
     /// Try to get `si` as Ref object from the store
     fn get<'a>(&'a self, si: StoreId) -> Result<FileLockEntry<'a>> {
         match self.get(si) {
-            Err(e)        => return Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
+            Err(e)        => return Err(e).map_err_into(REK::StoreReadError),
             Ok(None)      => return Err(REK::RefNotInStore.into_error()),
             Ok(Some(fle)) => Ok(fle),
         }
@@ -132,8 +124,7 @@ impl RefStore for Store {
         ModuleEntryPath::new(hash)
             .into_storeid()
             .and_then(|id| self.get(id))
-            .map_err(Box::new)
-            .map_err(|e| REK::StoreReadError.into_error_with_cause(e))
+            .map_err_into(REK::StoreReadError)
     }
 
     /// Delete a ref by hash
@@ -143,8 +134,7 @@ impl RefStore for Store {
         ModuleEntryPath::new(hash)
             .into_storeid()
             .and_then(|id| self.delete(id))
-            .map_err(Box::new)
-            .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
+            .map_err_into(REK::StoreWriteError)
     }
 
     /// Create a Ref object which refers to `pb`
@@ -164,8 +154,7 @@ impl RefStore for Store {
 
         let (mut fle, content_hash, permissions, canonical_path) = { // scope to be able to fold
             try!(File::open(pb.clone())
-                .map_err(Box::new)
-                .map_err(|e| REK::RefTargetFileCannotBeOpened.into_error_with_cause(e))
+                .map_err_into(REK::RefTargetFileCannotBeOpened)
 
                 // If we were able to open this file,
                 // we hash the contents of the file and return (file, hash)
@@ -186,8 +175,7 @@ impl RefStore for Store {
                         Some(try!(file
                                   .metadata()
                                   .map(|md| md.permissions())
-                                  .map_err(Box::new)
-                                  .map_err(|e| REK::RefTargetCannotReadPermissions.into_error_with_cause(e))
+                                  .map_err_into(REK::RefTargetCannotReadPermissions)
                         ))
                     } else {
                         None
@@ -203,16 +191,13 @@ impl RefStore for Store {
                     pb.canonicalize()
                         .map(|can| (opt_contenthash, opt_permissions, can))
                         // if PathBuf::canonicalize() failed, build an error from the return value
-                        .map_err(|e| REK::PathCanonicalizationError.into_error_with_cause(Box::new(e)))
+                        .map_err_into(REK::PathCanonicalizationError)
                 })
 
                 // and then we hash the canonicalized path
                 // and return (file, content hash, permissions, canonicalized path, path hash)
                 .and_then(|(opt_contenthash, opt_permissions, can)| {
-                    let path_hash = try!(hash_path(&can)
-                        .map_err(Box::new)
-                        .map_err(|e| REK::PathHashingError.into_error_with_cause(e))
-                    );
+                    let path_hash = try!(hash_path(&can).map_err_into(REK::PathHashingError));
 
                     Ok((opt_contenthash, opt_permissions, can, path_hash))
                 })
@@ -234,8 +219,7 @@ impl RefStore for Store {
                 .and_then(|(opt_conhash, opt_perm, can, path_hash)| {
                     let fle = try!(self
                                    .create(ModuleEntryPath::new(path_hash))
-                                   .map_err(Box::new)
-                                   .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
+                                   .map_err_into(REK::StoreWriteError)
                     );
 
                     Ok((fle, opt_conhash, opt_perm, can))
@@ -262,15 +246,9 @@ impl RefStore for Store {
                     match fle.get_header_mut().insert(s, v.clone()) {
                         Ok(false) => {
                             let e = REK::HeaderFieldAlreadyExistsError.into_error();
-                            let e = Box::new(e);
-                            let e = REK::HeaderFieldWriteError.into_error_with_cause(e);
-                            return Err(e);
+                            return Err(e).map_err_into(REK::HeaderFieldWriteError);
                         },
-                        Err(e) => {
-                            let e = Box::new(e);
-                            let e = REK::HeaderFieldWriteError.into_error_with_cause(e);
-                            return Err(e);
-                        },
+                        Err(e) => return Err(e).map_err_into(REK::HeaderFieldWriteError),
                         _ => (),
                     }
                 }
@@ -284,3 +262,4 @@ impl RefStore for Store {
     }
 
 }
+

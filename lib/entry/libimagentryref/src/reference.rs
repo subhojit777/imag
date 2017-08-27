@@ -162,12 +162,7 @@ impl Ref for Entry {
     /// custom hasher
     fn get_current_hash_with_hasher<H: Hasher>(&self, mut h: H) -> Result<String> {
         self.fs_file()
-            .and_then(|pb| {
-                File::open(pb.clone())
-                    .map(|f| (pb, f))
-                    .map_err(Box::new)
-                    .map_err(|e| REK::IOError.into_error_with_cause(e))
-            })
+            .and_then(|pb| File::open(pb.clone()).map(|f| (pb, f)).map_err_into(REK::IOError))
             .and_then(|(path, mut file)| h.create_hash(&path, &mut file))
     }
 
@@ -210,8 +205,7 @@ impl Ref for Entry {
         self
             .get_header()
             .read("ref.permissions.ro")
-            .map_err(Box::new)
-            .map_err(|e| REK::HeaderFieldReadError.into_error_with_cause(e))
+            .map_err_into(REK::HeaderFieldReadError)
             .and_then(|ro| {
                 match ro {
                     Some(Value::Boolean(b)) => Ok(b),
@@ -220,8 +214,7 @@ impl Ref for Entry {
                 }
             })
             .and_then(|ro| self.get_current_permissions().map(|perm| ro == perm.readonly()))
-            .map_err(Box::new)
-            .map_err(|e| REK::RefTargetCannotReadPermissions.into_error_with_cause(e))
+            .map_err_into(REK::RefTargetCannotReadPermissions)
     }
 
     /// Check whether the Hashsum of the referenced file is equal to the stored hashsum
@@ -246,15 +239,13 @@ impl Ref for Entry {
         try!(self
             .get_header_mut()
             .set("ref.permissions.ro", Value::Boolean(current_perm.readonly()))
-            .map_err(Box::new)
-            .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
+            .map_err_into(REK::StoreWriteError)
         );
 
         try!(self
             .get_header_mut()
             .set(&format!("ref.content_hash.{}", h.hash_name())[..], Value::String(current_hash))
-            .map_err(Box::new)
-            .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
+            .map_err_into(REK::StoreWriteError)
         );
 
         Ok(())
@@ -304,13 +295,11 @@ impl Ref for Entry {
                             .into_iter()
                             .map(|entry| {
                                 entry
-                                    .map_err(Box::new)
-                                    .map_err(|e| REK::IOError.into_error_with_cause(e))
+                                    .map_err_into(REK::IOError)
                                     .and_then(|entry| {
                                         let pb = PathBuf::from(entry.path());
                                         File::open(entry.path())
-                                            .map_err(Box::new)
-                                            .map_err(|e| REK::IOError.into_error_with_cause(e))
+                                            .map_err_into(REK::IOError)
                                             .map(|f| (pb, f))
                                     })
                                     .and_then(|(p, mut f)|  h.create_hash(&p, &mut f).map(|h| (p, h)))
@@ -321,8 +310,7 @@ impl Ref for Entry {
                                             None
                                         }
                                     })
-                                    .map_err(Box::new)
-                                    .map_err(|e| REK::IOError.into_error_with_cause(e))
+                                    .map_err_into(REK::IOError)
                             })
                             .filter_map(|e| e.ok())
                             .filter_map(|e| e)
@@ -337,17 +325,12 @@ impl Ref for Entry {
     /// Get the permissions of the file which are present
     fn get_current_permissions(&self) -> Result<Permissions> {
         self.fs_file()
-            .and_then(|pb| {
-                File::open(pb)
-                    .map_err(Box::new)
-                    .map_err(|e| REK::HeaderFieldReadError.into_error_with_cause(e))
-            })
+            .and_then(|pb| File::open(pb).map_err_into(REK::HeaderFieldReadError))
             .and_then(|file| {
                 file
                     .metadata()
                     .map(|md| md.permissions())
-                    .map_err(Box::new)
-                    .map_err(|e| REK::RefTargetCannotReadPermissions.into_error_with_cause(e))
+                    .map_err_into(REK::RefTargetCannotReadPermissions)
             })
     }
 
