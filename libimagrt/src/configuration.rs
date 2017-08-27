@@ -36,7 +36,8 @@ generate_error_module!(
     );
 );
 
-pub use self::error::{ConfigError, ConfigErrorKind};
+pub use self::error::{ConfigError, ConfigErrorKind, MapErrInto};
+use libimagerror::into::IntoError;
 
 /// Result type of this module. Either `T` or `ConfigError`
 pub type Result<T> = RResult<T, ConfigError>;
@@ -70,8 +71,8 @@ impl Configuration {
     /// with all variants.
     ///
     /// If that doesn't work either, an error is returned.
-    pub fn new(rtp: &PathBuf) -> Result<Configuration> {
-        fetch_config(&rtp).map(|cfg| {
+    pub fn new(config_searchpath: &PathBuf) -> Result<Configuration> {
+        fetch_config(&config_searchpath).map(|cfg| {
             let verbosity   = get_verbosity(&cfg);
             let editor      = get_editor(&cfg);
             let editor_opts = get_editor_opts(&cfg);
@@ -223,7 +224,7 @@ fn get_editor_opts(v: &Value) -> String {
 /// Helper to fetch the config file
 ///
 /// Tests several variants for the config file path and uses the first one which works.
-fn fetch_config(rtp: &PathBuf) -> Result<Value> {
+fn fetch_config(searchpath: &PathBuf) -> Result<Value> {
     use std::env;
     use std::fs::File;
     use std::io::Read;
@@ -244,8 +245,8 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     };
 
     vec![
-        vec![rtp.clone()],
-        gen_vars(rtp.clone(), variants.clone(), &modifier),
+        vec![searchpath.clone()],
+        gen_vars(searchpath.clone(), variants.clone(), &modifier),
 
         env::var("HOME").map(|home| gen_vars(PathBuf::from(home), variants.clone(), &modifier))
                         .unwrap_or(vec![]),
@@ -255,30 +256,37 @@ fn fetch_config(rtp: &PathBuf) -> Result<Value> {
     ].iter()
         .flatten()
         .filter(|path| path.exists() && path.is_file())
-        .map(|path| {
+        .filter_map(|path| {
             let content = {
-                let mut s = String::new();
                 let f = File::open(path);
                 if f.is_err() {
+                    let _ = write!(stderr(), "Error opening file: {:?}", f);
                     return None
                 }
                 let mut f = f.unwrap();
+
+                let mut s = String::new();
                 f.read_to_string(&mut s).ok();
                 s
             };
 
-            match ::toml::de::from_str(&content[..]) {
-                Ok(res) => res,
+            match ::toml::de::from_str::<::toml::Value>(&content[..]) {
+                Ok(res) => Some(res),
                 Err(e) => {
-                    write!(stderr(), "Config file parser error:").ok();
-                    trace_error(&e);
+                    let line_col = e
+                        .line_col()
+                        .map(|(line, col)| {
+                            format!("Line {}, Column {}", line, col)
+                        })
+                        .unwrap_or_else(|| String::from("Line unknown, Column unknown"));
+
+                    let _ = write!(stderr(), "Config file parser error at {}", line_col);
+                    trace_error(&ConfigErrorKind::TOMLParserError.into_error_with_cause(Box::new(e)));
                     None
                 }
             }
         })
-        .filter(|loaded| loaded.is_some())
         .nth(0)
-        .map(|inner| Value::Table(inner.unwrap()))
         .ok_or(ConfigErrorKind::NoConfigFileFound.into())
 }
 
