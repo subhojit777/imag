@@ -1,0 +1,1 @@
+../../../doc/src/04020-module-mails.md
