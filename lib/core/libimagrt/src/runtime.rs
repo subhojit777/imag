@@ -77,8 +77,8 @@ impl<'a> Runtime<'a> {
             Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
                 return Err(RuntimeErrorKind::Instantiate.into_error_with_cause(Box::new(e)));
             } else {
-                warn!("No config file found.");
-                warn!("Continuing without configuration file");
+                println!("No config file found.");
+                println!("Continuing without configuration file");
                 None
             },
 
