@@ -20,6 +20,6 @@ semver = "0.5"
 toml = "0.4.*"
 filters = "0.1.*"
 
-libimagstore = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
-libimagerror = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
-libimagref   = { version = "0.4.0", path = "../../../lib/entry/libimagentryref" }
+libimagstore    = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
+libimagerror    = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
+libimagentryref = { version = "0.4.0", path = "../../../lib/entry/libimagentryref" }
