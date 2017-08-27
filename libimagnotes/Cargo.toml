@@ -18,18 +18,8 @@ semver = "0.5"
 log = "0.3"
 toml = "^0.4"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagentryedit]
-path = "../libimagentryedit"
-
-[dependencies.libimagentrytag]
-path = "../libimagentrytag"
-
+libimagstore     = { version = "0.4.0", path = "../libimagstore" }
+libimagerror     = { version = "0.4.0", path = "../libimagerror" }
+libimagrt        = { version = "0.4.0", path = "../libimagrt" }
+libimagentryedit = { version = "0.4.0", path = "../libimagentryedit" }
+libimagentrytag  = { version = "0.4.0", path = "../libimagentrytag" }

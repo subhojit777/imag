@@ -19,9 +19,5 @@ toml = "0.4.*"
 toml-query = "0.3.*"
 semver = "0.5"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
+libimagstore = { version = "0.4.0", path = "../libimagstore" }
+libimagerror = { version = "0.4.0", path = "../libimagerror" }

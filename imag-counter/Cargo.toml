@@ -18,15 +18,7 @@ clap = ">=2.17"
 log = "0.3"
 version = "2.0.1"
 
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagcounter]
-path = "../libimagcounter"
-
+libimagrt      = { version = "0.4.0", path = "../libimagrt" }
+libimagerror   = { version = "0.4.0", path = "../libimagerror" }
+libimagutil    = { version = "0.4.0", path = "../libimagutil" }
+libimagcounter = { version = "0.4.0", path = "../libimagcounter" }

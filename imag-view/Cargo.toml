@@ -20,15 +20,7 @@ semver = "0.5"
 toml = "^0.4"
 version = "2.0.1"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagentryview]
-path = "../libimagentryview"
-
+libimagstore     = { version = "0.4.0", path = "../libimagstore" }
+libimagrt        = { version = "0.4.0", path = "../libimagrt" }
+libimagerror     = { version = "0.4.0", path = "../libimagerror" }
+libimagentryview = { version = "0.4.0", path = "../libimagentryview" }

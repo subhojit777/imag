@@ -22,21 +22,9 @@ toml-query = "0.3.*"
 regex = "0.1"
 itertools = "0.5"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagentryedit]
-path = "../libimagentryedit"
-
-[dependencies.libimagentryview]
-path = "../libimagentryview"
-
+libimagstore     = { version = "0.4.0", path = "../libimagstore" }
+libimagerror     = { version = "0.4.0", path = "../libimagerror" }
+libimagutil      = { version = "0.4.0", path = "../libimagutil" }
+libimagrt        = { version = "0.4.0", path = "../libimagrt" }
+libimagentryedit = { version = "0.4.0", path = "../libimagentryedit" }
+libimagentryview = { version = "0.4.0", path = "../libimagentryview" }

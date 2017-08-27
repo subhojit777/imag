@@ -20,19 +20,10 @@ version = "2.0.1"
 semver = "0.5"
 toml = "^0.4"
 
-[dependencies.libimagstore]
-path = "../libimagstore"
-default-features = false
-features = ["verify"]
-
-[dependencies.libimagrt]
-path = "../libimagrt"
-
-[dependencies.libimagutil]
-path = "../libimagutil"
-
-[dependencies.libimagerror]
-path = "../libimagerror"
+libimagstore = { version = "0.4.0", path = "../libimagstore", default-features = false, features = ["verify"] }
+libimagrt    = { version = "0.4.0", path = "../libimagrt" }
+libimagutil  = { version = "0.4.0", path = "../libimagutil" }
+libimagerror = { version = "0.4.0", path = "../libimagerror" }
 
 [features]
 early-panic = [ "libimagstore/early-panic" ]
