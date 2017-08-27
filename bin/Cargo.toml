@@ -23,7 +23,6 @@ libimagutil = { path = "../libimagutil" }
 [dependencies]
 version = "2.0"
 walkdir = "0.1"
-crossbeam = "0.2"
 clap = "2.*"
 log = "0.3"
 
