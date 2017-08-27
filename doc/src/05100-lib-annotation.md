@@ -1,4 +1,4 @@
-## libimagannotation
+## libimagentryannotation
 
 This library provides annotation functionality for entries.
 

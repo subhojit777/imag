@@ -1,4 +1,4 @@
-## libimagref
+## libimagentryref
 
 This library crate contains functionality to generate _references_ within the
 imag store.

@@ -39,7 +39,7 @@ extern crate clap;
 
 extern crate libimagstore;
 extern crate libimagrt;
-extern crate libimagref;
+extern crate libimagentryref;
 extern crate libimagerror;
 extern crate libimagentrylist;
 extern crate libimaginteraction;
@@ -50,8 +50,8 @@ use ui::build_ui;
 
 use std::path::PathBuf;
 
-use libimagref::reference::Ref;
-use libimagref::flags::RefFlags;
+use libimagentryref::reference::Ref;
+use libimagentryref::flags::RefFlags;
 use libimagerror::trace::trace_error;
 use libimagrt::setup::generate_runtime_setup;
 use libimagrt::runtime::Runtime;
@@ -118,7 +118,7 @@ fn list(rt: &Runtime) {
     use std::process::exit;
 
     use libimagentrylist::lister::Lister;
-    use libimagref::lister::RefLister;
+    use libimagentryref::lister::RefLister;
 
     let cmd                      = rt.cli().subcommand_matches("list").unwrap();
     let do_check_dead            = cmd.is_present("check-dead");

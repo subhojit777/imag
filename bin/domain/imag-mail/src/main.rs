@@ -28,11 +28,11 @@ extern crate libimagrt;
 extern crate libimagmail;
 extern crate libimagerror;
 extern crate libimagutil;
-extern crate libimagref;
+extern crate libimagentryref;
 
 use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
 use libimagmail::mail::Mail;
-use libimagref::reference::Ref;
+use libimagentryref::reference::Ref;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagutil::debug_result::*;

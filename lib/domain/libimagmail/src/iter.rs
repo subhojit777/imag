@@ -27,7 +27,7 @@
 use mail::Mail;
 use result::Result;
 
-use libimagref::reference::Ref;
+use libimagentryref::reference::Ref;
 
 use std::marker::PhantomData;
 

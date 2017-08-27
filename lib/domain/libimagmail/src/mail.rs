@@ -23,8 +23,8 @@ use std::fs::File;
 use std::io::Read;
 
 use libimagstore::store::Store;
-use libimagref::reference::Ref;
-use libimagref::flags::RefFlags;
+use libimagentryref::reference::Ref;
+use libimagentryref::flags::RefFlags;
 
 use email::MimeMessage;
 use email::results::ParsingResult as EmailParsingResult;

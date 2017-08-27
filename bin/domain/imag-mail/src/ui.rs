@@ -38,7 +38,7 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                     .version("0.1")
 
                     // TODO: Thee following four arguments are the same as in imag-ref.
-                    // We should make these importable from libimagref.
+                    // We should make these importable from libimagentryref.
 
                     .arg(Arg::with_name("check-dead")
                          .long("check-dead")

@@ -22,11 +22,11 @@ use std::path::PathBuf;
 
 use email::MimeMessage;
 
-use libimagref::hasher::Hasher;
-use libimagref::hasher::DefaultHasher;
-use libimagref::error::RefErrorKind as REK;
-use libimagref::error::MapErrInto;
-use libimagref::result::Result as RResult;
+use libimagentryref::hasher::Hasher;
+use libimagentryref::hasher::DefaultHasher;
+use libimagentryref::error::RefErrorKind as REK;
+use libimagentryref::error::MapErrInto;
+use libimagentryref::result::Result as RResult;
 use libimagerror::into::IntoError;
 
 use error::MailErrorKind as MEK;

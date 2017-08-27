@@ -22,4 +22,3 @@ libimagerror = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
 libimagmail  = { version = "0.4.0", path = "../../../lib/domain/libimagmail" }
 libimagref   = { version = "0.4.0", path = "../../../lib/entry/libimagentryref" }
 libimagutil  = { version = "0.4.0", path = "../../../lib/etc/libimagutil" }
-
