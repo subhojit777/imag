@@ -21,8 +21,8 @@ use semver::Version;
 use toml::Value;
 
 use libimagstore::store::Entry;
-use libimagstore::toml_ext::TomlValueExt;
 
+use toml_query::read::TomlValueReadExt;
 use filters::filter::Filter;
 
 pub struct VersionLt {
@@ -44,8 +44,8 @@ impl Filter<Entry> for VersionLt {
             .read("imag.version")
             .map(|val| {
                 val.map_or(false, |v| {
-                    match v {
-                        Value::String(s) => {
+                    match *v {
+                        Value::String(ref s) => {
                             match Version::parse(&s[..]) {
                                 Ok(v) => v < self.version,
                                 _ => false

@@ -38,6 +38,7 @@ extern crate crypto;
 extern crate itertools;
 extern crate semver;
 extern crate toml;
+extern crate toml_query;
 extern crate version;
 extern crate walkdir;
 

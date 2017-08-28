@@ -38,6 +38,7 @@ extern crate itertools;
 #[macro_use] extern crate log;
 extern crate regex;
 extern crate toml;
+extern crate toml_query;
 #[macro_use] extern crate is_match;
 extern crate filters;
 

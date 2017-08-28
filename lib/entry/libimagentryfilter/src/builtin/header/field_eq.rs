@@ -32,8 +32,8 @@ struct EqPred {
 
 impl Predicate for EqPred {
 
-    fn evaluate(&self, v: Value) -> bool {
-        self.expected == v
+    fn evaluate(&self, v: &Value) -> bool {
+        self.expected == *v
     }
 
 }
