@@ -33,6 +33,7 @@ extern crate libimagentryref;
 use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
 use libimagmail::mail::Mail;
 use libimagentryref::reference::Ref;
+use libimagentryref::refstore::RefStore;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagutil::debug_result::*;
@@ -83,11 +84,11 @@ fn list(rt: &Runtime) {
 
     let iter = match store.retrieve_for_module("ref") {
         Ok(iter) => iter.filter_map(|id| {
-            Ref::get(store, id)
-                .map_err_into(MEK::RefHandlingError)
-                .and_then(|rf| Mail::from_ref(rf))
-                .map_err_trace()
-                .ok()
+            match store.get(id).map_err_into(MEK::RefHandlingError).map_err_trace() {
+                Ok(Some(fle)) => Mail::from_fle(fle).map_err_trace().ok(),
+                Ok(None)      => None,
+                Err(e)        => trace_error_exit(&e, 1),
+            }
         }),
         Err(e)   => trace_error_exit(&e, 1),
     };
