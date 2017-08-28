@@ -22,6 +22,8 @@ use std::result::Result as RResult;
 
 use libimagstore::store::Store;
 use libimagstore::storeid::StoreIdIterator;
+use libimagerror::trace::trace_error;
+use libimagerror::into::IntoError;
 
 use diaryid::DiaryId;
 use diaryid::FromStoreId;
@@ -29,13 +31,14 @@ use is_in_diary::IsInDiary;
 use entry::Entry as DiaryEntry;
 use error::DiaryError as DE;
 use error::DiaryErrorKind as DEK;
+use error::MapErrInto;
 use result::Result;
-use libimagerror::trace::trace_error;
+use is_in_diary::IsInDiary;
 
 /// A iterator for iterating over diary entries
 pub struct DiaryEntryIterator<'a> {
     store: &'a Store,
-    name: &'a str,
+    name: String,
     iter: StoreIdIterator,
 
     year: Option<i32>,
@@ -54,7 +57,7 @@ impl<'a> Debug for DiaryEntryIterator<'a> {
 
 impl<'a> DiaryEntryIterator<'a> {
 
-    pub fn new(diaryname: &'a str, store: &'a Store, iter: StoreIdIterator) -> DiaryEntryIterator<'a> {
+    pub fn new(store: &'a Store, diaryname: String, iter: StoreIdIterator) -> DiaryEntryIterator<'a> {
         DiaryEntryIterator {
             store: store,
             name: diaryname,
@@ -97,7 +100,7 @@ impl<'a> Iterator for DiaryEntryIterator<'a> {
             };
             debug!("Next element: {:?}", next);
 
-            if next.is_in_diary(self.name) {
+            if next.is_in_diary(&self.name) {
                 debug!("Seems to be in diary: {:?}", next);
                 let id = match DiaryId::from_storeid(&next) {
                     Ok(i) => i,
@@ -126,6 +129,40 @@ impl<'a> Iterator for DiaryEntryIterator<'a> {
                 debug!("Not in the requested diary ({}): {:?}", self.name, next);
             }
         }
+    }
+
+}
+
+
+/// Get diary names.
+///
+/// # Warning
+///
+/// Does _not_ run a `unique` on the iterator!
+pub struct DiaryNameIterator(StoreIdIterator);
+
+impl DiaryNameIterator {
+    pub fn new(s: StoreIdIterator) -> DiaryNameIterator {
+        DiaryNameIterator(s)
+    }
+}
+
+impl Iterator for DiaryNameIterator {
+    type Item = Result<String>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0
+            .next()
+            .map(|s| {
+                s.to_str()
+                    .map_err_into(DEK::DiaryNameFindingError)
+                    .and_then(|s| {
+                        s.split("diary/")
+                            .nth(1)
+                            .and_then(|n| n.split("/").nth(0).map(String::from))
+                            .ok_or(DEK::DiaryNameFindingError.into_error())
+                    })
+            })
     }
 
 }

@@ -26,6 +26,7 @@ use result::Result;
 
 use libimagentryview::viewer::Viewer;
 use libimagentryview::builtin::plain::PlainViewer;
+use libimagerror::trace::trace_error;
 
 /// This viewer does _not_ implement libimagentryview::viewer::Viewer because we need to be able to
 /// call some diary-type specific functions on the entries passed to this.
@@ -48,8 +49,10 @@ impl DiaryViewer {
     /// error.
     pub fn view_entries<'a, I: Iterator<Item = Entry<'a>>>(&self, entries: I) -> Result<()> {
         for entry in entries {
-            let id = entry.diary_id();
-            println!("{} :\n", id);
+            match entry.diary_id() {
+                Ok(id) => println!("{} :\n", id),
+                Err(e) => trace_error(&e),
+            }
             let _ = try!(self.0
                          .view_entry(&entry)
                          .map_err_into(DEK::ViewError)

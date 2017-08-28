@@ -27,6 +27,7 @@ use libimagrt::runtime::Runtime;
 
 use diaryid::DiaryId;
 use diaryid::FromStoreId;
+use result::Result;
 
 #[derive(Debug)]
 pub struct Entry<'a>(FileLockEntry<'a>);
@@ -57,8 +58,8 @@ impl<'a> Entry<'a> {
     /// Get the diary id for this entry.
     ///
     /// TODO: calls Option::unwrap() as it assumes that an existing Entry has an ID that is parsable
-    pub fn diary_id(&self) -> DiaryId {
-        DiaryId::from_storeid(&self.0.get_location().clone()).unwrap()
+    pub fn diary_id(&self) -> Result<DiaryId> {
+        DiaryId::from_storeid(&self.0.get_location().clone())
     }
 
 }
