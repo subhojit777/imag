@@ -36,6 +36,7 @@ extern crate crypto;
 extern crate itertools;
 extern crate semver;
 extern crate toml;
+extern crate toml_query;
 extern crate version;
 extern crate walkdir;
 
@@ -52,4 +53,6 @@ pub mod hasher;
 pub mod hashers;
 pub mod lister;
 pub mod reference;
+pub mod refstore;
 pub mod result;
+mod util;
