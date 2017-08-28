@@ -50,11 +50,11 @@ impl Default for LogDestination {
 }
 
 struct ModuleSettings {
-    enabled: bool,
-    level: LogLevel,
+    enabled:        bool,
+    level:          Option<LogLevel>,
 
     #[allow(unused)]
-    destinations: Vec<LogDestination>,
+    destinations:   Option<Vec<LogDestination>>,
 }
 
 /// Logger implementation for `log` crate.
@@ -156,7 +156,7 @@ impl Log for ImagLogger {
         self.module_settings
             .get(log_target)
             .map(|module_setting| {
-                if module_setting.enabled && module_setting.level >= log_level {
+                if module_setting.enabled && module_setting.level.unwrap_or(self.global_loglevel) >= log_level {
                     let _ = write!(stderr(), "{}\n", logtext);
                 }
             })
@@ -248,7 +248,7 @@ fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Configura
             {
                 Ok(Some(&Value::Array(ref a))) => translate_destinations(a),
                 Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
-                Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
+                Ok(None)    => Err(EK::GlobalDestinationConfigMissing.into_error()),
                 Err(e)      => Err(e)
             },
         None => {
@@ -286,7 +286,7 @@ fn aggregate_global_format(
             {
                 Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
                 Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
-                Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
+                Ok(None)    => Err(error_kind_if_missing.into_error()),
                 Err(e)      => Err(e)
             },
         None => match matches.value_of(cli_match_name).map(String::from) {
@@ -360,23 +360,23 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Configuratio
 
                     for (module_name, v) in t {
                         let destinations = try!(match v.read("destinations") {
-                            Ok(Some(&Value::Array(ref a))) => translate_destinations(a),
+                            Ok(Some(&Value::Array(ref a))) => translate_destinations(a).map(Some),
+                            Ok(None)    => Ok(None),
                             Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
-                            Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
                             Err(e)      => Err(e).map_err_into(EK::TomlReadError),
                         });
 
                         let level = try!(match v.read("level") {
-                            Ok(Some(&Value::String(ref s))) => match_log_level_str(s),
+                            Ok(Some(&Value::String(ref s))) => match_log_level_str(s).map(Some),
+                            Ok(None)    => Ok(None),
                             Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
-                            Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
                             Err(e)      => Err(e).map_err_into(EK::TomlReadError),
                         });
 
                         let enabled = try!(match v.read("enabled") {
                             Ok(Some(&Value::Boolean(b))) => Ok(b),
+                            Ok(None)    => Ok(false),
                             Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
-                            Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
                             Err(e)      => Err(e).map_err_into(EK::TomlReadError),
                         });
 
@@ -393,7 +393,10 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Configuratio
                     Ok(settings)
                 },
                 Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
-                Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
+                Ok(None)    => {
+                    // No modules configured. This is okay!
+                    Ok(BTreeMap::new())
+                },
                 Err(e)      => Err(e),
             },
         None => {
