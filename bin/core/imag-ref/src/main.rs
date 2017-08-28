@@ -50,7 +50,7 @@ use ui::build_ui;
 
 use std::path::PathBuf;
 
-use libimagentryref::reference::Ref;
+use libimagentryref::refstore::RefStore;
 use libimagentryref::flags::RefFlags;
 use libimagerror::trace::trace_error;
 use libimagrt::setup::generate_runtime_setup;
@@ -84,7 +84,7 @@ fn add(rt: &Runtime) {
         .with_content_hashing(cmd.is_present("track-content"))
         .with_permission_tracking(cmd.is_present("track-permissions"));
 
-    match Ref::create(rt.store(), path, flags) {
+    match RefStore::create(rt.store(), path, flags) {
         Ok(r) => {
             debug!("Reference created: {:?}", r);
             info!("Ok");
@@ -104,7 +104,7 @@ fn remove(rt: &Runtime) {
     let yes  = cmd.is_present("yes");
 
     if yes || ask_bool(&format!("Delete Ref with hash '{}'", hash)[..], None) {
-        match Ref::delete_by_hash(rt.store(), hash) {
+        match rt.store().delete_by_hash(hash) {
             Err(e) => trace_error(&e),
             Ok(_) => info!("Ok"),
         }
@@ -128,7 +128,7 @@ fn list(rt: &Runtime) {
 
     let iter = match rt.store().retrieve_for_module("ref") {
         Ok(iter) => iter.filter_map(|id| {
-            match Ref::get(rt.store(), id) {
+            match rt.store().get(id) {
                 Ok(r) => Some(r),
                 Err(e) => {
                     trace_error(&e);
@@ -147,7 +147,7 @@ fn list(rt: &Runtime) {
         .check_changed(do_check_changed)
         .check_changed_content(do_check_changed_content)
         .check_changed_permiss(do_check_changed_permiss)
-        .list(iter.map(|e| e.into()))
+        .list(iter.filter_map(Into::into))
         .ok();
 }
 
