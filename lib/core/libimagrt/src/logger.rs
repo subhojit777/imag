@@ -135,33 +135,34 @@ impl Log for ImagLogger {
     }
 
     fn log(&self, record: &LogRecord) {
-        let log_level = record.level();
-        let log_location = record.location();
-        let log_target = record.target();
-
         let mut data = BTreeMap::new();
+
         {
-            data.insert("level", format!("{}", log_level));
-            data.insert("module_path", String::from(log_location.module_path()));
-            data.insert("file", String::from(log_location.file()));
-            data.insert("line", format!("{}", log_location.line()));
-            data.insert("target", String::from(log_target));
-            data.insert("message", format!("{}", record.args()));
+            data.insert("level",        format!("{}", record.level()));
+            data.insert("module_path",  String::from(record.location().module_path()));
+            data.insert("file",         String::from(record.location().file()));
+            data.insert("line",         format!("{}", record.location().line()));
+            data.insert("target",       String::from(record.target()));
+            data.insert("message",      format!("{}", record.args()));
         }
+
         let logtext = self
             .handlebars
-            .render(&format!("{}", log_level), &data)
+            .render(&format!("{}", record.level()), &data)
             .unwrap_or_else(|e| format!("Failed rendering logging data: {:?}\n", e));
 
         self.module_settings
-            .get(log_target)
+            .get(record.target())
             .map(|module_setting| {
-                if module_setting.enabled && module_setting.level.unwrap_or(self.global_loglevel) >= log_level {
+                let set = module_setting.enabled &&
+                    module_setting.level.unwrap_or(self.global_loglevel) >= record.level();
+
+                if set {
                     let _ = write!(stderr(), "{}\n", logtext);
                 }
             })
             .unwrap_or_else(|| {
-                if self.global_loglevel >= log_level {
+                if self.global_loglevel >= record.level() {
                     // Yes, we log
                     let _ = write!(stderr(), "{}\n", logtext);
                 }
