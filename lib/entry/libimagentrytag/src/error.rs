@@ -17,14 +17,34 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(TagError, TagErrorKind,
-        TagTypeError     => "Entry Header Tag Type wrong",
-        HeaderReadError  => "Error while reading entry header",
-        HeaderWriteError => "Error while writing entry header",
-        NotATag          => "String is not a tag"
-    );
-);
+error_chain! {
+    types {
+        TagError, TagErrorKind, ResultExt, Result;
+    }
+
+    errors {
+        TagTypeError     {
+            description("Entry Header Tag Type wrong")
+            display("Entry Header Tag Type wrong")
+        }
+
+        HeaderReadError  {
+            description("Error while reading entry header")
+            display("Error while reading entry header")
+        }
+
+        HeaderWriteError {
+            description("Error while writing entry header")
+            display("Error while writing entry header")
+        }
+
+        NotATag          {
+            description("String is not a tag")
+            display("String is not a tag")
+        }
+
+    }
+}
 
 pub use self::error::TagError;
 pub use self::error::TagErrorKind;

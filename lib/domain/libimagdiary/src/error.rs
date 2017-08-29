@@ -17,20 +17,64 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(DiaryError, DiaryErrorKind,
-        StoreWriteError     => "Error writing store",
-        StoreReadError      => "Error reading store",
-        CannotFindDiary     => "Cannot find diary",
-        CannotCreateNote    => "Cannot create Note object for diary entry",
-        DiaryEditError      => "Cannot edit diary entry",
-        PathConversionError => "Error while converting paths internally",
-        EntryNotInDiary     => "Entry not in Diary",
-        IOError             => "IO Error",
-        ViewError           => "Error viewing diary entry",
-        IdParseError        => "Error while parsing ID"
-    );
-);
+error_chain! {
+    types {
+        DiaryError, DiaryErrorKind, ResultExt, Result;
+    }
+
+    errors {
+        StoreWriteError     {
+            description("Error writing store")
+            display("Error writing store")
+        }
+
+        StoreReadError      {
+            description("Error reading store")
+            display("Error reading store")
+        }
+
+        CannotFindDiary     {
+            description("Cannot find diary")
+            display("Cannot find diary")
+        }
+
+        CannotCreateNote    {
+            description("Cannot create Note object for diary entry")
+            display("Cannot create Note object for diary entry")
+        }
+
+        DiaryEditError      {
+            description("Cannot edit diary entry")
+            display("Cannot edit diary entry")
+        }
+
+        PathConversionError {
+            description("Error while converting paths internally")
+            display("Error while converting paths internally")
+        }
+
+        EntryNotInDiary     {
+            description("Entry not in Diary")
+            display("Entry not in Diary")
+        }
+
+        IOError             {
+            description("IO Error")
+            display("IO Error")
+        }
+
+        ViewError           {
+            description("Error viewing diary entry")
+            display("Error viewing diary entry")
+        }
+
+        IdParseError        {
+            description("Error while parsing ID")
+            display("Error while parsing ID")
+        }
+
+    }
+}
 
 pub use self::error::DiaryError;
 pub use self::error::DiaryErrorKind;

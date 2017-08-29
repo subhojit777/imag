@@ -17,12 +17,24 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(MarkdownError, MarkdownErrorKind,
-        MarkdownRenderError => "Markdown render error",
-        LinkParsingError    => "Link parsing error"
-    );
-);
+error_chain! {
+    types {
+        MarkdownError, MarkdownErrorKind, ResultExt, Result;
+    }
+
+    errors {
+        MarkdownRenderError {
+            description("Markdown render error")
+            display("Markdown render error")
+        }
+
+        LinkParsingError    {
+            description("Link parsing error")
+            display("Link parsing error")
+        }
+
+    }
+}
 
 pub use self::error::MarkdownError;
 pub use self::error::MarkdownErrorKind;

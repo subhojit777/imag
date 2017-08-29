@@ -18,137 +18,54 @@
 //
 
 #[macro_export]
-macro_rules! generate_error_imports {
-    () => {
-        use std::error::Error;
-        use std::fmt::Error as FmtError;
-        use std::fmt::{Display, Formatter};
-
-        use $crate::into::IntoError;
-    }
-}
-
-#[macro_export]
 macro_rules! generate_error_module {
     ( $exprs:item ) => {
         pub mod error {
-            generate_error_imports!();
             $exprs
         }
     }
 }
 
 #[macro_export]
-macro_rules! generate_custom_error_types {
+macro_rules! generate_error_types {
     {
         $name: ident,
         $kindname: ident,
-        $customMemberTypeName: ident,
         $($kind:ident => $string:expr),*
     } => {
-        #[derive(Clone, Copy, Debug, PartialEq)]
-        pub enum $kindname {
-            $( $kind ),*
+        error_chain! {
+            types {
+                $name, $kindname, ResultExt, Result;
+            }
+
+            links {
+                // None
+            }
+
+            foreign_links {
+                // None
+            }
+
+            errors {
+                $(
+                    $kind {
+                        description($string)
+                        display($string)
+                    }
+                )*
+            }
         }
 
-        impl Display for $kindname {
-
-            fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-                let s = match *self {
-                    $( $kindname::$kind => $string ),*
-                };
-                try!(write!(fmt, "{}", s));
-                Ok(())
-            }
-
-        }
-
-        impl IntoError for $kindname {
-            type Target = $name;
-
-            fn into_error(self) -> Self::Target {
-                $name::new(self, None)
-            }
-
-            fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
-                $name::new(self, Some(cause))
-            }
-
-        }
-
-        #[derive(Debug)]
-        pub struct $name {
-            err_type: $kindname,
-            cause: Option<Box<Error>>,
-            custom_data: Option<$customMemberTypeName>,
-        }
-
-        impl $name {
-
-            pub fn new(errtype: $kindname, cause: Option<Box<Error>>) -> $name {
-                $name {
-                    err_type: errtype,
-                    cause: cause,
-                    custom_data: None,
-                }
-            }
-
-            #[allow(dead_code)]
-            pub fn err_type(&self) -> $kindname {
-                self.err_type
-            }
-
-            #[allow(dead_code)]
-            pub fn with_custom_data(mut self, custom: $customMemberTypeName) -> $name {
-                self.custom_data = Some(custom);
-                self
-            }
-
-        }
-
-        impl Into<$name> for $kindname {
-
-            fn into(self) -> $name {
-                $name::new(self, None)
-            }
-
-        }
-
-        impl Display for $name {
-
-            fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-                try!(write!(fmt, "[{}]", self.err_type));
-                match self.custom_data {
-                    Some(ref c) => write!(fmt, "{}", c),
-                    None => Ok(()),
-                }
-            }
-
-        }
-
-        impl Error for $name {
-
-            fn description(&self) -> &str {
-                match self.err_type {
-                    $( $kindname::$kind => $string ),*
-                }
-            }
-
-            fn cause(&self) -> Option<&Error> {
-                self.cause.as_ref().map(|e| &**e)
-            }
-
-        }
-
+        generate_result_helper!($name, $kindname);
+        generate_option_helper!($name, $kindname);
     }
 }
 
 #[macro_export]
 macro_rules! generate_result_helper {
-    (
-        $name: ident,
-        $kindname: ident
-    ) => {
+    {
+        $name:ident, $kindname:ident
+    } => {
         /// Trait to replace
         ///
         /// ```ignore
@@ -163,15 +80,14 @@ macro_rules! generate_result_helper {
         /// foo.map_err_into(SomeType::SomeErrorKind)
         /// ```
         ///
-        pub trait MapErrInto<T> {
-            fn map_err_into(self, error_kind: $kindname) -> Result<T, $name>;
+        pub trait MapErrInto<T, E: Error> {
+            fn map_err_into(self, error_kind: $kindname) -> ::std::result::Result<T, E>;
         }
 
-        impl<T, E: Error + 'static> MapErrInto<T> for Result<T, E> {
+        impl<T, E: Error> MapErrInto<T, E: Error> for Result<T, E> {
 
-            fn map_err_into(self, error_kind: $kindname) -> Result<T, $name> {
-                self.map_err(Box::new)
-                    .map_err(|e| error_kind.into_error_with_cause(e))
+            fn map_err_into(self, error_kind: $kindname) -> ::std::result::Result<T, E> {
+                self.chain_err(|| error_kind)
             }
 
         }
@@ -180,10 +96,9 @@ macro_rules! generate_result_helper {
 
 #[macro_export]
 macro_rules! generate_option_helper {
-    (
-        $name: ident,
-        $kindname: ident
-    ) => {
+    {
+        $name:ident, $kindname:ident
+    } => {
         /// Trait to replace
         ///
         /// ```ignore
@@ -196,41 +111,16 @@ macro_rules! generate_option_helper {
         /// foo.ok_or_errkind(SomeType::SomeErrorKind)
         /// ```
         pub trait OkOrErr<T> {
-            fn ok_or_errkind(self, kind: $kindname) -> Result<T, $name>;
+            fn ok_or_errkind(self, kind: $kindname) -> Result<T>;
         }
 
         impl<T> OkOrErr<T> for Option<T> {
 
-            fn ok_or_errkind(self, kind: $kindname) -> Result<T, $name> {
-                self.ok_or(kind.into_error())
+            fn ok_or_errkind(self, kind: $kindname) -> Result<T> {
+                self.ok_or($name::from_kind(kind))
             }
 
         }
-    }
-}
-
-#[macro_export]
-macro_rules! generate_error_types {
-    (
-        $name: ident,
-        $kindname: ident,
-        $($kind:ident => $string:expr),*
-    ) => {
-        #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
-        pub struct SomeNotExistingTypeWithATypeNameNoOneWillEverChoose {}
-
-        impl Display for SomeNotExistingTypeWithATypeNameNoOneWillEverChoose {
-            fn fmt(&self, _: &mut Formatter) -> Result<(), FmtError> {
-                Ok(())
-            }
-        }
-
-        generate_custom_error_types!($name, $kindname,
-                                     SomeNotExistingTypeWithATypeNameNoOneWillEverChoose,
-                                     $($kind => $string),*);
-
-        generate_result_helper!($name, $kindname);
-        generate_option_helper!($name, $kindname);
     }
 }
 
@@ -239,150 +129,27 @@ macro_rules! generate_error_types {
 #[allow(dead_code)]
 mod test {
 
-    generate_error_module!(
-        generate_error_types!(TestError, TestErrorKind,
-            TestErrorKindA => "testerrorkind a",
-            TestErrorKindB => "testerrorkind B");
-    );
-
-    #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Copy)]
-    pub struct CustomData {
-        pub test: i32,
-        pub othr: i64,
-    }
-
-    impl Display for CustomData {
-        fn fmt(&self, _: &mut Formatter) -> Result<(), FmtError> {
-            Ok(())
-        }
-    }
-
-    generate_error_imports!();
-
-    #[allow(dead_code)]
-    generate_custom_error_types!(CustomTestError, CustomTestErrorKind,
-        CustomData,
-        CustomErrorKindA => "customerrorkind a",
-        CustomErrorKindB => "customerrorkind B");
-
-    // Allow dead code here.
-    // We wrote this to show that custom test types can be implemented.
-    #[allow(dead_code)]
-    impl CustomTestError {
-        pub fn test(&self) -> i32 {
-            match self.custom_data {
-                Some(t) => t.test,
-                None => 0,
-            }
-        }
-
-        pub fn bar(&self) -> i64 {
-            match self.custom_data {
-                Some(t) => t.othr,
-                None => 0,
-            }
-        }
-    }
-
-
-    #[test]
-    fn test_a() {
-        use self::error::{TestError, TestErrorKind};
-
-        let kind = TestErrorKind::TestErrorKindA;
-        assert_eq!(String::from("testerrorkind a"), format!("{}", kind));
-
-        let e = TestError::new(kind, None);
-        assert_eq!(String::from("[testerrorkind a]"), format!("{}", e));
-    }
-
-    #[test]
-    fn test_b() {
-        use self::error::{TestError, TestErrorKind};
-
-        let kind = TestErrorKind::TestErrorKindB;
-        assert_eq!(String::from("testerrorkind B"), format!("{}", kind));
-
-        let e = TestError::new(kind, None);
-        assert_eq!(String::from("[testerrorkind B]"), format!("{}", e));
-
-    }
-
-    #[test]
-    fn test_ab() {
-        use std::error::Error;
-        use self::error::{TestError, TestErrorKind};
-
-        let kinda = TestErrorKind::TestErrorKindA;
-        let kindb = TestErrorKind::TestErrorKindB;
-        assert_eq!(String::from("testerrorkind a"), format!("{}", kinda));
-        assert_eq!(String::from("testerrorkind B"), format!("{}", kindb));
-
-        let e = TestError::new(kinda, Some(Box::new(TestError::new(kindb, None))));
-        assert_eq!(String::from("[testerrorkind a]"), format!("{}", e));
-        assert_eq!(TestErrorKind::TestErrorKindA, e.err_type());
-        assert_eq!(String::from("[testerrorkind B]"), format!("{}", e.cause().unwrap()));
-    }
+    generate_error_types!(TestError, TestErrorKind,
+        TestErrorKindA => "testerrorkind a",
+        TestErrorKindB => "testerrorkind B");
 
     pub mod anothererrormod {
-        generate_error_imports!();
         generate_error_types!(TestError, TestErrorKind,
             TestErrorKindA => "testerrorkind a",
             TestErrorKindB => "testerrorkind B");
-    }
-
-    #[test]
-    fn test_other_a() {
-        use self::anothererrormod::{TestError, TestErrorKind};
-
-        let kind = TestErrorKind::TestErrorKindA;
-        assert_eq!(String::from("testerrorkind a"), format!("{}", kind));
-
-        let e = TestError::new(kind, None);
-        assert_eq!(String::from("[testerrorkind a]"), format!("{}", e));
-    }
-
-    #[test]
-    fn test_other_b() {
-        use self::anothererrormod::{TestError, TestErrorKind};
-
-        let kind = TestErrorKind::TestErrorKindB;
-        assert_eq!(String::from("testerrorkind B"), format!("{}", kind));
-
-        let e = TestError::new(kind, None);
-        assert_eq!(String::from("[testerrorkind B]"), format!("{}", e));
-
-    }
-
-    #[test]
-    fn test_other_ab() {
-        use std::error::Error;
-        use self::anothererrormod::{TestError, TestErrorKind};
-
-        let kinda = TestErrorKind::TestErrorKindA;
-        let kindb = TestErrorKind::TestErrorKindB;
-        assert_eq!(String::from("testerrorkind a"), format!("{}", kinda));
-        assert_eq!(String::from("testerrorkind B"), format!("{}", kindb));
-
-        let e = TestError::new(kinda, Some(Box::new(TestError::new(kindb, None))));
-        assert_eq!(String::from("[testerrorkind a]"), format!("{}", e));
-        assert_eq!(TestErrorKind::TestErrorKindA, e.err_type());
-        assert_eq!(String::from("[testerrorkind B]"), format!("{}", e.cause().unwrap()));
     }
 
     #[test]
     fn test_error_kind_mapping() {
-        use std::io::{Error, ErrorKind};
-        use self::error::MapErrInto;
-        use self::error::TestErrorKind;
+        use self::MapErrInto;
+        use self::TestErrorKind;
 
-        let err : Result<(), _> = Err(Error::new(ErrorKind::Other, ""));
-        let err : Result<(), _> = err.map_err_into(TestErrorKind::TestErrorKindA);
+        let err : Result<()> = Err(TestError::from_kind(TestErrorKind::TestErrorKindB));
+        let err : Result<()> = err.map_err_into(TestErrorKind::TestErrorKindA);
 
         assert!(err.is_err());
-        let err = err.unwrap_err();
 
-        match err.err_type() {
+        match *err.unwrap_err().kind() {
             TestErrorKind::TestErrorKindA => assert!(true),
             _ => assert!(false),
         }
@@ -390,17 +157,16 @@ mod test {
 
     #[test]
     fn test_error_kind_double_mapping() {
-        use std::io::{Error, ErrorKind};
-        use self::error::MapErrInto;
-        use self::error::TestErrorKind;
+        use self::TestErrorKind;
+        use std::error::Error;
 
-        let err : Result<(), _> = Err(Error::new(ErrorKind::Other, ""));
-        let err : Result<(), _> = err.map_err_into(TestErrorKind::TestErrorKindA)
+        let err : Result<()> = Err(TestError::from_kind(TestErrorKind::TestErrorKindB));
+        let err : Result<()> = err.map_err_into(TestErrorKind::TestErrorKindA)
                                      .map_err_into(TestErrorKind::TestErrorKindB);
 
         assert!(err.is_err());
         let err = err.unwrap_err();
-        match err.err_type() {
+        match *err.kind() {
             TestErrorKind::TestErrorKindB => assert!(true),
             _ => assert!(false),
         }
@@ -415,8 +181,8 @@ mod test {
 
     #[test]
     fn test_error_option_good() {
-        use self::error::OkOrErr;
-        use self::error::TestErrorKind;
+        use self::OkOrErr;
+        use self::TestErrorKind;
 
         let something = Some(1);
         match something.ok_or_errkind(TestErrorKind::TestErrorKindA) {
@@ -427,8 +193,8 @@ mod test {
 
     #[test]
     fn test_error_option_bad() {
-        use self::error::OkOrErr;
-        use self::error::TestErrorKind;
+        use self::OkOrErr;
+        use self::TestErrorKind;
 
         let something : Option<i32> = None;
         match something.ok_or_errkind(TestErrorKind::TestErrorKindA) {

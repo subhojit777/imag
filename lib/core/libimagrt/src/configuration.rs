@@ -24,23 +24,41 @@ use std::ops::Deref;
 use toml::Value;
 use clap::App;
 
-generate_error_module!(
-    generate_error_types!(ConfigError, ConfigErrorKind,
-        TOMLParserError => "TOML Parsing error",
-        NoConfigFileFound   => "No config file found",
+error_chain! {
+    types {
+        ConfigError, ConfigErrorKind, ResultExt, Result;
+    }
 
-        ConfigOverrideError => "Config override error",
-        ConfigOverrideKeyNotAvailable => "Key not available",
-        ConfigOverrideTypeNotMatching => "Configuration Type not matching"
+    errors {
+        TOMLParserError {
+            description("TOML Parsing error")
+            display("TOML Parsing error")
+        }
 
-    );
-);
+        NoConfigFileFound   {
+            description("No config file found")
+            display("No config file found")
+        }
+
+        ConfigOverrideError {
+            description("Config override error")
+            display("Config override error")
+        }
+
+        ConfigOverrideKeyNotAvailable {
+            description("Key not available")
+            display("Key not available")
+        }
+
+        ConfigOverrideTypeNotMatching {
+            description("Configuration Type not matching")
+            display("Configuration Type not matching")
+        }
+    }
+}
 
 pub use self::error::{ConfigError, ConfigErrorKind, MapErrInto};
 use libimagerror::into::IntoError;
-
-/// Result type of this module. Either `T` or `ConfigError`
-pub type Result<T> = RResult<T, ConfigError>;
 
 /// `Configuration` object
 ///

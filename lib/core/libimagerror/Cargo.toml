@@ -16,3 +16,4 @@ homepage      = "http://imag-pim.org"
 [dependencies]
 log = "0.3"
 ansi_term = "0.9"
+error-chain = "0.10"

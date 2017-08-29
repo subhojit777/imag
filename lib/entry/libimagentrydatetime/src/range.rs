@@ -18,25 +18,22 @@
 //
 
 /// Error types for range module
-pub mod error {
-    generate_error_module!(
-        generate_error_types!(DateTimeRangeError, DateTimeRangeErrorKind,
-            EndDateTimeBeforeStartDateTime => "End datetime is before start datetime"
-        );
-    );
+error_chain! {
+    types {
+        DateTimeRangeError, DateTimeRangeErrorKind, ResultExt, Result;
+    }
 
-    pub use self::error::DateTimeRangeError;
-    pub use self::error::DateTimeRangeErrorKind;
-    pub use self::error::MapErrInto;
+    errors {
+        EndDateTimeBeforeStartDateTime {
+            description("End datetime is before start datetime")
+            display("End datetime is before start datetime")
+        }
+    }
 }
 
-/// Result type for range module
-pub mod result {
-    use std::result::Result as RResult;
-    use super::error::DateTimeRangeError;
-
-    pub type Result<T> = RResult<T, DateTimeRangeError>;
-}
+pub use self::error::DateTimeRangeError;
+pub use self::error::DateTimeRangeErrorKind;
+pub use self::error::MapErrInto;
 
 use chrono::naive::NaiveDateTime;
 use libimagerror::into::IntoError;

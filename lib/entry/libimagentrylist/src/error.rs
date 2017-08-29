@@ -17,15 +17,39 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(ListError, ListErrorKind,
-        IOError        => "IO Error",
-        FormatError    => "FormatError",
-        EntryError     => "EntryError",
-        IterationError => "IterationError",
-        CLIError       => "No CLI subcommand for listing entries"
-    );
-);
+error_chain! {
+    types {
+        ListError, ListErrorKind, ResultExt, Result;
+    }
+
+    errors {
+        IOError        {
+            description("IO Error")
+            display("IO Error")
+        }
+
+        FormatError    {
+            description("FormatError")
+            display("FormatError")
+        }
+
+        EntryError     {
+            description("EntryError")
+            display("EntryError")
+        }
+
+        IterationError {
+            description("IterationError")
+            display("IterationError")
+        }
+
+        CLIError       {
+            description("No CLI subcommand for listing entries")
+            display("No CLI subcommand for listing entries")
+        }
+
+    }
+}
 
 pub use self::error::ListError;
 pub use self::error::ListErrorKind;

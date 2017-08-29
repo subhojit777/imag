@@ -17,21 +17,40 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(TimeTrackError, TimeTrackErrorKind,
-        StoreReadError   => "Store read error",
-        StoreWriteError  => "Store write error",
+error_chain! {
+    types {
+        TimeTrackError, TimeTrackErrorKind, ResultExt, Result;
+    }
 
-        StoreIdError => "Error while handling StoreId",
+    errors {
+        StoreIdError {
+            description("Error while handling StoreId")
+            display("Error while handling StoreId")
+        }
 
-        TagFormat => "Tag has invalid format",
+        TagFormat {
+            description("Tag has invalid format")
+            display("Tag has invalid format")
+        }
 
-        HeaderReadError => "Error writing header",
-        HeaderWriteError => "Error writing header",
-        HeaderFieldTypeError => "Type error in header",
-        DateTimeParserError => "Error while parsing DateTime"
-    );
-);
+        HeaderReadError {
+            description("Error writing header")
+            display("Error writing header")
+        }
+        HeaderWriteError {
+            description("Error writing header")
+            display("Error writing header")
+        }
+        HeaderFieldTypeError {
+            description("Type error in header")
+            display("Type error in header")
+        }
+        DateTimeParserError {
+            description("Error while parsing DateTime")
+            display("Error while parsing DateTime")
+        }
+    }
+}
 
 pub use self::error::TimeTrackError;
 pub use self::error::TimeTrackErrorKind;

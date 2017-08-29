@@ -17,17 +17,44 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(AnnotationError, AnnotationErrorKind,
-        StoreReadError   => "Store read error",
-        StoreWriteError  => "Store write error",
+error_chain! {
+    types {
+        AnnotationError, AnnotationErrorKind, ResultExt, Result;
+    }
 
-        LinkingError     => "Error while linking",
-        HeaderWriteError => "Couldn't write Header for annotation",
-        HeaderReadError  => "Couldn't read Header of Entry",
-        HeaderTypeError  => "Header field has unexpected type"
-    );
-);
+    errors {
+        StoreReadError   {
+            description("Store read error")
+            display("Store read error")
+        }
+
+        StoreWriteError  {
+            description("Store write error")
+            display("Store write error")
+        }
+
+        LinkingError     {
+            description("Error while linking")
+            display("Error while linking")
+        }
+
+        HeaderWriteError {
+            description("Couldn't write Header for annotation")
+            display("Couldn't write Header for annotation")
+        }
+
+        HeaderReadError  {
+            description("Couldn't read Header of Entry")
+            display("Couldn't read Header of Entry")
+        }
+
+        HeaderTypeError  {
+            description("Header field has unexpected type")
+            display("Header field has unexpected type")
+        }
+
+    }
+}
 
 pub use self::error::AnnotationError;
 pub use self::error::AnnotationErrorKind;
