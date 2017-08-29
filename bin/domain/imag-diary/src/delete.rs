@@ -37,45 +37,34 @@ pub fn delete(rt: &Runtime) {
     let diaryname = get_diary_name(rt)
         .unwrap_or_else(|| warn_exit("No diary selected. Use either the configuration file or the commandline option", 1));
 
-    let datetime : Option<NaiveDateTime> = rt
+    let to_del_location = rt
         .cli()
         .subcommand_matches("delete")
         .unwrap()
         .value_of("datetime")
         .map(|dt| { debug!("DateTime = {:?}", dt); dt })
         .and_then(DateTime::parse)
-        .map(|dt| dt.into());
-
-    let to_del = match datetime {
-        Some(dt) => {
-            let id = match DiaryId::from_datetime(diaryname.clone(), dt).into_storeid() {
-                Ok(id) => id,
-                Err(e) => trace_error_exit(&e, 1),
-            };
-            Some(rt.store().retrieve(id))
-        },
-        None     => {
+        .map(|dt| dt.into())
+        .ok_or_else(|| {
             warn!("Not deleting entries, because missing date/time specification");
             exit(1);
-        },
-    };
+        })
+        .and_then(|dt: NaiveDateTime| {
+            DiaryId::from_datetime(diaryname.clone(), dt)
+                .into_storeid()
+                .map(|id| rt.store().retrieve(id))
+                .unwrap_or_else(|e| trace_error_exit(&e, 1))
+        })
+        .unwrap_or_else(|e| trace_error_exit(&e, 1))
+        .get_location()
+        .clone();
 
-    let to_del = match to_del {
-        Some(Ok(e)) => e,
-
-        Some(Err(e)) => trace_error_exit(&e, 1),
-        None => warn_exit("No entry", 1)
-    };
-
-    let location = to_del.get_location().clone();
-    drop(to_del);
-
-    if !ask_bool(&format!("Deleting {:?}", location), Some(true)) {
+    if !ask_bool(&format!("Deleting {:?}", to_del_location), Some(true)) {
         info!("Aborting delete action");
         return;
     }
 
-    if let Err(e) = rt.store().delete(location) {
+    if let Err(e) = rt.store().delete(to_del_location) {
         trace_error_exit(&e, 1)
     }
 
