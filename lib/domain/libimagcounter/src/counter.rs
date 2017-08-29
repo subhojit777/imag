@@ -75,8 +75,8 @@ impl<'a> Counter<'a> {
             let mut lockentry = try!(store.create(id).map_err_into(CEK::StoreWriteError));
 
             {
-                let mut entry  = lockentry.deref_mut();
-                let mut header = entry.get_header_mut();
+                let entry  = lockentry.deref_mut();
+                let header = entry.get_header_mut();
                 let setres = header.set(&String::from("counter"), Value::Table(BTreeMap::new()));
                 if setres.is_err() {
                     return Err(CEK::StoreWriteError.into_error());
@@ -103,7 +103,7 @@ impl<'a> Counter<'a> {
         self.unit = unit;
 
         if let Some(u) = self.unit.clone() {
-            let mut header = self.fle.deref_mut().get_header_mut();
+            let header = self.fle.deref_mut().get_header_mut();
             let setres = header.set(&String::from("counter.unit"), Value::String(u.0));
             if setres.is_err() {
                 self.unit = None;
@@ -114,7 +114,7 @@ impl<'a> Counter<'a> {
     }
 
     pub fn inc(&mut self) -> Result<()> {
-        let mut header = self.fle.deref_mut().get_header_mut();
+        let header = self.fle.deref_mut().get_header_mut();
         let query = String::from("counter.value");
         match try!(header.read(&query).map_err_into(CEK::StoreReadError)) {
             Some(&Value::Integer(i)) => {
@@ -127,7 +127,7 @@ impl<'a> Counter<'a> {
     }
 
     pub fn dec(&mut self) -> Result<()> {
-        let mut header = self.fle.deref_mut().get_header_mut();
+        let header = self.fle.deref_mut().get_header_mut();
         let query = String::from("counter.value");
         match try!(header.read(&query).map_err_into(CEK::StoreReadError)) {
             Some(&Value::Integer(i)) => {
@@ -144,8 +144,10 @@ impl<'a> Counter<'a> {
     }
 
     pub fn set(&mut self, v: i64) -> Result<()> {
-        let mut header = self.fle.deref_mut().get_header_mut();
-        header.set(&String::from("counter.value"), Value::Integer(v))
+        self.fle
+            .deref_mut()
+            .get_header_mut()
+            .set(&String::from("counter.value"), Value::Integer(v))
             .map_err_into(CEK::StoreWriteError)
             .map(|_| ())
     }

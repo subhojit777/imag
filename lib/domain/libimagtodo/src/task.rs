@@ -236,7 +236,7 @@ impl<'a> IntoTask<'a> for TTask {
                     .map_err_into(TEK::StoreError)
                     .and_then(|mut fle| {
                         {
-                            let mut hdr = fle.get_header_mut();
+                            let hdr = fle.get_header_mut();
                             if try!(hdr.read("todo").map_err_into(TEK::StoreError)).is_none() {
                                 try!(hdr
                                     .set("todo", Value::Table(BTreeMap::new()))

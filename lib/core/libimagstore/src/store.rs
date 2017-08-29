@@ -452,7 +452,7 @@ impl Store {
                 .map_err(|_| SE::new(SEK::LockPoisoned, None))
                 .and_then(|mut es| {
                     let new_se = try!(StoreEntry::new(id.clone(), &self.backend));
-                    let mut se = es.entry(id.clone()).or_insert(new_se);
+                    let se = es.entry(id.clone()).or_insert(new_se);
                     let entry = se.get_entry();
                     se.status = StoreEntryStatus::Borrowed;
                     entry
@@ -564,7 +564,7 @@ impl Store {
             Ok(e) => e,
         };
 
-        let mut se = try!(hsmap.get_mut(&entry.location).ok_or(SE::new(SEK::IdNotFound, None)));
+        let se = try!(hsmap.get_mut(&entry.location).ok_or(SE::new(SEK::IdNotFound, None)));
 
         assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 

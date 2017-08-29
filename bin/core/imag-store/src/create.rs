@@ -147,12 +147,12 @@ fn create_with_content_and_header(rt: &Runtime,
         .map_dbg_err(|e| format!("Error in Store::create(): {:?}", e))
         .map(|mut element| {
             {
-                let mut e_content = element.get_content_mut();
+                let e_content = element.get_content_mut();
                 *e_content = content;
                 debug!("New content set");
             }
             {
-                let mut e_header  = element.get_header_mut();
+                let e_header  = element.get_header_mut();
                 *e_header = header;
                 debug!("New header set");
             }
