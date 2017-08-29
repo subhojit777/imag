@@ -17,15 +17,17 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::process::exit;
+
 use chrono::naive::NaiveDateTime;
 
-use libimagdiary::diary::Diary;
 use libimagdiary::diaryid::DiaryId;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error_exit;
 use libimagtimeui::datetime::DateTime;
 use libimagtimeui::parse::Parse;
 use libimagutil::warn_exit::warn_exit;
+use libimagstore::storeid::IntoStoreId;
 
 use util::get_diary_name;
 
@@ -34,9 +36,6 @@ pub fn delete(rt: &Runtime) {
 
     let diaryname = get_diary_name(rt)
         .unwrap_or_else(|| warn_exit("No diary selected. Use either the configuration file or the commandline option", 1));
-
-    let diary = Diary::open(rt.store(), &diaryname[..]);
-    debug!("Diary opened: {:?}", diary);
 
     let datetime : Option<NaiveDateTime> = rt
         .cli()
@@ -48,8 +47,17 @@ pub fn delete(rt: &Runtime) {
         .map(|dt| dt.into());
 
     let to_del = match datetime {
-        Some(dt) => Some(diary.retrieve(DiaryId::from_datetime(diaryname.clone(), dt))),
-        None     => diary.get_youngest_entry(),
+        Some(dt) => {
+            let id = match DiaryId::from_datetime(diaryname.clone(), dt).into_storeid() {
+                Ok(id) => id,
+                Err(e) => trace_error_exit(&e, 1),
+            };
+            Some(rt.store().retrieve(id))
+        },
+        None     => {
+            warn!("Not deleting entries, because missing date/time specification");
+            exit(1);
+        },
     };
 
     let to_del = match to_del {
@@ -59,12 +67,15 @@ pub fn delete(rt: &Runtime) {
         None => warn_exit("No entry", 1)
     };
 
-    if !ask_bool(&format!("Deleting {:?}", to_del.get_location())[..], Some(true)) {
+    let location = to_del.get_location().clone();
+    drop(to_del);
+
+    if !ask_bool(&format!("Deleting {:?}", location), Some(true)) {
         info!("Aborting delete action");
         return;
     }
 
-    if let Err(e) = diary.delete_entry(to_del) {
+    if let Err(e) = rt.store().delete(location) {
         trace_error_exit(&e, 1)
     }
 

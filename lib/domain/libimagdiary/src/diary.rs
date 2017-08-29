@@ -37,7 +37,7 @@ use result::Result;
 use iter::DiaryEntryIterator;
 use iter::DiaryNameIterator;
 
-trait Diary {
+pub trait Diary {
 
     // create or get a new entry for today
     fn new_entry_today(&self, diary_name: &str) -> Result<FileLockEntry>;

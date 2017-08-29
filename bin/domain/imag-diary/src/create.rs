@@ -26,9 +26,10 @@ use libimagdiary::error::MapErrInto;
 use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error;
-use libimagdiary::entry::Entry;
-use libimagdiary::result::Result;
+use libimagerror::trace::trace_error_exit;
 use libimagutil::warn_exit::warn_exit;
+use libimagstore::store::FileLockEntry;
+use libimagstore::store::Store;
 
 use util::get_diary_name;
 
@@ -38,18 +39,18 @@ pub fn create(rt: &Runtime) {
 
     let prevent_edit = rt.cli().subcommand_matches("create").unwrap().is_present("no-edit");
 
-    fn create_entry<'a>(diary: &'a Diary, rt: &Runtime) -> Result<Entry<'a>> {
+    fn create_entry<'a>(diary: &'a Store, diaryname: &str, rt: &Runtime) -> FileLockEntry<'a> {
         use std::str::FromStr;
 
         let create = rt.cli().subcommand_matches("create").unwrap();
-        if !create.is_present("timed") {
+        let entry = if !create.is_present("timed") {
             debug!("Creating non-timed entry");
-            diary.new_entry_today()
+            diary.new_entry_today(diaryname)
         } else {
             let id = match create.value_of("timed") {
                 Some("h") | Some("hourly") => {
                     debug!("Creating hourly-timed entry");
-                    let time = DiaryId::now(String::from(diary.name()));
+                    let time = DiaryId::now(String::from(diaryname));
                     let hr = create
                         .value_of("hour")
                         .map(|v| { debug!("Creating hourly entry with hour = {:?}", v); v })
@@ -65,7 +66,7 @@ pub fn create(rt: &Runtime) {
 
                 Some("m") | Some("minutely") => {
                     debug!("Creating minutely-timed entry");
-                    let time = DiaryId::now(String::from(diary.name()));
+                    let time = DiaryId::now(String::from(diaryname));
                     let hr = create
                         .value_of("hour")
                         .map(|h| { debug!("hour = {:?}", h); h })
@@ -98,21 +99,27 @@ pub fn create(rt: &Runtime) {
                 None => warn_exit("Unexpected error, cannot continue", 1)
             };
 
-            diary.new_entry_by_id(id)
+            diary.retrieve(id).map_err_into(DEK::StoreReadError)
+        };
+
+        match entry {
+            Err(e) => trace_error_exit(&e, 1),
+            Ok(e) => {
+                debug!("Created: {}", e.get_location());
+                e
+            }
         }
     }
 
-    let diary = Diary::open(rt.store(), &diaryname[..]);
-    let res = create_entry(&diary, rt)
-        .and_then(|mut entry| {
-            if prevent_edit {
-                debug!("Not editing new diary entry");
-                Ok(())
-            } else {
-                debug!("Editing new diary entry");
-                entry.edit_content(rt).map_err_into(DEK::DiaryEditError)
-            }
-        });
+    let mut entry = create_entry(rt.store(), &diaryname, rt);
+
+    let res = if prevent_edit {
+        debug!("Not editing new diary entry");
+        Ok(())
+    } else {
+        debug!("Editing new diary entry");
+        entry.edit_content(rt).map_err_into(DEK::DiaryEditError)
+    };
 
     if let Err(e) = res {
         trace_error(&e);
