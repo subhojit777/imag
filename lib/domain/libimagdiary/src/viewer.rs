@@ -19,11 +19,12 @@
 
 //! A diary viewer built on libimagentryview.
 
-use entry::Entry;
+use entry::DiaryEntry;
 use error::DiaryErrorKind as DEK;
 use error::MapErrInto;
 use result::Result;
 
+use libimagstore::store::FileLockEntry;
 use libimagentryview::viewer::Viewer;
 use libimagentryview::builtin::plain::PlainViewer;
 use libimagerror::trace::trace_error;
@@ -47,7 +48,7 @@ impl DiaryViewer {
 
     /// View all entries from the iterator, or stop immediately if an error occurs, returning that
     /// error.
-    pub fn view_entries<'a, I: Iterator<Item = Entry<'a>>>(&self, entries: I) -> Result<()> {
+    pub fn view_entries<'a, I: Iterator<Item = FileLockEntry<'a>>>(&self, entries: I) -> Result<()> {
         for entry in entries {
             match entry.diary_id() {
                 Ok(id) => println!("{} :\n", id),

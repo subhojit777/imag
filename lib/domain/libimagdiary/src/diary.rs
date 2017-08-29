@@ -21,7 +21,6 @@ use std::cmp::Ordering;
 
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
-use libimagstore::storeid::IntoStoreId;
 use libimagerror::trace::trace_error;
 
 use chrono::offset::Local;
@@ -30,7 +29,7 @@ use itertools::Itertools;
 use chrono::naive::NaiveDateTime;
 use chrono::Timelike;
 
-use entry::Entry;
+use entry::DiaryEntry;
 use diaryid::DiaryId;
 use error::DiaryErrorKind as DEK;
 use error::MapErrInto;
@@ -39,15 +38,6 @@ use iter::DiaryEntryIterator;
 use iter::DiaryNameIterator;
 
 trait Diary {
-
-    /// Wrapper around Store::get for DiaryId
-    fn get(&self, id: DiaryId) -> Result<Option<FileLockEntry>>;
-
-    /// Wrapper around Store::retrieve for DiaryId
-    fn retrieve(&self, id: DiaryId) -> Result<FileLockEntry>;
-
-    /// Wrapper around Store::delete for DiaryId
-    fn delete(&self, entry: Entry) -> Result<()>;
 
     // create or get a new entry for today
     fn new_entry_today(&self, diary_name: &str) -> Result<FileLockEntry>;
@@ -67,31 +57,13 @@ trait Diary {
 
 impl Diary for Store {
 
-
-    /// Wrapper around Store::get for DiaryId
-    fn get(&self, id: DiaryId) -> Result<Option<FileLockEntry>> {
-        id.into_storeid().and_then(|id| self.get(id)).map_err_into(DEK::StoreWriteError)
-    }
-
-    /// Wrapper around Store::retrieve for DiaryId
-    fn retrieve(&self, id: DiaryId) -> Result<FileLockEntry> {
-        id.into_storeid().and_then(|id| self.retrieve(id)).map_err_into(DEK::StoreWriteError)
-    }
-
-    /// Wrapper around Store::delete for DiaryId
-    fn delete(&self, entry: Entry) -> Result<()> {
-        let id = entry.get_location().clone();
-        drop(entry);
-
-        self.delete(id).map_err_into(DEK::StoreWriteError)
-    }
-
     // create or get a new entry for today
     fn new_entry_today(&self, diary_name: &str) -> Result<FileLockEntry> {
         let dt  = Local::now();
         let ndt = dt.naive_local();
         let id  = DiaryId::new(String::from(diary_name), ndt.year(), ndt.month(), ndt.day(), 0, 0);
-        Diary::retrieve(self, id)
+
+        self.retrieve(id).map_err_into(DEK::StoreReadError)
     }
 
     // create or get a new entry for today
@@ -105,7 +77,7 @@ impl Diary for Store {
             ndt.minute(),
             ndt.second());
 
-        Diary::retrieve(self, id)
+        self.retrieve(id).map_err_into(DEK::StoreReadError)
     }
 
     // Get an iterator for iterating over all entries

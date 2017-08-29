@@ -21,14 +21,13 @@ use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::result::Result as RResult;
 
 use libimagstore::store::Store;
+use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreIdIterator;
 use libimagerror::trace::trace_error;
 use libimagerror::into::IntoError;
 
 use diaryid::DiaryId;
 use diaryid::FromStoreId;
-use is_in_diary::IsInDiary;
-use entry::Entry as DiaryEntry;
 use error::DiaryError as DE;
 use error::DiaryErrorKind as DEK;
 use error::MapErrInto;
@@ -90,9 +89,9 @@ impl<'a> DiaryEntryIterator<'a> {
 }
 
 impl<'a> Iterator for DiaryEntryIterator<'a> {
-    type Item = Result<DiaryEntry<'a>>;
+    type Item = Result<FileLockEntry<'a>>;
 
-    fn next(&mut self) -> Option<Result<DiaryEntry<'a>>> {
+    fn next(&mut self) -> Option<Self::Item> {
         loop {
             let next = match self.iter.next() {
                 Some(s) => s,
@@ -121,7 +120,6 @@ impl<'a> Iterator for DiaryEntryIterator<'a> {
                     return Some(self
                                 .store
                                 .retrieve(next)
-                                .map(|fle| DiaryEntry::new(fle))
                                 .map_err(|e| DE::new(DEK::StoreReadError, Some(Box::new(e))))
                                 );
                 }
