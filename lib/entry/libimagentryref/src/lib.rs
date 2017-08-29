@@ -36,15 +36,12 @@
 #[macro_use] extern crate log;
 extern crate crypto;
 extern crate itertools;
-extern crate semver;
 extern crate toml;
 extern crate toml_query;
-extern crate version;
 extern crate walkdir;
 
 #[macro_use] extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
-extern crate libimagutil;
 extern crate libimagentrylist;
 
 module_entry_path_mod!("ref");

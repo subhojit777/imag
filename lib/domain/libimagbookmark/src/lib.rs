@@ -33,7 +33,6 @@
     while_true,
 )]
 
-extern crate semver;
 extern crate url;
 extern crate regex;
 

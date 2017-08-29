@@ -44,7 +44,6 @@ extern crate filters;
 
 extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
-extern crate libimagutil;
 
 pub mod error;
 pub mod exec;

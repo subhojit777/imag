@@ -18,19 +18,13 @@
 //
 
 extern crate clap;
-extern crate glob;
 #[macro_use] extern crate log;
-extern crate serde_json;
-extern crate semver;
 extern crate toml;
 extern crate toml_query;
 #[macro_use] extern crate is_match;
 #[macro_use] extern crate version;
 
-extern crate task_hookrs;
-
 extern crate libimagrt;
-extern crate libimagstore;
 extern crate libimagerror;
 extern crate libimagtodo;
 

@@ -34,11 +34,10 @@
 
 #[macro_use] extern crate log;
 extern crate clap;
-extern crate semver;
-extern crate toml;
-extern crate toml_query;
 extern crate url;
 #[macro_use] extern crate version;
+#[cfg(test)] extern crate toml;
+#[cfg(test)] extern crate toml_query;
 
 extern crate libimagentrylink;
 extern crate libimagrt;
