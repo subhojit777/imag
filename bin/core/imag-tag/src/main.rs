@@ -28,7 +28,11 @@ extern crate libimagrt;
 extern crate libimagentrytag;
 extern crate libimagerror;
 
+#[cfg(test)]
 #[macro_use]
+extern crate libimagutil;
+
+#[cfg(not(test))]
 extern crate libimagutil;
 
 #[cfg(test)]
