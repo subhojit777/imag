@@ -24,7 +24,6 @@ use filters::filter::Filter;
 use libimagerror::trace::trace_error;
 use libimagerror::iter::TraceIterator;
 use libimagrt::runtime::Runtime;
-use libimagrt::setup::generate_runtime_setup;
 
 use libimagtimetrack::timetracking::TimeTracking;
 use libimagtimetrack::tag::TimeTrackingTag;

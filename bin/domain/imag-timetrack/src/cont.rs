@@ -18,12 +18,9 @@
 //
 
 use std::cmp::Ord;
-use std::cmp::Ordering;
 
-use filters::ops::not::Not;
 use filters::filter::Filter;
 use itertools::Itertools;
-use itertools::MinMaxResult;
 use chrono::NaiveDateTime;
 
 use libimagerror::trace::trace_error;
