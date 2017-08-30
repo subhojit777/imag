@@ -88,6 +88,11 @@ impl ImagLogger {
         handlebars.register_helper("white"  , Box::new(self::template_helpers::ColorizeWhiteHelper));
         handlebars.register_helper("yellow" , Box::new(self::template_helpers::ColorizeYellowHelper));
 
+        handlebars.register_helper("underline"     , Box::new(self::template_helpers::UnderlineHelper));
+        handlebars.register_helper("bold"          , Box::new(self::template_helpers::BoldHelper));
+        handlebars.register_helper("blink"         , Box::new(self::template_helpers::BlinkHelper));
+        handlebars.register_helper("strikethrough" , Box::new(self::template_helpers::StrikethroughHelper));
+
         {
             let fmt = try!(aggregate_global_format_trace(matches, config));
             try!(handlebars.register_template_string("TRACE", fmt) // name must be uppercase
@@ -423,8 +428,9 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Configuratio
 }
 
 mod template_helpers {
-    use handlebars::{Handlebars, HelperDef, RenderError, RenderContext, Helper};
+    use handlebars::{Handlebars, HelperDef, JsonRender, RenderError, RenderContext, Helper};
     use ansi_term::Colour;
+    use ansi_term::Style;
 
     #[derive(Clone, Copy)]
     pub struct ColorizeBlackHelper;
@@ -499,11 +505,63 @@ mod template_helpers {
     }
 
     fn colorize(color: Colour, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
-        use handlebars::JsonRender;
         let p = try!(h.param(0).ok_or(RenderError::new("Too few arguments")));
 
         try!(write!(rc.writer(), "{}", color.paint(p.value().render())));
         Ok(())
     }
+
+    #[derive(Clone, Copy)]
+    pub struct UnderlineHelper;
+
+    impl HelperDef for UnderlineHelper {
+        fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(),
+            RenderError> {
+                let p = try!(h.param(0).ok_or(RenderError::new("Too few arguments")));
+                let s = Style::new().underline();
+                try!(write!(rc.writer(), "{}", s.paint(p.value().render())));
+                Ok(())
+            }
+    }
+
+    #[derive(Clone, Copy)]
+    pub struct BoldHelper;
+
+    impl HelperDef for BoldHelper {
+        fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(),
+            RenderError> {
+                let p = try!(h.param(0).ok_or(RenderError::new("Too few arguments")));
+                let s = Style::new().bold();
+                try!(write!(rc.writer(), "{}", s.paint(p.value().render())));
+                Ok(())
+            }
+    }
+
+    #[derive(Clone, Copy)]
+    pub struct BlinkHelper;
+
+    impl HelperDef for BlinkHelper {
+        fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(),
+            RenderError> {
+                let p = try!(h.param(0).ok_or(RenderError::new("Too few arguments")));
+                let s = Style::new().blink();
+                try!(write!(rc.writer(), "{}", s.paint(p.value().render())));
+                Ok(())
+            }
+    }
+
+    #[derive(Clone, Copy)]
+    pub struct StrikethroughHelper;
+
+    impl HelperDef for StrikethroughHelper {
+        fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(),
+            RenderError> {
+                let p = try!(h.param(0).ok_or(RenderError::new("Too few arguments")));
+                let s = Style::new().strikethrough();
+                try!(write!(rc.writer(), "{}", s.paint(p.value().render())));
+                Ok(())
+            }
+    }
+
 }
 

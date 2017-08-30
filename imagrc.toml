@@ -27,7 +27,7 @@ destinations = [ "-" ]
 trace = "[imag][{{red level}}][{{module_path}}]: {{message}}"
 debug = "[imag][{{cyan level}}]: {{message}}"
 info  = "[imag]: {{message}}"
-warn  = "[imag][{{cyan level}}]: {{yellow message}}"
+warn  = "[imag][{{bold level}}]: {{yellow message}}"
 error = "[imag][{{red level}}]: {{red message}}"
 
 #
