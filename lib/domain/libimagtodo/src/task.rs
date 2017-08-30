@@ -220,13 +220,6 @@ impl<'a> IntoTask<'a> for TTask {
         use toml_query::read::TomlValueReadExt;
         use toml_query::set::TomlValueSetExt;
 
-        // Helper for toml_query::read::TomlValueReadExt::read() return value, which does only
-        // return Result<T> instead of Result<Option<T>>, which is a real inconvenience.
-        //
-        let no_identifier = |e: &::toml_query::error::Error| -> bool {
-            is_match!(e.kind(), &::toml_query::error::ErrorKind::IdentifierNotFoundInDocument(_))
-        };
-
         let uuid     = self.uuid();
         ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
             .into_storeid()
