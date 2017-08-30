@@ -44,8 +44,11 @@ extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagerror;
 
-#[allow(unused_imports)]
+#[cfg(test)]
 #[macro_use]
+extern crate libimagutil;
+
+#[cfg(not(test))]
 extern crate libimagutil;
 
 use std::ops::Deref;
