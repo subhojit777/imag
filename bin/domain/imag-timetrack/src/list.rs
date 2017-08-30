@@ -69,7 +69,7 @@ pub fn list(rt: &Runtime) -> i32 {
     };
 
     let end_time_filter = |timetracking: &FileLockEntry| {
-        start.map(|s| match timetracking.get_end_datetime() {
+        end.map(|s| match timetracking.get_end_datetime() {
             Ok(Some(dt)) => dt <= s,
             Ok(None)     => list_not_ended,
             Err(e)       => {
