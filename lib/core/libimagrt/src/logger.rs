@@ -135,6 +135,18 @@ impl Log for ImagLogger {
     }
 
     fn log(&self, record: &LogRecord) {
+        if record.location().module_path().starts_with("handlebars") {
+            // This is a ugly, yet necessary hack. When logging, we use handlebars for templating.
+            // But as the handlebars library itselfs logs via a normal logging macro ("debug!()"),
+            // we have a recursion in our chain.
+            //
+            // To prevent this recursion, we return here.
+            //
+            // (As of handlebars 0.29.0 - please check whether you can update handlebars if you see
+            // this. Hopefully the next version has a compiletime flag to disable logging)
+            return;
+        }
+
         let mut data = BTreeMap::new();
 
         {
