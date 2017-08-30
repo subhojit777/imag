@@ -61,7 +61,7 @@ fn import_mail(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("import-mail").unwrap();
     let path = scmd.value_of("path").unwrap(); // enforced by clap
 
-    Mail::import_from_path(rt.store(), path)
+    let _ = Mail::import_from_path(rt.store(), path)
         .map_err_trace()
         .map_info_str("Ok");
 }
@@ -70,11 +70,6 @@ fn list(rt: &Runtime) {
     use libimagmail::error::MailErrorKind as MEK;
     use libimagmail::error::MapErrInto;
 
-    let scmd = rt.cli().subcommand_matches("list").unwrap();
-    let do_check_dead            = scmd.is_present("check-dead");
-    let do_check_changed         = scmd.is_present("check-changed");
-    let do_check_changed_content = scmd.is_present("check-changed-content");
-    let do_check_changed_permiss = scmd.is_present("check-changed-permissions");
     let store = rt.store();
 
     let iter = match store.retrieve_for_module("ref") {
@@ -140,7 +135,7 @@ fn list(rt: &Runtime) {
 }
 
 fn mail_store(rt: &Runtime) {
-    let scmd = rt.cli().subcommand_matches("mail-store").unwrap();
+    let _ = rt.cli().subcommand_matches("mail-store").unwrap();
     error!("This feature is currently not implemented.");
     unimplemented!()
 }
