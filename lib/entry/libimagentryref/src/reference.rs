@@ -25,10 +25,11 @@ use std::fs::File;
 use std::fs::Permissions;
 
 use libimagstore::store::Entry;
-use libimagstore::toml_ext::TomlValueExt;
 use libimagerror::into::IntoError;
 
 use toml::Value;
+use toml_query::read::TomlValueReadExt;
+use toml_query::set::TomlValueSetExt;
 
 use error::RefErrorKind as REK;
 use error::MapErrInto;
@@ -140,7 +141,7 @@ impl Ref for Entry {
     fn get_stored_hash_with_hasher<H: Hasher>(&self, h: &H) -> Result<String> {
         match self.get_header().read(&format!("ref.content_hash.{}", h.hash_name())[..]) {
             // content hash stored...
-            Ok(Some(Value::String(s))) => Ok(s),
+            Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
 
             // content hash header field has wrong type
             Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
@@ -208,7 +209,7 @@ impl Ref for Entry {
             .map_err_into(REK::HeaderFieldReadError)
             .and_then(|ro| {
                 match ro {
-                    Some(Value::Boolean(b)) => Ok(b),
+                    Some(&Value::Boolean(b)) => Ok(b),
                     Some(_)                 => Err(REK::HeaderTypeError.into_error()),
                     None                    => Err(REK::HeaderFieldMissingError.into_error()),
                 }
@@ -254,7 +255,7 @@ impl Ref for Entry {
     /// Get the path of the file which is reffered to by this Ref
     fn fs_file(&self) -> Result<PathBuf> {
         match self.get_header().read("ref.path") {
-            Ok(Some(Value::String(ref s))) => Ok(PathBuf::from(s)),
+            Ok(Some(&Value::String(ref s))) => Ok(PathBuf::from(s)),
             Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
             Ok(None)    => Err(REK::HeaderFieldMissingError.into_error()),
             Err(e)      => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),

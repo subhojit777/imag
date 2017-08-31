@@ -30,7 +30,9 @@ use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
-use libimagstore::toml_ext::TomlValueExt;
+
+use toml_query::read::TomlValueReadExt;
+use toml_query::set::TomlValueSetExt;
 
 use module_path::ModuleEntryPath;
 use result::Result;
@@ -56,10 +58,10 @@ impl<'a> Note<'a> {
                 .map_err_into(NEK::StoreWriteError));
 
             {
-                let mut entry  = lockentry.deref_mut();
+                let entry  = lockentry.deref_mut();
 
                 {
-                    let mut header = entry.get_header_mut();
+                    let header = entry.get_header_mut();
                     let setres = header.set("note", Value::Table(BTreeMap::new()));
                     if setres.is_err() {
                         let kind = NEK::StoreWriteError;
@@ -83,8 +85,9 @@ impl<'a> Note<'a> {
     }
 
     pub fn set_name(&mut self, n: String) -> Result<()> {
-        let mut header = self.entry.get_header_mut();
-        header.set("note.name", Value::String(n))
+        self.entry
+            .get_header_mut()
+            .set("note.name", Value::String(n))
             .map_err(|e| NE::new(NEK::StoreWriteError, Some(Box::new(e))))
             .map(|_| ())
     }
@@ -92,7 +95,7 @@ impl<'a> Note<'a> {
     pub fn get_name(&self) -> Result<String> {
         let header = self.entry.get_header();
         match header.read("note.name") {
-            Ok(Some(Value::String(s))) => Ok(String::from(s)),
+            Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
             Ok(_)                => {
                 let e = NE::new(NEK::HeaderTypeError, None);
                 Err(NE::new(NEK::StoreReadError, Some(Box::new(e))))

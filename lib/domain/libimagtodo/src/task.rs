@@ -48,7 +48,7 @@ impl<'a> Task<'a> {
 
     pub fn import<R: BufRead>(store: &'a Store, mut r: R) -> Result<(Task<'a>, String, Uuid)> {
         let mut line = String::new();
-        r.read_line(&mut line);
+        try!(r.read_line(&mut line).map_err_into(TEK::UTF8Error));
         import_task(&line.as_str())
             .map_err_into(TEK::ImportError)
             .and_then(|t| {
@@ -70,7 +70,7 @@ impl<'a> Task<'a> {
         where R: BufRead
     {
         let mut line = String::new();
-        r.read_line(&mut line);
+        try!(r.read_line(&mut line).map_err_into(TEK::UTF8Error));
         Task::get_from_string(store, line)
     }
 
@@ -104,7 +104,7 @@ impl<'a> Task<'a> {
     /// implicitely create the task if it does not exist.
     pub fn retrieve_from_import<R: BufRead>(store: &'a Store, mut r: R) -> Result<Task<'a>> {
         let mut line = String::new();
-        r.read_line(&mut line);
+        try!(r.read_line(&mut line).map_err_into(TEK::UTF8Error));
         Task::retrieve_from_string(store, line)
     }
 
@@ -220,13 +220,6 @@ impl<'a> IntoTask<'a> for TTask {
         use toml_query::read::TomlValueReadExt;
         use toml_query::set::TomlValueSetExt;
 
-        // Helper for toml_query::read::TomlValueReadExt::read() return value, which does only
-        // return Result<T> instead of Result<Option<T>>, which is a real inconvenience.
-        //
-        let no_identifier = |e: &::toml_query::error::Error| -> bool {
-            is_match!(e.kind(), &::toml_query::error::ErrorKind::IdentifierNotFoundInDocument(_))
-        };
-
         let uuid     = self.uuid();
         ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
             .into_storeid()
@@ -236,7 +229,7 @@ impl<'a> IntoTask<'a> for TTask {
                     .map_err_into(TEK::StoreError)
                     .and_then(|mut fle| {
                         {
-                            let mut hdr = fle.get_header_mut();
+                            let hdr = fle.get_header_mut();
                             if try!(hdr.read("todo").map_err_into(TEK::StoreError)).is_none() {
                                 try!(hdr
                                     .set("todo", Value::Table(BTreeMap::new()))

@@ -37,7 +37,6 @@ extern crate clap;
 #[macro_use] extern crate version;
 
 extern crate libimagbookmark;
-extern crate libimagentrylink;
 extern crate libimagentrytag;
 extern crate libimagrt;
 extern crate libimagerror;

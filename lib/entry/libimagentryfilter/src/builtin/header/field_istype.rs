@@ -58,8 +58,8 @@ struct IsTypePred {
 
 impl Predicate for IsTypePred {
 
-    fn evaluate(&self, v: Value) -> bool {
-        self.ty.matches(&v)
+    fn evaluate(&self, v: &Value) -> bool {
+        self.ty.matches(v)
     }
 
 }

@@ -41,7 +41,7 @@ pub fn update(rt: &Runtime) {
                     rt.store()
                         .retrieve(path)
                         .map(|mut locked_e| {
-                            let mut e = locked_e.deref_mut();
+                            let e = locked_e.deref_mut();
 
                             scmd.value_of("content")
                                 .map(|new_content| {

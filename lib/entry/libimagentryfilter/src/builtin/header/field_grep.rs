@@ -33,10 +33,10 @@ struct EqGrep{
 
 impl Predicate for EqGrep {
 
-    fn evaluate(&self, v: Value) -> bool {
-        match v {
-            Value::String(s) => self.regex.captures(&s[..]).is_some(),
-            _                 => false,
+    fn evaluate(&self, v: &Value) -> bool {
+        match *v {
+            Value::String(ref s) => self.regex.captures(&s[..]).is_some(),
+            _                    => false,
         }
     }
 

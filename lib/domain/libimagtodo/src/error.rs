@@ -22,7 +22,8 @@ generate_error_module!(
         ConversionError     => "Conversion Error",
         StoreError          => "Store Error",
         StoreIdError        => "Store Id handling error",
-        ImportError         => "Error importing"
+        ImportError         => "Error importing",
+        UTF8Error           => "Encountered non-UTF8 characters while reading input"
     );
 );
 
