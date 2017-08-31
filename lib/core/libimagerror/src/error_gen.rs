@@ -252,7 +252,7 @@ mod test {
     }
 
     impl Display for CustomData {
-        fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
+        fn fmt(&self, _: &mut Formatter) -> Result<(), FmtError> {
             Ok(())
         }
     }

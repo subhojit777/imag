@@ -35,18 +35,14 @@
 
 #[macro_use] extern crate log;
 #[macro_use] extern crate version;
-extern crate fs2;
 extern crate glob;
 #[macro_use] extern crate lazy_static;
 extern crate regex;
 extern crate toml;
 #[cfg(test)] extern crate tempdir;
 extern crate semver;
-extern crate crossbeam;
 extern crate walkdir;
-extern crate itertools;
 #[macro_use] extern crate is_match;
-extern crate serde;
 extern crate serde_json;
 #[macro_use] extern crate serde_derive;
 

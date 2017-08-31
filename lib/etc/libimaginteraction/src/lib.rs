@@ -33,18 +33,14 @@
     while_true,
 )]
 
-extern crate spinner;
 extern crate interactor;
 extern crate ansi_term;
 #[macro_use] extern crate lazy_static;
 extern crate regex;
 extern crate clap;
 extern crate toml;
-extern crate rustyline;
 
-extern crate libimagentryfilter;
 extern crate libimagstore;
-extern crate libimagutil;
 #[macro_use] extern crate libimagerror;
 
 pub mod ask;

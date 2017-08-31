@@ -24,8 +24,6 @@ extern crate log;
 extern crate version;
 
 extern crate clap;
-extern crate semver;
-extern crate toml;
 extern crate chrono;
 extern crate filters;
 extern crate itertools;
@@ -34,7 +32,6 @@ extern crate libimagerror;
 extern crate libimagstore;
 extern crate libimagrt;
 extern crate libimagtimetrack;
-extern crate libimagutil;
 
 mod cont;
 mod day;

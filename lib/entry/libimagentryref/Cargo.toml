@@ -17,13 +17,10 @@ homepage      = "http://imag-pim.org"
 itertools = "0.5"
 log = "0.3"
 rust-crypto = "0.2"
-semver = "0.5"
 toml = "^0.4"
-version = "2.0.1"
 walkdir = "1.0.*"
 toml-query = "0.3.0"
 
 libimagstore     = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
 libimagerror     = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
 libimagentrylist = { version = "0.4.0", path = "../../../lib/entry/libimagentrylist" }
-libimagutil      = { version = "0.4.0", path = "../../../lib/etc/libimagutil" }

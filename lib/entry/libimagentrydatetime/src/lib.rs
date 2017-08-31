@@ -40,7 +40,6 @@ extern crate toml;
 
 #[macro_use] extern crate libimagerror;
 extern crate libimagstore;
-extern crate libimagutil;
 
 pub mod datepath;
 pub mod datetime;

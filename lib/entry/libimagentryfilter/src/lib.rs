@@ -34,7 +34,6 @@
 )]
 
 extern crate filters;
-extern crate itertools;
 extern crate regex;
 extern crate semver;
 extern crate toml;

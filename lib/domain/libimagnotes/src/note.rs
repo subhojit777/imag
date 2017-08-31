@@ -58,10 +58,10 @@ impl<'a> Note<'a> {
                 .map_err_into(NEK::StoreWriteError));
 
             {
-                let mut entry  = lockentry.deref_mut();
+                let entry  = lockentry.deref_mut();
 
                 {
-                    let mut header = entry.get_header_mut();
+                    let header = entry.get_header_mut();
                     let setres = header.set("note", Value::Table(BTreeMap::new()));
                     if setres.is_err() {
                         let kind = NEK::StoreWriteError;
@@ -85,8 +85,9 @@ impl<'a> Note<'a> {
     }
 
     pub fn set_name(&mut self, n: String) -> Result<()> {
-        let mut header = self.entry.get_header_mut();
-        header.set("note.name", Value::String(n))
+        self.entry
+            .get_header_mut()
+            .set("note.name", Value::String(n))
             .map_err(|e| NE::new(NEK::StoreWriteError, Some(Box::new(e))))
             .map(|_| ())
     }

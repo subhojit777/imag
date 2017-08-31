@@ -33,7 +33,6 @@
     while_true,
 )]
 
-extern crate uuid;
 extern crate toml;
 extern crate toml_query;
 
@@ -41,7 +40,6 @@ extern crate toml_query;
 extern crate libimagstore;
 extern crate libimagentrylink;
 extern crate libimagnotes;
-extern crate libimagutil;
 
 pub mod annotateable;
 pub mod annotation_fetcher;

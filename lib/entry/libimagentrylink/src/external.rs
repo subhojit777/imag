@@ -350,7 +350,7 @@ impl ExternalLinker for Entry {
 
             debug!("Generating header content!");
             {
-                let mut hdr = file.deref_mut().get_header_mut();
+                let hdr = file.deref_mut().get_header_mut();
 
                 let mut table = match hdr.read("imag.content") {
                     Ok(Some(&Value::Table(ref table))) => table.clone(),

@@ -33,7 +33,6 @@
     while_true,
 )]
 
-extern crate crossbeam;
 extern crate hoedown;
 extern crate url;
 extern crate libimagstore;

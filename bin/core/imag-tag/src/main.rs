@@ -19,16 +19,20 @@
 
 extern crate clap;
 #[macro_use] extern crate log;
-extern crate semver;
-extern crate toml;
 #[macro_use] extern crate version;
+
+#[cfg(test)] extern crate toml;
 
 extern crate libimagstore;
 extern crate libimagrt;
 extern crate libimagentrytag;
 extern crate libimagerror;
 
+#[cfg(test)]
 #[macro_use]
+extern crate libimagutil;
+
+#[cfg(not(test))]
 extern crate libimagutil;
 
 #[cfg(test)]
