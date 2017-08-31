@@ -25,7 +25,6 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::Store;
-use libimagstore::toml_ext::TomlValueExt;
 use libimagerror::into::IntoError;
 
 use toml::Value;
@@ -145,6 +144,8 @@ impl RefStore for Store {
     fn create_with_hasher<'a, H: Hasher>(&'a self, pb: PathBuf, flags: RefFlags, mut h: H)
         -> Result<FileLockEntry<'a>>
     {
+        use toml_query::insert::TomlValueInsertExt;
+
         if !pb.exists() {
             return Err(REK::RefTargetDoesNotExist.into_error());
         }

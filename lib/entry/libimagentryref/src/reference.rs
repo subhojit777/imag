@@ -25,7 +25,6 @@ use std::fs::File;
 use std::fs::Permissions;
 
 use libimagstore::store::Entry;
-use libimagstore::toml_ext::TomlValueExt;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
