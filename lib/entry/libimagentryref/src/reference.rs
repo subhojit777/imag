@@ -25,16 +25,11 @@ use std::fs::File;
 use std::fs::Permissions;
 
 use libimagstore::store::Entry;
-use libimagstore::store::FileLockEntry;
-use libimagstore::storeid::StoreId;
-use libimagstore::storeid::IntoStoreId;
-use libimagstore::store::Store;
 use libimagerror::into::IntoError;
 
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
-use toml_query::insert::TomlValueInsertExt;
 
 use error::RefErrorKind as REK;
 use error::MapErrInto;
