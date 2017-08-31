@@ -41,6 +41,7 @@ extern crate toml_query;
 extern crate lazy_static;
 #[macro_use]
 extern crate is_match;
+#[macro_use] extern crate error_chain;
 
 #[macro_use]
 extern crate libimagerror;

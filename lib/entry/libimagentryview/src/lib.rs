@@ -34,6 +34,7 @@
 )]
 
 extern crate toml;
+#[macro_use] extern crate error_chain;
 
 extern crate libimagstore;
 extern crate libimagrt;

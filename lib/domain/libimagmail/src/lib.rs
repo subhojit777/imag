@@ -36,6 +36,7 @@
 #[macro_use] extern crate log;
 extern crate email;
 extern crate filters;
+#[macro_use] extern crate error_chain;
 
 #[macro_use] extern crate libimagerror;
 extern crate libimagstore;

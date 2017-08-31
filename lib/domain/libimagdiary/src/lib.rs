@@ -38,6 +38,7 @@ extern crate chrono;
 extern crate toml;
 extern crate toml_query;
 extern crate itertools;
+#[macro_use] extern crate error_chain;
 
 #[macro_use] extern crate libimagstore;
 #[macro_use] extern crate libimagerror;

@@ -39,6 +39,7 @@ extern crate toml;
 extern crate is_match;
 #[macro_use]
 extern crate log;
+#[macro_use] extern crate error_chain;
 
 #[macro_use]
 extern crate libimagerror;

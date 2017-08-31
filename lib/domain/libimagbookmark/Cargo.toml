@@ -16,6 +16,7 @@ homepage      = "http://imag-pim.org"
 [dependencies]
 url = "1.2"
 regex = "0.1"
+error-chain = "0.10"
 
 libimagstore     = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
 libimagerror     = { version = "0.4.0", path = "../../../lib/core/libimagerror" }

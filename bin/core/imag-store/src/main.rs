@@ -36,6 +36,7 @@ extern crate clap;
 #[macro_use] extern crate log;
 extern crate toml;
 #[macro_use] extern crate version;
+#[macro_use] extern crate error_chain;
 
 extern crate libimagrt;
 extern crate libimagstore;

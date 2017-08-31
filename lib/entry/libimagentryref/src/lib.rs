@@ -43,6 +43,7 @@ extern crate walkdir;
 #[macro_use] extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
 extern crate libimagentrylist;
+#[macro_use] extern crate error_chain;
 
 module_entry_path_mod!("ref");
 

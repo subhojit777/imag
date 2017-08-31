@@ -39,6 +39,7 @@ extern crate ansi_term;
 extern crate regex;
 extern crate clap;
 extern crate toml;
+#[macro_use] extern crate error_chain;
 
 extern crate libimagstore;
 #[macro_use] extern crate libimagerror;

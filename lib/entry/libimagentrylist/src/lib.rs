@@ -36,6 +36,7 @@
 extern crate clap;
 #[macro_use] extern crate log;
 extern crate prettytable;
+#[macro_use] extern crate error_chain;
 
 extern crate libimagstore;
 extern crate libimagutil;

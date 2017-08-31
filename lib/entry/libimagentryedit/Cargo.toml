@@ -14,6 +14,7 @@ repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
 [dependencies]
+error-chain = "0.10"
 
 libimagerror = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
 libimagrt    = { version = "0.4.0", path = "../../../lib/core/libimagrt" }

@@ -40,6 +40,7 @@ extern crate toml_query;
 extern crate url;
 extern crate crypto;
 #[macro_use] extern crate is_match;
+#[macro_use] extern crate error_chain;
 
 #[cfg(test)]
 extern crate env_logger;
