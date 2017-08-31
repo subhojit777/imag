@@ -249,6 +249,9 @@ impl RefStore for Store {
                             let e = REK::HeaderFieldAlreadyExistsError.into_error();
                             return Err(e).map_err_into(REK::HeaderFieldWriteError);
                         },
+                        Ok(None) => {
+                            // Okay, we just inserted a new header value...
+                        },
                         Err(e) => return Err(e).map_err_into(REK::HeaderFieldWriteError),
                         _ => (),
                     }
