@@ -28,7 +28,6 @@ use mail::Mail;
 use result::Result;
 
 use libimagstore::store::FileLockEntry;
-use libimagentryref::reference::Ref;
 
 use std::marker::PhantomData;
 
