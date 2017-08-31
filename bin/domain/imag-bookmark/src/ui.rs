@@ -19,7 +19,6 @@
 
 use clap::{Arg, App, SubCommand};
 
-use libimagentrytag::ui::tag_add_arg;
 use libimagutil::cli_validators::*;
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
@@ -44,7 +43,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .value_name("URL")
                         .validator(is_url)
                         .help("Add this URL, multiple possible"))
-                   .arg(tag_add_arg())
                    )
 
         .subcommand(SubCommand::with_name("remove")

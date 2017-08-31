@@ -21,5 +21,4 @@ version = "2.0.1"
 libimagrt        = { version = "0.4.0", path = "../../../lib/core/libimagrt" }
 libimagerror     = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
 libimagbookmark  = { version = "0.4.0", path = "../../../lib/domain/libimagbookmark" }
-libimagentrytag  = { version = "0.4.0", path = "../../../lib/entry/libimagentrytag" }
 libimagutil      = { version = "0.4.0", path = "../../../lib/etc/libimagutil" }
