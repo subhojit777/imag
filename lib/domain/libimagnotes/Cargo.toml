@@ -14,12 +14,11 @@ repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
 [dependencies]
-semver = "0.5"
 log = "0.3"
 toml = "^0.4"
+toml-query = "0.3.0"
 
 libimagstore     = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
 libimagerror     = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
 libimagrt        = { version = "0.4.0", path = "../../../lib/core/libimagrt" }
 libimagentryedit = { version = "0.4.0", path = "../../../lib/entry/libimagentryedit" }
-libimagentrytag  = { version = "0.4.0", path = "../../../lib/entry/libimagentrytag" }

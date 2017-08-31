@@ -37,13 +37,13 @@ impl RefFlags {
     /// It assumes that this is a Map with Key = <name of the setting> and Value = boolean.
     pub fn read(v: &Value) -> Result<RefFlags> {
         fn get_field(v: &Value, key: &str) -> Result<bool> {
-            use libimagstore::toml_ext::TomlValueExt;
+            use toml_query::read::TomlValueReadExt;
             use error::MapErrInto;
 
             v.read(key)
                 .map_err_into(REK::HeaderTomlError)
                 .and_then(|toml| match toml {
-                    Some(Value::Boolean(b)) => Ok(b),
+                    Some(&Value::Boolean(b)) => Ok(b),
                     Some(_) => Err(REK::HeaderTypeError.into()),
                     None    => Err(REK::HeaderFieldMissingError.into()),
                 })

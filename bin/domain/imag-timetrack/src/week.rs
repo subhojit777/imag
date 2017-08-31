@@ -17,14 +17,9 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::cmp::Ord;
-use std::cmp::Ordering;
 use std::str::FromStr;
 
-use filters::ops::not::Not;
 use filters::filter::Filter;
-use itertools::Itertools;
-use itertools::MinMaxResult;
 use chrono::NaiveDateTime;
 
 use libimagerror::trace::trace_error;

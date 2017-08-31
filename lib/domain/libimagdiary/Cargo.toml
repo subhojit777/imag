@@ -16,15 +16,12 @@ homepage      = "http://imag-pim.org"
 [dependencies]
 chrono = "0.4"
 log = "0.3"
-semver = "0.5"
 toml = "0.4.*"
 toml-query = "0.3.*"
-regex = "0.1"
 itertools = "0.5"
 
 libimagstore     = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
 libimagerror     = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
 libimagrt        = { version = "0.4.0", path = "../../../lib/core/libimagrt" }
-libimagutil      = { version = "0.4.0", path = "../../../lib/etc/libimagutil" }
 libimagentryedit = { version = "0.4.0", path = "../../../lib/entry/libimagentryedit" }
 libimagentryview = { version = "0.4.0", path = "../../../lib/entry/libimagentryview" }

@@ -34,14 +34,13 @@
 )]
 
 #[macro_use] extern crate log;
-extern crate semver;
 extern crate toml;
+extern crate toml_query;
 
 extern crate libimagrt;
 #[macro_use] extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
 extern crate libimagentryedit;
-extern crate libimagentrytag;
 
 module_entry_path_mod!("notes");
 

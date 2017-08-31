@@ -244,7 +244,7 @@ impl RefStore for Store {
             match tpl {
                 &Some((ref s, ref v)) => {
                     match fle.get_header_mut().insert(s, v.clone()) {
-                        Ok(false) => {
+                        Ok(Some(_)) => {
                             let e = REK::HeaderFieldAlreadyExistsError.into_error();
                             return Err(e).map_err_into(REK::HeaderFieldWriteError);
                         },

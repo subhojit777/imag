@@ -16,7 +16,6 @@ homepage      = "http://imag-pim.org"
 [dependencies]
 log = "0.3"
 hoedown = "5.0.0"
-crossbeam = "0.2"
 url = "1.2"
 
 libimagstore = { version = "0.4.0", path = "../../../lib/core/libimagstore" }

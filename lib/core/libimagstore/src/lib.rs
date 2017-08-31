@@ -18,6 +18,7 @@
 //
 
 #![deny(
+    dead_code,
     non_camel_case_types,
     non_snake_case,
     path_statements,
@@ -26,6 +27,7 @@
     unused_allocation,
     unused_import_braces,
     unused_imports,
+    unused_must_use,
     unused_mut,
     unused_qualifications,
     while_true,
@@ -33,18 +35,14 @@
 
 #[macro_use] extern crate log;
 #[macro_use] extern crate version;
-extern crate fs2;
 extern crate glob;
 #[macro_use] extern crate lazy_static;
 extern crate regex;
 extern crate toml;
 #[cfg(test)] extern crate tempdir;
 extern crate semver;
-extern crate crossbeam;
 extern crate walkdir;
-extern crate itertools;
 #[macro_use] extern crate is_match;
-extern crate serde;
 extern crate serde_json;
 #[macro_use] extern crate serde_derive;
 
@@ -58,5 +56,4 @@ pub mod error;
 pub mod store;
 mod configuration;
 pub mod file_abstraction;
-pub mod toml_ext;
 

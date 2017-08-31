@@ -38,9 +38,11 @@ use libimagstore::store::Entry;
 use libimagstore::store::Store;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
-use libimagstore::toml_ext::TomlValueExt;
 use libimagutil::debug_result::*;
 use libimagerror::into::IntoError;
+
+use toml_query::read::TomlValueReadExt;
+use toml_query::set::TomlValueSetExt;
 
 use error::LinkError as LE;
 use error::LinkErrorKind as LEK;
@@ -71,7 +73,7 @@ impl Link for Entry {
             .read("imag.content.url")
             .map_err_into(LEK::EntryHeaderReadError)
             .and_then(|opt| match opt {
-                Some(Value::String(s)) => {
+                Some(&Value::String(ref s)) => {
                     debug!("Found url, parsing: {:?}", s);
                     Url::parse(&s[..]).map_err_into(LEK::InvalidUri).map(Some)
                 },
@@ -82,7 +84,7 @@ impl Link for Entry {
 
     fn get_url(&self) -> Result<Option<Url>> {
         match self.get_header().read("imag.content.url") {
-            Ok(Some(Value::String(s))) => {
+            Ok(Some(&Value::String(ref s))) => {
                 Url::parse(&s[..])
                      .map(Some)
                      .map_err(|e| LE::new(LEK::EntryHeaderReadError, Some(Box::new(e))))
@@ -347,10 +349,10 @@ impl ExternalLinker for Entry {
 
             debug!("Generating header content!");
             {
-                let mut hdr = file.deref_mut().get_header_mut();
+                let hdr = file.deref_mut().get_header_mut();
 
                 let mut table = match hdr.read("imag.content") {
-                    Ok(Some(Value::Table(table))) => table,
+                    Ok(Some(&Value::Table(ref table))) => table.clone(),
                     Ok(Some(_)) => {
                         warn!("There is a value at 'imag.content' which is not a table.");
                         warn!("Going to override this value");

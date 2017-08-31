@@ -37,11 +37,11 @@
 extern crate itertools;
 #[cfg(unix)] extern crate xdg_basedir;
 extern crate env_logger;
-extern crate tempfile;
 extern crate ansi_term;
 
 extern crate clap;
 extern crate toml;
+extern crate toml_query;
 #[macro_use] extern crate is_match;
 
 extern crate libimagstore;

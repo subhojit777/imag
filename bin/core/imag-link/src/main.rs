@@ -34,19 +34,21 @@
 
 #[macro_use] extern crate log;
 extern crate clap;
-extern crate semver;
-extern crate toml;
-extern crate toml_query;
 extern crate url;
 #[macro_use] extern crate version;
+#[cfg(test)] extern crate toml;
+#[cfg(test)] extern crate toml_query;
 
 extern crate libimagentrylink;
 extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagerror;
 
-#[allow(unused_imports)]
+#[cfg(test)]
 #[macro_use]
+extern crate libimagutil;
+
+#[cfg(not(test))]
 extern crate libimagutil;
 
 use std::ops::Deref;
@@ -374,7 +376,11 @@ mod tests {
     }
 
     fn get_entry_links<'a>(entry: &'a FileLockEntry<'a>) -> TomlQueryResult<&'a Value> {
-        entry.get_header().read(&"imag.links".to_owned())
+        match entry.get_header().read(&"imag.links".to_owned()) {
+            Err(e) => Err(e),
+            Ok(Some(v)) => Ok(v),
+            Ok(None) => panic!("Didn't find 'imag.links' in {:?}", entry),
+        }
     }
 
     fn links_toml_value<'a, I: IntoIterator<Item = &'static str>>(links: I) -> Value {

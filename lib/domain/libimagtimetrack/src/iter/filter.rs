@@ -17,10 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use result::Result;
-
 use chrono::NaiveDateTime;
-use filters::filter::Filter;
 
 use libimagstore::store::FileLockEntry;
 

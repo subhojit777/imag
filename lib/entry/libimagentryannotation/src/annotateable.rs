@@ -24,9 +24,11 @@ use toml::Value;
 use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
-use libimagstore::toml_ext::TomlValueExt;
 use libimagentrylink::internal::InternalLinker;
 use libimagerror::into::IntoError;
+
+use toml_query::read::TomlValueReadExt;
+use toml_query::insert::TomlValueInsertExt;
 
 use result::Result;
 use error::AnnotationErrorKind as AEK;
@@ -53,14 +55,8 @@ impl Annotateable for Entry {
             .and_then(|mut anno| {
                 anno.get_header_mut()
                     .insert("annotation.is_annotation", Value::Boolean(true))
-                    .map_err_into(AEK::StoreWriteError)
-                    .and_then(|succeeded| {
-                        if succeeded {
-                            Ok(anno)
-                        } else {
-                            Err(AEK::HeaderWriteError.into_error())
-                        }
-                    })
+                    .map_err_into(AEK::HeaderWriteError)
+                    .map(|_| anno)
             })
             .and_then(|mut anno| {
                 anno.add_internal_link(self)
@@ -74,9 +70,9 @@ impl Annotateable for Entry {
             .read("annotation.is_annotation")
             .map_err_into(AEK::StoreReadError)
             .and_then(|res| match res {
-                Some(Value::Boolean(b)) => Ok(b),
-                None                    => Ok(false),
-                _                       => Err(AEK::HeaderTypeError.into_error()),
+                Some(&Value::Boolean(b)) => Ok(b),
+                None                     => Ok(false),
+                _                        => Err(AEK::HeaderTypeError.into_error()),
             })
     }
 

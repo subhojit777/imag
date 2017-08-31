@@ -18,7 +18,7 @@
 //
 
 use libimagstore::store::Entry;
-use libimagstore::toml_ext::TomlValueExt;
+use toml_query::read::TomlValueReadExt;
 
 use builtin::header::field_path::FieldPath;
 use filters::filter::Filter;
@@ -46,12 +46,12 @@ impl Filter<Entry> for FieldIsEmpty {
             .read(&self.header_field_path[..])
             .map(|v| {
                 match v {
-                    Some(Value::Array(a))   => a.is_empty(),
-                    Some(Value::String(s))  => s.is_empty(),
-                    Some(Value::Table(t))   => t.is_empty(),
-                    Some(Value::Boolean(_)) |
-                    Some(Value::Float(_))   |
-                    Some(Value::Integer(_)) => false,
+                    Some(&Value::Array(ref a))   => a.is_empty(),
+                    Some(&Value::String(ref s))  => s.is_empty(),
+                    Some(&Value::Table(ref t))   => t.is_empty(),
+                    Some(&Value::Boolean(_)) |
+                    Some(&Value::Float(_))   |
+                    Some(&Value::Integer(_)) => false,
                     _                       => true,
                 }
             })

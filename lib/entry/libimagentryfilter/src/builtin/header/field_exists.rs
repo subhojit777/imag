@@ -18,10 +18,11 @@
 //
 
 use libimagstore::store::Entry;
-use libimagstore::toml_ext::TomlValueExt;
+
+use toml_query::read::TomlValueReadExt;
+use filters::filter::Filter;
 
 use builtin::header::field_path::FieldPath;
-use filters::filter::Filter;
 
 pub struct FieldExists {
     header_field_path: FieldPath,

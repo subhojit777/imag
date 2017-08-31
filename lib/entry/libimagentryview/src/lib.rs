@@ -33,7 +33,6 @@
     while_true,
 )]
 
-extern crate glob;
 extern crate toml;
 
 extern crate libimagstore;
