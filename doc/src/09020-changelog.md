@@ -6,6 +6,43 @@ We try to include a changelog line in each pull request, to make sure the
 changelog is up to date when releasing a new version of the codebase.
 Make sure to append the new change to the list, do not prepend it.
 
+The "Major" section of each section includes huge changes in functionality and
+interfaces (but not necessarily user-facing ones), whereas the "Minor" section
+contains only small stuff.
+Some things, like typo fixes, version string updates and such are not stated in
+the changelog (though updating of dependencies is).
+Please note that we do not have a "Breaking changes" section as we are in
+Version 0.y.z and thus we can break the API like we want and need to.
+
+## Next
+
+This section contains the changelog from the last release to the next release.
+
+* Major changes
+    * The `libimagstore::toml_ext` module was removed. The `toml_query` crate
+      should be used as a replacement. Its interface only differs in few places
+      from the old `libimagstore::toml_ext` interface.
+    * The codebase was moved to a more tree-ish approach, where several
+      subdirectories were introduced for different types of crates
+    * The documentation got a major overhaul and was partly rewritten
+* Fixed bugs
+    * The config loading in `libimagrt`
+    [was fixed](http://git.imag-pim.org/imag/commit/?id=9193d50f96bce099665d2eb716bcaa29a8d9b8ff).
+* Minor changes
+    * If building from a `nix-shell`, the mozilla rust overlay is expected to be
+      present
+    * Unused imports in the codebase were removed
+    * Compiler Warnings were fixed
+    * We specify inter-dependencies via path and variable now, so one can build
+      the 0.3.0 release from the checkout of the codebase.
+    * The `imag` binary was refactored and rewritten, the `crossbeam`
+      dependency was removed.
+    * The `Makefile` was removed as `cargo` is powerful enough to fit our needs
+    * `libimagstore::storeid::StoreId::is_in_collection()` was added
+    * The `libimagentrylink` is now rudimentarily tested
+    * We compile with rustc 1.17, 1.18, .., nightly
+* Stats
+
 ## 0.3.0
 
 <small>
