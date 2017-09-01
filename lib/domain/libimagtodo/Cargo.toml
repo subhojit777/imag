@@ -6,7 +6,7 @@ authors = ["mario <mario-krehl@gmx.de>"]
 description = "Library for the imag core distribution"
 
 keywords    = ["imag", "PIM", "personal", "information", "management"]
-readme      = "../README.md"
+readme      = "../../../README.md"
 license     = "LGPL-2.1"
 
 documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
