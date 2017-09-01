@@ -87,5 +87,37 @@ mod tests {
 
         assert!(res.is_ok());
     }
+
+    #[test]
+    fn test_setget_gps() {
+        setup_logging();
+
+        let store = get_store();
+
+        let mut entry = store.create(PathBuf::from("test_setget_gps")).unwrap();
+
+        let coordinates = Coordinates {
+            latitude: GPSValue::new(0, 0, 0),
+            longitude: GPSValue::new(0, 0, 0),
+        };
+
+        let res = entry.set_coordinates(coordinates);
+        assert!(res.is_ok());
+
+        let coordinates = entry.get_coordinates();
+
+        assert!(coordinates.is_ok());
+        let coordinates = coordinates.unwrap();
+
+        assert!(coordinates.is_some());
+        let coordinates = coordinates.unwrap();
+
+        assert_eq!(0, coordinates.longitude.degree);
+        assert_eq!(0, coordinates.longitude.minutes);
+        assert_eq!(0, coordinates.longitude.seconds);
+        assert_eq!(0, coordinates.latitude.degree);
+        assert_eq!(0, coordinates.latitude.minutes);
+        assert_eq!(0, coordinates.latitude.seconds);
+    }
 }
 
