@@ -108,40 +108,39 @@ fn handle_internal_linking(rt: &Runtime) {
         }
     }
 
-    match cmd.value_of("list") {
-        Some(list) => handle_internal_linking_list_call(rt, cmd, list),
-        None => {
-            match cmd.subcommand_name() {
-                Some("add") => {
-                    let (mut from, to) = get_from_to_entry(&rt, "add");
-                    for mut to_entry in to {
-                        if let Err(e) = to_entry.add_internal_link(&mut from) {
-                            trace_error_exit(&e, 1);
-                        }
-                    }
-                },
-
-                Some("remove") => {
-                    let (mut from, to) = get_from_to_entry(&rt, "remove");
-                    for mut to_entry in to {
-                        if let Err(e) = to_entry.remove_internal_link(&mut from) {
-                            trace_error_exit(&e, 1);
-                        }
-                    }
-                },
-
-                _ => unreachable!(),
+    match cmd.subcommand_name() {
+        Some("list") => {
+            cmd.subcommand_matches("list")
+                .map(|matches| handle_internal_linking_list_call(rt, cmd, matches));
+        },
+        Some("add") => {
+            let (mut from, to) = get_from_to_entry(&rt, "add");
+            for mut to_entry in to {
+                if let Err(e) = to_entry.add_internal_link(&mut from) {
+                    trace_error_exit(&e, 1);
+                }
             };
-        }
+        },
+
+        Some("remove") => {
+            let (mut from, to) = get_from_to_entry(&rt, "remove");
+            for mut to_entry in to {
+                if let Err(e) = to_entry.remove_internal_link(&mut from) {
+                    trace_error_exit(&e, 1);
+                }
+            };
+        },
+
+        _ => unreachable!(),
     }
 }
 
 #[inline]
-fn handle_internal_linking_list_call(rt: &Runtime, cmd: &ArgMatches, list: &str) {
+fn handle_internal_linking_list_call(rt: &Runtime, cmd: &ArgMatches, list: &ArgMatches) {
     use libimagentrylink::external::is_external_link_storeid;
 
     debug!("List...");
-    for entry in list.split(',') {
+    for entry in list.values_of("entries").unwrap() { // clap has our back
         debug!("Listing for '{}'", entry);
         match get_entry_by_name(rt, entry) {
             Ok(Some(e)) => {
