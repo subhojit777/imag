@@ -17,6 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-pub mod error;
-pub mod result;
+use std::result::Result as RResult;
+
+use error::GPSError;
+
+pub type Result<T> = RResult<T, GPSError>;
+
 

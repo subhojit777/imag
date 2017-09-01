@@ -17,6 +17,18 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-pub mod error;
-pub mod result;
+generate_error_module!(
+    generate_error_types!(GPSError, GPSErrorKind,
+        StoreReadError   => "Store read error",
+        StoreWriteError  => "Store write error",
+
+        HeaderWriteError => "Couldn't write Header for annotation",
+        HeaderReadError  => "Couldn't read Header of Entry",
+        HeaderTypeError  => "Header field has unexpected type"
+    );
+);
+
+pub use self::error::GPSError;
+pub use self::error::GPSErrorKind;
+pub use self::error::MapErrInto;
 
