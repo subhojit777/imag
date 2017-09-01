@@ -1,0 +1,72 @@
+//
+// imag - the personal information management suite for the commandline
+// Copyright (C) 2015, 2016 Matthias Beyer <mail@beyermatthias.de> and contributors
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; version
+// 2.1 of the License.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+
+use toml::Value;
+use toml_query::read::TomlValueReadExt;
+
+use libimagstore::store::FileLockEntry;
+use libimagstore::storeid::StoreIdIterator;
+use libimagstore::storeid::StoreId;
+
+use error::HabitError as HE;
+use error::HabitErrorKind as HEK;
+use error::*;
+
+pub struct HabitTemplateStoreIdIterator(StoreIdIterator);
+
+impl Iterator for HabitTemplateStoreIdIterator {
+    type Item = StoreId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(n) = self.0.next() {
+            if n.is_in_collection(&["habit", "template"]) {
+                return Some(n)
+            }
+        }
+        None
+    }
+}
+
+impl From<StoreIdIterator> for HabitTemplateStoreIdIterator {
+    fn from(sii: StoreIdIterator) -> Self {
+        HabitTemplateStoreIdIterator(sii)
+    }
+}
+
+pub struct HabitInstanceStoreIdIterator(StoreIdIterator);
+
+impl Iterator for HabitInstanceStoreIdIterator {
+    type Item = StoreId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(n) = self.0.next() {
+            if n.is_in_collection(&["habit", "instance"]) {
+                return Some(n)
+            }
+        }
+        None
+    }
+}
+
+impl From<StoreIdIterator> for HabitInstanceStoreIdIterator {
+    fn from(sii: StoreIdIterator) -> Self {
+        HabitInstanceStoreIdIterator(sii)
+    }
+}
+
