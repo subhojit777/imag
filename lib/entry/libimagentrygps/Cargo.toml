@@ -12,6 +12,8 @@ license     = "LGPL-2.1"
 [dependencies]
 toml = "^0.4"
 toml-query = "0.3.0"
+serde_derive = "1"
+serde = "1"
 
 libimagstore = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
 libimagerror = { version = "0.4.0", path = "../../../lib/core/libimagerror" }

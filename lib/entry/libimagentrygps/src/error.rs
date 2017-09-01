@@ -24,7 +24,16 @@ generate_error_module!(
 
         HeaderWriteError => "Couldn't write Header for annotation",
         HeaderReadError  => "Couldn't read Header of Entry",
-        HeaderTypeError  => "Header field has unexpected type"
+        HeaderTypeError  => "Header field has unexpected type",
+
+        TypeError        => "Type Error",
+        DegreeMissing    => "'degree' value missing",
+        MinutesMissing   => "'minutes' value missing",
+        SecondsMissing   => "'seconds' value missing",
+        LongitudeMissing => "'longitude' value missing",
+        LatitudeMissing  => "'latitude' value missing",
+
+        NumberConversionError => "Cannot convert number to fit into variable"
     );
 );
 
