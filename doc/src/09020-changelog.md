@@ -25,6 +25,8 @@ This section contains the changelog from the last release to the next release.
     * The codebase was moved to a more tree-ish approach, where several
       subdirectories were introduced for different types of crates
     * The documentation got a major overhaul and was partly rewritten
+* New
+    * `libimagentrygps` was introduced
 * Fixed bugs
     * The config loading in `libimagrt`
     [was fixed](http://git.imag-pim.org/imag/commit/?id=9193d50f96bce099665d2eb716bcaa29a8d9b8ff).
