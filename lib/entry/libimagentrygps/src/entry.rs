@@ -53,3 +53,39 @@ impl GPSEntry for Entry {
 
 }
 
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use libimagstore::store::Store;
+
+    use entry::*;
+
+    fn setup_logging() {
+        use env_logger;
+        let _ = env_logger::init().unwrap_or(());
+    }
+
+    fn get_store() -> Store {
+        Store::new(PathBuf::from("/"), None).unwrap()
+    }
+
+    #[test]
+    fn test_set_gps() {
+        setup_logging();
+
+        let store = get_store();
+
+        let mut entry = store.create(PathBuf::from("test_set_gps")).unwrap();
+
+        let coordinates = Coordinates {
+            latitude: GPSValue::new(0, 0, 0),
+            longitude: GPSValue::new(0, 0, 0),
+        };
+
+        let res = entry.set_coordinates(coordinates);
+
+        assert!(res.is_ok());
+    }
+}
+

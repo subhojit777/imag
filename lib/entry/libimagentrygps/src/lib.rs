@@ -24,6 +24,9 @@ extern crate toml_query;
 extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
 
+#[cfg(test)]
+extern crate env_logger;
+
 pub mod entry;
 pub mod error;
 pub mod result;
