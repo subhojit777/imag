@@ -6,7 +6,7 @@ authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 description = "Part of the imag core distribution: imag-store command"
 
 keywords    = ["imag", "PIM", "personal", "information", "management"]
-readme      = "../README.md"
+readme      = "../../../README.md"
 license     = "LGPL-2.1"
 
 documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
