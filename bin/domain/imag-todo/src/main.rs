@@ -25,6 +25,7 @@ extern crate toml_query;
 #[macro_use] extern crate version;
 
 extern crate libimagrt;
+extern crate libimagstore;
 extern crate libimagerror;
 extern crate libimagtodo;
 
@@ -35,6 +36,7 @@ use toml::Value;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
+use libimagstore::store::FileLockEntry;
 use libimagtodo::task::Task;
 use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
 
@@ -61,9 +63,9 @@ fn tw_hook(rt: &Runtime) {
     let subcmd = rt.cli().subcommand_matches("tw-hook").unwrap();
     if subcmd.is_present("add") {
         let stdin = stdin();
-        let stdin = stdin.lock(); // implements BufRead which is required for `Task::import()`
+        let stdin = stdin.lock(); // implements BufRead which is required for `FileLockEntry::import_task_from_reader()`
 
-        match Task::import(rt.store(), stdin) {
+        match FileLockEntry::import_task_from_reader(rt.store(), stdin) {
             Ok((_, line, uuid)) => println!("{}\nTask {} stored in imag", line, uuid),
             Err(e) => trace_error_exit(&e, 1),
         }
@@ -71,7 +73,7 @@ fn tw_hook(rt: &Runtime) {
         // The used hook is "on-modify". This hook gives two json-objects
         // per usage und wants one (the second one) back.
         let stdin         = stdin();
-        Task::delete_by_imports(rt.store(), stdin.lock()).map_err_trace().ok();
+        FileLockEntry::delete_tasks_by_imports(rt.store(), stdin.lock()).map_err_trace().ok();
     } else {
         // Should not be possible, as one argument is required via
         // ArgGroup
@@ -92,30 +94,34 @@ fn list(rt: &Runtime) {
         is_match!(e.kind(), &::toml_query::error::ErrorKind::IdentifierNotFoundInDocument(_))
     };
 
-    let res = Task::all(rt.store()) // get all tasks
+    let res = FileLockEntry::all_tasks(rt.store()) // get all tasks
         .map(|iter| { // and if this succeeded
             // filter out the ones were we can read the uuid
-            let uuids : Vec<_> = iter.filter_map(|t| match t {
-                Ok(v) => match v.get_header().read(&String::from("todo.uuid")) {
-                    Ok(Some(&Value::String(ref u))) => Some(u.clone()),
-                    Ok(Some(_)) => {
-                        warn!("Header type error");
-                        None
-                    },
-                    Ok(None) => {
-                        warn!("Header missing field");
-                        None
+            let uuids : Vec<_> = iter.filter_map(|storeid| {
+                match rt.store().retrieve(storeid) {
+                    Ok(fle) => {
+                        match fle.get_header().read(&String::from("todo.uuid")) {
+                            Ok(Some(&Value::String(ref u))) => Some(u.clone()),
+                            Ok(Some(_)) => {
+                                warn!("Header type error");
+                                None
+                            },
+                            Ok(None) => {
+                                warn!("Header missing field");
+                                None
+                            },
+                            Err(e) => {
+                                if !no_identifier(&e) {
+                                    trace_error(&e);
+                                }
+                                None
+                            }
+                        }
                     },
                     Err(e) => {
-                        if !no_identifier(&e) {
-                            trace_error(&e);
-                        }
+                        trace_error(&e);
                         None
-                    }
-                },
-                Err(e) => {
-                    trace_error(&e);
-                    None
+                    },
                 }
             })
             .collect();
