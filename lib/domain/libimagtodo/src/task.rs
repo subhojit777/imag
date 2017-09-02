@@ -17,36 +17,31 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#![deny(
-    dead_code,
-    non_camel_case_types,
-    non_snake_case,
-    path_statements,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_allocation,
-    unused_import_braces,
-    unused_imports,
-    unused_must_use,
-    unused_mut,
-    unused_qualifications,
-    while_true,
-)]
+use error::TodoErrorKind as TEK;
+use error::MapErrInto;
+use result::Result;
 
-extern crate uuid;
-extern crate toml;
-extern crate toml_query;
-#[macro_use] extern crate log;
-extern crate serde_json;
+use libimagstore::store::Entry;
+use libimagerror::into::IntoError;
 
-#[macro_use] extern crate libimagstore;
-#[macro_use] extern crate libimagerror;
-extern crate task_hookrs;
+use uuid::Uuid;
+use toml::Value;
+use toml_query::read::TomlValueReadExt;
 
-module_entry_path_mod!("todo");
+pub trait Task {
+    fn get_uuid(&self) -> Result<Uuid>;
+}
 
-pub mod error;
-pub mod result;
-pub mod task;
-pub mod taskstore;
+impl Task for Entry {
+    fn get_uuid(&self) -> Result<Uuid> {
+        match self.get_header().read("todo.uuid") {
+            Ok(Some(&Value::String(ref uuid))) => {
+                Uuid::parse_str(uuid).map_err_into(TEK::UuidParserError)
+            },
+            Ok(Some(_)) => Err(TEK::HeaderTypeError.into_error()),
+            Ok(None)    => Err(TEK::HeaderFieldMissing.into_error()),
+            Err(e)      => Err(e).map_err_into(TEK::StoreError),
+        }
+    }
+}
 
