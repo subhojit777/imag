@@ -22,6 +22,5 @@ is-match = "0.1.*"
 version = "2.0.1"
 
 libimagrt    = { version = "0.4.0", path = "../../../lib/core/libimagrt" }
-libimagstore = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
 libimagerror = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
 libimagtodo  = { version = "0.4.0", path = "../../../lib/domain/libimagtodo" }

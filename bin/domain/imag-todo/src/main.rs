@@ -25,7 +25,6 @@ extern crate toml_query;
 #[macro_use] extern crate version;
 
 extern crate libimagrt;
-extern crate libimagstore;
 extern crate libimagerror;
 extern crate libimagtodo;
 
@@ -36,8 +35,7 @@ use toml::Value;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
-use libimagstore::store::FileLockEntry;
-use libimagtodo::task::Task;
+use libimagtodo::task::TaskStore;
 use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
 
 mod ui;
@@ -65,7 +63,7 @@ fn tw_hook(rt: &Runtime) {
         let stdin = stdin();
         let stdin = stdin.lock(); // implements BufRead which is required for `FileLockEntry::import_task_from_reader()`
 
-        match FileLockEntry::import_task_from_reader(rt.store(), stdin) {
+        match rt.store().import_task_from_reader(stdin) {
             Ok((_, line, uuid)) => println!("{}\nTask {} stored in imag", line, uuid),
             Err(e) => trace_error_exit(&e, 1),
         }
@@ -73,7 +71,7 @@ fn tw_hook(rt: &Runtime) {
         // The used hook is "on-modify". This hook gives two json-objects
         // per usage und wants one (the second one) back.
         let stdin         = stdin();
-        FileLockEntry::delete_tasks_by_imports(rt.store(), stdin.lock()).map_err_trace().ok();
+        rt.store().delete_tasks_by_imports(stdin.lock()).map_err_trace().ok();
     } else {
         // Should not be possible, as one argument is required via
         // ArgGroup
@@ -94,7 +92,7 @@ fn list(rt: &Runtime) {
         is_match!(e.kind(), &::toml_query::error::ErrorKind::IdentifierNotFoundInDocument(_))
     };
 
-    let res = FileLockEntry::all_tasks(rt.store()) // get all tasks
+    let res = rt.store().all_tasks() // get all tasks
         .map(|iter| { // and if this succeeded
             // filter out the ones were we can read the uuid
             let uuids : Vec<_> = iter.filter_map(|storeid| {
