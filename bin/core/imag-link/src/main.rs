@@ -449,4 +449,30 @@ mod tests {
         assert_eq!(*test_links1, links_toml_value(vec!["test2"]));
         assert_eq!(*test_links2, links_toml_value(vec!["test1"]));
     }
+
+    #[test]
+    fn test_linking_more_than_two() {
+        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2", "test3"])
+            .unwrap();
+
+        let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
+        let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
+        let test_id3 = create_test_default_entry(&rt, "test3").unwrap();
+
+        handle_internal_linking(&rt);
+        handle_internal_linking(&rt);
+
+        let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
+        let test_links1 = get_entry_links(&test_entry1).unwrap();
+
+        let test_entry2 = rt.store().get(test_id2).unwrap().unwrap();
+        let test_links2 = get_entry_links(&test_entry2).unwrap();
+
+        let test_entry3 = rt.store().get(test_id3).unwrap().unwrap();
+        let test_links3 = get_entry_links(&test_entry3).unwrap();
+
+        assert_eq!(*test_links1, links_toml_value(vec!["test2", "test3"]));
+        assert_eq!(*test_links2, links_toml_value(vec!["test1"]));
+        assert_eq!(*test_links3, links_toml_value(vec!["test1"]));
+    }
 }
