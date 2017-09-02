@@ -35,7 +35,7 @@ use toml::Value;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
-use libimagtodo::task::TaskStore;
+use libimagtodo::taskstore::TaskStore;
 use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
 
 mod ui;
