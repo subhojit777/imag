@@ -19,7 +19,6 @@
 
 use std::collections::BTreeMap;
 use std::io::BufRead;
-use std::marker::Sized;
 use std::result::Result as RResult;
 
 use toml::Value;
@@ -36,36 +35,29 @@ use error::{TodoErrorKind as TEK, MapErrInto};
 use result::Result;
 
 /// Task struct containing a `FileLockEntry`
-pub trait Task<'a> {
-    fn import_task_from_reader<R: BufRead>(store: &'a Store, r: R) -> Result<(Self, String, Uuid)>
-        where Self: Sized;
-    fn get_task_from_import<R: BufRead>(store: &'a Store, r: R) -> Result<RResult<Self, String>>
-        where Self: Sized;
-    fn get_task_from_string(store: &'a Store, s: String) -> Result<RResult<Self, String>>
-        where Self: Sized;
-    fn get_task_from_uuid(store: &'a Store, uuid: Uuid) -> Result<Option<Self>>
-        where Self: Sized;
-    fn retrieve_task_from_import<R: BufRead>(store: &'a Store, r: R) -> Result<Self>
-        where Self: Sized;
-    fn retrieve_task_from_string(store: &'a Store, s: String) -> Result<Self>
-        where Self: Sized;
-    fn delete_tasks_by_imports<R: BufRead>(store: &Store, r: R) -> Result<()>;
-    fn delete_task_by_uuid(store: &Store, uuid: Uuid) -> Result<()>;
-    fn all_tasks(store: &Store) -> Result<StoreIdIterator>;
-    fn new_from_twtask(store: &'a Store, task: TTask) -> Result<Self>
-        where Self: Sized;
+pub trait TaskStore<'a> {
+    fn import_task_from_reader<R: BufRead>(&'a self, r: R) -> Result<(FileLockEntry<'a>, String, Uuid)>;
+    fn get_task_from_import<R: BufRead>(&'a self, r: R) -> Result<RResult<FileLockEntry<'a>, String>>;
+    fn get_task_from_string(&'a self, s: String) -> Result<RResult<FileLockEntry<'a>, String>>;
+    fn get_task_from_uuid(&'a self, uuid: Uuid) -> Result<Option<FileLockEntry<'a>>>;
+    fn retrieve_task_from_import<R: BufRead>(&'a self, r: R) -> Result<FileLockEntry<'a>>;
+    fn retrieve_task_from_string(&'a self, s: String) -> Result<FileLockEntry<'a>>;
+    fn delete_tasks_by_imports<R: BufRead>(&self, r: R) -> Result<()>;
+    fn delete_task_by_uuid(&self, uuid: Uuid) -> Result<()>;
+    fn all_tasks(&self) -> Result<StoreIdIterator>;
+    fn new_from_twtask(&'a self, task: TTask) -> Result<FileLockEntry<'a>>;
 }
 
-impl<'a> Task<'a> for FileLockEntry<'a> {
+impl<'a> TaskStore<'a> for Store {
 
-    fn import_task_from_reader<R: BufRead>(store: &'a Store, mut r: R) -> Result<(FileLockEntry<'a>, String, Uuid)> {
+    fn import_task_from_reader<R: BufRead>(&'a self, mut r: R) -> Result<(FileLockEntry<'a>, String, Uuid)> {
         let mut line = String::new();
         try!(r.read_line(&mut line).map_err_into(TEK::UTF8Error));
         import_task(&line.as_str())
             .map_err_into(TEK::ImportError)
             .and_then(|t| {
                 let uuid = t.uuid().clone();
-                Self::new_from_twtask(store, t).map(|t| (t, line, uuid))
+                self.new_from_twtask(t).map(|t| (t, line, uuid))
             })
     }
 
@@ -78,21 +70,21 @@ impl<'a> Task<'a> for FileLockEntry<'a> {
     /// * Ok(Err(String)) - where the String is the String read from the `r` parameter
     /// * Err(_)          - where the error is an error that happened during evaluation
     ///
-    fn get_task_from_import<R: BufRead>(store: &'a Store, mut r: R) -> Result<RResult<FileLockEntry<'a>, String>> {
+    fn get_task_from_import<R: BufRead>(&'a self, mut r: R) -> Result<RResult<FileLockEntry<'a>, String>> {
         let mut line = String::new();
         try!(r.read_line(&mut line).map_err_into(TEK::UTF8Error));
-        Self::get_task_from_string(store, line)
+        self.get_task_from_string(line)
     }
 
     /// Get a task from a String. The String is expected to contain the JSON-representation of the
     /// Task to get from the store (only the UUID really matters in this case)
     ///
     /// For an explanation on the return values see `Task::get_from_import()`.
-    fn get_task_from_string(store: &'a Store, s: String) -> Result<RResult<FileLockEntry<'a>, String>> {
+    fn get_task_from_string(&'a self, s: String) -> Result<RResult<FileLockEntry<'a>, String>> {
         import_task(s.as_str())
             .map_err_into(TEK::ImportError)
             .map(|t| t.uuid().clone())
-            .and_then(|uuid| Self::get_task_from_uuid(store, uuid))
+            .and_then(|uuid| self.get_task_from_uuid(uuid))
             .and_then(|o| match o {
                 None    => Ok(Err(s)),
                 Some(t) => Ok(Ok(t)),
@@ -102,34 +94,34 @@ impl<'a> Task<'a> for FileLockEntry<'a> {
     /// Get a task from an UUID.
     ///
     /// If there is no task with this UUID, this returns `Ok(None)`.
-    fn get_task_from_uuid(store: &'a Store, uuid: Uuid) -> Result<Option<FileLockEntry<'a>>> {
+    fn get_task_from_uuid(&'a self, uuid: Uuid) -> Result<Option<FileLockEntry<'a>>> {
         ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
             .into_storeid()
-            .and_then(|store_id| store.get(store_id))
+            .and_then(|store_id| self.get(store_id))
             .map_err_into(TEK::StoreError)
     }
 
     /// Same as Task::get_from_import() but uses Store::retrieve() rather than Store::get(), to
     /// implicitely create the task if it does not exist.
-    fn retrieve_task_from_import<R: BufRead>(store: &'a Store, mut r: R) -> Result<FileLockEntry<'a>> {
+    fn retrieve_task_from_import<R: BufRead>(&'a self, mut r: R) -> Result<FileLockEntry<'a>> {
         let mut line = String::new();
         try!(r.read_line(&mut line).map_err_into(TEK::UTF8Error));
-        Self::retrieve_task_from_string(store, line)
+        self.retrieve_task_from_string(line)
     }
 
     /// Retrieve a task from a String. The String is expected to contain the JSON-representation of
     /// the Task to retrieve from the store (only the UUID really matters in this case)
-    fn retrieve_task_from_string(store: &'a Store, s: String) -> Result<FileLockEntry<'a>> {
-        Self::get_task_from_string(store, s)
+    fn retrieve_task_from_string(&'a self, s: String) -> Result<FileLockEntry<'a>> {
+        self.get_task_from_string(s)
             .and_then(|opt| match opt {
                 Ok(task)    => Ok(task),
                 Err(string) => import_task(string.as_str())
                     .map_err_into(TEK::ImportError)
-                    .and_then(|t| Self::new_from_twtask(store, t)),
+                    .and_then(|t| self.new_from_twtask(t)),
             })
     }
 
-    fn delete_tasks_by_imports<R: BufRead>(store: &Store, r: R) -> Result<()> {
+    fn delete_tasks_by_imports<R: BufRead>(&self, r: R) -> Result<()> {
         use serde_json::ser::to_string as serde_to_string;
         use task_hookrs::status::TaskStatus;
 
@@ -153,7 +145,7 @@ impl<'a> Task<'a> for FileLockEntry<'a> {
                         // Here we check if the status of a task is deleted and if yes, we delete it
                         // from the store.
                         if *ttask.status() == TaskStatus::Deleted {
-                            match Self::delete_task_by_uuid(store, *ttask.uuid()) {
+                            match self.delete_task_by_uuid(*ttask.uuid()) {
                                 Ok(_)  => info!("Deleted task {}", *ttask.uuid()),
                                 Err(e) => return Err(e),
                             }
@@ -166,19 +158,19 @@ impl<'a> Task<'a> for FileLockEntry<'a> {
         Ok(())
     }
 
-    fn delete_task_by_uuid(store: &Store, uuid: Uuid) -> Result<()> {
+    fn delete_task_by_uuid(&self, uuid: Uuid) -> Result<()> {
         ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
             .into_storeid()
-            .and_then(|id| store.delete(id))
+            .and_then(|id| self.delete(id))
             .map_err_into(TEK::StoreError)
     }
 
-    fn all_tasks(store: &Store) -> Result<StoreIdIterator> {
-        store.retrieve_for_module("todo/taskwarrior")
+    fn all_tasks(&self) -> Result<StoreIdIterator> {
+        self.retrieve_for_module("todo/taskwarrior")
             .map_err_into(TEK::StoreError)
     }
 
-    fn new_from_twtask(store: &'a Store, task: TTask) -> Result<FileLockEntry<'a>> {
+    fn new_from_twtask(&'a self, task: TTask) -> Result<FileLockEntry<'a>> {
         use toml_query::read::TomlValueReadExt;
         use toml_query::set::TomlValueSetExt;
 
@@ -187,7 +179,7 @@ impl<'a> Task<'a> for FileLockEntry<'a> {
             .into_storeid()
             .map_err_into(TEK::StoreIdError)
             .and_then(|id| {
-                store.retrieve(id)
+                self.retrieve(id)
                     .map_err_into(TEK::StoreError)
                     .and_then(|mut fle| {
                         {
