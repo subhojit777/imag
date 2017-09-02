@@ -33,3 +33,9 @@ path = "../../../lib/etc/libimagutil"
 default-features = false
 features         = ["testing"]
 
+[dev-dependencies.libimagrt]
+version          = "0.4.0"
+path             = "../../../lib/core/libimagrt"
+default-features = false
+features         = ["testing"]
+
