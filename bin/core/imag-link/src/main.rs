@@ -391,7 +391,7 @@ mod tests {
 
     #[test]
     fn test_link_modificates() {
-        let rt = generate_test_runtime(vec!["internal", "add", "--from", "test1", "--to", "test2"])
+        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2"])
             .unwrap();
 
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
@@ -411,7 +411,7 @@ mod tests {
 
     #[test]
     fn test_linking_links() {
-        let rt = generate_test_runtime(vec!["internal", "add", "--from", "test1", "--to", "test2"])
+        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2"])
             .unwrap();
 
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
@@ -431,7 +431,7 @@ mod tests {
 
     #[test]
     fn test_multilinking() {
-        let rt = generate_test_runtime(vec!["internal", "add", "--from", "test1", "--to", "test2"])
+        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2"])
             .unwrap();
 
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
