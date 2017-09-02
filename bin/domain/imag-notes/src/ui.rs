@@ -19,8 +19,6 @@
 
 use clap::{Arg, App, SubCommand};
 
-use libimagentrytag::ui::tag_argument;
-
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
         .subcommand(SubCommand::with_name("create")
@@ -62,8 +60,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .required(true)
                         .help("Edit Note with this name")
                         .value_name("NAME"))
-
-                   .arg(tag_argument())
                    )
 
         .subcommand(SubCommand::with_name("list")
