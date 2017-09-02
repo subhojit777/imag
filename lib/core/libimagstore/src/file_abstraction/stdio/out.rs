@@ -31,8 +31,8 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::ops::Deref;
 
-use libimagerror::into::IntoError;
 use libimagerror::trace::*;
+use libimagerror::into::IntoError;
 
 use error::StoreErrorKind as SEK;
 use error::StoreError as SE;
@@ -101,7 +101,7 @@ impl<W, M> Drop for StdoutFileAbstraction<W, M>
         use std::ops::DerefMut;
 
         let fill_res = match self.mem.backend().lock() {
-            Err(_) => Err(SEK::LockError.into_error()),
+            Err(_) => Err(SE::from_kind(SEK::LockError)),
             Ok(mut mtx) => {
                 self.mapper.fs_to_write(mtx.get_mut(), self.out.borrow_mut().deref_mut())
             },

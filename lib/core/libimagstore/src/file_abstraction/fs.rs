@@ -21,7 +21,8 @@ use std::fs::{File, OpenOptions, create_dir_all, remove_file, copy, rename};
 use std::io::{Seek, SeekFrom, Read};
 use std::path::{Path, PathBuf};
 
-use error::{MapErrInto, StoreError as SE, StoreErrorKind as SEK};
+use error::{StoreError as SE, StoreErrorKind as SEK};
+use error::ResultExt;
 
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
@@ -47,22 +48,22 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
                 // We seek to the beginning of the file since we expect each
                 // access to the file to be in a different context
                 try!(f.seek(SeekFrom::Start(0))
-                    .map_err_into(SEK::FileNotSeeked));
+                    .chain_err(|| SEK::FileNotSeeked));
 
                 let mut s = String::new();
                 f.read_to_string(&mut s)
-                    .map_err_into(SEK::IoError)
+                    .chain_err(|| SEK::IoError)
                     .map(|_| s)
                     .and_then(|s| Entry::from_str(id, &s))
             },
             FSFileAbstractionInstance::Absent(ref p) =>
-                (try!(open_file(p).map_err_into(SEK::FileNotFound)), p.clone()),
+                (try!(open_file(p).chain_err(|| SEK::FileNotFound)), p.clone()),
         };
         *self = FSFileAbstractionInstance::File(file, path);
         if let FSFileAbstractionInstance::File(ref mut f, _) = *self {
             let mut s = String::new();
             f.read_to_string(&mut s)
-                .map_err_into(SEK::IoError)
+                .chain_err(|| SEK::IoError)
                 .map(|_| s)
                 .and_then(|s| Entry::from_str(id, &s))
         } else {
@@ -83,18 +84,18 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
                 // We seek to the beginning of the file since we expect each
                 // access to the file to be in a different context
                 try!(f.seek(SeekFrom::Start(0))
-                    .map_err_into(SEK::FileNotCreated));
+                    .chain_err(|| SEK::FileNotCreated));
 
-                try!(f.set_len(buf.len() as u64).map_err_into(SEK::FileNotWritten));
+                try!(f.set_len(buf.len() as u64).chain_err(|| SEK::FileNotWritten));
 
-                f.write_all(&buf).map_err_into(SEK::FileNotWritten)
+                f.write_all(&buf).chain_err(|| SEK::FileNotWritten)
             },
             FSFileAbstractionInstance::Absent(ref p) =>
-                (try!(create_file(p).map_err_into(SEK::FileNotCreated)), p.clone()),
+                (try!(create_file(p).chain_err(|| SEK::FileNotCreated)), p.clone()),
         };
         *self = FSFileAbstractionInstance::File(file, path);
         if let FSFileAbstractionInstance::File(ref mut f, _) = *self {
-            return f.write_all(&buf).map_err_into(SEK::FileNotWritten);
+            return f.write_all(&buf).chain_err(|| SEK::FileNotWritten);
         }
         unreachable!();
     }
@@ -117,19 +118,19 @@ impl FSFileAbstraction {
 impl FileAbstraction for FSFileAbstraction {
 
     fn remove_file(&self, path: &PathBuf) -> Result<(), SE> {
-        remove_file(path).map_err_into(SEK::FileNotRemoved)
+        remove_file(path).chain_err(|| SEK::FileNotRemoved)
     }
 
     fn copy(&self, from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
-        copy(from, to).map_err_into(SEK::FileNotCopied).map(|_| ())
+        copy(from, to).chain_err(|| SEK::FileNotCopied).map(|_| ())
     }
 
     fn rename(&self, from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
-        rename(from, to).map_err_into(SEK::FileNotRenamed)
+        rename(from, to).chain_err(|| SEK::FileNotRenamed)
     }
 
     fn create_dir_all(&self, path: &PathBuf) -> Result<(), SE> {
-        create_dir_all(path).map_err_into(SEK::DirNotCreated)
+        create_dir_all(path).chain_err(|| SEK::DirNotCreated)
     }
 
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance> {

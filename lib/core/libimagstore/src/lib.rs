@@ -49,7 +49,7 @@ extern crate serde_json;
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate error_chain;
 
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 extern crate libimagutil;
 
 #[macro_use] mod util;

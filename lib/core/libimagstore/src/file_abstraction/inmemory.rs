@@ -17,22 +17,23 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::path::PathBuf;
+
 use error::StoreError as SE;
 use error::StoreErrorKind as SEK;
-use std::path::PathBuf;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use std::cell::RefCell;
 use std::sync::Arc;
 use std::ops::Deref;
 
-use libimagerror::into::IntoError;
-
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
 use super::Drain;
 use store::Entry;
 use storeid::StoreId;
+
+use libimagerror::into::IntoError;
 
 type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Entry>>>>;
 
@@ -64,16 +65,15 @@ impl FileAbstractionInstance for InMemoryFileAbstractionInstance {
     fn get_file_content(&mut self, _: StoreId) -> Result<Entry, SE> {
         debug!("Getting lazy file: {:?}", self);
 
-        match self.fs_abstraction.lock() {
-            Ok(mut mtx) => {
+        self.fs_abstraction
+            .lock()
+            .map_err(|_| SEK::LockError.into_error())
+            .and_then(|mut mtx| {
                 mtx.get_mut()
                     .get(&self.absent_path)
                     .cloned()
                     .ok_or(SEK::FileNotFound.into_error())
-            }
-
-            Err(_) => Err(SEK::LockError.into_error())
-        }
+            })
     }
 
     fn write_file_content(&mut self, buf: &Entry) -> Result<(), SE> {
@@ -163,7 +163,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
 
     fn fill<'a>(&'a mut self, mut d: Drain) -> Result<(), SE> {
         debug!("Draining into : {:?}", self);
-        let mut mtx = try!(self.backend().lock().map_err(|_| SEK::LockError.into_error()));
+        let mut mtx = try!(self.backend().lock().map_err(|_| SEK::LockError));
         let backend = mtx.get_mut();
 
         for (path, element) in d.iter() {

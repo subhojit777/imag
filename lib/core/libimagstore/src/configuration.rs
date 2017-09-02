@@ -19,9 +19,8 @@
 
 use toml::Value;
 
-use libimagerror::into::IntoError;
-
 use store::Result;
+use error::StoreError as SE;
 
 /// Check whether the configuration is valid for the store
 pub fn config_is_valid(config: &Option<Value>) -> Result<()> {
@@ -35,7 +34,7 @@ pub fn config_is_valid(config: &Option<Value>) -> Result<()> {
         Some(Value::Table(_)) => Ok(()),
         _ => {
             warn!("Store config is no table");
-            Err(SEK::ConfigTypeError.into_error())
+            Err(SE::from_kind(SEK::ConfigTypeError))
         },
     }
 }

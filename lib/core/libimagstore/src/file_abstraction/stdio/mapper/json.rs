@@ -25,13 +25,12 @@ use serde_json;
 use toml;
 
 use error::StoreErrorKind as SEK;
-use error::MapErrInto;
+use error::StoreError as SE;
+use error::ResultExt;
 use super::Mapper;
 use store::Result;
 use store::Entry;
 use storeid::StoreId;
-
-use libimagerror::into::IntoError;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct BackendEntry {
@@ -43,7 +42,7 @@ impl BackendEntry {
 
     fn to_string(self) -> Result<String> {
         toml::to_string(&self.header)
-            .map_err_into(SEK::IoError)
+            .chain_err(|| SEK::IoError)
             .map(|hdr| {
                 format!("---\n{header}---\n{content}",
                         header  = hdr,
@@ -74,16 +73,16 @@ impl Mapper for JsonMapper {
         let mut document = {
             debug!("Reading Document");
             let mut s = String::new();
-            try!(r.read_to_string(&mut s).map_err_into(SEK::IoError));
+            try!(r.read_to_string(&mut s).chain_err(|| SEK::IoError));
             debug!("Document = {:?}", s);
             debug!("Parsing Document");
-            let doc : Document = try!(serde_json::from_str(&s).map_err_into(SEK::IoError));
+            let doc : Document = try!(serde_json::from_str(&s).chain_err(|| SEK::IoError));
             debug!("Document = {:?}", doc);
             doc
         };
 
         let _ = try!(::semver::Version::parse(&document.version)
-            .map_err_into(SEK::VersionError)
+            .chain_err(|| SEK::VersionError)
             .and_then(|doc_vers| {
                 // safe because cargo does not compile if crate version is not valid
                 let crate_version = ::semver::Version::parse(version!()).unwrap();
@@ -93,7 +92,7 @@ impl Mapper for JsonMapper {
                        crate_vers = crate_version);
 
                 if doc_vers > crate_version {
-                    Err(SEK::VersionError.into_error())
+                    Err(SE::from_kind(SEK::VersionError))
                 } else {
                     Ok(())
                 }
@@ -150,9 +149,9 @@ impl Mapper for JsonMapper {
         };
 
         serde_json::to_string(&doc)
-            .map_err_into(SEK::IoError)
-            .and_then(|json| out.write(&json.into_bytes()).map_err_into(SEK::IoError))
-            .and_then(|_| out.flush().map_err_into(SEK::IoError))
+            .chain_err(|| SEK::IoError)
+            .and_then(|json| out.write(&json.into_bytes()).chain_err(|| SEK::IoError))
+            .and_then(|_| out.flush().chain_err(|| SEK::IoError))
             .map(|_| ())
     }
 }

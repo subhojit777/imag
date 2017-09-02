@@ -32,7 +32,7 @@ use log::LogLevelFilter;
 use configuration::{Configuration, InternalConfiguration};
 use error::RuntimeError;
 use error::RuntimeErrorKind;
-use error::MapErrInto;
+use error::ResultExt;
 use logger::ImagLogger;
 
 use libimagstore::store::Store;
