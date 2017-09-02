@@ -315,6 +315,29 @@ impl<'a> Runtime<'a> {
         "generate-completion"
     }
 
+    /// Extract the Store object from the Runtime object, destroying the Runtime object
+    ///
+    /// # Warning
+    ///
+    /// This function is for testing _only_! It can be used to re-build a Runtime object with an
+    /// alternative Store.
+    #[cfg(feature = "testing")]
+    pub fn extract_store(self) -> Store {
+        self.store
+    }
+
+    /// Re-set the Store object within
+    ///
+    /// # Warning
+    ///
+    /// This function is for testing _only_! It can be used to re-build a Runtime object with an
+    /// alternative Store.
+    #[cfg(feature = "testing")]
+    pub fn with_store(mut self, s: Store) -> Self {
+        self.store = s;
+        self
+    }
+
     /// Initialize the internal logger
     fn init_logger(is_debugging: bool, is_verbose: bool, colored: bool) {
         use std::env::var as env_var;

@@ -108,6 +108,18 @@ macro_rules! make_mock_app {
                 let cli_app = MockLinkApp::new(cli_args);
                 Runtime::with_configuration(cli_app, generate_minimal_test_config())
             }
+
+            pub fn reset_test_runtime<'a>(mut args: Vec<&'static str>, old_runtime: Runtime)
+                -> Result<Runtime<'a>, RuntimeError>
+            {
+                let mut cli_args = vec![$appname, "--rtp", "/tmp"];
+
+                cli_args.append(&mut args);
+
+                let cli_app = MockLinkApp::new(cli_args);
+                Runtime::with_configuration(cli_app, generate_minimal_test_config())
+                    .map(|rt| rt.with_store(old_runtime.extract_store()))
+            }
         }
     };
 
