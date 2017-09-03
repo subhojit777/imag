@@ -33,8 +33,6 @@ use super::Drain;
 use store::Entry;
 use storeid::StoreId;
 
-use libimagerror::into::IntoError;
-
 type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Entry>>>>;
 
 /// `FileAbstraction` type, this is the Test version!
@@ -67,12 +65,12 @@ impl FileAbstractionInstance for InMemoryFileAbstractionInstance {
 
         self.fs_abstraction
             .lock()
-            .map_err(|_| SEK::LockError.into_error())
+            .map_err(|_| SE::from_kind(SEK::LockError))
             .and_then(|mut mtx| {
                 mtx.get_mut()
                     .get(&self.absent_path)
                     .cloned()
-                    .ok_or(SEK::FileNotFound.into_error())
+                    .ok_or(SE::from_kind(SEK::FileNotFound))
             })
     }
 
@@ -108,7 +106,7 @@ impl InMemoryFileAbstraction {
     fn backend_cloned<'a>(&'a self) -> Result<HashMap<PathBuf, Entry>, SE> {
         self.virtual_filesystem
             .lock()
-            .map_err(|_| SEK::LockError.into_error())
+            .map_err(|_| SE::from_kind(SEK::LockError))
             .map(|mtx| mtx.deref().borrow().clone())
     }
 
@@ -124,7 +122,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
             .get_mut()
             .remove(path)
             .map(|_| ())
-            .ok_or(SEK::FileNotFound.into_error())
+            .ok_or(SE::from_kind(SEK::FileNotFound))
     }
 
     fn copy(&self, from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
@@ -132,7 +130,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
         let mut mtx = self.backend().lock().expect("Locking Mutex failed");
         let backend = mtx.get_mut();
 
-        let a = try!(backend.get(from).cloned().ok_or(SEK::FileNotFound.into_error()));
+        let a = try!(backend.get(from).cloned().ok_or(SE::from_kind(SEK::FileNotFound)));
         backend.insert(to.clone(), a);
         debug!("Copying: {:?} -> {:?} worked", from, to);
         Ok(())
@@ -143,7 +141,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
         let mut mtx = self.backend().lock().expect("Locking Mutex failed");
         let backend = mtx.get_mut();
 
-        let a = try!(backend.get(from).cloned().ok_or(SEK::FileNotFound.into_error()));
+        let a = try!(backend.get(from).cloned().ok_or(SE::from_kind(SEK::FileNotFound)));
         backend.insert(to.clone(), a);
         debug!("Renaming: {:?} -> {:?} worked", from, to);
         Ok(())

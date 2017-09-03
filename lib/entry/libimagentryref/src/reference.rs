@@ -33,7 +33,6 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::Store;
-use libimagerror::into::IntoError;
 
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
@@ -41,6 +40,7 @@ use toml_query::set::TomlValueSetExt;
 use toml_query::insert::TomlValueInsertExt;
 
 use error::RefErrorKind as REK;
+use error::RefError as RE;
 use error::ResultExt;
 use flags::RefFlags;
 use result::Result;
@@ -60,8 +60,8 @@ impl<'a> Ref<'a> {
     /// Try to get `si` as Ref object from the store
     pub fn get(store: &'a Store, si: StoreId) -> Result<Ref<'a>> {
         match store.get(si) {
-            Err(e) => return Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
-            Ok(None) => return Err(REK::RefNotInStore.into_error()),
+            Err(e) => return Err(e).chain_err(|| REK::StoreReadError),
+            Ok(None) => return Err(RE::from_kind(REK::RefNotInStore)),
             Ok(Some(fle)) => Ref::from_filelockentry(fle),
         }
     }
@@ -90,9 +90,9 @@ impl<'a> Ref<'a> {
     fn read_reference(fle: &FileLockEntry<'a>) -> Result<PathBuf> {
         match fle.get_header().read("ref.path") {
             Ok(Some(&Value::String(ref s))) => Ok(PathBuf::from(s)),
-            Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
-            Ok(None)    => Err(REK::HeaderFieldMissingError.into_error()),
-            Err(e)      => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
+            Ok(Some(_)) => Err(RE::from_kind(REK::HeaderTypeError)),
+            Ok(None)    => Err(RE::from_kind(REK::HeaderFieldMissingError)),
+            Err(e)      => Err(e).chain_err(|| REK::StoreReadError),
         }
     }
 
@@ -100,10 +100,10 @@ impl<'a> Ref<'a> {
         -> Result<Ref<'a>>
     {
         if !pb.exists() {
-            return Err(REK::RefTargetDoesNotExist.into_error());
+            return Err(RE::from_kind(REK::RefTargetDoesNotExist));
         }
         if flags.get_content_hashing() && pb.is_dir() {
-            return Err(REK::RefTargetCannotBeHashed.into_error());
+            return Err(RE::from_kind(REK::RefTargetCannotBeHashed));
         }
 
         let (mut fle, content_hash, permissions, canonical_path) = { // scope to be able to fold
@@ -165,7 +165,7 @@ impl<'a> Ref<'a> {
                 .and_then(|(opt_conhash, opt_perm, can, path_hash)| {
                     match can.to_str().map(String::from) {
                         // UTF convert error in PathBuf::to_str(),
-                        None      => Err(REK::PathUTF8Error.into_error()),
+                        None      => Err(RE::from_kind(REK::PathUTF8Error)),
                         Some(can) => Ok((opt_conhash, opt_perm, can, path_hash))
                     }
                 })
@@ -207,9 +207,7 @@ impl<'a> Ref<'a> {
                             debug!("Overwrote: {}, which was: {:?}", s, val);
                         },
                         Err(e) => {
-                            let e = Box::new(e);
-                            let e = REK::HeaderFieldWriteError.into_error_with_cause(e);
-                            return Err(e);
+                            return Err(e).chain_err(|| REK::HeaderFieldWriteError);
                         },
                     }
                 }
@@ -239,7 +237,7 @@ impl<'a> Ref<'a> {
                 hasher.input_str(s);
                 Ok(hasher.result_str())
             },
-            None => return Err(REK::PathUTF8Error.into_error()),
+            None => return Err(RE::from_kind(REK::PathUTF8Error)),
         }
     }
 
@@ -255,7 +253,7 @@ impl<'a> Ref<'a> {
                     .and_then(|osstr| osstr.to_str())
                     .and_then(|s| s.split("~").next())
                     .map(String::from)
-                    .ok_or(REK::StoreIdError.into_error())
+                    .ok_or(RE::from_kind(REK::StoreIdError))
             })
     }
 
@@ -272,13 +270,13 @@ impl<'a> Ref<'a> {
             Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
 
             // content hash header field has wrong type
-            Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
+            Ok(Some(_)) => Err(RE::from_kind(REK::HeaderTypeError)),
 
             // content hash not stored
-            Ok(None) => Err(REK::HeaderFieldMissingError.into_error()),
+            Ok(None) => Err(RE::from_kind(REK::HeaderFieldMissingError)),
 
             // Error
-            Err(e) => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
+            Err(e) => Err(e).chain_err(|| REK::StoreReadError),
         }
     }
 
@@ -357,8 +355,8 @@ impl<'a> Ref<'a> {
             .and_then(|ro| {
                 match ro {
                     Some(&Value::Boolean(b)) => Ok(b),
-                    Some(_)                 => Err(REK::HeaderTypeError.into_error()),
-                    None                    => Err(REK::HeaderFieldMissingError.into_error()),
+                    Some(_)                 => Err(RE::from_kind(REK::HeaderTypeError)),
+                    None                    => Err(RE::from_kind(REK::HeaderFieldMissingError)),
                 }
             })
             .and_then(|ro| self.get_current_permissions().map(|perm| ro == perm.readonly()))
@@ -403,9 +401,9 @@ impl<'a> Ref<'a> {
     pub fn fs_file(&self) -> Result<PathBuf> {
         match self.0.get_header().read("ref.path") {
             Ok(Some(&Value::String(ref s))) => Ok(PathBuf::from(s)),
-            Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
-            Ok(None)    => Err(REK::HeaderFieldMissingError.into_error()),
-            Err(e)      => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
+            Ok(Some(_)) => Err(RE::from_kind(REK::HeaderTypeError)),
+            Ok(None)    => Err(RE::from_kind(REK::HeaderFieldMissingError)),
+            Err(e)      => Err(e).chain_err(|| REK::StoreReadError),
         }
     }
 
@@ -443,11 +441,11 @@ impl<'a> Ref<'a> {
                         },
 
                         Ok(None) => { // Something weird just happened
-                            return Err(REK::StoreReadError.into_error());
+                            return Err(RE::from_kind(REK::StoreReadError));
                         },
 
                         Err(e) => {
-                            return Err(REK::StoreReadError.into_error_with_cause(Box::new(e)));
+                            return Err(e).chain_err(|| REK::StoreReadError);
                         },
                     }
                 }
@@ -512,7 +510,7 @@ impl<'a> Ref<'a> {
                     })
                     .flatten()
                     .next()
-                    .ok_or(REK::RefTargetDoesNotExist.into_error())
+                    .ok_or(RE::from_kind(REK::RefTargetDoesNotExist))
             })
     }
 

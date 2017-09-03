@@ -17,10 +17,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::error::Error;
-
-use libimagerror::into::IntoError;
-
 error_chain! {
     types {
         TimeTrackError, TimeTrackErrorKind, ResultExt, Result;
@@ -66,14 +62,3 @@ error_chain! {
     }
 }
 
-impl IntoError for TimeTrackErrorKind {
-    type Target = TimeTrackError;
-
-    fn into_error(self) -> Self::Target {
-        TimeTrackError::from_kind(self)
-    }
-
-    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
-        TimeTrackError::from_kind(self)
-    }
-}

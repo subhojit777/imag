@@ -27,10 +27,10 @@
 use chrono::naive::NaiveDateTime;
 
 use libimagstore::store::Entry;
-use libimagerror::into::IntoError;
 
 use tag::TimeTrackingTag as TTT;
 use error::TimeTrackErrorKind as TTEK;
+use error::TimeTrackError as TTE;
 use error::ResultExt;
 use result::Result;
 use constants::*;
@@ -68,8 +68,8 @@ impl TimeTracking for Entry {
             .chain_err(|| TTEK::HeaderReadError)
             .and_then(|value| match value {
                 Some(&Value::String(ref s)) => Ok(s.clone().into()),
-                Some(_) => Err(TTEK::HeaderFieldTypeError.into_error()),
-                _ => Err(TTEK::HeaderReadError.into_error())
+                Some(_) => Err(TTE::from_kind(TTEK::HeaderFieldTypeError)),
+                _ => Err(TTE::from_kind(TTEK::HeaderReadError))
             })
     }
 
@@ -145,7 +145,7 @@ fn header_value_to_dt(val: Option<&Value>) -> Result<Option<NaiveDateTime>> {
                 .map(Some)
 
         },
-        Some(_) => Err(TTEK::HeaderFieldTypeError.into_error()),
+        Some(_) => Err(TTE::from_kind(TTEK::HeaderFieldTypeError)),
         None => Ok(None),
     }
 }

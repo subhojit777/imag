@@ -23,9 +23,9 @@ use toml_query::error::ErrorKind as TQEK;
 use toml::Value;
 
 use libimagstore::store::Entry;
-use libimagerror::into::IntoError;
 
 use error::CategoryErrorKind as CEK;
+use error::CategoryError as CE;
 use error::ResultExt;
 use result::Result;
 use register::CategoryRegister;
@@ -76,7 +76,7 @@ impl EntryCategory for Entry {
             .and_then(|bl| if bl {
                 self.set_category(s)
             } else {
-                Err(CEK::CategoryDoesNotExist.into_error())
+                Err(CE::from_kind(CEK::CategoryDoesNotExist))
             })
     }
 
@@ -89,8 +89,8 @@ impl EntryCategory for Entry {
             .chain_err(|| CEK::HeaderReadError),
 
             Ok(Some(&Value::String(ref s))) => Ok(Some(s.clone().into())),
-            Ok(None) => Err(CEK::StoreReadError.into_error()).chain_err(|| CEK::HeaderReadError),
-            Ok(_) => Err(CEK::TypeError.into_error()).chain_err(|| CEK::HeaderReadError),
+            Ok(None) => Err(CE::from_kind(CEK::StoreReadError)).chain_err(|| CEK::HeaderReadError),
+            Ok(_) => Err(CE::from_kind(CEK::TypeError)).chain_err(|| CEK::HeaderReadError),
         }
     }
 

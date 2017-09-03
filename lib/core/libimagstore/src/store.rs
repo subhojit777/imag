@@ -49,7 +49,6 @@ pub use file_abstraction::FSFileAbstraction;
 pub use file_abstraction::InMemoryFileAbstraction;
 
 use libimagerror::trace::trace_error;
-use libimagerror::into::IntoError;
 use libimagutil::debug_result::*;
 
 use self::glob_store_iter::*;
@@ -274,7 +273,7 @@ impl Store {
                 warn!("Implicitely creating store directory is denied");
                 warn!(" -> Either because configuration does not allow it");
                 warn!(" -> or because there is no configuration");
-                return Err(SEK::CreateStoreDirDenied.into_error())
+                return Err(SE::from_kind(SEK::CreateStoreDirDenied))
                     .chain_err(|| SEK::FileError)
                     .chain_err(|| SEK::IoError);
             }
@@ -284,7 +283,7 @@ impl Store {
                  .map_dbg_err_str("Failed"));
         } else if location.is_file() {
             debug!("Store path exists as file");
-            return Err(SEK::StorePathExists.into_error());
+            return Err(SE::from_kind(SEK::StorePathExists));
         }
 
         let store = Store {
@@ -408,13 +407,13 @@ impl Store {
 
         {
             let mut hsmap = match self.entries.write() {
-                Err(_) => return Err(SEK::LockPoisoned.into_error()).chain_err(|| SEK::CreateCallError),
+                Err(_) => return Err(SE::from_kind(SEK::LockPoisoned)).chain_err(|| SEK::CreateCallError),
                 Ok(s) => s,
             };
 
             if hsmap.contains_key(&id) {
                 debug!("Cannot create, internal cache already contains: '{}'", id);
-                return Err(SEK::EntryAlreadyExists.into_error()).chain_err(|| SEK::CreateCallError);
+                return Err(SE::from_kind(SEK::EntryAlreadyExists)).chain_err(|| SEK::CreateCallError);
             }
             hsmap.insert(id.clone(), {
                 debug!("Creating: '{}'", id);
@@ -637,7 +636,7 @@ impl Store {
             // if the entry is currently modified by the user, we cannot drop it
             match entries.get(&id) {
                 None => {
-                    return Err(SEK::FileNotFound.into_error()).chain_err(|| SEK::DeleteCallError)
+                    return Err(SE::from_kind(SEK::FileNotFound)).chain_err(|| SEK::DeleteCallError)
                 },
                 Some(e) => if e.is_borrowed() {
                     return Err(SE::from_kind(SEK::IdLocked)).chain_err(|| SEK::DeleteCallError)
@@ -678,12 +677,12 @@ impl Store {
         let hsmap = try!(
             self.entries
                 .write()
-                .map_err(|_| SEK::LockPoisoned.into_error())
+                .map_err(|_| SE::from_kind(SEK::LockPoisoned))
                 .chain_err(|| SEK::MoveCallError)
         );
 
         if hsmap.contains_key(&new_id) {
-            return Err(SEK::EntryAlreadyExists.into_error()).chain_err(|| SEK::MoveCallError)
+            return Err(SE::from_kind(SEK::EntryAlreadyExists)).chain_err(|| SEK::MoveCallError)
         }
 
         let old_id = entry.get_location().clone();

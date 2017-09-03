@@ -24,9 +24,9 @@ use toml_query::read::TomlValueReadExt;
 use toml::Value;
 
 use libimagstore::store::Entry;
-use libimagerror::into::IntoError;
 
 use error::DateErrorKind as DEK;
+use error::DateError as DE;
 use error::*;
 use result::Result;
 use range::DateTimeRange;
@@ -67,8 +67,8 @@ impl EntryDate for Entry {
                 match v {
                     Some(&Value::String(ref s)) => s.parse::<NaiveDateTime>()
                         .chain_err(|| DEK::DateTimeParsingError),
-                    Some(_) => Err(DEK::DateHeaderFieldTypeError.into_error()),
-                    _ => Err(DEK::ReadDateError.into_error()),
+                    Some(_) => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
+                    _ => Err(DE::from_kind(DEK::ReadDateError)),
                 }
             })
     }
@@ -98,7 +98,7 @@ impl EntryDate for Entry {
                 match stri {
                     Value::String(ref s) => s.parse::<NaiveDateTime>()
                                              .chain_err(|| DEK::DateTimeParsingError),
-                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                    _ => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
                 }
             }))
             .chain_err(|| DEK::SetDateError)
@@ -134,8 +134,8 @@ impl EntryDate for Entry {
                 match v {
                     Some(&Value::String(ref s)) => s.parse::<NaiveDateTime>()
                         .chain_err(|| DEK::DateTimeParsingError),
-                    Some(_) => Err(DEK::DateHeaderFieldTypeError.into_error()),
-                    _ => Err(DEK::ReadDateError.into_error()),
+                    Some(_) => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
+                    _ => Err(DE::from_kind(DEK::ReadDateError)),
                 }
             }));
 
@@ -147,8 +147,8 @@ impl EntryDate for Entry {
                 match v {
                     Some(&Value::String(ref s)) => s.parse::<NaiveDateTime>()
                         .chain_err(|| DEK::DateTimeParsingError),
-                    Some(_) => Err(DEK::DateHeaderFieldTypeError.into_error()),
-                    _ => Err(DEK::ReadDateError.into_error()),
+                    Some(_) => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
+                    _ => Err(DE::from_kind(DEK::ReadDateError)),
                 }
             }));
 
@@ -176,7 +176,7 @@ impl EntryDate for Entry {
                 match stri {
                     Value::String(ref s) => s.parse::<NaiveDateTime>()
                                              .chain_err(|| DEK::DateTimeParsingError),
-                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                    _ => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
                 }
             }))
             .chain_err(|| DEK::SetDateTimeRangeError));
@@ -188,7 +188,7 @@ impl EntryDate for Entry {
                 match stri {
                     Value::String(ref s) => s.parse::<NaiveDateTime>()
                                              .chain_err(|| DEK::DateTimeParsingError),
-                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                    _ => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
                 }
             }))
             .chain_err(|| DEK::SetDateTimeRangeError));

@@ -29,6 +29,7 @@ use std::ops::DerefMut;
 use regex::Regex;
 
 use error::BookmarkErrorKind as BEK;
+use error::BookmarkError as BE;
 use error::ResultExt;
 use result::Result;
 use module_path::ModuleEntryPath;
@@ -40,7 +41,6 @@ use libimagentrylink::external::ExternalLinker;
 use libimagentrylink::external::iter::UrlIter;
 use libimagentrylink::internal::InternalLinker;
 use libimagentrylink::internal::Link as StoreLink;
-use libimagerror::into::IntoError;
 
 use link::Link;
 
@@ -91,7 +91,7 @@ impl<'a> BookmarkCollection<'a> {
             .chain_err(|| BEK::StoreReadError)
             .and_then(|fle| {
                 match fle {
-                    None => Err(BEK::CollectionNotFound.into_error()),
+                    None => Err(BE::from_kind(BEK::CollectionNotFound)),
                     Some(e) => Ok(BookmarkCollection {
                         fle: e,
                         store: store,

@@ -18,14 +18,13 @@
 //
 
 use error::MarkdownErrorKind as MEK;
+use error::ResultExt;
 use result::Result;
 
 use hoedown::renderer::Render;
 use hoedown::Buffer;
 use hoedown::Markdown;
 use url::Url;
-
-use libimagerror::into::IntoError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Link {
@@ -39,8 +38,7 @@ impl Link {
     pub fn into_urllink(self) -> Result<UrlLink> {
         Url::parse(&self.link[..])
             .map(move |link| UrlLink { title: self.title, link: link, })
-            .map_err(Box::new)
-            .map_err(|e| MEK::LinkParsingError.into_error_with_cause(e))
+            .chain_err(|| MEK::LinkParsingError)
     }
 
 }

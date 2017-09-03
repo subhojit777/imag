@@ -17,9 +17,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::error::Error;
-
-use libimagerror::into::IntoError;
 use libimagstore::storeid::StoreId;
 
 error_chain! {
@@ -105,14 +102,3 @@ error_chain! {
     }
 }
 
-impl IntoError for LinkErrorKind {
-    type Target = LinkError;
-
-    fn into_error(self) -> Self::Target {
-        LinkError::from_kind(self)
-    }
-
-    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
-        LinkError::from_kind(self)
-    }
-}

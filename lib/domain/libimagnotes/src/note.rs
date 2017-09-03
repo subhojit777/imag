@@ -25,7 +25,6 @@ use toml::Value;
 use libimagrt::runtime::Runtime;
 use libimagentryedit::edit::Edit;
 use libimagentryedit::result::Result as EditResult;
-use libimagerror::into::IntoError;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
@@ -38,6 +37,7 @@ use toml_query::set::TomlValueSetExt;
 use module_path::ModuleEntryPath;
 use result::Result;
 use error::NoteErrorKind as NEK;
+use error::NoteError as NE;
 use error::ResultExt;
 
 #[derive(Debug)]
@@ -93,7 +93,7 @@ impl<'a> Note<'a> {
         match header.read("note.name") {
             Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
             Ok(_) => {
-                Err(NEK::HeaderTypeError.into_error()).chain_err(|| NEK::StoreReadError)
+                Err(NE::from_kind(NEK::HeaderTypeError)).chain_err(|| NEK::StoreReadError)
             },
             Err(e) => Err(e).chain_err(|| NEK::StoreReadError)
         }

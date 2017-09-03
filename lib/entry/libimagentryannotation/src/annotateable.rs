@@ -25,13 +25,13 @@ use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagentrylink::internal::InternalLinker;
-use libimagerror::into::IntoError;
 
 use toml_query::read::TomlValueReadExt;
 use toml_query::insert::TomlValueInsertExt;
 
 use result::Result;
 use error::AnnotationErrorKind as AEK;
+use error::AnnotationError as AE;
 use error::ResultExt;
 
 pub trait Annotateable {
@@ -72,7 +72,7 @@ impl Annotateable for Entry {
             .and_then(|res| match res {
                 Some(&Value::Boolean(b)) => Ok(b),
                 None                     => Ok(false),
-                _                        => Err(AEK::HeaderTypeError.into_error()),
+                _                        => Err(AE::from_kind(AEK::HeaderTypeError)),
             })
     }
 

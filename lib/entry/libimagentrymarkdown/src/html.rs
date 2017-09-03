@@ -23,7 +23,7 @@ use hoedown::renderer::Render;
 
 use result::Result;
 use error::MarkdownErrorKind;
-use libimagerror::into::IntoError;
+use error::ResultExt;
 
 pub type HTML = String;
 
@@ -33,8 +33,7 @@ pub fn to_html(buffer: &str) -> Result<HTML> {
     html.render(&md)
         .to_str()
         .map(String::from)
-        .map_err(Box::new)
-        .map_err(|e| MarkdownErrorKind::MarkdownRenderError.into_error_with_cause(e))
+        .chain_err(|| MarkdownErrorKind::MarkdownRenderError)
 }
 
 pub mod iter {

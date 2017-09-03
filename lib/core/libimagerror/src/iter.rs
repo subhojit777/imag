@@ -168,10 +168,10 @@ impl<I, T, E> TraceIterator<T, E> for I where
 #[cfg(test)]
 mod test {
     use super::TraceIterator;
-    
+
     #[derive(Copy, Clone, Eq, PartialEq, Debug)]
     struct TestError(i32);
-    
+
     #[test]
     fn test_unwrap_with() {
         let original = vec![Ok(1), Err(TestError(2)), Ok(3), Err(TestError(4))];
