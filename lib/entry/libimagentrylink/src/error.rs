@@ -17,6 +17,11 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+use libimagstore::storeid::StoreId;
+
 error_chain! {
     types {
         LinkError, LinkErrorKind, ResultExt, Result;
@@ -83,12 +88,22 @@ error_chain! {
             display("StoreId handling error")
         }
 
+        DeadLink(from: StoreId, to: StoreId) {
+            description("Dead link")
+            display("Dead link from: {from} to: {to}", from = from, to = to)
+        }
+
+        LinkHandlingError {
+            description("Error in link handling")
+            display("Error in link handling")
+        }
+
+        StoreError {
+            description("Error while talking to the store")
+            display("Error while talking to the store")
+        }
     }
 }
-
-pub use self::error::LinkError;
-pub use self::error::LinkErrorKind;
-pub use self::error::MapErrInto;
 
 impl IntoError for LinkErrorKind {
     type Target = LinkError;
@@ -97,7 +112,7 @@ impl IntoError for LinkErrorKind {
         LinkError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         LinkError::from_kind(self)
     }
 }

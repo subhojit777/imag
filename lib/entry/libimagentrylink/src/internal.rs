@@ -31,7 +31,7 @@ use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
 use error::LinkErrorKind as LEK;
-use error::MapErrInto;
+use error::ResultExt;
 use result::Result;
 use self::iter::LinkIter;
 use self::iter::IntoValues;
@@ -51,7 +51,7 @@ impl Link {
             Link::Id { ref link }             => link.exists(),
             Link::Annotated { ref link, .. }  => link.exists(),
         }
-        .map_err_into(LEK::StoreIdError)
+        .chain_err(|| LEK::StoreIdError)
     }
 
     pub fn to_str(&self) -> Result<String> {
@@ -59,7 +59,7 @@ impl Link {
             Link::Id { ref link }             => link.to_str(),
             Link::Annotated { ref link, .. }  => link.to_str(),
         }
-        .map_err_into(LEK::StoreReadError)
+        .chain_err(|| LEK::StoreReadError)
     }
 
 
@@ -100,11 +100,11 @@ impl Link {
     fn to_value(&self) -> Result<Value> {
         match self {
             &Link::Id { link: ref s } =>
-                s.to_str().map(Value::String).map_err_into(LEK::InternalConversionError),
+                s.to_str().map(Value::String).chain_err(|| LEK::InternalConversionError),
             &Link::Annotated { ref link, annotation: ref anno } => {
                 link.to_str()
                     .map(Value::String)
-                    .map_err_into(LEK::InternalConversionError)
+                    .chain_err(|| LEK::InternalConversionError)
                     .map(|link| {
                         let mut tab = BTreeMap::new();
 
@@ -187,7 +187,7 @@ pub mod iter {
     use super::Link;
 
     use error::LinkErrorKind as LEK;
-    use error::MapErrInto;
+    use error::ResultExt;
     use result::Result;
 
     use toml::Value;
@@ -228,7 +228,7 @@ pub mod iter {
                 .unique()
                 .sorted()
                 .into_iter() // Cannot sort toml::Value, hence uglyness here
-                .map(|link| link.to_value().map_err_into(LEK::InternalConversionError))
+                .map(|link| link.to_value().chain_err(|| LEK::InternalConversionError))
                 .collect()
         }
     }
@@ -288,7 +288,7 @@ pub mod iter {
         type Item = Result<FileLockEntry<'a>>;
 
         fn next(&mut self) -> Option<Self::Item> {
-            self.0.next().and_then(|id| match self.1.get(id).map_err_into(LEK::StoreReadError) {
+            self.0.next().and_then(|id| match self.1.get(id).chain_err(|| LEK::StoreReadError) {
                 Ok(None)    => None,
                 Ok(Some(x)) => Some(Ok(x)),
                 Err(e)      => Some(Err(e)),
@@ -318,7 +318,7 @@ pub mod iter {
             loop {
                 match self.0.next() {
                     Some(Ok(fle)) => {
-                        let links = match fle.get_internal_links().map_err_into(LEK::StoreReadError)
+                        let links = match fle.get_internal_links().chain_err(|| LEK::StoreReadError)
                         {
                             Err(e) => return Some(Err(e)),
                             Ok(links) => links.collect::<Vec<_>>(),
@@ -358,7 +358,7 @@ pub mod iter {
             loop {
                 match self.0.next() {
                     Some(Ok(fle)) => {
-                        let links = match fle.get_internal_links().map_err_into(LEK::StoreReadError)
+                        let links = match fle.get_internal_links().chain_err(|| LEK::StoreReadError)
                         {
                             Err(e) => return Some(Err(e)),
                             Ok(links) => links,
@@ -367,7 +367,7 @@ pub mod iter {
                             match self.0
                                  .store()
                                  .delete(fle.get_location().clone())
-                                 .map_err_into(LEK::StoreWriteError)
+                                 .chain_err(|| LEK::StoreWriteError)
                             {
                                 Ok(x)  => x,
                                 Err(e) => return Some(Err(e)),
@@ -393,7 +393,7 @@ impl InternalLinker for Entry {
         let res = self
             .get_header()
             .read("imag.links")
-            .map_err_into(LEK::EntryHeaderReadError)
+            .chain_err(|| LEK::EntryHeaderReadError)
             .map(|r| r.cloned());
         process_rw_result(res)
     }
@@ -417,7 +417,7 @@ impl InternalLinker for Entry {
                              .into_iter()
                              .fold(Ok(vec![]), |acc, elem| {
                                 acc.and_then(move |mut v| {
-                                    elem.map_err_into(LEK::InternalConversionError)
+                                    elem.chain_err(|| LEK::InternalConversionError)
                                         .map(|e| {
                                             v.push(e);
                                             v
@@ -427,7 +427,7 @@ impl InternalLinker for Entry {
         let res = self
             .get_header_mut()
             .set("imag.links", Value::Array(new_links))
-            .map_err_into(LEK::EntryHeaderReadError);
+            .chain_err(|| LEK::EntryHeaderReadError);
         process_rw_result(res)
     }
 
@@ -487,7 +487,7 @@ fn rewrite_links<I: Iterator<Item = Link>>(header: &mut Value, links: I) -> Resu
                      .into_iter()
                      .fold(Ok(vec![]), |acc, elem| {
                         acc.and_then(move |mut v| {
-                            elem.map_err_into(LEK::InternalConversionError)
+                            elem.chain_err(|| LEK::InternalConversionError)
                                 .map(|e| {
                                     v.push(e);
                                     v
@@ -498,7 +498,7 @@ fn rewrite_links<I: Iterator<Item = Link>>(header: &mut Value, links: I) -> Resu
     debug!("Setting new link array: {:?}", links);
     let process = header
         .set("imag.links", Value::Array(links))
-        .map_err_into(LEK::EntryHeaderReadError);
+        .chain_err(|| LEK::EntryHeaderReadError);
     process_rw_result(process).map(|_| ())
 }
 
@@ -514,7 +514,7 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
                              .into_iter()
                              .fold(Ok(vec![]), |acc, elem| {
                                 acc.and_then(move |mut v| {
-                                    elem.map_err_into(LEK::InternalConversionError)
+                                    elem.chain_err(|| LEK::InternalConversionError)
                                         .map(|e| {
                                             v.push(e);
                                             v
@@ -526,7 +526,7 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
             let res = target
                 .get_header_mut()
                 .set("imag.links", Value::Array(links))
-                .map_err_into(LEK::EntryHeaderReadError);
+                .chain_err(|| LEK::EntryHeaderReadError);
 
             process_rw_result(res).map(|_| ())
         })
@@ -562,7 +562,7 @@ fn process_rw_result(links: Result<Option<Value>>) -> Result<LinkIter> {
             debug!("Matching the link: {:?}", link);
             match link {
                 Value::String(s) => StoreId::new_baseless(PathBuf::from(s))
-                    .map_err_into(LEK::StoreIdError)
+                    .chain_err(|| LEK::StoreIdError)
                     .map(|s| Link::Id { link: s })
                     ,
                 Value::Table(mut tab) => {
@@ -582,7 +582,7 @@ fn process_rw_result(links: Result<Option<Value>>) -> Result<LinkIter> {
                         match (link, anno) {
                             (Value::String(link), Value::String(anno)) => {
                                 StoreId::new_baseless(PathBuf::from(link))
-                                    .map_err_into(LEK::StoreIdError)
+                                    .chain_err(|| LEK::StoreIdError)
                                     .map(|link| {
                                         Link::Annotated {
                                             link: link,
@@ -605,68 +605,8 @@ fn process_rw_result(links: Result<Option<Value>>) -> Result<LinkIter> {
 
 pub mod store_check {
     use libimagstore::store::Store;
-
-    pub mod error {
-        generate_error_imports!();
-
-        use libimagstore::storeid::StoreId;
-
-        #[derive(Debug)]
-        pub enum StoreLinkConsistencyErrorCustomData {
-            DeadLink {
-                target: StoreId
-            },
-            OneDirectionalLink {
-                source: StoreId,
-                target: StoreId
-            },
-        }
-
-        impl Display for StoreLinkConsistencyErrorCustomData {
-
-            fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-                use self::StoreLinkConsistencyErrorCustomData as SLCECD;
-                match self {
-                    &SLCECD::DeadLink { ref target } => {
-                        try!(write!(fmt, "Dead Link to '{}'", target))
-                    },
-
-                    &SLCECD::OneDirectionalLink { ref source, ref target } => {
-                        try!(write!(fmt,
-                                    "Link from '{}' to '{}' does exist, but not other way round",
-                                    source, target))
-                    }
-                };
-                Ok(())
-            }
-
-        }
-
-        generate_custom_error_types!(
-            StoreLinkConsistencyError,
-            StoreLinkConsistencyErrorKind,
-            StoreLinkConsistencyErrorCustomData,
-            StoreLinkConsistencyError => "Links in the store are not consistent",
-            LinkHandlingError         => "Error in link handling",
-            StoreError                => "Error while talking to the store"
-        );
-
-        generate_result_helper!(StoreLinkConsistencyError, StoreLinkConsistencyErrorKind);
-        generate_option_helper!(StoreLinkConsistencyError, StoreLinkConsistencyErrorKind);
-    }
-
-    pub use self::error::StoreLinkConsistencyError;
-    pub use self::error::StoreLinkConsistencyErrorKind;
-    pub use self::error::MapErrInto;
-
-    pub mod result {
-        use std::result::Result as RResult;
-        use internal::store_check::error::StoreLinkConsistencyError as SLCE;
-
-        pub type Result<T> = RResult<T, SLCE>;
-    }
-
-    use self::result::Result;
+    use error::Result;
+    use error::ResultExt;
 
     pub trait StoreLinkConsistentExt {
         fn check_link_consistency(&self) -> Result<()>;
@@ -676,10 +616,8 @@ pub mod store_check {
         fn check_link_consistency(&self) -> Result<()> {
             use std::collections::HashMap;
 
-            use self::error::StoreLinkConsistencyErrorKind as SLCEK;
-            use self::error::StoreLinkConsistencyError as SLCE;
-            use self::error::StoreLinkConsistencyErrorCustomData as SLCECD;
             use error::LinkErrorKind as LEK;
+            use error::LinkError as LE;
             use result::Result as LResult;
             use internal::InternalLinker;
 
@@ -714,7 +652,7 @@ pub mod store_check {
                         acc.and_then(|mut state| {
                             debug!("Checking entry: '{}'", sid);
 
-                            match try!(self.get(sid).map_err_into(SLCEK::StoreError)) {
+                            match try!(self.get(sid).chain_err(|| LEK::StoreError)) {
                                 Some(fle) => {
                                     debug!("Found FileLockEntry");
 
@@ -722,7 +660,7 @@ pub mod store_check {
 
                                     let internal_links = fle
                                         .get_internal_links()
-                                        .map_err_into(SLCEK::StoreError)?
+                                        .chain_err(|| LEK::StoreError)?
                                         .into_getter(self) // get the FLEs from the Store
                                         .trace_unwrap(); // trace all Err(e)s and get the Ok(fle)s
 
@@ -765,12 +703,7 @@ pub mod store_check {
                         if is_match!(self.get(id.clone()), Ok(Some(_))) {
                             debug!("Exists in store: {:?}", id);
 
-                            let exists = {
-                                use error::MapErrInto as MEI;
-                                try!(MEI::map_err_into(id.exists(), LEK::StoreReadError))
-                            };
-
-                            if !exists {
+                            if !try!(id.exists().chain_err(|| LEK::StoreReadError)) {
                                 warn!("Does exist in store but not on FS: {:?}", id);
                                 Err(LEK::LinkTargetDoesNotExist.into_error())
                             } else {
@@ -785,16 +718,8 @@ pub mod store_check {
 
             /// Helper function to create a SLCECD::OneDirectionalLink error object
             #[inline]
-            let mk_one_directional_link_err = |src: StoreId, target: StoreId| -> SLCE {
-                // construct the error
-                let custom = SLCECD::OneDirectionalLink {
-                    source: src,
-                    target: target,
-                };
-
-                SLCEK::StoreLinkConsistencyError
-                    .into_error()
-                    .with_custom_data(custom)
+            let mk_one_directional_link_err = |src: StoreId, target: StoreId| -> LE {
+                LEK::DeadLink(src, target).into_error()
             };
 
             /// Helper lambda to check whether the _incoming_ links of each entry actually also
@@ -847,7 +772,7 @@ pub mod store_check {
                 .and_then(|nw| {
                     all_collected_storeids_exist(&nw)
                         .map(|_| nw)
-                        .map_err_into(SLCEK::LinkHandlingError)
+                        .chain_err(|| LEK::LinkHandlingError)
                 })
                 .and_then(|nw| {
                     nw.iter().fold_result(|(id, linking)| {

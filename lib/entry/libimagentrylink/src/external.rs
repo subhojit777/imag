@@ -34,6 +34,7 @@ use std::ops::DerefMut;
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 
+use libimagerror::into::IntoError;
 use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
@@ -44,12 +45,11 @@ use libimagutil::debug_result::*;
 use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
-use error::LinkError as LE;
 use error::LinkErrorKind as LEK;
-use error::MapErrInto;
 use result::Result;
 use internal::InternalLinker;
 use module_path::ModuleEntryPath;
+use error::ResultExt;
 
 use self::iter::*;
 
@@ -92,10 +92,10 @@ impl<'a> Link<'a> {
             Ok(Some(&Value::String(ref s))) => {
                 Url::parse(&s[..])
                      .map(Some)
-                     .map_err(|e| LE::new(LEK::EntryHeaderReadError, Some(Box::new(e))))
+                     .chain_err(|| LEK::EntryHeaderReadError)
             },
             Ok(None) => Ok(None),
-            _ => Err(LE::new(LEK::EntryHeaderReadError, None))
+            _ => Err(LEK::EntryHeaderReadError.into_error())
         }
     }
 
@@ -136,7 +136,7 @@ pub mod iter {
     use internal::Link;
     use internal::iter::LinkIter;
     use error::LinkErrorKind as LEK;
-    use error::MapErrInto;
+    use error::ResultExt;
     use result::Result;
 
     use url::Url;
@@ -269,7 +269,7 @@ pub mod iter {
                     debug!("Retrieving entry for id: '{:?}'", id);
                     self.1
                         .retrieve(id.clone())
-                        .map_err_into(LEK::StoreReadError)
+                        .chain_err(|| LEK::StoreReadError)
                         .map_dbg_err(|_| format!("Retrieving entry for id: '{:?}' failed", id))
                         .and_then(|f| {
                             debug!("Store::retrieve({:?}) succeeded", id);
@@ -293,7 +293,7 @@ pub fn is_external_link_storeid<A: AsRef<StoreId> + Debug>(id: A) -> bool {
 
 fn get_external_link_from_file(entry: &FileLockEntry) -> Result<Url> {
     Link::get_link_uri_from_filelockentry(entry) // TODO: Do not hide error by using this function
-        .ok_or(LE::new(LEK::StoreReadError, None))
+        .ok_or(LEK::StoreReadError.into_error())
 }
 
 /// Implement `ExternalLinker` for `Entry`, hiding the fact that there is no such thing as an external
@@ -307,7 +307,7 @@ impl ExternalLinker for Entry {
         // /link/external/<SHA> -> load these files and get the external link from their headers,
         // put them into the return vector.
         self.get_internal_links()
-            .map_err(|e| LE::new(LEK::StoreReadError, Some(Box::new(e))))
+            .chain_err(|| LEK::StoreReadError)
             .map(|iter| {
                 debug!("Getting external links");
                 iter.only_external_links().urls(store)
@@ -329,7 +329,7 @@ impl ExternalLinker for Entry {
             };
             let file_id = try!(
                 ModuleEntryPath::new(format!("external/{}", hash)).into_storeid()
-                    .map_err_into(LEK::StoreWriteError)
+                    .chain_err(|| LEK::StoreWriteError)
                     .map_dbg_err(|_| {
                         format!("Failed to build StoreId for this hash '{:?}'", hash)
                     })
@@ -343,7 +343,7 @@ impl ExternalLinker for Entry {
             // exist
             let mut file = try!(store
                 .retrieve(file_id.clone())
-                .map_err_into(LEK::StoreWriteError)
+                .chain_err(|| LEK::StoreWriteError)
                 .map_dbg_err(|_| {
                     format!("Failed to create or retrieve an file for this link '{:?}'", link)
                 }));
@@ -360,7 +360,7 @@ impl ExternalLinker for Entry {
                         BTreeMap::new()
                     },
                     Ok(None) => BTreeMap::new(),
-                    Err(e)   => return Err(LE::new(LEK::StoreWriteError, Some(Box::new(e)))),
+                    Err(e)   => return Err(e).chain_err(|| LEK::StoreWriteError),
                 };
 
                 let v = Value::String(link.into_string());
@@ -369,7 +369,7 @@ impl ExternalLinker for Entry {
                 table.insert(String::from("url"), v);
 
                 if let Err(e) = hdr.set("imag.content", Value::Table(table)) {
-                    return Err(LE::new(LEK::StoreWriteError, Some(Box::new(e))));
+                    return Err(e).chain_err(|| LEK::StoreWriteError);
                 } else {
                     debug!("Setting URL worked");
                 }
@@ -378,7 +378,7 @@ impl ExternalLinker for Entry {
             // then add an internal link to the new file or return an error if this fails
             if let Err(e) = self.add_internal_link(file.deref_mut()) {
                 debug!("Error adding internal link");
-                return Err(LE::new(LEK::StoreWriteError, Some(Box::new(e))));
+                return Err(e).chain_err(|| LEK::StoreWriteError);
             }
         }
         debug!("Ready iterating");
