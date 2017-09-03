@@ -49,7 +49,7 @@ extern crate toml_query;
 
 extern crate libimagstore;
 extern crate libimagutil;
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 
 pub mod error;
 pub mod configuration;

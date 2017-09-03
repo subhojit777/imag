@@ -18,11 +18,12 @@
 //
 
 use std::path::PathBuf;
-use std::result::Result as RResult;
 use std::ops::Deref;
 
 use toml::Value;
 use clap::App;
+
+use std::error::Error;
 
 error_chain! {
     types {
@@ -57,7 +58,6 @@ error_chain! {
     }
 }
 
-pub use self::error::{ConfigError, ConfigErrorKind, MapErrInto};
 use libimagerror::into::IntoError;
 
 impl IntoError for ConfigErrorKind {
@@ -67,7 +67,7 @@ impl IntoError for ConfigErrorKind {
         ConfigError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         ConfigError::from_kind(self)
     }
 }
@@ -160,8 +160,7 @@ impl Configuration {
     pub fn override_config(&mut self, v: Vec<String>) -> Result<()> {
         use libimagutil::key_value_split::*;
         use libimagutil::iter::*;
-        use self::error::ConfigErrorKind as CEK;
-        use self::error::MapErrInto;
+        use self::ConfigErrorKind as CEK;
         use libimagerror::into::IntoError;
 
         use toml_query::read::TomlValueReadExt;
@@ -178,7 +177,7 @@ impl Configuration {
             .map(|(k, v)| self
                  .config
                  .read(&k[..])
-                 .map_err_into(CEK::TOMLParserError)
+                 .chain_err(|| CEK::TOMLParserError)
                  .map(|toml| match toml {
                     Some(value) => match into_value(value, v) {
                         Some(v) => {
