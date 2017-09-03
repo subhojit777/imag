@@ -68,14 +68,14 @@ fn import_mail(rt: &Runtime) {
 
 fn list(rt: &Runtime) {
     use libimagmail::error::MailErrorKind as MEK;
-    use libimagmail::error::MapErrInto;
+    use libimagmail::error::ResultExt;
 
     let store = rt.store();
 
     let iter = match store.retrieve_for_module("ref") {
         Ok(iter) => iter.filter_map(|id| {
             Ref::get(store, id)
-                .map_err_into(MEK::RefHandlingError)
+                .chain_err(|| MEK::RefHandlingError)
                 .and_then(|rf| Mail::from_ref(rf))
                 .map_err_trace()
                 .ok()
