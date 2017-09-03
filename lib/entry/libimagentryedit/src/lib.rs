@@ -35,7 +35,7 @@
     while_true,
 )]
 
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 extern crate libimagstore;
 extern crate libimagrt;
 extern crate libimagutil;

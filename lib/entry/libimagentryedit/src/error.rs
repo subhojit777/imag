@@ -17,6 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+
 error_chain! {
     types {
         EditError, EditErrorKind, ResultExt, Result;
@@ -46,10 +50,6 @@ error_chain! {
     }
 }
 
-pub use self::error::EditError;
-pub use self::error::EditErrorKind;
-pub use self::error::MapErrInto;
-
 impl IntoError for EditErrorKind {
     type Target = EditError;
 
@@ -57,7 +57,7 @@ impl IntoError for EditErrorKind {
         EditError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         EditError::from_kind(self)
     }
 }

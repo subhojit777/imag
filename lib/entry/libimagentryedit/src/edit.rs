@@ -23,7 +23,7 @@ use libimagstore::store::Entry;
 
 use result::Result;
 use error::EditErrorKind;
-use error::MapErrInto;
+use error::ResultExt;
 
 pub trait Edit {
     fn edit_content(&mut self, rt: &Runtime) -> Result<()>;
@@ -53,7 +53,7 @@ pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> Result<()> {
         .ok_or(EditErrorKind::NoEditor.into_error())
         .and_then(|editor| {
             edit_in_tmpfile_with_command(editor, s)
-                .map_err_into(EditErrorKind::IOError)
+                .chain_err(|| EditErrorKind::IOError)
                 .and_then(|worked| {
                     if !worked {
                         Err(EditErrorKind::ProcessExitFailure.into())
