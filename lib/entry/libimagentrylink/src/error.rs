@@ -90,3 +90,14 @@ pub use self::error::LinkError;
 pub use self::error::LinkErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for LinkErrorKind {
+    type Target = LinkError;
+
+    fn into_error(self) -> Self::Target {
+        LinkError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        LinkError::from_kind(self)
+    }
+}

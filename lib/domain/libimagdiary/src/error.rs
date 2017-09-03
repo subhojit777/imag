@@ -80,3 +80,14 @@ pub use self::error::DiaryError;
 pub use self::error::DiaryErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for DiaryErrorKind {
+    type Target = DiaryError;
+
+    fn into_error(self) -> Self::Target {
+        DiaryError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        DiaryError::from_kind(self)
+    }
+}

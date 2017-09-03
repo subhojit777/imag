@@ -54,3 +54,14 @@ pub use self::error::CategoryError;
 pub use self::error::CategoryErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for CategoryErrorKind {
+    type Target = CategoryError;
+
+    fn into_error(self) -> Self::Target {
+        CategoryError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        CategoryError::from_kind(self)
+    }
+}

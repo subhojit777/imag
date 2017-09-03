@@ -293,3 +293,14 @@ error_chain! {
     }
 }
 
+impl IntoError for StoreErrorKind {
+    type Target: StoreError;
+
+    fn into_error(self) -> Self::Target {
+        StoreError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        StoreError::from_kind(self)
+    }
+}

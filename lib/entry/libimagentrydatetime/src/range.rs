@@ -35,6 +35,18 @@ pub use self::error::DateTimeRangeError;
 pub use self::error::DateTimeRangeErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for DateTimeRangeErrorKind {
+    type Target = DateTimeRangeError;
+
+    fn into_error(self) -> Self::Target {
+        DateTimeRangeError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        DateTimeRangeError::from_kind(self)
+    }
+}
+
 use chrono::naive::NaiveDateTime;
 use libimagerror::into::IntoError;
 use self::result::Result;

@@ -54,3 +54,14 @@ error_chain! {
 pub use self::error::CounterError;
 pub use self::error::CounterErrorKind;
 
+impl IntoError for CounterErrorKind {
+    type Target = CounterError;
+
+    fn into_error(self) -> Self::Target {
+        CounterError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        CounterError::from_kind(self)
+    }
+}

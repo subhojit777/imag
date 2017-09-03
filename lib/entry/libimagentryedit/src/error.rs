@@ -50,3 +50,15 @@ pub use self::error::EditError;
 pub use self::error::EditErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for EditErrorKind {
+    type Target = EditError;
+
+    fn into_error(self) -> Self::Target {
+        EditError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        EditError::from_kind(self)
+    }
+}
+

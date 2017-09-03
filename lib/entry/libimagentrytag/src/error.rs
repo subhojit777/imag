@@ -50,3 +50,14 @@ pub use self::error::TagError;
 pub use self::error::TagErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for TagErrorKind {
+    type Target = TagError;
+
+    fn into_error(self) -> Self::Target {
+        TagError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        TagError::from_kind(self)
+    }
+}

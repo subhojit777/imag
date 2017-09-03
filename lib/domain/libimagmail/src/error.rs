@@ -47,3 +47,14 @@ pub use self::error::MailError;
 pub use self::error::MailErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for MailErrorKind {
+    type Target = MailError;
+
+    fn into_error(self) -> Self::Target {
+        MailError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        MailError::from_kind(self)
+    }
+}

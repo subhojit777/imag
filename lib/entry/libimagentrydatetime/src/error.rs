@@ -75,3 +75,14 @@ pub use self::error::DateError;
 pub use self::error::DateErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for DateErrorKind {
+    type Target = DateError;
+
+    fn into_error(self) -> Self::Target {
+        DateError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        DateError::from_kind(self)
+    }
+}

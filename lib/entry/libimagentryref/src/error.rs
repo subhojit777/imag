@@ -145,3 +145,14 @@ pub use self::error::RefError;
 pub use self::error::RefErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for RefErrorKind {
+    type Target = RefError;
+
+    fn into_error(self) -> Self::Target {
+        RefError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        RefError::from_kind(self)
+    }
+}

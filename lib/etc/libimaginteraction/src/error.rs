@@ -85,3 +85,14 @@ pub use self::error::InteractionError;
 pub use self::error::InteractionErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for InteractionErrorKind {
+    type Target = InteractionError;
+
+    fn into_error(self) -> Self::Target {
+        InteractionError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        InteractionError::from_kind(self)
+    }
+}

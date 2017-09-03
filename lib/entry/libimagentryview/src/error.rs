@@ -54,3 +54,15 @@ error_chain! {
 pub use self::error::ViewError;
 pub use self::error::ViewErrorKind;
 pub use self::error::MapErrInto;
+
+impl IntoError for ViewErrorKind {
+    type Target = ViewError;
+
+    fn into_error(self) -> Self::Target {
+        ViewError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        ViewError::from_kind(self)
+    }
+}

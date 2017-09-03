@@ -60,6 +60,18 @@ error_chain! {
 pub use self::error::{ConfigError, ConfigErrorKind, MapErrInto};
 use libimagerror::into::IntoError;
 
+impl IntoError for ConfigErrorKind {
+    type Target = ConfigError;
+
+    fn into_error(self) -> Self::Target {
+        ConfigError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        ConfigError::from_kind(self)
+    }
+}
+
 /// `Configuration` object
 ///
 /// Holds all config variables which are globally available plus the configuration object from the

@@ -60,3 +60,14 @@ pub use self::error::AnnotationError;
 pub use self::error::AnnotationErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for AnnotationErrorKind {
+    type Target = AnnotationError;
+
+    fn into_error(self) -> Self::Target {
+        AnnotationError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        AnnotationError::from_kind(self)
+    }
+}

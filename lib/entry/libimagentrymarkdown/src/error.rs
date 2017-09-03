@@ -40,3 +40,14 @@ pub use self::error::MarkdownError;
 pub use self::error::MarkdownErrorKind;
 
 
+impl IntoError for MarkdownErrorKind {
+    type Target = MarkdownError;
+
+    fn into_error(self) -> Self::Target {
+        MarkdownError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        MarkdownError::from_kind(self)
+    }
+}

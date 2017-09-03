@@ -37,3 +37,15 @@ error_chain! {
 }
 
 pub use self::error::DatePathCompilerError;
+
+impl IntoError for DatePathCompilerErrorKind {
+    type Target = DatePathCompilerError;
+
+    fn into_error(self) -> Self::Target {
+        DatePathCompilerError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        DatePathCompilerError::from_kind(self)
+    }
+}

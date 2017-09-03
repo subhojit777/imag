@@ -50,3 +50,14 @@ pub use self::error::NoteError;
 pub use self::error::NoteErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for NoteErrorKind {
+    type Target = NoteError;
+
+    fn into_error(self) -> Self::Target {
+        NoteError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        NoteError::from_kind(self)
+    }
+}

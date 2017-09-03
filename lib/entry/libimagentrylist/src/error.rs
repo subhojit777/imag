@@ -55,3 +55,14 @@ pub use self::error::ListError;
 pub use self::error::ListErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for ListErrorKind {
+    type Target = ListError;
+
+    fn into_error(self) -> Self::Target {
+        ListError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        ListError::from_kind(self)
+    }
+}

@@ -55,3 +55,14 @@ pub use self::error::TodoError;
 pub use self::error::TodoErrorKind;
 pub use self::error::MapErrInto;
 
+impl IntoError for TodoErrorKind {
+    type Target = TodoError;
+
+    fn into_error(self) -> Self::Target {
+        TodoError::from_kind(self)
+    }
+
+    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+        TodoError::from_kind(self)
+    }
+    }
