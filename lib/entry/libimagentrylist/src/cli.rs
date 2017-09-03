@@ -20,12 +20,13 @@
 use clap::{Arg, ArgMatches, App, SubCommand};
 
 use libimagstore::store::FileLockEntry;
+use libimagerror::into::IntoError;
 
 use result::Result;
 use listers::line::LineLister;
 use listers::path::PathLister;
 use lister::Lister;
-use error::{ListError, ListErrorKind};
+use error::ListErrorKind;
 
 pub fn build_list_cli_component<'a, 'b>() -> App<'a, 'b> {
     SubCommand::with_name(list_subcommand_name())
@@ -96,6 +97,6 @@ pub fn list_entries_with_lister<'a, I>(m: &ArgMatches, entries: I) -> Result<()>
 
         Ok(())
     } else {
-        Err(ListError::new(ListErrorKind::CLIError, None))
+        Err(ListErrorKind::CLIError.into_error())
     }
 }

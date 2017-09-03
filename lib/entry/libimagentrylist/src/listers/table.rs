@@ -21,7 +21,7 @@ use std::io::stdout;
 
 use lister::Lister;
 use result::Result;
-use error::MapErrInto;
+use error::ResultExt;
 
 use libimagstore::store::FileLockEntry;
 use libimagerror::into::IntoError;
@@ -103,7 +103,7 @@ impl<F: Fn(&FileLockEntry) -> Vec<String>> Lister for TableLister<F> {
         })
         .and_then(|tbl| {
             let mut io = stdout();
-            tbl.print(&mut io).map_err_into(LEK::IOError)
+            tbl.print(&mut io).chain_err(|| LEK::IOError)
         })
     }
 

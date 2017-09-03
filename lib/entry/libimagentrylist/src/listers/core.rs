@@ -22,6 +22,7 @@ use std::io::Write;
 
 use lister::Lister;
 use result::Result;
+use error::ResultExt;
 
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Entry;
@@ -43,7 +44,6 @@ impl<T: Fn(&Entry) -> String> CoreLister<T> {
 impl<T: Fn(&Entry) -> String> Lister for CoreLister<T> {
 
     fn list<'b, I: Iterator<Item = FileLockEntry<'b>>>(&self, entries: I) -> Result<()> {
-        use error::ListError as LE;
         use error::ListErrorKind as LEK;
 
         debug!("Called list()");
@@ -53,7 +53,7 @@ impl<T: Fn(&Entry) -> String> Lister for CoreLister<T> {
                 let r = accu.and_then(|_| {
                         debug!("Listing Entry: {:?}", entry);
                         write!(stdout(), "{:?}\n", (self.lister)(&entry))
-                            .map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))
+                            .chain_err(|| LEK::FormatError)
                     });
                 (r, i + 1)
             });

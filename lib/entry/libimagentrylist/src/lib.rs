@@ -42,7 +42,7 @@ extern crate prettytable;
 
 extern crate libimagstore;
 extern crate libimagutil;
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 
 pub mod cli;
 pub mod error;

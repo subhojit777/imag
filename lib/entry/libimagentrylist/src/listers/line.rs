@@ -22,6 +22,7 @@ use std::io::Write;
 
 use lister::Lister;
 use result::Result;
+use error::ResultExt;
 
 use libimagstore::store::FileLockEntry;
 use libimagutil::iter::FoldResult;
@@ -43,12 +44,11 @@ impl<'a> LineLister<'a> {
 impl<'a> Lister for LineLister<'a> {
 
     fn list<'b, I: Iterator<Item = FileLockEntry<'b>>>(&self, entries: I) -> Result<()> {
-        use error::ListError as LE;
         use error::ListErrorKind as LEK;
 
         entries.fold_result(|entry| {
             let s = entry.get_location().to_str().unwrap_or(String::from(self.unknown_output));
-            write!(stdout(), "{:?}\n", s).map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))
+            write!(stdout(), "{:?}\n", s).chain_err(| | LEK::FormatError)
         })
     }
 
