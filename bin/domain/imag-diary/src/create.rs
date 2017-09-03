@@ -22,7 +22,7 @@ use std::process::exit;
 use libimagdiary::diary::Diary;
 use libimagdiary::diaryid::DiaryId;
 use libimagdiary::error::DiaryErrorKind as DEK;
-use libimagdiary::error::MapErrInto;
+use libimagdiary::error::ResultExt;
 use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error;
@@ -110,7 +110,7 @@ pub fn create(rt: &Runtime) {
                 Ok(())
             } else {
                 debug!("Editing new diary entry");
-                entry.edit_content(rt).map_err_into(DEK::DiaryEditError)
+                entry.edit_content(rt).chain_err(|| DEK::DiaryEditError)
             }
         });
 
