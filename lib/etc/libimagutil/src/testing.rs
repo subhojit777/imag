@@ -95,11 +95,13 @@ macro_rules! make_mock_app {
                 }
             }
 
+            #[allow(unused)]
             pub fn generate_minimal_test_config() -> Option<Configuration> { ::toml::de::from_str("[store]\nimplicit-create=true")
                             .map(Configuration::with_value)
                             .ok()
             }
 
+            #[allow(unused)]
             pub fn generate_test_runtime<'a>(mut args: Vec<&'static str>) -> Result<Runtime<'a>, RuntimeError> {
                 let mut cli_args = vec![$appname, "--rtp", "/tmp"];
 
@@ -109,6 +111,7 @@ macro_rules! make_mock_app {
                 Runtime::with_configuration(cli_app, generate_minimal_test_config())
             }
 
+            #[allow(unused)]
             pub fn reset_test_runtime<'a>(mut args: Vec<&'static str>, old_runtime: Runtime)
                 -> Result<Runtime<'a>, RuntimeError>
             {
