@@ -17,6 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+
 error_chain! {
     types {
         BookmarkError, BookmarkErrorKind, ResultExt, Result;
@@ -51,10 +55,6 @@ error_chain! {
     }
 }
 
-pub use self::error::BookmarkError;
-pub use self::error::BookmarkErrorKind;
-pub use self::error::MapErrInto;
-
 impl IntoError for BookmarkErrorKind {
     type Target = BookmarkError;
 
@@ -62,7 +62,7 @@ impl IntoError for BookmarkErrorKind {
         BookmarkError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         BookmarkError::from_kind(self)
     }
 }

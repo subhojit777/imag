@@ -67,9 +67,9 @@ impl IntoUrl for Link {
 
     fn into_url(self) -> Result<Url> {
         use error::BookmarkErrorKind as BEK;
-        use error::MapErrInto;
+        use error::ResultExt;
 
-        Url::parse(&self[..]).map_err_into(BEK::LinkParsingError)
+        Url::parse(&self[..]).chain_err(|| BEK::LinkParsingError)
     }
 
 }

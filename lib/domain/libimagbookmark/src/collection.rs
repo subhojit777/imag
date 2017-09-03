@@ -29,7 +29,7 @@ use std::ops::DerefMut;
 use regex::Regex;
 
 use error::BookmarkErrorKind as BEK;
-use error::MapErrInto;
+use error::ResultExt;
 use result::Result;
 use module_path::ModuleEntryPath;
 
@@ -81,14 +81,14 @@ impl<'a> BookmarkCollection<'a> {
                     store: store,
                 }
             })
-            .map_err_into(BEK::StoreReadError)
+            .chain_err(|| BEK::StoreReadError)
     }
 
     pub fn get(store: &'a Store, name: &str) -> Result<BookmarkCollection<'a>> {
         ModuleEntryPath::new(name)
             .into_storeid()
             .and_then(|id| store.get(id))
-            .map_err_into(BEK::StoreReadError)
+            .chain_err(|| BEK::StoreReadError)
             .and_then(|fle| {
                 match fle {
                     None => Err(BEK::CollectionNotFound.into_error()),
@@ -104,11 +104,11 @@ impl<'a> BookmarkCollection<'a> {
         ModuleEntryPath::new(name)
             .into_storeid()
             .and_then(|id| store.delete(id))
-            .map_err_into(BEK::StoreReadError)
+            .chain_err(|| BEK::StoreReadError)
     }
 
     pub fn links(&self) -> Result<UrlIter> {
-        self.fle.get_external_links(&self.store).map_err_into(BEK::LinkError)
+        self.fle.get_external_links(&self.store).chain_err(|| BEK::LinkError)
     }
 
     pub fn link_entries(&self) -> Result<Vec<StoreLink>> {
@@ -117,22 +117,22 @@ impl<'a> BookmarkCollection<'a> {
         self.fle
             .get_internal_links()
             .map(|v| v.filter(|id| is_external_link_storeid(id)).collect())
-            .map_err_into(BEK::StoreReadError)
+            .chain_err(|| BEK::StoreReadError)
     }
 
     pub fn add_link(&mut self, l: Link) -> Result<()> {
         use link::IntoUrl;
 
         l.into_url()
-            .and_then(|url| self.add_external_link(self.store, url).map_err_into(BEK::LinkingError))
-            .map_err_into(BEK::LinkError)
+            .and_then(|url| self.add_external_link(self.store, url).chain_err(|| BEK::LinkingError))
+            .chain_err(|| BEK::LinkError)
     }
 
     pub fn get_links_matching(&self, r: Regex) -> Result<LinksMatchingRegexIter<'a>> {
         use self::iter::IntoLinksMatchingRegexIter;
 
         self.get_external_links(self.store)
-            .map_err_into(BEK::LinkError)
+            .chain_err(|| BEK::LinkError)
             .map(|iter| iter.matching_regex(r))
     }
 
@@ -141,9 +141,9 @@ impl<'a> BookmarkCollection<'a> {
 
         l.into_url()
             .and_then(|url| {
-                self.remove_external_link(self.store, url).map_err_into(BEK::LinkingError)
+                self.remove_external_link(self.store, url).chain_err(|| BEK::LinkingError)
             })
-            .map_err_into(BEK::LinkError)
+            .chain_err(|| BEK::LinkError)
     }
 
 }
@@ -151,7 +151,7 @@ impl<'a> BookmarkCollection<'a> {
 pub mod iter {
     use link::Link;
     use result::Result;
-    use error::{MapErrInto, BookmarkErrorKind as BEK};
+    use error::{ResultExt, BookmarkErrorKind as BEK};
 
     pub struct LinkIter<I>(I)
         where I: Iterator<Item = Link>;
@@ -194,7 +194,7 @@ pub mod iter {
             loop {
                 let n = match self.0.next() {
                     Some(Ok(n))  => n,
-                    Some(Err(e)) => return Some(Err(e).map_err_into(BEK::LinkError)),
+                    Some(Err(e)) => return Some(Err(e).chain_err(|| BEK::LinkError)),
                     None         => return None,
                 };
 
