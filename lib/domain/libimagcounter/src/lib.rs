@@ -41,7 +41,7 @@ extern crate toml_query;
 #[macro_use] extern crate error_chain;
 
 #[macro_use] extern crate libimagstore;
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 
 module_entry_path_mod!("counter");
 
