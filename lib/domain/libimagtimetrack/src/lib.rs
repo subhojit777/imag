@@ -46,11 +46,10 @@ extern crate is_match;
 #[macro_use] extern crate error_chain;
 
 #[macro_use]
-extern crate libimagerror;
-#[macro_use]
 extern crate libimagstore;
 extern crate libimagentrydatetime;
 extern crate libimagentrytag;
+extern crate libimagerror;
 
 mod constants;
 pub mod error;

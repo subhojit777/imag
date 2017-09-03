@@ -19,7 +19,7 @@
 
 use error::TimeTrackError as TTE;
 use error::TimeTrackErrorKind as TTEK;
-use error::MapErrInto;
+use error::ResultExt;
 
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
@@ -46,7 +46,7 @@ impl<'a> Iterator for GetTimeTrackIter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next().map(|sid| {
-            match self.store.get(sid).map_err_into(TTEK::StoreReadError) {
+            match self.store.get(sid).chain_err(|| TTEK::StoreReadError) {
                 Ok(None) => Err(TTEK::StoreReadError.into_error()),
                 Ok(Some(s)) => Ok(s),
                 Err(e) => Err(e)

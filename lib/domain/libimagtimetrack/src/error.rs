@@ -17,12 +17,26 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+
 error_chain! {
     types {
         TimeTrackError, TimeTrackErrorKind, ResultExt, Result;
     }
 
     errors {
+        StoreReadError {
+            description("Error while writing Store")
+            display("Error while writing Store")
+        }
+
+        StoreWriteError {
+            description("Error while reading Store")
+            display("Error while reading Store")
+        }
+
         StoreIdError {
             description("Error while handling StoreId")
             display("Error while handling StoreId")
@@ -52,10 +66,6 @@ error_chain! {
     }
 }
 
-pub use self::error::TimeTrackError;
-pub use self::error::TimeTrackErrorKind;
-pub use self::error::MapErrInto;
-
 impl IntoError for TimeTrackErrorKind {
     type Target = TimeTrackError;
 
@@ -63,7 +73,7 @@ impl IntoError for TimeTrackErrorKind {
         TimeTrackError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         TimeTrackError::from_kind(self)
     }
 }
