@@ -26,7 +26,7 @@ use libimagstore::store::Entry;
 use libimagerror::into::IntoError;
 
 use error::CategoryErrorKind as CEK;
-use error::MapErrInto;
+use error::ResultExt;
 use result::Result;
 use register::CategoryRegister;
 
@@ -64,7 +64,7 @@ impl EntryCategory for Entry {
     fn set_category(&mut self, s: Category) -> Result<()> {
         self.get_header_mut()
             .insert(&String::from("category.value"), Value::String(s.into()))
-            .map_err_into(CEK::HeaderWriteError)
+            .chain_err(|| CEK::HeaderWriteError)
             .map(|_| ())
     }
 
@@ -86,17 +86,17 @@ impl EntryCategory for Entry {
                 &TQEK::IdentifierNotFoundInDocument(_) => Ok(None),
                 _                                      => Err(res),
             }
-            .map_err_into(CEK::HeaderReadError),
+            .chain_err(|| CEK::HeaderReadError),
 
             Ok(Some(&Value::String(ref s))) => Ok(Some(s.clone().into())),
-            Ok(None) => Err(CEK::StoreReadError.into_error()).map_err_into(CEK::HeaderReadError),
-            Ok(_) => Err(CEK::TypeError.into_error()).map_err_into(CEK::HeaderReadError),
+            Ok(None) => Err(CEK::StoreReadError.into_error()).chain_err(|| CEK::HeaderReadError),
+            Ok(_) => Err(CEK::TypeError.into_error()).chain_err(|| CEK::HeaderReadError),
         }
     }
 
     fn has_category(&self) -> Result<bool> {
         self.get_header().read(&String::from("category.value"))
-            .map_err_into(CEK::HeaderReadError)
+            .chain_err(|| CEK::HeaderReadError)
             .map(|e| e.is_some())
     }
 

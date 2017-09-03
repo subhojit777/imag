@@ -43,7 +43,6 @@ extern crate is_match;
 extern crate log;
 #[macro_use] extern crate error_chain;
 
-#[macro_use]
 extern crate libimagerror;
 #[macro_use]
 extern crate libimagstore;

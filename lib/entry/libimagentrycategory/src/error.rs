@@ -17,6 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+
 error_chain! {
     types {
         CategoryError, CategoryErrorKind, ResultExt, Result;
@@ -43,16 +47,22 @@ error_chain! {
             display("Header read error")
         }
 
+        HeaderWriteError {
+            description("Header write error")
+            display("Header write error")
+        }
+
         CategoryDoesNotExist {
             description("Category does not exist")
             display("Category does not exist")
         }
+
+        TypeError {
+            description("Type Error")
+            display("Type Error")
+        }
     }
 }
-
-pub use self::error::CategoryError;
-pub use self::error::CategoryErrorKind;
-pub use self::error::MapErrInto;
 
 impl IntoError for CategoryErrorKind {
     type Target = CategoryError;
@@ -61,7 +71,7 @@ impl IntoError for CategoryErrorKind {
         CategoryError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         CategoryError::from_kind(self)
     }
 }

@@ -31,7 +31,7 @@ use libimagerror::into::IntoError;
 
 use category::Category;
 use error::CategoryErrorKind as CEK;
-use error::MapErrInto;
+use error::ResultExt;
 use result::Result;
 
 pub const CATEGORY_REGISTER_NAME_FIELD_PATH : &'static str = "category.register.name";
@@ -81,13 +81,13 @@ impl CategoryRegister for Store {
                         warn!("Setting category header replaced existing value: {:?}", opt);
                     })
                     .map(|_| true)
-                    .map_err_into(CEK::HeaderWriteError)
-                    .map_err_into(CEK::StoreWriteError)
+                    .chain_err(|| CEK::HeaderWriteError)
+                    .chain_err(|| CEK::StoreWriteError)
             }
-            Err(store_error) => if is_match!(store_error.err_type(), SEK::EntryAlreadyExists) {
+            Err(store_error) => if is_match!(store_error.kind(), &SEK::EntryAlreadyExists) {
                 Ok(false)
             } else {
-                Err(store_error).map_err_into(CEK::StoreWriteError)
+                Err(store_error).chain_err(|| CEK::StoreWriteError)
             }
         }
     }
@@ -96,13 +96,13 @@ impl CategoryRegister for Store {
     fn delete_category(&self, name: &str) -> Result<()> {
         let sid = try!(mk_category_storeid(self.path().clone(), name));
 
-        self.delete(sid).map_err_into(CEK::StoreWriteError)
+        self.delete(sid).chain_err(|| CEK::StoreWriteError)
     }
 
     /// Get all category names
     fn all_category_names(&self) -> Result<CategoryNameIter> {
         self.retrieve_for_module("category")
-            .map_err_into(CEK::StoreReadError)
+            .chain_err(|| CEK::StoreReadError)
             .map(|iter| CategoryNameIter::new(self, iter))
     }
 
@@ -114,7 +114,7 @@ impl CategoryRegister for Store {
         let sid = try!(mk_category_storeid(self.path().clone(), name));
 
         self.get(sid)
-            .map_err_into(CEK::StoreWriteError)
+            .chain_err(|| CEK::StoreWriteError)
     }
 }
 
@@ -212,26 +212,26 @@ fn mk_category_storeid(base: PathBuf, s: &str) -> Result<StoreId> {
     ::module_path::ModuleEntryPath::new(s)
         .into_storeid()
         .map(|id| id.with_base(base))
-        .map_err_into(CEK::StoreIdHandlingError)
+        .chain_err(|| CEK::StoreIdHandlingError)
 }
 
 #[inline]
 fn represents_category(store: &Store, sid: StoreId, name: &str) -> Result<bool> {
     sid.exists()
-        .map_err_into(CEK::StoreIdHandlingError)
+        .chain_err(|| CEK::StoreIdHandlingError)
         .and_then(|bl| {
             if bl {
                 store.get(sid)
-                    .map_err_into(CEK::StoreReadError)
+                    .chain_err(|| CEK::StoreReadError)
                     .and_then(|fle| {
                         if let Some(fle) = fle {
                             match fle.get_header()
                                 .read(&String::from(CATEGORY_REGISTER_NAME_FIELD_PATH))
-                                .map_err_into(CEK::HeaderReadError)
+                                .chain_err(|| CEK::HeaderReadError)
                             {
                                 Ok(Some(&Value::String(ref s))) => Ok(s == name),
                                 Ok(_)                     => Err(CEK::TypeError.into_error()),
-                                Err(e)                    => Err(e).map_err_into(CEK::HeaderReadError),
+                                Err(e)                    => Err(e).chain_err(|| CEK::HeaderReadError),
                             }
                         } else {
                             Ok(false)
@@ -277,12 +277,12 @@ impl<'a> Iterator for CategoryNameIter<'a> {
             .map(|sid| {
                 self.0
                     .get(sid)
-                    .map_err_into(CEK::StoreReadError)
+                    .chain_err(|| CEK::StoreReadError)
                     .and_then(|fle| fle.ok_or(CEK::StoreReadError.into_error()))
                     .and_then(|fle| match fle.get_header().read(&query) {
                         Ok(Some(&Value::String(ref s))) => Ok(Category::from(s.clone())),
                         Ok(_)  => Err(CEK::TypeError.into_error()),
-                        Err(e) => Err(e).map_err_into(CEK::HeaderReadError),
+                        Err(e) => Err(e).chain_err(|| CEK::HeaderReadError),
                     })
             })
     }
