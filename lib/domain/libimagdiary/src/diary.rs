@@ -32,6 +32,7 @@ use entry::Entry;
 use diaryid::DiaryId;
 use error::DiaryError as DE;
 use error::DiaryErrorKind as DEK;
+use error::ResultExt;
 use result::Result;
 use iter::DiaryEntryIterator;
 use is_in_diary::IsInDiary;
@@ -67,7 +68,7 @@ impl<'a> Diary<'a> {
         id.into_storeid()
             .and_then(|id| self.store.retrieve(id))
             .map(|fle| Entry::new(fle))
-            .map_err(|e| DE::new(DEK::StoreWriteError, Some(Box::new(e))))
+            .chain_err(|| DEK::StoreWriteError)
     }
 
     // Get an iterator for iterating over all entries
@@ -75,18 +76,17 @@ impl<'a> Diary<'a> {
         self.store
             .retrieve_for_module("diary")
             .map(|iter| DiaryEntryIterator::new(self.name, self.store, iter))
-            .map_err(|e| DE::new(DEK::StoreReadError, Some(Box::new(e))))
+            .chain_err(|| DEK::StoreReadError)
     }
 
     pub fn delete_entry(&self, entry: Entry) -> Result<()> {
         if !entry.is_in_diary(self.name) {
-            return Err(DE::new(DEK::EntryNotInDiary, None));
+            return Err(DE::from_kind(DEK::EntryNotInDiary));
         }
         let id = entry.get_location().clone();
         drop(entry);
 
-        self.store.delete(id)
-            .map_err(|e| DE::new(DEK::StoreWriteError, Some(Box::new(e))))
+        self.store.delete(id).chain_err(|| DEK::StoreWriteError)
     }
 
     pub fn get_youngest_entry(&self) -> Option<Result<Entry>> {

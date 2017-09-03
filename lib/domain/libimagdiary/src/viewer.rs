@@ -21,7 +21,7 @@
 
 use entry::Entry;
 use error::DiaryErrorKind as DEK;
-use error::MapErrInto;
+use error::ResultExt;
 use result::Result;
 
 use libimagentryview::viewer::Viewer;
@@ -52,8 +52,8 @@ impl DiaryViewer {
             println!("{} :\n", id);
             let _ = try!(self.0
                          .view_entry(&entry)
-                         .map_err_into(DEK::ViewError)
-                         .map_err_into(DEK::IOError));
+                         .chain_err(|| DEK::ViewError)
+                         .chain_err(|| DEK::IOError));
             println!("\n---\n");
         }
 

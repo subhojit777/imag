@@ -27,8 +27,8 @@ use diaryid::DiaryId;
 use diaryid::FromStoreId;
 use is_in_diary::IsInDiary;
 use entry::Entry as DiaryEntry;
-use error::DiaryError as DE;
 use error::DiaryErrorKind as DEK;
+use error::ResultExt;
 use result::Result;
 use libimagerror::trace::trace_error;
 
@@ -119,7 +119,7 @@ impl<'a> Iterator for DiaryEntryIterator<'a> {
                                 .store
                                 .retrieve(next)
                                 .map(|fle| DiaryEntry::new(fle))
-                                .map_err(|e| DE::new(DEK::StoreReadError, Some(Box::new(e))))
+                                .chain_err(|| DEK::StoreReadError)
                                 );
                 }
             } else {

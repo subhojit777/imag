@@ -17,6 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+
 error_chain! {
     types {
         DiaryError, DiaryErrorKind, ResultExt, Result;
@@ -76,10 +80,6 @@ error_chain! {
     }
 }
 
-pub use self::error::DiaryError;
-pub use self::error::DiaryErrorKind;
-pub use self::error::MapErrInto;
-
 impl IntoError for DiaryErrorKind {
     type Target = DiaryError;
 
@@ -87,7 +87,7 @@ impl IntoError for DiaryErrorKind {
         DiaryError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         DiaryError::from_kind(self)
     }
 }

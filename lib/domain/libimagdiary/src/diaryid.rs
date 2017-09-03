@@ -32,7 +32,7 @@ use libimagstore::store::Result as StoreResult;
 
 use error::DiaryError as DE;
 use error::DiaryErrorKind as DEK;
-use error::MapErrInto;
+use error::ResultExt;
 use libimagerror::into::IntoError;
 
 use module_path::ModuleEntryPath;
@@ -222,21 +222,21 @@ impl FromStoreId for DiaryId {
 
             match (hour, minute) {
                 (Some(h), Some(m)) => Ok((h, m)),
-                _ => return Err(DE::new(DEK::IdParseError, None)),
+                _ => return Err(DE::from_kind(DEK::IdParseError)),
             }
         }));
 
         let day: Result<u32,_> = next_component(&mut cmps)
             .and_then(|s| s.parse::<u32>()
-                      .map_err_into(DEK::IdParseError));
+                      .chain_err(|| DEK::IdParseError));
 
         let month: Result<u32,_> = next_component(&mut cmps)
             .and_then(|s| s.parse::<u32>()
-                      .map_err_into(DEK::IdParseError));
+                      .chain_err(|| DEK::IdParseError));
 
         let year: Result<i32,_> = next_component(&mut cmps)
             .and_then(|s| s.parse::<i32>()
-                      .map_err_into(DEK::IdParseError));
+                      .chain_err(|| DEK::IdParseError));
 
         let name = next_component(&mut cmps).map(String::from);
 
