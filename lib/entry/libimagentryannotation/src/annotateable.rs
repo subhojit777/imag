@@ -32,7 +32,7 @@ use toml_query::insert::TomlValueInsertExt;
 
 use result::Result;
 use error::AnnotationErrorKind as AEK;
-use error::MapErrInto;
+use error::ResultExt;
 
 pub trait Annotateable {
 
@@ -51,16 +51,16 @@ impl Annotateable for Entry {
 
     fn annotate<'a>(&mut self, store: &'a Store, ann_name: &str) -> Result<FileLockEntry<'a>> {
         store.retrieve(PathBuf::from(ann_name))
-            .map_err_into(AEK::StoreWriteError)
+            .chain_err(|| AEK::StoreWriteError)
             .and_then(|mut anno| {
                 anno.get_header_mut()
                     .insert("annotation.is_annotation", Value::Boolean(true))
-                    .map_err_into(AEK::HeaderWriteError)
+                    .chain_err(|| AEK::HeaderWriteError)
                     .map(|_| anno)
             })
             .and_then(|mut anno| {
                 anno.add_internal_link(self)
-                    .map_err_into(AEK::LinkingError)
+                    .chain_err(|| AEK::LinkingError)
                     .map(|_| anno)
             })
     }
@@ -68,7 +68,7 @@ impl Annotateable for Entry {
     fn is_annotation(&self) -> Result<bool> {
         self.get_header()
             .read("annotation.is_annotation")
-            .map_err_into(AEK::StoreReadError)
+            .chain_err(|| AEK::StoreReadError)
             .and_then(|res| match res {
                 Some(&Value::Boolean(b)) => Ok(b),
                 None                     => Ok(false),

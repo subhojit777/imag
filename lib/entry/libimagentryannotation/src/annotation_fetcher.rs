@@ -26,7 +26,7 @@ use libimagstore::storeid::StoreIdIterator;
 
 use result::Result;
 use error::AnnotationErrorKind as AEK;
-use error::MapErrInto;
+use error::ResultExt;
 
 use self::iter::*;
 
@@ -45,7 +45,7 @@ impl<'a> AnnotationFetcher<'a> for Store {
     fn all_annotations(&'a self) -> Result<AnnotationIter<'a>> {
         Note::all_notes(self)
             .map(|iter| AnnotationIter::new(iter))
-            .map_err_into(AEK::StoreReadError)
+            .chain_err(|| AEK::StoreReadError)
     }
 
     /// Get all annotations (in an iterator) for an entry
@@ -57,7 +57,7 @@ impl<'a> AnnotationFetcher<'a> for Store {
     /// entry, but should normally be not that heavy.
     fn annotations_for_entry(&'a self, entry: &Entry) -> Result<AnnotationIter<'a>> {
         entry.get_internal_links()
-            .map_err_into(AEK::StoreReadError)
+            .chain_err(|| AEK::StoreReadError)
             .map(|iter| StoreIdIterator::new(Box::new(iter.map(|e| e.get_store_id().clone()))))
             .map(|iter| NoteIterator::new(self, iter))
             .map(|iter| AnnotationIter::new(iter))
@@ -76,7 +76,7 @@ pub mod iter {
 
     use result::Result;
     use error::AnnotationErrorKind as AEK;
-    use error::MapErrInto;
+    use error::ResultExt;
 
     #[derive(Debug)]
     pub struct AnnotationIter<'a>(NoteIterator<'a>);
@@ -100,10 +100,10 @@ pub mod iter {
                             Ok(None) => continue, // not an annotation
                             Ok(Some(&Value::Boolean(true))) => return Some(Ok(note)),
                             Ok(Some(_)) => return Some(Err(AEK::HeaderTypeError.into_error())),
-                            Err(e) => return Some(Err(e).map_err_into(AEK::HeaderReadError)),
+                            Err(e) => return Some(Err(e).chain_err(|| AEK::HeaderReadError)),
                         }
                     },
-                    Some(Err(e)) => return Some(Err(e).map_err_into(AEK::StoreReadError)),
+                    Some(Err(e)) => return Some(Err(e).chain_err(|| AEK::StoreReadError)),
                     None => return None, // iterator consumed
                 }
             }
