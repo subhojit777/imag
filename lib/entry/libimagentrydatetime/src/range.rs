@@ -17,39 +17,12 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-/// Error types for range module
-error_chain! {
-    types {
-        DateTimeRangeError, DateTimeRangeErrorKind, ResultExt, Result;
-    }
-
-    errors {
-        EndDateTimeBeforeStartDateTime {
-            description("End datetime is before start datetime")
-            display("End datetime is before start datetime")
-        }
-    }
-}
-
-pub use self::error::DateTimeRangeError;
-pub use self::error::DateTimeRangeErrorKind;
-pub use self::error::MapErrInto;
-
-impl IntoError for DateTimeRangeErrorKind {
-    type Target = DateTimeRangeError;
-
-    fn into_error(self) -> Self::Target {
-        DateTimeRangeError::from_kind(self)
-    }
-
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
-        DateTimeRangeError::from_kind(self)
-    }
-}
-
 use chrono::naive::NaiveDateTime;
+
+use error::DateErrorKind as DEK;
+use error::Result;
+
 use libimagerror::into::IntoError;
-use self::result::Result;
 
 /// A Range between two dates
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -65,11 +38,10 @@ impl DateTimeRange {
     /// else Err(DateTimeRangeError)
     ///
     pub fn new(start: NaiveDateTime, end: NaiveDateTime) -> Result<DateTimeRange> {
-        use self::error::DateTimeRangeErrorKind as DTREK;
         if start < end {
             Ok(DateTimeRange(start, end))
         } else {
-            Err(DTREK::EndDateTimeBeforeStartDateTime.into_error())
+            Err(DEK::EndDateTimeBeforeStartDateTime.into_error())
         }
     }
 

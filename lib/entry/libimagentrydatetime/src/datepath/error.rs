@@ -17,6 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+
 error_chain! {
     types {
         DatePathCompilerError, DatePathCompilerErrorKind, ResultExt, Result;
@@ -36,8 +40,6 @@ error_chain! {
     }
 }
 
-pub use self::error::DatePathCompilerError;
-
 impl IntoError for DatePathCompilerErrorKind {
     type Target = DatePathCompilerError;
 
@@ -45,7 +47,7 @@ impl IntoError for DatePathCompilerErrorKind {
         DatePathCompilerError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         DatePathCompilerError::from_kind(self)
     }
 }

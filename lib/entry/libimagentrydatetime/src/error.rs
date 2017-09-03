@@ -17,6 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+
 error_chain! {
     types {
         DateError, DateErrorKind, ResultExt, Result;
@@ -68,12 +72,12 @@ error_chain! {
             display("Error parsing DateTime")
         }
 
+        EndDateTimeBeforeStartDateTime {
+            description("End datetime is before start datetime")
+            display("End datetime is before start datetime")
+        }
     }
 }
-
-pub use self::error::DateError;
-pub use self::error::DateErrorKind;
-pub use self::error::MapErrInto;
 
 impl IntoError for DateErrorKind {
     type Target = DateError;
@@ -82,7 +86,7 @@ impl IntoError for DateErrorKind {
         DateError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         DateError::from_kind(self)
     }
 }

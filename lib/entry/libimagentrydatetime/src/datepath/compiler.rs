@@ -29,7 +29,7 @@ use datepath::accuracy::Accuracy;
 use datepath::format::Format;
 use datepath::result::Result;
 use datepath::error::DatePathCompilerErrorKind as DPCEK;
-use datepath::error::MapErrInto;
+use datepath::error::ResultExt;
 
 pub struct DatePathCompiler {
     accuracy : Accuracy,
@@ -122,7 +122,7 @@ impl DatePathCompiler {
         }
 
         StoreId::new_baseless(PathBuf::from(s))
-            .map_err_into(DPCEK::StoreIdBuildFailed)
+            .chain_err(|| DPCEK::StoreIdBuildFailed)
     }
 
 }
