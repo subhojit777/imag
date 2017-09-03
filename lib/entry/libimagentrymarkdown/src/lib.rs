@@ -38,7 +38,7 @@
 extern crate hoedown;
 extern crate url;
 extern crate libimagstore;
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 #[macro_use] extern crate error_chain;
 
 pub mod error;
