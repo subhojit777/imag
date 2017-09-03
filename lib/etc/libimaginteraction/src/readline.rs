@@ -17,6 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use error::InteractionError as IE;
 use error::InteractionErrorKind as IEK;
 use error::MapErrInto;
 
@@ -44,35 +45,35 @@ impl Readline {
 
         let histfile = try!(match histfile {
             Value::String(s) => PathBuf::from(s),
-            _ => Err(IEK::ConfigTypeError.into_error())
+            _ => Err(IE::from_kind(IEK::ConfigTypeError))
                 .map_err_into(IEK::ConfigError)
                 .map_err_into(IEK::ReadlineError)
         });
 
         let histsize = try!(match histsize {
             Value::Integer(i) => i,
-            _ => Err(IEK::ConfigTypeError.into_error())
+            _ => Err(IE::from_kind(IEK::ConfigTypeError))
                 .map_err_into(IEK::ConfigError)
                 .map_err_into(IEK::ReadlineError)
         });
 
         let histigndups = try!(match histigndups {
             Value::Boolean(b) => b,
-            _ => Err(IEK::ConfigTypeError.into_error())
+            _ => Err(IE::from_kind(IEK::ConfigTypeError))
                 .map_err_into(IEK::ConfigError)
                 .map_err_into(IEK::ReadlineError)
         });
 
         let histignspace = try!(match histignspace {
             Value::Boolean(b) => b,
-            _ => Err(IEK::ConfigTypeError.into_error())
+            _ => Err(IE::from_kind(IEK::ConfigTypeError))
                 .map_err_into(IEK::ConfigError)
                 .map_err_into(IEK::ReadlineError)
         });
 
         let prompt = try!(match prompt {
             Value::String(s) => s,
-            _ => Err(IEK::ConfigTypeError.into_error())
+            _ => Err(IE::from_kind(IEK::ConfigTypeError))
                 .map_err_into(IEK::ConfigError)
                 .map_err_into(IEK::ReadlineError)
         });

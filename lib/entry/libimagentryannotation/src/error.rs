@@ -17,10 +17,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::error::Error;
-
-use libimagerror::into::IntoError;
-
 error_chain! {
     types {
         AnnotationError, AnnotationErrorKind, ResultExt, Result;
@@ -60,14 +56,3 @@ error_chain! {
     }
 }
 
-impl IntoError for AnnotationErrorKind {
-    type Target = AnnotationError;
-
-    fn into_error(self) -> Self::Target {
-        AnnotationError::from_kind(self)
-    }
-
-    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
-        AnnotationError::from_kind(self)
-    }
-}

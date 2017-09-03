@@ -23,8 +23,6 @@ use std::ops::Deref;
 use toml::Value;
 use clap::App;
 
-use std::error::Error;
-
 error_chain! {
     types {
         ConfigError, ConfigErrorKind, ResultExt, Result;
@@ -57,20 +55,8 @@ error_chain! {
         }
     }
 }
-
-use libimagerror::into::IntoError;
-
-impl IntoError for ConfigErrorKind {
-    type Target = ConfigError;
-
-    fn into_error(self) -> Self::Target {
-        ConfigError::from_kind(self)
-    }
-
-    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
-        ConfigError::from_kind(self)
-    }
-}
+use self::ConfigErrorKind as CEK;
+use self::ConfigError as CE;
 
 /// `Configuration` object
 ///
@@ -160,8 +146,6 @@ impl Configuration {
     pub fn override_config(&mut self, v: Vec<String>) -> Result<()> {
         use libimagutil::key_value_split::*;
         use libimagutil::iter::*;
-        use self::ConfigErrorKind as CEK;
-        use libimagerror::into::IntoError;
 
         use toml_query::read::TomlValueReadExt;
 
@@ -184,14 +168,13 @@ impl Configuration {
                             info!("Successfully overridden: {} = {}", k, v);
                             Ok(v)
                         },
-                        None => Err(CEK::ConfigOverrideTypeNotMatching.into_error()),
+                        None => Err(CE::from_kind(CEK::ConfigOverrideTypeNotMatching)),
                     },
-                    None => Err(CEK::ConfigOverrideKeyNotAvailable.into_error()),
+                    None => Err(CE::from_kind(CEK::ConfigOverrideKeyNotAvailable)),
                 })
             )
             .fold_result(|i| i)
-            .map_err(Box::new)
-            .map_err(|e| CEK::ConfigOverrideError.into_error_with_cause(e))
+            .chain_err(|| CEK::ConfigOverrideError)
     }
 }
 
@@ -311,13 +294,13 @@ fn fetch_config(searchpath: &PathBuf) -> Result<Value> {
                         .unwrap_or_else(|| String::from("Line unknown, Column unknown"));
 
                     let _ = write!(stderr(), "Config file parser error at {}", line_col);
-                    trace_error(&ConfigErrorKind::TOMLParserError.into_error_with_cause(Box::new(e)));
+                    trace_error(&e);
                     None
                 }
             }
         })
         .nth(0)
-        .ok_or(ConfigErrorKind::NoConfigFileFound.into())
+        .ok_or(CE::from_kind(ConfigErrorKind::NoConfigFileFound))
 }
 
 pub trait InternalConfiguration {

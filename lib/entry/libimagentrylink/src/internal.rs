@@ -25,12 +25,12 @@ use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::Entry;
 use libimagstore::store::Result as StoreResult;
-use libimagerror::into::IntoError;
 
 use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
 use error::LinkErrorKind as LEK;
+use error::LinkError as LE;
 use error::ResultExt;
 use result::Result;
 use self::iter::LinkIter;
@@ -538,7 +538,7 @@ fn process_rw_result(links: Result<Option<Value>>) -> Result<LinkIter> {
     let links = match links {
         Err(e) => {
             debug!("RW action on store failed. Generating LinkError");
-            return Err(LEK::EntryHeaderReadError.into_error_with_cause(Box::new(e)))
+            return Err(e).chain_err(|| LEK::EntryHeaderReadError)
         },
         Ok(None) => {
             debug!("We got no value from the header!");
@@ -570,13 +570,13 @@ fn process_rw_result(links: Result<Option<Value>>) -> Result<LinkIter> {
                     if !tab.contains_key("link")
                     || !tab.contains_key("annotation") {
                         debug!("Things missing... returning Error instance");
-                        Err(LEK::LinkParserError.into_error())
+                        Err(LE::from_kind(LEK::LinkParserError))
                     } else {
                         let link = try!(tab.remove("link")
-                            .ok_or(LEK::LinkParserFieldMissingError.into_error()));
+                            .ok_or(LE::from_kind(LEK::LinkParserFieldMissingError)));
 
                         let anno = try!(tab.remove("annotation")
-                            .ok_or(LEK::LinkParserFieldMissingError.into_error()));
+                            .ok_or(LE::from_kind(LEK::LinkParserFieldMissingError)));
 
                         debug!("Ok, here we go with building a Link::Annotated");
                         match (link, anno) {
@@ -590,7 +590,7 @@ fn process_rw_result(links: Result<Option<Value>>) -> Result<LinkIter> {
                                         }
                                     })
                             },
-                            _ => Err(LEK::LinkParserFieldTypeError.into_error()),
+                            _ => Err(LE::from_kind(LEK::LinkParserFieldTypeError)),
                         }
                     }
                 }
@@ -624,7 +624,6 @@ pub mod store_check {
             use libimagstore::store::StoreObject;
             use libimagstore::storeid::StoreId;
             use libimagerror::iter::TraceIterator;
-            use libimagerror::into::IntoError;
             use libimagutil::iter::FoldResult;
 
             // Helper data structure to collect incoming and outgoing links for each StoreId
@@ -705,13 +704,13 @@ pub mod store_check {
 
                             if !try!(id.exists().chain_err(|| LEK::StoreReadError)) {
                                 warn!("Does exist in store but not on FS: {:?}", id);
-                                Err(LEK::LinkTargetDoesNotExist.into_error())
+                                Err(LE::from_kind(LEK::LinkTargetDoesNotExist))
                             } else {
                                 Ok(())
                             }
                         } else {
                             warn!("Does not exist in store: {:?}", id);
-                            Err(LEK::LinkTargetDoesNotExist.into_error())
+                            Err(LE::from_kind(LEK::LinkTargetDoesNotExist))
                         }
                     })
             };
@@ -719,7 +718,7 @@ pub mod store_check {
             /// Helper function to create a SLCECD::OneDirectionalLink error object
             #[inline]
             let mk_one_directional_link_err = |src: StoreId, target: StoreId| -> LE {
-                LEK::DeadLink(src, target).into_error()
+                LE::from_kind(LEK::DeadLink(src, target))
             };
 
             /// Helper lambda to check whether the _incoming_ links of each entry actually also

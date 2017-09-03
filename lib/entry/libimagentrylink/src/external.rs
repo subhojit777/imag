@@ -34,7 +34,6 @@ use std::ops::DerefMut;
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 
-use libimagerror::into::IntoError;
 use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
@@ -46,6 +45,7 @@ use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
 use error::LinkErrorKind as LEK;
+use error::LinkError as LE;
 use result::Result;
 use internal::InternalLinker;
 use module_path::ModuleEntryPath;
@@ -95,7 +95,7 @@ impl<'a> Link<'a> {
                      .chain_err(|| LEK::EntryHeaderReadError)
             },
             Ok(None) => Ok(None),
-            _ => Err(LEK::EntryHeaderReadError.into_error())
+            _ => Err(LE::from_kind(LEK::EntryHeaderReadError))
         }
     }
 
@@ -293,7 +293,7 @@ pub fn is_external_link_storeid<A: AsRef<StoreId> + Debug>(id: A) -> bool {
 
 fn get_external_link_from_file(entry: &FileLockEntry) -> Result<Url> {
     Link::get_link_uri_from_filelockentry(entry) // TODO: Do not hide error by using this function
-        .ok_or(LEK::StoreReadError.into_error())
+        .ok_or(LE::from_kind(LEK::StoreReadError))
 }
 
 /// Implement `ExternalLinker` for `Entry`, hiding the fact that there is no such thing as an external

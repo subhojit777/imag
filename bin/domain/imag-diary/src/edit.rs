@@ -22,11 +22,11 @@ use chrono::naive::NaiveDateTime;
 use libimagdiary::diary::Diary;
 use libimagdiary::diaryid::DiaryId;
 use libimagdiary::error::DiaryErrorKind as DEK;
+use libimagdiary::error::DiaryError as DE;
 use libimagdiary::error::ResultExt;
 use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::MapErrTrace;
-use libimagerror::into::IntoError;
 use libimagtimeui::datetime::DateTime;
 use libimagtimeui::parse::Parse;
 use libimagutil::warn_exit::warn_exit;
@@ -54,7 +54,7 @@ pub fn edit(rt: &Runtime) {
         Some(Ok(mut e)) => e.edit_content(rt).chain_err(|| DEK::IOError),
 
         Some(Err(e)) => Err(e),
-        None => Err(DEK::EntryNotInDiary.into_error()),
+        None => Err(DE::from_kind(DEK::EntryNotInDiary)),
     }
     .map_err_trace().ok();
 }

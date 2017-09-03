@@ -27,10 +27,10 @@ use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
-use libimagerror::into::IntoError;
 
 use category::Category;
 use error::CategoryErrorKind as CEK;
+use error::CategoryError as CE;
 use error::ResultExt;
 use result::Result;
 
@@ -230,7 +230,7 @@ fn represents_category(store: &Store, sid: StoreId, name: &str) -> Result<bool> 
                                 .chain_err(|| CEK::HeaderReadError)
                             {
                                 Ok(Some(&Value::String(ref s))) => Ok(s == name),
-                                Ok(_)                     => Err(CEK::TypeError.into_error()),
+                                Ok(_)                     => Err(CE::from_kind(CEK::TypeError)),
                                 Err(e)                    => Err(e).chain_err(|| CEK::HeaderReadError),
                             }
                         } else {
@@ -278,10 +278,10 @@ impl<'a> Iterator for CategoryNameIter<'a> {
                 self.0
                     .get(sid)
                     .chain_err(|| CEK::StoreReadError)
-                    .and_then(|fle| fle.ok_or(CEK::StoreReadError.into_error()))
+                    .and_then(|fle| fle.ok_or(CE::from_kind(CEK::StoreReadError)))
                     .and_then(|fle| match fle.get_header().read(&query) {
                         Ok(Some(&Value::String(ref s))) => Ok(Category::from(s.clone())),
-                        Ok(_)  => Err(CEK::TypeError.into_error()),
+                        Ok(_)  => Err(CE::from_kind(CEK::TypeError)),
                         Err(e) => Err(e).chain_err(|| CEK::HeaderReadError),
                     })
             })

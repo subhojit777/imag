@@ -21,11 +21,11 @@ use chrono::naive::NaiveDateTime as NDT;
 
 use error::TimeTrackError;
 use error::TimeTrackErrorKind as TTEK;
+use error::TimeTrackError as TTE;
 use tag::TimeTrackingTag as TTT;
 use iter::storeid::TagStoreIdIter;
 
 use libimagentrytag::tag::is_tag_str;
-use libimagerror::into::IntoError;
 
 pub struct TagIter(Box<Iterator<Item = String>>);
 
@@ -48,7 +48,7 @@ impl Iterator for TagIter {
             .map(|t| if is_tag_str(&t).is_ok() {
                 Ok(TTT::from(t))
             } else {
-                Err(TTEK::TagFormat.into_error())
+                Err(TTE::from_kind(TTEK::TagFormat))
             })
     }
 }

@@ -22,9 +22,9 @@ use std::path::PathBuf;
 use clap::{Arg, ArgMatches};
 
 use libimagstore::storeid::StoreId;
-use libimagerror::into::IntoError;
 
 use result::Result;
+use error::InteractionError as IE;
 use error::InteractionErrorKind as IEK;
 use error::ResultExt;
 
@@ -52,7 +52,7 @@ pub fn id_argument_long() -> &'static str {
 pub fn get_id(matches: &ArgMatches) -> Result<Vec<StoreId>> {
     matches
         .values_of(id_argument_name())
-        .ok_or(IEK::IdMissingError.into_error())
+        .ok_or(IE::from_kind(IEK::IdMissingError))
         .chain_err(|| IEK::CLIError)
         .and_then(|vals| {
             vals.into_iter()

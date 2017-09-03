@@ -17,10 +17,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::error::Error;
-
-use libimagerror::into::IntoError;
-
 error_chain! {
     types {
         CategoryError, CategoryErrorKind, ResultExt, Result;
@@ -64,14 +60,3 @@ error_chain! {
     }
 }
 
-impl IntoError for CategoryErrorKind {
-    type Target = CategoryError;
-
-    fn into_error(self) -> Self::Target {
-        CategoryError::from_kind(self)
-    }
-
-    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
-        CategoryError::from_kind(self)
-    }
-}

@@ -20,12 +20,12 @@
 use itertools::Itertools;
 
 use libimagstore::store::Entry;
-use libimagerror::into::IntoError;
 
 use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
 use error::TagErrorKind;
+use error::TagError as TE;
 use error::ResultExt;
 use result::Result;
 use tag::{Tag, TagSlice};
@@ -91,7 +91,7 @@ impl Tagable for Value {
     }
 
     fn add_tag(&mut self, t: Tag) -> Result<()> {
-        if !try!(is_tag_str(&t).map(|_| true).map_err(|_| TagErrorKind::NotATag.into_error())) {
+        if !try!(is_tag_str(&t).map(|_| true).map_err(|_| TE::from_kind(TagErrorKind::NotATag))) {
             debug!("Not a tag: '{}'", t);
             return Err(TagErrorKind::NotATag.into());
         }
@@ -105,7 +105,7 @@ impl Tagable for Value {
     }
 
     fn remove_tag(&mut self, t: Tag) -> Result<()> {
-        if !try!(is_tag_str(&t).map(|_| true).map_err(|_| TagErrorKind::NotATag.into_error())) {
+        if !try!(is_tag_str(&t).map(|_| true).map_err(|_| TE::from_kind(TagErrorKind::NotATag))) {
             debug!("Not a tag: '{}'", t);
             return Err(TagErrorKind::NotATag.into());
         }

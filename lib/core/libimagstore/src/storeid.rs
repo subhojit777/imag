@@ -31,8 +31,6 @@ use error::StoreError as SE;
 use error::ResultExt;
 use store::Result;
 
-use libimagerror::into::IntoError;
-
 /// The Index into the Store
 #[derive(Debug, Clone, Hash, Eq, PartialOrd, Ord)]
 pub struct StoreId {
@@ -109,7 +107,7 @@ impl StoreId {
             .unwrap_or_else(|| self.id.clone())
             .to_str()
             .map(String::from)
-            .ok_or(SEK::StoreIdHandlingError.into_error())
+            .ok_or(SE::from_kind(SEK::StoreIdHandlingError))
     }
 
     /// Returns the components of the `id` part of the StoreId object.

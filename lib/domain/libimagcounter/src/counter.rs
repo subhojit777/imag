@@ -32,7 +32,6 @@ use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
-use libimagerror::into::IntoError;
 
 use module_path::ModuleEntryPath;
 use result::Result;
@@ -79,17 +78,17 @@ impl<'a> Counter<'a> {
                 let header = entry.get_header_mut();
                 let setres = header.set(&String::from("counter"), Value::Table(BTreeMap::new()));
                 if setres.is_err() {
-                    return Err(CEK::StoreWriteError.into_error());
+                    return Err(CE::from_kind(CEK::StoreWriteError));
                 }
 
                 let setres = header.set(&String::from("counter.name"), Value::String(name));
                 if setres.is_err() {
-                    return Err(CEK::StoreWriteError.into_error())
+                    return Err(CE::from_kind(CEK::StoreWriteError))
                 }
 
                 let setres = header.set(&String::from("counter.value"), Value::Integer(init));
                 if setres.is_err() {
-                    return Err(CEK::StoreWriteError.into_error())
+                    return Err(CE::from_kind(CEK::StoreWriteError))
                 }
             }
 
@@ -107,7 +106,7 @@ impl<'a> Counter<'a> {
             let setres = header.set(&String::from("counter.unit"), Value::String(u.0));
             if setres.is_err() {
                 self.unit = None;
-                return Err(CEK::StoreWriteError.into_error())
+                return Err(CE::from_kind(CEK::StoreWriteError))
             }
         };
         Ok(self)
@@ -155,16 +154,16 @@ impl<'a> Counter<'a> {
     pub fn name(&self) -> Result<CounterName> {
         self.read_header_at("counter.name", |v| match v {
             Some(&Value::String(ref s)) => Ok(s.clone()),
-            Some(_) => Err(CEK::HeaderTypeError.into_error()),
-            _ => Err(CEK::StoreReadError.into_error()),
+            Some(_) => Err(CE::from_kind(CEK::HeaderTypeError)),
+            _ => Err(CE::from_kind(CEK::StoreReadError)),
         })
     }
 
     pub fn value(&self) -> Result<i64> {
         self.read_header_at("counter.value", |v| match v {
             Some(&Value::Integer(i)) => Ok(i),
-            Some(_) => Err(CEK::HeaderTypeError.into_error()),
-            _ => Err(CEK::StoreReadError.into_error()),
+            Some(_) => Err(CE::from_kind(CEK::HeaderTypeError)),
+            _ => Err(CE::from_kind(CEK::StoreReadError)),
         })
     }
 
@@ -175,8 +174,8 @@ impl<'a> Counter<'a> {
     pub fn read_unit(&self) -> Result<Option<CounterUnit>> {
         self.read_header_at("counter.unit", |s| match s {
             Some(&Value::String(ref s)) => Ok(Some(CounterUnit::new(s.clone()))),
-            Some(_) => Err(CEK::HeaderTypeError.into_error()),
-            _ => Err(CEK::StoreReadError.into_error()),
+            Some(_) => Err(CE::from_kind(CEK::HeaderTypeError)),
+            _ => Err(CE::from_kind(CEK::StoreReadError)),
         })
     }
 

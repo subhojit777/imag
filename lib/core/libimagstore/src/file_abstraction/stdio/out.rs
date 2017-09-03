@@ -32,7 +32,6 @@ use std::sync::Mutex;
 use std::ops::Deref;
 
 use libimagerror::trace::*;
-use libimagerror::into::IntoError;
 
 use error::StoreErrorKind as SEK;
 use error::StoreError as SE;
@@ -74,7 +73,7 @@ impl<W, M> StdoutFileAbstraction<W, M>
         self.mem
             .backend()
             .lock()
-            .map_err(|_| SEK::LockError.into_error())
+            .map_err(|_| SE::from_kind(SEK::LockError))
             .map(|mtx| mtx.deref().borrow().clone())
     }
 
@@ -142,7 +141,7 @@ impl<W: Write, M: Mapper> FileAbstraction for StdoutFileAbstraction<W, M> {
 
     fn fill(&mut self, mut d: Drain) -> Result<(), SE> {
         debug!("Draining into : {:?}", self);
-        let mut mtx = try!(self.backend().lock().map_err(|_| SEK::IoError.into_error()));
+        let mut mtx = try!(self.backend().lock().map_err(|_| SE::from_kind(SEK::IoError)));
         let backend = mtx.get_mut();
 
         for (path, element) in d.iter() {

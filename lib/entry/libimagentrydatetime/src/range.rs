@@ -20,9 +20,8 @@
 use chrono::naive::NaiveDateTime;
 
 use error::DateErrorKind as DEK;
+use error::DateError as DE;
 use error::Result;
-
-use libimagerror::into::IntoError;
 
 /// A Range between two dates
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -41,7 +40,7 @@ impl DateTimeRange {
         if start < end {
             Ok(DateTimeRange(start, end))
         } else {
-            Err(DEK::EndDateTimeBeforeStartDateTime.into_error())
+            Err(DE::from_kind(DEK::EndDateTimeBeforeStartDateTime))
         }
     }
 

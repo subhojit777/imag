@@ -37,8 +37,6 @@ use super::Drain;
 use super::InMemoryFileAbstraction;
 use store::Entry;
 
-use libimagerror::into::IntoError;
-
 pub mod mapper;
 pub mod out;
 use self::mapper::Mapper;
@@ -60,7 +58,7 @@ impl<W, M> StdIoFileAbstraction<W, M>
                 let _ = try!(out
                              .backend()
                              .lock()
-                             .map_err(|_| SEK::LockError.into_error())
+                             .map_err(|_| SE::from_kind(SEK::LockError))
                              .map(|mut mtx| out.mapper().read_to_fs(in_stream, mtx.get_mut())));
 
                 Ok(StdIoFileAbstraction(out))

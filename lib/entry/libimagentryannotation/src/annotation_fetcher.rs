@@ -70,12 +70,12 @@ pub mod iter {
 
     use toml_query::read::TomlValueReadExt;
 
-    use libimagerror::into::IntoError;
     use libimagnotes::note::Note;
     use libimagnotes::note::NoteIterator;
 
     use result::Result;
     use error::AnnotationErrorKind as AEK;
+    use error::AnnotationError as AE;
     use error::ResultExt;
 
     #[derive(Debug)]
@@ -99,7 +99,7 @@ pub mod iter {
                         match note.get_header().read("annotation.is_annotation") {
                             Ok(None) => continue, // not an annotation
                             Ok(Some(&Value::Boolean(true))) => return Some(Ok(note)),
-                            Ok(Some(_)) => return Some(Err(AEK::HeaderTypeError.into_error())),
+                            Ok(Some(_)) => return Some(Err(AE::from_kind(AEK::HeaderTypeError))),
                             Err(e) => return Some(Err(e).chain_err(|| AEK::HeaderReadError)),
                         }
                     },
