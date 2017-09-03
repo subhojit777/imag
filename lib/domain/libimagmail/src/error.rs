@@ -17,15 +17,34 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+
 error_chain! {
     types {
         MailError, MailErrorKind, ResultExt, Result;
     }
 
+    links {
+        RefError(::libimagentryref::error::RefError, ::libimagentryref::error::RefErrorKind);
+    }
+
+
     errors {
         RefCreationError {
             description("Error creating a reference to a file/directory")
             display("Error creating a reference to a file/directory")
+        }
+
+        RefHandlingError {
+            description("Error handling a reference")
+            display("Error handling a reference")
+        }
+
+        MailParsingError {
+            description("Failed to parse mail")
+            display("Failed to parse mail")
         }
 
         FetchByHashError {
@@ -43,10 +62,6 @@ error_chain! {
     }
 }
 
-pub use self::error::MailError;
-pub use self::error::MailErrorKind;
-pub use self::error::MapErrInto;
-
 impl IntoError for MailErrorKind {
     type Target = MailError;
 
@@ -54,7 +69,7 @@ impl IntoError for MailErrorKind {
         MailError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         MailError::from_kind(self)
     }
 }
