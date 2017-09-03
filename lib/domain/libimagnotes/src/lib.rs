@@ -42,7 +42,7 @@ extern crate toml_query;
 
 extern crate libimagrt;
 #[macro_use] extern crate libimagstore;
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 extern crate libimagentryedit;
 
 module_entry_path_mod!("notes");
