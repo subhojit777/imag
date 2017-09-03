@@ -19,7 +19,7 @@
 
 use std::ops::{Deref, DerefMut};
 
-use result::Result;
+use error::Result;
 
 use url::Url;
 

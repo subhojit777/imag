@@ -32,7 +32,7 @@ use toml_query::set::TomlValueSetExt;
 use error::LinkErrorKind as LEK;
 use error::LinkError as LE;
 use error::ResultExt;
-use result::Result;
+use error::Result;
 use self::iter::LinkIter;
 use self::iter::IntoValues;
 
@@ -188,7 +188,7 @@ pub mod iter {
 
     use error::LinkErrorKind as LEK;
     use error::ResultExt;
-    use result::Result;
+    use error::Result;
 
     use toml::Value;
     use itertools::Itertools;
@@ -618,7 +618,7 @@ pub mod store_check {
 
             use error::LinkErrorKind as LEK;
             use error::LinkError as LE;
-            use result::Result as LResult;
+            use error::Result as LResult;
             use internal::InternalLinker;
 
             use libimagstore::store::StoreObject;

@@ -22,7 +22,7 @@ use std::ops::DerefMut;
 
 use libimagstore::store::FileLockEntry;
 use libimagentryedit::edit::Edit;
-use libimagentryedit::result::Result as EditResult;
+use libimagentryedit::error::Result as EditResult;
 use libimagrt::runtime::Runtime;
 
 use diaryid::DiaryId;

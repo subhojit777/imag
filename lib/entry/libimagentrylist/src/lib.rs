@@ -48,5 +48,4 @@ pub mod cli;
 pub mod error;
 pub mod lister;
 pub mod listers;
-pub mod result;
 

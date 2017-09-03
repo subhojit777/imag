@@ -30,7 +30,7 @@ use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagentrydatetime::datepath::compiler::DatePathCompiler;
 
-use result::Result;
+use error::Result;
 use constants::*;
 use error::TimeTrackErrorKind as TTEK;
 use error::ResultExt;

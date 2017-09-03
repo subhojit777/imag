@@ -56,7 +56,6 @@ pub mod error;
 pub mod timetracking;
 pub mod timetrackingstore;
 pub mod iter;
-pub mod result;
 pub mod tag;
 
 module_entry_path_mod!("timetrack");

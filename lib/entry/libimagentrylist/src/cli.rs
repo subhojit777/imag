@@ -21,7 +21,7 @@ use clap::{Arg, ArgMatches, App, SubCommand};
 
 use libimagstore::store::FileLockEntry;
 
-use result::Result;
+use error::Result;
 use listers::line::LineLister;
 use listers::path::PathLister;
 use lister::Lister;

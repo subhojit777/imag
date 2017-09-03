@@ -22,7 +22,7 @@
 use entry::Entry;
 use error::DiaryErrorKind as DEK;
 use error::ResultExt;
-use result::Result;
+use error::Result;
 
 use libimagentryview::viewer::Viewer;
 use libimagentryview::builtin::plain::PlainViewer;

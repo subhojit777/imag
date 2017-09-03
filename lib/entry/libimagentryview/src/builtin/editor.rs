@@ -22,7 +22,7 @@ use libimagrt::runtime::Runtime;
 use libimagentryedit::edit::edit_in_tmpfile;
 
 use viewer::Viewer;
-use result::Result;
+use error::Result;
 use error::ResultExt;
 use error::ViewErrorKind as VEK;
 

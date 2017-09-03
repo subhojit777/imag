@@ -48,4 +48,3 @@ module_entry_path_mod!("bookmark");
 pub mod collection;
 pub mod error;
 pub mod link;
-pub mod result;

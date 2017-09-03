@@ -22,7 +22,7 @@ use std::io::stdout;
 use std::io::Write;
 
 use libimagentrylist::lister::Lister;
-use libimagentrylist::result::Result;
+use libimagentrylist::error::Result;
 use libimagentrylist::error::ResultExt;
 use libimagerror::trace::trace_error;
 use libimagstore::store::FileLockEntry;

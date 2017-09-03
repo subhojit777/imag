@@ -27,7 +27,7 @@ use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error;
 use libimagdiary::entry::Entry;
-use libimagdiary::result::Result;
+use libimagdiary::error::Result;
 use libimagutil::warn_exit::warn_exit;
 
 use util::get_diary_name;

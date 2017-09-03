@@ -47,5 +47,4 @@ extern crate libimagnotes;
 pub mod annotateable;
 pub mod annotation_fetcher;
 pub mod error;
-pub mod result;
 

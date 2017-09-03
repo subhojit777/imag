@@ -21,7 +21,7 @@ use clap::ArgMatches;
 
 use libimagstore::store::FileLockEntry;
 
-use result::Result;
+use error::Result;
 use tagable::*;
 use ui::{get_add_tags, get_remove_tags};
 

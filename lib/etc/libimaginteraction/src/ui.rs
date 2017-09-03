@@ -23,8 +23,8 @@ use clap::{Arg, ArgMatches};
 
 use libimagstore::storeid::StoreId;
 
-use result::Result;
 use error::InteractionError as IE;
+use error::Result;
 use error::InteractionErrorKind as IEK;
 use error::ResultExt;
 

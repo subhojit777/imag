@@ -32,7 +32,7 @@ use tag::TimeTrackingTag as TTT;
 use error::TimeTrackErrorKind as TTEK;
 use error::TimeTrackError as TTE;
 use error::ResultExt;
-use result::Result;
+use error::Result;
 use constants::*;
 
 use toml::Value;

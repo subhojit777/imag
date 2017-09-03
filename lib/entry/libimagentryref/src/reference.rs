@@ -43,7 +43,7 @@ use error::RefErrorKind as REK;
 use error::RefError as RE;
 use error::ResultExt;
 use flags::RefFlags;
-use result::Result;
+use error::Result;
 use hasher::*;
 use module_path::ModuleEntryPath;
 

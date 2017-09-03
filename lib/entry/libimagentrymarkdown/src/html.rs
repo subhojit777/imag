@@ -21,7 +21,7 @@ use hoedown::{Markdown, Html as MdHtml};
 use hoedown::renderer::html::Flags as HtmlFlags;
 use hoedown::renderer::Render;
 
-use result::Result;
+use error::Result;
 use error::MarkdownErrorKind;
 use error::ResultExt;
 
@@ -37,7 +37,7 @@ pub fn to_html(buffer: &str) -> Result<HTML> {
 }
 
 pub mod iter {
-    use result::Result;
+    use error::Result;
     use libimagstore::store::Entry;
     use super::HTML;
     use super::to_html;

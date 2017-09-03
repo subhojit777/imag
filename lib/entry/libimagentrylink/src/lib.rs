@@ -56,5 +56,4 @@ module_entry_path_mod!("links");
 pub mod error;
 pub mod external;
 pub mod internal;
-pub mod result;
 

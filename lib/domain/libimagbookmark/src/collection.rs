@@ -31,7 +31,7 @@ use regex::Regex;
 use error::BookmarkErrorKind as BEK;
 use error::BookmarkError as BE;
 use error::ResultExt;
-use result::Result;
+use error::Result;
 use module_path::ModuleEntryPath;
 
 use libimagstore::store::Store;
@@ -150,7 +150,7 @@ impl<'a> BookmarkCollection<'a> {
 
 pub mod iter {
     use link::Link;
-    use result::Result;
+    use error::Result;
     use error::{ResultExt, BookmarkErrorKind as BEK};
 
     pub struct LinkIter<I>(I)

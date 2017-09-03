@@ -20,7 +20,7 @@
 use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
 
-use result::Result;
+use error::Result;
 use error::EditErrorKind;
 use error::EditError as EE;
 use error::ResultExt;

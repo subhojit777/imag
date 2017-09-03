@@ -27,7 +27,7 @@ use toml_query::set::TomlValueSetExt;
 use error::TagErrorKind;
 use error::TagError as TE;
 use error::ResultExt;
-use result::Result;
+use error::Result;
 use tag::{Tag, TagSlice};
 use tag::is_tag_str;
 

@@ -29,7 +29,7 @@ use is_in_diary::IsInDiary;
 use entry::Entry as DiaryEntry;
 use error::DiaryErrorKind as DEK;
 use error::ResultExt;
-use result::Result;
+use error::Result;
 use libimagerror::trace::trace_error;
 
 /// A iterator for iterating over diary entries

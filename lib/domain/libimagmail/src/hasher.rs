@@ -26,7 +26,7 @@ use libimagentryref::hasher::Hasher;
 use libimagentryref::hasher::DefaultHasher;
 use libimagentryref::error::RefErrorKind as REK;
 use libimagentryref::error::ResultExt;
-use libimagentryref::result::Result as RResult;
+use libimagentryref::error::Result as RResult;
 
 pub struct MailHasher {
     defaulthasher: DefaultHasher,

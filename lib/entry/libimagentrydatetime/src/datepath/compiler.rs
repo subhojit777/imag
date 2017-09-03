@@ -27,7 +27,7 @@ use libimagstore::storeid::StoreId;
 
 use datepath::accuracy::Accuracy;
 use datepath::format::Format;
-use datepath::result::Result;
+use datepath::error::Result;
 use datepath::error::DatePathCompilerErrorKind as DPCEK;
 use datepath::error::ResultExt;
 

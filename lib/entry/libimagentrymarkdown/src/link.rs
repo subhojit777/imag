@@ -19,7 +19,7 @@
 
 use error::MarkdownErrorKind as MEK;
 use error::ResultExt;
-use result::Result;
+use error::Result;
 
 use hoedown::renderer::Render;
 use hoedown::Buffer;

@@ -34,7 +34,7 @@ use module_path::ModuleEntryPath;
 
 use error::{TodoErrorKind as TEK, ResultExt};
 use error::TodoError as TE;
-use result::Result;
+use error::Result;
 
 /// Task struct containing a `FileLockEntry`
 #[derive(Debug)]

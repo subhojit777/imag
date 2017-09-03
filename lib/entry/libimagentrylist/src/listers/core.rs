@@ -21,7 +21,7 @@ use std::io::stdout;
 use std::io::Write;
 
 use lister::Lister;
-use result::Result;
+use error::Result;
 use error::ResultExt;
 
 use libimagstore::store::FileLockEntry;
