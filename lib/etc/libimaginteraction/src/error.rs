@@ -17,6 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+
 error_chain! {
     types {
         InteractionError, InteractionErrorKind, ResultExt, Result;
@@ -81,10 +85,6 @@ error_chain! {
     }
 }
 
-pub use self::error::InteractionError;
-pub use self::error::InteractionErrorKind;
-pub use self::error::MapErrInto;
-
 impl IntoError for InteractionErrorKind {
     type Target = InteractionError;
 
@@ -92,7 +92,7 @@ impl IntoError for InteractionErrorKind {
         InteractionError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         InteractionError::from_kind(self)
     }
 }

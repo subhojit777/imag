@@ -44,7 +44,7 @@ extern crate toml;
 #[macro_use] extern crate error_chain;
 
 extern crate libimagstore;
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 
 pub mod ask;
 pub mod error;
