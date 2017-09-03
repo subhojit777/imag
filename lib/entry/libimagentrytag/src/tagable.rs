@@ -26,7 +26,7 @@ use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
 use error::TagErrorKind;
-use error::MapErrInto;
+use error::ResultExt;
 use result::Result;
 use tag::{Tag, TagSlice};
 use tag::is_tag_str;
@@ -49,7 +49,7 @@ pub trait Tagable {
 impl Tagable for Value {
 
     fn get_tags(&self) -> Result<Vec<Tag>> {
-        let tags = try!(self.read("imag.tags").map_err_into(TagErrorKind::HeaderReadError));
+        let tags = try!(self.read("imag.tags").chain_err(|| TagErrorKind::HeaderReadError));
 
         match tags {
             Some(&Value::Array(ref tags)) => {
@@ -87,8 +87,7 @@ impl Tagable for Value {
         let a = ts.iter().unique().map(|t| Value::String(t.clone())).collect();
         self.set("imag.tags", Value::Array(a))
             .map(|_| ())
-            .map_err(Box::new)
-            .map_err(|e| TagErrorKind::HeaderWriteError.into_error_with_cause(e))
+            .chain_err(|| TagErrorKind::HeaderWriteError)
     }
 
     fn add_tag(&mut self, t: Tag) -> Result<()> {
@@ -120,7 +119,7 @@ impl Tagable for Value {
     }
 
     fn has_tag(&self, t: TagSlice) -> Result<bool> {
-        let tags = try!(self.read("imag.tags").map_err_into(TagErrorKind::HeaderReadError));
+        let tags = try!(self.read("imag.tags").chain_err(|| TagErrorKind::HeaderReadError));
 
         if !tags.iter().all(|t| is_match!(*t, &Value::String(_))) {
             return Err(TagErrorKind::TagTypeError.into());
