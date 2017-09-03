@@ -46,3 +46,38 @@ pub fn delete(rt: &Runtime) {
         .or_else(|| warn_exit("No subcommand 'delete'. Will exit now", 1));
 }
 
+#[cfg(test)]
+mod tests {
+    use create::create;
+    use super::delete;
+
+    use std::path::PathBuf;
+
+    make_mock_app! {
+        app "imag-link";
+        modulename mock;
+        version "0.4.0";
+        with help "imag-link mocking app";
+    }
+    use self::mock::generate_test_runtime;
+    use self::mock::reset_test_runtime;
+
+    #[test]
+    fn test_create_simple() {
+        let test_name = "test_create_simple";
+        let rt = generate_test_runtime(vec!["create", "-p", "test_create_simple"]).unwrap();
+
+        create(&rt);
+
+        let rt = reset_test_runtime(vec!["delete", "--id", "test_create_simple"], rt).unwrap();
+
+        delete(&rt);
+
+        let e = rt.store().get(PathBuf::from(test_name));
+        assert!(e.is_ok());
+        let e = e.unwrap();
+        assert!(e.is_none());
+    }
+
+}
+
