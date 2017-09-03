@@ -1,6 +1,35 @@
 # This is a example configuration file for the imag suite.
 # It is written in TOML
 
+[imag.logging]
+level = "debug"
+destinations = [ "-" ]
+
+# Valid variables for logging:
+#  * "level"
+#  * "module_path"
+#  * "file"
+#  * "line"
+#  * "target"
+#  * "message"
+#
+# Valid functions to be applied:
+#  * "black"
+#  * "blue"
+#  * "cyan"
+#  * "green"
+#  * "purple"
+#  * "red"
+#  * "white"
+#  * "yellow"
+
+[imag.logging.format]
+trace = "[imag][{{red level}}][{{module_path}}]: {{message}}"
+debug = "[imag][{{cyan level}}]: {{message}}"
+info  = "[imag]: {{message}}"
+warn  = "[imag][{{bold level}}]: {{yellow message}}"
+error = "[imag][{{red level}}]: {{red message}}"
+
 #
 # Configuration options for the user interface
 #

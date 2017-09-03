@@ -25,6 +25,7 @@ This section contains the changelog from the last release to the next release.
     * The codebase was moved to a more tree-ish approach, where several
       subdirectories were introduced for different types of crates
     * The documentation got a major overhaul and was partly rewritten
+    * The logger is now configurable via the config file.
 * New
     * `libimagentrygps` was introduced
 * Fixed bugs
