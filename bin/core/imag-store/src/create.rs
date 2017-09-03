@@ -38,6 +38,7 @@ use libimagutil::debug_result::*;
 
 use error::StoreError;
 use error::StoreErrorKind;
+use error::ResultExt;
 use util::build_toml_header;
 
 type Result<T> = RResult<T, StoreError>;
@@ -110,7 +111,7 @@ fn create_from_cli_spec(rt: &Runtime, matches: &ArgMatches, path: &StoreId) -> R
 fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &StoreId) -> Result<()> {
     let content = matches
         .value_of("from-raw")
-        .ok_or(StoreError::new(StoreErrorKind::NoCommandlineCall, None))
+        .ok_or(StoreError::from_kind(StoreErrorKind::NoCommandlineCall))
         .map(string_from_raw_src);
 
     if content.is_err() {
@@ -133,7 +134,7 @@ fn create_from_source(rt: &Runtime, matches: &ArgMatches, path: &StoreId) -> Res
             r
         })
         .map_dbg_err(|e| format!("Error storing entry: {:?}", e))
-        .map_err(|serr| StoreError::new(StoreErrorKind::BackendError, Some(Box::new(serr))))
+        .chain_err(|| StoreErrorKind::BackendError)
 }
 
 fn create_with_content_and_header(rt: &Runtime,
@@ -157,7 +158,7 @@ fn create_with_content_and_header(rt: &Runtime,
                 debug!("New header set");
             }
         })
-        .map_err(|e| StoreError::new(StoreErrorKind::BackendError, Some(Box::new(e))))
+        .chain_err(|| StoreErrorKind::BackendError)
 }
 
 fn string_from_raw_src(raw_src: &str) -> String {

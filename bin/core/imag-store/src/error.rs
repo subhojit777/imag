@@ -17,6 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+
 error_chain! {
     types {
         StoreError, StoreErrorKind, ResultExt, Result;
@@ -36,9 +40,6 @@ error_chain! {
     }
 }
 
-pub use self::error::StoreError;
-pub use self::error::StoreErrorKind;
-
 impl IntoError for StoreErrorKind {
     type Target = StoreError;
 
@@ -46,7 +47,7 @@ impl IntoError for StoreErrorKind {
         StoreError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         StoreError::from_kind(self)
     }
 }

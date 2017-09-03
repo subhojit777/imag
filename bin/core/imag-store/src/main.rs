@@ -41,7 +41,7 @@ extern crate toml;
 extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagutil;
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 
 use libimagrt::setup::generate_runtime_setup;
 
