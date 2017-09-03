@@ -43,7 +43,7 @@ extern crate serde_json;
 #[macro_use] extern crate error_chain;
 
 #[macro_use] extern crate libimagstore;
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 extern crate task_hookrs;
 
 module_entry_path_mod!("todo");

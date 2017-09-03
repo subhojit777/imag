@@ -32,7 +32,8 @@ use libimagstore::store::{FileLockEntry, Store};
 use libimagstore::storeid::{IntoStoreId, StoreIdIterator, StoreId};
 use module_path::ModuleEntryPath;
 
-use error::{TodoErrorKind as TEK, MapErrInto};
+use error::{TodoErrorKind as TEK, ResultExt};
+use error::TodoError as TE;
 use result::Result;
 
 /// Task struct containing a `FileLockEntry`
@@ -48,9 +49,9 @@ impl<'a> Task<'a> {
 
     pub fn import<R: BufRead>(store: &'a Store, mut r: R) -> Result<(Task<'a>, String, Uuid)> {
         let mut line = String::new();
-        try!(r.read_line(&mut line).map_err_into(TEK::UTF8Error));
+        try!(r.read_line(&mut line).chain_err(|| TEK::UTF8Error));
         import_task(&line.as_str())
-            .map_err_into(TEK::ImportError)
+            .map_err(|_| TE::from_kind(TEK::ImportError))
             .and_then(|t| {
                 let uuid = t.uuid().clone();
                 t.into_task(store).map(|t| (t, line, uuid))
@@ -70,7 +71,7 @@ impl<'a> Task<'a> {
         where R: BufRead
     {
         let mut line = String::new();
-        try!(r.read_line(&mut line).map_err_into(TEK::UTF8Error));
+        try!(r.read_line(&mut line).chain_err(|| TEK::UTF8Error));
         Task::get_from_string(store, line)
     }
 
@@ -80,7 +81,7 @@ impl<'a> Task<'a> {
     /// For an explanation on the return values see `Task::get_from_import()`.
     pub fn get_from_string(store: &'a Store, s: String) -> Result<RResult<Task<'a>, String>> {
         import_task(s.as_str())
-            .map_err_into(TEK::ImportError)
+            .map_err(|_| TE::from_kind(TEK::ImportError))
             .map(|t| t.uuid().clone())
             .and_then(|uuid| Task::get_from_uuid(store, uuid))
             .and_then(|o| match o {
@@ -97,14 +98,14 @@ impl<'a> Task<'a> {
             .into_storeid()
             .and_then(|store_id| store.get(store_id))
             .map(|o| o.map(Task::new))
-            .map_err_into(TEK::StoreError)
+            .chain_err(|| TEK::StoreError)
     }
 
     /// Same as Task::get_from_import() but uses Store::retrieve() rather than Store::get(), to
     /// implicitely create the task if it does not exist.
     pub fn retrieve_from_import<R: BufRead>(store: &'a Store, mut r: R) -> Result<Task<'a>> {
         let mut line = String::new();
-        try!(r.read_line(&mut line).map_err_into(TEK::UTF8Error));
+        try!(r.read_line(&mut line).chain_err(|| TEK::UTF8Error));
         Task::retrieve_from_string(store, line)
     }
 
@@ -115,7 +116,7 @@ impl<'a> Task<'a> {
             .and_then(|opt| match opt {
                 Ok(task)    => Ok(task),
                 Err(string) => import_task(string.as_str())
-                    .map_err_into(TEK::ImportError)
+                    .map_err(|_| TE::from_kind(TEK::ImportError))
                     .and_then(|t| t.into_task(store)),
             })
     }
@@ -132,7 +133,7 @@ impl<'a> Task<'a> {
                         // task before the change, and the second one after
                         // the change. The (maybe modified) second one is
                         // expected by taskwarrior.
-                        match serde_to_string(&ttask).map_err_into(TEK::ImportError) {
+                        match serde_to_string(&ttask).chain_err(|| TEK::ImportError) {
                             // use println!() here, as we talk with TW
                             Ok(val) => println!("{}", val),
                             Err(e)  => return Err(e),
@@ -151,7 +152,7 @@ impl<'a> Task<'a> {
                         }
                     } // end if c % 2
                 },
-                Err(e) => return Err(e).map_err_into(TEK::ImportError),
+                Err(e) => return Err(e).map_err(|_| TE::from_kind(TEK::ImportError)),
             }
         }
         Ok(())
@@ -161,12 +162,12 @@ impl<'a> Task<'a> {
         ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
             .into_storeid()
             .and_then(|id| store.delete(id))
-            .map_err_into(TEK::StoreError)
+            .chain_err(|| TEK::StoreError)
     }
 
     pub fn all_as_ids(store: &Store) -> Result<StoreIdIterator> {
         store.retrieve_for_module("todo/taskwarrior")
-            .map_err_into(TEK::StoreError)
+            .chain_err(|| TEK::StoreError)
     }
 
     pub fn all(store: &Store) -> Result<TaskIterator> {
@@ -223,21 +224,21 @@ impl<'a> IntoTask<'a> for TTask {
         let uuid     = self.uuid();
         ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
             .into_storeid()
-            .map_err_into(TEK::StoreIdError)
+            .chain_err(|| TEK::StoreIdError)
             .and_then(|id| {
                 store.retrieve(id)
-                    .map_err_into(TEK::StoreError)
+                    .chain_err(|| TEK::StoreError)
                     .and_then(|mut fle| {
                         {
                             let hdr = fle.get_header_mut();
-                            if try!(hdr.read("todo").map_err_into(TEK::StoreError)).is_none() {
+                            if try!(hdr.read("todo").chain_err(|| TEK::StoreError)).is_none() {
                                 try!(hdr
                                     .set("todo", Value::Table(BTreeMap::new()))
-                                    .map_err_into(TEK::StoreError));
+                                    .chain_err(|| TEK::StoreError));
                             }
 
                             try!(hdr.set("todo.uuid", Value::String(format!("{}",uuid)))
-                                 .map_err_into(TEK::StoreError));
+                                 .chain_err(|| TEK::StoreError));
                         }
 
                         // If none of the errors above have returned the function, everything is fine
@@ -256,7 +257,7 @@ impl<'a> FromStoreId for Task<'a> {
 
     fn from_storeid<'b>(store: &'b Store, id: StoreId) -> Result<Task<'b>> {
         store.retrieve(id)
-            .map_err_into(TEK::StoreError)
+            .chain_err(|| TEK::StoreError)
             .map(Task::new)
     }
 }

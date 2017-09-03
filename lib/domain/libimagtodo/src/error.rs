@@ -17,6 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+
 error_chain! {
     types {
         TodoError, TodoErrorKind, ResultExt, Result;
@@ -24,7 +28,7 @@ error_chain! {
 
     errors {
         ConversionError     {
-            description("Conversion Error"")
+            description("Conversion Error")
             display("Conversion Error")
         }
 
@@ -44,16 +48,12 @@ error_chain! {
         }
 
         UTF8Error           {
-            description("Encountered non-UTF8 characters while reading input)
-            display("Encountered non-UTF8 characters while reading input)
+            description("Encountered non-UTF8 characters while reading input")
+            display("Encountered non-UTF8 characters while reading input")
         }
 
     }
 }
-
-pub use self::error::TodoError;
-pub use self::error::TodoErrorKind;
-pub use self::error::MapErrInto;
 
 impl IntoError for TodoErrorKind {
     type Target = TodoError;
@@ -62,7 +62,7 @@ impl IntoError for TodoErrorKind {
         TodoError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         TodoError::from_kind(self)
     }
-    }
+}
