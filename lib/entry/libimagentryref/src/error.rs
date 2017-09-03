@@ -17,9 +17,21 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::error::Error;
+
+use libimagerror::into::IntoError;
+
 error_chain! {
     types {
         RefError, RefErrorKind, ResultExt, Result;
+    }
+
+    links {
+        ListError(::libimagentrylist::error::ListError, ::libimagentrylist::error::ListErrorKind);
+    }
+
+    foreign_links {
+        Io(::std::io::Error);
     }
 
     errors {
@@ -141,10 +153,6 @@ error_chain! {
     }
 }
 
-pub use self::error::RefError;
-pub use self::error::RefErrorKind;
-pub use self::error::MapErrInto;
-
 impl IntoError for RefErrorKind {
     type Target = RefError;
 
@@ -152,7 +160,7 @@ impl IntoError for RefErrorKind {
         RefError::from_kind(self)
     }
 
-    fn into_error_with_cause(self, cause: Box<Error>) -> Self::Target {
+    fn into_error_with_cause(self, _: Box<Error>) -> Self::Target {
         RefError::from_kind(self)
     }
 }

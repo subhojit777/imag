@@ -23,14 +23,12 @@ use std::io::Write;
 
 use libimagentrylist::lister::Lister;
 use libimagentrylist::result::Result;
+use libimagentrylist::error::ResultExt;
 use libimagerror::trace::trace_error;
 use libimagstore::store::FileLockEntry;
-use libimagerror::into::IntoError;
 use libimagentrylist::error::ListErrorKind as LEK;
 
 use reference::Ref;
-use error::MapErrInto;
-use error::RefErrorKind as REK;
 
 pub struct RefLister {
     check_dead: bool,
@@ -94,17 +92,14 @@ impl Lister for RefLister {
                               self.check_changed_content,
                               self.check_changed_permiss)
                         .and_then(|s| {
-                            write!(stdout(), "{}\n", s)
-                                .map_err(Box::new)
-                                .map_err(|e| LEK::FormatError.into_error_with_cause(e))
+                            write!(stdout(), "{}\n", s).chain_err(|| LEK::IOError)
                         })
-                        .map_err_into(REK::RefToDisplayError)
                 })
                 .map(|_| ());
             (r, i + 1)
         });
         debug!("Iterated over {} entries", n);
-        r.map_err(|e| LEK::FormatError.into_error_with_cause(Box::new(e)))
+        r
     }
 
 }
@@ -149,7 +144,7 @@ fn lister_fn(fle: FileLockEntry,
                     r.get_path_hash().unwrap_or_else(|_| String::from("Cannot get hash")),
                     r.get_location())
         })
-        .map_err(|e| LEK::FormatError.into_error_with_cause(Box::new(e)))
+        .chain_err(|| LEK::FormatError)
 }
 
 fn check_dead(r: &Ref) -> bool {

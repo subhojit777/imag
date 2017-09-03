@@ -43,7 +43,7 @@ extern crate toml_query;
 extern crate walkdir;
 
 #[macro_use] extern crate libimagstore;
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 extern crate libimagentrylist;
 #[macro_use] extern crate error_chain;
 

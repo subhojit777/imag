@@ -24,12 +24,10 @@ use std::result::Result as RResult;
 use crypto::sha1::Sha1;
 use crypto::digest::Digest;
 
-use libimagerror::into::IntoError;
-
 use hasher::Hasher;
 use result::Result;
 use error::RefErrorKind as REK;
-use error::MapErrInto;
+use error::ResultExt;
 
 pub struct NBytesHasher {
     hasher: Sha1,
@@ -58,11 +56,10 @@ impl Hasher for NBytesHasher {
             .bytes()
             .take(self.n)
             .collect::<RResult<Vec<u8>, _>>()
-            .map_err_into(REK::IOError)
-            .and_then(|v| String::from_utf8(v).map_err_into(REK::IOError))
-            .map_err(Box::new)
-            .map_err(|e| REK::UTF8Error.into_error_with_cause(e))
-            .map_err_into(REK::IOError);
+            .chain_err(|| REK::IOError)
+            .and_then(|v| String::from_utf8(v).chain_err(|| REK::IOError))
+            .chain_err(|| REK::UTF8Error)
+            .chain_err(|| REK::IOError);
         self.hasher.input_str(&try!(s)[..]);
         Ok(self.hasher.result_str())
     }

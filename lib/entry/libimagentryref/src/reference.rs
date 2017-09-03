@@ -41,7 +41,7 @@ use toml_query::set::TomlValueSetExt;
 use toml_query::insert::TomlValueInsertExt;
 
 use error::RefErrorKind as REK;
-use error::MapErrInto;
+use error::ResultExt;
 use flags::RefFlags;
 use result::Result;
 use hasher::*;
@@ -74,8 +74,7 @@ impl<'a> Ref<'a> {
             .into_storeid()
             .and_then(|id| store.get(id))
             .map(|opt_fle| opt_fle.map(|fle| Ref(fle)))
-            .map_err(Box::new)
-            .map_err(|e| REK::StoreReadError.into_error_with_cause(e))
+            .chain_err(|| REK::StoreReadError)
     }
 
     /// Delete a ref by hash
@@ -85,8 +84,7 @@ impl<'a> Ref<'a> {
         ModuleEntryPath::new(hash)
             .into_storeid()
             .and_then(|id| store.delete(id))
-            .map_err(Box::new)
-            .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
+            .chain_err(|| REK::StoreWriteError)
     }
 
     fn read_reference(fle: &FileLockEntry<'a>) -> Result<PathBuf> {
@@ -110,8 +108,7 @@ impl<'a> Ref<'a> {
 
         let (mut fle, content_hash, permissions, canonical_path) = { // scope to be able to fold
             try!(File::open(pb.clone())
-                .map_err(Box::new)
-                .map_err(|e| REK::RefTargetFileCannotBeOpened.into_error_with_cause(e))
+                .chain_err(|| REK::RefTargetFileCannotBeOpened)
 
                 // If we were able to open this file,
                 // we hash the contents of the file and return (file, hash)
@@ -132,8 +129,7 @@ impl<'a> Ref<'a> {
                         Some(try!(file
                                   .metadata()
                                   .map(|md| md.permissions())
-                                  .map_err(Box::new)
-                                  .map_err(|e| REK::RefTargetCannotReadPermissions.into_error_with_cause(e))
+                                  .chain_err(|| REK::RefTargetCannotReadPermissions)
                         ))
                     } else {
                         None
@@ -149,15 +145,14 @@ impl<'a> Ref<'a> {
                     pb.canonicalize()
                         .map(|can| (opt_contenthash, opt_permissions, can))
                         // if PathBuf::canonicalize() failed, build an error from the return value
-                        .map_err(|e| REK::PathCanonicalizationError.into_error_with_cause(Box::new(e)))
+                        .chain_err(|| REK::PathCanonicalizationError)
                 })
 
                 // and then we hash the canonicalized path
                 // and return (file, content hash, permissions, canonicalized path, path hash)
                 .and_then(|(opt_contenthash, opt_permissions, can)| {
                     let path_hash = try!(Ref::hash_path(&can)
-                        .map_err(Box::new)
-                        .map_err(|e| REK::PathHashingError.into_error_with_cause(e))
+                        .chain_err(|| REK::PathHashingError)
                     );
 
                     Ok((opt_contenthash, opt_permissions, can, path_hash))
@@ -180,8 +175,7 @@ impl<'a> Ref<'a> {
                 .and_then(|(opt_conhash, opt_perm, can, path_hash)| {
                     let fle = try!(store
                                    .create(ModuleEntryPath::new(path_hash))
-                                   .map_err(Box::new)
-                                   .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
+                                   .chain_err(|| REK::StoreWriteError)
                     );
 
                     Ok((fle, opt_conhash, opt_perm, can))
@@ -255,7 +249,7 @@ impl<'a> Ref<'a> {
             .get_location()
             .clone()
             .into_pathbuf()
-            .map_err_into(REK::StoreIdError)
+            .chain_err(|| REK::StoreIdError)
             .and_then(|pb| {
                 pb.file_name()
                     .and_then(|osstr| osstr.to_str())
@@ -300,8 +294,7 @@ impl<'a> Ref<'a> {
             .and_then(|pb| {
                 File::open(pb.clone())
                     .map(|f| (pb, f))
-                    .map_err(Box::new)
-                    .map_err(|e| REK::IOError.into_error_with_cause(e))
+                    .chain_err(|| REK::IOError)
             })
             .and_then(|(path, mut file)| h.create_hash(&path, &mut file))
     }
@@ -311,15 +304,13 @@ impl<'a> Ref<'a> {
         self.fs_file()
             .and_then(|pb| {
                 File::open(pb)
-                    .map_err(Box::new)
-                    .map_err(|e| REK::HeaderFieldReadError.into_error_with_cause(e))
+                    .chain_err(|| REK::HeaderFieldReadError)
             })
             .and_then(|file| {
                 file
                     .metadata()
                     .map(|md| md.permissions())
-                    .map_err(Box::new)
-                    .map_err(|e| REK::RefTargetCannotReadPermissions.into_error_with_cause(e))
+                    .chain_err(|| REK::RefTargetCannotReadPermissions)
             })
     }
 
@@ -362,8 +353,7 @@ impl<'a> Ref<'a> {
         self.0
             .get_header()
             .read("ref.permissions.ro")
-            .map_err(Box::new)
-            .map_err(|e| REK::HeaderFieldReadError.into_error_with_cause(e))
+            .chain_err(|| REK::HeaderFieldReadError)
             .and_then(|ro| {
                 match ro {
                     Some(&Value::Boolean(b)) => Ok(b),
@@ -372,8 +362,7 @@ impl<'a> Ref<'a> {
                 }
             })
             .and_then(|ro| self.get_current_permissions().map(|perm| ro == perm.readonly()))
-            .map_err(Box::new)
-            .map_err(|e| REK::RefTargetCannotReadPermissions.into_error_with_cause(e))
+            .chain_err(|| REK::RefTargetCannotReadPermissions)
     }
 
     /// Check whether the Hashsum of the referenced file is equal to the stored hashsum
@@ -398,15 +387,13 @@ impl<'a> Ref<'a> {
         try!(self.0
             .get_header_mut()
             .set("ref.permissions.ro", Value::Boolean(current_perm.readonly()))
-            .map_err(Box::new)
-            .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
+            .chain_err(|| REK::StoreWriteError)
         );
 
         try!(self.0
             .get_header_mut()
             .set(&format!("ref.content_hash.{}", h.hash_name())[..], Value::String(current_hash))
-            .map_err(Box::new)
-            .map_err(|e| REK::StoreWriteError.into_error_with_cause(e))
+            .chain_err(|| REK::StoreWriteError)
         );
 
         Ok(())
@@ -425,17 +412,14 @@ impl<'a> Ref<'a> {
     /// Check whether there is a reference to the file at `pb`
     pub fn exists(store: &Store, pb: PathBuf) -> Result<bool> {
         pb.canonicalize()
-            .map_err(Box::new)
-            .map_err(|e| REK::PathCanonicalizationError.into_error_with_cause(e))
+            .chain_err(|| REK::PathCanonicalizationError)
             .and_then(|can| {
                 Ref::hash_path(&can)
-                    .map_err(Box::new)
-                    .map_err(|e| REK::PathHashingError.into_error_with_cause(e))
+                    .chain_err(|| REK::PathHashingError)
             })
             .and_then(|hash| {
                 store.retrieve_for_module("ref").map(|iter| (hash, iter))
-                    .map_err(Box::new)
-                    .map_err(|e| REK::StoreReadError.into_error_with_cause(e))
+                    .chain_err(|| REK::StoreReadError)
             })
             .and_then(|(hash, possible_refs)| {
                 // This is kind of a manual Iterator::filter() call what we do here, but with the
@@ -444,7 +428,7 @@ impl<'a> Ref<'a> {
                 // take this note as a todo.
                 for r in possible_refs {
                     let contains_hash = try!(r.to_str()
-                        .map_err_into(REK::TypeConversionError)
+                        .chain_err(|| REK::TypeConversionError)
                         .map(|s| s.contains(&hash[..])));
 
                     if !contains_hash {
@@ -505,13 +489,11 @@ impl<'a> Ref<'a> {
                             .into_iter()
                             .map(|entry| {
                                 entry
-                                    .map_err(Box::new)
-                                    .map_err(|e| REK::IOError.into_error_with_cause(e))
+                                    .chain_err(|| REK::IOError)
                                     .and_then(|entry| {
                                         let pb = PathBuf::from(entry.path());
                                         File::open(entry.path())
-                                            .map_err(Box::new)
-                                            .map_err(|e| REK::IOError.into_error_with_cause(e))
+                                            .chain_err(|| REK::IOError)
                                             .map(|f| (pb, f))
                                     })
                                     .and_then(|(p, mut f)|  h.create_hash(&p, &mut f).map(|h| (p, h)))
@@ -522,8 +504,7 @@ impl<'a> Ref<'a> {
                                             None
                                         }
                                     })
-                                    .map_err(Box::new)
-                                    .map_err(|e| REK::IOError.into_error_with_cause(e))
+                                    .chain_err(|| REK::IOError)
                             })
                             .filter_map(|e| e.ok())
                             .filter_map(|e| e)
