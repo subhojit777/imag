@@ -61,7 +61,9 @@ fn tw_hook(rt: &Runtime) {
     let subcmd = rt.cli().subcommand_matches("tw-hook").unwrap();
     if subcmd.is_present("add") {
         let stdin = stdin();
-        let stdin = stdin.lock(); // implements BufRead which is required for `FileLockEntry::import_task_from_reader()`
+
+        // implements BufRead which is required for `Store::import_task_from_reader()`
+        let stdin = stdin.lock();
 
         match rt.store().import_task_from_reader(stdin) {
             Ok((_, line, uuid)) => println!("{}\nTask {} stored in imag", line, uuid),
@@ -101,11 +103,12 @@ fn list(rt: &Runtime) {
                         match fle.get_header().read(&String::from("todo.uuid")) {
                             Ok(Some(&Value::String(ref u))) => Some(u.clone()),
                             Ok(Some(_)) => {
-                                warn!("Header type error");
+                                error!("Header type error, expected String at 'todo.uuid' in {}",
+                                       fle.get_location());
                                 None
                             },
                             Ok(None) => {
-                                warn!("Header missing field");
+                                error!("Header missing field in {}", fle.get_location());
                                 None
                             },
                             Err(e) => {
