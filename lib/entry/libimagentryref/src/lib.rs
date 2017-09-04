@@ -55,4 +55,3 @@ pub mod hasher;
 pub mod hashers;
 pub mod lister;
 pub mod reference;
-pub mod result;

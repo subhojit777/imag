@@ -19,7 +19,7 @@
 
 use libimagstore::store::Entry;
 
-use result::Result;
+use error::Result;
 
 pub trait Viewer {
 

@@ -32,7 +32,7 @@ use category::Category;
 use error::CategoryErrorKind as CEK;
 use error::CategoryError as CE;
 use error::ResultExt;
-use result::Result;
+use error::Result;
 
 pub const CATEGORY_REGISTER_NAME_FIELD_PATH : &'static str = "category.register.name";
 

@@ -30,7 +30,7 @@ use email::MimeMessage;
 use email::results::ParsingResult as EmailParsingResult;
 
 use hasher::MailHasher;
-use result::Result;
+use error::Result;
 use error::{ResultExt, MailErrorKind as MEK};
 
 struct Buffer(String);

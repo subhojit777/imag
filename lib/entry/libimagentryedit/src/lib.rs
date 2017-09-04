@@ -43,4 +43,3 @@ extern crate libimagutil;
 
 pub mod edit;
 pub mod error;
-pub mod result;

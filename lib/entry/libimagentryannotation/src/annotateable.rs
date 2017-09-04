@@ -29,7 +29,7 @@ use libimagentrylink::internal::InternalLinker;
 use toml_query::read::TomlValueReadExt;
 use toml_query::insert::TomlValueInsertExt;
 
-use result::Result;
+use error::Result;
 use error::AnnotationErrorKind as AEK;
 use error::AnnotationError as AE;
 use error::ResultExt;

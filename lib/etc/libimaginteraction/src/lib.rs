@@ -49,6 +49,5 @@ extern crate libimagerror;
 pub mod ask;
 pub mod error;
 pub mod filter;
-pub mod result;
 pub mod ui;
 

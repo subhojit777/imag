@@ -49,5 +49,4 @@ module_entry_path_mod!("notes");
 
 pub mod error;
 pub mod note;
-pub mod result;
 

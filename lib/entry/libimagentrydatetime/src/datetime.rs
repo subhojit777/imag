@@ -28,7 +28,6 @@ use libimagstore::store::Entry;
 use error::DateErrorKind as DEK;
 use error::DateError as DE;
 use error::*;
-use result::Result;
 use range::DateTimeRange;
 
 pub trait EntryDate {

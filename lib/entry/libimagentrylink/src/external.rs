@@ -46,7 +46,7 @@ use toml_query::set::TomlValueSetExt;
 
 use error::LinkErrorKind as LEK;
 use error::LinkError as LE;
-use result::Result;
+use error::Result;
 use internal::InternalLinker;
 use module_path::ModuleEntryPath;
 use error::ResultExt;
@@ -137,7 +137,7 @@ pub mod iter {
     use internal::iter::LinkIter;
     use error::LinkErrorKind as LEK;
     use error::ResultExt;
-    use result::Result;
+    use error::Result;
 
     use url::Url;
 

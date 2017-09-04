@@ -23,7 +23,7 @@ use toml::Value;
 
 use error::RefErrorKind as REK;
 use error::ResultExt;
-use result::Result;
+use error::Result;
 
 pub struct RefFlags {
     content_hashing:       bool,

@@ -26,7 +26,7 @@ use error::ResultExt;
 use crypto::sha1::Sha1;
 use crypto::digest::Digest;
 
-use result::Result;
+use error::Result;
 
 /// The Hasher trait is used to implement custom hashing functions for the ref library.
 /// This means that one can define how the hash of a reference is constructed from the content of

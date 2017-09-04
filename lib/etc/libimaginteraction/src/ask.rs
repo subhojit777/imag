@@ -26,7 +26,7 @@ use std::result::Result as RResult;
 
 use error::InteractionErrorKind;
 use error::ResultExt;
-use result::Result;
+use error::Result;
 
 use regex::Regex;
 use ansi_term::Colour::*;

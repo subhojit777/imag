@@ -24,7 +24,7 @@ use libimagnotes::note::Note;
 use libimagnotes::note::NoteIterator;
 use libimagstore::storeid::StoreIdIterator;
 
-use result::Result;
+use error::Result;
 use error::AnnotationErrorKind as AEK;
 use error::ResultExt;
 
@@ -73,7 +73,7 @@ pub mod iter {
     use libimagnotes::note::Note;
     use libimagnotes::note::NoteIterator;
 
-    use result::Result;
+    use error::Result;
     use error::AnnotationErrorKind as AEK;
     use error::AnnotationError as AE;
     use error::ResultExt;

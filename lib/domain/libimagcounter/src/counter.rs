@@ -34,7 +34,7 @@ use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 
 use module_path::ModuleEntryPath;
-use result::Result;
+use error::Result;
 use error::CounterError as CE;
 use error::CounterErrorKind as CEK;
 use error::ResultExt;

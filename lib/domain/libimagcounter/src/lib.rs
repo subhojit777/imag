@@ -47,5 +47,4 @@ module_entry_path_mod!("counter");
 
 pub mod counter;
 pub mod error;
-pub mod result;
 

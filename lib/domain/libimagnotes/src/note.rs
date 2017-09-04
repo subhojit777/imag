@@ -24,7 +24,7 @@ use toml::Value;
 
 use libimagrt::runtime::Runtime;
 use libimagentryedit::edit::Edit;
-use libimagentryedit::result::Result as EditResult;
+use libimagentryedit::error::Result as EditResult;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
@@ -35,7 +35,7 @@ use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
 use module_path::ModuleEntryPath;
-use result::Result;
+use error::Result;
 use error::NoteErrorKind as NEK;
 use error::NoteError as NE;
 use error::ResultExt;

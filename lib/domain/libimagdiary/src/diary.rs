@@ -33,7 +33,7 @@ use diaryid::DiaryId;
 use error::DiaryError as DE;
 use error::DiaryErrorKind as DEK;
 use error::ResultExt;
-use result::Result;
+use error::Result;
 use iter::DiaryEntryIterator;
 use is_in_diary::IsInDiary;
 

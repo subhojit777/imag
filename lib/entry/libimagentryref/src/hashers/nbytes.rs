@@ -25,7 +25,7 @@ use crypto::sha1::Sha1;
 use crypto::digest::Digest;
 
 use hasher::Hasher;
-use result::Result;
+use error::Result;
 use error::RefErrorKind as REK;
 use error::ResultExt;
 

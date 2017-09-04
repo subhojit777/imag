@@ -20,7 +20,7 @@
 use libimagstore::store::Entry;
 
 use viewer::Viewer;
-use result::Result;
+use error::Result;
 
 pub struct PlainViewer {
     show_header: bool

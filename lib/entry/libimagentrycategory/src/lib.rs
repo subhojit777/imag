@@ -50,7 +50,6 @@ extern crate libimagstore;
 pub mod category;
 pub mod error;
 pub mod register;
-pub mod result;
 
 module_entry_path_mod!("category");
 

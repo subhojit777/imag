@@ -27,7 +27,7 @@ use libimagstore::store::Entry;
 use error::CategoryErrorKind as CEK;
 use error::CategoryError as CE;
 use error::ResultExt;
-use result::Result;
+use error::Result;
 use register::CategoryRegister;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
