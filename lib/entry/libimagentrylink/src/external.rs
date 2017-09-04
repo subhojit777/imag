@@ -35,11 +35,11 @@ use std::collections::BTreeMap;
 use std::fmt::Debug;
 
 use libimagstore::store::Entry;
-use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagutil::debug_result::*;
+use libimagerror::into::IntoError;
 
 use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
@@ -58,37 +58,32 @@ use url::Url;
 use crypto::sha1::Sha1;
 use crypto::digest::Digest;
 
-/// "Link" Type, just an abstraction over `FileLockEntry` to have some convenience internally.
-pub struct Link<'a> {
-    link: FileLockEntry<'a>
+pub trait Link {
+
+    fn get_link_uri_from_filelockentry(&self) -> Result<Option<Url>>;
+
+    fn get_url(&self) -> Result<Option<Url>>;
+
 }
 
-impl<'a> Link<'a> {
+impl Link for Entry {
 
-    pub fn new(fle: FileLockEntry<'a>) -> Link<'a> {
-        Link { link: fle }
-    }
-
-    /// Get a link Url object from a `FileLockEntry`, ignore errors.
-    fn get_link_uri_from_filelockentry(file: &FileLockEntry<'a>) -> Option<Url> {
-        file.get_header()
+    fn get_link_uri_from_filelockentry(&self) -> Result<Option<Url>> {
+        self.get_header()
             .read("imag.content.url")
-            .ok()
+            .map_err_into(LEK::EntryHeaderReadError)
             .and_then(|opt| match opt {
                 Some(&Value::String(ref s)) => {
                     debug!("Found url, parsing: {:?}", s);
-                    Url::parse(&s[..]).ok()
+                    Url::parse(&s[..]).map_err_into(LEK::InvalidUri).map(Some)
                 },
-                _ => None
+                Some(_) => Err(LEK::LinkParserFieldTypeError.into_error()),
+                None    => Ok(None),
             })
     }
 
-    pub fn get_url(&self) -> Result<Option<Url>> {
-        let opt = self.link
-            .get_header()
-            .read("imag.content.url");
-
-        match opt {
+    fn get_url(&self) -> Result<Option<Url>> {
+        match self.get_header().read("imag.content.url") {
             Ok(Some(&Value::String(ref s))) => {
                 Url::parse(&s[..])
                      .map(Some)
@@ -261,23 +256,32 @@ pub mod iter {
         type Item = Result<Url>;
 
         fn next(&mut self) -> Option<Self::Item> {
-            use super::get_external_link_from_file;
+            use external::Link;
 
-            self.0
-                .next()
-                .map(|id| {
-                    debug!("Retrieving entry for id: '{:?}'", id);
-                    self.1
-                        .retrieve(id.clone())
-                        .map_err_into(LEK::StoreReadError)
-                        .map_dbg_err(|_| format!("Retrieving entry for id: '{:?}' failed", id))
-                        .and_then(|f| {
-                            debug!("Store::retrieve({:?}) succeeded", id);
-                            debug!("getting external link from file now");
-                            get_external_link_from_file(&f)
-                                .map_dbg_err(|e| format!("URL -> Err = {:?}", e))
-                        })
-                })
+            loop {
+                let next = self.0
+                    .next()
+                    .map(|id| {
+                        debug!("Retrieving entry for id: '{:?}'", id);
+                        self.1
+                            .retrieve(id.clone())
+                            .map_err_into(LEK::StoreReadError)
+                            .map_dbg_err(|_| format!("Retrieving entry for id: '{:?}' failed", id))
+                            .and_then(|f| {
+                                debug!("Store::retrieve({:?}) succeeded", id);
+                                debug!("getting external link from file now");
+                                f.get_link_uri_from_filelockentry()
+                                    .map_dbg_err(|e| format!("URL -> Err = {:?}", e))
+                            })
+                    });
+
+                match next {
+                    Some(Ok(Some(link))) => return Some(Ok(link)),
+                    Some(Ok(None))       => continue,
+                    Some(Err(e))         => return Some(Err(e)),
+                    None                 => return None
+                }
+            }
         }
 
     }
@@ -289,11 +293,6 @@ pub mod iter {
 pub fn is_external_link_storeid<A: AsRef<StoreId> + Debug>(id: A) -> bool {
     debug!("Checking whether this is a 'links/external/': '{:?}'", id);
     id.as_ref().local().starts_with("links/external")
-}
-
-fn get_external_link_from_file(entry: &FileLockEntry) -> Result<Url> {
-    Link::get_link_uri_from_filelockentry(entry) // TODO: Do not hide error by using this function
-        .ok_or(LE::new(LEK::StoreReadError, None))
 }
 
 /// Implement `ExternalLinker` for `Entry`, hiding the fact that there is no such thing as an external

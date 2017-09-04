@@ -48,4 +48,5 @@ module_entry_path_mod!("todo");
 pub mod error;
 pub mod result;
 pub mod task;
+pub mod taskstore;
 

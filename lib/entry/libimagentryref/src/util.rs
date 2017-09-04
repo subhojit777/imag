@@ -17,31 +17,40 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use error::TodoErrorKind as TEK;
-use error::MapErrInto;
+use std::path::PathBuf;
+
+use error::RefErrorKind as REK;
 use result::Result;
 
 use libimagstore::store::Entry;
 use libimagerror::into::IntoError;
 
-use uuid::Uuid;
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
 
-pub trait Task {
-    fn get_uuid(&self) -> Result<Uuid>;
+/// Creates a Hash from a PathBuf by making the PathBuf absolute and then running a hash
+/// algorithm on it
+pub fn hash_path(pb: &PathBuf) -> Result<String> {
+    use crypto::sha1::Sha1;
+    use crypto::digest::Digest;
+
+    match pb.to_str() {
+        Some(s) => {
+            let mut hasher = Sha1::new();
+            hasher.input_str(s);
+            Ok(hasher.result_str())
+        },
+        None => return Err(REK::PathUTF8Error.into_error()),
+    }
 }
 
-impl Task for Entry {
-    fn get_uuid(&self) -> Result<Uuid> {
-        match self.get_header().read("todo.uuid") {
-            Ok(Some(&Value::String(ref uuid))) => {
-                Uuid::parse_str(uuid).map_err_into(TEK::UuidParserError)
-            },
-            Ok(Some(_)) => Err(TEK::HeaderTypeError.into_error()),
-            Ok(None)    => Err(TEK::HeaderFieldMissing.into_error()),
-            Err(e)      => Err(e).map_err_into(TEK::StoreError),
-        }
+/// Read the reference from a file
+pub fn read_reference(refentry: &Entry) -> Result<PathBuf> {
+    match refentry.get_header().read("ref.path") {
+        Ok(Some(&Value::String(ref s))) => Ok(PathBuf::from(s)),
+        Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
+        Ok(None)    => Err(REK::HeaderFieldMissingError.into_error()),
+        Err(e)      => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
     }
 }
 
