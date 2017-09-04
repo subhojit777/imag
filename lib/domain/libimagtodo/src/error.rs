@@ -23,7 +23,10 @@ generate_error_module!(
         StoreError          => "Store Error",
         StoreIdError        => "Store Id handling error",
         ImportError         => "Error importing",
-        UTF8Error           => "Encountered non-UTF8 characters while reading input"
+        UTF8Error           => "Encountered non-UTF8 characters while reading input",
+        HeaderFieldMissing  => "Header field missing",
+        HeaderTypeError     => "Header field type error",
+        UuidParserError     => "Uuid parser error"
     );
 );
 
