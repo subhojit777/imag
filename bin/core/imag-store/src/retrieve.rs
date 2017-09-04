@@ -31,21 +31,19 @@ pub fn retrieve(rt: &Runtime) {
     rt.cli()
         .subcommand_matches("retrieve")
         .map(|scmd| {
-            scmd.value_of("id")
-                .map(|id| {
-                    let path = PathBuf::from(id);
-                    let path = try!(StoreId::new(Some(rt.store().path().clone()), path)
-                                    .map_err_trace_exit(1));
-                    debug!("path = {:?}", path);
+            // unwrap() is safe as arg is required
+            let id    = scmd.value_of("id").unwrap();
+            let path  = PathBuf::from(id);
+            let store = Some(rt.store().path().clone());
+            let path  = try!(StoreId::new(store, path).map_err_trace_exit(1));
+            debug!("path = {:?}", path);
 
-                    rt.store()
-                        // "id" must be present, enforced via clap spec
-                        .retrieve(path)
-                        .map(|e| print_entry(rt, scmd, e))
-                        .map_dbg_str("No entry")
-                        .map_dbg(|e| format!("{:?}", e))
-                        .map_err_trace()
-                })
+            rt.store()
+                .retrieve(path)
+                .map(|e| print_entry(rt, scmd, e))
+                .map_dbg_str("No entry")
+                .map_dbg(|e| format!("{:?}", e))
+                .map_err_trace()
         });
 }
 
