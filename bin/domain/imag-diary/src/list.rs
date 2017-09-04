@@ -42,9 +42,7 @@ pub fn list(rt: &Runtime) {
             .unwrap_or(String::from("<<Path Parsing Error>>"))
     }
 
-    let diary = Diary::open(rt.store(), &diaryname[..]);
-    debug!("Diary opened: {:?}", diary);
-    diary.entries()
+    Diary::entries(rt.store(), &diaryname)
         .and_then(|es| {
             debug!("Iterator for listing: {:?}", es);
 

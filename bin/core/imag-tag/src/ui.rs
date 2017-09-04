@@ -19,7 +19,7 @@
 
 use clap::{Arg, App, ArgGroup, SubCommand};
 
-use libimagentrytag::ui::{tag_add_arg, tag_remove_arg};
+use libimagentrytag::tag::is_tag;
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app.arg(Arg::with_name("id")
@@ -30,8 +30,22 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                 .help("Use this entry")
                 .value_name("ID"))
 
-        .arg(tag_add_arg())
-        .arg(tag_remove_arg())
+        .arg(Arg::with_name("add-tags")
+                .short("a")
+                .long("add")
+                .takes_value(true)
+                .value_name("tags")
+                .multiple(true)
+                .validator(is_tag)
+                .help("Add tags, seperated by comma or by specifying multiple times"))
+        .arg(Arg::with_name("remove-tags")
+                .short("r")
+                .long("remove")
+                .takes_value(true)
+                .value_name("tags")
+                .multiple(true)
+                .validator(is_tag)
+                .help("Remove tags, seperated by comma or by specifying multiple times"))
 
        .subcommand(SubCommand::with_name("list")
                    .about("List tags (default)")

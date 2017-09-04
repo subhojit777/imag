@@ -35,13 +35,20 @@
 extern crate clap;
 #[macro_use] extern crate log;
 extern crate toml;
+#[cfg(test)] extern crate toml_query;
 #[macro_use] extern crate version;
 #[macro_use] extern crate error_chain;
 
 extern crate libimagrt;
 extern crate libimagstore;
-extern crate libimagutil;
 extern crate libimagerror;
+
+#[cfg(test)]
+#[macro_use]
+extern crate libimagutil;
+
+#[cfg(not(test))]
+extern crate libimagutil;
 
 use libimagrt::setup::generate_runtime_setup;
 

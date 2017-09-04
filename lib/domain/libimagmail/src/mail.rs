@@ -23,8 +23,10 @@ use std::fs::File;
 use std::io::Read;
 
 use libimagstore::store::Store;
+use libimagstore::store::FileLockEntry;
 use libimagentryref::reference::Ref;
 use libimagentryref::flags::RefFlags;
+use libimagentryref::refstore::RefStore;
 
 use email::MimeMessage;
 use email::results::ParsingResult as EmailParsingResult;
@@ -47,7 +49,7 @@ impl From<String> for Buffer {
     }
 }
 
-pub struct Mail<'a>(Ref<'a>, Buffer);
+pub struct Mail<'a>(FileLockEntry<'a>, Buffer);
 
 impl<'a> Mail<'a> {
 
@@ -58,7 +60,7 @@ impl<'a> Mail<'a> {
         let f = RefFlags::default().with_content_hashing(true).with_permission_tracking(false);
         let p = PathBuf::from(p.as_ref());
 
-        Ref::create_with_hasher(store, p, f, h)
+        store.create_with_hasher(p, f, h)
             .chain_err(|| MEK::RefCreationError)
             .and_then(|reference| {
                 debug!("Build reference file: {:?}", reference);
@@ -79,20 +81,19 @@ impl<'a> Mail<'a> {
     /// Opens a mail by the passed hash
     pub fn open<S: AsRef<str>>(store: &Store, hash: S) -> Result<Option<Mail>> {
         debug!("Opening Mail by Hash");
-        Ref::get_by_hash(store, String::from(hash.as_ref()))
+        store.get_by_hash(String::from(hash.as_ref()))
             .chain_err(|| MEK::FetchByHashError)
             .chain_err(|| MEK::FetchError)
             .and_then(|o| match o {
-                Some(r) => Mail::from_ref(r).map(Some),
+                Some(r) => Mail::from_fle(r).map(Some),
                 None => Ok(None),
             })
 
     }
 
     /// Implement me as TryFrom as soon as it is stable
-    pub fn from_ref(r: Ref<'a>) -> Result<Mail> {
-        debug!("Building Mail object from Ref: {:?}", r);
-        r.fs_file()
+    pub fn from_fle(fle: FileLockEntry<'a>) -> Result<Mail<'a>> {
+        fle.fs_file()
             .chain_err(|| MEK::RefHandlingError)
             .and_then(|path| File::open(path).chain_err(|| MEK::IOError))
             .and_then(|mut file| {
@@ -102,7 +103,7 @@ impl<'a> Mail<'a> {
                     .chain_err(|| MEK::IOError)
             })
             .map(Buffer::from)
-            .map(|buffer| Mail(r, buffer))
+            .map(|buffer| Mail(fle, buffer))
     }
 
     pub fn get_field(&self, field: &str) -> Result<Option<String>> {

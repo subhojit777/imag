@@ -24,6 +24,8 @@ pub trait IsInDiary {
 
     fn is_in_diary(&self, name: &str) -> bool;
 
+    fn is_a_diary_entry(&self) -> bool;
+
 }
 
 impl IsInDiary for Entry {
@@ -32,12 +34,20 @@ impl IsInDiary for Entry {
         self.get_location().clone().is_in_diary(name)
     }
 
+    fn is_a_diary_entry(&self) -> bool {
+        self.get_location().clone().is_a_diary_entry()
+    }
+
 }
 
 impl IsInDiary for StoreId {
 
     fn is_in_diary(&self, name: &str) -> bool {
         self.local().starts_with(format!("diary/{}", name))
+    }
+
+    fn is_a_diary_entry(&self) -> bool {
+        self.local().starts_with("diary")
     }
 
 }

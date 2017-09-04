@@ -73,6 +73,11 @@ error_chain! {
             display("Error while parsing ID")
         }
 
+        DiaryNameFindingError {
+            description("Error while finding a diary name")
+            display("Error while finding a diary name")
+        }
+
     }
 }
 

@@ -27,16 +27,16 @@
 use mail::Mail;
 use error::Result;
 
-use libimagentryref::reference::Ref;
+use libimagstore::store::FileLockEntry;
 
 use std::marker::PhantomData;
 
-pub struct MailIter<'a, I: 'a + Iterator<Item = Ref<'a>>> {
-    _marker: PhantomData<&'a I>,
+pub struct MailIter<'a, I: Iterator<Item = FileLockEntry<'a>>> {
+    _marker: PhantomData<I>,
     i: I,
 }
 
-impl<'a, I: Iterator<Item = Ref<'a>>> MailIter<'a, I> {
+impl<'a, I: Iterator<Item = FileLockEntry<'a>>> MailIter<'a, I> {
 
     pub fn new(i: I) -> MailIter<'a, I> {
         MailIter { _marker: PhantomData, i: i }
@@ -44,12 +44,11 @@ impl<'a, I: Iterator<Item = Ref<'a>>> MailIter<'a, I> {
 
 }
 
-impl<'a, I: Iterator<Item = Ref<'a>>> Iterator for MailIter<'a, I> {
-
+impl<'a, I: Iterator<Item = FileLockEntry<'a>>> Iterator for MailIter<'a, I> {
     type Item = Result<Mail<'a>>;
 
-    fn next(&mut self) -> Option<Result<Mail<'a>>> {
-        self.i.next().map(Mail::from_ref)
+    fn next(&mut self) -> Option<Self::Item> {
+        self.i.next().map(Mail::from_fle)
     }
 
 }

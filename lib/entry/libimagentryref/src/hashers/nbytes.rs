@@ -52,15 +52,13 @@ impl Hasher for NBytesHasher {
     }
 
     fn create_hash<R: Read>(&mut self, _: &PathBuf, contents: &mut R) -> Result<String> {
-        let s = contents
+        let s = try!(contents
             .bytes()
             .take(self.n)
             .collect::<RResult<Vec<u8>, _>>()
             .chain_err(|| REK::IOError)
-            .and_then(|v| String::from_utf8(v).chain_err(|| REK::IOError))
-            .chain_err(|| REK::UTF8Error)
-            .chain_err(|| REK::IOError);
-        self.hasher.input_str(&try!(s)[..]);
+            .and_then(|v| String::from_utf8(v).chain_err(|| REK::UTF8Error)));
+        self.hasher.input_str(&s[..]);
         Ok(self.hasher.result_str())
     }
 

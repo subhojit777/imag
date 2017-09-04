@@ -20,14 +20,12 @@
 use std::path::PathBuf;
 use std::process::Command;
 use std::env;
-use std::io::stderr;
-use std::io::Write;
+use std::process::exit;
 
 pub use clap::App;
 
 use clap::{Arg, ArgMatches};
 use log;
-use log::LogLevelFilter;
 
 use configuration::{Configuration, InternalConfiguration};
 use error::RuntimeError;
@@ -35,6 +33,7 @@ use error::RuntimeErrorKind;
 use error::ResultExt;
 use logger::ImagLogger;
 
+use libimagerror::trace::*;
 use libimagstore::store::Store;
 use libimagstore::file_abstraction::InMemoryFileAbstraction;
 use spec::CliSpec;
@@ -77,8 +76,8 @@ impl<'a> Runtime<'a> {
             Err(e) => if !is_match!(e.kind(), &ConfigErrorKind::NoConfigFileFound) {
                 return Err(e).chain_err(|| RuntimeErrorKind::Instantiate);
             } else {
-                warn!("No config file found.");
-                warn!("Continuing without configuration file");
+                println!("No config file found.");
+                println!("Continuing without configuration file");
                 None
             },
 
@@ -111,16 +110,10 @@ impl<'a> Runtime<'a> {
     where C: Clone + CliSpec<'a> + InternalConfiguration
     {
         use std::io::stdout;
-
         use clap::Shell;
 
-        let is_debugging = matches.is_present(Runtime::arg_debugging_name());
-
         if cli_app.enable_logging() {
-            let is_verbose = matches.is_present(Runtime::arg_verbosity_name());
-            let colored    = !matches.is_present(Runtime::arg_no_color_output_name());
-
-            Runtime::init_logger(is_debugging, is_verbose, colored);
+            Runtime::init_logger(&matches, config.as_ref())
         }
 
         match matches.value_of(Runtime::arg_generate_compl()) {
@@ -150,9 +143,9 @@ impl<'a> Runtime<'a> {
             None        => None,
         };
 
-        if is_debugging {
-            write!(stderr(), "Config: {:?}\n", config).ok();
-            write!(stderr(), "Store-config: {:?}\n", store_config).ok();
+        if matches.is_present(Runtime::arg_debugging_name()) {
+            debug!("Config: {:?}\n", config);
+            debug!("Store-config: {:?}\n", store_config);
         }
 
         let store_result = if cli_app.use_inmemory_fs() {
@@ -199,9 +192,11 @@ impl<'a> Runtime<'a> {
             .arg(Arg::with_name(Runtime::arg_verbosity_name())
                 .short("v")
                 .long("verbose")
-                .help("Enables verbosity")
+                .help("Enables verbosity, can be used to set log level to one of 'trace', 'debug', 'info', 'warn' or 'error'")
                 .required(false)
-                .takes_value(false))
+                .takes_value(true)
+                .possible_values(&["trace", "debug", "info", "warn", "error"])
+                .value_name("LOGLEVEL"))
 
             .arg(Arg::with_name(Runtime::arg_debugging_name())
                 .long("debug")
@@ -252,6 +247,61 @@ impl<'a> Runtime<'a> {
                 .takes_value(true)
                 .value_name("SHELL")
                 .possible_values(&["bash", "fish", "zsh"]))
+
+            .arg(Arg::with_name(Runtime::arg_logdest_name())
+                .long(Runtime::arg_logdest_name())
+                .help("Override the logging destinations from the configuration: values can be seperated by ',', a value of '-' marks the stderr output, everything else is expected to be a path")
+                .required(false)
+                .takes_value(true)
+                .value_name("LOGDESTS"))
+
+            .arg(Arg::with_name(Runtime::arg_override_module_logging_setting_name())
+                .long(Runtime::arg_override_module_logging_setting_name())
+                .help("Override a module logging setting for one module. Format: <modulename>=<setting>=<value>, whereas <setting> is either 'enabled', 'level' or 'destinations' - This commandline argument is CURRENTLY NOT IMPLEMENTED")
+                .multiple(true)
+                .required(false)
+                .takes_value(true)
+                .value_name("SPEC"))
+
+            .arg(Arg::with_name(Runtime::arg_override_trace_logging_format())
+                 .long(Runtime::arg_override_trace_logging_format())
+                 .help("Override the logging format for the trace logging")
+                 .multiple(false)
+                 .required(false)
+                 .takes_value(true)
+                 .value_name("FMT"))
+
+            .arg(Arg::with_name(Runtime::arg_override_debug_logging_format())
+                 .long(Runtime::arg_override_debug_logging_format())
+                 .help("Override the logging format for the debug logging")
+                 .multiple(false)
+                 .required(false)
+                 .takes_value(true)
+                 .value_name("FMT"))
+
+            .arg(Arg::with_name(Runtime::arg_override_info_logging_format())
+                 .long(Runtime::arg_override_info_logging_format())
+                 .help("Override the logging format for the info logging")
+                 .multiple(false)
+                 .required(false)
+                 .takes_value(true)
+                 .value_name("FMT"))
+
+            .arg(Arg::with_name(Runtime::arg_override_warn_logging_format())
+                 .long(Runtime::arg_override_warn_logging_format())
+                 .help("Override the logging format for the warn logging")
+                 .multiple(false)
+                 .required(false)
+                 .takes_value(true)
+                 .value_name("FMT"))
+
+            .arg(Arg::with_name(Runtime::arg_override_error_logging_format())
+                 .long(Runtime::arg_override_error_logging_format())
+                 .help("Override the logging format for the error logging")
+                 .multiple(false)
+                 .required(false)
+                 .takes_value(true)
+                 .value_name("FMT"))
 
     }
 
@@ -314,26 +364,73 @@ impl<'a> Runtime<'a> {
         "generate-completion"
     }
 
+    /// Extract the Store object from the Runtime object, destroying the Runtime object
+    ///
+    /// # Warning
+    ///
+    /// This function is for testing _only_! It can be used to re-build a Runtime object with an
+    /// alternative Store.
+    #[cfg(feature = "testing")]
+    pub fn extract_store(self) -> Store {
+        self.store
+    }
+
+    /// Re-set the Store object within
+    ///
+    /// # Warning
+    ///
+    /// This function is for testing _only_! It can be used to re-build a Runtime object with an
+    /// alternative Store.
+    #[cfg(feature = "testing")]
+    pub fn with_store(mut self, s: Store) -> Self {
+        self.store = s;
+        self
+    }
+
+    /// Get the argument name for the logging destination
+    pub fn arg_logdest_name() -> &'static str {
+        "logging-destinations"
+    }
+
+    pub fn arg_override_module_logging_setting_name() -> &'static str {
+        "override-module-log-setting"
+    }
+
+    pub fn arg_override_trace_logging_format() -> &'static str {
+        "override-logging-format-trace"
+    }
+
+    pub fn arg_override_debug_logging_format() -> &'static str {
+        "override-logging-format-debug"
+    }
+
+    pub fn arg_override_info_logging_format() -> &'static str {
+        "override-logging-format-info"
+    }
+
+    pub fn arg_override_warn_logging_format() -> &'static str {
+        "override-logging-format-warn"
+    }
+
+    pub fn arg_override_error_logging_format() -> &'static str {
+        "override-logging-format-error"
+    }
+
     /// Initialize the internal logger
-    fn init_logger(is_debugging: bool, is_verbose: bool, colored: bool) {
+    fn init_logger(matches: &ArgMatches, config: Option<&Configuration>) {
         use std::env::var as env_var;
         use env_logger;
 
         if env_var("IMAG_LOG_ENV").is_ok() {
             env_logger::init().unwrap();
         } else {
-            let lvl = if is_debugging {
-                LogLevelFilter::Debug
-            } else if is_verbose {
-                LogLevelFilter::Info
-            } else {
-                LogLevelFilter::Warn
-            };
-
             log::set_logger(|max_log_lvl| {
-                max_log_lvl.set(lvl);
-                debug!("Init logger with {}", lvl);
-                Box::new(ImagLogger::new(lvl.to_log_level().unwrap()).with_color(colored))
+                let logger = ImagLogger::new(matches, config)
+                    .map_err_trace()
+                    .unwrap_or_else(|_| exit(1));
+                max_log_lvl.set(logger.global_loglevel().to_log_level_filter());
+                debug!("Init logger with {}", logger.global_loglevel());
+                Box::new(logger)
             })
             .map_err(|e| panic!("Could not setup logger: {:?}", e))
             .ok();

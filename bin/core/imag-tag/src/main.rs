@@ -48,9 +48,10 @@ use libimagrt::setup::generate_runtime_setup;
 use libimagentrytag::tagable::Tagable;
 use libimagentrytag::tag::Tag;
 use libimagerror::trace::{trace_error, trace_error_exit};
-use libimagentrytag::ui::{get_add_tags, get_remove_tags};
 use libimagstore::storeid::StoreId;
 use libimagutil::warn_exit::warn_exit;
+
+use clap::ArgMatches;
 
 mod ui;
 
@@ -181,6 +182,42 @@ fn list(id: PathBuf, rt: &Runtime) {
     }
 }
 
+/// Get the tags which should be added from the commandline
+///
+/// Returns none if the argument was not specified
+fn get_add_tags(matches: &ArgMatches) -> Option<Vec<Tag>> {
+    let a = "add-tags";
+    extract_tags(matches, a, '+')
+        .or_else(|| matches.values_of(a).map(|values| values.map(String::from).collect()))
+}
+
+/// Get the tags which should be removed from the commandline
+///
+/// Returns none if the argument was not specified
+fn get_remove_tags(matches: &ArgMatches) -> Option<Vec<Tag>> {
+    let r = "remove-tags";
+    extract_tags(matches, r, '+')
+        .or_else(|| matches.values_of(r).map(|values| values.map(String::from).collect()))
+}
+
+fn extract_tags(matches: &ArgMatches, specifier: &str, specchar: char) -> Option<Vec<Tag>> {
+    if let Some(submatch) = matches.subcommand_matches("tags") {
+        submatch.values_of(specifier)
+            .map(|values| values.map(String::from).collect())
+    } else {
+        matches.values_of("specify-tags")
+            .map(|argmatches| {
+                argmatches
+                    .map(String::from)
+                    .filter(|s| s.starts_with(specchar))
+                    .map(|s| {
+                        String::from(s.split_at(1).1)
+                    })
+                    .collect()
+            })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
@@ -190,12 +227,11 @@ mod tests {
     use toml_query::read::TomlValueReadExt;
     use toml_query::error::Result as TomlQueryResult;
 
-    use libimagentrytag::ui::{get_add_tags, get_remove_tags};
     use libimagrt::runtime::Runtime;
     use libimagstore::storeid::StoreId;
     use libimagstore::store::{Result as StoreResult, FileLockEntry};
 
-    use super::alter;
+    use super::*;
 
     make_mock_app! {
         app "imag-tag";

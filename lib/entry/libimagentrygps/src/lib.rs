@@ -17,30 +17,18 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use clap::ArgMatches;
+extern crate toml;
+extern crate toml_query;
+#[macro_use] extern crate serde_derive;
+#[macro_use] extern crate error_chain;
 
-use libimagstore::store::FileLockEntry;
+extern crate libimagstore;
+#[macro_use] extern crate libimagerror;
 
-use error::Result;
-use tagable::*;
-use ui::{get_add_tags, get_remove_tags};
+#[cfg(test)]
+extern crate env_logger;
 
-pub fn exec_cli_for_entry(matches: &ArgMatches, entry: &mut FileLockEntry) -> Result<()> {
-    if let Some(ts) = get_add_tags(matches) {
-        for t in ts {
-            if let Err(e) = entry.add_tag(t) {
-                return Err(e);
-            }
-        }
-    }
+pub mod entry;
+pub mod error;
+pub mod types;
 
-    if let Some(ts) = get_remove_tags(matches) {
-        for t in ts {
-            if let Err(e) = entry.remove_tag(t) {
-                return Err(e);
-            }
-        }
-    }
-
-    Ok(())
-}

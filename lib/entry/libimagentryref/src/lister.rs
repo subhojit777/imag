@@ -20,13 +20,14 @@
 use std::default::Default;
 use std::io::stdout;
 use std::io::Write;
+use std::ops::Deref;
 
 use libimagentrylist::lister::Lister;
 use libimagentrylist::error::Result;
-use libimagentrylist::error::ResultExt;
 use libimagerror::trace::trace_error;
 use libimagstore::store::FileLockEntry;
 use libimagentrylist::error::ListErrorKind as LEK;
+use libimagentrylist::error as lerror;
 
 use reference::Ref;
 
@@ -86,13 +87,45 @@ impl Lister for RefLister {
             debug!("fold({:?}, {:?})", accu, entry);
             let r = accu.and_then(|_| {
                     debug!("Listing Entry: {:?}", entry);
-                    lister_fn(entry,
-                              self.check_dead,
-                              self.check_changed,
-                              self.check_changed_content,
-                              self.check_changed_permiss)
+                    {
+                        let is_dead = if self.check_dead {
+                            if try!(lerror::ResultExt::chain_err(entry.fs_link_exists(), || LEK::FormatError)) {
+                                "dead"
+                            } else {
+                                "alive"
+                            }
+                        } else {
+                            "not checked"
+                        };
+
+                        let is_changed = if self.check_changed {
+                            if check_changed(entry.deref()) { "changed" } else { "unchanged" }
+                        } else {
+                            "not checked"
+                        };
+
+                        let is_changed_content = if self.check_changed_content {
+                            if check_changed_content(entry.deref()) { "changed" } else { "unchanged" }
+                        } else {
+                            "not checked"
+                        };
+
+                        let is_changed_permiss = if self.check_changed_permiss {
+                            if check_changed_permiss(entry.deref()) { "changed" } else { "unchanged" }
+                        } else {
+                            "not checked"
+                        };
+
+                        Ok(format!("{} | {} | {} | {} | {} | {}",
+                                is_dead,
+                                is_changed,
+                                is_changed_content,
+                                is_changed_permiss,
+                                entry.get_path_hash().unwrap_or_else(|_| String::from("Cannot get hash")),
+                                entry.get_location()))
+                    }
                         .and_then(|s| {
-                            write!(stdout(), "{}\n", s).chain_err(|| LEK::IOError)
+                            lerror::ResultExt::chain_err(write!(stdout(), "{}\n", s), || LEK::FormatError)
                         })
                 })
                 .map(|_| ());
@@ -104,68 +137,11 @@ impl Lister for RefLister {
 
 }
 
-fn lister_fn(fle: FileLockEntry,
-             do_check_dead: bool,
-             do_check_changed: bool,
-             do_check_changed_content: bool,
-             do_check_changed_permiss: bool) -> Result<String>
-{
-    Ref::from_filelockentry(fle)
-        .map(|r| {
-            let is_dead = if do_check_dead {
-                if check_dead(&r) { "dead" } else { "alive" }
-            } else {
-                "not checked"
-            };
-
-            let is_changed = if do_check_changed {
-                if check_changed(&r) { "changed" } else { "unchanged" }
-            } else {
-                "not checked"
-            };
-
-            let is_changed_content = if do_check_changed_content {
-                if check_changed_content(&r) { "changed" } else { "unchanged" }
-            } else {
-                "not checked"
-            };
-
-            let is_changed_permiss = if do_check_changed_permiss {
-                if check_changed_permiss(&r) { "changed" } else { "unchanged" }
-            } else {
-                "not checked"
-            };
-
-            format!("{} | {} | {} | {} | {} | {}",
-                    is_dead,
-                    is_changed,
-                    is_changed_content,
-                    is_changed_permiss,
-                    r.get_path_hash().unwrap_or_else(|_| String::from("Cannot get hash")),
-                    r.get_location())
-        })
-        .chain_err(|| LEK::FormatError)
-}
-
-fn check_dead(r: &Ref) -> bool {
-    match r.fs_link_exists() {
-        Ok(b)  => b,
-        Err(e) => {
-            warn!("Could not check whether the ref {} exists on the FS:", r);
-            trace_error(&e);
-
-            // We continue here and tell the callee that this reference is dead, what is kind of
-            // true actually, as we might not have access to it right now
-            true
-        },
-    }
-}
-
-fn check_changed(r: &Ref) -> bool {
+fn check_changed<R: Ref>(r: &R) -> bool {
     check_changed_content(r) && check_changed_permiss(r)
 }
 
-fn check_changed_content(r: &Ref) -> bool {
+fn check_changed_content<R: Ref>(r: &R) -> bool {
     let eq = r.get_current_hash()
         .and_then(|hash| r.get_stored_hash().map(|stored| (hash, stored)))
         .map(|(hash, stored)| hash == stored);
@@ -173,7 +149,7 @@ fn check_changed_content(r: &Ref) -> bool {
     match eq {
         Ok(eq) => eq,
         Err(e) => {
-            warn!("Could not check whether the ref {} changed on the FS:", r);
+            warn!("Could not check whether the ref changed on the FS");
             trace_error(&e);
 
             // We continue here and tell the callee that this reference is unchanged
@@ -182,7 +158,7 @@ fn check_changed_content(r: &Ref) -> bool {
     }
 }
 
-fn check_changed_permiss(_: &Ref) -> bool {
+fn check_changed_permiss<R: Ref>(_: &R) -> bool {
     warn!("Permission changes tracking not supported yet.");
     false
 }

@@ -41,6 +41,7 @@ extern crate itertools;
 #[cfg(unix)] extern crate xdg_basedir;
 extern crate env_logger;
 extern crate ansi_term;
+extern crate handlebars;
 
 extern crate clap;
 extern crate toml;

@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::process::exit;
+
 use chrono::naive::NaiveDateTime;
 
 use libimagdiary::diary::Diary;
@@ -30,33 +32,39 @@ use libimagerror::trace::MapErrTrace;
 use libimagtimeui::datetime::DateTime;
 use libimagtimeui::parse::Parse;
 use libimagutil::warn_exit::warn_exit;
+use libimagerror::trace::trace_error_exit;
 
 use util::get_diary_name;
 
 pub fn edit(rt: &Runtime) {
     let diaryname = get_diary_name(rt).unwrap_or_else(|| warn_exit("No diary name", 1));
-    let diary = Diary::open(rt.store(), &diaryname[..]);
 
-    let datetime : Option<NaiveDateTime> = rt
-        .cli()
+    rt.cli()
         .subcommand_matches("edit")
         .unwrap()
         .value_of("datetime")
         .and_then(DateTime::parse)
-        .map(|dt| dt.into());
-
-    let to_edit = match datetime {
-        Some(dt) => Some(diary.retrieve(DiaryId::from_datetime(diaryname.clone(), dt))),
-        None     => diary.get_youngest_entry(),
-    };
-
-    match to_edit {
-        Some(Ok(mut e)) => e.edit_content(rt).chain_err(|| DEK::IOError),
-
-        Some(Err(e)) => Err(e),
-        None => Err(DE::from_kind(DEK::EntryNotInDiary)),
-    }
-    .map_err_trace().ok();
+        .map(|dt| dt.into())
+        .map(|dt: NaiveDateTime| DiaryId::from_datetime(diaryname.clone(), dt))
+        .or_else(|| {
+            rt.store()
+                .get_youngest_entry_id(&diaryname)
+                .map(|optid| match optid {
+                    Ok(id) => id,
+                    Err(e) => trace_error_exit(&e, 1),
+                })
+        })
+        .ok_or_else(|| {
+            error!("No entries in diary. Aborting");
+            exit(1)
+        })
+        .and_then(|id| rt.store().get(id))
+        .map(|opte| match opte {
+            Some(mut e) => e.edit_content(rt).chain_err(|| DEK::IOError),
+            None        => Err(DE::from_kind(DEK::EntryNotInDiary)),
+        })
+        .map_err_trace()
+        .ok();
 }
 
 

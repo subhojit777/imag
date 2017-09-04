@@ -108,40 +108,39 @@ fn handle_internal_linking(rt: &Runtime) {
         }
     }
 
-    match cmd.value_of("list") {
-        Some(list) => handle_internal_linking_list_call(rt, cmd, list),
-        None => {
-            match cmd.subcommand_name() {
-                Some("add") => {
-                    let (mut from, to) = get_from_to_entry(&rt, "add");
-                    for mut to_entry in to {
-                        if let Err(e) = to_entry.add_internal_link(&mut from) {
-                            trace_error_exit(&e, 1);
-                        }
-                    }
-                },
-
-                Some("remove") => {
-                    let (mut from, to) = get_from_to_entry(&rt, "remove");
-                    for mut to_entry in to {
-                        if let Err(e) = to_entry.remove_internal_link(&mut from) {
-                            trace_error_exit(&e, 1);
-                        }
-                    }
-                },
-
-                _ => unreachable!(),
+    match cmd.subcommand_name() {
+        Some("list") => {
+            cmd.subcommand_matches("list")
+                .map(|matches| handle_internal_linking_list_call(rt, cmd, matches));
+        },
+        Some("add") => {
+            let (mut from, to) = get_from_to_entry(&rt, "add");
+            for mut to_entry in to {
+                if let Err(e) = to_entry.add_internal_link(&mut from) {
+                    trace_error_exit(&e, 1);
+                }
             };
-        }
+        },
+
+        Some("remove") => {
+            let (mut from, to) = get_from_to_entry(&rt, "remove");
+            for mut to_entry in to {
+                if let Err(e) = to_entry.remove_internal_link(&mut from) {
+                    trace_error_exit(&e, 1);
+                }
+            };
+        },
+
+        _ => unreachable!(),
     }
 }
 
 #[inline]
-fn handle_internal_linking_list_call(rt: &Runtime, cmd: &ArgMatches, list: &str) {
+fn handle_internal_linking_list_call(rt: &Runtime, cmd: &ArgMatches, list: &ArgMatches) {
     use libimagentrylink::external::is_external_link_storeid;
 
     debug!("List...");
-    for entry in list.split(',') {
+    for entry in list.values_of("entries").unwrap() { // clap has our back
         debug!("Listing for '{}'", entry);
         match get_entry_by_name(rt, entry) {
             Ok(Some(e)) => {
@@ -362,6 +361,7 @@ mod tests {
         with help "imag-link mocking app";
     }
     use self::mock::generate_test_runtime;
+    use self::mock::reset_test_runtime;
     use libimagutil::testing::DEFAULT_ENTRY;
 
     fn create_test_default_entry<'a, S: AsRef<OsStr>>(rt: &'a Runtime, name: S) -> StoreResult<StoreId> {
@@ -392,7 +392,7 @@ mod tests {
 
     #[test]
     fn test_link_modificates() {
-        let rt = generate_test_runtime(vec!["internal", "add", "--from", "test1", "--to", "test2"])
+        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2"])
             .unwrap();
 
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
@@ -412,7 +412,7 @@ mod tests {
 
     #[test]
     fn test_linking_links() {
-        let rt = generate_test_runtime(vec!["internal", "add", "--from", "test1", "--to", "test2"])
+        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2"])
             .unwrap();
 
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
@@ -432,7 +432,7 @@ mod tests {
 
     #[test]
     fn test_multilinking() {
-        let rt = generate_test_runtime(vec!["internal", "add", "--from", "test1", "--to", "test2"])
+        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2"])
             .unwrap();
 
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
@@ -449,5 +449,88 @@ mod tests {
 
         assert_eq!(*test_links1, links_toml_value(vec!["test2"]));
         assert_eq!(*test_links2, links_toml_value(vec!["test1"]));
+    }
+
+    #[test]
+    fn test_linking_more_than_two() {
+        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2", "test3"])
+            .unwrap();
+
+        let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
+        let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
+        let test_id3 = create_test_default_entry(&rt, "test3").unwrap();
+
+        handle_internal_linking(&rt);
+        handle_internal_linking(&rt);
+
+        let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
+        let test_links1 = get_entry_links(&test_entry1).unwrap();
+
+        let test_entry2 = rt.store().get(test_id2).unwrap().unwrap();
+        let test_links2 = get_entry_links(&test_entry2).unwrap();
+
+        let test_entry3 = rt.store().get(test_id3).unwrap().unwrap();
+        let test_links3 = get_entry_links(&test_entry3).unwrap();
+
+        assert_eq!(*test_links1, links_toml_value(vec!["test2", "test3"]));
+        assert_eq!(*test_links2, links_toml_value(vec!["test1"]));
+        assert_eq!(*test_links3, links_toml_value(vec!["test1"]));
+    }
+
+    // Remove tests
+
+    #[test]
+    fn test_linking_links_unlinking_removes_links() {
+        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2"])
+            .unwrap();
+
+        let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
+        let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
+
+        handle_internal_linking(&rt);
+
+        let rt = reset_test_runtime(vec!["internal", "remove", "test1", "test2"], rt)
+            .unwrap();
+
+        handle_internal_linking(&rt);
+
+        let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
+        let test_links1 = get_entry_links(&test_entry1).unwrap();
+
+        let test_entry2 = rt.store().get(test_id2).unwrap().unwrap();
+        let test_links2 = get_entry_links(&test_entry2).unwrap();
+
+        assert_eq!(*test_links1, links_toml_value(vec![]));
+        assert_eq!(*test_links2, links_toml_value(vec![]));
+    }
+
+    #[test]
+    fn test_linking_and_unlinking_more_than_two() {
+        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2", "test3"])
+            .unwrap();
+
+        let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
+        let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
+        let test_id3 = create_test_default_entry(&rt, "test3").unwrap();
+
+        handle_internal_linking(&rt);
+
+        let rt = reset_test_runtime(vec!["internal", "remove", "test1", "test2", "test3"], rt)
+            .unwrap();
+
+        handle_internal_linking(&rt);
+
+        let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
+        let test_links1 = get_entry_links(&test_entry1).unwrap();
+
+        let test_entry2 = rt.store().get(test_id2).unwrap().unwrap();
+        let test_links2 = get_entry_links(&test_entry2).unwrap();
+
+        let test_entry3 = rt.store().get(test_id3).unwrap().unwrap();
+        let test_links3 = get_entry_links(&test_entry3).unwrap();
+
+        assert_eq!(*test_links1, links_toml_value(vec![]));
+        assert_eq!(*test_links2, links_toml_value(vec![]));
+        assert_eq!(*test_links3, links_toml_value(vec![]));
     }
 }

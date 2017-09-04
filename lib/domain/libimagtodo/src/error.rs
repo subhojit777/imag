@@ -48,6 +48,20 @@ error_chain! {
             display("Encountered non-UTF8 characters while reading input")
         }
 
+        HeaderFieldMissing {
+            description("Header field missing")
+            display("Header field missing")
+        }
+
+        HeaderTypeError {
+            description("Header field type error")
+            display("Header field type error")
+        }
+
+        UuidParserError {
+            description("Uuid parser error")
+            display("Uuid parser error")
+        }
     }
 }
 

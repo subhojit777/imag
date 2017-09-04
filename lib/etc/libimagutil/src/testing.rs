@@ -95,18 +95,33 @@ macro_rules! make_mock_app {
                 }
             }
 
+            #[allow(unused)]
             pub fn generate_minimal_test_config() -> Option<Configuration> { ::toml::de::from_str("[store]\nimplicit-create=true")
                             .map(Configuration::with_value)
                             .ok()
             }
 
+            #[allow(unused)]
             pub fn generate_test_runtime<'a>(mut args: Vec<&'static str>) -> Result<Runtime<'a>, RuntimeError> {
-                let mut cli_args = vec!["imag-link", "--rtp", "/tmp"];
+                let mut cli_args = vec![$appname, "--rtp", "/tmp"];
 
                 cli_args.append(&mut args);
 
                 let cli_app = MockLinkApp::new(cli_args);
                 Runtime::with_configuration(cli_app, generate_minimal_test_config())
+            }
+
+            #[allow(unused)]
+            pub fn reset_test_runtime<'a>(mut args: Vec<&'static str>, old_runtime: Runtime)
+                -> Result<Runtime<'a>, RuntimeError>
+            {
+                let mut cli_args = vec![$appname, "--rtp", "/tmp"];
+
+                cli_args.append(&mut args);
+
+                let cli_app = MockLinkApp::new(cli_args);
+                Runtime::with_configuration(cli_app, generate_minimal_test_config())
+                    .map(|rt| rt.with_store(old_runtime.extract_store()))
             }
         }
     };

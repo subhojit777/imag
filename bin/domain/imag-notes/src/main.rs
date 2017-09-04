@@ -25,7 +25,6 @@ extern crate itertools;
 extern crate libimagnotes;
 extern crate libimagrt;
 extern crate libimagentryedit;
-extern crate libimagentrytag;
 extern crate libimagerror;
 extern crate libimagutil;
 

@@ -178,3 +178,39 @@ fn string_from_raw_src(raw_src: &str) -> String {
     }
     content
 }
+
+#[cfg(test)]
+mod tests {
+    use super::create;
+
+    use std::path::PathBuf;
+    use toml_query::read::TomlValueReadExt;
+    use toml::Value;
+
+    make_mock_app! {
+        app "imag-link";
+        modulename mock;
+        version "0.4.0";
+        with help "imag-link mocking app";
+    }
+    use self::mock::generate_test_runtime;
+
+    #[test]
+    fn test_create_simple() {
+        let test_name = "test_create_simple";
+        let rt = generate_test_runtime(vec!["create", "-p", "test_create_simple"]).unwrap();
+
+        create(&rt);
+
+        let e = rt.store().get(PathBuf::from(test_name));
+        assert!(e.is_ok());
+        let e = e.unwrap();
+        assert!(e.is_some());
+        let e = e.unwrap();
+
+        let version = e.get_header().read("imag.version").map(Option::unwrap).unwrap();
+        assert_eq!(Value::String(String::from("0.4.0")), *version);
+    }
+
+}
+
