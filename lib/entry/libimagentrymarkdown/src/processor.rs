@@ -349,5 +349,53 @@ mod tests {
             assert_eq!("test-2.1", link_links[0].to_str().unwrap());
         }
     }
+
+    #[test]
+    fn test_process_one_external_link() {
+        setup_logging();
+        let store = get_store();
+
+        let mut base = store.create(PathBuf::from("test-5.1")).unwrap();
+        *base.get_content_mut() = format!("An [example](http://example.com) is here.");
+
+        let update = store.update(&mut base);
+        assert!(update.is_ok());
+
+        let processor = LinkProcessor::default()
+            .process_internal_links(true)
+            .create_internal_targets(true)
+            .process_external_links(false)
+            .process_refs(false);
+
+        let result = processor.process(&mut base, &store);
+        assert!(result.is_ok(), "Should be Ok(()): {:?}", result);
+
+        // The hash of "http://example.com" processed in the `libimagentrylink` way.
+        let expected_link = "links/external/9c17e047f58f9220a7008d4f18152fee4d111d14";
+        {
+            let base_links = base.get_internal_links();
+            assert!(base_links.is_ok());
+            let base_links : Vec<_> = base_links.unwrap().collect();
+
+            assert_eq!(1, base_links.len());
+            assert_eq!(expected_link, base_links[0].to_str().unwrap());
+        }
+
+        let entries = store.entries();
+        assert!(entries.is_ok());
+        let entries : Vec<_> = entries.unwrap().collect();
+
+        assert_eq!(2, entries.len(), "Expected 2 links, got: {:?}", entries);
+
+        {
+            let link = store.get(PathBuf::from(expected_link)).unwrap().unwrap();
+            let link_links = link.get_internal_links();
+            assert!(link_links.is_ok());
+            let link_links : Vec<_> = link_links.unwrap().collect();
+
+            assert_eq!(1, link_links.len());
+            assert_eq!("test-5.1", link_links[0].to_str().unwrap());
+        }
+    }
 }
 
