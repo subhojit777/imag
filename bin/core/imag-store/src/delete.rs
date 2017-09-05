@@ -47,22 +47,22 @@ mod tests {
     use std::path::PathBuf;
 
     make_mock_app! {
-        app "imag-link";
+        app "imag-store";
         modulename mock;
         version "0.4.0";
-        with help "imag-link mocking app";
+        with help "imag-store mocking app";
     }
     use self::mock::generate_test_runtime;
     use self::mock::reset_test_runtime;
 
     #[test]
-    fn test_create_simple() {
+    fn test_delete_simple() {
         let test_name = "test_create_simple";
-        let rt = generate_test_runtime(vec!["create", "-p", "test_create_simple"]).unwrap();
+        let rt = generate_test_runtime(vec!["create", "test_create_simple"]).unwrap();
 
         create(&rt);
 
-        let rt = reset_test_runtime(vec!["delete", "--id", "test_create_simple"], rt).unwrap();
+        let rt = reset_test_runtime(vec!["delete", "test_create_simple"], rt).unwrap();
 
         delete(&rt);
 
