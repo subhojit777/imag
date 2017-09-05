@@ -289,5 +289,25 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_process_one_existing_file_linked_faulty() {
+        setup_logging();
+        let store = get_store();
+
+        let mut base = store.create(PathBuf::from("test-2.1")).unwrap();
+        *base.get_content_mut() = format!("This is an example entry with one [link](/test-2.2)");
+
+        let update = store.update(&mut base);
+        assert!(update.is_ok());
+
+        let processor = LinkProcessor::default()
+            .process_internal_links(true)
+            .create_internal_targets(false)
+            .process_external_links(false)
+            .process_refs(false);
+
+        let result = processor.process(&mut base, &store);
+        assert!(result.is_err(), "Should be Err(_), but is Ok(())");
+    }
 }
 
