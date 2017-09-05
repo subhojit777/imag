@@ -17,16 +17,32 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(EditError, EditErrorKind,
-        IOError             => "IO Error",
-        NoEditor            => "No editor set",
-        ProcessExitFailure  => "Process did not exit properly",
-        InstantiateError    => "Instantation error"
-    );
-);
+error_chain! {
+    types {
+        EditError, EditErrorKind, ResultExt, Result;
+    }
 
-pub use self::error::EditError;
-pub use self::error::EditErrorKind;
-pub use self::error::MapErrInto;
+    errors {
+        IOError             {
+            description("IO Error")
+            display("IO Error")
+        }
+
+        NoEditor            {
+            description("No editor set")
+            display("No editor set")
+        }
+
+        ProcessExitFailure  {
+            description("Process did not exit properly")
+            display("Process did not exit properly")
+        }
+
+        InstantiateError    {
+            description("Instantation error")
+            display("Instantation error")
+        }
+
+    }
+}
 

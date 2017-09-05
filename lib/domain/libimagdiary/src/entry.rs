@@ -21,7 +21,7 @@ use libimagstore::store::Entry;
 
 use diaryid::DiaryId;
 use diaryid::FromStoreId;
-use result::Result;
+use error::Result;
 
 pub trait DiaryEntry {
     fn diary_id(&self) -> Result<DiaryId>;

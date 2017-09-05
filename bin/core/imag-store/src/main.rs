@@ -37,14 +37,16 @@ extern crate clap;
 extern crate toml;
 #[cfg(test)] extern crate toml_query;
 #[macro_use] extern crate version;
+#[macro_use] extern crate error_chain;
 
 extern crate libimagrt;
 extern crate libimagstore;
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 
 #[cfg(test)]
 #[macro_use]
 extern crate libimagutil;
+
 #[cfg(not(test))]
 extern crate libimagutil;
 

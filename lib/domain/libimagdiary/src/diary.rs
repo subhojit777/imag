@@ -32,8 +32,8 @@ use chrono::Timelike;
 use entry::DiaryEntry;
 use diaryid::DiaryId;
 use error::DiaryErrorKind as DEK;
-use error::MapErrInto;
-use result::Result;
+use error::ResultExt;
+use error::Result;
 use iter::DiaryEntryIterator;
 use iter::DiaryNameIterator;
 
@@ -63,28 +63,27 @@ impl Diary for Store {
         let ndt = dt.naive_local();
         let id  = DiaryId::new(String::from(diary_name), ndt.year(), ndt.month(), ndt.day(), 0, 0);
 
-        self.retrieve(id).map_err_into(DEK::StoreReadError)
+        self.retrieve(id).chain_err(|| DEK::StoreReadError)
     }
 
-    // create or get a new entry for today
     fn new_entry_now(&self, diary_name: &str) -> Result<FileLockEntry> {
         let dt  = Local::now();
         let ndt = dt.naive_local();
         let id  = DiaryId::new(String::from(diary_name),
-            ndt.year(),
-            ndt.month(),
-            ndt.day(),
-            ndt.minute(),
-            ndt.second());
+                               ndt.year(),
+                               ndt.month(),
+                               ndt.day(),
+                               ndt.hour(),
+                               ndt.minute());
 
-        self.retrieve(id).map_err_into(DEK::StoreReadError)
+        self.retrieve(id).chain_err(|| DEK::StoreReadError)
     }
 
     // Get an iterator for iterating over all entries
     fn entries(&self, diary_name: &str) -> Result<DiaryEntryIterator> {
         self.retrieve_for_module("diary")
             .map(|iter| DiaryEntryIterator::new(self, String::from(diary_name), iter))
-            .map_err_into(DEK::StoreReadError)
+            .chain_err(|| DEK::StoreReadError)
     }
 
     fn get_youngest_entry_id(&self, diary_name: &str) -> Option<Result<DiaryId>> {
@@ -127,7 +126,7 @@ impl Diary for Store {
     /// Get all diary names
     fn diary_names(&self) -> Result<DiaryNameIterator> {
         self.retrieve_for_module("diary")
-            .map_err_into(DEK::StoreReadError)
+            .chain_err(|| DEK::StoreReadError)
             .map(DiaryNameIterator::new)
     }
 

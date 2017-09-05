@@ -17,33 +17,92 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_imports!();
-use std::io::Error as IOError;
-
-generate_error_types!(RuntimeError, RuntimeErrorKind,
-    Instantiate        => "Could not instantiate",
-    IOError            => "IO Error",
-    IOLogFileOpenError => "IO Error: Could not open logfile",
-    ProcessExitFailure => "Process exited with failure",
-    ConfigReadError    => "Error while reading the configuration",
-    ConfigTypeError    => "Error while reading the configuration: Type Error",
-    GlobalLogLevelConfigMissing => "Global config 'imag.logging.level' missing",
-    GlobalDestinationConfigMissing => "Global config 'imag.logging.destinations' missing",
-    InvalidLogLevelSpec => "Invalid log level specification: Only 'trace', 'debug', 'info', 'warn', 'error' are allowed",
-    TomlReadError       => "Error while reading in TOML document",
-    TemplateStringRegistrationError => "Error while registering logging template string",
-    ConfigMissingLoggingFormatTrace => "Missing config for logging format for trace logging",
-    ConfigMissingLoggingFormatDebug => "Missing config for logging format for debug logging",
-    ConfigMissingLoggingFormatInfo => "Missing config for logging format for info logging",
-    ConfigMissingLoggingFormatWarn => "Missing config for logging format for warn logging",
-    ConfigMissingLoggingFormatError => "Missing config for logging format for error logging"
-);
-
-impl From<IOError> for RuntimeError {
-
-    fn from(ioe: IOError) -> RuntimeError {
-        RuntimeErrorKind::IOError.into_error_with_cause(Box::new(ioe))
+error_chain! {
+    types {
+        RuntimeError, RuntimeErrorKind, ResultExt, Result;
     }
 
+    errors {
+        Instantiate {
+            description("Could not instantiate")
+            display("Could not instantiate")
+        }
+
+        IOError {
+            description("IO Error")
+            display("IO Error")
+        }
+
+        ProcessExitFailure {
+            description("Process exited with failure")
+            display("Process exited with failure")
+        }
+
+        IOLogFileOpenError {
+            description("IO Error: Could not open logfile")
+            display("IO Error: Could not open logfile")
+        }
+
+        ConfigReadError {
+            description("Error while reading the configuration")
+            display("Error while reading the configuration")
+        }
+
+        ConfigTypeError {
+            description("Error while reading the configuration: Type Error")
+            display("Error while reading the configuration: Type Error")
+        }
+
+        GlobalLogLevelConfigMissing {
+            description("Global config 'imag.logging.level' missing")
+            display("Global config 'imag.logging.level' missing")
+        }
+
+        GlobalDestinationConfigMissing {
+            description("Global config 'imag.logging.destinations' missing")
+            display("Global config 'imag.logging.destinations' missing")
+        }
+
+        InvalidLogLevelSpec {
+            description("Invalid log level specification: Only 'trace', 'debug', 'info', 'warn', 'error' are allowed")
+            display("Invalid log level specification: Only 'trace', 'debug', 'info', 'warn', 'error' are allowed")
+        }
+
+        TomlReadError {
+            description("Error while reading in TOML document")
+            display("Error while reading in TOML document")
+        }
+
+        TemplateStringRegistrationError {
+            description("Error while registering logging template string")
+            display("Error while registering logging template string")
+        }
+
+        ConfigMissingLoggingFormatTrace {
+            description("Missing config for logging format for trace logging")
+            display("Missing config for logging format for trace logging")
+        }
+
+        ConfigMissingLoggingFormatDebug {
+            description("Missing config for logging format for debug logging")
+            display("Missing config for logging format for debug logging")
+        }
+
+        ConfigMissingLoggingFormatInfo {
+            description("Missing config for logging format for info logging")
+            display("Missing config for logging format for info logging")
+        }
+
+        ConfigMissingLoggingFormatWarn {
+            description("Missing config for logging format for warn logging")
+            display("Missing config for logging format for warn logging")
+        }
+
+        ConfigMissingLoggingFormatError {
+            description("Missing config for logging format for error logging")
+            display("Missing config for logging format for error logging")
+        }
+
+    }
 }
 

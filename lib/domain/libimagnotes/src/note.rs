@@ -24,7 +24,7 @@ use toml::Value;
 
 use libimagrt::runtime::Runtime;
 use libimagentryedit::edit::Edit;
-use libimagentryedit::result::Result as EditResult;
+use libimagentryedit::error::Result as EditResult;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
@@ -35,10 +35,10 @@ use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
 use module_path::ModuleEntryPath;
-use result::Result;
-use error::NoteError as NE;
+use error::Result;
 use error::NoteErrorKind as NEK;
-use error::MapErrInto;
+use error::NoteError as NE;
+use error::ResultExt;
 
 #[derive(Debug)]
 pub struct Note<'a> {
@@ -55,24 +55,20 @@ impl<'a> Note<'a> {
             let mut lockentry = try!(ModuleEntryPath::new(name.clone())
                 .into_storeid()
                 .and_then(|id| store.create(id))
-                .map_err_into(NEK::StoreWriteError));
+                .chain_err(|| NEK::StoreWriteError));
 
             {
                 let entry  = lockentry.deref_mut();
 
                 {
                     let header = entry.get_header_mut();
-                    let setres = header.set("note", Value::Table(BTreeMap::new()));
-                    if setres.is_err() {
-                        let kind = NEK::StoreWriteError;
-                        return Err(NE::new(kind, Some(Box::new(setres.unwrap_err()))));
-                    }
+                    let _ = header
+                        .set("note", Value::Table(BTreeMap::new()))
+                        .chain_err(|| NEK::StoreWriteError);
 
-                    let setres = header.set("note.name", Value::String(name));
-                    if setres.is_err() {
-                        let kind = NEK::StoreWriteError;
-                        return Err(NE::new(kind, Some(Box::new(setres.unwrap_err()))));
-                    }
+                    let _ = header
+                        .set("note.name", Value::String(name))
+                        .chain_err(|| NEK::StoreWriteError);
                 }
 
                 *entry.get_content_mut() = text;
@@ -88,7 +84,7 @@ impl<'a> Note<'a> {
         self.entry
             .get_header_mut()
             .set("note.name", Value::String(n))
-            .map_err(|e| NE::new(NEK::StoreWriteError, Some(Box::new(e))))
+            .chain_err(|| NEK::StoreWriteError)
             .map(|_| ())
     }
 
@@ -96,11 +92,10 @@ impl<'a> Note<'a> {
         let header = self.entry.get_header();
         match header.read("note.name") {
             Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
-            Ok(_)                => {
-                let e = NE::new(NEK::HeaderTypeError, None);
-                Err(NE::new(NEK::StoreReadError, Some(Box::new(e))))
+            Ok(_) => {
+                Err(NE::from_kind(NEK::HeaderTypeError)).chain_err(|| NEK::StoreReadError)
             },
-            Err(e) => Err(NE::new(NEK::StoreReadError, Some(Box::new(e))))
+            Err(e) => Err(e).chain_err(|| NEK::StoreReadError)
         }
     }
 
@@ -116,14 +111,14 @@ impl<'a> Note<'a> {
         ModuleEntryPath::new(name)
             .into_storeid()
             .and_then(|id| store.delete(id))
-            .map_err_into(NEK::StoreWriteError)
+            .chain_err(|| NEK::StoreWriteError)
     }
 
     pub fn retrieve(store: &Store, name: String) -> Result<Note> {
         ModuleEntryPath::new(name)
             .into_storeid()
             .and_then(|id| store.retrieve(id))
-            .map_err_into(NEK::StoreWriteError)
+            .chain_err(|| NEK::StoreWriteError)
             .map(|entry| Note { entry: entry })
     }
 
@@ -131,14 +126,14 @@ impl<'a> Note<'a> {
         ModuleEntryPath::new(name)
             .into_storeid()
             .and_then(|id| store.get(id))
-            .map_err_into(NEK::StoreWriteError)
+            .chain_err(|| NEK::StoreWriteError)
             .map(|o| o.map(|entry| Note { entry: entry }))
     }
 
     pub fn all_notes(store: &Store) -> Result<NoteIterator> {
         store.retrieve_for_module("notes")
             .map(|iter| NoteIterator::new(store, iter))
-            .map_err(|e| NE::new(NEK::StoreReadError, Some(Box::new(e))))
+            .chain_err(|| NEK::StoreReadError)
     }
 
 }
@@ -160,7 +155,7 @@ impl<'a> FromStoreId for Note<'a> {
     fn from_storeid(store: &Store, id: StoreId) -> Result<Note> {
         debug!("Loading note from storeid: '{:?}'", id);
         match store.retrieve(id) {
-            Err(e)    => Err(NE::new(NEK::StoreReadError, Some(Box::new(e)))),
+            Err(e)    => Err(e).chain_err(|| NEK::StoreReadError),
             Ok(entry) => Ok(Note { entry: entry }),
         }
     }

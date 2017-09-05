@@ -20,10 +20,11 @@
 use std::path::PathBuf;
 
 use error::RefErrorKind as REK;
-use result::Result;
+use error::RefError as RE;
+use error::Result;
+use error::ResultExt;
 
 use libimagstore::store::Entry;
-use libimagerror::into::IntoError;
 
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
@@ -40,7 +41,7 @@ pub fn hash_path(pb: &PathBuf) -> Result<String> {
             hasher.input_str(s);
             Ok(hasher.result_str())
         },
-        None => return Err(REK::PathUTF8Error.into_error()),
+        None => return Err(RE::from_kind(REK::PathUTF8Error)),
     }
 }
 
@@ -48,9 +49,9 @@ pub fn hash_path(pb: &PathBuf) -> Result<String> {
 pub fn read_reference(refentry: &Entry) -> Result<PathBuf> {
     match refentry.get_header().read("ref.path") {
         Ok(Some(&Value::String(ref s))) => Ok(PathBuf::from(s)),
-        Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
-        Ok(None)    => Err(REK::HeaderFieldMissingError.into_error()),
-        Err(e)      => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
+        Ok(Some(_)) => Err(RE::from_kind(REK::HeaderTypeError)),
+        Ok(None)    => Err(RE::from_kind(REK::HeaderFieldMissingError)),
+        Err(e)      => Err(e).chain_err(|| REK::StoreReadError),
     }
 }
 

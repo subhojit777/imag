@@ -25,15 +25,15 @@ use std::fs::File;
 use std::fs::Permissions;
 
 use libimagstore::store::Entry;
-use libimagerror::into::IntoError;
 
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
 use error::RefErrorKind as REK;
-use error::MapErrInto;
-use result::Result;
+use error::RefError as RE;
+use error::ResultExt;
+use error::Result;
 use hasher::*;
 
 pub trait Ref {
@@ -121,13 +121,13 @@ impl Ref for Entry {
         self.get_location()
             .clone()
             .into_pathbuf()
-            .map_err_into(REK::StoreIdError)
+            .chain_err(|| REK::StoreIdError)
             .and_then(|pb| {
                 pb.file_name()
                     .and_then(|osstr| osstr.to_str())
                     .and_then(|s| s.split("~").next())
                     .map(String::from)
-                    .ok_or(REK::StoreIdError.into_error())
+                    .ok_or(RE::from_kind(REK::StoreIdError))
             })
     }
 
@@ -144,13 +144,13 @@ impl Ref for Entry {
             Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
 
             // content hash header field has wrong type
-            Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
+            Ok(Some(_)) => Err(RE::from_kind(REK::HeaderTypeError)),
 
             // content hash not stored
-            Ok(None) => Err(REK::HeaderFieldMissingError.into_error()),
+            Ok(None) => Err(RE::from_kind(REK::HeaderFieldMissingError)),
 
             // Error
-            Err(e) => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
+            Err(e) => Err(e).chain_err(|| REK::StoreReadError),
         }
     }
 
@@ -163,7 +163,11 @@ impl Ref for Entry {
     /// custom hasher
     fn get_current_hash_with_hasher<H: Hasher>(&self, mut h: H) -> Result<String> {
         self.fs_file()
-            .and_then(|pb| File::open(pb.clone()).map(|f| (pb, f)).map_err_into(REK::IOError))
+            .and_then(|pb| {
+                File::open(pb.clone())
+                    .map(|f| (pb, f))
+                    .chain_err(|| REK::IOError)
+            })
             .and_then(|(path, mut file)| h.create_hash(&path, &mut file))
     }
 
@@ -206,16 +210,16 @@ impl Ref for Entry {
         self
             .get_header()
             .read("ref.permissions.ro")
-            .map_err_into(REK::HeaderFieldReadError)
+            .chain_err(|| REK::HeaderFieldReadError)
             .and_then(|ro| {
                 match ro {
                     Some(&Value::Boolean(b)) => Ok(b),
-                    Some(_)                 => Err(REK::HeaderTypeError.into_error()),
-                    None                    => Err(REK::HeaderFieldMissingError.into_error()),
+                    Some(_)                 => Err(RE::from_kind(REK::HeaderTypeError)),
+                    None                    => Err(RE::from_kind(REK::HeaderFieldMissingError)),
                 }
             })
             .and_then(|ro| self.get_current_permissions().map(|perm| ro == perm.readonly()))
-            .map_err_into(REK::RefTargetCannotReadPermissions)
+            .chain_err(|| REK::RefTargetCannotReadPermissions)
     }
 
     /// Check whether the Hashsum of the referenced file is equal to the stored hashsum
@@ -240,13 +244,13 @@ impl Ref for Entry {
         try!(self
             .get_header_mut()
             .set("ref.permissions.ro", Value::Boolean(current_perm.readonly()))
-            .map_err_into(REK::StoreWriteError)
+            .chain_err(|| REK::StoreWriteError)
         );
 
         try!(self
             .get_header_mut()
             .set(&format!("ref.content_hash.{}", h.hash_name())[..], Value::String(current_hash))
-            .map_err_into(REK::StoreWriteError)
+            .chain_err(|| REK::StoreWriteError)
         );
 
         Ok(())
@@ -256,9 +260,9 @@ impl Ref for Entry {
     fn fs_file(&self) -> Result<PathBuf> {
         match self.get_header().read("ref.path") {
             Ok(Some(&Value::String(ref s))) => Ok(PathBuf::from(s)),
-            Ok(Some(_)) => Err(REK::HeaderTypeError.into_error()),
-            Ok(None)    => Err(REK::HeaderFieldMissingError.into_error()),
-            Err(e)      => Err(REK::StoreReadError.into_error_with_cause(Box::new(e))),
+            Ok(Some(_)) => Err(RE::from_kind(REK::HeaderTypeError)),
+            Ok(None)    => Err(RE::from_kind(REK::HeaderFieldMissingError)),
+            Err(e)      => Err(e).chain_err(|| REK::StoreReadError),
         }
     }
 
@@ -296,11 +300,11 @@ impl Ref for Entry {
                             .into_iter()
                             .map(|entry| {
                                 entry
-                                    .map_err_into(REK::IOError)
+                                    .chain_err(|| REK::IOError)
                                     .and_then(|entry| {
                                         let pb = PathBuf::from(entry.path());
                                         File::open(entry.path())
-                                            .map_err_into(REK::IOError)
+                                            .chain_err(|| REK::IOError)
                                             .map(|f| (pb, f))
                                     })
                                     .and_then(|(p, mut f)|  h.create_hash(&p, &mut f).map(|h| (p, h)))
@@ -311,7 +315,7 @@ impl Ref for Entry {
                                             None
                                         }
                                     })
-                                    .map_err_into(REK::IOError)
+                                    .chain_err(|| REK::IOError)
                             })
                             .filter_map(|e| e.ok())
                             .filter_map(|e| e)
@@ -319,19 +323,22 @@ impl Ref for Entry {
                     })
                     .flatten()
                     .next()
-                    .ok_or(REK::RefTargetDoesNotExist.into_error())
+                    .ok_or(RE::from_kind(REK::RefTargetDoesNotExist))
             })
     }
 
     /// Get the permissions of the file which are present
     fn get_current_permissions(&self) -> Result<Permissions> {
         self.fs_file()
-            .and_then(|pb| File::open(pb).map_err_into(REK::HeaderFieldReadError))
+            .and_then(|pb| {
+                File::open(pb)
+                    .chain_err(|| REK::HeaderFieldReadError)
+            })
             .and_then(|file| {
                 file
                     .metadata()
                     .map(|md| md.permissions())
-                    .map_err_into(REK::RefTargetCannotReadPermissions)
+                    .chain_err(|| REK::RefTargetCannotReadPermissions)
             })
     }
 

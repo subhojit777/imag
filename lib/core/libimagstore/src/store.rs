@@ -38,8 +38,8 @@ use glob::glob;
 use walkdir::WalkDir;
 use walkdir::Iter as WalkDirIter;
 
-use error::{StoreError as SE, StoreErrorKind as SEK, ParserError, ParserErrorKind};
-use error::MapErrInto;
+use error::{StoreError as SE, StoreErrorKind as SEK};
+use error::ResultExt;
 use storeid::{IntoStoreId, StoreId, StoreIdIterator};
 use file_abstraction::FileAbstractionInstance;
 
@@ -48,7 +48,6 @@ pub use file_abstraction::FileAbstraction;
 pub use file_abstraction::FSFileAbstraction;
 pub use file_abstraction::InMemoryFileAbstraction;
 
-use libimagerror::into::IntoError;
 use libimagerror::trace::trace_error;
 use libimagutil::debug_result::*;
 
@@ -147,8 +146,8 @@ impl StoreEntry {
         #[cfg(feature = "fs-lock")]
         {
             try!(open_file(pb.clone())
-                .and_then(|f| f.lock_exclusive().map_err_into(SEK::FileError))
-                .map_err_into(SEK::IoError));
+                .and_then(|f| f.lock_exclusive().chain_err(|| SEK::FileError))
+                .chain_err(|| SEK::IoError));
         }
 
         Ok(StoreEntry {
@@ -168,13 +167,13 @@ impl StoreEntry {
         if !self.is_borrowed() {
             self.file
                 .get_file_content(self.id.clone())
-                .or_else(|err| if err.err_type() == SEK::FileNotFound {
+                .or_else(|err| if is_match!(err.kind(), &SEK::FileNotFound) {
                     Ok(Entry::new(self.id.clone()))
                 } else {
                     Err(err)
                 })
         } else {
-            Err(SE::new(SEK::EntryAlreadyBorrowed, None))
+            Err(SE::from_kind(SEK::EntryAlreadyBorrowed))
         }
     }
 
@@ -182,7 +181,7 @@ impl StoreEntry {
         if self.is_borrowed() {
             assert_eq!(self.id, entry.location);
             self.file.write_file_content(entry)
-                .map_err_into(SEK::FileError)
+                .chain_err(|| SEK::FileError)
                 .map(|_| ())
         } else {
             Ok(())
@@ -195,9 +194,9 @@ impl Drop for StoreEntry {
 
     fn drop(self) {
         self.get_entry()
-            .and_then(|entry| open_file(entry.get_location().clone()).map_err_into(SEK::IoError))
-            .and_then(|f| f.unlock().map_err_into(SEK::FileError))
-            .map_err_into(SEK::IoError)
+            .and_then(|entry| open_file(entry.get_location().clone()).chain_err(|| SEK::IoError))
+            .and_then(|f| f.unlock().chain_err(|| SEK::FileError))
+            .chain_err(|| SEK::IoError)
     }
 
 }
@@ -266,7 +265,7 @@ impl Store {
         use configuration::*;
 
         debug!("Validating Store configuration");
-        let _ = try!(config_is_valid(&store_config).map_err_into(SEK::ConfigurationError));
+        let _ = try!(config_is_valid(&store_config).chain_err(|| SEK::ConfigurationError));
 
         debug!("Building new Store object");
         if !location.exists() {
@@ -274,17 +273,17 @@ impl Store {
                 warn!("Implicitely creating store directory is denied");
                 warn!(" -> Either because configuration does not allow it");
                 warn!(" -> or because there is no configuration");
-                return Err(SEK::CreateStoreDirDenied.into_error())
-                    .map_err_into(SEK::FileError)
-                    .map_err_into(SEK::IoError);
+                return Err(SE::from_kind(SEK::CreateStoreDirDenied))
+                    .chain_err(|| SEK::FileError)
+                    .chain_err(|| SEK::IoError);
             }
 
             try!(backend.create_dir_all(&location)
-                 .map_err_into(SEK::StorePathCreate)
+                 .chain_err(|| SEK::StorePathCreate)
                  .map_dbg_err_str("Failed"));
         } else if location.is_file() {
             debug!("Store path exists as file");
-            return Err(SEK::StorePathExists.into_error());
+            return Err(SE::from_kind(SEK::StorePathExists));
         }
 
         let store = Store {
@@ -408,13 +407,13 @@ impl Store {
 
         {
             let mut hsmap = match self.entries.write() {
-                Err(_) => return Err(SEK::LockPoisoned.into_error()).map_err_into(SEK::CreateCallError),
+                Err(_) => return Err(SE::from_kind(SEK::LockPoisoned)).chain_err(|| SEK::CreateCallError),
                 Ok(s) => s,
             };
 
             if hsmap.contains_key(&id) {
                 debug!("Cannot create, internal cache already contains: '{}'", id);
-                return Err(SEK::EntryAlreadyExists.into_error()).map_err_into(SEK::CreateCallError);
+                return Err(SE::from_kind(SEK::EntryAlreadyExists)).chain_err(|| SEK::CreateCallError);
             }
             hsmap.insert(id.clone(), {
                 debug!("Creating: '{}'", id);
@@ -449,7 +448,7 @@ impl Store {
         let entry = try!({
             self.entries
                 .write()
-                .map_err(|_| SE::new(SEK::LockPoisoned, None))
+                .map_err(|_| SE::from_kind(SEK::LockPoisoned))
                 .and_then(|mut es| {
                     let new_se = try!(StoreEntry::new(id.clone(), &self.backend));
                     let se = es.entry(id.clone()).or_insert(new_se);
@@ -457,7 +456,7 @@ impl Store {
                     se.status = StoreEntryStatus::Borrowed;
                     entry
                 })
-                .map_err_into(SEK::RetrieveCallError)
+                .chain_err(|| SEK::RetrieveCallError)
         });
 
         debug!("Constructing FileLockEntry: '{}'", id);
@@ -482,8 +481,8 @@ impl Store {
         let exists = try!(id.exists()) || try!(self.entries
             .read()
             .map(|map| map.contains_key(&id))
-            .map_err(|_| SE::new(SEK::LockPoisoned, None))
-            .map_err_into(SEK::GetCallError)
+            .map_err(|_| SE::from_kind(SEK::LockPoisoned))
+            .chain_err(|| SEK::GetCallError)
         );
 
         if !exists {
@@ -491,7 +490,7 @@ impl Store {
             return Ok(None);
         }
 
-        self.retrieve(id).map(Some).map_err_into(SEK::GetCallError)
+        self.retrieve(id).map(Some).chain_err(|| SEK::GetCallError)
     }
 
     /// Iterate over all StoreIds for one module name
@@ -512,15 +511,15 @@ impl Store {
         debug!("Retrieving for module: '{}'", mod_name);
 
         path.to_str()
-            .ok_or(SE::new(SEK::EncodingError, None))
+            .ok_or(SE::from_kind(SEK::EncodingError))
             .and_then(|path| {
                 let path = [ path, "/**/*" ].join("");
                 debug!("glob()ing with '{}'", path);
-                glob(&path[..]).map_err_into(SEK::GlobError)
+                glob(&path[..]).chain_err(|| SEK::GlobError)
             })
             .map(|paths| GlobStoreIdIterator::new(paths, self.path().clone()).into())
-            .map_err_into(SEK::GlobError)
-            .map_err_into(SEK::RetrieveForModuleCallError)
+            .chain_err(|| SEK::GlobError)
+            .chain_err(|| SEK::RetrieveForModuleCallError)
     }
 
     /// Walk the store tree for the module
@@ -538,7 +537,7 @@ impl Store {
     ///
     pub fn update<'a>(&'a self, entry: &mut FileLockEntry<'a>) -> Result<()> {
         debug!("Updating FileLockEntry at '{}'", entry.get_location());
-        self._update(entry, false).map_err_into(SEK::UpdateCallError)
+        self._update(entry, false).chain_err(|| SEK::UpdateCallError)
     }
 
     /// Internal method to write to the filesystem store.
@@ -560,11 +559,11 @@ impl Store {
     ///
     fn _update<'a>(&'a self, entry: &mut FileLockEntry<'a>, modify_presence: bool) -> Result<()> {
         let mut hsmap = match self.entries.write() {
-            Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+            Err(_) => return Err(SE::from_kind(SEK::LockPoisoned)),
             Ok(e) => e,
         };
 
-        let se = try!(hsmap.get_mut(&entry.location).ok_or(SE::new(SEK::IdNotFound, None)));
+        let se = try!(hsmap.get_mut(&entry.location).ok_or(SE::from_kind(SEK::IdNotFound)));
 
         assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 
@@ -597,15 +596,15 @@ impl Store {
         debug!("Retrieving copy of '{}'", id);
         let entries = match self.entries.write() {
             Err(_) => {
-                return Err(SE::new(SEK::LockPoisoned, None))
-                    .map_err_into(SEK::RetrieveCopyCallError);
+                return Err(SE::from_kind(SEK::LockPoisoned))
+                    .chain_err(|| SEK::RetrieveCopyCallError);
             },
             Ok(e) => e,
         };
 
         // if the entry is currently modified by the user, we cannot drop it
         if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
-            return Err(SE::new(SEK::IdLocked, None)).map_err_into(SEK::RetrieveCopyCallError);
+            return Err(SE::from_kind(SEK::IdLocked)).chain_err(|| SEK::RetrieveCopyCallError);
         }
 
         try!(StoreEntry::new(id, &self.backend)).get_entry()
@@ -629,18 +628,18 @@ impl Store {
 
         {
             let mut entries = match self.entries.write() {
-                Err(_) => return Err(SE::new(SEK::LockPoisoned, None))
-                    .map_err_into(SEK::DeleteCallError),
+                Err(_) => return Err(SE::from_kind(SEK::LockPoisoned))
+                    .chain_err(|| SEK::DeleteCallError),
                 Ok(e) => e,
             };
 
             // if the entry is currently modified by the user, we cannot drop it
             match entries.get(&id) {
                 None => {
-                    return Err(SEK::FileNotFound.into_error()).map_err_into(SEK::DeleteCallError)
+                    return Err(SE::from_kind(SEK::FileNotFound)).chain_err(|| SEK::DeleteCallError)
                 },
                 Some(e) => if e.is_borrowed() {
-                    return Err(SE::new(SEK::IdLocked, None)).map_err_into(SEK::DeleteCallError)
+                    return Err(SE::from_kind(SEK::IdLocked)).chain_err(|| SEK::DeleteCallError)
                 }
             }
 
@@ -648,8 +647,9 @@ impl Store {
             entries.remove(&id);
             let pb = try!(id.clone().with_base(self.path().clone()).into_pathbuf());
             if let Err(e) = self.backend.remove_file(&pb) {
-                return Err(SEK::FileError.into_error_with_cause(Box::new(e)))
-                    .map_err_into(SEK::DeleteCallError);
+                return Err(e)
+                    .chain_err(|| SEK::FileError)
+                    .chain_err(|| SEK::DeleteCallError);
             }
         }
 
@@ -677,12 +677,12 @@ impl Store {
         let hsmap = try!(
             self.entries
                 .write()
-                .map_err(|_| SEK::LockPoisoned.into_error())
-                .map_err_into(SEK::MoveCallError)
+                .map_err(|_| SE::from_kind(SEK::LockPoisoned))
+                .chain_err(|| SEK::MoveCallError)
         );
 
         if hsmap.contains_key(&new_id) {
-            return Err(SEK::EntryAlreadyExists.into_error()).map_err_into(SEK::MoveCallError)
+            return Err(SE::from_kind(SEK::EntryAlreadyExists)).chain_err(|| SEK::MoveCallError)
         }
 
         let old_id = entry.get_location().clone();
@@ -698,8 +698,8 @@ impl Store {
                     Ok(())
                 }
             })
-            .map_err_into(SEK::FileError)
-            .map_err_into(SEK::MoveCallError)
+            .chain_err(|| SEK::FileError)
+            .chain_err(|| SEK::MoveCallError)
     }
 
     /// Move an entry without loading
@@ -743,26 +743,26 @@ impl Store {
 
         {
             let mut hsmap = match self.entries.write() {
-                Err(_) => return Err(SE::new(SEK::LockPoisoned, None)),
+                Err(_) => return Err(SE::from_kind(SEK::LockPoisoned)),
                 Ok(m)  => m,
             };
 
             if hsmap.contains_key(&new_id) {
-                return Err(SEK::EntryAlreadyExists.into_error());
+                return Err(SE::from_kind(SEK::EntryAlreadyExists));
             }
 
             // if we do not have an entry here, we fail in `FileAbstraction::rename()` below.
             // if we have one, but it is borrowed, we really should not rename it, as this might
             // lead to strange errors
             if hsmap.get(&old_id).map(|e| e.is_borrowed()).unwrap_or(false) {
-                return Err(SEK::EntryAlreadyBorrowed.into_error());
+                return Err(SE::from_kind(SEK::EntryAlreadyBorrowed));
             }
 
             let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
             let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
 
             match self.backend.rename(&old_id_pb, &new_id_pb) {
-                Err(e) => return Err(SEK::EntryRenameError.into_error_with_cause(Box::new(e))),
+                Err(e) => return Err(e).chain_err(|| SEK::EntryRenameError),
                 Ok(_) => {
                     debug!("Rename worked on filesystem");
 
@@ -1035,7 +1035,7 @@ mod glob_store_iter {
     use storeid::StoreIdIterator;
 
     use error::StoreErrorKind as SEK;
-    use error::MapErrInto;
+    use error::ResultExt;
 
     use libimagerror::trace::trace_error;
 
@@ -1088,7 +1088,7 @@ mod glob_store_iter {
         fn next(&mut self) -> Option<StoreId> {
             while let Some(o) = self.paths.next() {
                 debug!("GlobStoreIdIterator::next() => {:?}", o);
-                match o.map_err_into(SEK::StoreIdHandlingError) {
+                match o.chain_err(|| SEK::StoreIdHandlingError) {
                     Ok(path) => {
                         if path.exists() && path.is_file() {
                             return match StoreId::from_full_path(&self.store_path, path) {
@@ -1121,7 +1121,7 @@ mod glob_store_iter {
 /// top-level Value::Table, but not on intermediate tables.
 pub trait Header {
     fn verify(&self) -> Result<()>;
-    fn parse(s: &str) -> RResult<Value, ParserError>;
+    fn parse(s: &str) -> Result<Value>;
     fn default_header() -> Value;
 }
 
@@ -1130,15 +1130,15 @@ impl Header for Value {
     fn verify(&self) -> Result<()> {
         match *self {
             Value::Table(ref t) => verify_header(&t),
-            _ => Err(SE::new(SEK::HeaderTypeFailure, None)),
+            _ => Err(SE::from_kind(SEK::HeaderTypeFailure)),
         }
     }
 
-    fn parse(s: &str) -> RResult<Value, ParserError> {
+    fn parse(s: &str) -> Result<Value> {
         use toml::de::from_str;
 
         from_str(s)
-            .map_err(|_| ParserErrorKind::TOMLParserErrors.into())
+            .chain_err(|| SEK::TOMLParserErrors)
             .and_then(verify_header_consistency)
             .map(Value::Table)
     }
@@ -1160,21 +1160,18 @@ impl Header for Value {
 
 }
 
-fn verify_header_consistency(t: Table) -> RResult<Table, ParserError> {
-    verify_header(&t)
-        .map_err(Box::new)
-        .map_err(|e| ParserErrorKind::HeaderInconsistency.into_error_with_cause(e))
-        .map(|_| t)
+fn verify_header_consistency(t: Table) -> Result<Table> {
+    verify_header(&t).chain_err(|| SEK::HeaderInconsistency).map(|_| t)
 }
 
 fn verify_header(t: &Table) -> Result<()> {
     if !has_main_section(t) {
-        Err(SE::from(ParserErrorKind::MissingMainSection.into_error()))
+        Err(SE::from_kind(SEK::MissingMainSection))
     } else if !has_imag_version_in_main_section(t) {
-        Err(SE::from(ParserErrorKind::MissingVersionInfo.into_error()))
+        Err(SE::from_kind(SEK::MissingVersionInfo))
     } else if !has_only_tables(t) {
         debug!("Could not verify that it only has tables in its base table");
-        Err(SE::from(ParserErrorKind::NonTableInBaseTable.into_error()))
+        Err(SE::from_kind(SEK::NonTableInBaseTable))
     } else {
         Ok(())
     }
@@ -1518,7 +1515,7 @@ mod store_tests {
         for n in 1..100 {
             let s = format!("test-{}", n % 50);
             store.create(PathBuf::from(s.clone()))
-                .map_err(|e| assert!(is_match!(e.err_type(), SEK::CreateCallError) && n >= 50))
+                .map_err(|e| assert!(is_match!(e.kind(), &SEK::CreateCallError) && n >= 50))
                 .ok()
                 .map(|entry| {
                     assert!(entry.verify().is_ok());

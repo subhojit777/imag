@@ -24,15 +24,14 @@ use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreIdIterator;
 use libimagerror::trace::trace_error;
-use libimagerror::into::IntoError;
 
 use diaryid::DiaryId;
 use diaryid::FromStoreId;
-use error::DiaryError as DE;
-use error::DiaryErrorKind as DEK;
-use error::MapErrInto;
-use result::Result;
 use is_in_diary::IsInDiary;
+use error::DiaryErrorKind as DEK;
+use error::DiaryError as DE;
+use error::ResultExt;
+use error::Result;
 
 /// A iterator for iterating over diary entries
 pub struct DiaryEntryIterator<'a> {
@@ -120,8 +119,7 @@ impl<'a> Iterator for DiaryEntryIterator<'a> {
                     return Some(self
                                 .store
                                 .retrieve(next)
-                                .map_err(|e| DE::new(DEK::StoreReadError, Some(Box::new(e))))
-                                );
+                                .chain_err(|| DEK::StoreReadError));
                 }
             } else {
                 debug!("Not in the requested diary ({}): {:?}", self.name, next);
@@ -153,12 +151,12 @@ impl Iterator for DiaryNameIterator {
             .next()
             .map(|s| {
                 s.to_str()
-                    .map_err_into(DEK::DiaryNameFindingError)
+                    .chain_err(|| DEK::DiaryNameFindingError)
                     .and_then(|s| {
                         s.split("diary/")
                             .nth(1)
                             .and_then(|n| n.split("/").nth(0).map(String::from))
-                            .ok_or(DEK::DiaryNameFindingError.into_error())
+                            .ok_or(DE::from_kind(DEK::DiaryNameFindingError))
                     })
             })
     }

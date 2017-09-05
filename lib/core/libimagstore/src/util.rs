@@ -20,11 +20,10 @@
 use regex::Regex;
 use toml::Value;
 
-use libimagerror::into::IntoError;
-
 use store::Result;
 use store::Header;
 use error::StoreErrorKind as SEK;
+use error::StoreError as SE;
 
 #[cfg(feature = "early-panic")]
 #[macro_export]
@@ -54,12 +53,12 @@ pub fn entry_buffer_to_header_content(buf: &str) -> Result<(Value, String)> {
     }
 
     let matches = match RE.captures(buf) {
-        None    => return Err(SEK::MalformedEntry.into_error()),
+        None    => return Err(SE::from_kind(SEK::MalformedEntry)),
         Some(s) => s,
     };
 
     let header = match matches.name("header") {
-        None    => return Err(SEK::MalformedEntry.into_error()),
+        None    => return Err(SE::from_kind(SEK::MalformedEntry)),
         Some(s) => s
     };
 

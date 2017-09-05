@@ -17,13 +17,13 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use libimagerror::into::IntoError;
 use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
 
-use result::Result;
+use error::Result;
 use error::EditErrorKind;
-use error::MapErrInto;
+use error::EditError as EE;
+use error::ResultExt;
 
 pub trait Edit {
     fn edit_content(&mut self, rt: &Runtime) -> Result<()>;
@@ -50,10 +50,10 @@ pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> Result<()> {
     use libimagutil::edit::edit_in_tmpfile_with_command;
 
     rt.editor()
-        .ok_or(EditErrorKind::NoEditor.into_error())
+        .ok_or(EE::from_kind(EditErrorKind::NoEditor))
         .and_then(|editor| {
             edit_in_tmpfile_with_command(editor, s)
-                .map_err_into(EditErrorKind::IOError)
+                .chain_err(|| EditErrorKind::IOError)
                 .and_then(|worked| {
                     if !worked {
                         Err(EditErrorKind::ProcessExitFailure.into())

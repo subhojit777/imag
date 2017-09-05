@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+#![recursion_limit="256"]
+
 #![deny(
     dead_code,
     non_camel_case_types,
@@ -41,20 +43,19 @@ extern crate toml_query;
 extern crate lazy_static;
 #[macro_use]
 extern crate is_match;
+#[macro_use] extern crate error_chain;
 
-#[macro_use]
-extern crate libimagerror;
 #[macro_use]
 extern crate libimagstore;
 extern crate libimagentrydatetime;
 extern crate libimagentrytag;
+extern crate libimagerror;
 
 mod constants;
 pub mod error;
 pub mod timetracking;
 pub mod timetrackingstore;
 pub mod iter;
-pub mod result;
 pub mod tag;
 
 module_entry_path_mod!("timetrack");

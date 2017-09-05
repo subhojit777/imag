@@ -17,23 +17,61 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(DateError, DateErrorKind,
-        DeleteDateError      => "Error deleting date",
-        ReadDateError        => "Error reading date",
-        SetDateError         => "Error setting date",
-        DeleteDateTimeRangeError => "Error deleting date-time range",
-        ReadDateTimeRangeError   => "Error reading date-time range",
-        SetDateTimeRangeError    => "Error setting date-time range",
+error_chain! {
+    types {
+        DateError, DateErrorKind, ResultExt, Result;
+    }
 
-        DateTimeRangeError  => "DateTime Range error",
+    errors {
+        DeleteDateError      {
+            description("Error deleting date")
+            display("Error deleting date")
+        }
 
-        DateHeaderFieldTypeError => "Expected the header field in the entry to have type 'String', but have other type",
-        DateTimeParsingError => "Error parsing DateTime"
-    );
-);
+        ReadDateError        {
+            description("Error reading date")
+            display("Error reading date")
+        }
 
-pub use self::error::DateError;
-pub use self::error::DateErrorKind;
-pub use self::error::MapErrInto;
+        SetDateError         {
+            description("Error setting date")
+            display("Error setting date")
+        }
+
+        DeleteDateTimeRangeError {
+            description("Error deleting date-time range")
+            display("Error deleting date-time range")
+        }
+
+        ReadDateTimeRangeError   {
+            description("Error reading date-time range")
+            display("Error reading date-time range")
+        }
+
+        SetDateTimeRangeError    {
+            description("Error setting date-time range")
+            display("Error setting date-time range")
+        }
+
+        DateTimeRangeError  {
+            description("DateTime Range error")
+            display("DateTime Range error")
+        }
+
+        DateHeaderFieldTypeError {
+            description("Expected the header field in the entry to have type 'String', but have other type")
+            display("Expected the header field in the entry to have type 'String', but have other type")
+        }
+
+        DateTimeParsingError {
+            description("Error parsing DateTime")
+            display("Error parsing DateTime")
+        }
+
+        EndDateTimeBeforeStartDateTime {
+            description("End datetime is before start datetime")
+            display("End datetime is before start datetime")
+        }
+    }
+}
 

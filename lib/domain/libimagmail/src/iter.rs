@@ -25,7 +25,7 @@
 //!
 
 use mail::Mail;
-use result::Result;
+use error::Result;
 
 use libimagstore::store::FileLockEntry;
 

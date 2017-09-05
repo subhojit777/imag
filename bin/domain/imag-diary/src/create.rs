@@ -24,7 +24,7 @@ use clap::ArgMatches;
 use libimagdiary::diary::Diary;
 use libimagdiary::diaryid::DiaryId;
 use libimagdiary::error::DiaryErrorKind as DEK;
-use libimagdiary::error::MapErrInto;
+use libimagdiary::error::ResultExt;
 use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error_exit;
@@ -46,7 +46,7 @@ pub fn create(rt: &Runtime) {
     } else {
         debug!("Editing new diary entry");
         entry.edit_content(rt)
-            .map_err_into(DEK::DiaryEditError)
+            .chain_err(|| DEK::DiaryEditError)
     };
 
     if let Err(e) = res {
@@ -63,7 +63,7 @@ fn create_entry<'a>(diary: &'a Store, diaryname: &str, rt: &Runtime) -> FileLock
         diary.new_entry_today(diaryname)
     } else {
         let id = create_id_from_clispec(&create, &diaryname);
-        diary.retrieve(id).map_err_into(DEK::StoreReadError)
+        diary.retrieve(id).chain_err(|| DEK::StoreReadError)
     };
 
     match entry {

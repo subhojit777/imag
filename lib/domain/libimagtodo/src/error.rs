@@ -17,20 +17,51 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(TodoError, TodoErrorKind,
-        ConversionError     => "Conversion Error",
-        StoreError          => "Store Error",
-        StoreIdError        => "Store Id handling error",
-        ImportError         => "Error importing",
-        UTF8Error           => "Encountered non-UTF8 characters while reading input",
-        HeaderFieldMissing  => "Header field missing",
-        HeaderTypeError     => "Header field type error",
-        UuidParserError     => "Uuid parser error"
-    );
-);
+error_chain! {
+    types {
+        TodoError, TodoErrorKind, ResultExt, Result;
+    }
 
-pub use self::error::TodoError;
-pub use self::error::TodoErrorKind;
-pub use self::error::MapErrInto;
+    errors {
+        ConversionError     {
+            description("Conversion Error")
+            display("Conversion Error")
+        }
+
+        StoreError          {
+            description("Store Error")
+            display("Store Error")
+        }
+
+        StoreIdError        {
+            description("Store Id handling error")
+            display("Store Id handling error")
+        }
+
+        ImportError         {
+            description("Error importing")
+            display("Error importing")
+        }
+
+        UTF8Error           {
+            description("Encountered non-UTF8 characters while reading input")
+            display("Encountered non-UTF8 characters while reading input")
+        }
+
+        HeaderFieldMissing {
+            description("Header field missing")
+            display("Header field missing")
+        }
+
+        HeaderTypeError {
+            description("Header field type error")
+            display("Header field type error")
+        }
+
+        UuidParserError {
+            description("Uuid parser error")
+            display("Uuid parser error")
+        }
+    }
+}
 

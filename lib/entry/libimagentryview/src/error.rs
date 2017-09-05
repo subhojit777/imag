@@ -17,16 +17,37 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(ViewError, ViewErrorKind,
-        Unknown              => "Unknown view error",
-        GlobError            => "Error while glob()ing",
-        PatternError         => "Error in glob() pattern",
-        PatternBuildingError => "Could not build glob() pattern",
-        ViewError            => "Failed to start viewer"
-    );
-);
+error_chain! {
+    types {
+        ViewError, ViewErrorKind, ResultExt, Result;
+    }
 
-pub use self::error::ViewError;
-pub use self::error::ViewErrorKind;
-pub use self::error::MapErrInto;
+    errors {
+        Unknown              {
+            description("Unknown view error")
+            display("Unknown view error")
+        }
+
+        GlobError            {
+            description("Error while glob()ing")
+            display("Error while glob()ing")
+        }
+
+        PatternError         {
+            description("Error in glob() pattern")
+            display("Error in glob() pattern")
+        }
+
+        PatternBuildingError {
+            description("Could not build glob() pattern")
+            display("Could not build glob() pattern")
+        }
+
+        ViewError            {
+            description("Failed to start viewer")
+            display("Failed to start viewer")
+        }
+
+    }
+}
+

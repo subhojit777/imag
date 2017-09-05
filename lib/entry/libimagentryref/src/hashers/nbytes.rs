@@ -25,9 +25,9 @@ use crypto::sha1::Sha1;
 use crypto::digest::Digest;
 
 use hasher::Hasher;
-use result::Result;
+use error::Result;
 use error::RefErrorKind as REK;
-use error::MapErrInto;
+use error::ResultExt;
 
 pub struct NBytesHasher {
     hasher: Sha1,
@@ -56,8 +56,8 @@ impl Hasher for NBytesHasher {
             .bytes()
             .take(self.n)
             .collect::<RResult<Vec<u8>, _>>()
-            .map_err_into(REK::IOError)
-            .and_then(|v| String::from_utf8(v).map_err_into(REK::UTF8Error)));
+            .chain_err(|| REK::IOError)
+            .and_then(|v| String::from_utf8(v).chain_err(|| REK::UTF8Error)));
         self.hasher.input_str(&s[..]);
         Ok(self.hasher.result_str())
     }

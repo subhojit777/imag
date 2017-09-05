@@ -23,15 +23,13 @@ use std::io::Write;
 use std::ops::Deref;
 
 use libimagentrylist::lister::Lister;
-use libimagentrylist::result::Result;
+use libimagentrylist::error::Result;
 use libimagerror::trace::trace_error;
 use libimagstore::store::FileLockEntry;
 use libimagentrylist::error::ListErrorKind as LEK;
 use libimagentrylist::error as lerror;
 
 use reference::Ref;
-use error::MapErrInto;
-use error::RefErrorKind as REK;
 
 pub struct RefLister {
     check_dead: bool,
@@ -91,7 +89,7 @@ impl Lister for RefLister {
                     debug!("Listing Entry: {:?}", entry);
                     {
                         let is_dead = if self.check_dead {
-                            if try!(entry.fs_link_exists()) {
+                            if try!(lerror::ResultExt::chain_err(entry.fs_link_exists(), || LEK::FormatError)) {
                                 "dead"
                             } else {
                                 "alive"
@@ -127,15 +125,14 @@ impl Lister for RefLister {
                                 entry.get_location()))
                     }
                         .and_then(|s| {
-                            lerror::MapErrInto::map_err_into(write!(stdout(), "{}\n", s), LEK::FormatError)
+                            lerror::ResultExt::chain_err(write!(stdout(), "{}\n", s), || LEK::FormatError)
                         })
-                        .map_err_into(REK::RefToDisplayError)
                 })
                 .map(|_| ());
             (r, i + 1)
         });
         debug!("Iterated over {} entries", n);
-        lerror::MapErrInto::map_err_into(r, LEK::FormatError)
+        r
     }
 
 }

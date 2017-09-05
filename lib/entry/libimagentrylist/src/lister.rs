@@ -19,7 +19,7 @@
 
 use libimagstore::store::FileLockEntry;
 
-use result::Result;
+use error::Result;
 
 pub trait Lister : Sized {
 

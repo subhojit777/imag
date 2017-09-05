@@ -17,39 +17,135 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(RefError, RefErrorKind,
-        StoreReadError          => "Store read error",
-        StoreWriteError         => "Store write error",
-        IOError                 => "IO Error",
-        UTF8Error               => "UTF8 Error",
-        StoreIdError            => "Error with storeid",
-        HeaderTomlError         => "Error while working with TOML Header",
-        HeaderTypeError         => "Header type error",
-        HeaderFieldMissingError => "Header field missing error",
-        HeaderFieldWriteError   => "Header field cannot be written",
-        HeaderFieldReadError    => "Header field cannot be read",
-        HeaderFieldAlreadyExistsError => "Header field already exists, cannot override",
-        PathUTF8Error => "Path cannot be converted because of UTF8 Error",
-        PathHashingError => "Path cannot be hashed",
-        PathCanonicalizationError => "Path cannot be canonicalized",
+error_chain! {
+    types {
+        RefError, RefErrorKind, ResultExt, Result;
+    }
 
-        TypeConversionError => "Couldn't convert types",
-        RefToDisplayError => "Cannot convert Ref to string to show it to user",
+    links {
+        ListError(::libimagentrylist::error::ListError, ::libimagentrylist::error::ListErrorKind);
+    }
 
-        RefNotInStore => "Ref/StoreId does not exist in store",
+    foreign_links {
+        Io(::std::io::Error);
+    }
 
-        RefTargetDoesNotExist       => "Ref Target does not exist",
-        RefTargetPermissionError    => "Ref Target permissions insufficient for referencing",
-        RefTargetCannotBeHashed     => "Ref Target cannot be hashed (is it a directory?)",
-        RefTargetFileCannotBeOpened => "Ref Target File cannot be open()ed",
-        RefTargetCannotReadPermissions => "Ref Target: Cannot read permissions",
+    errors {
+        StoreReadError          {
+            description("Store read error")
+            display("Store read error")
+        }
 
-        RefHashingError => "Error while hashing"
-    );
-);
+        StoreWriteError         {
+            description("Store write error")
+            display("Store write error")
+        }
 
-pub use self::error::RefError;
-pub use self::error::RefErrorKind;
-pub use self::error::MapErrInto;
+        IOError                 {
+            description("IO Error")
+            display("IO Error")
+        }
+
+        UTF8Error               {
+            description("UTF8 Error")
+            display("UTF8 Error")
+        }
+
+        StoreIdError            {
+            description("Error with storeid")
+            display("Error with storeid")
+        }
+
+        HeaderTomlError         {
+            description("Error while working with TOML Header")
+            display("Error while working with TOML Header")
+        }
+
+        HeaderTypeError         {
+            description("Header type error")
+            display("Header type error")
+        }
+
+        HeaderFieldMissingError {
+            description("Header field missing error")
+            display("Header field missing error")
+        }
+
+        HeaderFieldWriteError   {
+            description("Header field cannot be written")
+            display("Header field cannot be written")
+        }
+
+        HeaderFieldReadError    {
+            description("Header field cannot be read")
+            display("Header field cannot be read")
+        }
+
+        HeaderFieldAlreadyExistsError {
+            description("Header field already exists, cannot override")
+            display("Header field already exists, cannot override")
+        }
+
+        PathUTF8Error {
+            description("Path cannot be converted because of UTF8 Error")
+            display("Path cannot be converted because of UTF8 Error")
+        }
+
+        PathHashingError {
+            description("Path cannot be hashed")
+            display("Path cannot be hashed")
+        }
+
+        PathCanonicalizationError {
+            description("Path cannot be canonicalized")
+            display("Path cannot be canonicalized")
+        }
+
+        TypeConversionError {
+            description("Couldn't convert types")
+            display("Couldn't convert types")
+        }
+
+        RefToDisplayError {
+            description("Cannot convert Ref to string to show it to user")
+            display("Cannot convert Ref to string to show it to user")
+        }
+
+        RefNotInStore {
+            description("Ref/StoreId does not exist in store")
+            display("Ref/StoreId does not exist in store")
+        }
+
+        RefTargetDoesNotExist       {
+            description("Ref Target does not exist")
+            display("Ref Target does not exist")
+        }
+
+        RefTargetPermissionError    {
+            description("Ref Target permissions insufficient for referencing")
+            display("Ref Target permissions insufficient for referencing")
+        }
+
+        RefTargetCannotBeHashed     {
+            description("Ref Target cannot be hashed (is it a directory?)")
+            display("Ref Target cannot be hashed (is it a directory?)")
+        }
+
+        RefTargetFileCannotBeOpened {
+            description("Ref Target File cannot be open()ed")
+            display("Ref Target File cannot be open()ed")
+        }
+
+        RefTargetCannotReadPermissions {
+            description("Ref Target: Cannot read permissions")
+            display("Ref Target: Cannot read permissions")
+        }
+
+        RefHashingError {
+            description("Error while hashing")
+            display("Error while hashing")
+        }
+
+    }
+}
 

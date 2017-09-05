@@ -19,7 +19,7 @@
 
 use libimagdiary::diary::Diary;
 use libimagdiary::error::DiaryErrorKind as DEK;
-use libimagdiary::error::MapErrInto;
+use libimagdiary::error::ResultExt;
 use libimagentrylist::listers::core::CoreLister;
 use libimagentrylist::lister::Lister;
 use libimagrt::runtime::Runtime;
@@ -57,7 +57,7 @@ pub fn list(rt: &Runtime) {
 
             CoreLister::new(&entry_to_location_listing_string)
                 .list(es)
-                .map_err_into(DEK::IOError)
+                .chain_err(|| DEK::IOError)
         })
         .map_dbg_str("Ok")
         .map_err_trace()

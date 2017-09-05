@@ -20,6 +20,7 @@
 extern crate toml;
 extern crate toml_query;
 #[macro_use] extern crate serde_derive;
+#[macro_use] extern crate error_chain;
 
 extern crate libimagstore;
 #[macro_use] extern crate libimagerror;
@@ -29,6 +30,5 @@ extern crate env_logger;
 
 pub mod entry;
 pub mod error;
-pub mod result;
 pub mod types;
 

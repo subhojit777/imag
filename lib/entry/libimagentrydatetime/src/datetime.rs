@@ -24,11 +24,10 @@ use toml_query::read::TomlValueReadExt;
 use toml::Value;
 
 use libimagstore::store::Entry;
-use libimagerror::into::IntoError;
 
 use error::DateErrorKind as DEK;
+use error::DateError as DE;
 use error::*;
-use result::Result;
 use range::DateTimeRange;
 
 pub trait EntryDate {
@@ -56,19 +55,19 @@ impl EntryDate for Entry {
         self.get_header_mut()
             .delete(&DATE_HEADER_LOCATION)
             .map(|_| ())
-            .map_err_into(DEK::DeleteDateError)
+            .chain_err(|| DEK::DeleteDateError)
     }
 
     fn read_date(&self) -> Result<NaiveDateTime> {
         self.get_header()
             .read(&DATE_HEADER_LOCATION)
-            .map_err_into(DEK::ReadDateError)
+            .chain_err(|| DEK::ReadDateError)
             .and_then(|v| {
                 match v {
                     Some(&Value::String(ref s)) => s.parse::<NaiveDateTime>()
-                        .map_err_into(DEK::DateTimeParsingError),
-                    Some(_) => Err(DEK::DateHeaderFieldTypeError.into_error()),
-                    _ => Err(DEK::ReadDateError.into_error()),
+                        .chain_err(|| DEK::DateTimeParsingError),
+                    Some(_) => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
+                    _ => Err(DE::from_kind(DEK::ReadDateError)),
                 }
             })
     }
@@ -97,11 +96,11 @@ impl EntryDate for Entry {
             .map(|opt| opt.map(|stri| {
                 match stri {
                     Value::String(ref s) => s.parse::<NaiveDateTime>()
-                                             .map_err_into(DEK::DateTimeParsingError),
-                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                                             .chain_err(|| DEK::DateTimeParsingError),
+                    _ => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
                 }
             }))
-            .map_err_into(DEK::SetDateError)
+            .chain_err(|| DEK::SetDateError)
     }
 
 
@@ -117,43 +116,43 @@ impl EntryDate for Entry {
              .get_header_mut()
             .delete(&DATE_RANGE_START_HEADER_LOCATION)
             .map(|_| ())
-            .map_err_into(DEK::DeleteDateTimeRangeError));
+            .chain_err(|| DEK::DeleteDateTimeRangeError));
 
         self.get_header_mut()
             .delete(&DATE_RANGE_END_HEADER_LOCATION)
             .map(|_| ())
-            .map_err_into(DEK::DeleteDateTimeRangeError)
+            .chain_err(|| DEK::DeleteDateTimeRangeError)
     }
 
     fn read_date_range(&self) -> Result<DateTimeRange> {
         let start = try!(self
             .get_header()
             .read(&DATE_RANGE_START_HEADER_LOCATION)
-            .map_err_into(DEK::ReadDateTimeRangeError)
+            .chain_err(|| DEK::ReadDateTimeRangeError)
             .and_then(|v| {
                 match v {
                     Some(&Value::String(ref s)) => s.parse::<NaiveDateTime>()
-                        .map_err_into(DEK::DateTimeParsingError),
-                    Some(_) => Err(DEK::DateHeaderFieldTypeError.into_error()),
-                    _ => Err(DEK::ReadDateError.into_error()),
+                        .chain_err(|| DEK::DateTimeParsingError),
+                    Some(_) => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
+                    _ => Err(DE::from_kind(DEK::ReadDateError)),
                 }
             }));
 
         let end = try!(self
             .get_header()
             .read(&DATE_RANGE_START_HEADER_LOCATION)
-            .map_err_into(DEK::ReadDateTimeRangeError)
+            .chain_err(|| DEK::ReadDateTimeRangeError)
             .and_then(|v| {
                 match v {
                     Some(&Value::String(ref s)) => s.parse::<NaiveDateTime>()
-                        .map_err_into(DEK::DateTimeParsingError),
-                    Some(_) => Err(DEK::DateHeaderFieldTypeError.into_error()),
-                    _ => Err(DEK::ReadDateError.into_error()),
+                        .chain_err(|| DEK::DateTimeParsingError),
+                    Some(_) => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
+                    _ => Err(DE::from_kind(DEK::ReadDateError)),
                 }
             }));
 
         DateTimeRange::new(start, end)
-            .map_err_into(DEK::DateTimeRangeError)
+            .chain_err(|| DEK::DateTimeRangeError)
     }
 
     /// Set the date range
@@ -175,11 +174,11 @@ impl EntryDate for Entry {
             .map(|opt| opt.map(|stri| {
                 match stri {
                     Value::String(ref s) => s.parse::<NaiveDateTime>()
-                                             .map_err_into(DEK::DateTimeParsingError),
-                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                                             .chain_err(|| DEK::DateTimeParsingError),
+                    _ => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
                 }
             }))
-            .map_err_into(DEK::SetDateTimeRangeError));
+            .chain_err(|| DEK::SetDateTimeRangeError));
 
         let opt_old_end = try!(self
             .get_header_mut()
@@ -187,16 +186,16 @@ impl EntryDate for Entry {
             .map(|opt| opt.map(|stri| {
                 match stri {
                     Value::String(ref s) => s.parse::<NaiveDateTime>()
-                                             .map_err_into(DEK::DateTimeParsingError),
-                    _ => Err(DEK::DateHeaderFieldTypeError.into_error()),
+                                             .chain_err(|| DEK::DateTimeParsingError),
+                    _ => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
                 }
             }))
-            .map_err_into(DEK::SetDateTimeRangeError));
+            .chain_err(|| DEK::SetDateTimeRangeError));
 
         match (opt_old_start, opt_old_end) {
             (Some(Ok(old_start)), Some(Ok(old_end))) => {
                 let dr = DateTimeRange::new(old_start, old_end)
-                    .map_err_into(DEK::DateTimeRangeError);
+                    .chain_err(|| DEK::DateTimeRangeError);
 
                 Ok(Some(dr))
             },

@@ -24,7 +24,7 @@ use chrono::naive::NaiveDateTime as NDT;
 use constants::*;
 use error::TimeTrackError as TTE;
 use error::TimeTrackErrorKind as TTEK;
-use error::MapErrInto;
+use error::ResultExt;
 use iter::storeid::TagStoreIdIter;
 use iter::setendtime::SetEndTimeIter;
 
@@ -61,12 +61,12 @@ impl<'a> Iterator for CreateTimeTrackIter<'a>
                 res.and_then(|(id, starttime)| {
                     self.store
                         .create(id)
-                        .map_err_into(TTEK::StoreWriteError)
+                        .chain_err(|| TTEK::StoreWriteError)
                         .and_then(|mut entry| {
                             let v = Value::String(starttime.format(DATE_TIME_FORMAT).to_string());
                             entry.get_header_mut()
                                 .insert(DATE_TIME_START_HEADER_PATH, v)
-                                .map_err_into(TTEK::HeaderWriteError)
+                                .chain_err(|| TTEK::HeaderWriteError)
                                 .map(|_| entry)
                         })
                 })

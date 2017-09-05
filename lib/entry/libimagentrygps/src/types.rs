@@ -21,10 +21,10 @@ use std::collections::BTreeMap;
 
 use toml::Value;
 
-use libimagerror::into::IntoError;
-
 use error::GPSErrorKind as GPSEK;
-use result::Result;
+use error::GPSError as GPSE;
+use error::Result;
+use error::ResultExt;
 
 pub trait FromValue : Sized {
     fn from_value(v: &Value) -> Result<Self>;
@@ -67,30 +67,30 @@ impl FromValue for GPSValue {
             Value::Table(ref map) => {
                 Ok(GPSValue::new(
                     map.get("degree")
-                        .ok_or_else(|| GPSEK::DegreeMissing.into_error())
+                        .ok_or_else(|| GPSE::from_kind(GPSEK::DegreeMissing))
                         .and_then(|v| match *v {
                             Value::Integer(i) => i64_to_i8(i),
-                            _ => Err(GPSEK::HeaderTypeError.into_error()),
+                            _ => Err(GPSE::from_kind(GPSEK::HeaderTypeError)),
                         })?,
 
                     map
                         .get("minutes")
-                        .ok_or_else(|| GPSEK::MinutesMissing.into_error())
+                        .ok_or_else(|| GPSE::from_kind(GPSEK::MinutesMissing))
                         .and_then(|v| match *v {
                             Value::Integer(i) => i64_to_i8(i),
-                            _ => Err(GPSEK::HeaderTypeError.into_error()),
+                            _ => Err(GPSE::from_kind(GPSEK::HeaderTypeError)),
                         })?,
 
                     map
                         .get("seconds")
-                        .ok_or_else(|| GPSEK::SecondsMissing.into_error())
+                        .ok_or_else(|| GPSE::from_kind(GPSEK::SecondsMissing))
                         .and_then(|v| match *v {
                             Value::Integer(i) => i64_to_i8(i),
-                            _ => Err(GPSEK::HeaderTypeError.into_error()),
+                            _ => Err(GPSE::from_kind(GPSEK::HeaderTypeError)),
                         })?
                 ))
             }
-            _ => Err(GPSEK::TypeError.into_error())
+            _ => Err(GPSE::from_kind(GPSEK::TypeError))
         }
     }
 
@@ -130,16 +130,16 @@ impl FromValue for Coordinates {
                 Ok(Coordinates::new(
                     match map.get("longitude") {
                         Some(v) => GPSValue::from_value(v),
-                        None    => Err(GPSEK::LongitudeMissing.into_error()),
+                        None    => Err(GPSE::from_kind(GPSEK::LongitudeMissing)),
                     }?,
 
                     match map.get("latitude") {
                         Some(v) => GPSValue::from_value(v),
-                        None    => Err(GPSEK::LongitudeMissing.into_error()),
+                        None    => Err(GPSE::from_kind(GPSEK::LongitudeMissing)),
                     }?
                 ))
             }
-            _ => Err(GPSEK::TypeError.into_error())
+            _ => Err(GPSE::from_kind(GPSEK::TypeError))
         }
     }
 
@@ -148,7 +148,7 @@ impl FromValue for Coordinates {
 /// Helper to convert a i64 to i8 or return an error if this doesn't work.
 fn i64_to_i8(i: i64) -> Result<i8> {
     if i > (<i8>::max_value() as i64) {
-        Err(GPSEK::NumberConversionError.into_error())
+        Err(GPSE::from_kind(GPSEK::NumberConversionError))
     } else {
         Ok(i as i8)
     }

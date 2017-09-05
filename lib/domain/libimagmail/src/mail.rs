@@ -32,8 +32,8 @@ use email::MimeMessage;
 use email::results::ParsingResult as EmailParsingResult;
 
 use hasher::MailHasher;
-use result::Result;
-use error::{MapErrInto, MailErrorKind as MEK};
+use error::Result;
+use error::{ResultExt, MailErrorKind as MEK};
 
 struct Buffer(String);
 
@@ -61,17 +61,17 @@ impl<'a> Mail<'a> {
         let p = PathBuf::from(p.as_ref());
 
         store.create_with_hasher(p, f, h)
-            .map_err_into(MEK::RefCreationError)
+            .chain_err(|| MEK::RefCreationError)
             .and_then(|reference| {
                 debug!("Build reference file: {:?}", reference);
                 reference.fs_file()
-                    .map_err_into(MEK::RefHandlingError)
-                    .and_then(|path| File::open(path).map_err_into(MEK::IOError))
+                    .chain_err(|| MEK::RefHandlingError)
+                    .and_then(|path| File::open(path).chain_err(|| MEK::IOError))
                     .and_then(|mut file| {
                         let mut s = String::new();
                         file.read_to_string(&mut s)
                             .map(|_| s)
-                            .map_err_into(MEK::IOError)
+                            .chain_err(|| MEK::IOError)
                     })
                     .map(Buffer::from)
                     .map(|buffer| Mail(reference, buffer))
@@ -82,8 +82,8 @@ impl<'a> Mail<'a> {
     pub fn open<S: AsRef<str>>(store: &Store, hash: S) -> Result<Option<Mail>> {
         debug!("Opening Mail by Hash");
         store.get_by_hash(String::from(hash.as_ref()))
-            .map_err_into(MEK::FetchByHashError)
-            .map_err_into(MEK::FetchError)
+            .chain_err(|| MEK::FetchByHashError)
+            .chain_err(|| MEK::FetchError)
             .and_then(|o| match o {
                 Some(r) => Mail::from_fle(r).map(Some),
                 None => Ok(None),
@@ -94,13 +94,13 @@ impl<'a> Mail<'a> {
     /// Implement me as TryFrom as soon as it is stable
     pub fn from_fle(fle: FileLockEntry<'a>) -> Result<Mail<'a>> {
         fle.fs_file()
-            .map_err_into(MEK::RefHandlingError)
-            .and_then(|path| File::open(path).map_err_into(MEK::IOError))
+            .chain_err(|| MEK::RefHandlingError)
+            .and_then(|path| File::open(path).chain_err(|| MEK::IOError))
             .and_then(|mut file| {
                 let mut s = String::new();
                 file.read_to_string(&mut s)
                     .map(|_| s)
-                    .map_err_into(MEK::IOError)
+                    .chain_err(|| MEK::IOError)
             })
             .map(Buffer::from)
             .map(|buffer| Mail(fle, buffer))
@@ -110,7 +110,7 @@ impl<'a> Mail<'a> {
         debug!("Getting field in mail: {:?}", field);
         self.1
             .parsed()
-            .map_err_into(MEK::MailParsingError)
+            .chain_err(|| MEK::MailParsingError)
             .map(|parsed| {
                 parsed.headers
                     .iter()

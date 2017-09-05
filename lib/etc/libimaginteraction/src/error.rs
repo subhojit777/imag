@@ -17,23 +17,67 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(InteractionError, InteractionErrorKind,
-        Unknown             => "Unknown Error",
-        CLIError            => "Error on commandline",
-        IdMissingError      => "Commandline: ID missing",
-        StoreIdParsingError => "Error while parsing StoreId",
-        IdSelectingError    => "Error while selecting id",
-        ConfigError         => "Configuration error",
-        ConfigMissingError  => "Configuration missing",
-        ConfigTypeError     => "Config Type Error",
-        NoConfigError       => "No configuration",
-        ReadlineHistoryFileCreationError => "Could not create history file for readline",
-        ReadlineError       => "Readline error"
-    );
-);
+error_chain! {
+    types {
+        InteractionError, InteractionErrorKind, ResultExt, Result;
+    }
 
-pub use self::error::InteractionError;
-pub use self::error::InteractionErrorKind;
-pub use self::error::MapErrInto;
+    errors {
+        Unknown             {
+            description("Unknown Error")
+            display("Unknown Error")
+        }
+
+        CLIError            {
+            description("Error on commandline")
+            display("Error on commandline")
+        }
+
+        IdMissingError      {
+            description("Commandline: ID missing")
+            display("Commandline: ID missing")
+        }
+
+        StoreIdParsingError {
+            description("Error while parsing StoreId")
+            display("Error while parsing StoreId")
+        }
+
+        IdSelectingError    {
+            description("Error while selecting id")
+            display("Error while selecting id")
+        }
+
+        ConfigError         {
+            description("Configuration error")
+            display("Configuration error")
+        }
+
+        ConfigMissingError  {
+            description("Configuration missing")
+            display("Configuration missing")
+        }
+
+        ConfigTypeError     {
+            description("Config Type Error")
+            display("Config Type Error")
+        }
+
+        NoConfigError       {
+            description("No configuration")
+            display("No configuration")
+        }
+
+        ReadlineHistoryFileCreationError {
+            description("Could not create history file for readline")
+            display("Could not create history file for readline")
+        }
+
+        ReadlineError       {
+            description("Readline error")
+            display("Readline error")
+        }
+
+    }
+}
 

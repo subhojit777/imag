@@ -18,6 +18,7 @@ chrono = "0.4"
 toml-query = "0.3"
 lazy_static = "0.2"
 toml = "0.4"
+error-chain = "0.10"
 
 libimagerror = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
 libimagstore = { version = "0.4.0", path = "../../../lib/core/libimagstore" }

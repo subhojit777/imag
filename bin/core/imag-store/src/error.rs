@@ -17,13 +17,22 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(StoreError, StoreErrorKind,
-        BackendError      => "Backend Error",
-        NoCommandlineCall => "No commandline call"
-    );
-);
+error_chain! {
+    types {
+        StoreError, StoreErrorKind, ResultExt, Result;
+    }
 
-pub use self::error::StoreError;
-pub use self::error::StoreErrorKind;
+    errors {
+        BackendError      {
+            description("Backend Error")
+            display("Backend Error")
+        }
+
+        NoCommandlineCall {
+            description("No commandline call")
+            display("No commandline call")
+        }
+
+    }
+}
 

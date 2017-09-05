@@ -17,27 +17,71 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(GPSError, GPSErrorKind,
-        StoreReadError   => "Store read error",
-        StoreWriteError  => "Store write error",
+error_chain! {
+    types {
+        GPSError, GPSErrorKind, ResultExt, Result;
+    }
 
-        HeaderWriteError => "Couldn't write Header for annotation",
-        HeaderReadError  => "Couldn't read Header of Entry",
-        HeaderTypeError  => "Header field has unexpected type",
+    errors {
+        StoreReadError {
+            description("Store read error")
+            display("Store read error")
+        }
 
-        TypeError        => "Type Error",
-        DegreeMissing    => "'degree' value missing",
-        MinutesMissing   => "'minutes' value missing",
-        SecondsMissing   => "'seconds' value missing",
-        LongitudeMissing => "'longitude' value missing",
-        LatitudeMissing  => "'latitude' value missing",
+        StoreWriteError {
+            description("Store write error")
+            display("Store write error")
+        }
 
-        NumberConversionError => "Cannot convert number to fit into variable"
-    );
-);
+        HeaderWriteError {
+            description("Couldn't write Header for annotation")
+            display("Couldn't write Header for annotation")
+        }
 
-pub use self::error::GPSError;
-pub use self::error::GPSErrorKind;
-pub use self::error::MapErrInto;
+        HeaderReadError {
+            description("Couldn't read Header of Entry")
+            display("Couldn't read Header of Entry")
+        }
+
+        HeaderTypeError {
+            description("Header field has unexpected type")
+            display("Header field has unexpected type")
+        }
+
+        TypeError {
+            description("Type Error")
+            display("Type Error")
+        }
+
+        DegreeMissing {
+            description("'degree' value missing")
+            display("'degree' value missing")
+        }
+
+        MinutesMissing {
+            description("'minutes' value missing")
+            display("'minutes' value missing")
+        }
+
+        SecondsMissing {
+            description("'seconds' value missing")
+            display("'seconds' value missing")
+        }
+
+        LongitudeMissing {
+            description("'longitude' value missing")
+            display("'longitude' value missing")
+        }
+
+        LatitudeMissing {
+            description("'latitude' value missing")
+            display("'latitude' value missing")
+        }
+
+        NumberConversionError {
+            description("Cannot convert number to fit into variable")
+            display("Cannot convert number to fit into variable")
+        }
+    }
+}
 

@@ -27,12 +27,12 @@
 use chrono::naive::NaiveDateTime;
 
 use libimagstore::store::Entry;
-use libimagerror::into::IntoError;
 
 use tag::TimeTrackingTag as TTT;
 use error::TimeTrackErrorKind as TTEK;
-use error::MapErrInto;
-use result::Result;
+use error::TimeTrackError as TTE;
+use error::ResultExt;
+use error::Result;
 use constants::*;
 
 use toml::Value;
@@ -65,11 +65,11 @@ impl TimeTracking for Entry {
     fn get_timetrack_tag(&self) -> Result<TTT> {
         self.get_header()
             .read(DATE_TIME_TAG_HEADER_PATH)
-            .map_err_into(TTEK::HeaderReadError)
+            .chain_err(|| TTEK::HeaderReadError)
             .and_then(|value| match value {
                 Some(&Value::String(ref s)) => Ok(s.clone().into()),
-                Some(_) => Err(TTEK::HeaderFieldTypeError.into_error()),
-                _ => Err(TTEK::HeaderReadError.into_error())
+                Some(_) => Err(TTE::from_kind(TTEK::HeaderFieldTypeError)),
+                _ => Err(TTE::from_kind(TTEK::HeaderReadError))
             })
     }
 
@@ -78,21 +78,21 @@ impl TimeTracking for Entry {
 
         self.get_header_mut()
             .insert(DATE_TIME_START_HEADER_PATH, Value::String(s))
-            .map_err_into(TTEK::HeaderWriteError)
+            .chain_err(|| TTEK::HeaderWriteError)
             .map(|_| ())
     }
 
     fn get_start_datetime(&self) -> Result<Option<NaiveDateTime>> {
         self.get_header()
             .read(DATE_TIME_START_HEADER_PATH)
-            .map_err_into(TTEK::HeaderReadError)
+            .chain_err(|| TTEK::HeaderReadError)
             .and_then(header_value_to_dt)
     }
 
     fn delete_start_datetime(&mut self) -> Result<()> {
         self.get_header_mut()
             .delete(DATE_TIME_START_HEADER_PATH)
-            .map_err_into(TTEK::HeaderWriteError)
+            .chain_err(|| TTEK::HeaderWriteError)
             .map(|_| ())
     }
 
@@ -101,21 +101,21 @@ impl TimeTracking for Entry {
 
         self.get_header_mut()
             .insert(DATE_TIME_END_HEADER_PATH, Value::String(s))
-            .map_err_into(TTEK::HeaderWriteError)
+            .chain_err(|| TTEK::HeaderWriteError)
             .map(|_| ())
     }
 
     fn get_end_datetime(&self) -> Result<Option<NaiveDateTime>> {
         self.get_header()
             .read(DATE_TIME_END_HEADER_PATH)
-            .map_err_into(TTEK::HeaderReadError)
+            .chain_err(|| TTEK::HeaderReadError)
             .and_then(header_value_to_dt)
     }
 
     fn delete_end_datetime(&mut self) -> Result<()> {
         self.get_header_mut()
             .delete(DATE_TIME_END_HEADER_PATH)
-            .map_err_into(TTEK::HeaderWriteError)
+            .chain_err(|| TTEK::HeaderWriteError)
             .map(|_| ())
     }
 
@@ -141,11 +141,11 @@ fn header_value_to_dt(val: Option<&Value>) -> Result<Option<NaiveDateTime>> {
     match val {
         Some(&Value::String(ref s)) => {
             NaiveDateTime::parse_from_str(s, DATE_TIME_FORMAT)
-                .map_err_into(TTEK::DateTimeParserError)
+                .chain_err(|| TTEK::DateTimeParserError)
                 .map(Some)
 
         },
-        Some(_) => Err(TTEK::HeaderFieldTypeError.into_error()),
+        Some(_) => Err(TTE::from_kind(TTEK::HeaderFieldTypeError)),
         None => Ok(None),
     }
 }

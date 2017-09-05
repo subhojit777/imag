@@ -66,13 +66,13 @@ fn import_mail(rt: &Runtime) {
 
 fn list(rt: &Runtime) {
     use libimagmail::error::MailErrorKind as MEK;
-    use libimagmail::error::MapErrInto;
+    use libimagmail::error::ResultExt;
 
     let store = rt.store();
 
     let iter = match store.retrieve_for_module("ref") {
         Ok(iter) => iter.filter_map(|id| {
-            match store.get(id).map_err_into(MEK::RefHandlingError).map_err_trace() {
+            match store.get(id).chain_err(|| MEK::RefHandlingError).map_err_trace() {
                 Ok(Some(fle)) => Mail::from_fle(fle).map_err_trace().ok(),
                 Ok(None)      => None,
                 Err(e)        => trace_error_exit(&e, 1),

@@ -17,14 +17,22 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-/// Error module for the DatePathCompiler type
-generate_error_module! {
-    generate_error_types!(DatePathCompilerError, DatePathCompilerErrorKind,
-        UnknownDatePathCompilerError => "Unknown DatePathCompiler error",
-        StoreIdBuildFailed           => "Failed building StoreId object"
-    );
+error_chain! {
+    types {
+        DatePathCompilerError, DatePathCompilerErrorKind, ResultExt, Result;
+    }
+
+    errors {
+        UnknownDatePathCompilerError {
+            description("Unknown DatePathCompiler error")
+            display("Unknown DatePathCompiler error")
+        }
+
+        StoreIdBuildFailed           {
+            description("Failed building StoreId object")
+            display("Failed building StoreId object")
+        }
+
+    }
 }
-pub use self::error::DatePathCompilerError;
-pub use self::error::DatePathCompilerErrorKind;
-pub use self::error::MapErrInto;
 

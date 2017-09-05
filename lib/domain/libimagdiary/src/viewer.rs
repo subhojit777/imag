@@ -21,8 +21,8 @@
 
 use entry::DiaryEntry;
 use error::DiaryErrorKind as DEK;
-use error::MapErrInto;
-use result::Result;
+use error::ResultExt;
+use error::Result;
 
 use libimagstore::store::FileLockEntry;
 use libimagentryview::viewer::Viewer;
@@ -56,8 +56,8 @@ impl DiaryViewer {
             }
             let _ = try!(self.0
                          .view_entry(&entry)
-                         .map_err_into(DEK::ViewError)
-                         .map_err_into(DEK::IOError));
+                         .chain_err(|| DEK::ViewError)
+                         .chain_err(|| DEK::IOError));
             println!("\n---\n");
         }
 

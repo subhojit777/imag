@@ -26,6 +26,9 @@ This section contains the changelog from the last release to the next release.
       subdirectories were introduced for different types of crates
     * The documentation got a major overhaul and was partly rewritten
     * The logger is now configurable via the config file.
+    * The error handling of the whole codebase is based on the `error_chain`
+      now. `libimagerror` only contains convenience functionality, no
+      error-generating macros or such things anymore.
 * New
     * `libimagentrygps` was introduced
 * Fixed bugs

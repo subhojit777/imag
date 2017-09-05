@@ -20,7 +20,7 @@
 use chrono::naive::NaiveDateTime;
 
 use libimagstore::storeid::StoreId;
-use datepath::result::Result;
+use datepath::error::Result;
 use datepath::compiler::DatePathCompiler;
 
 //

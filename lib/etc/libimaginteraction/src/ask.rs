@@ -24,9 +24,9 @@ use std::io::BufRead;
 use std::io::BufReader;
 use std::result::Result as RResult;
 
-use error::InteractionError;
 use error::InteractionErrorKind;
-use result::Result;
+use error::ResultExt;
+use error::Result;
 
 use regex::Regex;
 use ansi_term::Colour::*;
@@ -163,7 +163,7 @@ fn ask_string_<R: BufRead>(s: &str,
 
 pub fn ask_select_from_list(list: &[&str]) -> Result<String> {
     pick_from_list(default_menu_cmd().as_mut(), list, "Selection: ")
-        .map_err(|e| InteractionError::new(InteractionErrorKind::Unknown, Some(Box::new(e))))
+        .chain_err(|| InteractionErrorKind::Unknown)
 }
 
 /// Helper function to print a imag question string. The `question` argument may not contain a

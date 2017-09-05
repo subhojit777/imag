@@ -23,11 +23,9 @@ use std::collections::BTreeMap;
 
 use configuration::Configuration;
 use error::RuntimeErrorKind as EK;
-use error::RuntimeError;
-use error::MapErrInto;
+use error::RuntimeError as RE;
+use error::ResultExt;
 use runtime::Runtime;
-
-use libimagerror::into::IntoError;
 
 use clap::ArgMatches;
 use log::{Log, LogLevel, LogRecord, LogMetadata};
@@ -36,7 +34,7 @@ use toml_query::read::TomlValueReadExt;
 use handlebars::Handlebars;
 
 type ModuleName = String;
-type Result<T> = ::std::result::Result<T, RuntimeError>;
+type Result<T> = ::std::result::Result<T, RE>;
 
 enum LogDestination {
     Stderr,
@@ -96,27 +94,27 @@ impl ImagLogger {
         {
             let fmt = try!(aggregate_global_format_trace(matches, config));
             try!(handlebars.register_template_string("TRACE", fmt) // name must be uppercase
-                .map_err_into(EK::TemplateStringRegistrationError));
+                .chain_err(|| EK::TemplateStringRegistrationError));
         }
         {
             let fmt = try!(aggregate_global_format_debug(matches, config));
             try!(handlebars.register_template_string("DEBUG", fmt) // name must be uppercase
-                .map_err_into(EK::TemplateStringRegistrationError));
+                .chain_err(|| EK::TemplateStringRegistrationError));
         }
         {
             let fmt = try!(aggregate_global_format_info(matches, config));
             try!(handlebars.register_template_string("INFO", fmt) // name must be uppercase
-                .map_err_into(EK::TemplateStringRegistrationError));
+                .chain_err(|| EK::TemplateStringRegistrationError));
         }
         {
             let fmt = try!(aggregate_global_format_warn(matches, config));
             try!(handlebars.register_template_string("WARN", fmt) // name must be uppercase
-                .map_err_into(EK::TemplateStringRegistrationError));
+                .chain_err(|| EK::TemplateStringRegistrationError));
         }
         {
             let fmt = try!(aggregate_global_format_error(matches, config));
             try!(handlebars.register_template_string("ERROR", fmt) // name must be uppercase
-                .map_err_into(EK::TemplateStringRegistrationError));
+                .chain_err(|| EK::TemplateStringRegistrationError));
         }
 
         Ok(ImagLogger {
@@ -194,7 +192,7 @@ fn match_log_level_str(s: &str) -> Result<LogLevel> {
         "info"  => Ok(LogLevel::Info),
         "warn"  => Ok(LogLevel::Warn),
         "error" => Ok(LogLevel::Error),
-        _       => return Err(EK::InvalidLogLevelSpec.into_error()),
+        _       => return Err(RE::from_kind(EK::InvalidLogLevelSpec)),
     }
 }
 
@@ -204,11 +202,11 @@ fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Configuration
     match config {
         Some(cfg) => match cfg
             .read("imag.logging.level")
-            .map_err_into(EK::ConfigReadError)
+            .chain_err(|| EK::ConfigReadError)
             {
                 Ok(Some(&Value::String(ref s))) => match_log_level_str(s),
-                Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
-                Ok(None)    => Err(EK::GlobalLogLevelConfigMissing.into_error()),
+                Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+                Ok(None)    => Err(RE::from_kind(EK::GlobalLogLevelConfigMissing)),
                 Err(e)      => Err(e)
             },
         None => {
@@ -235,7 +233,7 @@ fn translate_destination(raw: &str) -> Result<LogDestination> {
                 .create(true)
                 .open(other)
                 .map(LogDestination::File)
-                .map_err_into(EK::IOLogFileOpenError)
+                .chain_err(|| EK::IOLogFileOpenError)
         }
     }
 }
@@ -247,7 +245,7 @@ fn translate_destinations(raw: &Vec<Value>) -> Result<Vec<LogDestination>> {
             acc.and_then(|mut v| {
                 let dest = match *val {
                     Value::String(ref s) => try!(translate_destination(s)),
-                    _ => return Err(EK::ConfigTypeError.into_error()),
+                    _ => return Err(RE::from_kind(EK::ConfigTypeError)),
                 };
                 v.push(dest);
                 Ok(v)
@@ -262,11 +260,11 @@ fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Configura
     match config {
         Some(cfg) => match cfg
             .read("imag.logging.destinations")
-            .map_err_into(EK::ConfigReadError)
+            .chain_err(|| EK::ConfigReadError)
             {
                 Ok(Some(&Value::Array(ref a))) => translate_destinations(a),
-                Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
-                Ok(None)    => Err(EK::GlobalDestinationConfigMissing.into_error()),
+                Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+                Ok(None)    => Err(RE::from_kind(EK::GlobalDestinationConfigMissing)),
                 Err(e)      => Err(e)
             },
         None => {
@@ -300,16 +298,16 @@ fn aggregate_global_format(
     match config {
         Some(cfg) => match cfg
             .read(read_str)
-            .map_err_into(EK::ConfigReadError)
+            .chain_err(|| EK::ConfigReadError)
             {
                 Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
-                Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
-                Ok(None)    => Err(error_kind_if_missing.into_error()),
+                Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+                Ok(None)    => Err(RE::from_kind(error_kind_if_missing)),
                 Err(e)      => Err(e)
             },
         None => match matches.value_of(cli_match_name).map(String::from) {
             Some(s) => Ok(s),
-            None    => Err(error_kind_if_missing.into_error())
+            None    => Err(RE::from_kind(error_kind_if_missing))
         }
     }
 }
@@ -370,7 +368,7 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Configuratio
     match config {
         Some(cfg) => match cfg
             .read("imag.logging.modules")
-            .map_err_into(EK::ConfigReadError)
+            .chain_err(|| EK::ConfigReadError)
             {
                 Ok(Some(&Value::Table(ref t))) => {
                     // translate the module settings from the table `t`
@@ -380,22 +378,22 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Configuratio
                         let destinations = try!(match v.read("destinations") {
                             Ok(Some(&Value::Array(ref a))) => translate_destinations(a).map(Some),
                             Ok(None)    => Ok(None),
-                            Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
-                            Err(e)      => Err(e).map_err_into(EK::TomlReadError),
+                            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+                            Err(e)      => Err(e).chain_err(|| EK::TomlReadError),
                         });
 
                         let level = try!(match v.read("level") {
                             Ok(Some(&Value::String(ref s))) => match_log_level_str(s).map(Some),
                             Ok(None)    => Ok(None),
-                            Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
-                            Err(e)      => Err(e).map_err_into(EK::TomlReadError),
+                            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+                            Err(e)      => Err(e).chain_err(|| EK::TomlReadError),
                         });
 
                         let enabled = try!(match v.read("enabled") {
                             Ok(Some(&Value::Boolean(b))) => Ok(b),
                             Ok(None)    => Ok(false),
-                            Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
-                            Err(e)      => Err(e).map_err_into(EK::TomlReadError),
+                            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+                            Err(e)      => Err(e).chain_err(|| EK::TomlReadError),
                         });
 
                         let module_settings = ModuleSettings {
@@ -410,7 +408,7 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Configuratio
 
                     Ok(settings)
                 },
-                Ok(Some(_)) => Err(EK::ConfigTypeError.into_error()),
+                Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
                 Ok(None)    => {
                     // No modules configured. This is okay!
                     Ok(BTreeMap::new())

@@ -17,17 +17,37 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(BookmarkError, BookmarkErrorKind,
-        StoreReadError     => "Store read error",
-        LinkError          => "Link error",
-        LinkParsingError   => "Link parsing error",
-        LinkingError       => "Error while linking",
-        CollectionNotFound => "Link-Collection not found"
-    );
-);
+error_chain! {
+    types {
+        BookmarkError, BookmarkErrorKind, ResultExt, Result;
+    }
 
-pub use self::error::BookmarkError;
-pub use self::error::BookmarkErrorKind;
-pub use self::error::MapErrInto;
+    errors {
+        StoreReadError     {
+            description("Store read error")
+            display("Store read error")
+        }
+
+        LinkError          {
+            description("Link error")
+            display("Link error")
+        }
+
+        LinkParsingError   {
+            description("Link parsing error")
+            display("Link parsing error")
+        }
+
+        LinkingError       {
+            description("Error while linking")
+            display("Error while linking")
+        }
+
+        CollectionNotFound {
+            description("Link-Collection not found")
+            display("Link-Collection not found")
+        }
+
+    }
+}
 

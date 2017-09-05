@@ -30,7 +30,7 @@ use log;
 use configuration::{Configuration, InternalConfiguration};
 use error::RuntimeError;
 use error::RuntimeErrorKind;
-use error::MapErrInto;
+use error::ResultExt;
 use logger::ImagLogger;
 
 use libimagerror::trace::*;
@@ -60,9 +60,8 @@ impl<'a> Runtime<'a> {
         where C: Clone + CliSpec<'a> + InternalConfiguration
     {
         use libimagerror::trace::trace_error;
-        use libimagerror::into::IntoError;
 
-        use configuration::error::ConfigErrorKind;
+        use configuration::ConfigErrorKind;
 
         let matches = cli_app.clone().matches();
 
@@ -74,8 +73,8 @@ impl<'a> Runtime<'a> {
         debug!("Config path = {:?}", configpath);
 
         let config = match Configuration::new(&configpath) {
-            Err(e) => if e.err_type() != ConfigErrorKind::NoConfigFileFound {
-                return Err(RuntimeErrorKind::Instantiate.into_error_with_cause(Box::new(e)));
+            Err(e) => if !is_match!(e.kind(), &ConfigErrorKind::NoConfigFileFound) {
+                return Err(e).chain_err(|| RuntimeErrorKind::Instantiate);
             } else {
                 println!("No config file found.");
                 println!("Continuing without configuration file");
@@ -165,7 +164,7 @@ impl<'a> Runtime<'a> {
                 store: store,
             }
         })
-        .map_err_into(RuntimeErrorKind::Instantiate)
+        .chain_err(|| RuntimeErrorKind::Instantiate)
     }
 
     ///
@@ -485,11 +484,11 @@ impl<'a> Runtime<'a> {
         let mapper    = JsonMapper::new();
 
         StdIoFileAbstraction::new(&mut input, output, mapper)
-            .map_err_into(RuntimeErrorKind::Instantiate)
+            .chain_err(|| RuntimeErrorKind::Instantiate)
             .and_then(|backend| {
                 self.store
                     .reset_backend(Box::new(backend))
-                    .map_err_into(RuntimeErrorKind::Instantiate)
+                    .chain_err(|| RuntimeErrorKind::Instantiate)
             })
     }
 
@@ -504,11 +503,11 @@ impl<'a> Runtime<'a> {
         let mapper    = JsonMapper::new();
 
         StdoutFileAbstraction::new(output, mapper)
-            .map_err_into(RuntimeErrorKind::Instantiate)
+            .chain_err(|| RuntimeErrorKind::Instantiate)
             .and_then(|backend| {
                 self.store
                     .reset_backend(Box::new(backend))
-                    .map_err_into(RuntimeErrorKind::Instantiate)
+                    .chain_err(|| RuntimeErrorKind::Instantiate)
             })
     }
 

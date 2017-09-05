@@ -30,10 +30,10 @@ use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagentrydatetime::datepath::compiler::DatePathCompiler;
 
-use result::Result;
+use error::Result;
 use constants::*;
 use error::TimeTrackErrorKind as TTEK;
-use error::MapErrInto;
+use error::ResultExt;
 use iter::get::GetTimeTrackIter;
 
 use tag::TimeTrackingTag as TTT;
@@ -71,24 +71,24 @@ impl<'a> TimeTrackStore<'a> for Store {
         use std::path::PathBuf;
 
         COMPILER.compile(CRATE_NAME, start)
-            .map_err_into(TTEK::StoreIdError)
+            .chain_err(|| TTEK::StoreIdError)
             .map(|mut id| {
                 id.local_push(PathBuf::from(ts.as_str()));
                 id
             })
-            .and_then(|id| self.create(id).map_err_into(TTEK::StoreWriteError))
+            .and_then(|id| self.create(id).chain_err(|| TTEK::StoreWriteError))
             .and_then(|mut fle| {
                 let v = Value::String(ts.as_str().to_owned());
                 fle.get_header_mut()
                     .insert(DATE_TIME_TAG_HEADER_PATH, v)
-                    .map_err_into(TTEK::HeaderWriteError)
+                    .chain_err(|| TTEK::HeaderWriteError)
                     .map(|_| fle)
             })
             .and_then(|mut fle| {
                 let v = Value::String(start.format(DATE_TIME_FORMAT).to_string());
                 fle.get_header_mut()
                     .insert(DATE_TIME_START_HEADER_PATH, v)
-                    .map_err_into(TTEK::HeaderWriteError)
+                    .chain_err(|| TTEK::HeaderWriteError)
                     .map(|_| fle)
             })
     }
@@ -99,14 +99,14 @@ impl<'a> TimeTrackStore<'a> for Store {
                 let v = Value::String(end.format(DATE_TIME_FORMAT).to_string());
                 fle.get_header_mut()
                     .insert(DATE_TIME_END_HEADER_PATH, v)
-                    .map_err_into(TTEK::HeaderWriteError)
+                    .chain_err(|| TTEK::HeaderWriteError)
                     .map(|_| fle)
             })
     }
 
     fn get_timetrackings(&'a self) -> Result<GetTimeTrackIter<'a>> {
         self.retrieve_for_module(CRATE_NAME)
-            .map_err_into(TTEK::StoreReadError)
+            .chain_err(|| TTEK::StoreReadError)
             .map(|iter| GetTimeTrackIter::new(iter, self))
     }
 

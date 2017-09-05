@@ -17,16 +17,32 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(NoteError, NoteErrorKind,
-        StoreWriteError       => "Error writing store",
-        StoreReadError        => "Error reading store",
-        HeaderTypeError       => "Header type error",
-        NoteToEntryConversion => "Error converting Note instance to Entry instance"
-    );
-);
+error_chain! {
+    types {
+        NoteError, NoteErrorKind, ResultExt, Result;
+    }
 
-pub use self::error::NoteError;
-pub use self::error::NoteErrorKind;
-pub use self::error::MapErrInto;
+    errors {
+        StoreWriteError       {
+            description("Error writing store")
+            display("Error writing store")
+        }
+
+        StoreReadError        {
+            description("Error reading store")
+            display("Error reading store")
+        }
+
+        HeaderTypeError       {
+            description("Header type error")
+            display("Header type error")
+        }
+
+        NoteToEntryConversion {
+            description("Error converting Note instance to Entry instance")
+            display("Error converting Note instance to Entry instance")
+        }
+
+    }
+}
 

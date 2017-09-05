@@ -26,10 +26,9 @@ use std::fmt::Error as FmtError;
 use std::result::Result as RResult;
 use std::path::Components;
 
-use libimagerror::into::IntoError;
-
 use error::StoreErrorKind as SEK;
-use error::MapErrInto;
+use error::StoreError as SE;
+use error::ResultExt;
 use store::Result;
 
 /// The Index into the Store
@@ -61,7 +60,7 @@ impl StoreId {
         where D: Deref<Target = Path>
     {
         let p = try!(
-            full_path.strip_prefix(store_part).map_err_into(SEK::StoreIdBuildFromFullPathError)
+            full_path.strip_prefix(store_part).chain_err(|| SEK::StoreIdBuildFromFullPathError)
         );
         StoreId::new(Some(store_part.clone()), PathBuf::from(p))
     }
@@ -69,7 +68,7 @@ impl StoreId {
     pub fn new_baseless(id: PathBuf) -> Result<StoreId> {
         debug!("Trying to get a new baseless id from: {:?}", id);
         if id.is_absolute() {
-            Err(SEK::StoreIdLocalPartAbsoluteError.into_error())
+            Err(SE::from_kind(SEK::StoreIdLocalPartAbsoluteError))
         } else {
             Ok(StoreId {
                 base: None,
@@ -91,7 +90,7 @@ impl StoreId {
     /// Transform the StoreId object into a PathBuf, error if the base of the StoreId is not
     /// specified.
     pub fn into_pathbuf(self) -> Result<PathBuf> {
-        let mut base = try!(self.base.ok_or(SEK::StoreIdHasNoBaseError.into_error()));
+        let mut base = try!(self.base.ok_or(SEK::StoreIdHasNoBaseError));
         base.push(self.id);
         Ok(base)
     }
@@ -108,7 +107,7 @@ impl StoreId {
             .unwrap_or_else(|| self.id.clone())
             .to_str()
             .map(String::from)
-            .ok_or(SEK::StoreIdHandlingError.into_error())
+            .ok_or(SE::from_kind(SEK::StoreIdHandlingError))
     }
 
     /// Returns the components of the `id` part of the StoreId object.
@@ -347,7 +346,7 @@ mod test {
         let pb = id.unwrap().into_pathbuf();
         assert!(pb.is_err());
 
-        assert_eq!(pb.unwrap_err().err_type(), SEK::StoreIdHasNoBaseError);
+        assert!(is_match!(pb.unwrap_err().kind(), &SEK::StoreIdHasNoBaseError));
     }
 
     #[test]

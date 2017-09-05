@@ -32,8 +32,7 @@ use libimagstore::store::Result as StoreResult;
 
 use error::DiaryError as DE;
 use error::DiaryErrorKind as DEK;
-use error::MapErrInto;
-use libimagerror::into::IntoError;
+use error::ResultExt;
 
 use module_path::ModuleEntryPath;
 
@@ -191,7 +190,7 @@ fn component_to_str<'a>(com: Component<'a>) -> Result<&'a str, DE> {
         Component::Normal(s) => Some(s),
         _ => None,
     }.and_then(|s| s.to_str())
-    .ok_or(DEK::IdParseError.into_error())
+    .ok_or(DE::from_kind(DEK::IdParseError))
 }
 
 impl FromStoreId for DiaryId {
@@ -204,7 +203,7 @@ impl FromStoreId for DiaryId {
 
         fn next_component<'a>(components: &'a mut Rev<Components>) -> Result<&'a str, DE> {
             components.next()
-                .ok_or(DEK::IdParseError.into_error())
+                .ok_or(DE::from_kind(DEK::IdParseError))
                 .and_then(component_to_str)
         }
 
@@ -222,21 +221,21 @@ impl FromStoreId for DiaryId {
 
             match (hour, minute) {
                 (Some(h), Some(m)) => Ok((h, m)),
-                _ => return Err(DE::new(DEK::IdParseError, None)),
+                _ => return Err(DE::from_kind(DEK::IdParseError)),
             }
         }));
 
         let day: Result<u32,_> = next_component(&mut cmps)
             .and_then(|s| s.parse::<u32>()
-                      .map_err_into(DEK::IdParseError));
+                      .chain_err(|| DEK::IdParseError));
 
         let month: Result<u32,_> = next_component(&mut cmps)
             .and_then(|s| s.parse::<u32>()
-                      .map_err_into(DEK::IdParseError));
+                      .chain_err(|| DEK::IdParseError));
 
         let year: Result<i32,_> = next_component(&mut cmps)
             .and_then(|s| s.parse::<i32>()
-                      .map_err_into(DEK::IdParseError));
+                      .chain_err(|| DEK::IdParseError));
 
         let name = next_component(&mut cmps).map(String::from);
 

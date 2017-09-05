@@ -21,8 +21,8 @@ use std::io::stdout;
 use std::io::Write;
 
 use lister::Lister;
-use result::Result;
-use error::MapErrInto;
+use error::Result;
+use error::ResultExt;
 
 use libimagstore::store::FileLockEntry;
 use libimagutil::iter::FoldResult;
@@ -44,30 +44,19 @@ impl PathLister {
 impl Lister for PathLister {
 
     fn list<'a, I: Iterator<Item = FileLockEntry<'a>>>(&self, entries: I) -> Result<()> {
-        use error::ListError as LE;
         use error::ListErrorKind as LEK;
 
         entries.fold_result(|entry| {
             Ok(entry.get_location().clone())
-                .and_then(|pb| pb.into_pathbuf().map_err_into(LEK::FormatError))
+                .and_then(|pb| pb.into_pathbuf().chain_err(|| LEK::FormatError))
                 .and_then(|pb| {
                     if self.absolute {
-                        pb.canonicalize().map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))
+                        pb.canonicalize().chain_err(|| LEK::FormatError)
                     } else {
                         Ok(pb.into())
                     }
                 })
-                .and_then(|pb| {
-                    write!(stdout(), "{:?}\n", pb)
-                        .map_err(|e| LE::new(LEK::FormatError, Some(Box::new(e))))
-                })
-                .map_err(|e| {
-                    if e.err_type() == LEK::FormatError {
-                        e
-                    } else {
-                        LE::new(LEK::FormatError, Some(Box::new(e)))
-                    }
-                })
+                .and_then(|pb| write!(stdout(), "{:?}\n", pb).chain_err(|| LEK::FormatError))
             })
     }
 

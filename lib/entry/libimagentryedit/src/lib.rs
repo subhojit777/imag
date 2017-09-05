@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+#![recursion_limit="256"]
+
 #![deny(
     dead_code,
     non_camel_case_types,
@@ -33,11 +35,11 @@
     while_true,
 )]
 
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 extern crate libimagstore;
 extern crate libimagrt;
 extern crate libimagutil;
+#[macro_use] extern crate error_chain;
 
 pub mod edit;
 pub mod error;
-pub mod result;

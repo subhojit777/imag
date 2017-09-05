@@ -17,16 +17,15 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::path::PathBuf;
+
 use error::StoreError as SE;
 use error::StoreErrorKind as SEK;
-use std::path::PathBuf;
 use std::collections::HashMap;
 use std::sync::Mutex;
 use std::cell::RefCell;
 use std::sync::Arc;
 use std::ops::Deref;
-
-use libimagerror::into::IntoError;
 
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
@@ -64,16 +63,15 @@ impl FileAbstractionInstance for InMemoryFileAbstractionInstance {
     fn get_file_content(&mut self, _: StoreId) -> Result<Entry, SE> {
         debug!("Getting lazy file: {:?}", self);
 
-        match self.fs_abstraction.lock() {
-            Ok(mut mtx) => {
+        self.fs_abstraction
+            .lock()
+            .map_err(|_| SE::from_kind(SEK::LockError))
+            .and_then(|mut mtx| {
                 mtx.get_mut()
                     .get(&self.absent_path)
                     .cloned()
-                    .ok_or(SEK::FileNotFound.into_error())
-            }
-
-            Err(_) => Err(SEK::LockError.into_error())
-        }
+                    .ok_or(SE::from_kind(SEK::FileNotFound))
+            })
     }
 
     fn write_file_content(&mut self, buf: &Entry) -> Result<(), SE> {
@@ -108,7 +106,7 @@ impl InMemoryFileAbstraction {
     fn backend_cloned<'a>(&'a self) -> Result<HashMap<PathBuf, Entry>, SE> {
         self.virtual_filesystem
             .lock()
-            .map_err(|_| SEK::LockError.into_error())
+            .map_err(|_| SE::from_kind(SEK::LockError))
             .map(|mtx| mtx.deref().borrow().clone())
     }
 
@@ -124,7 +122,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
             .get_mut()
             .remove(path)
             .map(|_| ())
-            .ok_or(SEK::FileNotFound.into_error())
+            .ok_or(SE::from_kind(SEK::FileNotFound))
     }
 
     fn copy(&self, from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
@@ -132,7 +130,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
         let mut mtx = self.backend().lock().expect("Locking Mutex failed");
         let backend = mtx.get_mut();
 
-        let a = try!(backend.get(from).cloned().ok_or(SEK::FileNotFound.into_error()));
+        let a = try!(backend.get(from).cloned().ok_or(SE::from_kind(SEK::FileNotFound)));
         backend.insert(to.clone(), a);
         debug!("Copying: {:?} -> {:?} worked", from, to);
         Ok(())
@@ -143,7 +141,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
         let mut mtx = self.backend().lock().expect("Locking Mutex failed");
         let backend = mtx.get_mut();
 
-        let a = try!(backend.get(from).cloned().ok_or(SEK::FileNotFound.into_error()));
+        let a = try!(backend.get(from).cloned().ok_or(SE::from_kind(SEK::FileNotFound)));
         backend.insert(to.clone(), a);
         debug!("Renaming: {:?} -> {:?} worked", from, to);
         Ok(())
@@ -163,7 +161,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
 
     fn fill<'a>(&'a mut self, mut d: Drain) -> Result<(), SE> {
         debug!("Draining into : {:?}", self);
-        let mut mtx = try!(self.backend().lock().map_err(|_| SEK::LockError.into_error()));
+        let mut mtx = try!(self.backend().lock().map_err(|_| SEK::LockError));
         let backend = mtx.get_mut();
 
         for (path, element) in d.iter() {

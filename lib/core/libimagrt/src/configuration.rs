@@ -18,29 +18,45 @@
 //
 
 use std::path::PathBuf;
-use std::result::Result as RResult;
 use std::ops::Deref;
 
 use toml::Value;
 use clap::App;
 
-generate_error_module!(
-    generate_error_types!(ConfigError, ConfigErrorKind,
-        TOMLParserError => "TOML Parsing error",
-        NoConfigFileFound   => "No config file found",
+error_chain! {
+    types {
+        ConfigError, ConfigErrorKind, ResultExt, Result;
+    }
 
-        ConfigOverrideError => "Config override error",
-        ConfigOverrideKeyNotAvailable => "Key not available",
-        ConfigOverrideTypeNotMatching => "Configuration Type not matching"
+    errors {
+        TOMLParserError {
+            description("TOML Parsing error")
+            display("TOML Parsing error")
+        }
 
-    );
-);
+        NoConfigFileFound   {
+            description("No config file found")
+            display("No config file found")
+        }
 
-pub use self::error::{ConfigError, ConfigErrorKind, MapErrInto};
-use libimagerror::into::IntoError;
+        ConfigOverrideError {
+            description("Config override error")
+            display("Config override error")
+        }
 
-/// Result type of this module. Either `T` or `ConfigError`
-pub type Result<T> = RResult<T, ConfigError>;
+        ConfigOverrideKeyNotAvailable {
+            description("Key not available")
+            display("Key not available")
+        }
+
+        ConfigOverrideTypeNotMatching {
+            description("Configuration Type not matching")
+            display("Configuration Type not matching")
+        }
+    }
+}
+use self::ConfigErrorKind as CEK;
+use self::ConfigError as CE;
 
 /// `Configuration` object
 ///
@@ -130,9 +146,6 @@ impl Configuration {
     pub fn override_config(&mut self, v: Vec<String>) -> Result<()> {
         use libimagutil::key_value_split::*;
         use libimagutil::iter::*;
-        use self::error::ConfigErrorKind as CEK;
-        use self::error::MapErrInto;
-        use libimagerror::into::IntoError;
 
         use toml_query::read::TomlValueReadExt;
 
@@ -148,21 +161,20 @@ impl Configuration {
             .map(|(k, v)| self
                  .config
                  .read(&k[..])
-                 .map_err_into(CEK::TOMLParserError)
+                 .chain_err(|| CEK::TOMLParserError)
                  .map(|toml| match toml {
                     Some(value) => match into_value(value, v) {
                         Some(v) => {
                             info!("Successfully overridden: {} = {}", k, v);
                             Ok(v)
                         },
-                        None => Err(CEK::ConfigOverrideTypeNotMatching.into_error()),
+                        None => Err(CE::from_kind(CEK::ConfigOverrideTypeNotMatching)),
                     },
-                    None => Err(CEK::ConfigOverrideKeyNotAvailable.into_error()),
+                    None => Err(CE::from_kind(CEK::ConfigOverrideKeyNotAvailable)),
                 })
             )
             .fold_result(|i| i)
-            .map_err(Box::new)
-            .map_err(|e| CEK::ConfigOverrideError.into_error_with_cause(e))
+            .chain_err(|| CEK::ConfigOverrideError)
     }
 }
 
@@ -282,13 +294,13 @@ fn fetch_config(searchpath: &PathBuf) -> Result<Value> {
                         .unwrap_or_else(|| String::from("Line unknown, Column unknown"));
 
                     let _ = write!(stderr(), "Config file parser error at {}", line_col);
-                    trace_error(&ConfigErrorKind::TOMLParserError.into_error_with_cause(Box::new(e)));
+                    trace_error(&e);
                     None
                 }
             }
         })
         .nth(0)
-        .ok_or(ConfigErrorKind::NoConfigFileFound.into())
+        .ok_or(CE::from_kind(ConfigErrorKind::NoConfigFileFound))
 }
 
 pub trait InternalConfiguration {

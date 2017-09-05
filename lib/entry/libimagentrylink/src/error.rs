@@ -17,24 +17,88 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(LinkError, LinkErrorKind,
-        EntryHeaderReadError    => "Error while reading an entry header",
-        EntryHeaderWriteError   => "Error while writing an entry header",
-        ExistingLinkTypeWrong   => "Existing link entry has wrong type",
-        LinkTargetDoesNotExist  => "Link target does not exist in the store",
-        LinkParserError         => "Link cannot be parsed",
-        LinkParserFieldMissingError => "Link cannot be parsed: Field missing",
-        LinkParserFieldTypeError => "Link cannot be parsed: Field type wrong",
-        InternalConversionError => "Error while converting values internally",
-        InvalidUri              => "URI is not valid",
-        StoreReadError          => "Store read error",
-        StoreWriteError         => "Store write error",
-        StoreIdError            => "StoreId handling error"
-    );
-);
+use libimagstore::storeid::StoreId;
 
-pub use self::error::LinkError;
-pub use self::error::LinkErrorKind;
-pub use self::error::MapErrInto;
+error_chain! {
+    types {
+        LinkError, LinkErrorKind, ResultExt, Result;
+    }
+
+    errors {
+        EntryHeaderReadError    {
+            description("Error while reading an entry header")
+            display("Error while reading an entry header")
+        }
+
+        EntryHeaderWriteError   {
+            description("Error while writing an entry header")
+            display("Error while writing an entry header")
+        }
+
+        ExistingLinkTypeWrong   {
+            description("Existing link entry has wrong type")
+            display("Existing link entry has wrong type")
+        }
+
+        LinkTargetDoesNotExist  {
+            description("Link target does not exist in the store")
+            display("Link target does not exist in the store")
+        }
+
+        LinkParserError         {
+            description("Link cannot be parsed")
+            display("Link cannot be parsed")
+        }
+
+        LinkParserFieldMissingError {
+            description("Link cannot be parsed: Field missing")
+            display("Link cannot be parsed: Field missing")
+        }
+
+        LinkParserFieldTypeError {
+            description("Link cannot be parsed: Field type wrong")
+            display("Link cannot be parsed: Field type wrong")
+        }
+
+        InternalConversionError {
+            description("Error while converting values internally")
+            display("Error while converting values internally")
+        }
+
+        InvalidUri              {
+            description("URI is not valid")
+            display("URI is not valid")
+        }
+
+        StoreReadError          {
+            description("Store read error")
+            display("Store read error")
+        }
+
+        StoreWriteError         {
+            description("Store write error")
+            display("Store write error")
+        }
+
+        StoreIdError            {
+            description("StoreId handling error")
+            display("StoreId handling error")
+        }
+
+        DeadLink(from: StoreId, to: StoreId) {
+            description("Dead link")
+            display("Dead link from: {from} to: {to}", from = from, to = to)
+        }
+
+        LinkHandlingError {
+            description("Error in link handling")
+            display("Error in link handling")
+        }
+
+        StoreError {
+            description("Error while talking to the store")
+            display("Error while talking to the store")
+        }
+    }
+}
 

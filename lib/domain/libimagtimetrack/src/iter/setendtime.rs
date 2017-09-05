@@ -24,7 +24,7 @@ use chrono::naive::NaiveDateTime as NDT;
 use constants::*;
 use error::TimeTrackError as TTE;
 use error::TimeTrackErrorKind as TTEK;
-use error::MapErrInto;
+use error::ResultExt;
 use iter::create::CreateTimeTrackIter;
 
 use libimagstore::store::FileLockEntry;
@@ -55,7 +55,7 @@ impl<'a> Iterator for SetEndTimeIter<'a> {
                     let v = Value::String(self.datetime.format(DATE_TIME_FORMAT).to_string());
                     fle.get_header_mut()
                         .insert(DATE_TIME_END_HEADER_PATH, v)
-                        .map_err_into(TTEK::HeaderWriteError)
+                        .chain_err(|| TTEK::HeaderWriteError)
                         .map(|_| fle)
                 })
             })

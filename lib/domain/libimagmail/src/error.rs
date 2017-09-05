@@ -17,19 +17,44 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(MailError, MailErrorKind,
-        RefCreationError => "Error creating a reference to a file/directory",
-        RefHandlingError => "Error while handling the internal reference object",
-        MailParsingError => "Error while parsing mail",
+error_chain! {
+    types {
+        MailError, MailErrorKind, ResultExt, Result;
+    }
 
-        FetchByHashError => "Error fetching mail from Store by hash",
-        FetchError       => "Error fetching mail from Store",
-        IOError => "IO Error"
-    );
-);
+    links {
+        RefError(::libimagentryref::error::RefError, ::libimagentryref::error::RefErrorKind);
+    }
 
-pub use self::error::MailError;
-pub use self::error::MailErrorKind;
-pub use self::error::MapErrInto;
+
+    errors {
+        RefCreationError {
+            description("Error creating a reference to a file/directory")
+            display("Error creating a reference to a file/directory")
+        }
+
+        RefHandlingError {
+            description("Error handling a reference")
+            display("Error handling a reference")
+        }
+
+        MailParsingError {
+            description("Failed to parse mail")
+            display("Failed to parse mail")
+        }
+
+        FetchByHashError {
+            description("Error fetching mail from Store by hash")
+            display("Error fetching mail from Store by hash")
+        }
+        FetchError       {
+            description("Error fetching mail from Store")
+            display("Error fetching mail from Store")
+        }
+        IOError {
+            description("IO Error")
+            display("IO Error")
+        }
+    }
+}
 

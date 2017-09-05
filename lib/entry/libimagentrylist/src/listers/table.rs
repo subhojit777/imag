@@ -20,11 +20,10 @@
 use std::io::stdout;
 
 use lister::Lister;
-use result::Result;
-use error::MapErrInto;
+use error::Result;
+use error::ResultExt;
 
 use libimagstore::store::FileLockEntry;
-use libimagerror::into::IntoError;
 
 use prettytable::Table;
 use prettytable::cell::Cell;
@@ -63,6 +62,7 @@ impl<F: Fn(&FileLockEntry) -> Vec<String>> Lister for TableLister<F> {
 
     fn list<'b, I: Iterator<Item = FileLockEntry<'b>>>(&self, entries: I) -> Result<()> {
         use error::ListErrorKind as LEK;
+        use error::ListError as LE;
 
         let mut table = Table::new();
         let mut header_len : Option<usize> = None;
@@ -90,7 +90,7 @@ impl<F: Fn(&FileLockEntry) -> Vec<String>> Lister for TableLister<F> {
                         header_len = Some(v_len);
                     }
                     if header_len.map(|l| v_len > l).unwrap_or(false) {
-                        return Err(LEK::FormatError.into_error());
+                        return Err(LE::from_kind(LEK::FormatError));
                     }
                     while header_len.map(|l| v.len() != l).unwrap_or(false) {
                         v.push(String::from(""));
@@ -103,7 +103,7 @@ impl<F: Fn(&FileLockEntry) -> Vec<String>> Lister for TableLister<F> {
         })
         .and_then(|tbl| {
             let mut io = stdout();
-            tbl.print(&mut io).map_err_into(LEK::IOError)
+            tbl.print(&mut io).chain_err(|| LEK::IOError)
         })
     }
 

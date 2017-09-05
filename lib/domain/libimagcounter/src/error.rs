@@ -17,16 +17,37 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(CounterError, CounterErrorKind,
-        StoreIdError            => "StoreId error",
-        StoreReadError          => "Store read error",
-        StoreWriteError         => "Store write error",
-        HeaderTypeError         => "Header type error",
-        HeaderFieldMissingError => "Header field missing error"
-    );
-);
+error_chain! {
+    types {
+        CounterError, CounterErrorKind, ResultExt, Result;
+    }
 
-pub use self::error::CounterError;
-pub use self::error::CounterErrorKind;
+    errors {
+        StoreIdError            {
+            description("StoreId error")
+            display("StoreId error")
+        }
+
+        StoreReadError          {
+            description("Store read error")
+            display("Store read error")
+        }
+
+        StoreWriteError         {
+            description("Store write error")
+            display("Store write error")
+        }
+
+        HeaderTypeError         {
+            description("Header type error")
+            display("Header type error")
+        }
+
+        HeaderFieldMissingError {
+            description("Header field missing error")
+            display("Header field missing error")
+        }
+
+    }
+}
 

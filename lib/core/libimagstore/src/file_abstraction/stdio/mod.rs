@@ -29,8 +29,6 @@ use std::fmt::Debug;
 use std::fmt::Error as FmtError;
 use std::fmt::Formatter;
 
-use libimagerror::into::IntoError;
-
 use error::StoreErrorKind as SEK;
 use error::StoreError as SE;
 use super::FileAbstraction;
@@ -57,11 +55,11 @@ impl<W, M> StdIoFileAbstraction<W, M>
     pub fn new<R: Read>(in_stream: &mut R, out_stream: Rc<RefCell<W>>, mapper: M) -> Result<StdIoFileAbstraction<W, M>, SE> {
         StdoutFileAbstraction::new(out_stream, mapper)
             .and_then(|out| {
-                let fill_res = match out.backend().lock() {
-                    Err(_) => Err(SEK::LockError.into_error()),
-                    Ok(mut mtx) => out.mapper().read_to_fs(in_stream, mtx.get_mut())
-                };
-                let _ = try!(fill_res);
+                let _ = try!(out
+                             .backend()
+                             .lock()
+                             .map_err(|_| SE::from_kind(SEK::LockError))
+                             .map(|mut mtx| out.mapper().read_to_fs(in_stream, mtx.get_mut())));
 
                 Ok(StdIoFileAbstraction(out))
             })

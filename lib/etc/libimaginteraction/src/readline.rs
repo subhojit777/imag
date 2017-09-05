@@ -17,8 +17,9 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use error::InteractionError as IE;
 use error::InteractionErrorKind as IEK;
-use error::MapErrInto;
+use error::ResultExt;
 
 use toml::Value;
 
@@ -44,37 +45,37 @@ impl Readline {
 
         let histfile = try!(match histfile {
             Value::String(s) => PathBuf::from(s),
-            _ => Err(IEK::ConfigTypeError.into_error())
-                .map_err_into(IEK::ConfigError)
-                .map_err_into(IEK::ReadlineError)
+            _ => Err(IE::from_kind(IEK::ConfigTypeError))
+                .chain_err(|| IEK::ConfigError)
+                .chain_err(|| IEK::ReadlineError)
         });
 
         let histsize = try!(match histsize {
             Value::Integer(i) => i,
-            _ => Err(IEK::ConfigTypeError.into_error())
-                .map_err_into(IEK::ConfigError)
-                .map_err_into(IEK::ReadlineError)
+            _ => Err(IE::from_kind(IEK::ConfigTypeError))
+                .chain_err(|| IEK::ConfigError)
+                .chain_err(|| IEK::ReadlineError)
         });
 
         let histigndups = try!(match histigndups {
             Value::Boolean(b) => b,
-            _ => Err(IEK::ConfigTypeError.into_error())
-                .map_err_into(IEK::ConfigError)
-                .map_err_into(IEK::ReadlineError)
+            _ => Err(IE::from_kind(IEK::ConfigTypeError))
+                .chain_err(|| IEK::ConfigError)
+                .chain_err(|| IEK::ReadlineError)
         });
 
         let histignspace = try!(match histignspace {
             Value::Boolean(b) => b,
-            _ => Err(IEK::ConfigTypeError.into_error())
-                .map_err_into(IEK::ConfigError)
-                .map_err_into(IEK::ReadlineError)
+            _ => Err(IE::from_kind(IEK::ConfigTypeError))
+                .chain_err(|| IEK::ConfigError)
+                .chain_err(|| IEK::ReadlineError)
         });
 
         let prompt = try!(match prompt {
             Value::String(s) => s,
-            _ => Err(IEK::ConfigTypeError.into_error())
-                .map_err_into(IEK::ConfigError)
-                .map_err_into(IEK::ReadlineError)
+            _ => Err(IE::from_kind(IEK::ConfigTypeError))
+                .chain_err(|| IEK::ConfigError)
+                .chain_err(|| IEK::ReadlineError)
         });
 
         let config = Config::builder().
@@ -87,10 +88,10 @@ impl Readline {
 
         if !histfile.exists() {
             let _ = try!(File::create(histfile.clone())
-                         .map_err_into(IEK::ReadlineHistoryFileCreationError));
+                         .chain_err(|| IEK::ReadlineHistoryFileCreationError));
         }
 
-        let _ = try!(editor.load_history(&histfile).map_err_into(ReadlineError));
+        let _ = try!(editor.load_history(&histfile).chain_err(|| ReadlineError));
 
         Ok(Readline {
             editor: editor,

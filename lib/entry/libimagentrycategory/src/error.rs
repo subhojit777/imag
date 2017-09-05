@@ -17,20 +17,46 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-generate_error_module!(
-    generate_error_types!(CategoryError, CategoryErrorKind,
-        StoreReadError => "Store Read error",
-        StoreWriteError => "Store Write error",
-        StoreIdHandlingError => "StoreId handling error",
-        HeaderReadError  => "Header read error",
-        HeaderWriteError => "Header write error",
-        TypeError        => "Found wrong type in header",
+error_chain! {
+    types {
+        CategoryError, CategoryErrorKind, ResultExt, Result;
+    }
 
-        CategoryDoesNotExist => "Category does not exist"
-    );
-);
+    errors {
+        StoreReadError {
+            description("Store Read error")
+            display("Store Read error")
+        }
 
-pub use self::error::CategoryError;
-pub use self::error::CategoryErrorKind;
-pub use self::error::MapErrInto;
+        StoreWriteError {
+            description("Store Write error")
+            display("Store Write error")
+        }
+
+        StoreIdHandlingError {
+            description("StoreId handling error")
+            display("StoreId handling error")
+        }
+
+        HeaderReadError  {
+            description("Header read error")
+            display("Header read error")
+        }
+
+        HeaderWriteError {
+            description("Header write error")
+            display("Header write error")
+        }
+
+        CategoryDoesNotExist {
+            description("Category does not exist")
+            display("Category does not exist")
+        }
+
+        TypeError {
+            description("Type Error")
+            display("Type Error")
+        }
+    }
+}
 

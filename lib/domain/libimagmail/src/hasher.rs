@@ -25,11 +25,8 @@ use email::MimeMessage;
 use libimagentryref::hasher::Hasher;
 use libimagentryref::hasher::DefaultHasher;
 use libimagentryref::error::RefErrorKind as REK;
-use libimagentryref::error::MapErrInto;
-use libimagentryref::result::Result as RResult;
-use libimagerror::into::IntoError;
-
-use error::MailErrorKind as MEK;
+use libimagentryref::error::ResultExt;
+use libimagentryref::error::Result as RResult;
 
 pub struct MailHasher {
     defaulthasher: DefaultHasher,
@@ -54,12 +51,10 @@ impl Hasher for MailHasher {
         use email::Header;
 
         let mut s = String::new();
-        try!(c.read_to_string(&mut s).map_err_into(REK::UTF8Error).map_err_into(REK::IOError));
+        try!(c.read_to_string(&mut s).chain_err(|| REK::UTF8Error).chain_err(|| REK::IOError));
 
         MimeMessage::parse(&s)
-            .map_err(Box::new)
-            .map_err(|e| MEK::MailParsingError.into_error_with_cause(e))
-            .map_err_into(REK::RefHashingError)
+            .chain_err(|| REK::RefHashingError)
             .and_then(|mail| {
                 let has_key = |hdr: &Header, exp: &str| hdr.name == exp;
 
@@ -73,8 +68,7 @@ impl Hasher for MailHasher {
                 for hdr in mail.headers.iter().filter(|item| filter.filter(item)) {
                     let s = try!(hdr
                         .get_value()
-                        .map_err(Box::new)
-                        .map_err(|e| REK::RefHashingError.into_error_with_cause(e)));
+                        .chain_err(|| REK::RefHashingError));
 
                     v.push(s);
                 }

@@ -17,12 +17,12 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use error::TodoError as TE;
 use error::TodoErrorKind as TEK;
-use error::MapErrInto;
-use result::Result;
+use error::ResultExt;
+use error::Result;
 
 use libimagstore::store::Entry;
-use libimagerror::into::IntoError;
 
 use uuid::Uuid;
 use toml::Value;
@@ -36,11 +36,11 @@ impl Task for Entry {
     fn get_uuid(&self) -> Result<Uuid> {
         match self.get_header().read("todo.uuid") {
             Ok(Some(&Value::String(ref uuid))) => {
-                Uuid::parse_str(uuid).map_err_into(TEK::UuidParserError)
+                Uuid::parse_str(uuid).chain_err(|| TEK::UuidParserError)
             },
-            Ok(Some(_)) => Err(TEK::HeaderTypeError.into_error()),
-            Ok(None)    => Err(TEK::HeaderFieldMissing.into_error()),
-            Err(e)      => Err(e).map_err_into(TEK::StoreError),
+            Ok(Some(_)) => Err(TE::from_kind(TEK::HeaderTypeError)),
+            Ok(None)    => Err(TE::from_kind(TEK::HeaderFieldMissing)),
+            Err(e)      => Err(e).chain_err(|| TEK::StoreError),
         }
     }
 }
