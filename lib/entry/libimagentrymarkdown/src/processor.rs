@@ -309,5 +309,45 @@ mod tests {
         let result = processor.process(&mut base, &store);
         assert!(result.is_err(), "Should be Err(_), but is Ok(())");
     }
+
+    #[test]
+    fn test_process_one_nonexisting_file_linked() {
+        setup_logging();
+        let store = get_store();
+
+        let mut base = store.create(PathBuf::from("test-2.1")).unwrap();
+        *base.get_content_mut() = format!("This is an example entry with one [link](test-2.2)");
+
+        let update = store.update(&mut base);
+        assert!(update.is_ok());
+
+        let processor = LinkProcessor::default()
+            .process_internal_links(true)
+            .create_internal_targets(true)
+            .process_external_links(false)
+            .process_refs(false);
+
+        let result = processor.process(&mut base, &store);
+        assert!(result.is_ok(), "Should be Ok(()): {:?}", result);
+
+        {
+            let base_links = base.get_internal_links();
+            assert!(base_links.is_ok());
+            let base_links : Vec<_> = base_links.unwrap().collect();
+
+            assert_eq!(1, base_links.len());
+            assert_eq!("test-2.2", base_links[0].to_str().unwrap());
+        }
+
+        {
+            let link = store.get(PathBuf::from("test-2.2")).unwrap().unwrap();
+            let link_links = link.get_internal_links();
+            assert!(link_links.is_ok());
+            let link_links : Vec<_> = link_links.unwrap().collect();
+
+            assert_eq!(1, link_links.len());
+            assert_eq!("test-2.1", link_links[0].to_str().unwrap());
+        }
+    }
 }
 
