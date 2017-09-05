@@ -175,17 +175,17 @@ mod tests {
     use toml::Value;
 
     make_mock_app! {
-        app "imag-link";
+        app "imag-store";
         modulename mock;
         version "0.4.0";
-        with help "imag-link mocking app";
+        with help "imag-store mocking app";
     }
     use self::mock::generate_test_runtime;
 
     #[test]
     fn test_create_simple() {
         let test_name = "test_create_simple";
-        let rt = generate_test_runtime(vec!["create", "-p", "test_create_simple"]).unwrap();
+        let rt = generate_test_runtime(vec!["create", "test_create_simple"]).unwrap();
 
         create(&rt);
 
