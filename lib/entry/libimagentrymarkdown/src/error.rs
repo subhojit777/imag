@@ -17,9 +17,23 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use url::Url;
+
+use libimagstore::storeid::StoreId;
+
 error_chain! {
     types {
         MarkdownError, MarkdownErrorKind, ResultExt, Result;
+    }
+
+    links {
+        StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
+        LinkError(::libimagentrylink::error::LinkError, ::libimagentrylink::error::LinkErrorKind);
+        RefError(::libimagentryref::error::RefError, ::libimagentryref::error::RefErrorKind);
+    }
+
+    foreign_links {
+        UrlParserError(::url::ParseError);
     }
 
     errors {
@@ -33,6 +47,20 @@ error_chain! {
             display("Link parsing error")
         }
 
+        StoreGetError(id: StoreId) {
+            description("Failed to get entry from store")
+            display("Failed to get entry '{}' from store", id)
+        }
+
+        UndecidableLinkType(s: String) {
+            description("Failed to qualify link type")
+            display("The Type of the link '{}' cannot be recognized", s)
+        }
+
+        UrlProcessingError(u: Url) {
+            description("Failed to properly processing URL")
+            display("The URL '{:?}' could not be processed properly", u)
+        }
     }
 }
 

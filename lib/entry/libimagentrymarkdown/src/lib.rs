@@ -39,9 +39,19 @@ extern crate hoedown;
 extern crate url;
 extern crate libimagstore;
 extern crate libimagerror;
+extern crate libimagentrylink;
+extern crate libimagutil;
 #[macro_use] extern crate error_chain;
+
+#[cfg(test)]
+extern crate env_logger;
+
+#[allow(unused)]
+#[macro_use]
+extern crate log;
 
 pub mod error;
 pub mod html;
 pub mod link;
+pub mod processor;
 

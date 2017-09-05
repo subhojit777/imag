@@ -48,6 +48,7 @@ pub struct UrlLink {
     pub link: Url,
 }
 
+#[derive(Debug)]
 struct LinkExtractor {
     links: Vec<Link>,
 }
@@ -76,6 +77,10 @@ impl Render for LinkExtractor {
         let link  = link.and_then(|l| l.to_str().ok()).map(String::from);
         let content = content.and_then(|l| l.to_str().ok()).map(String::from);
 
+        trace!("Processing...");
+        trace!("link    = {:?}", link);
+        trace!("content = {:?}", content);
+
         match (link, content) {
             (Some(link), Some(content)) => {
                 self.links.push(Link { link: link, title: content });
@@ -94,6 +99,7 @@ impl Render for LinkExtractor {
 pub fn extract_links(buf: &str) -> Vec<Link> {
     let mut le = LinkExtractor::new();
     le.render(&Markdown::new(buf));
+    trace!("Extracted: {:?}", le);
     le.links()
 }
 
