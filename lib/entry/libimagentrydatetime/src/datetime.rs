@@ -223,7 +223,9 @@ mod tests {
     use chrono::naive::NaiveTime;
 
     pub fn get_store() -> Store {
-        Store::new(PathBuf::from("/"), None).unwrap()
+        use libimagstore::store::InMemoryFileAbstraction;
+        let backend = Box::new(InMemoryFileAbstraction::new());
+        Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
     }
 
     #[test]
