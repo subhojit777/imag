@@ -40,13 +40,13 @@ extern crate url;
 extern crate libimagstore;
 extern crate libimagerror;
 extern crate libimagentrylink;
+extern crate libimagentryref;
 extern crate libimagutil;
 #[macro_use] extern crate error_chain;
 
 #[cfg(test)]
 extern crate env_logger;
 
-#[allow(unused)]
 #[macro_use]
 extern crate log;
 

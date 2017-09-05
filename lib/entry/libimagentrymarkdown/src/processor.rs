@@ -209,3 +209,40 @@ impl Default for LinkProcessor {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::path::PathBuf;
+
+    use libimagstore::store::Store;
+
+    fn setup_logging() {
+        use env_logger;
+        let _ = env_logger::init().unwrap_or(());
+    }
+
+    pub fn get_store() -> Store {
+        use libimagstore::file_abstraction::InMemoryFileAbstraction;
+        let fs = InMemoryFileAbstraction::new();
+        Store::new_with_backend(PathBuf::from("/"), None, Box::new(fs)).unwrap()
+    }
+
+    #[test]
+    fn test_process_no_links() {
+        setup_logging();
+        let store = get_store();
+
+        let mut base = store.create(PathBuf::from("test-1")).unwrap();
+        *base.get_content_mut() = format!("This is an example entry with no links");
+
+        let update = store.update(&mut base);
+        assert!(update.is_ok());
+
+        let processor = LinkProcessor::default();
+
+        let result = processor.process(&mut base, &store);
+        assert!(result.is_ok());
+    }
+}
+
