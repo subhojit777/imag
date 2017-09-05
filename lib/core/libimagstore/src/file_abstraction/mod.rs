@@ -27,12 +27,14 @@ use storeid::StoreId;
 
 mod fs;
 mod inmemory;
+mod iter;
 pub mod stdio;
 
 pub use self::fs::FSFileAbstraction;
 pub use self::fs::FSFileAbstractionInstance;
 pub use self::inmemory::InMemoryFileAbstraction;
 pub use self::inmemory::InMemoryFileAbstractionInstance;
+use self::iter::PathIterator;
 
 /// An abstraction trait over filesystem actions
 pub trait FileAbstraction : Debug {
@@ -45,6 +47,8 @@ pub trait FileAbstraction : Debug {
 
     fn drain(&self) -> Result<Drain, SE>;
     fn fill<'a>(&'a mut self, d: Drain) -> Result<(), SE>;
+
+    fn pathes_recursively(&self, basepath: PathBuf) -> Result<PathIterator, SE>;
 }
 
 /// An abstraction trait over actions on files
