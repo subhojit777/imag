@@ -23,9 +23,6 @@ use std::fs::OpenOptions;
 use std::result::Result as RResult;
 use std::io::Read;
 use std::ops::DerefMut;
-use std::io::Write;
-use std::io::stderr;
-use std::process::exit;
 
 use clap::ArgMatches;
 use toml::Value;
@@ -44,44 +41,34 @@ use util::build_toml_header;
 type Result<T> = RResult<T, StoreError>;
 
 pub fn create(rt: &Runtime) {
-    rt.cli()
-        .subcommand_matches("create")
-        .map(|scmd| {
-            debug!("Found 'create' subcommand...");
+    let scmd = rt.cli().subcommand_matches("create").unwrap();
+    debug!("Found 'create' subcommand...");
 
-            // unwrap is safe as value is required
-            let path = scmd.value_of("path").or_else(|| scmd.value_of("id"));
-            if path.is_none() {
-                warn!("No ID / Path provided. Exiting now");
-                write!(stderr(), "No ID / Path provided. Exiting now").ok();
-                exit(1);
-            }
+    // unwrap is safe as value is required
+    let path  = scmd.value_of("path").unwrap();
+    let path  = PathBuf::from(path);
+    let store = Some(rt.store().path().clone());
+    let path  = StoreId::new(store, path).unwrap_or_else(|e| trace_error_exit(&e, 1));
 
-            let store_path = rt.store().path().clone();
-            let path = match StoreId::new(Some(store_path), PathBuf::from(path.unwrap())) {
-                Err(e) => trace_error_exit(&e, 1),
-                Ok(o) => o,
-            };
-            debug!("path = {:?}", path);
+    debug!("path = {:?}", path);
 
-            if scmd.subcommand_matches("entry").is_some() {
-                debug!("Creating entry from CLI specification");
-                create_from_cli_spec(rt, scmd, &path)
-                    .or_else(|_| create_from_source(rt, scmd, &path))
-                    .or_else(|_| create_with_content_and_header(rt,
-                                                                &path,
-                                                                String::new(),
-                                                                Entry::default_header()))
-            } else {
-                debug!("Creating entry");
-                create_with_content_and_header(rt, &path, String::new(),
-                    Entry::default_header())
-            }
-            .unwrap_or_else(|e| {
-                error!("Error building Entry");
-                trace_error_exit(&e, 1);
-            })
-        });
+    if scmd.subcommand_matches("entry").is_some() {
+        debug!("Creating entry from CLI specification");
+        create_from_cli_spec(rt, scmd, &path)
+            .or_else(|_| create_from_source(rt, scmd, &path))
+            .or_else(|_| create_with_content_and_header(rt,
+                                                        &path,
+                                                        String::new(),
+                                                        Entry::default_header()))
+    } else {
+        debug!("Creating entry");
+        create_with_content_and_header(rt, &path, String::new(),
+            Entry::default_header())
+    }
+    .unwrap_or_else(|e| {
+        error!("Error building Entry");
+        trace_error_exit(&e, 1);
+    })
 }
 
 fn create_from_cli_spec(rt: &Runtime, matches: &ArgMatches, path: &StoreId) -> Result<()> {
@@ -188,17 +175,17 @@ mod tests {
     use toml::Value;
 
     make_mock_app! {
-        app "imag-link";
+        app "imag-store";
         modulename mock;
         version "0.4.0";
-        with help "imag-link mocking app";
+        with help "imag-store mocking app";
     }
     use self::mock::generate_test_runtime;
 
     #[test]
     fn test_create_simple() {
         let test_name = "test_create_simple";
-        let rt = generate_test_runtime(vec!["create", "-p", "test_create_simple"]).unwrap();
+        let rt = generate_test_runtime(vec!["create", "test_create_simple"]).unwrap();
 
         create(&rt);
 

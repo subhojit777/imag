@@ -21,29 +21,22 @@ use std::path::PathBuf;
 
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::trace::trace_error_exit;
 use libimagstore::storeid::StoreId;
-use libimagutil::warn_exit::warn_exit;
 use libimagutil::warn_result::*;
 
 pub fn delete(rt: &Runtime) {
-    rt.cli()
-        .subcommand_matches("delete")
-        .map(|sub| {
-            sub.value_of("id")
-                .map(|id| {
-                    let path = PathBuf::from(id);
-                    let path = try!(StoreId::new(Some(rt.store().path().clone()), path)
-                                    .map_err_trace_exit(1));
-                    debug!("Deleting file at {:?}", id);
+    let scmd  = rt.cli().subcommand_matches("delete").unwrap();
+    let id    = scmd.value_of("id").unwrap(); // safe by clap
+    let path  = PathBuf::from(id);
+    let store = Some(rt.store().path().clone());
+    let path  = StoreId::new(store, path).unwrap_or_else(|e| trace_error_exit(&e, 1));
+    debug!("Deleting file at {:?}", id);
 
-                    rt.store()
-                        .delete(path)
-                        .map_warn_err(|e| format!("Error: {:?}", e))
-                        .map_err_trace_exit(1)
-                })
-                .or_else(|| warn_exit("No ID passed. Will exit now", 1))
-        })
-        .or_else(|| warn_exit("No subcommand 'delete'. Will exit now", 1));
+    let _ = rt.store()
+        .delete(path)
+        .map_warn_err(|e| format!("Error: {:?}", e))
+        .map_err_trace_exit(1);
 }
 
 #[cfg(test)]
@@ -54,22 +47,22 @@ mod tests {
     use std::path::PathBuf;
 
     make_mock_app! {
-        app "imag-link";
+        app "imag-store";
         modulename mock;
         version "0.4.0";
-        with help "imag-link mocking app";
+        with help "imag-store mocking app";
     }
     use self::mock::generate_test_runtime;
     use self::mock::reset_test_runtime;
 
     #[test]
-    fn test_create_simple() {
+    fn test_delete_simple() {
         let test_name = "test_create_simple";
-        let rt = generate_test_runtime(vec!["create", "-p", "test_create_simple"]).unwrap();
+        let rt = generate_test_runtime(vec!["create", "test_create_simple"]).unwrap();
 
         create(&rt);
 
-        let rt = reset_test_runtime(vec!["delete", "--id", "test_create_simple"], rt).unwrap();
+        let rt = reset_test_runtime(vec!["delete", "test_create_simple"], rt).unwrap();
 
         delete(&rt);
 
