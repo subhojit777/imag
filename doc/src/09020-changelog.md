@@ -48,6 +48,7 @@ This section contains the changelog from the last release to the next release.
     * The `libimagentrylink` is now rudimentarily tested
     * We compile with rustc 1.17, 1.18, .., nightly
     * The `imag-store` binary now uses positional arguments in its CLI
+    * The "toml-query" dependency was updated to 0.3.1
 * Stats
 
 ## 0.3.0

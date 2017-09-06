@@ -22,7 +22,7 @@ xdg-basedir = "1.0"
 itertools = "0.5"
 ansi_term = "0.9"
 is-match = "0.1"
-toml-query = "0.3.0"
+toml-query = "^0.3.1"
 error-chain = "0.10"
 handlebars = "0.29.0"
 
