@@ -18,7 +18,7 @@ itertools = "0.5"
 log = "0.3"
 rust-crypto = "0.2"
 toml = "^0.4"
-toml-query = "0.3.0"
+toml-query = "^0.3.1"
 error-chain = "0.10"
 walkdir = "1.0.*"
 

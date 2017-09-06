@@ -26,7 +26,7 @@ libimagentrytag = { version = "0.4.0", path = "../../../lib/entry/libimagentryta
 libimagutil     = { version = "0.4.0", path = "../../../lib/etc/libimagutil" }
 
 [dev-dependencies]
-toml-query = "0.3.0"
+toml-query = "^0.3.1"
 env_logger = "0.3"
 
 [dev-dependencies.libimagutil]
