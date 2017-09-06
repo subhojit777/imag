@@ -36,6 +36,7 @@ use super::FileAbstractionInstance;
 use super::Drain;
 use super::InMemoryFileAbstraction;
 use store::Entry;
+use file_abstraction::iter::PathIterator;
 
 pub mod mapper;
 pub mod out;
@@ -120,6 +121,10 @@ impl<W: Write, M: Mapper> FileAbstraction for StdIoFileAbstraction<W, M> {
 
     fn fill(&mut self, d: Drain) -> Result<(), SE> {
         self.0.fill(d)
+    }
+
+    fn pathes_recursively(&self, basepath: PathBuf) -> Result<PathIterator, SE> {
+        self.0.pathes_recursively(basepath)
     }
 }
 

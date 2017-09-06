@@ -785,13 +785,21 @@ impl Store {
 
     /// Get _all_ entries in the store (by id as iterator)
     pub fn entries(&self) -> Result<StoreIdIterator> {
-        let iter = Walk::new(self.path().clone(), "")
-            .filter_map(|id| match id {
-                StoreObject::Id(sid) => Some(sid),
-                _       => None
-            });
+        self.backend
+            .pathes_recursively(self.path().clone())
+            .and_then(|iter| {
+                let iter : Result<Vec<StoreId>> = iter
+                    .map(|path| StoreId::from_full_path(self.path(), path))
+                    .fold(Ok(vec![]), |acc, elem| {
+                        acc.and_then(move |mut a| {
+                            a.push(try!(elem));
+                            Ok(a)
+                        })
+                    });
 
-        Ok(StoreIdIterator::new(Box::new(iter)))
+                let iter = try!(iter);
+                Ok(StoreIdIterator::new(Box::new(iter.into_iter())))
+            })
 
     }
 

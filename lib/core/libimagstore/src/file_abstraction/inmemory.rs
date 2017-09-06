@@ -32,6 +32,7 @@ use super::FileAbstractionInstance;
 use super::Drain;
 use store::Entry;
 use storeid::StoreId;
+use file_abstraction::iter::PathIterator;
 
 type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Entry>>>>;
 
@@ -170,6 +171,21 @@ impl FileAbstraction for InMemoryFileAbstraction {
         }
 
         Ok(())
+    }
+
+    fn pathes_recursively(&self, _basepath: PathBuf) -> Result<PathIterator, SE> {
+        debug!("Getting all pathes");
+        let keys : Vec<PathBuf> = self
+            .backend()
+            .lock()
+            .map_err(|_| SE::from_kind(SEK::FileError))?
+            .get_mut()
+            .keys()
+            .map(PathBuf::from)
+            .collect();
+        // we collect here as this happens only in tests and in memory anyways, so no problem
+
+        Ok(PathIterator::new(Box::new(keys.into_iter())))
     }
 }
 

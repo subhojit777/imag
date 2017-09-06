@@ -29,6 +29,7 @@ use super::FileAbstractionInstance;
 use super::Drain;
 use store::Entry;
 use storeid::StoreId;
+use file_abstraction::iter::PathIterator;
 
 #[derive(Debug)]
 pub enum FSFileAbstractionInstance {
@@ -99,7 +100,6 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
         }
         unreachable!();
     }
-
 }
 
 /// `FSFileAbstraction` state type
@@ -149,6 +149,24 @@ impl FileAbstraction for FSFileAbstraction {
             .fold(Ok(()), |acc, (path, element)| {
                 acc.and_then(|_| self.new_instance(path).write_file_content(&element))
             })
+    }
+
+    fn pathes_recursively(&self, basepath: PathBuf) -> Result<PathIterator, SE> {
+        use walkdir::WalkDir;
+
+        let i : Result<Vec<PathBuf>, SE> = WalkDir::new(basepath)
+            .into_iter()
+            .map(|r| {
+                r.map(|e| PathBuf::from(e.path()))
+                    .chain_err(|| SE::from_kind(SEK::FileError))
+            })
+            .fold(Ok(vec![]), |acc, e| {
+                acc.and_then(move |mut a| {
+                    a.push(try!(e));
+                    Ok(a)
+                })
+            });
+        Ok(PathIterator::new(Box::new(try!(i).into_iter())))
     }
 }
 

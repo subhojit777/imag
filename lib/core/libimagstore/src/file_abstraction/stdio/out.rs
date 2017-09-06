@@ -40,6 +40,7 @@ use super::FileAbstractionInstance;
 use super::Drain;
 use super::InMemoryFileAbstraction;
 use store::Entry;
+use file_abstraction::iter::PathIterator;
 
 use super::mapper::Mapper;
 
@@ -149,6 +150,10 @@ impl<W: Write, M: Mapper> FileAbstraction for StdoutFileAbstraction<W, M> {
             backend.insert(path, element);
         }
         Ok(())
+    }
+
+    fn pathes_recursively(&self, basepath: PathBuf) -> Result<PathIterator, SE> {
+        self.mem.pathes_recursively(basepath)
     }
 
 }
