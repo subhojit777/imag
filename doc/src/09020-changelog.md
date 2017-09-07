@@ -34,6 +34,10 @@ This section contains the changelog from the last release to the next release.
 * Fixed bugs
     * The config loading in `libimagrt`
     [was fixed](http://git.imag-pim.org/imag/commit/?id=9193d50f96bce099665d2eb716bcaa29a8d9b8ff).
+    * `libimagentrylink` used `imag` as the location for putting links in
+      entries. This is not allowed because this namespace is reserved for the
+      store itself. This bug was fixed, links are now located in the `links`
+      namespace in the header of an entry.
 * Minor changes
     * If building from a `nix-shell`, the mozilla rust overlay is expected to be
       present

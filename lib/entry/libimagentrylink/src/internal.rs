@@ -27,7 +27,7 @@ use libimagstore::store::Entry;
 use libimagstore::store::Result as StoreResult;
 
 use toml_query::read::TomlValueReadExt;
-use toml_query::set::TomlValueSetExt;
+use toml_query::insert::TomlValueInsertExt;
 
 use error::LinkErrorKind as LEK;
 use error::LinkError as LE;
@@ -392,7 +392,7 @@ impl InternalLinker for Entry {
     fn get_internal_links(&self) -> Result<LinkIter> {
         let res = self
             .get_header()
-            .read("imag.links")
+            .read("links.internal")
             .chain_err(|| LEK::EntryHeaderReadError)
             .map(|r| r.cloned());
         process_rw_result(res)
@@ -426,7 +426,7 @@ impl InternalLinker for Entry {
                             }));
         let res = self
             .get_header_mut()
-            .set("imag.links", Value::Array(new_links))
+            .insert("links.interal", Value::Array(new_links))
             .chain_err(|| LEK::EntryHeaderReadError);
         process_rw_result(res)
     }
@@ -497,7 +497,7 @@ fn rewrite_links<I: Iterator<Item = Link>>(header: &mut Value, links: I) -> Resu
 
     debug!("Setting new link array: {:?}", links);
     let process = header
-        .set("imag.links", Value::Array(links))
+        .insert("links.internal", Value::Array(links))
         .chain_err(|| LEK::EntryHeaderReadError);
     process_rw_result(process).map(|_| ())
 }
@@ -525,7 +525,7 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
 
             let res = target
                 .get_header_mut()
-                .set("imag.links", Value::Array(links))
+                .insert("links.internal", Value::Array(links))
                 .chain_err(|| LEK::EntryHeaderReadError);
 
             process_rw_result(res).map(|_| ())

@@ -41,7 +41,7 @@ use libimagstore::storeid::IntoStoreId;
 use libimagutil::debug_result::*;
 
 use toml_query::read::TomlValueReadExt;
-use toml_query::set::TomlValueSetExt;
+use toml_query::insert::TomlValueInsertExt;
 
 use error::LinkErrorKind as LEK;
 use error::LinkError as LE;
@@ -69,7 +69,7 @@ impl Link for Entry {
 
     fn get_link_uri_from_filelockentry(&self) -> Result<Option<Url>> {
         self.get_header()
-            .read("imag.content.url")
+            .read("links.external.url")
             .chain_err(|| LEK::EntryHeaderReadError)
             .and_then(|opt| match opt {
                 Some(&Value::String(ref s)) => {
@@ -82,7 +82,7 @@ impl Link for Entry {
     }
 
     fn get_url(&self) -> Result<Option<Url>> {
-        match self.get_header().read("imag.content.url") {
+        match self.get_header().read("links.external.url") {
             Ok(Some(&Value::String(ref s))) => {
                 Url::parse(&s[..])
                      .map(Some)
@@ -350,10 +350,10 @@ impl ExternalLinker for Entry {
             {
                 let hdr = file.deref_mut().get_header_mut();
 
-                let mut table = match hdr.read("imag.content") {
+                let mut table = match hdr.read("links.external.content") {
                     Ok(Some(&Value::Table(ref table))) => table.clone(),
                     Ok(Some(_)) => {
-                        warn!("There is a value at 'imag.content' which is not a table.");
+                        warn!("There is a value at 'links.external.content' which is not a table.");
                         warn!("Going to override this value");
                         BTreeMap::new()
                     },
@@ -366,7 +366,7 @@ impl ExternalLinker for Entry {
                 debug!("setting URL = '{:?}", v);
                 table.insert(String::from("url"), v);
 
-                if let Err(e) = hdr.set("imag.content", Value::Table(table)) {
+                if let Err(e) = hdr.insert("links.external.content", Value::Table(table)) {
                     return Err(e).chain_err(|| LEK::StoreWriteError);
                 } else {
                     debug!("Setting URL worked");
