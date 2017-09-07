@@ -427,5 +427,38 @@ mod tests {
         assert_eq!(2, entries.len(), "Expected 2 links, got: {:?}", entries);
         println!("{:?}", entries);
     }
+
+    #[test]
+    fn test_process_two_refs() {
+        setup_logging();
+        let store = get_store();
+
+        let mut base = store.create(PathBuf::from("test-5.1")).unwrap();
+
+        // As the ref target must exist, we're using /etc/hosts here
+        *base.get_content_mut() = format!(
+            r#"An [example ref](file:///etc/hosts)
+            is [here](file:///etc/group)."#
+        );
+
+        let update = store.update(&mut base);
+        assert!(update.is_ok());
+
+        let processor = LinkProcessor::default()
+            .process_internal_links(false)
+            .create_internal_targets(false)
+            .process_external_links(false)
+            .process_refs(true);
+
+        let result = processor.process(&mut base, &store);
+        assert!(result.is_ok(), "Should be Ok(()): {:?}", result);
+
+        let entries = store.entries();
+        assert!(entries.is_ok());
+        let entries : Vec<_> = entries.unwrap().collect();
+
+        assert_eq!(3, entries.len(), "Expected 3 links, got: {:?}", entries);
+        println!("{:?}", entries);
+    }
 }
 
