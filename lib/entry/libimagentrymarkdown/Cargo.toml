@@ -18,7 +18,11 @@ log = "0.3"
 hoedown = "5.0.0"
 url = "1.2"
 error-chain = "0.10"
+env_logger = "0.3"
 
-libimagstore = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
-libimagerror = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
+libimagstore     = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
+libimagentrylink = { version = "0.4.0", path = "../../../lib/entry/libimagentrylink/" }
+libimagentryref  = { version = "0.4.0", path = "../../../lib/entry/libimagentryref/" }
+libimagutil      = { version = "0.4.0", path = "../../../lib/etc/libimagutil/" }
 
