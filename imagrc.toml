@@ -1,6 +1,20 @@
 # This is a example configuration file for the imag suite.
 # It is written in TOML
 
+# The alias section
+#
+# In this section one can define aliases for imag subcommands.
+#
+# E.G: An alias `store = [ "s", "st" ]` allows the user to call `imag s` or
+# `imag st` for calling `imag store`.
+#
+# The aliases have to be either a single string or an array of strings, where no
+# string contains whitespace (thus, aliasing a "store-create" call to "sc" for
+# example is not supported).
+#
+[imag.aliases]
+store = [ "s", "st" ]
+
 [imag.logging]
 level = "debug"
 destinations = [ "-" ]

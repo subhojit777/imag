@@ -21,6 +21,8 @@ extern crate clap;
 #[macro_use] extern crate version;
 #[macro_use] extern crate log;
 extern crate walkdir;
+extern crate toml;
+extern crate toml_query;
 
 extern crate libimagrt;
 extern crate libimagerror;
@@ -30,9 +32,12 @@ use std::process::exit;
 use std::process::Command;
 use std::process::Stdio;
 use std::io::ErrorKind;
+use std::collections::BTreeMap;
 
 use walkdir::WalkDir;
 use clap::{Arg, AppSettings, SubCommand};
+use toml::Value;
+use toml_query::read::TomlValueReadExt;
 
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error;
@@ -176,6 +181,16 @@ fn main() {
         exit(0);
     }
 
+    let aliases = match fetch_aliases(&rt) {
+        Ok(aliases) => aliases,
+        Err(e)      => {
+            println!("Error while fetching aliases from configuration file");
+            debug!("Error = {:?}", e);
+            println!("Aborting");
+            exit(1);
+        }
+    };
+
     // Matches any subcommand given
     match matches.subcommand() {
         (subcommand, Some(scmd)) => {
@@ -186,6 +201,9 @@ fn main() {
                 Some(values) => values.collect(),
                 None => Vec::new()
             };
+
+            let subcommand = String::from(subcommand);
+            let subcommand = aliases.get(&subcommand).cloned().unwrap_or(subcommand);
 
             debug!("Calling 'imag-{}' with args: {:?}", subcommand, subcommand_args);
 
@@ -232,3 +250,49 @@ fn main() {
         _ => {},
     }
 }
+
+fn fetch_aliases(rt: &Runtime) -> Result<BTreeMap<String, String>, String> {
+    let cfg   = try!(rt.config().ok_or_else(|| String::from("No configuration found")));
+    let value = cfg
+        .config()
+        .read("imag.aliases")
+        .map_err(|_| String::from("Reading from config failed"));
+
+    match try!(value) {
+        None                         => Ok(BTreeMap::new()),
+        Some(&Value::Table(ref tbl)) => {
+            let mut alias_mappings = BTreeMap::new();
+
+            for (k, v) in tbl {
+                match v {
+                    &Value::String(ref alias)      => {
+                        alias_mappings.insert(alias.clone(), k.clone());
+                    },
+                    &Value::Array(ref aliases) => {
+                        for alias in aliases {
+                            match alias {
+                                &Value::String(ref s) => {
+                                    alias_mappings.insert(s.clone(), k.clone());
+                                },
+                                _ => {
+                                    let e = format!("Not all values are a String in 'imag.aliases.{}'", k);
+                                    return Err(e);
+                                }
+                            }
+                        }
+                    },
+
+                    _ => {
+                        let msg = format!("Type Error: 'imag.aliases.{}' is not a table or string", k);
+                        return Err(msg);
+                    },
+                }
+            }
+
+            Ok(alias_mappings)
+        },
+
+        Some(_) => Err(String::from("Type Error: 'imag.aliases' is not a table")),
+    }
+}
+
