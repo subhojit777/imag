@@ -76,11 +76,6 @@ error_chain! {
             display("ID not found: {}", sid)
         }
 
-        OutOfMemory             {
-            description("Out of Memory")
-            display("Out of Memory")
-        }
-
         FileNotFound            {
             description("File corresponding to ID not found")
             display("File corresponding to ID not found")
@@ -156,29 +151,9 @@ error_chain! {
             display("Entry has invalid formatting, missing header")
         }
 
-        HeaderPathSyntaxError   {
-            description("Syntax error in accessor string")
-            display("Syntax error in accessor string")
-        }
-
-        HeaderPathTypeFailure   {
-            description("Header has wrong type for path")
-            display("Header has wrong type for path")
-        }
-
-        HeaderKeyNotFound       {
-            description("Header Key not found")
-            display("Header Key not found")
-        }
-
         HeaderTypeFailure       {
             description("Header type is wrong")
             display("Header type is wrong")
-        }
-
-        StorePathLacksVersion   {
-            description("The supplied store path has no version part")
-            display("The supplied store path has no version part")
         }
 
         GlobError               {
@@ -272,11 +247,6 @@ error_chain! {
         }
 
         // Parser-related errors
-
-        TOMLParserErrors    {
-            description("Several TOML-Parser-Errors")
-            display("Several TOML-Parser-Errors")
-        }
 
         MissingMainSection  {
             description("Missing main section")

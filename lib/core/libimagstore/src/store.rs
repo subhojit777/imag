@@ -1139,7 +1139,7 @@ impl Header for Value {
         use toml::de::from_str;
 
         from_str(s)
-            .chain_err(|| SEK::TOMLParserErrors)
+            .map_err(From::from)
             .and_then(verify_header_consistency)
             .map(Value::Table)
     }
