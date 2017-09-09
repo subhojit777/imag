@@ -93,28 +93,23 @@ impl ImagLogger {
 
         {
             let fmt = try!(aggregate_global_format_trace(matches, config));
-            try!(handlebars.register_template_string("TRACE", fmt) // name must be uppercase
-                .chain_err(|| EK::TemplateStringRegistrationError));
+            try!(handlebars.register_template_string("TRACE", fmt)); // name must be uppercase
         }
         {
             let fmt = try!(aggregate_global_format_debug(matches, config));
-            try!(handlebars.register_template_string("DEBUG", fmt) // name must be uppercase
-                .chain_err(|| EK::TemplateStringRegistrationError));
+            try!(handlebars.register_template_string("DEBUG", fmt)); // name must be uppercase
         }
         {
             let fmt = try!(aggregate_global_format_info(matches, config));
-            try!(handlebars.register_template_string("INFO", fmt) // name must be uppercase
-                .chain_err(|| EK::TemplateStringRegistrationError));
+            try!(handlebars.register_template_string("INFO", fmt)); // name must be uppercase
         }
         {
             let fmt = try!(aggregate_global_format_warn(matches, config));
-            try!(handlebars.register_template_string("WARN", fmt) // name must be uppercase
-                .chain_err(|| EK::TemplateStringRegistrationError));
+            try!(handlebars.register_template_string("WARN", fmt)); // name must be uppercase
         }
         {
             let fmt = try!(aggregate_global_format_error(matches, config));
-            try!(handlebars.register_template_string("ERROR", fmt) // name must be uppercase
-                .chain_err(|| EK::TemplateStringRegistrationError));
+            try!(handlebars.register_template_string("ERROR", fmt)); // name must be uppercase
         }
 
         Ok(ImagLogger {

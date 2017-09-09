@@ -22,6 +22,10 @@ error_chain! {
         RuntimeError, RuntimeErrorKind, ResultExt, Result;
     }
 
+    foreign_links {
+        HandlebarsTemplateError(::handlebars::TemplateError);
+    }
+
     errors {
         Instantiate {
             description("Could not instantiate")
@@ -71,11 +75,6 @@ error_chain! {
         TomlReadError {
             description("Error while reading in TOML document")
             display("Error while reading in TOML document")
-        }
-
-        TemplateStringRegistrationError {
-            description("Error while registering logging template string")
-            display("Error while registering logging template string")
         }
 
         ConfigMissingLoggingFormatTrace {
