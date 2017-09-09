@@ -29,6 +29,7 @@ error_chain! {
     foreign_links {
         Io(::std::io::Error);
         TomlDeserError(::toml::de::Error);
+        GlobPatternError(::glob::PatternError);
     }
 
     errors {
@@ -156,11 +157,6 @@ error_chain! {
         HeaderTypeFailure       {
             description("Header type is wrong")
             display("Header type is wrong")
-        }
-
-        GlobError               {
-            description("glob() error")
-            display("glob() error")
         }
 
         EncodingError           {

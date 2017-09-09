@@ -507,10 +507,9 @@ impl Store {
             .and_then(|path| {
                 let path = [ path, "/**/*" ].join("");
                 debug!("glob()ing with '{}'", path);
-                glob(&path[..]).chain_err(|| SEK::GlobError)
+                glob(&path[..]).map_err(From::from)
             })
             .map(|paths| GlobStoreIdIterator::new(paths, self.path().clone()).into())
-            .chain_err(|| SEK::GlobError)
             .chain_err(|| SEK::RetrieveForModuleCallError)
     }
 
