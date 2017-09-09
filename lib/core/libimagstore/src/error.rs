@@ -143,9 +143,9 @@ error_chain! {
             display("Entry is already borrowed: {:?}", id)
         }
 
-        EntryAlreadyExists      {
+        EntryAlreadyExists(id: StoreId) {
             description("Entry already exists")
-            display("Entry already exists")
+            display("Entry already exists: {:?}", id)
         }
 
         MalformedEntry          {

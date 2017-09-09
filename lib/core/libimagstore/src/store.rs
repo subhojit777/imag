@@ -404,7 +404,8 @@ impl Store {
 
             if hsmap.contains_key(&id) {
                 debug!("Cannot create, internal cache already contains: '{}'", id);
-                return Err(SE::from_kind(SEK::EntryAlreadyExists)).chain_err(|| SEK::CreateCallError);
+                return Err(SE::from_kind(SEK::EntryAlreadyExists(id.clone())))
+                           .chain_err(|| SEK::CreateCallError);
             }
             hsmap.insert(id.clone(), {
                 debug!("Creating: '{}'", id);
@@ -675,7 +676,8 @@ impl Store {
         );
 
         if hsmap.contains_key(&new_id) {
-            return Err(SE::from_kind(SEK::EntryAlreadyExists)).chain_err(|| SEK::MoveCallError)
+            return Err(SE::from_kind(SEK::EntryAlreadyExists(new_id.clone())))
+                .chain_err(|| SEK::MoveCallError)
         }
 
         let old_id = entry.get_location().clone();
@@ -741,7 +743,7 @@ impl Store {
             };
 
             if hsmap.contains_key(&new_id) {
-                return Err(SE::from_kind(SEK::EntryAlreadyExists));
+                return Err(SE::from_kind(SEK::EntryAlreadyExists(new_id.clone())));
             }
 
             // if we do not have an entry here, we fail in `FileAbstraction::rename()` below.
