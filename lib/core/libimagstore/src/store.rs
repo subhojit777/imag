@@ -173,7 +173,7 @@ impl StoreEntry {
                     Err(err)
                 })
         } else {
-            Err(SE::from_kind(SEK::EntryAlreadyBorrowed))
+            Err(SE::from_kind(SEK::EntryAlreadyBorrowed(self.id.clone())))
         }
     }
 
@@ -748,7 +748,7 @@ impl Store {
             // if we have one, but it is borrowed, we really should not rename it, as this might
             // lead to strange errors
             if hsmap.get(&old_id).map(|e| e.is_borrowed()).unwrap_or(false) {
-                return Err(SE::from_kind(SEK::EntryAlreadyBorrowed));
+                return Err(SE::from_kind(SEK::EntryAlreadyBorrowed(old_id.clone())));
             }
 
             let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());

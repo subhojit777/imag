@@ -138,9 +138,9 @@ error_chain! {
             display("The internal Store Lock has been poisoned")
         }
 
-        EntryAlreadyBorrowed    {
+        EntryAlreadyBorrowed(id: StoreId) {
             description("Entry is already borrowed")
-            display("Entry is already borrowed")
+            display("Entry is already borrowed: {:?}", id)
         }
 
         EntryAlreadyExists      {
