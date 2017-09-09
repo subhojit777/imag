@@ -243,12 +243,7 @@ impl Store {
     /// # Return values
     ///
     /// - On success: Store object
-    /// - On Failure:
-    ///   - ConfigurationError if config is faulty
-    ///   - IoError(FileError(CreateStoreDirDenied())) if store location does not exist and creating
-    ///     is denied
-    ///   - StorePathCreate(_) if creating the store directory failed
-    ///   - StorePathExists() if location exists but is a file
+    ///
     pub fn new(location: PathBuf, store_config: Option<Value>) -> Result<Store> {
         let backend = Box::new(FSFileAbstraction::new());
         Store::new_with_backend(location, store_config, backend)
