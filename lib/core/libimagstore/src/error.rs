@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::path::PathBuf;
+
 use storeid::StoreId;
 
 error_chain! {
@@ -116,9 +118,9 @@ error_chain! {
             display("Directory/Directories could not be created")
         }
 
-        StorePathExists         {
+        StorePathExists(pb: PathBuf) {
             description("Store path exists")
-            display("Store path exists")
+            display("Store path exists: {:?}", pb)
         }
 
         StorePathCreate         {

@@ -274,7 +274,7 @@ impl Store {
                  .map_dbg_err_str("Failed"));
         } else if location.is_file() {
             debug!("Store path exists as file");
-            return Err(SE::from_kind(SEK::StorePathExists));
+            return Err(SE::from_kind(SEK::StorePathExists(location)));
         }
 
         let store = Store {
