@@ -195,15 +195,12 @@ fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Configuration
     -> Result<LogLevel>
 {
     match config {
-        Some(cfg) => match cfg
-            .read("imag.logging.level")
-            .chain_err(|| EK::ConfigReadError)
-            {
-                Ok(Some(&Value::String(ref s))) => match_log_level_str(s),
-                Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
-                Ok(None)    => Err(RE::from_kind(EK::GlobalLogLevelConfigMissing)),
-                Err(e)      => Err(e)
-            },
+        Some(cfg) => match cfg.read("imag.logging.level") {
+            Ok(Some(&Value::String(ref s))) => match_log_level_str(s),
+            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+            Ok(None)    => Err(RE::from_kind(EK::GlobalLogLevelConfigMissing)),
+            Err(e)      => Err(e).map_err(From::from),
+        },
         None => {
             if matches.is_present(Runtime::arg_debugging_name()) {
                 return Ok(LogLevel::Debug)
@@ -253,15 +250,12 @@ fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Configura
 {
 
     match config {
-        Some(cfg) => match cfg
-            .read("imag.logging.destinations")
-            .chain_err(|| EK::ConfigReadError)
-            {
-                Ok(Some(&Value::Array(ref a))) => translate_destinations(a),
-                Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
-                Ok(None)    => Err(RE::from_kind(EK::GlobalDestinationConfigMissing)),
-                Err(e)      => Err(e)
-            },
+        Some(cfg) => match cfg.read("imag.logging.destinations") {
+            Ok(Some(&Value::Array(ref a))) => translate_destinations(a),
+            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+            Ok(None)    => Err(RE::from_kind(EK::GlobalDestinationConfigMissing)),
+            Err(e)      => Err(e).map_err(From::from),
+        },
         None => {
             if let Some(values) = matches.value_of(Runtime::arg_logdest_name()) {
                 // parse logdest specification from commandline
@@ -291,15 +285,12 @@ fn aggregate_global_format(
 -> Result<String>
 {
     match config {
-        Some(cfg) => match cfg
-            .read(read_str)
-            .chain_err(|| EK::ConfigReadError)
-            {
-                Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
-                Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
-                Ok(None)    => Err(RE::from_kind(error_kind_if_missing)),
-                Err(e)      => Err(e)
-            },
+        Some(cfg) => match cfg.read(read_str) {
+            Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
+            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+            Ok(None)    => Err(RE::from_kind(error_kind_if_missing)),
+            Err(e)      => Err(e).map_err(From::from),
+        },
         None => match matches.value_of(cli_match_name).map(String::from) {
             Some(s) => Ok(s),
             None    => Err(RE::from_kind(error_kind_if_missing))
@@ -361,55 +352,52 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Configuratio
     -> Result<BTreeMap<ModuleName, ModuleSettings>>
 {
     match config {
-        Some(cfg) => match cfg
-            .read("imag.logging.modules")
-            .chain_err(|| EK::ConfigReadError)
-            {
-                Ok(Some(&Value::Table(ref t))) => {
-                    // translate the module settings from the table `t`
-                    let mut settings = BTreeMap::new();
+        Some(cfg) => match cfg.read("imag.logging.modules") {
+            Ok(Some(&Value::Table(ref t))) => {
+                // translate the module settings from the table `t`
+                let mut settings = BTreeMap::new();
 
-                    for (module_name, v) in t {
-                        let destinations = try!(match v.read("destinations") {
-                            Ok(Some(&Value::Array(ref a))) => translate_destinations(a).map(Some),
-                            Ok(None)    => Ok(None),
-                            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
-                            Err(e)      => Err(e).map_err(From::from),
-                        });
+                for (module_name, v) in t {
+                    let destinations = try!(match v.read("destinations") {
+                        Ok(Some(&Value::Array(ref a))) => translate_destinations(a).map(Some),
+                        Ok(None)    => Ok(None),
+                        Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+                        Err(e)      => Err(e).map_err(From::from),
+                    });
 
-                        let level = try!(match v.read("level") {
-                            Ok(Some(&Value::String(ref s))) => match_log_level_str(s).map(Some),
-                            Ok(None)    => Ok(None),
-                            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
-                            Err(e)      => Err(e).map_err(From::from),
-                        });
+                    let level = try!(match v.read("level") {
+                        Ok(Some(&Value::String(ref s))) => match_log_level_str(s).map(Some),
+                        Ok(None)    => Ok(None),
+                        Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+                        Err(e)      => Err(e).map_err(From::from),
+                    });
 
-                        let enabled = try!(match v.read("enabled") {
-                            Ok(Some(&Value::Boolean(b))) => Ok(b),
-                            Ok(None)    => Ok(false),
-                            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
-                            Err(e)      => Err(e).map_err(From::from),
-                        });
+                    let enabled = try!(match v.read("enabled") {
+                        Ok(Some(&Value::Boolean(b))) => Ok(b),
+                        Ok(None)    => Ok(false),
+                        Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+                        Err(e)      => Err(e).map_err(From::from),
+                    });
 
-                        let module_settings = ModuleSettings {
-                            enabled: enabled,
-                            level: level,
-                            destinations: destinations,
-                        };
+                    let module_settings = ModuleSettings {
+                        enabled: enabled,
+                        level: level,
+                        destinations: destinations,
+                    };
 
-                        // We don't care whether there was a value, we override it.
-                        let _ = settings.insert(module_name.to_owned(), module_settings);
-                    }
+                    // We don't care whether there was a value, we override it.
+                    let _ = settings.insert(module_name.to_owned(), module_settings);
+                }
 
-                    Ok(settings)
-                },
-                Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
-                Ok(None)    => {
-                    // No modules configured. This is okay!
-                    Ok(BTreeMap::new())
-                },
-                Err(e)      => Err(e),
+                Ok(settings)
             },
+            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+            Ok(None)    => {
+                // No modules configured. This is okay!
+                Ok(BTreeMap::new())
+            },
+            Err(e) => Err(e).map_err(From::from),
+        },
         None => {
             write!(stderr(), "No Configuration.").ok();
             write!(stderr(), "cannot find module-settings for logging.").ok();

@@ -48,11 +48,6 @@ error_chain! {
             display("IO Error: Could not open logfile")
         }
 
-        ConfigReadError {
-            description("Error while reading the configuration")
-            display("Error while reading the configuration")
-        }
-
         ConfigTypeError {
             description("Error while reading the configuration: Type Error")
             display("Error while reading the configuration: Type Error")
