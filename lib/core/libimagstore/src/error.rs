@@ -174,9 +174,9 @@ error_chain! {
             display("StoreId handling error")
         }
 
-        StoreIdLocalPartAbsoluteError {
+        StoreIdLocalPartAbsoluteError(pb: PathBuf) {
             description("StoreId 'id' part is absolute (starts with '/') which is not allowed")
-            display("StoreId 'id' part is absolute (starts with '/') which is not allowed")
+            display("StoreId 'id' part is absolute (starts with '/') which is not allowed: {:?}", pb)
         }
 
         StoreIdBuildFromFullPathError {
