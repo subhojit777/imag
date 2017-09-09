@@ -197,7 +197,11 @@ fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Configuration
     match config {
         Some(cfg) => match cfg.read("imag.logging.level") {
             Ok(Some(&Value::String(ref s))) => match_log_level_str(s),
-            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+            Ok(Some(_)) => {
+                let path = "imag.logging.level".to_owned();
+                let ty   = "String";
+                Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
+            },
             Ok(None)    => Err(RE::from_kind(EK::GlobalLogLevelConfigMissing)),
             Err(e)      => Err(e).map_err(From::from),
         },
@@ -237,7 +241,11 @@ fn translate_destinations(raw: &Vec<Value>) -> Result<Vec<LogDestination>> {
             acc.and_then(|mut v| {
                 let dest = match *val {
                     Value::String(ref s) => try!(translate_destination(s)),
-                    _ => return Err(RE::from_kind(EK::ConfigTypeError)),
+                    _ => {
+                        let path = "imag.logging.modules.<mod>.destinations".to_owned();
+                        let ty   = "Array<String>";
+                        return Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
+                    },
                 };
                 v.push(dest);
                 Ok(v)
@@ -252,7 +260,11 @@ fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Configura
     match config {
         Some(cfg) => match cfg.read("imag.logging.destinations") {
             Ok(Some(&Value::Array(ref a))) => translate_destinations(a),
-            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+            Ok(Some(_)) => {
+                let path = "imag.logging.destinations".to_owned();
+                let ty   = "Array";
+                Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
+            },
             Ok(None)    => Err(RE::from_kind(EK::GlobalDestinationConfigMissing)),
             Err(e)      => Err(e).map_err(From::from),
         },
@@ -287,7 +299,7 @@ fn aggregate_global_format(
     match config {
         Some(cfg) => match cfg.read(read_str) {
             Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
-            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError(read_str.to_owned(), "String"))),
             Ok(None)    => Err(RE::from_kind(error_kind_if_missing)),
             Err(e)      => Err(e).map_err(From::from),
         },
@@ -361,21 +373,33 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Configuratio
                     let destinations = try!(match v.read("destinations") {
                         Ok(Some(&Value::Array(ref a))) => translate_destinations(a).map(Some),
                         Ok(None)    => Ok(None),
-                        Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+                        Ok(Some(_)) => {
+                            let path = "imag.logging.modules.<mod>.destinations".to_owned();
+                            let ty = "Array";
+                            Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
+                        },
                         Err(e)      => Err(e).map_err(From::from),
                     });
 
                     let level = try!(match v.read("level") {
                         Ok(Some(&Value::String(ref s))) => match_log_level_str(s).map(Some),
                         Ok(None)    => Ok(None),
-                        Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+                        Ok(Some(_)) => {
+                            let path = "imag.logging.modules.<mod>.level".to_owned();
+                            let ty = "String";
+                            Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
+                        },
                         Err(e)      => Err(e).map_err(From::from),
                     });
 
                     let enabled = try!(match v.read("enabled") {
                         Ok(Some(&Value::Boolean(b))) => Ok(b),
                         Ok(None)    => Ok(false),
-                        Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+                        Ok(Some(_)) => {
+                            let path = "imag.logging.modules.<mod>.enabled".to_owned();
+                            let ty = "Boolean";
+                            Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
+                        },
                         Err(e)      => Err(e).map_err(From::from),
                     });
 
@@ -391,7 +415,11 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Configuratio
 
                 Ok(settings)
             },
-            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
+            Ok(Some(_)) => {
+                let path = "imag.logging.modules".to_owned();
+                let ty = "Table";
+                Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
+            },
             Ok(None)    => {
                 // No modules configured. This is okay!
                 Ok(BTreeMap::new())

@@ -48,9 +48,9 @@ error_chain! {
             display("IO Error: Could not open logfile")
         }
 
-        ConfigTypeError {
+        ConfigTypeError(path: String, should_be_type: &'static str) {
             description("Error while reading the configuration: Type Error")
-            display("Error while reading the configuration: Type Error")
+            display("Type Error: '{}' should be '{}'", path, should_be_type)
         }
 
         GlobalLogLevelConfigMissing {
