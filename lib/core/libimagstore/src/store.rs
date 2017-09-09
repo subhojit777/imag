@@ -270,7 +270,7 @@ impl Store {
             }
 
             try!(backend.create_dir_all(&location)
-                 .chain_err(|| SEK::StorePathCreate)
+                 .chain_err(|| SEK::StorePathCreate(location.clone()))
                  .map_dbg_err_str("Failed"));
         } else if location.is_file() {
             debug!("Store path exists as file");

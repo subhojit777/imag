@@ -123,9 +123,9 @@ error_chain! {
             display("Store path exists: {:?}", pb)
         }
 
-        StorePathCreate         {
+        StorePathCreate(pb: PathBuf) {
             description("Store path create")
-            display("Store path create")
+            display("Store path create: {:?}", pb)
         }
 
         LockError               {
