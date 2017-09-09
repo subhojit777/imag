@@ -164,14 +164,9 @@ error_chain! {
             display("Encoding error")
         }
 
-        StorePathError          {
-            description("Store Path error")
-            display("Store Path error")
-        }
-
-        EntryRenameError        {
+        EntryRenameError(old: PathBuf, new: PathBuf) {
             description("Entry rename error")
-            display("Entry rename error")
+            display("Entry rename error: {:?} -> {:?}", old, new)
         }
 
         StoreIdHandlingError    {

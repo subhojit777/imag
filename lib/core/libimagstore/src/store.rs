@@ -756,7 +756,7 @@ impl Store {
             let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
 
             match self.backend.rename(&old_id_pb, &new_id_pb) {
-                Err(e) => return Err(e).chain_err(|| SEK::EntryRenameError),
+                Err(e) => return Err(e).chain_err(|| SEK::EntryRenameError(old_id_pb, new_id_pb)),
                 Ok(_) => {
                     debug!("Rename worked on filesystem");
 
