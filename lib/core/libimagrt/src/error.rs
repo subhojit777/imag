@@ -22,6 +22,11 @@ error_chain! {
         RuntimeError, RuntimeErrorKind, ResultExt, Result;
     }
 
+    foreign_links {
+        TomlError(::toml_query::error::Error);
+        HandlebarsTemplateError(::handlebars::TemplateError);
+    }
+
     errors {
         Instantiate {
             description("Could not instantiate")
@@ -43,14 +48,9 @@ error_chain! {
             display("IO Error: Could not open logfile")
         }
 
-        ConfigReadError {
-            description("Error while reading the configuration")
-            display("Error while reading the configuration")
-        }
-
-        ConfigTypeError {
+        ConfigTypeError(path: String, should_be_type: &'static str) {
             description("Error while reading the configuration: Type Error")
-            display("Error while reading the configuration: Type Error")
+            display("Type Error: '{}' should be '{}'", path, should_be_type)
         }
 
         GlobalLogLevelConfigMissing {
@@ -66,16 +66,6 @@ error_chain! {
         InvalidLogLevelSpec {
             description("Invalid log level specification: Only 'trace', 'debug', 'info', 'warn', 'error' are allowed")
             display("Invalid log level specification: Only 'trace', 'debug', 'info', 'warn', 'error' are allowed")
-        }
-
-        TomlReadError {
-            description("Error while reading in TOML document")
-            display("Error while reading in TOML document")
-        }
-
-        TemplateStringRegistrationError {
-            description("Error while registering logging template string")
-            display("Error while registering logging template string")
         }
 
         ConfigMissingLoggingFormatTrace {
