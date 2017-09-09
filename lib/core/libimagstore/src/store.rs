@@ -146,7 +146,7 @@ impl StoreEntry {
         #[cfg(feature = "fs-lock")]
         {
             try!(open_file(pb.clone())
-                .and_then(|f| f.lock_exclusive().chain_err(|| SEK::FileError))
+                .and_then(|f| f.lock_exclusive())
                 .chain_err(|| SEK::IoError));
         }
 
@@ -180,8 +180,8 @@ impl StoreEntry {
     fn write_entry(&mut self, entry: &Entry) -> Result<()> {
         if self.is_borrowed() {
             assert_eq!(self.id, entry.location);
-            self.file.write_file_content(entry)
-                .chain_err(|| SEK::FileError)
+            self.file
+                .write_file_content(entry)
                 .map(|_| ())
         } else {
             Ok(())
@@ -194,9 +194,8 @@ impl Drop for StoreEntry {
 
     fn drop(self) {
         self.get_entry()
-            .and_then(|entry| open_file(entry.get_location().clone()).chain_err(|| SEK::IoError))
-            .and_then(|f| f.unlock().chain_err(|| SEK::FileError))
-            .chain_err(|| SEK::IoError)
+            .and_then(|entry| open_file(entry.get_location().clone()))
+            .and_then(|f| f.unlock())
     }
 
 }
