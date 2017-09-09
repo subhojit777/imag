@@ -264,9 +264,6 @@ impl Store {
         debug!("Building new Store object");
         if !location.exists() {
             if !config_implicit_store_create_allowed(store_config.as_ref()) {
-                warn!("Implicitely creating store directory is denied");
-                warn!(" -> Either because configuration does not allow it");
-                warn!(" -> or because there is no configuration");
                 return Err(SE::from_kind(SEK::CreateStoreDirDenied))
                     .chain_err(|| SEK::FileError)
                     .chain_err(|| SEK::IoError);
