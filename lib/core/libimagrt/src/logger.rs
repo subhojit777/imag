@@ -374,21 +374,21 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Configuratio
                             Ok(Some(&Value::Array(ref a))) => translate_destinations(a).map(Some),
                             Ok(None)    => Ok(None),
                             Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
-                            Err(e)      => Err(e).chain_err(|| EK::TomlReadError),
+                            Err(e)      => Err(e).map_err(From::from),
                         });
 
                         let level = try!(match v.read("level") {
                             Ok(Some(&Value::String(ref s))) => match_log_level_str(s).map(Some),
                             Ok(None)    => Ok(None),
                             Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
-                            Err(e)      => Err(e).chain_err(|| EK::TomlReadError),
+                            Err(e)      => Err(e).map_err(From::from),
                         });
 
                         let enabled = try!(match v.read("enabled") {
                             Ok(Some(&Value::Boolean(b))) => Ok(b),
                             Ok(None)    => Ok(false),
                             Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError)),
-                            Err(e)      => Err(e).chain_err(|| EK::TomlReadError),
+                            Err(e)      => Err(e).map_err(From::from),
                         });
 
                         let module_settings = ModuleSettings {

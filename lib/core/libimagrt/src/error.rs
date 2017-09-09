@@ -23,6 +23,7 @@ error_chain! {
     }
 
     foreign_links {
+        TomlError(::toml_query::error::Error);
         HandlebarsTemplateError(::handlebars::TemplateError);
     }
 
@@ -70,11 +71,6 @@ error_chain! {
         InvalidLogLevelSpec {
             description("Invalid log level specification: Only 'trace', 'debug', 'info', 'warn', 'error' are allowed")
             display("Invalid log level specification: Only 'trace', 'debug', 'info', 'warn', 'error' are allowed")
-        }
-
-        TomlReadError {
-            description("Error while reading in TOML document")
-            display("Error while reading in TOML document")
         }
 
         ConfigMissingLoggingFormatTrace {
