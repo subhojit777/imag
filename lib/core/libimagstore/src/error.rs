@@ -184,9 +184,9 @@ error_chain! {
             display("Building StoreId from full file path failed")
         }
 
-        StoreIdHasNoBaseError   {
+        StoreIdHasNoBaseError(pb: PathBuf) {
             description("StoreId has no 'base' part")
-            display("StoreId has no 'base' part")
+            display("StoreId has no 'base' part: {:?}", pb)
         }
 
         CreateCallError            {

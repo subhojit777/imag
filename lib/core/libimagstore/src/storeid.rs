@@ -89,8 +89,9 @@ impl StoreId {
 
     /// Transform the StoreId object into a PathBuf, error if the base of the StoreId is not
     /// specified.
-    pub fn into_pathbuf(self) -> Result<PathBuf> {
-        let mut base = try!(self.base.ok_or(SEK::StoreIdHasNoBaseError));
+    pub fn into_pathbuf(mut self) -> Result<PathBuf> {
+        let base = self.base.take();
+        let mut base = try!(base.ok_or_else(|| SEK::StoreIdHasNoBaseError(self.id.clone())));
         base.push(self.id);
         Ok(base)
     }
@@ -346,7 +347,7 @@ mod test {
         let pb = id.unwrap().into_pathbuf();
         assert!(pb.is_err());
 
-        assert!(is_match!(pb.unwrap_err().kind(), &SEK::StoreIdHasNoBaseError));
+        assert!(is_match!(pb.unwrap_err().kind(), &SEK::StoreIdHasNoBaseError(_)));
     }
 
     #[test]
