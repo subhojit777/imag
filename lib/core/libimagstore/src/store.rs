@@ -554,7 +554,9 @@ impl Store {
             Ok(e) => e,
         };
 
-        let se = try!(hsmap.get_mut(&entry.location).ok_or(SE::from_kind(SEK::IdNotFound)));
+        let se = try!(hsmap.get_mut(&entry.location).ok_or_else(|| {
+            SE::from_kind(SEK::IdNotFound(entry.location.clone()))
+        }));
 
         assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 

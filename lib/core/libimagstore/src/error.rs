@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use storeid::StoreId;
+
 error_chain! {
     types {
         StoreError, StoreErrorKind, ResultExt, Result;
@@ -69,9 +71,9 @@ error_chain! {
             display("ID locked")
         }
 
-        IdNotFound              {
+        IdNotFound(sid: StoreId) {
             description("ID not found")
-            display("ID not found")
+            display("ID not found: {}", sid)
         }
 
         OutOfMemory             {
