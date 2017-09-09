@@ -376,10 +376,10 @@ mod tests {
     }
 
     fn get_entry_links<'a>(entry: &'a FileLockEntry<'a>) -> TomlQueryResult<&'a Value> {
-        match entry.get_header().read(&"imag.links".to_owned()) {
+        match entry.get_header().read(&"links.internal".to_owned()) {
             Err(e) => Err(e),
             Ok(Some(v)) => Ok(v),
-            Ok(None) => panic!("Didn't find 'imag.links' in {:?}", entry),
+            Ok(None) => panic!("Didn't find 'links' in {:?}", entry),
         }
     }
 
