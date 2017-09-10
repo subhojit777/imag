@@ -17,6 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::path::PathBuf;
+
+use storeid::StoreId;
+
 error_chain! {
     types {
         StoreError, StoreErrorKind, ResultExt, Result;
@@ -25,6 +29,7 @@ error_chain! {
     foreign_links {
         Io(::std::io::Error);
         TomlDeserError(::toml::de::Error);
+        GlobPatternError(::glob::PatternError);
     }
 
     errors {
@@ -69,14 +74,9 @@ error_chain! {
             display("ID locked")
         }
 
-        IdNotFound              {
+        IdNotFound(sid: StoreId) {
             description("ID not found")
-            display("ID not found")
-        }
-
-        OutOfMemory             {
-            description("Out of Memory")
-            display("Out of Memory")
+            display("ID not found: {}", sid)
         }
 
         FileNotFound            {
@@ -119,14 +119,14 @@ error_chain! {
             display("Directory/Directories could not be created")
         }
 
-        StorePathExists         {
+        StorePathExists(pb: PathBuf) {
             description("Store path exists")
-            display("Store path exists")
+            display("Store path exists: {:?}", pb)
         }
 
-        StorePathCreate         {
+        StorePathCreate(pb: PathBuf) {
             description("Store path create")
-            display("Store path create")
+            display("Store path create: {:?}", pb)
         }
 
         LockError               {
@@ -139,14 +139,14 @@ error_chain! {
             display("The internal Store Lock has been poisoned")
         }
 
-        EntryAlreadyBorrowed    {
+        EntryAlreadyBorrowed(id: StoreId) {
             description("Entry is already borrowed")
-            display("Entry is already borrowed")
+            display("Entry is already borrowed: {:?}", id)
         }
 
-        EntryAlreadyExists      {
+        EntryAlreadyExists(id: StoreId) {
             description("Entry already exists")
-            display("Entry already exists")
+            display("Entry already exists: {:?}", id)
         }
 
         MalformedEntry          {
@@ -154,34 +154,9 @@ error_chain! {
             display("Entry has invalid formatting, missing header")
         }
 
-        HeaderPathSyntaxError   {
-            description("Syntax error in accessor string")
-            display("Syntax error in accessor string")
-        }
-
-        HeaderPathTypeFailure   {
-            description("Header has wrong type for path")
-            display("Header has wrong type for path")
-        }
-
-        HeaderKeyNotFound       {
-            description("Header Key not found")
-            display("Header Key not found")
-        }
-
         HeaderTypeFailure       {
             description("Header type is wrong")
             display("Header type is wrong")
-        }
-
-        StorePathLacksVersion   {
-            description("The supplied store path has no version part")
-            display("The supplied store path has no version part")
-        }
-
-        GlobError               {
-            description("glob() error")
-            display("glob() error")
         }
 
         EncodingError           {
@@ -189,14 +164,9 @@ error_chain! {
             display("Encoding error")
         }
 
-        StorePathError          {
-            description("Store Path error")
-            display("Store Path error")
-        }
-
-        EntryRenameError        {
+        EntryRenameError(old: PathBuf, new: PathBuf) {
             description("Entry rename error")
-            display("Entry rename error")
+            display("Entry rename error: {:?} -> {:?}", old, new)
         }
 
         StoreIdHandlingError    {
@@ -204,9 +174,9 @@ error_chain! {
             display("StoreId handling error")
         }
 
-        StoreIdLocalPartAbsoluteError {
+        StoreIdLocalPartAbsoluteError(pb: PathBuf) {
             description("StoreId 'id' part is absolute (starts with '/') which is not allowed")
-            display("StoreId 'id' part is absolute (starts with '/') which is not allowed")
+            display("StoreId 'id' part is absolute (starts with '/') which is not allowed: {:?}", pb)
         }
 
         StoreIdBuildFromFullPathError {
@@ -214,9 +184,9 @@ error_chain! {
             display("Building StoreId from full file path failed")
         }
 
-        StoreIdHasNoBaseError   {
+        StoreIdHasNoBaseError(pb: PathBuf) {
             description("StoreId has no 'base' part")
-            display("StoreId has no 'base' part")
+            display("StoreId has no 'base' part: {:?}", pb)
         }
 
         CreateCallError            {
@@ -270,11 +240,6 @@ error_chain! {
         }
 
         // Parser-related errors
-
-        TOMLParserErrors    {
-            description("Several TOML-Parser-Errors")
-            display("Several TOML-Parser-Errors")
-        }
 
         MissingMainSection  {
             description("Missing main section")

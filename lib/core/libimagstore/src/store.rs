@@ -146,7 +146,7 @@ impl StoreEntry {
         #[cfg(feature = "fs-lock")]
         {
             try!(open_file(pb.clone())
-                .and_then(|f| f.lock_exclusive().chain_err(|| SEK::FileError))
+                .and_then(|f| f.lock_exclusive())
                 .chain_err(|| SEK::IoError));
         }
 
@@ -173,15 +173,15 @@ impl StoreEntry {
                     Err(err)
                 })
         } else {
-            Err(SE::from_kind(SEK::EntryAlreadyBorrowed))
+            Err(SE::from_kind(SEK::EntryAlreadyBorrowed(self.id.clone())))
         }
     }
 
     fn write_entry(&mut self, entry: &Entry) -> Result<()> {
         if self.is_borrowed() {
             assert_eq!(self.id, entry.location);
-            self.file.write_file_content(entry)
-                .chain_err(|| SEK::FileError)
+            self.file
+                .write_file_content(entry)
                 .map(|_| ())
         } else {
             Ok(())
@@ -194,9 +194,8 @@ impl Drop for StoreEntry {
 
     fn drop(self) {
         self.get_entry()
-            .and_then(|entry| open_file(entry.get_location().clone()).chain_err(|| SEK::IoError))
-            .and_then(|f| f.unlock().chain_err(|| SEK::FileError))
-            .chain_err(|| SEK::IoError)
+            .and_then(|entry| open_file(entry.get_location().clone()))
+            .and_then(|f| f.unlock())
     }
 
 }
@@ -244,12 +243,7 @@ impl Store {
     /// # Return values
     ///
     /// - On success: Store object
-    /// - On Failure:
-    ///   - ConfigurationError if config is faulty
-    ///   - IoError(FileError(CreateStoreDirDenied())) if store location does not exist and creating
-    ///     is denied
-    ///   - StorePathCreate(_) if creating the store directory failed
-    ///   - StorePathExists() if location exists but is a file
+    ///
     pub fn new(location: PathBuf, store_config: Option<Value>) -> Result<Store> {
         let backend = Box::new(FSFileAbstraction::new());
         Store::new_with_backend(location, store_config, backend)
@@ -270,20 +264,17 @@ impl Store {
         debug!("Building new Store object");
         if !location.exists() {
             if !config_implicit_store_create_allowed(store_config.as_ref()) {
-                warn!("Implicitely creating store directory is denied");
-                warn!(" -> Either because configuration does not allow it");
-                warn!(" -> or because there is no configuration");
                 return Err(SE::from_kind(SEK::CreateStoreDirDenied))
                     .chain_err(|| SEK::FileError)
                     .chain_err(|| SEK::IoError);
             }
 
             try!(backend.create_dir_all(&location)
-                 .chain_err(|| SEK::StorePathCreate)
+                 .chain_err(|| SEK::StorePathCreate(location.clone()))
                  .map_dbg_err_str("Failed"));
         } else if location.is_file() {
             debug!("Store path exists as file");
-            return Err(SE::from_kind(SEK::StorePathExists));
+            return Err(SE::from_kind(SEK::StorePathExists(location)));
         }
 
         let store = Store {
@@ -413,7 +404,8 @@ impl Store {
 
             if hsmap.contains_key(&id) {
                 debug!("Cannot create, internal cache already contains: '{}'", id);
-                return Err(SE::from_kind(SEK::EntryAlreadyExists)).chain_err(|| SEK::CreateCallError);
+                return Err(SE::from_kind(SEK::EntryAlreadyExists(id.clone())))
+                           .chain_err(|| SEK::CreateCallError);
             }
             hsmap.insert(id.clone(), {
                 debug!("Creating: '{}'", id);
@@ -515,10 +507,9 @@ impl Store {
             .and_then(|path| {
                 let path = [ path, "/**/*" ].join("");
                 debug!("glob()ing with '{}'", path);
-                glob(&path[..]).chain_err(|| SEK::GlobError)
+                glob(&path[..]).map_err(From::from)
             })
             .map(|paths| GlobStoreIdIterator::new(paths, self.path().clone()).into())
-            .chain_err(|| SEK::GlobError)
             .chain_err(|| SEK::RetrieveForModuleCallError)
     }
 
@@ -563,7 +554,9 @@ impl Store {
             Ok(e) => e,
         };
 
-        let se = try!(hsmap.get_mut(&entry.location).ok_or(SE::from_kind(SEK::IdNotFound)));
+        let se = try!(hsmap.get_mut(&entry.location).ok_or_else(|| {
+            SE::from_kind(SEK::IdNotFound(entry.location.clone()))
+        }));
 
         assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 
@@ -682,7 +675,8 @@ impl Store {
         );
 
         if hsmap.contains_key(&new_id) {
-            return Err(SE::from_kind(SEK::EntryAlreadyExists)).chain_err(|| SEK::MoveCallError)
+            return Err(SE::from_kind(SEK::EntryAlreadyExists(new_id.clone())))
+                .chain_err(|| SEK::MoveCallError)
         }
 
         let old_id = entry.get_location().clone();
@@ -748,21 +742,21 @@ impl Store {
             };
 
             if hsmap.contains_key(&new_id) {
-                return Err(SE::from_kind(SEK::EntryAlreadyExists));
+                return Err(SE::from_kind(SEK::EntryAlreadyExists(new_id.clone())));
             }
 
             // if we do not have an entry here, we fail in `FileAbstraction::rename()` below.
             // if we have one, but it is borrowed, we really should not rename it, as this might
             // lead to strange errors
             if hsmap.get(&old_id).map(|e| e.is_borrowed()).unwrap_or(false) {
-                return Err(SE::from_kind(SEK::EntryAlreadyBorrowed));
+                return Err(SE::from_kind(SEK::EntryAlreadyBorrowed(old_id.clone())));
             }
 
             let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
             let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
 
             match self.backend.rename(&old_id_pb, &new_id_pb) {
-                Err(e) => return Err(e).chain_err(|| SEK::EntryRenameError),
+                Err(e) => return Err(e).chain_err(|| SEK::EntryRenameError(old_id_pb, new_id_pb)),
                 Ok(_) => {
                     debug!("Rename worked on filesystem");
 
@@ -1146,7 +1140,7 @@ impl Header for Value {
         use toml::de::from_str;
 
         from_str(s)
-            .chain_err(|| SEK::TOMLParserErrors)
+            .map_err(From::from)
             .and_then(verify_header_consistency)
             .map(Value::Table)
     }

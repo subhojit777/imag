@@ -84,7 +84,7 @@ impl CategoryRegister for Store {
                     .chain_err(|| CEK::HeaderWriteError)
                     .chain_err(|| CEK::StoreWriteError)
             }
-            Err(store_error) => if is_match!(store_error.kind(), &SEK::EntryAlreadyExists) {
+            Err(store_error) => if is_match!(store_error.kind(), &SEK::EntryAlreadyExists(_)) {
                 Ok(false)
             } else {
                 Err(store_error).chain_err(|| CEK::StoreWriteError)
