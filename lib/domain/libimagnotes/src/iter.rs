@@ -17,39 +17,34 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#![recursion_limit="256"]
+use libimagstore::storeid::StoreId;
+use libimagstore::storeid::StoreIdIterator;
 
-#![deny(
-    dead_code,
-    non_camel_case_types,
-    non_snake_case,
-    path_statements,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_allocation,
-    unused_import_braces,
-    unused_imports,
-    unused_must_use,
-    unused_mut,
-    unused_qualifications,
-    while_true,
-)]
+use notestoreid::*;
 
-#[macro_use] extern crate log;
-extern crate toml;
-extern crate toml_query;
-#[macro_use] extern crate error_chain;
+#[derive(Debug)]
+pub struct NoteIterator(StoreIdIterator);
 
-extern crate libimagrt;
-#[macro_use] extern crate libimagstore;
-extern crate libimagerror;
-extern crate libimagentryedit;
+impl NoteIterator {
 
-module_entry_path_mod!("notes");
+    pub fn new(iditer: StoreIdIterator) -> NoteIterator {
+        NoteIterator(iditer)
+    }
 
-pub mod error;
-pub mod note;
-pub mod notestore;
-pub mod notestoreid;
-pub mod iter;
+}
+
+impl Iterator for NoteIterator {
+    type Item = StoreId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(n) = self.0.next() {
+            if n.is_note_id() {
+                return Some(n);
+            }
+        }
+
+        None
+    }
+
+}
 

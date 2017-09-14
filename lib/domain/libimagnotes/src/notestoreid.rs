@@ -17,39 +17,16 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#![recursion_limit="256"]
+use libimagstore::storeid::StoreId;
 
-#![deny(
-    dead_code,
-    non_camel_case_types,
-    non_snake_case,
-    path_statements,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_allocation,
-    unused_import_braces,
-    unused_imports,
-    unused_must_use,
-    unused_mut,
-    unused_qualifications,
-    while_true,
-)]
+pub trait NoteStoreId {
+    fn is_note_id(&self) -> bool;
+}
 
-#[macro_use] extern crate log;
-extern crate toml;
-extern crate toml_query;
-#[macro_use] extern crate error_chain;
+impl NoteStoreId for StoreId {
+    fn is_note_id(&self) -> bool {
+        self.is_in_collection(&["notes"])
+    }
+}
 
-extern crate libimagrt;
-#[macro_use] extern crate libimagstore;
-extern crate libimagerror;
-extern crate libimagentryedit;
-
-module_entry_path_mod!("notes");
-
-pub mod error;
-pub mod note;
-pub mod notestore;
-pub mod notestoreid;
-pub mod iter;
 
