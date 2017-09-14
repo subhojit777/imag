@@ -17,7 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::str::FromStr;
+use std::process::exit;
 
 use clap::ArgMatches;
 use chrono::naive::NaiveDateTime;
@@ -28,6 +28,9 @@ use libimagtimetrack::tag::TimeTrackingTag;
 use libimagtimetrack::timetrackingstore::TimeTrackStore;
 use libimagerror::trace::MapErrTrace;
 
+const DATE_TIME_PARSE_FMT : &'static str    = "%Y-%m-%dT%H:%M:%S";
+const DATE_PARSE_FMT : &'static str         = "%Y-%m-%d";
+
 pub fn track(rt: &Runtime) -> i32 {
     let (_, cmd) = rt.cli().subcommand();
     let cmd = cmd.unwrap(); // checked in main()
@@ -35,18 +38,30 @@ pub fn track(rt: &Runtime) -> i32 {
     // Gets the appropriate time from the commandline or None on error (errors already logged, so
     // callee can directly return in case of error
     fn get_time(cmd: &ArgMatches, clap_name: &str, errname: &str) -> Option<NaiveDateTime> {
-        let val = cmd
-            .value_of(clap_name)
-            .map(::chrono::naive::NaiveDateTime::from_str)
-            .unwrap(); // clap has our back
+        match cmd.value_of(clap_name) {
+            Some("now") => Some(::chrono::offset::Local::now().naive_local()),
+            Some(els) => {
+                match ::chrono::naive::NaiveDateTime::parse_from_str(els, DATE_TIME_PARSE_FMT) {
+                    Ok(ndt) => Some(ndt),
+                    Err(e_ndt) => {
+                        match ::chrono::naive::NaiveDate::parse_from_str(els, DATE_PARSE_FMT) {
+                            Ok(ndt) => Some(ndt.and_hms(0, 0, 0)),
+                            Err(e_nd) => {
+                                error!("Cannot parse date {}:", errname);
+                                trace_error(&e_nd);
 
-        match val {
-            Ok(ndt) => Some(ndt),
-            Err(e)  => {
-                trace_error(&e);
-                error!("Cannot continue, not having {} time", errname);
-                None
-            },
+                                error!("Cannot parse date-time {}:", errname);
+                                trace_error(&e_ndt);
+                                exit(1)
+                            }
+                        }
+                    }
+                }
+            }
+            None => {
+                error!("Not specified in commandline: {}", clap_name);
+                exit(1)
+            }
         }
     }
 
@@ -55,7 +70,7 @@ pub fn track(rt: &Runtime) -> i32 {
         None    => return 1,
     };
 
-    let stop = match get_time(&cmd, "stop-time", "stop") {
+    let stop = match get_time(&cmd, "end-time", "stop") {
         Some(t) => t,
         None    => return 1,
     };
