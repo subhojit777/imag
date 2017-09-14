@@ -29,6 +29,9 @@ This section contains the changelog from the last release to the next release.
     * The error handling of the whole codebase is based on the `error_chain`
       now. `libimagerror` only contains convenience functionality, no
       error-generating macros or such things anymore.
+    * `imag-diary` can now use a configuration in the imagrc.toml file where for
+      each diary there is a config whether entries should be created minutely or
+      hourly (or daily, which is when specifying nothing).
 * New
     * `libimagentrygps` was introduced
 * Fixed bugs
