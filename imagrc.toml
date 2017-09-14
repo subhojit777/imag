@@ -76,3 +76,9 @@ readline_prompt = ">> "
 # lives implicitely
 implicit-create = false
 
+[diary]
+default_diary = "default"
+
+[diary.diaries.default]
+timed = "minutely"
+

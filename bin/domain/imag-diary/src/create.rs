@@ -17,8 +17,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::process::exit;
-
 use clap::ArgMatches;
 
 use libimagdiary::diary::Diary;
@@ -28,11 +26,14 @@ use libimagdiary::error::ResultExt;
 use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error_exit;
+use libimagerror::trace::MapErrTrace;
 use libimagutil::warn_exit::warn_exit;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 
 use util::get_diary_name;
+use util::get_diary_timed_config;
+use util::Timed;
 
 pub fn create(rt: &Runtime) {
     let diaryname = get_diary_name(rt)
@@ -57,13 +58,33 @@ pub fn create(rt: &Runtime) {
 }
 
 fn create_entry<'a>(diary: &'a Store, diaryname: &str, rt: &Runtime) -> FileLockEntry<'a> {
+    use util::parse_timed_string;
+
     let create = rt.cli().subcommand_matches("create").unwrap();
-    let entry  = if !create.is_present("timed") {
-        debug!("Creating non-timed entry");
-        diary.new_entry_today(diaryname)
-    } else {
-        let id = create_id_from_clispec(&create, &diaryname);
-        diary.retrieve(id).chain_err(|| DEK::StoreReadError)
+
+    let create_timed = create.value_of("timed")
+        .map(|t| parse_timed_string(t, diaryname).map_err_trace_exit(1).unwrap())
+        .map(Some)
+        .unwrap_or_else(|| match get_diary_timed_config(rt, diaryname) {
+            Err(e)      => trace_error_exit(&e, 1),
+            Ok(Some(t)) => Some(t),
+            Ok(None)    => {
+                warn!("Missing config: 'diary.diaries.{}.timed'", diaryname);
+                warn!("Assuming 'false'");
+                None
+            }
+        });
+
+    let entry = match create_timed {
+        Some(timed) => {
+            let id = create_id_from_clispec(&create, &diaryname, timed);
+            diary.retrieve(id).chain_err(|| DEK::StoreReadError)
+        },
+
+        None => {
+            debug!("Creating non-timed entry");
+            diary.new_entry_today(diaryname)
+        }
     };
 
     match entry {
@@ -76,7 +97,7 @@ fn create_entry<'a>(diary: &'a Store, diaryname: &str, rt: &Runtime) -> FileLock
 }
 
 
-fn create_id_from_clispec(create: &ArgMatches, diaryname: &str) -> DiaryId {
+fn create_id_from_clispec(create: &ArgMatches, diaryname: &str, timed_type: Timed) -> DiaryId {
     use std::str::FromStr;
 
     let get_hourly_id = |create: &ArgMatches| -> DiaryId {
@@ -94,13 +115,13 @@ fn create_id_from_clispec(create: &ArgMatches, diaryname: &str) -> DiaryId {
         time.with_hour(hr)
     };
 
-    match create.value_of("timed") {
-        Some("h") | Some("hourly") => {
+    match timed_type {
+        Timed::Hourly => {
             debug!("Creating hourly-timed entry");
             get_hourly_id(create)
         },
 
-        Some("m") | Some("minutely") => {
+        Timed::Minutely => {
             let time = get_hourly_id(create);
             let min = create
                 .value_of("minute")
@@ -114,14 +135,6 @@ fn create_id_from_clispec(create: &ArgMatches, diaryname: &str) -> DiaryId {
 
             time.with_minute(min)
         },
-
-        Some(_) => {
-            warn!("Timed creation failed: Unknown spec '{}'",
-                  create.value_of("timed").unwrap());
-            exit(1);
-        },
-
-        None => warn_exit("Unexpected error, cannot continue", 1)
     }
 }
 

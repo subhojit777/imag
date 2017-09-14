@@ -36,6 +36,8 @@
 #[macro_use] extern crate version;
 extern crate clap;
 extern crate chrono;
+extern crate toml;
+extern crate toml_query;
 
 extern crate libimagdiary;
 extern crate libimagentryedit;
