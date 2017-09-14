@@ -28,17 +28,17 @@ extern crate libimagentryedit;
 extern crate libimagerror;
 extern crate libimagutil;
 
-use std::process::exit;
-
 use itertools::Itertools;
 
 use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagnotes::note::Note;
-use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagnotes::notestore::*;
+use libimagerror::trace::MapErrTrace;
 use libimagutil::info_result::*;
 use libimagutil::warn_result::WarnResult;
+
 
 mod ui;
 use ui::build_ui;
@@ -71,49 +71,54 @@ fn name_from_cli(rt: &Runtime, subcmd: &str) -> String {
 
 fn create(rt: &Runtime) {
     let name = name_from_cli(rt, "create");
-    Note::new(rt.store(), name.clone(), String::new()).map_err_trace().ok();
+    let mut note = rt
+        .store()
+        .new_note(name.clone(), String::new())
+        .map_err_trace_exit(1)
+        .unwrap();
 
-    if rt.cli().subcommand_matches("create").unwrap().is_present("edit") &&
-            !edit_entry(rt, name) {
-        exit(1);
+    if rt.cli().subcommand_matches("create").unwrap().is_present("edit") {
+        let _ = note
+            .edit_content(rt)
+            .map_warn_err_str("Editing failed")
+            .map_err_trace_exit(1);
     }
 }
 
 fn delete(rt: &Runtime) {
-    Note::delete(rt.store(), String::from(name_from_cli(rt, "delete")))
-        .map_err_trace()
+    let _ = rt.store()
+        .delete_note(name_from_cli(rt, "delete"))
         .map_info_str("Ok")
-        .ok();
+        .map_err_trace_exit(1);
 }
 
 fn edit(rt: &Runtime) {
-    edit_entry(rt, name_from_cli(rt, "edit"));
-}
-
-fn edit_entry(rt: &Runtime, name: String) -> bool {
-    let mut note = match Note::get(rt.store(), name) {
-        Ok(Some(note)) => note,
-        Ok(None) => {
-            warn!("Cannot edit nonexistent Note");
-            return false
-        },
-        Err(e) => {
-            trace_error(&e);
-            warn!("Cannot edit nonexistent Note");
-            return false
-        },
-    };
-
-    note.edit_content(rt).map_err_trace().map_warn_err_str("Editing failed").is_ok()
+    let name = name_from_cli(rt, "edit");
+    let _ = rt
+        .store()
+        .get_note(name.clone())
+        .map_err_trace_exit(1)
+        .unwrap()
+        .map(|mut note| {
+            let _ = note
+                .edit_content(rt)
+                .map_warn_err_str("Editing failed")
+                .map_err_trace_exit(1);
+        })
+        .unwrap_or_else(|| {
+            error!("Cannot find note with name '{}'", name);
+        });
 }
 
 fn list(rt: &Runtime) {
     use std::cmp::Ordering;
 
-    Note::all_notes(rt.store())
+    rt.store()
+        .all_notes()
         .map_err_trace_exit(1)
         .map(|iter| {
-            let notes = iter.filter_map(|note| note.map_err_trace().ok())
+            let notes = iter
+                .filter_map(|noteid| rt.store().get(noteid).map_err_trace_exit(1).unwrap())
                 .sorted_by(|note_a, note_b| {
                     if let (Ok(a), Ok(b)) = (note_a.get_name(), note_b.get_name()) {
                         return a.cmp(&b)
