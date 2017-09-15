@@ -58,6 +58,8 @@ This section contains the changelog from the last release to the next release.
     * The "toml-query" dependency was updated to 0.3.1
     * `imag-timetrack track` is now able to parse "now", date-only start/stop
       dates and date-time start/stop times.
+    * `libimagnotes` does not longer wrap store types but extend them.
+
 * Stats
 
 ## 0.3.0
