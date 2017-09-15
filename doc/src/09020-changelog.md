@@ -56,6 +56,8 @@ This section contains the changelog from the last release to the next release.
     * We compile with rustc 1.17, 1.18, .., nightly
     * The `imag-store` binary now uses positional arguments in its CLI
     * The "toml-query" dependency was updated to 0.3.1
+    * `imag-timetrack track` is now able to parse "now", date-only start/stop
+      dates and date-time start/stop times.
 * Stats
 
 ## 0.3.0
