@@ -82,3 +82,6 @@ default_diary = "default"
 [diary.diaries.default]
 timed = "minutely"
 
+[bookmark]
+default_collection = "default"
+
