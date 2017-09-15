@@ -69,7 +69,7 @@ impl Link for Entry {
 
     fn get_link_uri_from_filelockentry(&self) -> Result<Option<Url>> {
         self.get_header()
-            .read("links.external.url")
+            .read("links.external.content.url")
             .chain_err(|| LEK::EntryHeaderReadError)
             .and_then(|opt| match opt {
                 Some(&Value::String(ref s)) => {
