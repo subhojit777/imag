@@ -160,7 +160,9 @@ pub mod iter {
             use super::is_external_link_storeid;
 
             while let Some(elem) = self.0.next() {
+                trace!("Check whether is external: {:?}", elem);
                 if !(self.1 ^ is_external_link_storeid(&elem)) {
+                    trace!("Is external id: {:?}", elem);
                     return Some(elem);
                 }
             }
@@ -270,6 +272,7 @@ pub mod iter {
                                 debug!("Store::retrieve({:?}) succeeded", id);
                                 debug!("getting external link from file now");
                                 f.get_link_uri_from_filelockentry()
+                                    .map_dbg_str("Error happened while getting link URI from FLE")
                                     .map_dbg_err(|e| format!("URL -> Err = {:?}", e))
                             })
                     });
