@@ -2,6 +2,7 @@
 members = [
     ".imag-documentation",
     "bin/core/imag",
+    "bin/core/imag-grep",
     "bin/core/imag-link",
     "bin/core/imag-ref",
     "bin/core/imag-store",

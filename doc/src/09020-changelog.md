@@ -34,6 +34,7 @@ This section contains the changelog from the last release to the next release.
       hourly (or daily, which is when specifying nothing).
 * New
     * `libimagentrygps` was introduced
+    * `imag-grep` was introduced
 * Fixed bugs
     * The config loading in `libimagrt`
     [was fixed](http://git.imag-pim.org/imag/commit/?id=9193d50f96bce099665d2eb716bcaa29a8d9b8ff).
