@@ -17,110 +17,79 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-pub mod create {
-    use storeid::StoreIdIterator;
-    use store::FileLockEntry;
-    use store::Store;
-    use error::Result;
+macro_rules! mk_iterator_mod {
+    {
+        modname   = $modname:ident,
+        itername  = $itername:ident,
+        iteryield = $yield:ty,
+        extname   = $extname:ident,
+        extfnname = $extfnname:ident,
+        fun       = $fun:expr
+    } => {
+        pub mod $modname {
+            use storeid::StoreIdIterator;
+            use storeid::StoreId;
+            #[allow(unused_imports)]
+            use store::FileLockEntry;
+            use store::Store;
+            use error::Result;
 
-    pub struct StoreCreateIterator<'a>(StoreIdIterator, &'a Store);
+            pub struct $itername<'a>(StoreIdIterator, &'a Store);
 
-    impl<'a> Iterator for StoreCreateIterator<'a> {
-        type Item = Result<FileLockEntry<'a>>;
+            impl<'a> Iterator for $itername<'a> {
+                type Item = Result<$yield>;
 
-        fn next(&mut self) -> Option<Self::Item> {
-            self.0.next().map(|id| self.1.create(id))
-        }
-    }
+                fn next(&mut self) -> Option<Self::Item> {
+                    self.0.next().map(|id| $fun(id, self.1))
+                }
+            }
 
-    pub trait StoreIdCreateIteratorExtension<'a> {
-        fn into_create_iter(self, store: &'a Store) -> StoreCreateIterator<'a>;
-    }
+            pub trait $extname<'a> {
+                fn $extfnname(self, store: &'a Store) -> $itername<'a>;
+            }
 
-    impl<'a> StoreIdCreateIteratorExtension<'a> for StoreIdIterator {
-        fn into_create_iter(self, store: &'a Store) -> StoreCreateIterator<'a> {
-            StoreCreateIterator(self, store)
-        }
-    }
-}
-
-pub mod delete {
-    use storeid::StoreIdIterator;
-    use store::Store;
-    use error::Result;
-
-    pub struct StoreDeleteIterator<'a>(StoreIdIterator, &'a Store);
-
-    impl<'a> Iterator for StoreDeleteIterator<'a> {
-        type Item = Result<()>;
-
-        fn next(&mut self) -> Option<Self::Item> {
-            self.0.next().map(|id| self.1.delete(id))
-        }
-    }
-
-    pub trait StoreIdDeleteIteratorExtension<'a> {
-        fn into_delete_iter(self, store: &'a Store) -> StoreDeleteIterator<'a>;
-    }
-
-    impl<'a> StoreIdDeleteIteratorExtension<'a> for StoreIdIterator {
-        fn into_delete_iter(self, store: &'a Store) -> StoreDeleteIterator<'a> {
-            StoreDeleteIterator(self, store)
+            impl<'a> $extname<'a> for StoreIdIterator {
+                fn $extfnname(self, store: &'a Store) -> $itername<'a> {
+                    $itername(self, store)
+                }
+            }
         }
     }
 }
 
-pub mod get {
-    use storeid::StoreIdIterator;
-    use store::FileLockEntry;
-    use store::Store;
-    use error::Result;
-
-    pub struct StoreGetIterator<'a>(StoreIdIterator, &'a Store);
-
-    impl<'a> Iterator for StoreGetIterator<'a> {
-        type Item = Result<Option<FileLockEntry<'a>>>;
-
-        fn next(&mut self) -> Option<Self::Item> {
-            self.0.next().map(|id| self.1.get(id))
-        }
-    }
-
-    pub trait StoreIdGetIteratorExtension<'a> {
-        fn into_get_iter(self, store: &'a Store) -> StoreGetIterator<'a>;
-    }
-
-    impl<'a> StoreIdGetIteratorExtension<'a> for StoreIdIterator {
-        fn into_get_iter(self, store: &'a Store) -> StoreGetIterator<'a> {
-            StoreGetIterator(self, store)
-        }
-    }
+mk_iterator_mod! {
+    modname   = create,
+    itername  = StoreCreateIterator,
+    iteryield = FileLockEntry<'a>,
+    extname   = StoreIdCreateIteratorExtension,
+    extfnname = into_create_iter,
+    fun       = |id: StoreId, store: &'a Store| store.create(id)
 }
 
-pub mod retrieve {
-    use storeid::StoreIdIterator;
-    use store::FileLockEntry;
-    use store::Store;
-    use error::Result;
+mk_iterator_mod! {
+    modname   = delete,
+    itername  = StoreDeleteIterator,
+    iteryield = (),
+    extname   = StoreIdDeleteIteratorExtension,
+    extfnname = into_delete_iter,
+    fun       = |id: StoreId, store: &'a Store| store.delete(id)
+}
 
-    pub struct StoreRetrieveIterator<'a>(StoreIdIterator, &'a Store);
+mk_iterator_mod! {
+    modname   = get,
+    itername  = StoreGetIterator,
+    iteryield = Option<FileLockEntry<'a>>,
+    extname   = StoreIdGetIteratorExtension,
+    extfnname = into_get_iter,
+    fun       = |id: StoreId, store: &'a Store| store.get(id)
+}
 
-    impl<'a> Iterator for StoreRetrieveIterator<'a> {
-        type Item = Result<FileLockEntry<'a>>;
-
-        fn next(&mut self) -> Option<Self::Item> {
-            self.0.next().map(|id| self.1.retrieve(id))
-        }
-    }
-
-    pub trait StoreIdRetrieveIteratorExtension<'a> {
-        fn into_retrieve_iter(self, store: &'a Store) -> StoreRetrieveIterator<'a>;
-    }
-
-    impl<'a> StoreIdRetrieveIteratorExtension<'a> for StoreIdIterator {
-        fn into_retrieve_iter(self, store: &'a Store) -> StoreRetrieveIterator<'a> {
-            StoreRetrieveIterator(self, store)
-        }
-    }
+mk_iterator_mod! {
+    modname   = retrieve,
+    itername  = StoreRetrieveIterator,
+    iteryield = FileLockEntry<'a>,
+    extname   = StoreIdRetrieveIteratorExtension,
+    extfnname = into_retrieve_iter,
+    fun       = |id: StoreId, store: &'a Store| store.retrieve(id)
 }
 
