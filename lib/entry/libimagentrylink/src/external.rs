@@ -414,3 +414,37 @@ impl ExternalLinker for Entry {
 
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    use libimagstore::store::Store;
+
+    fn setup_logging() {
+        use env_logger;
+        let _ = env_logger::init().unwrap_or(());
+    }
+
+    pub fn get_store() -> Store {
+        use libimagstore::file_abstraction::InMemoryFileAbstraction;
+        let backend = Box::new(InMemoryFileAbstraction::new());
+        Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+    }
+
+
+    #[test]
+    fn test_simple() {
+        setup_logging();
+        let store = get_store();
+        let mut e = store.retrieve(PathBuf::from("base-test_simple")).unwrap();
+        let url   = Url::parse("http://google.de").unwrap();
+
+        assert!(e.add_external_link(&store, url.clone()).is_ok());
+
+        assert_eq!(1, e.get_external_links(&store).unwrap().count());
+        assert_eq!(url, e.get_external_links(&store).unwrap().next().unwrap().unwrap());
+    }
+
+}
+
