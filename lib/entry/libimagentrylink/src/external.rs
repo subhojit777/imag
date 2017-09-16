@@ -69,7 +69,7 @@ impl Link for Entry {
 
     fn get_link_uri_from_filelockentry(&self) -> Result<Option<Url>> {
         self.get_header()
-            .read("links.external.url")
+            .read("links.external.content.url")
             .chain_err(|| LEK::EntryHeaderReadError)
             .and_then(|opt| match opt {
                 Some(&Value::String(ref s)) => {
@@ -160,7 +160,9 @@ pub mod iter {
             use super::is_external_link_storeid;
 
             while let Some(elem) = self.0.next() {
+                trace!("Check whether is external: {:?}", elem);
                 if !(self.1 ^ is_external_link_storeid(&elem)) {
+                    trace!("Is external id: {:?}", elem);
                     return Some(elem);
                 }
             }
@@ -270,6 +272,7 @@ pub mod iter {
                                 debug!("Store::retrieve({:?}) succeeded", id);
                                 debug!("getting external link from file now");
                                 f.get_link_uri_from_filelockentry()
+                                    .map_dbg_str("Error happened while getting link URI from FLE")
                                     .map_dbg_err(|e| format!("URL -> Err = {:?}", e))
                             })
                     });
@@ -410,6 +413,40 @@ impl ExternalLinker for Entry {
                     .collect::<Vec<_>>();
                 self.set_external_links(store, links)
             })
+    }
+
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    use libimagstore::store::Store;
+
+    fn setup_logging() {
+        use env_logger;
+        let _ = env_logger::init().unwrap_or(());
+    }
+
+    pub fn get_store() -> Store {
+        use libimagstore::file_abstraction::InMemoryFileAbstraction;
+        let backend = Box::new(InMemoryFileAbstraction::new());
+        Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+    }
+
+
+    #[test]
+    fn test_simple() {
+        setup_logging();
+        let store = get_store();
+        let mut e = store.retrieve(PathBuf::from("base-test_simple")).unwrap();
+        let url   = Url::parse("http://google.de").unwrap();
+
+        assert!(e.add_external_link(&store, url.clone()).is_ok());
+
+        assert_eq!(1, e.get_external_links(&store).unwrap().count());
+        assert_eq!(url, e.get_external_links(&store).unwrap().next().unwrap().unwrap());
     }
 
 }
