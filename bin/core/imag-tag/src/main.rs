@@ -255,7 +255,7 @@ mod tests {
     }
 
     fn get_entry_tags<'a>(entry: &'a FileLockEntry<'a>) -> TomlQueryResult<Option<&'a Value>> {
-        entry.get_header().read(&"imag.tags".to_owned())
+        entry.get_header().read(&"tag.values".to_owned())
     }
 
     fn tags_toml_value<'a, I: IntoIterator<Item = &'static str>>(tags: I) -> Value {

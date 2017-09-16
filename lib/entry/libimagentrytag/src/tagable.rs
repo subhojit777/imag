@@ -49,7 +49,7 @@ pub trait Tagable {
 impl Tagable for Value {
 
     fn get_tags(&self) -> Result<Vec<Tag>> {
-        let tags = try!(self.read("imag.tags").chain_err(|| TagErrorKind::HeaderReadError));
+        let tags = try!(self.read("tag.values").chain_err(|| TagErrorKind::HeaderReadError));
 
         match tags {
             Some(&Value::Array(ref tags)) => {
@@ -85,7 +85,8 @@ impl Tagable for Value {
         }
 
         let a = ts.iter().unique().map(|t| Value::String(t.clone())).collect();
-        self.set("imag.tags", Value::Array(a))
+        debug!("Setting tags = {:?}", a);
+        self.set("tags", Value::Array(a))
             .map(|_| ())
             .chain_err(|| TagErrorKind::HeaderWriteError)
     }
@@ -119,7 +120,7 @@ impl Tagable for Value {
     }
 
     fn has_tag(&self, t: TagSlice) -> Result<bool> {
-        let tags = try!(self.read("imag.tags").chain_err(|| TagErrorKind::HeaderReadError));
+        let tags = try!(self.read("tag.values").chain_err(|| TagErrorKind::HeaderReadError));
 
         if !tags.iter().all(|t| is_match!(*t, &Value::String(_))) {
             return Err(TagErrorKind::TagTypeError.into());
