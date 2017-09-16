@@ -35,6 +35,8 @@
 extern crate clap;
 #[macro_use] extern crate log;
 #[macro_use] extern crate version;
+extern crate toml;
+extern crate toml_query;
 
 extern crate libimagbookmark;
 extern crate libimagrt;
@@ -42,6 +44,9 @@ extern crate libimagerror;
 extern crate libimagutil;
 
 use std::process::exit;
+
+use toml::Value;
+use toml_query::read::TomlValueReadExt;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
@@ -79,9 +84,9 @@ fn main() {
 
 fn add(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("add").unwrap();
-    let coll = scmd.value_of("collection").unwrap(); // enforced by clap
+    let coll = get_collection_name(rt, "add", "collection");
 
-    BookmarkCollection::get(rt.store(), coll)
+    BookmarkCollection::get(rt.store(), &coll)
         .and_then(|mut collection| {
             scmd.values_of("urls")
                 .unwrap() // enforced by clap
@@ -97,7 +102,7 @@ fn collection(rt: &Runtime) {
 
     if scmd.is_present("add") { // adding a new collection
         let name = scmd.value_of("add").unwrap();
-        if let Ok(_) = BookmarkCollection::new(rt.store(), name) {
+        if let Ok(_) = BookmarkCollection::new(rt.store(), &name) {
             info!("Created: {}", name);
         } else {
             warn!("Creating collection {} failed", name);
@@ -107,7 +112,7 @@ fn collection(rt: &Runtime) {
 
     if scmd.is_present("remove") { // remove a collection
         let name = scmd.value_of("remove").unwrap();
-        if let Ok(_) = BookmarkCollection::delete(rt.store(), name) {
+        if let Ok(_) = BookmarkCollection::delete(rt.store(), &name) {
             info!("Deleted: {}", name);
         } else {
             warn!("Deleting collection {} failed", name);
@@ -117,10 +122,9 @@ fn collection(rt: &Runtime) {
 }
 
 fn list(rt: &Runtime) {
-    let scmd = rt.cli().subcommand_matches("list").unwrap();
-    let coll = scmd.value_of("collection").unwrap(); // enforced by clap
+    let coll = get_collection_name(rt, "list", "collection");
 
-    BookmarkCollection::get(rt.store(), coll)
+    BookmarkCollection::get(rt.store(), &coll)
         .map(|collection| {
             match collection.links() {
                 Ok(links) => {
@@ -142,9 +146,9 @@ fn list(rt: &Runtime) {
 
 fn remove(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("remove").unwrap();
-    let coll = scmd.value_of("collection").unwrap(); // enforced by clap
+    let coll = get_collection_name(rt, "list", "collection");
 
-    BookmarkCollection::get(rt.store(), coll)
+    BookmarkCollection::get(rt.store(), &coll)
         .map(|mut collection| {
             for url in scmd.values_of("urls").unwrap() { // enforced by clap
                 collection.remove_link(BookmarkLink::from(url)).map_err(|e| trace_error(&e)).ok();
@@ -152,5 +156,37 @@ fn remove(rt: &Runtime) {
         })
         .ok();
     info!("Ready");
+}
+
+
+fn get_collection_name(rt: &Runtime,
+                       subcommand_name: &str,
+                       collection_argument_name: &str)
+    -> String
+{
+    rt.cli()
+        .subcommand_matches(subcommand_name)
+        .and_then(|scmd| scmd.value_of(collection_argument_name).map(String::from))
+        .unwrap_or_else(|| {
+            rt.config()
+                .map(|cfg| match cfg.config().read("bookmark.default_collection") {
+                    Err(e) => trace_error_exit(&e, 1),
+                    Ok(Some(&Value::String(ref name))) => name.clone(),
+                    Ok(None) => {
+                        error!("Missing config: 'bookmark.default_collection'. Set or use commandline to specify.");
+                        exit(1)
+                    },
+
+                    Ok(Some(_)) => {
+                        error!("Type error in configuration: 'bookmark.default_collection' should be string");
+                        exit(1)
+                    }
+
+                })
+                .unwrap_or_else(|| {
+                    error!("Failed to read configuration");
+                    exit(1)
+                })
+        })
 }
 
