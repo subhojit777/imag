@@ -22,7 +22,7 @@ use itertools::Itertools;
 use libimagstore::store::Entry;
 
 use toml_query::read::TomlValueReadExt;
-use toml_query::set::TomlValueSetExt;
+use toml_query::insert::TomlValueInsertExt;
 
 use error::TagErrorKind;
 use error::TagError as TE;
@@ -86,7 +86,7 @@ impl Tagable for Value {
 
         let a = ts.iter().unique().map(|t| Value::String(t.clone())).collect();
         debug!("Setting tags = {:?}", a);
-        self.set("tags", Value::Array(a))
+        self.insert("tag.values", Value::Array(a))
             .map(|_| ())
             .chain_err(|| TagErrorKind::HeaderWriteError)
     }
@@ -99,6 +99,7 @@ impl Tagable for Value {
 
         self.get_tags()
             .map(|mut tags| {
+                debug!("Pushing tag = {:?} to list = {:?}", t, tags);
                 tags.push(t);
                 self.set_tags(&tags.into_iter().unique().collect::<Vec<_>>()[..])
             })
