@@ -43,6 +43,8 @@ pub trait FileAbstraction : Debug {
     fn rename(&self, from: &PathBuf, to: &PathBuf) -> Result<(), SE>;
     fn create_dir_all(&self, _: &PathBuf) -> Result<(), SE>;
 
+    fn exists(&self, &PathBuf) -> Result<bool, SE>;
+
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance>;
 
     fn drain(&self) -> Result<Drain, SE>;

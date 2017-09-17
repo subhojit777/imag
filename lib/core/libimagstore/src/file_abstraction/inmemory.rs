@@ -152,6 +152,13 @@ impl FileAbstraction for InMemoryFileAbstraction {
         Ok(())
     }
 
+    fn exists(&self, pb: &PathBuf) -> Result<bool, SE> {
+        let mut mtx = self.backend().lock().expect("Locking Mutex failed");
+        let backend = mtx.get_mut();
+
+        Ok(backend.contains_key(pb))
+    }
+
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance> {
         Box::new(InMemoryFileAbstractionInstance::new(self.backend().clone(), p))
     }
