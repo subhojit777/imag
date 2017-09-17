@@ -48,6 +48,7 @@ use libimagrt::setup::generate_runtime_setup;
 use libimagentrytag::tagable::Tagable;
 use libimagentrytag::tag::Tag;
 use libimagerror::trace::{trace_error, trace_error_exit};
+use libimagerror::trace::MapErrTrace;
 use libimagstore::storeid::StoreId;
 use libimagutil::warn_exit::warn_exit;
 
@@ -97,16 +98,24 @@ fn alter(rt: &Runtime, id: PathBuf, add: Option<Vec<Tag>>, rem: Option<Vec<Tag>>
 
     match rt.store().get(path) {
         Ok(Some(mut e)) => {
+            debug!("Entry header now = {:?}", e.get_header());
+
             add.map(|tags| {
-                for tag in tags {
-                    debug!("Adding tag '{:?}'", tag);
-                    if let Err(e) = e.add_tag(tag) {
-                        trace_error(&e);
+                    debug!("Adding tags = '{:?}'", tags);
+                    for tag in tags {
+                        debug!("Adding tag '{:?}'", tag);
+                        if let Err(e) = e.add_tag(tag) {
+                            trace_error(&e);
+                        } else {
+                            debug!("Adding tag worked");
+                        }
                     }
-                }
-            }); // it is okay to ignore a None here
+                }); // it is okay to ignore a None here
+
+            debug!("Entry header now = {:?}", e.get_header());
 
             rem.map(|tags| {
+                debug!("Removing tags = '{:?}'", tags);
                 for tag in tags {
                     debug!("Removing tag '{:?}'", tag);
                     if let Err(e) = e.remove_tag(tag) {
@@ -114,6 +123,9 @@ fn alter(rt: &Runtime, id: PathBuf, add: Option<Vec<Tag>>, rem: Option<Vec<Tag>>
                     }
                 }
             }); // it is okay to ignore a None here
+
+            debug!("Entry header now = {:?}", e.get_header());
+
         },
 
         Ok(None) => {
