@@ -271,11 +271,12 @@ mod tests {
     fn test_tag_add_adds_tag() {
         setup_logging();
         debug!("Generating runtime");
-        let rt = generate_test_runtime(vec!["test", "--add", "foo"]).unwrap();
+        let name = "test-tag-add-adds-tags";
+        let rt = generate_test_runtime(vec![name, "--add", "foo"]).unwrap();
 
         debug!("Creating default entry");
-        create_test_default_entry(&rt, "test").unwrap();
-        let id = PathBuf::from(String::from("test"));
+        create_test_default_entry(&rt, name).unwrap();
+        let id = PathBuf::from(String::from(name));
 
         debug!("Getting 'add' tags");
         let add = get_add_tags(rt.cli());
@@ -290,7 +291,13 @@ mod tests {
         debug!("Altered");
 
         let test_entry = rt.store().get(id).unwrap().unwrap();
-        let test_tags  = get_entry_tags(&test_entry).unwrap().unwrap();
+
+        let test_tags  = get_entry_tags(&test_entry);
+        assert!(test_tags.is_ok(), "Should be Ok(_) = {:?}", test_tags);
+
+        let test_tags  = test_tags.unwrap();
+        assert!(test_tags.is_some(), "Should be Some(_) = {:?}", test_tags);
+        let test_tags  = test_tags.unwrap();
 
         assert_ne!(*test_tags, tags_toml_value(vec![]));
         assert_eq!(*test_tags, tags_toml_value(vec!["foo"]));
@@ -300,7 +307,8 @@ mod tests {
     fn test_tag_add_more_than_remove_adds_tags() {
         setup_logging();
         debug!("Generating runtime");
-        let rt = generate_test_runtime(vec!["test",
+        let name = "test-tag-add-more-than-remove-adds-tags";
+        let rt = generate_test_runtime(vec![name,
                                        "--add", "foo",
                                        "--add", "bar",
                                        "--add", "baz",
@@ -311,8 +319,8 @@ mod tests {
         ]).unwrap();
 
         debug!("Creating default entry");
-        create_test_default_entry(&rt, "test").unwrap();
-        let id = PathBuf::from(String::from("test"));
+        create_test_default_entry(&rt, name).unwrap();
+        let id = PathBuf::from(String::from(name));
 
         // Manually add tags
         let add = get_add_tags(rt.cli());
@@ -335,11 +343,12 @@ mod tests {
     fn test_tag_remove_removes_tag() {
         setup_logging();
         debug!("Generating runtime");
-        let rt = generate_test_runtime(vec!["test", "--remove", "foo"]).unwrap();
+        let name = "test-tag-remove-removes-tag";
+        let rt = generate_test_runtime(vec![name, "--remove", "foo"]).unwrap();
 
         debug!("Creating default entry");
-        create_test_default_entry(&rt, "test").unwrap();
-        let id = PathBuf::from(String::from("test"));
+        create_test_default_entry(&rt, name).unwrap();
+        let id = PathBuf::from(String::from(name));
 
         // Manually add tags
         let add = Some(vec![ "foo".to_owned() ]);
@@ -362,11 +371,12 @@ mod tests {
     fn test_tag_remove_removes_only_to_remove_tag() {
         setup_logging();
         debug!("Generating runtime");
-        let rt = generate_test_runtime(vec!["test", "--remove", "foo"]).unwrap();
+        let name = "test-tag-remove-removes-only-to-remove-tag-doesnt-crash-on-nonexistent-tag";
+        let rt = generate_test_runtime(vec![name, "--remove", "foo"]).unwrap();
 
         debug!("Creating default entry");
-        create_test_default_entry(&rt, "test").unwrap();
-        let id = PathBuf::from(String::from("test"));
+        create_test_default_entry(&rt, name).unwrap();
+        let id = PathBuf::from(String::from(name));
 
         // Manually add tags
         let add = Some(vec![ "foo".to_owned(), "bar".to_owned() ]);
@@ -389,11 +399,12 @@ mod tests {
     fn test_tag_remove_removes_but_doesnt_crash_on_nonexistent_tag() {
         setup_logging();
         debug!("Generating runtime");
-        let rt = generate_test_runtime(vec!["test", "--remove", "foo", "--remove", "bar"]).unwrap();
+        let name = "test-tag-remove-removes-but-doesnt-crash-on-nonexistent-tag";
+        let rt = generate_test_runtime(vec![name, "--remove", "foo", "--remove", "bar"]).unwrap();
 
         debug!("Creating default entry");
-        create_test_default_entry(&rt, "test").unwrap();
-        let id = PathBuf::from(String::from("test"));
+        create_test_default_entry(&rt, name).unwrap();
+        let id = PathBuf::from(String::from(name));
 
         // Manually add tags
         let add = Some(vec![ "foo".to_owned() ]);
