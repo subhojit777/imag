@@ -1152,7 +1152,6 @@ impl Header for Value {
             let mut imag_map = BTreeMap::<String, Value>::new();
 
             imag_map.insert(String::from("version"), Value::String(String::from(version!())));
-            imag_map.insert(String::from("links"), Value::Array(vec![]));
 
             Value::Table(imag_map)
         });
