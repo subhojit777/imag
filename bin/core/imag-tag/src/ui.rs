@@ -23,12 +23,12 @@ use libimagentrytag::tag::is_tag;
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app.arg(Arg::with_name("id")
-                .long("id")
-                .short("i")
+                .index(1)
                 .takes_value(true)
                 .required(true)
-                .help("Use this entry")
-                .value_name("ID"))
+                .multiple(false)
+                .value_name("ID")
+                .help("Entry to use"))
 
         .arg(Arg::with_name("add-tags")
                 .short("a")
@@ -37,15 +37,16 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                 .value_name("tags")
                 .multiple(true)
                 .validator(is_tag)
-                .help("Add tags, seperated by comma or by specifying multiple times"))
+                .help("Add these tags"))
+
         .arg(Arg::with_name("remove-tags")
                 .short("r")
                 .long("remove")
                 .takes_value(true)
-                .value_name("tags")
                 .multiple(true)
                 .validator(is_tag)
-                .help("Remove tags, seperated by comma or by specifying multiple times"))
+                .value_name("tags")
+                .help("Remove these tags"))
 
        .subcommand(SubCommand::with_name("list")
                    .about("List tags (default)")

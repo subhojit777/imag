@@ -270,7 +270,7 @@ mod tests {
     fn test_tag_add_adds_tag() {
         setup_logging();
         debug!("Generating runtime");
-        let rt = generate_test_runtime(vec!["--id", "test", "--add", "foo"]).unwrap();
+        let rt = generate_test_runtime(vec!["test", "--add", "foo"]).unwrap();
 
         debug!("Creating default entry");
         create_test_default_entry(&rt, "test").unwrap();
@@ -299,7 +299,7 @@ mod tests {
     fn test_tag_add_more_than_remove_adds_tags() {
         setup_logging();
         debug!("Generating runtime");
-        let rt = generate_test_runtime(vec!["--id", "test",
+        let rt = generate_test_runtime(vec!["test",
                                        "--add", "foo",
                                        "--add", "bar",
                                        "--add", "baz",
@@ -334,7 +334,7 @@ mod tests {
     fn test_tag_remove_removes_tag() {
         setup_logging();
         debug!("Generating runtime");
-        let rt = generate_test_runtime(vec!["--id", "test", "--remove", "foo"]).unwrap();
+        let rt = generate_test_runtime(vec!["test", "--remove", "foo"]).unwrap();
 
         debug!("Creating default entry");
         create_test_default_entry(&rt, "test").unwrap();
@@ -361,7 +361,7 @@ mod tests {
     fn test_tag_remove_removes_only_to_remove_tag() {
         setup_logging();
         debug!("Generating runtime");
-        let rt = generate_test_runtime(vec!["--id", "test", "--remove", "foo"]).unwrap();
+        let rt = generate_test_runtime(vec!["test", "--remove", "foo"]).unwrap();
 
         debug!("Creating default entry");
         create_test_default_entry(&rt, "test").unwrap();
@@ -388,7 +388,7 @@ mod tests {
     fn test_tag_remove_removes_but_doesnt_crash_on_nonexistent_tag() {
         setup_logging();
         debug!("Generating runtime");
-        let rt = generate_test_runtime(vec!["--id", "test", "--remove", "foo", "--remove", "bar"]).unwrap();
+        let rt = generate_test_runtime(vec!["test", "--remove", "foo", "--remove", "bar"]).unwrap();
 
         debug!("Creating default entry");
         create_test_default_entry(&rt, "test").unwrap();
