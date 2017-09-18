@@ -10,7 +10,7 @@ readme      = "../../../README.md"
 license     = "LGPL-2.1"
 
 [dependencies]
-clap = "2.*"
+clap = ">=2.17"
 log = "0.3"
 version = "2.0.1"
 

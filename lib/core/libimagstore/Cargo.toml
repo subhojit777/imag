@@ -15,25 +15,25 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 glob = "0.2.11"
-lazy_static = "0.2.*"
+lazy_static = "0.2"
 log = "0.3"
 regex = "0.2"
-semver = "0.5"
-toml = "^0.4"
+semver = "0.8"
+toml = "0.4"
 version = "2.0.1"
-walkdir = "1.0.*"
+walkdir = "1"
 is-match = "0.1"
-serde = "1.0"
-serde_json = "1.0"
-serde_derive = "1.0"
+serde = "1"
+serde_json = "1"
+serde_derive = "1"
 error-chain = "0.10"
 
 libimagerror = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
 libimagutil  = { version = "0.4.0", path = "../../../lib/etc/libimagutil" }
 
 [dev-dependencies]
-tempdir = "0.3.4"
-env_logger = "0.3"
+tempdir = "0.3"
+env_logger = "0.4"
 
 [features]
 default = []
