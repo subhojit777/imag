@@ -755,6 +755,10 @@ impl Store {
             let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
             let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
 
+            if try!(self.backend.exists(&new_id_pb)) {
+                return Err(SE::from_kind(SEK::EntryAlreadyExists(new_id.clone())));
+            }
+
             match self.backend.rename(&old_id_pb, &new_id_pb) {
                 Err(e) => return Err(e).chain_err(|| SEK::EntryRenameError(old_id_pb, new_id_pb)),
                 Ok(_) => {

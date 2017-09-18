@@ -133,6 +133,10 @@ impl FileAbstraction for FSFileAbstraction {
         create_dir_all(path).chain_err(|| SEK::DirNotCreated)
     }
 
+    fn exists(&self, path: &PathBuf) -> Result<bool, SE> {
+        Ok(path.exists())
+    }
+
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance> {
         Box::new(FSFileAbstractionInstance::Absent(p))
     }

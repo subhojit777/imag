@@ -115,6 +115,10 @@ impl<W: Write, M: Mapper> FileAbstraction for StdIoFileAbstraction<W, M> {
         self.0.new_instance(p)
     }
 
+    fn exists(&self, p: &PathBuf) -> Result<bool, SE> {
+        self.0.exists(p)
+    }
+
     fn drain(&self) -> Result<Drain, SE> {
         self.0.drain()
     }
