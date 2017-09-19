@@ -1,1 +1,1 @@
-../doc/src/05100-lib-interaction.md
+../../../doc/src/05100-lib-interaction.md
