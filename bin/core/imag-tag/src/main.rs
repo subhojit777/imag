@@ -48,7 +48,6 @@ use libimagrt::setup::generate_runtime_setup;
 use libimagentrytag::tagable::Tagable;
 use libimagentrytag::tag::Tag;
 use libimagerror::trace::{trace_error, trace_error_exit};
-use libimagerror::trace::MapErrTrace;
 use libimagstore::storeid::StoreId;
 use libimagutil::warn_exit::warn_exit;
 
