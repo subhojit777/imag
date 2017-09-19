@@ -352,7 +352,7 @@ mod tests {
 
     use libimagrt::runtime::Runtime;
     use libimagstore::storeid::StoreId;
-    use libimagstore::store::{Result as StoreResult, FileLockEntry};
+    use libimagstore::store::{Result as StoreResult, FileLockEntry, Entry};
 
     make_mock_app! {
         app "imag-link";
@@ -362,15 +362,16 @@ mod tests {
     }
     use self::mock::generate_test_runtime;
     use self::mock::reset_test_runtime;
-    use libimagutil::testing::DEFAULT_ENTRY;
 
     fn create_test_default_entry<'a, S: AsRef<OsStr>>(rt: &'a Runtime, name: S) -> StoreResult<StoreId> {
         let mut path = PathBuf::new();
         path.set_file_name(name);
 
+        let default_entry = Entry::new(StoreId::new_baseless(PathBuf::from("")).unwrap()).to_str();
+
         let id = StoreId::new_baseless(path)?;
         let mut entry = rt.store().create(id.clone())?;
-        entry.get_content_mut().push_str(DEFAULT_ENTRY);
+        entry.get_content_mut().push_str(&default_entry);
 
         Ok(id)
     }
