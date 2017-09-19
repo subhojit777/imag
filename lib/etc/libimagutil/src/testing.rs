@@ -17,13 +17,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-pub static DEFAULT_ENTRY: &'static str = "\
----\
-[imag]\
-links = []\
-version = \"0.4.0\"\
----";
-
 /// Generator helper macro for mock app (for testing only)
 ///
 /// Requires the following crates in scope:
