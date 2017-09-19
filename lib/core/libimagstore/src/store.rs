@@ -566,6 +566,7 @@ impl Store {
         debug!("Writing Entry");
         try!(se.write_entry(&entry.entry));
         if modify_presence {
+            debug!("Modifying ppresence of {} -> Present", entry.get_location());
             se.status = StoreEntryStatus::Present;
         }
 
@@ -887,6 +888,7 @@ impl<'a> Drop for FileLockEntry<'a> {
     /// intended for production use, though).
     fn drop(&mut self) {
         use libimagerror::trace::trace_error_dbg;
+        trace!("Dropping: {:?} - from FileLockEntry::drop()", self.get_location());
         match self.store._update(self, true) {
             Err(e) => {
                 trace_error_dbg(&e);
@@ -902,6 +904,7 @@ impl<'a> Drop for FileLockEntry<'a> {
 
     /// This will not silently ignore errors but prints the result of the _update() call for testing
     fn drop(&mut self) {
+        trace!("Dropping: {:?} - from FileLockEntry::drop() (test impl)", self.get_location());
         let _ = self.store._update(self, true).map_err(|e| trace_error(&e));
     }
 
