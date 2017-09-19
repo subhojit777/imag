@@ -10,8 +10,8 @@ readme      = "../../../README.md"
 license     = "LGPL-2.1"
 
 [dependencies]
-lazy_static = "0.1.15"
-toml = "^0.4"
+lazy_static = "0.2"
+toml = "0.4"
 toml-query = "^0.3.1"
 error-chain = "0.10"
 

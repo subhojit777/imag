@@ -14,13 +14,13 @@ repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
 [dependencies]
-ansi_term = "0.9.*"
+ansi_term = "0.9"
 clap = ">=2.17"
 interactor = "0.1"
-lazy_static = "0.2.*"
+lazy_static = "0.2"
 log = "0.3"
 regex = "0.2"
-toml = "^0.4"
+toml = "0.4"
 error-chain = "0.10"
 
 libimagstore       = { version = "0.4.0", path = "../../../lib/core/libimagstore" }

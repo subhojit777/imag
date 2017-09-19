@@ -14,8 +14,8 @@ repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
 [dependencies]
-url = "1.2"
-regex = "0.1"
+url = "1.5"
+regex = "0.2"
 error-chain = "0.10"
 
 libimagstore     = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
