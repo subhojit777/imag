@@ -44,7 +44,6 @@ extern crate libimagstore;
 extern crate libimagutil;
 extern crate libimagerror;
 
-pub mod cli;
 pub mod error;
 pub mod lister;
 pub mod listers;

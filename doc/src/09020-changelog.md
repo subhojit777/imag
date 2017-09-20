@@ -61,6 +61,7 @@ This section contains the changelog from the last release to the next release.
       dates and date-time start/stop times.
     * `libimagnotes` does not longer wrap store types but extend them.
     * `imag-notes` uses positional arguments now.
+    * `libimagentrylist` does not export a CLI helper module anymore.
 
 * Stats
 
