@@ -77,6 +77,8 @@ impl ImagLogger {
     pub fn new(matches: &ArgMatches, config: Option<&Configuration>) -> Result<ImagLogger> {
         let mut handlebars = Handlebars::new();
 
+        handlebars.register_escape_fn(::handlebars::no_escape);
+
         handlebars.register_helper("black"  , Box::new(self::template_helpers::ColorizeBlackHelper));
         handlebars.register_helper("blue"   , Box::new(self::template_helpers::ColorizeBlueHelper));
         handlebars.register_helper("cyan"   , Box::new(self::template_helpers::ColorizeCyanHelper));
