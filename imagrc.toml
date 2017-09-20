@@ -44,6 +44,131 @@ info  = "[imag]: {{message}}"
 warn  = "[imag][{{bold level}}]: {{yellow message}}"
 error = "[imag][{{red level}}]: {{red message}}"
 
+[imag.logging.modules.libimagutil]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagtimeui]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimaginteraction]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagstore]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagrt]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagerror]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagbookmark]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagnotes]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagcounter]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagdiary]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagtimetrack]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagtodo]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagmail]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagentryfilter]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagentrycategory]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagentryannotation]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagentrylink]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagentrytag]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagentrygps]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagentrylist]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagentryedit]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagentryref]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagentryview]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagentrymarkdown]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagentrydatetime]
+destinations = [ "-" ]
+level = "debug"
+enabled = true
+
 #
 # Configuration options for the user interface
 #
