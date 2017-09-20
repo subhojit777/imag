@@ -35,7 +35,7 @@ use std::io::ErrorKind;
 use std::collections::BTreeMap;
 
 use walkdir::WalkDir;
-use clap::{Arg, AppSettings, SubCommand};
+use clap::{Arg, ArgMatches, AppSettings, SubCommand};
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
 
@@ -197,10 +197,12 @@ fn main() {
             // Get all given arguments and further subcommands to pass to
             // the imag-<> binary
             // Providing no arguments is OK, and is therefore ignored here
-            let subcommand_args : Vec<&str> = match scmd.values_of("") {
-                Some(values) => values.collect(),
+            let mut subcommand_args : Vec<String> = match scmd.values_of("") {
+                Some(values) => values.map(String::from).collect(),
                 None => Vec::new()
             };
+
+            forward_commandline_arguments(&matches, &mut subcommand_args);
 
             let subcommand = String::from(subcommand);
             let subcommand = aliases.get(&subcommand).cloned().unwrap_or(subcommand);
@@ -294,5 +296,54 @@ fn fetch_aliases(rt: &Runtime) -> Result<BTreeMap<String, String>, String> {
 
         Some(_) => Err(String::from("Type Error: 'imag.aliases' is not a table")),
     }
+}
+
+fn forward_commandline_arguments(m: &ArgMatches, scmd: &mut Vec<String>) {
+    let push = |flag: Option<&str>, val_name: &str, m: &ArgMatches, v: &mut Vec<String>| {
+        let _ = m
+            .value_of(val_name)
+            .map(|val| {
+                let flag = format!("--{}", flag.unwrap_or(val_name));
+                v.insert(0, String::from(val));
+                v.insert(0, flag);
+            });
+    };
+
+    push(Some("verbose"),
+         Runtime::arg_verbosity_name(), m , scmd);
+
+    push(Some("debug"),
+         Runtime::arg_debugging_name(), m , scmd);
+
+    push(Some("no-color"),
+         Runtime::arg_no_color_output_name(), m , scmd);
+
+    push(Some("config"),
+         Runtime::arg_config_name(), m , scmd);
+
+    push(Some("override-config"),
+         Runtime::arg_config_override_name(), m , scmd);
+
+    push(Some("rtp"),
+         Runtime::arg_runtimepath_name(), m , scmd);
+
+    push(Some("store"),
+         Runtime::arg_storepath_name(), m , scmd);
+
+    push(Some("editor"),
+         Runtime::arg_editor_name(), m , scmd);
+
+    push(Some("generate-commandline-completion"),
+         Runtime::arg_generate_compl(), m , scmd);
+
+    push(None , Runtime::arg_logdest_name()                         , m , scmd);
+    push(None , Runtime::arg_override_module_logging_setting_name() , m , scmd);
+    push(None , Runtime::arg_override_trace_logging_format()        , m , scmd);
+    push(None , Runtime::arg_override_debug_logging_format()        , m , scmd);
+    push(None , Runtime::arg_override_info_logging_format()         , m , scmd);
+    push(None , Runtime::arg_override_warn_logging_format()         , m , scmd);
+    push(None , Runtime::arg_override_error_logging_format()        , m , scmd);
+
+
 }
 
