@@ -987,7 +987,7 @@ impl Entry {
     /// disk).
     pub fn to_str(&self) -> String {
         format!("---\n{header}---\n{content}",
-                header  = ::toml::ser::to_string(&self.header).unwrap(),
+                header  = ::toml::ser::to_string_pretty(&self.header).unwrap(),
                 content = self.content)
     }
 
@@ -1325,7 +1325,7 @@ mod test {
 
     static TEST_ENTRY : &'static str = "---
 [imag]
-version = \"0.0.3\"
+version = '0.0.3'
 ---
 Hai";
 
