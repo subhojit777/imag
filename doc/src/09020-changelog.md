@@ -35,6 +35,8 @@ This section contains the changelog from the last release to the next release.
 * New
     * `libimagentrygps` was introduced
     * `imag-grep` was introduced
+    * The `imag` command now passes all arguments properly to the called
+      subcommand
 * Fixed bugs
     * The config loading in `libimagrt`
     [was fixed](http://git.imag-pim.org/imag/commit/?id=9193d50f96bce099665d2eb716bcaa29a8d9b8ff).
