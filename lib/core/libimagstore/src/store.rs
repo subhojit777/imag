@@ -25,7 +25,6 @@ use std::result::Result as RResult;
 use std::sync::Arc;
 use std::sync::RwLock;
 use std::io::Read;
-use std::convert::Into;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::fmt::Formatter;
@@ -492,6 +491,7 @@ impl Store {
     /// On success: An iterator over all entries in the module
     ///
     /// On failure:
+    ///  - (if the glob or one of the intermediate fail)
     ///  - RetrieveForModuleCallError(GlobError(EncodingError())) if the path string cannot be
     ///    encoded
     ///  - GRetrieveForModuleCallError(GlobError(lobError())) if the glob() failed.
@@ -509,7 +509,11 @@ impl Store {
                 debug!("glob()ing with '{}'", path);
                 glob(&path[..]).map_err(From::from)
             })
-            .map(|paths| GlobStoreIdIterator::new(paths, self.path().clone()).into())
+            .and_then(|paths| {
+                GlobStoreIdIterator::new(paths, self.path().clone())
+                    .collect::<Result<Vec<_>>>()
+            })
+            .map(|v| StoreIdIterator::new(Box::new(v.into_iter())))
             .chain_err(|| SEK::RetrieveForModuleCallError)
     }
 
@@ -1039,24 +1043,16 @@ mod glob_store_iter {
     use std::fmt::{Debug, Formatter};
     use std::fmt::Error as FmtError;
     use std::path::PathBuf;
+    use std::result::Result as RResult;
     use glob::Paths;
     use storeid::StoreId;
-    use storeid::StoreIdIterator;
+    use error::Result;
 
     use error::StoreErrorKind as SEK;
     use error::ResultExt;
 
-    use libimagerror::trace::trace_error;
-
-    /// An iterator which is constructed from a `glob()` and returns valid `StoreId` objects
-    ///
-    /// # Warning
-    ///
-    /// On error, this iterator currently traces the error and return None (thus ending the
-    /// iteration). This is a known issue and will be resolved at some point.
-    ///
-    /// TODO: See above.
-    ///
+    /// An iterator which is constructed from a `glob()` and returns valid `StoreId` objects or
+    /// errors
     pub struct GlobStoreIdIterator {
         store_path: PathBuf,
         paths: Paths,
@@ -1064,16 +1060,8 @@ mod glob_store_iter {
 
     impl Debug for GlobStoreIdIterator {
 
-        fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
+        fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
             write!(fmt, "GlobStoreIdIterator")
-        }
-
-    }
-
-    impl Into<StoreIdIterator> for GlobStoreIdIterator {
-
-        fn into(self) -> StoreIdIterator {
-            StoreIdIterator::new(Box::new(self))
         }
 
     }
@@ -1092,29 +1080,22 @@ mod glob_store_iter {
     }
 
     impl Iterator for GlobStoreIdIterator {
-        type Item = StoreId;
+        type Item = Result<StoreId>;
 
-        fn next(&mut self) -> Option<StoreId> {
+        fn next(&mut self) -> Option<Self::Item> {
             while let Some(o) = self.paths.next() {
                 debug!("GlobStoreIdIterator::next() => {:?}", o);
                 match o.chain_err(|| SEK::StoreIdHandlingError) {
+                    Err(e) => return Some(Err(e)),
                     Ok(path) => {
                         if path.exists() && path.is_file() {
                             return match StoreId::from_full_path(&self.store_path, path) {
-                                Ok(id) => Some(id),
-                                Err(e) => {
-                                    trace_error(&e);
-                                    None
-                                }
+                                Ok(id) => Some(Ok(id)),
+                                Err(e) => Some(Err(e)),
                             }
                         /* } else { */
                             /* continue */
                         }
-                    }
-                    Err(e) => {
-                        debug!("GlobStoreIdIterator error: {:?}", e);
-                        trace_error(&e);
-                        return None
                     }
                 }
             }
