@@ -60,8 +60,9 @@ install-directory is in your `$PATH`), or install the `imag` binary to call `ima
 ## Staying up-to-date
 
 We have a [official website for imag](https://imag-pim.org), where I post
-[release notes](http://imag-pim.org/releases/) and monthly(ish) updates what's happening in the source tree.
-There is no RSS feed, though.
+[release notes](http://imag-pim.org/releases/) and monthly(ish) updates what's
+happening in the source tree ([RSS here](https://imag-pim.org/index.xml)).
+
 
 We also have a [mailinglist](https://imag-pim.org/mailinglist/) where I post
 updates and where discussion and questions are encouraged.
