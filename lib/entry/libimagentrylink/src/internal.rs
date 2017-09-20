@@ -625,6 +625,7 @@ pub mod store_check {
             use libimagstore::storeid::StoreId;
             use libimagerror::iter::TraceIterator;
             use libimagutil::iter::FoldResult;
+            use libimagutil::debug_result::DebugResult;
 
             // Helper data structure to collect incoming and outgoing links for each StoreId
             #[derive(Debug, Default)]
@@ -768,6 +769,14 @@ pub mod store_check {
                 };
 
             aggregate_link_network(&self)
+                .map_dbg_str("Aggregated")
+                .map_dbg(|nw| {
+                    let mut s = String::new();
+                    for (k, v) in nw {
+                        s.push_str(&format!("{}\n in: {:?}\n out: {:?}", k, v.incoming, v.outgoing));
+                    }
+                    s
+                })
                 .and_then(|nw| {
                     all_collected_storeids_exist(&nw)
                         .map(|_| nw)
