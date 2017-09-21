@@ -621,9 +621,8 @@ pub mod store_check {
             use error::Result as LResult;
             use internal::InternalLinker;
 
-            use libimagstore::store::StoreObject;
             use libimagstore::storeid::StoreId;
-            use libimagerror::iter::TraceIterator;
+            use libimagstore::iter::get::StoreIdGetIteratorExtension;
             use libimagutil::iter::FoldResult;
             use libimagutil::debug_result::DebugResult;
 
@@ -642,55 +641,39 @@ pub mod store_check {
             ///
             /// The lambda returns an error if something fails
             let aggregate_link_network = |store: &Store| -> Result<HashMap<StoreId, Linking>> {
-                store
-                    .walk("") // this is a hack... I know...
-                    .filter_map(|obj: StoreObject| match obj {
-                        StoreObject::Id(id) => Some(id),
-                        _ => None
-                    }) //  Only ids are interesting
-                    .fold(Ok(HashMap::new()), |acc, sid| {
-                        acc.and_then(|mut state| {
-                            debug!("Checking entry: '{}'", sid);
+                let iter = store
+                    .entries()
+                    .chain_err(|| LEK::StoreReadError)?
+                    .into_get_iter(store);
 
-                            match try!(self.get(sid).chain_err(|| LEK::StoreError)) {
-                                Some(fle) => {
-                                    debug!("Found FileLockEntry");
+                let mut map = HashMap::new();
+                for element in iter {
+                    debug!("Checking element = {:?}", element);
+                    let entry = match element {
+                        Ok(Some(e)) => e,
+                        Ok(None) => return Err(LE::from_kind(LEK::StoreIdError)),
+                        Err(e)   => return Err(e).chain_err(|| LE::from_kind(LEK::StoreReadError)),
+                    };
 
-                                    let fle_loc = fle.get_location();
+                    debug!("Checking entry = {:?}", entry.get_location());
 
-                                    let internal_links = fle
-                                        .get_internal_links()
-                                        .chain_err(|| LEK::StoreError)?
-                                        .into_getter(self) // get the FLEs from the Store
-                                        .trace_unwrap(); // trace all Err(e)s and get the Ok(fle)s
+                    let internal_links = entry
+                        .get_internal_links()
+                        .chain_err(|| LEK::StoreError)?
+                        .into_getter(store); // get the FLEs from the Store
 
-                                    for internal_link in internal_links {
-                                        let il_loc = internal_link.get_location();
+                    let mut linking = Linking::default();
+                    for internal_link in internal_links {
+                        debug!("internal link = {:?}", internal_link);
 
-                                        state
-                                            .entry(il_loc.clone())
-                                            .or_insert(Linking::default())
-                                            .incoming
-                                            .push(fle_loc.clone());
+                        linking.outgoing.push(try!(internal_link).get_location().clone());
+                        linking.incoming.push(entry.get_location().clone());
+                    }
 
-                                        // Make sure an empty linking object is present for the
-                                        // current StoreId object
-                                        state
-                                            .entry(fle_loc.clone())
-                                            .or_insert(Linking::default())
-                                            .outgoing
-                                            .push(il_loc.clone());
-                                    }
+                    map.insert(entry.get_location().clone(), linking);
+                }
 
-                                    Ok(state)
-                                },
-                                None => {
-                                    debug!("No entry");
-                                    Ok(state)
-                                }
-                            }
-                        })
-                    })
+                Ok(map)
             };
 
             /// Helper to check whethre all StoreIds in the network actually exists
