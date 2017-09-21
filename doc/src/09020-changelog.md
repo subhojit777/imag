@@ -44,6 +44,8 @@ This section contains the changelog from the last release to the next release.
       entries. This is not allowed because this namespace is reserved for the
       store itself. This bug was fixed, links are now located in the `links`
       namespace in the header of an entry.
+    * `Store::delete()` did only check the store-internal cache whether an entry
+      exists, but not the filesystem. This was fixed.
 * Minor changes
     * If building from a `nix-shell`, the mozilla rust overlay is expected to be
       present

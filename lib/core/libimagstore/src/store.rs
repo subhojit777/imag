@@ -630,7 +630,24 @@ impl Store {
             // if the entry is currently modified by the user, we cannot drop it
             match entries.get(&id) {
                 None => {
-                    return Err(SE::from_kind(SEK::FileNotFound)).chain_err(|| SEK::DeleteCallError)
+                    // The entry is not in the internal cache. But maybe on the filesystem?
+                    debug!("Seems like {:?} is not in the internal cache", id);
+
+                    // Small optimization: We need the pathbuf for deleting, but when calling
+                    // StoreId::exists(), a PathBuf object gets allocated. So we simply get a
+                    // PathBuf here, check whether it is there and if it is, we can re-use it to
+                    // delete the filesystem file.
+                    let pb = try!(id.into_pathbuf());
+
+                    if pb.exists() {
+                        // looks like we're deleting a not-loaded file from the store.
+                        debug!("Seems like {:?} is on the FS", pb);
+                        return self.backend.remove_file(&pb)
+                    } else {
+                        debug!("Seems like {:?} is not even on the FS", pb);
+                        return Err(SE::from_kind(SEK::FileNotFound))
+                            .chain_err(|| SEK::DeleteCallError)
+                    }
                 },
                 Some(e) => if e.is_borrowed() {
                     return Err(SE::from_kind(SEK::IdLocked)).chain_err(|| SEK::DeleteCallError)
