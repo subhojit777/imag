@@ -18,6 +18,9 @@
 //
 
 use std::collections::BTreeMap;
+use std::fmt::Display;
+use std::fmt::Formatter;
+use std::fmt::Result as FmtResult;
 
 use toml::Value;
 
@@ -96,6 +99,12 @@ impl FromValue for GPSValue {
 
 }
 
+impl Display for GPSValue {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}° {}\" {}'", self.degree, self.minutes, self.seconds)
+    }
+}
+
 /// Data-transfer type for transfering longitude-latitude-pairs
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Coordinates {
@@ -143,6 +152,12 @@ impl FromValue for Coordinates {
         }
     }
 
+}
+
+impl Display for Coordinates {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "longitude = {}\nlatitude = {}", self.longitude, self.latitude)
+    }
 }
 
 /// Helper to convert a i64 to i8 or return an error if this doesn't work.
