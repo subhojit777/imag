@@ -26,11 +26,31 @@ use libimagstore::store::Entry;
 
 use toml_query::read::TomlValueReadExt;
 use toml_query::insert::TomlValueInsertExt;
+use toml_query::delete::TomlValueDeleteExt;
 
 pub trait GPSEntry {
 
     fn set_coordinates(&mut self, c: Coordinates) -> Result<()>;
     fn get_coordinates(&self) -> Result<Option<Coordinates>>;
+
+    /// Remove the coordinates from the entry
+    ///
+    /// # Returns
+    ///
+    /// The return type is a bit complicated, but that has a reason:
+    ///
+    /// The outer Result<_> is used for notifying a failure during the header read/write action.
+    /// If the Option<_> is Some(_), the value was deleted.
+    /// The inner Result<_> is used for parsing failures during the parsing of the deleted value.
+    ///
+    /// So:
+    ///
+    /// * Ok(Some(Ok(_))) if the coordinates were deleted, returning the deleted value
+    /// * Ok(Some(Err(_))) if the coordinates were deleted, but the deleted value couldn't be parsed
+    /// * Ok(None) if there were no coordinates to delete
+    /// * Err(e) if the deleting failed
+    ///
+    fn remove_coordinates(&mut self) -> Result<Option<Result<Coordinates>>>;
 
 }
 
@@ -51,6 +71,12 @@ impl GPSEntry for Entry {
         }
     }
 
+    fn remove_coordinates(&mut self) -> Result<Option<Result<Coordinates>>> {
+        self.get_header_mut()
+            .delete("gps.coordinates")
+            .chain_err(|| GPSEK::HeaderWriteError)
+            .map(|opt| opt.as_ref().map(Coordinates::from_value))
+    }
 }
 
 #[cfg(test)]
