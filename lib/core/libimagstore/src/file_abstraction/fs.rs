@@ -159,6 +159,7 @@ impl FileAbstraction for FSFileAbstraction {
         use walkdir::WalkDir;
 
         let i : Result<Vec<PathBuf>, SE> = WalkDir::new(basepath)
+            .min_depth(1)
             .into_iter()
             .map(|r| {
                 r.map(|e| PathBuf::from(e.path()))
