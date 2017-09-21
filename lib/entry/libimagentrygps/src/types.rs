@@ -49,6 +49,19 @@ impl GPSValue {
             seconds: s
         }
     }
+
+    pub fn degree(&self) -> i8 {
+        self.degree
+    }
+
+    pub fn minutes(&self) -> i8 {
+        self.minutes
+    }
+
+    pub fn seconds(&self) -> i8 {
+        self.seconds
+    }
+
 }
 
 
@@ -118,6 +131,14 @@ impl Coordinates {
             longitude: long,
             latitude:  lat,
         }
+    }
+
+    pub fn longitude(&self) -> &GPSValue {
+        &self.longitude
+    }
+
+    pub fn latitude(&self) -> &GPSValue {
+        &self.latitude
     }
 }
 
