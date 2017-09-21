@@ -426,7 +426,7 @@ impl InternalLinker for Entry {
                             }));
         let res = self
             .get_header_mut()
-            .insert("links.interal", Value::Array(new_links))
+            .insert("links.internal", Value::Array(new_links))
             .chain_err(|| LEK::EntryHeaderReadError);
         process_rw_result(res)
     }
