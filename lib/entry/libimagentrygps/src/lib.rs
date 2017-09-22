@@ -23,7 +23,7 @@ extern crate toml_query;
 #[macro_use] extern crate error_chain;
 
 extern crate libimagstore;
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 
 #[cfg(test)]
 extern crate env_logger;
