@@ -72,10 +72,31 @@ impl GPSEntry for Entry {
     }
 
     fn remove_coordinates(&mut self) -> Result<Option<Result<Coordinates>>> {
-        self.get_header_mut()
-            .delete("gps.coordinates")
-            .chain_err(|| GPSEK::HeaderWriteError)
-            .map(|opt| opt.as_ref().map(Coordinates::from_value))
+        let coordinates = self.get_coordinates();
+
+        let patterns = [
+            "gps.coordinates.latitude.degree",
+            "gps.coordinates.latitude.minutes",
+            "gps.coordinates.latitude.seconds",
+            "gps.coordinates.longitude.degree",
+            "gps.coordinates.longitude.minutes",
+            "gps.coordinates.longitude.seconds",
+            "gps.coordinates.latitude",
+            "gps.coordinates.longitude",
+            "gps.coordinates",
+            "gps",
+        ];
+
+        let mut hdr = self.get_header_mut();
+        for pattern in patterns.iter() {
+            let _ = try!(hdr.delete(pattern).chain_err(|| GPSEK::HeaderWriteError));
+        }
+
+        match coordinates {
+            Ok(None)       => Ok(None),
+            Ok(Some(some)) => Ok(Some(Ok(some))),
+            Err(e)         => Ok(Some(Err(e))),
+        }
     }
 }
 
