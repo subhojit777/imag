@@ -24,7 +24,6 @@ use toml::Value;
 use error::GPSErrorKind as GPSEK;
 use error::GPSError as GPSE;
 use error::Result;
-use error::ResultExt;
 
 pub trait FromValue : Sized {
     fn from_value(v: &Value) -> Result<Self>;
