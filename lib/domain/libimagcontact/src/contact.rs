@@ -23,6 +23,7 @@ use libimagstore::store::Entry;
 use libimagentryref::reference::Ref;
 
 use error::Result;
+use util;
 
 /// Trait to be implemented on ::libimagstore::store::Entry
 ///
@@ -38,12 +39,19 @@ pub trait Contact : Ref {
 }
 
 impl Contact for Entry {
+
     fn get_contact_data(&self) -> Result<ContactData> {
-        unimplemented!()
+        let component = self
+            .fs_file()
+            .map_err(From::from)
+            .and_then(util::read_to_string)
+            .and_then(util::parse)?;
+
+        Ok(ContactData(component))
     }
+
 }
 
-pub struct ContactData {
-    components: Vec<Component>,
-}
+pub struct ContactData(Component);
+
 
