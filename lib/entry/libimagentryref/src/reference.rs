@@ -121,13 +121,14 @@ impl Ref for Entry {
         self.get_location()
             .clone()
             .into_pathbuf()
-            .chain_err(|| REK::StoreIdError)
+            .map_err(From::from)
             .and_then(|pb| {
                 pb.file_name()
                     .and_then(|osstr| osstr.to_str())
                     .and_then(|s| s.split("~").next())
                     .map(String::from)
-                    .ok_or(RE::from_kind(REK::StoreIdError))
+                    .ok_or(String::from("String splitting error"))
+                    .map_err(From::from)
             })
     }
 
@@ -139,18 +140,16 @@ impl Ref for Entry {
     /// Get the hahs of the link target which is stored in the ref object, which is hashed with a
     /// custom Hasher instance.
     fn get_stored_hash_with_hasher<H: Hasher>(&self, h: &H) -> Result<String> {
-        match self.get_header().read(&format!("ref.content_hash.{}", h.hash_name())[..]) {
+        match self.get_header().read(&format!("ref.content_hash.{}", h.hash_name())[..])? {
             // content hash stored...
-            Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
+            Some(&Value::String(ref s)) => Ok(s.clone()),
 
             // content hash header field has wrong type
-            Ok(Some(_)) => Err(RE::from_kind(REK::HeaderTypeError)),
+            Some(_) => Err(RE::from_kind(REK::HeaderTypeError)),
 
             // content hash not stored
-            Ok(None) => Err(RE::from_kind(REK::HeaderFieldMissingError)),
+            None => Err(RE::from_kind(REK::HeaderFieldMissingError)),
 
-            // Error
-            Err(e) => Err(e).chain_err(|| REK::StoreReadError),
         }
     }
 
@@ -163,11 +162,7 @@ impl Ref for Entry {
     /// custom hasher
     fn get_current_hash_with_hasher<H: Hasher>(&self, mut h: H) -> Result<String> {
         self.fs_file()
-            .and_then(|pb| {
-                File::open(pb.clone())
-                    .map(|f| (pb, f))
-                    .chain_err(|| REK::IOError)
-            })
+            .and_then(|pb| File::open(pb.clone()).map(|f| (pb, f)).map_err(From::from))
             .and_then(|(path, mut file)| h.create_hash(&path, &mut file))
     }
 
@@ -244,13 +239,11 @@ impl Ref for Entry {
         try!(self
             .get_header_mut()
             .set("ref.permissions.ro", Value::Boolean(current_perm.readonly()))
-            .chain_err(|| REK::StoreWriteError)
         );
 
         try!(self
             .get_header_mut()
             .set(&format!("ref.content_hash.{}", h.hash_name())[..], Value::String(current_hash))
-            .chain_err(|| REK::StoreWriteError)
         );
 
         Ok(())
@@ -258,11 +251,10 @@ impl Ref for Entry {
 
     /// Get the path of the file which is reffered to by this Ref
     fn fs_file(&self) -> Result<PathBuf> {
-        match self.get_header().read("ref.path") {
-            Ok(Some(&Value::String(ref s))) => Ok(PathBuf::from(s)),
-            Ok(Some(_)) => Err(RE::from_kind(REK::HeaderTypeError)),
-            Ok(None)    => Err(RE::from_kind(REK::HeaderFieldMissingError)),
-            Err(e)      => Err(e).chain_err(|| REK::StoreReadError),
+        match self.get_header().read("ref.path")? {
+            Some(&Value::String(ref s)) => Ok(PathBuf::from(s)),
+            Some(_) => Err(RE::from_kind(REK::HeaderTypeError)),
+            None    => Err(RE::from_kind(REK::HeaderFieldMissingError)),
         }
     }
 
@@ -300,14 +292,18 @@ impl Ref for Entry {
                             .into_iter()
                             .map(|entry| {
                                 entry
-                                    .chain_err(|| REK::IOError)
+                                    .map_err(From::from)
                                     .and_then(|entry| {
                                         let pb = PathBuf::from(entry.path());
                                         File::open(entry.path())
-                                            .chain_err(|| REK::IOError)
                                             .map(|f| (pb, f))
+                                            .map_err(From::from)
                                     })
-                                    .and_then(|(p, mut f)|  h.create_hash(&p, &mut f).map(|h| (p, h)))
+                                    .and_then(|(p, mut f)| {
+                                        h.create_hash(&p, &mut f)
+                                            .map(|h| (p, h))
+                                            .map_err(From::from)
+                                    })
                                     .map(|(path, hash)| {
                                         if hash == stored_hash {
                                             Some(path)
@@ -315,9 +311,8 @@ impl Ref for Entry {
                                             None
                                         }
                                     })
-                                    .chain_err(|| REK::IOError)
                             })
-                            .filter_map(|e| e.ok())
+                            .filter_map(Result::ok)
                             .filter_map(|e| e)
                             .next()
                     })

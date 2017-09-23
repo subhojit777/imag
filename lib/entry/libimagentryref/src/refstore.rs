@@ -72,9 +72,7 @@ impl RefStore for Store {
             .and_then(|c| hash_path(&c))
             .chain_err(|| REK::PathHashingError)
             .and_then(|hash| {
-                self.retrieve_for_module("ref")
-                    .map(|iter| (hash, iter))
-                    .chain_err(|| REK::StoreReadError)
+                self.retrieve_for_module("ref").map(|iter| (hash, iter)).map_err(From::from)
             })
             .and_then(|(hash, possible_refs)| {
                 // This is kind of a manual Iterator::filter() call what we do here, but with the
@@ -91,15 +89,17 @@ impl RefStore for Store {
                         continue;
                     }
 
-                    match self.get(r) {
-                        Ok(Some(fle)) => {
+                    match self.get(r.clone())? {
+                        Some(fle) => {
                             if read_reference(&fle).map(|path| path == pb).unwrap_or(false) {
                                 return Ok(true)
                             }
                         },
 
-                        Ok(None) => return Err(RE::from_kind(REK::StoreReadError)),
-                        Err(e)   => return Err(e).chain_err(|| REK::StoreReadError)
+                        None => {
+                            let e = format!("Failed to get from store: {}", r);
+                            return Err(e).map_err(From::from)
+                        },
                     }
                 }
 
@@ -109,10 +109,9 @@ impl RefStore for Store {
 
     /// Try to get `si` as Ref object from the store
     fn get<'a>(&'a self, si: StoreId) -> Result<FileLockEntry<'a>> {
-        match self.get(si) {
-            Err(e)        => return Err(e).chain_err(|| REK::StoreReadError),
-            Ok(None)      => return Err(RE::from_kind(REK::RefNotInStore)),
-            Ok(Some(fle)) => Ok(fle),
+        match self.get(si)? {
+            None      => return Err(RE::from_kind(REK::RefNotInStore)),
+            Some(fle) => Ok(fle),
         }
     }
 
@@ -123,7 +122,7 @@ impl RefStore for Store {
         ModuleEntryPath::new(hash)
             .into_storeid()
             .and_then(|id| self.get(id))
-            .chain_err(|| REK::StoreReadError)
+            .map_err(From::from)
     }
 
     /// Delete a ref by hash
@@ -133,7 +132,7 @@ impl RefStore for Store {
         ModuleEntryPath::new(hash)
             .into_storeid()
             .and_then(|id| self.delete(id))
-            .chain_err(|| REK::StoreWriteError)
+            .map_err(From::from)
     }
 
     /// Create a Ref object which refers to `pb`
@@ -218,11 +217,7 @@ impl RefStore for Store {
                 // and then we create the FileLockEntry in the Store
                 // and return (filelockentry, content hash, permissions, canonicalized path)
                 .and_then(|(opt_conhash, opt_perm, can, path_hash)| {
-                    let fle = try!(self
-                                   .create(ModuleEntryPath::new(path_hash))
-                                   .chain_err(|| REK::StoreWriteError)
-                    );
-
+                    let fle = try!(self.create(ModuleEntryPath::new(path_hash)));
                     Ok((fle, opt_conhash, opt_perm, can))
                 })
             )

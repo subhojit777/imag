@@ -24,41 +24,22 @@ error_chain! {
 
     links {
         ListError(::libimagentrylist::error::ListError, ::libimagentrylist::error::ListErrorKind);
+        StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
+        TomlQueryError(::toml_query::error::Error, ::toml_query::error::ErrorKind);
     }
 
     foreign_links {
         Io(::std::io::Error);
+        Utf8Error(::std::string::FromUtf8Error);
+        TomlDeError(::toml::de::Error);
+        TomlSerError(::toml::ser::Error);
+        WalkDirError(::walkdir::Error);
     }
 
     errors {
-        StoreReadError          {
-            description("Store read error")
-            display("Store read error")
-        }
-
-        StoreWriteError         {
-            description("Store write error")
-            display("Store write error")
-        }
-
-        IOError                 {
-            description("IO Error")
-            display("IO Error")
-        }
-
         UTF8Error               {
             description("UTF8 Error")
             display("UTF8 Error")
-        }
-
-        StoreIdError            {
-            description("Error with storeid")
-            display("Error with storeid")
-        }
-
-        HeaderTomlError         {
-            description("Error while working with TOML Header")
-            display("Error while working with TOML Header")
         }
 
         HeaderTypeError         {

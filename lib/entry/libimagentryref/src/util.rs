@@ -22,7 +22,6 @@ use std::path::PathBuf;
 use error::RefErrorKind as REK;
 use error::RefError as RE;
 use error::Result;
-use error::ResultExt;
 
 use libimagstore::store::Entry;
 
@@ -47,11 +46,10 @@ pub fn hash_path(pb: &PathBuf) -> Result<String> {
 
 /// Read the reference from a file
 pub fn read_reference(refentry: &Entry) -> Result<PathBuf> {
-    match refentry.get_header().read("ref.path") {
-        Ok(Some(&Value::String(ref s))) => Ok(PathBuf::from(s)),
-        Ok(Some(_)) => Err(RE::from_kind(REK::HeaderTypeError)),
-        Ok(None)    => Err(RE::from_kind(REK::HeaderFieldMissingError)),
-        Err(e)      => Err(e).chain_err(|| REK::StoreReadError),
+    match refentry.get_header().read("ref.path")? {
+        Some(&Value::String(ref s)) => Ok(PathBuf::from(s)),
+        Some(_) => Err(RE::from_kind(REK::HeaderTypeError)),
+        None    => Err(RE::from_kind(REK::HeaderFieldMissingError)),
     }
 }
 
