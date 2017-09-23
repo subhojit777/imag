@@ -21,7 +21,7 @@ Our (long-term) goal is to
 > management, consists of reusable parts and integrates well with known
 > commandline tools.
 
-Yes, imag is a rather ambitous project as it tries to reimplement functionality
+Yes, imag is a rather ambitious project as it tries to reimplement functionality
 for several "personal information management aspects". It is a hobby project,
 keep that in mind. We try to use standards like vcard and icalendar wherever
 possible.
