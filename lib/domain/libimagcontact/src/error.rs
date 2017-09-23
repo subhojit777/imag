@@ -35,6 +35,11 @@ error_chain! {
 
     errors {
 
+        HeaderTypeError(ty: &'static str, loc: &'static str) {
+            description("Type error in header")
+            display("Type error in header, expected {} at '{}', found other type", ty, loc)
+        }
+
     }
 }
 
