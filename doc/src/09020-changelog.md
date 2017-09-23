@@ -34,6 +34,7 @@ This section contains the changelog from the last release to the next release.
       hourly (or daily, which is when specifying nothing).
 * New
     * `libimagentrygps` was introduced
+    * `imag-gps` was introduced
     * `imag-grep` was introduced
     * The `imag` command now passes all arguments properly to the called
       subcommand
