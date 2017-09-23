@@ -51,7 +51,7 @@ impl Hasher for MailHasher {
         use email::Header;
 
         let mut s = String::new();
-        try!(c.read_to_string(&mut s).chain_err(|| REK::UTF8Error).chain_err(|| REK::IOError));
+        try!(c.read_to_string(&mut s));
 
         MimeMessage::parse(&s)
             .chain_err(|| REK::RefHashingError)
