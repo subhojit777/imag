@@ -24,6 +24,14 @@ error_chain! {
         LinkError, LinkErrorKind, ResultExt, Result;
     }
 
+    links {
+        StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
+    }
+
+    foreign_links {
+        TomlQueryError(::toml_query::error::Error);
+    }
+
     errors {
         EntryHeaderReadError    {
             description("Error while reading an entry header")
@@ -70,21 +78,6 @@ error_chain! {
             display("URI is not valid")
         }
 
-        StoreReadError          {
-            description("Store read error")
-            display("Store read error")
-        }
-
-        StoreWriteError         {
-            description("Store write error")
-            display("Store write error")
-        }
-
-        StoreIdError            {
-            description("StoreId handling error")
-            display("StoreId handling error")
-        }
-
         DeadLink(from: StoreId, to: StoreId) {
             description("Dead link")
             display("Dead link from: {from} to: {to}", from = from, to = to)
@@ -93,11 +86,6 @@ error_chain! {
         LinkHandlingError {
             description("Error in link handling")
             display("Error in link handling")
-        }
-
-        StoreError {
-            description("Error while talking to the store")
-            display("Error while talking to the store")
         }
     }
 }

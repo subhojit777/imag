@@ -129,8 +129,6 @@ pub mod iter {
 
     use internal::Link;
     use internal::iter::LinkIter;
-    use error::LinkErrorKind as LEK;
-    use error::ResultExt;
     use error::Result;
 
     use url::Url;
@@ -266,8 +264,8 @@ pub mod iter {
                         debug!("Retrieving entry for id: '{:?}'", id);
                         self.1
                             .retrieve(id.clone())
-                            .chain_err(|| LEK::StoreReadError)
                             .map_dbg_err(|_| format!("Retrieving entry for id: '{:?}' failed", id))
+                            .map_err(From::from)
                             .and_then(|f| {
                                 debug!("Store::retrieve({:?}) succeeded", id);
                                 debug!("getting external link from file now");
@@ -308,7 +306,6 @@ impl ExternalLinker for Entry {
         // /link/external/<SHA> -> load these files and get the external link from their headers,
         // put them into the return vector.
         self.get_internal_links()
-            .chain_err(|| LEK::StoreReadError)
             .map(|iter| {
                 debug!("Getting external links");
                 iter.only_external_links().urls(store)
@@ -330,7 +327,6 @@ impl ExternalLinker for Entry {
             };
             let file_id = try!(
                 ModuleEntryPath::new(format!("external/{}", hash)).into_storeid()
-                    .chain_err(|| LEK::StoreWriteError)
                     .map_dbg_err(|_| {
                         format!("Failed to build StoreId for this hash '{:?}'", hash)
                     })
@@ -344,7 +340,6 @@ impl ExternalLinker for Entry {
             // exist
             let mut file = try!(store
                 .retrieve(file_id.clone())
-                .chain_err(|| LEK::StoreWriteError)
                 .map_dbg_err(|_| {
                     format!("Failed to create or retrieve an file for this link '{:?}'", link)
                 }));
@@ -353,15 +348,14 @@ impl ExternalLinker for Entry {
             {
                 let hdr = file.deref_mut().get_header_mut();
 
-                let mut table = match hdr.read("links.external.content") {
-                    Ok(Some(&Value::Table(ref table))) => table.clone(),
-                    Ok(Some(_)) => {
+                let mut table = match try!(hdr.read("links.external.content")) {
+                    Some(&Value::Table(ref table)) => table.clone(),
+                    Some(_) => {
                         warn!("There is a value at 'links.external.content' which is not a table.");
                         warn!("Going to override this value");
                         BTreeMap::new()
                     },
-                    Ok(None) => BTreeMap::new(),
-                    Err(e)   => return Err(e).chain_err(|| LEK::StoreWriteError),
+                    None => BTreeMap::new(),
                 };
 
                 let v = Value::String(link.into_string());
@@ -369,18 +363,13 @@ impl ExternalLinker for Entry {
                 debug!("setting URL = '{:?}", v);
                 table.insert(String::from("url"), v);
 
-                if let Err(e) = hdr.insert("links.external.content", Value::Table(table)) {
-                    return Err(e).chain_err(|| LEK::StoreWriteError);
-                } else {
-                    debug!("Setting URL worked");
-                }
+                let _ = try!(hdr.insert("links.external.content", Value::Table(table)));
+                debug!("Setting URL worked");
             }
 
             // then add an internal link to the new file or return an error if this fails
-            if let Err(e) = self.add_internal_link(file.deref_mut()) {
-                debug!("Error adding internal link");
-                return Err(e).chain_err(|| LEK::StoreWriteError);
-            }
+            let _ = try!(self.add_internal_link(file.deref_mut()));
+            debug!("Error adding internal link");
         }
         debug!("Ready iterating");
         Ok(())
