@@ -24,6 +24,7 @@ use std::fs::File;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
+use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::Store;
 
 use toml::Value;
@@ -60,6 +61,9 @@ pub trait RefStore {
 
     fn create_with_hasher<'a, H: Hasher>(&'a self, pb: PathBuf, flags: RefFlags, h: H)
         -> Result<FileLockEntry<'a>>;
+
+    /// Get all reference objects
+    fn all_references(&self) -> Result<StoreIdIterator>;
 
 }
 
@@ -259,5 +263,8 @@ impl RefStore for Store {
         Ok(fle)
     }
 
+    fn all_references(&self) -> Result<StoreIdIterator> {
+        self.retrieve_for_module("ref").map_err(From::from)
+    }
 }
 
