@@ -1,6 +1,6 @@
 [package]
 name = "libimagmail"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -19,6 +19,6 @@ email = "0.0.17"
 filters = "0.1"
 error-chain = "0.10"
 
-libimagstore    = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
-libimagerror    = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
-libimagentryref = { version = "0.4.0", path = "../../../lib/entry/libimagentryref" }
+libimagstore    = { version = "0.5.0", path = "../../../lib/core/libimagstore" }
+libimagerror    = { version = "0.5.0", path = "../../../lib/core/libimagerror" }
+libimagentryref = { version = "0.5.0", path = "../../../lib/entry/libimagentryref" }

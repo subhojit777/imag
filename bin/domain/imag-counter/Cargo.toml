@@ -1,6 +1,6 @@
 [package]
 name = "imag-counter"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-counter command"
@@ -18,8 +18,8 @@ clap = ">=2.17"
 log = "0.3"
 version = "2.0.1"
 
-libimagrt      = { version = "0.4.0", path = "../../../lib/core/libimagrt" }
-libimagerror   = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
-libimagutil    = { version = "0.4.0", path = "../../../lib/etc/libimagutil" }
-libimagcounter = { version = "0.4.0", path = "../../../lib/domain/libimagcounter" }
+libimagrt      = { version = "0.5.0", path = "../../../lib/core/libimagrt" }
+libimagerror   = { version = "0.5.0", path = "../../../lib/core/libimagerror" }
+libimagutil    = { version = "0.5.0", path = "../../../lib/etc/libimagutil" }
+libimagcounter = { version = "0.5.0", path = "../../../lib/domain/libimagcounter" }
 
