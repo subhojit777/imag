@@ -19,16 +19,29 @@
 
 use std::path::PathBuf;
 
+use vobject::parse_component;
+use toml::Value;
+use toml_query::insert::TomlValueInsertExt;
+
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
+use libimagentryref::refstore::RefStore;
+use libimagentryref::flags::RefFlags;
 
 use error::Result;
+use util;
 
-pub trait ContactStore<'a> {
+pub trait ContactStore<'a> : RefStore {
 
     // creating
 
     fn create_from_path(&'a self, p: &PathBuf) -> Result<FileLockEntry<'a>>;
+
+    /// Create contact ref from buffer
+    ///
+    /// Needs the `p` argument as we're finally creating a reference by path, the buffer is only for
+    /// collecting metadata.
+    fn create_from_buf(&'a self, p: &PathBuf, buf: &String) -> Result<FileLockEntry<'a>>;
 
     // getting
 
@@ -38,7 +51,23 @@ pub trait ContactStore<'a> {
 impl<'a> ContactStore<'a> for Store {
 
     fn create_from_path(&'a self, p: &PathBuf) -> Result<FileLockEntry<'a>> {
-        unimplemented!()
+        util::read_to_string(p).and_then(|buf| self.create_from_buf(p, &buf))
+    }
+
+    /// Create contact ref from buffer
+    fn create_from_buf(&'a self, p: &PathBuf, buf: &String) -> Result<FileLockEntry<'a>> {
+        let component = parse_component(&buf)?;
+        debug!("Parsed: {:?}", component);
+
+        let flags = RefFlags::default().with_content_hashing(true).with_permission_tracking(false);
+        RefStore::create(self, p.clone(), flags)
+            .map_err(From::from)
+            .and_then(|mut entry| {
+                entry.get_header_mut()
+                    .insert("contact.marker", Value::Boolean(true))
+                    .map_err(From::from)
+                    .map(|_| entry)
+            })
     }
 
     fn search_contact(&'a self /* later more params */) -> Result<FileLockEntry<'a>> {
