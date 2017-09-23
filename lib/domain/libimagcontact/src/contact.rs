@@ -18,10 +18,14 @@
 //
 
 use vobject::Component;
+use toml::Value;
+use toml_query::read::TomlValueReadExt;
 
 use libimagstore::store::Entry;
 use libimagentryref::reference::Ref;
 
+use error::ContactError as CE;
+use error::ContactErrorKind as CEK;
 use error::Result;
 use util;
 
@@ -29,6 +33,8 @@ use util;
 ///
 /// Based on the functionality from libimagentryref, for fetching the Ical data from disk
 pub trait Contact : Ref {
+
+    fn is_contact(&self) -> Result<bool>;
 
     // getting data
 
@@ -39,6 +45,15 @@ pub trait Contact : Ref {
 }
 
 impl Contact for Entry {
+
+    fn is_contact(&self) -> Result<bool> {
+        let location = "contact.marker";
+        match self.get_header().read(location)? {
+            Some(&Value::Boolean(b)) => Ok(b),
+            Some(_) => Err(CE::from_kind(CEK::HeaderTypeError("boolean", location))),
+            None    => Ok(false)
+        }
+    }
 
     fn get_contact_data(&self) -> Result<ContactData> {
         let component = self
