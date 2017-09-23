@@ -785,6 +785,7 @@ mod test {
     use libimagstore::store::Store;
 
     use super::InternalLinker;
+    use super::Link;
 
     fn setup_logging() {
         use env_logger;
@@ -990,6 +991,35 @@ mod test {
         assert_eq!(e1.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
         assert_eq!(e2.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
         assert_eq!(e3.get_internal_links().unwrap().collect::<Vec<_>>().len(), 0);
+    }
+
+    #[test]
+    fn test_link_annotating() {
+        setup_logging();
+        let store      = get_store();
+        let mut entry1 = store.create(PathBuf::from("test_link_annotating-1")).unwrap();
+        let mut entry2 = store.create(PathBuf::from("test_link_annotating-2")).unwrap();
+
+        let res = entry1.add_internal_annotated_link(&mut entry2, String::from("annotation"));
+        assert!(res.is_ok());
+
+        {
+            for link in entry1.get_internal_links().unwrap() {
+                match link  {
+                    Link::Annotated {annotation, ..} => assert_eq!(annotation, "annotation"),
+                    _ => assert!(false, "Non-annotated link found"),
+                }
+            }
+        }
+
+        {
+            for link in entry2.get_internal_links().unwrap() {
+                match link  {
+                    Link::Id {..}        => {},
+                    Link::Annotated {..} => assert!(false, "Annotated link found"),
+                }
+            }
+        }
     }
 
 }
