@@ -154,7 +154,7 @@ impl<'a> TaskStore<'a> for Store {
                         }
                     } // end if c % 2
                 },
-                Err(e) => return Err(TE::from_kind(TEK::ImportError)),
+                Err(_) => return Err(TE::from_kind(TEK::ImportError)),
             }
         }
         Ok(())
