@@ -51,7 +51,7 @@ impl Link {
             Link::Id { ref link }             => link.exists(),
             Link::Annotated { ref link, .. }  => link.exists(),
         }
-        .chain_err(|| LEK::StoreIdError)
+        .map_err(From::from)
     }
 
     pub fn to_str(&self) -> Result<String> {
@@ -59,7 +59,7 @@ impl Link {
             Link::Id { ref link }             => link.to_str(),
             Link::Annotated { ref link, .. }  => link.to_str(),
         }
-        .chain_err(|| LEK::StoreReadError)
+        .map_err(From::from)
     }
 
 
@@ -288,10 +288,10 @@ pub mod iter {
         type Item = Result<FileLockEntry<'a>>;
 
         fn next(&mut self) -> Option<Self::Item> {
-            self.0.next().and_then(|id| match self.1.get(id).chain_err(|| LEK::StoreReadError) {
+            self.0.next().and_then(|id| match self.1.get(id) {
                 Ok(None)    => None,
                 Ok(Some(x)) => Some(Ok(x)),
-                Err(e)      => Some(Err(e)),
+                Err(e)      => Some(Err(e).map_err(From::from)),
             })
         }
 
@@ -318,8 +318,7 @@ pub mod iter {
             loop {
                 match self.0.next() {
                     Some(Ok(fle)) => {
-                        let links = match fle.get_internal_links().chain_err(|| LEK::StoreReadError)
-                        {
+                        let links = match fle.get_internal_links() {
                             Err(e) => return Some(Err(e)),
                             Ok(links) => links.collect::<Vec<_>>(),
                         };
@@ -358,19 +357,14 @@ pub mod iter {
             loop {
                 match self.0.next() {
                     Some(Ok(fle)) => {
-                        let links = match fle.get_internal_links().chain_err(|| LEK::StoreReadError)
-                        {
+                        let links = match fle.get_internal_links() {
                             Err(e) => return Some(Err(e)),
                             Ok(links) => links,
                         };
                         if links.count() == 0 {
-                            match self.0
-                                 .store()
-                                 .delete(fle.get_location().clone())
-                                 .chain_err(|| LEK::StoreWriteError)
-                            {
+                            match self.0.store().delete(fle.get_location().clone()) {
                                 Ok(x)  => x,
-                                Err(e) => return Some(Err(e)),
+                                Err(e) => return Some(Err(e).map_err(From::from)),
                             }
                         } else {
                             return Some(Ok(fle));
@@ -562,8 +556,8 @@ fn process_rw_result(links: Result<Option<Value>>) -> Result<LinkIter> {
             debug!("Matching the link: {:?}", link);
             match link {
                 Value::String(s) => StoreId::new_baseless(PathBuf::from(s))
-                    .chain_err(|| LEK::StoreIdError)
                     .map(|s| Link::Id { link: s })
+                    .map_err(From::from)
                     ,
                 Value::Table(mut tab) => {
                     debug!("Destructuring table");
@@ -582,7 +576,7 @@ fn process_rw_result(links: Result<Option<Value>>) -> Result<LinkIter> {
                         match (link, anno) {
                             (Value::String(link), Value::String(anno)) => {
                                 StoreId::new_baseless(PathBuf::from(link))
-                                    .chain_err(|| LEK::StoreIdError)
+                                    .map_err(From::from)
                                     .map(|link| {
                                         Link::Annotated {
                                             link: link,
@@ -642,24 +636,24 @@ pub mod store_check {
             /// The lambda returns an error if something fails
             let aggregate_link_network = |store: &Store| -> Result<HashMap<StoreId, Linking>> {
                 let iter = store
-                    .entries()
-                    .chain_err(|| LEK::StoreReadError)?
+                    .entries()?
                     .into_get_iter(store);
 
                 let mut map = HashMap::new();
                 for element in iter {
                     debug!("Checking element = {:?}", element);
-                    let entry = match element {
-                        Ok(Some(e)) => e,
-                        Ok(None) => return Err(LE::from_kind(LEK::StoreIdError)),
-                        Err(e)   => return Err(e).chain_err(|| LE::from_kind(LEK::StoreReadError)),
+                    let entry = match try!(element) {
+                        Some(e) => e,
+                        None    => {
+                            let e = String::from("TODO: Not yet handled");
+                            return Err(e).map_err(From::from);
+                        },
                     };
 
                     debug!("Checking entry = {:?}", entry.get_location());
 
                     let internal_links = entry
-                        .get_internal_links()
-                        .chain_err(|| LEK::StoreError)?
+                        .get_internal_links()?
                         .into_getter(store); // get the FLEs from the Store
 
                     let mut linking = Linking::default();
@@ -686,7 +680,7 @@ pub mod store_check {
                         if is_match!(self.get(id.clone()), Ok(Some(_))) {
                             debug!("Exists in store: {:?}", id);
 
-                            if !try!(id.exists().chain_err(|| LEK::StoreReadError)) {
+                            if !try!(id.exists()) {
                                 warn!("Does exist in store but not on FS: {:?}", id);
                                 Err(LE::from_kind(LEK::LinkTargetDoesNotExist))
                             } else {
