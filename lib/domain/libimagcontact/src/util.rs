@@ -17,36 +17,29 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#![deny(
-    dead_code,
-    non_camel_case_types,
-    non_snake_case,
-    path_statements,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_allocation,
-    unused_import_braces,
-    unused_imports,
-    unused_must_use,
-    unused_mut,
-    unused_qualifications,
-    while_true,
-)]
+use std::path::Path;
+use std::fmt::Debug;
+use std::fs::File;
+use std::io::Read;
 
-#[macro_use] extern crate log;
-#[macro_use] extern crate error_chain;
-extern crate vobject;
-extern crate toml;
-extern crate toml_query;
+use error::Result;
 
-#[macro_use] extern crate libimagstore;
-extern crate libimagerror;
-extern crate libimagentryref;
+use vobject::Component;
 
-module_entry_path_mod!("contact");
+pub fn read_to_string<A: AsRef<Path> + Debug>(pb: A) -> Result<String> {
+    let mut cont = String::new();
 
-pub mod contact;
-pub mod error;
-pub mod store;
-mod util;
+    let mut file = File::open(pb.as_ref())?;
+    let bytes = file.read_to_string(&mut cont)?;
+
+    debug!("Read {} bytes from {:?}", bytes, pb);
+
+    Ok(cont)
+}
+
+/// Helper for chaining results nicely
+pub fn parse(buf: String) -> Result<Component> {
+    use vobject::parse_component;
+    parse_component(&buf).map_err(From::from)
+}
 
