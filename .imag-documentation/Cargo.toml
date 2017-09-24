@@ -23,6 +23,7 @@ libimagentrycategory   = { version = "0.5.0", path = "../lib/entry/libimagentryc
 libimagentrydatetime   = { version = "0.5.0", path = "../lib/entry/libimagentrydatetime" }
 libimagentryedit       = { version = "0.5.0", path = "../lib/entry/libimagentryedit" }
 libimagentryfilter     = { version = "0.5.0", path = "../lib/entry/libimagentryfilter" }
+libimagentrygps        = { version = "0.5.0", path = "../lib/entry/libimagentrygps" }
 libimagentrylink       = { version = "0.5.0", path = "../lib/entry/libimagentrylink" }
 libimagentrylist       = { version = "0.5.0", path = "../lib/entry/libimagentrylist" }
 libimagentrymarkdown   = { version = "0.5.0", path = "../lib/entry/libimagentrymarkdown" }
