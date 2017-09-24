@@ -18,6 +18,8 @@ Version 0.y.z and thus we can break the API like we want and need to.
 
 This section contains the changelog from the last release to the next release.
 
+## 0.4.0
+
 * Major changes
     * The `libimagstore::toml_ext` module was removed. The `toml_query` crate
       should be used as a replacement. Its interface only differs in few places
@@ -34,6 +36,7 @@ This section contains the changelog from the last release to the next release.
       hourly (or daily, which is when specifying nothing).
 * New
     * `libimagentrygps` was introduced
+    * `imag-gps` was introduced
     * `imag-grep` was introduced
     * The `imag` command now passes all arguments properly to the called
       subcommand
@@ -68,6 +71,12 @@ This section contains the changelog from the last release to the next release.
     * `libimagentrylist` does not export a CLI helper module anymore.
 
 * Stats
+    * ~325 commits
+    * 82 merge-commits / 243 non-merge commits
+    * 2 contributors
+    * 447 files changed
+    * 9749 insertions(+) / 7806 deletions(-) (Surely because of the
+      reorganization of the entire codebase)
 
 ## 0.3.0
 
