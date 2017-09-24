@@ -1,6 +1,6 @@
 [package]
 name = "imag-documentation"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Documentation crate of the imag distribution. Does not contain functionality"
@@ -15,28 +15,29 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 
-libimagbookmark        = { version = "0.4.0", path = "../lib/domain/libimagbookmark" }
-libimagcounter         = { version = "0.4.0", path = "../lib/domain/libimagcounter" }
-libimagdiary           = { version = "0.4.0", path = "../lib/domain/libimagdiary" }
-libimagentryannotation = { version = "0.4.0", path = "../lib/entry/libimagentryannotation" }
-libimagentrycategory   = { version = "0.4.0", path = "../lib/entry/libimagentrycategory" }
-libimagentrydatetime   = { version = "0.4.0", path = "../lib/entry/libimagentrydatetime" }
-libimagentryedit       = { version = "0.4.0", path = "../lib/entry/libimagentryedit" }
-libimagentryfilter     = { version = "0.4.0", path = "../lib/entry/libimagentryfilter" }
-libimagentrylink       = { version = "0.4.0", path = "../lib/entry/libimagentrylink" }
-libimagentrylist       = { version = "0.4.0", path = "../lib/entry/libimagentrylist" }
-libimagentrymarkdown   = { version = "0.4.0", path = "../lib/entry/libimagentrymarkdown" }
-libimagentryref        = { version = "0.4.0", path = "../lib/entry/libimagentryref" }
-libimagentrytag        = { version = "0.4.0", path = "../lib/entry/libimagentrytag" }
-libimagentryview       = { version = "0.4.0", path = "../lib/entry/libimagentryview" }
-libimagerror           = { version = "0.4.0", path = "../lib/core/libimagerror" }
-libimaginteraction     = { version = "0.4.0", path = "../lib/etc/libimaginteraction" }
-libimagmail            = { version = "0.4.0", path = "../lib/domain/libimagmail" }
-libimagnotes           = { version = "0.4.0", path = "../lib/domain/libimagnotes" }
-libimagrt              = { version = "0.4.0", path = "../lib/core/libimagrt" }
-libimagstore           = { version = "0.4.0", path = "../lib/core/libimagstore" }
-libimagtimetrack       = { version = "0.4.0", path = "../lib/domain/libimagtimetrack" }
-libimagtimeui          = { version = "0.4.0", path = "../lib/etc/libimagtimeui" }
-libimagtodo            = { version = "0.4.0", path = "../lib/domain/libimagtodo" }
-libimagutil            = { version = "0.4.0", path = "../lib/etc/libimagutil" }
+libimagbookmark        = { version = "0.5.0", path = "../lib/domain/libimagbookmark" }
+libimagcounter         = { version = "0.5.0", path = "../lib/domain/libimagcounter" }
+libimagdiary           = { version = "0.5.0", path = "../lib/domain/libimagdiary" }
+libimagentryannotation = { version = "0.5.0", path = "../lib/entry/libimagentryannotation" }
+libimagentrycategory   = { version = "0.5.0", path = "../lib/entry/libimagentrycategory" }
+libimagentrydatetime   = { version = "0.5.0", path = "../lib/entry/libimagentrydatetime" }
+libimagentryedit       = { version = "0.5.0", path = "../lib/entry/libimagentryedit" }
+libimagentryfilter     = { version = "0.5.0", path = "../lib/entry/libimagentryfilter" }
+libimagentrygps        = { version = "0.5.0", path = "../lib/entry/libimagentrygps" }
+libimagentrylink       = { version = "0.5.0", path = "../lib/entry/libimagentrylink" }
+libimagentrylist       = { version = "0.5.0", path = "../lib/entry/libimagentrylist" }
+libimagentrymarkdown   = { version = "0.5.0", path = "../lib/entry/libimagentrymarkdown" }
+libimagentryref        = { version = "0.5.0", path = "../lib/entry/libimagentryref" }
+libimagentrytag        = { version = "0.5.0", path = "../lib/entry/libimagentrytag" }
+libimagentryview       = { version = "0.5.0", path = "../lib/entry/libimagentryview" }
+libimagerror           = { version = "0.5.0", path = "../lib/core/libimagerror" }
+libimaginteraction     = { version = "0.5.0", path = "../lib/etc/libimaginteraction" }
+libimagmail            = { version = "0.5.0", path = "../lib/domain/libimagmail" }
+libimagnotes           = { version = "0.5.0", path = "../lib/domain/libimagnotes" }
+libimagrt              = { version = "0.5.0", path = "../lib/core/libimagrt" }
+libimagstore           = { version = "0.5.0", path = "../lib/core/libimagstore" }
+libimagtimetrack       = { version = "0.5.0", path = "../lib/domain/libimagtimetrack" }
+libimagtimeui          = { version = "0.5.0", path = "../lib/etc/libimagtimeui" }
+libimagtodo            = { version = "0.5.0", path = "../lib/domain/libimagtodo" }
+libimagutil            = { version = "0.5.0", path = "../lib/etc/libimagutil" }
 

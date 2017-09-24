@@ -1,6 +1,6 @@
 [package]
 name = "libimagentryedit"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -16,7 +16,7 @@ homepage      = "http://imag-pim.org"
 [dependencies]
 error-chain = "0.10"
 
-libimagerror = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
-libimagrt    = { version = "0.4.0", path = "../../../lib/core/libimagrt" }
-libimagstore = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
-libimagutil  = { version = "0.4.0", path = "../../../lib/etc/libimagutil" }
+libimagerror = { version = "0.5.0", path = "../../../lib/core/libimagerror" }
+libimagrt    = { version = "0.5.0", path = "../../../lib/core/libimagrt" }
+libimagstore = { version = "0.5.0", path = "../../../lib/core/libimagstore" }
+libimagutil  = { version = "0.5.0", path = "../../../lib/etc/libimagutil" }

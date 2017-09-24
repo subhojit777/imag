@@ -1,6 +1,6 @@
 [package]
 name = "libimagnotes"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -19,7 +19,7 @@ toml = "0.4"
 toml-query = "^0.3.1"
 error-chain = "0.10"
 
-libimagstore     = { version = "0.4.0", path = "../../../lib/core/libimagstore" }
-libimagerror     = { version = "0.4.0", path = "../../../lib/core/libimagerror" }
-libimagrt        = { version = "0.4.0", path = "../../../lib/core/libimagrt" }
-libimagentryedit = { version = "0.4.0", path = "../../../lib/entry/libimagentryedit" }
+libimagstore     = { version = "0.5.0", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.5.0", path = "../../../lib/core/libimagerror" }
+libimagrt        = { version = "0.5.0", path = "../../../lib/core/libimagrt" }
+libimagentryedit = { version = "0.5.0", path = "../../../lib/entry/libimagentryedit" }
