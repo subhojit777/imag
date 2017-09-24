@@ -20,9 +20,6 @@
 use std::path::PathBuf;
 use std::io::Read;
 
-use error::RefErrorKind as REK;
-use error::ResultExt;
-
 use crypto::sha1::Sha1;
 use crypto::digest::Digest;
 
@@ -58,7 +55,7 @@ impl Hasher for DefaultHasher {
 
     fn create_hash<R: Read>(&mut self, _: &PathBuf, c: &mut R) -> Result<String> {
         let mut s = String::new();
-        try!(c.read_to_string(&mut s).chain_err(|| REK::UTF8Error).chain_err(|| REK::IOError));
+        try!(c.read_to_string(&mut s));
         self.hasher.input_str(&s[..]);
         Ok(self.hasher.result_str())
     }

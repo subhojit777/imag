@@ -22,7 +22,6 @@ use std::collections::BTreeMap;
 use toml::Value;
 
 use error::RefErrorKind as REK;
-use error::ResultExt;
 use error::Result;
 
 pub struct RefFlags {
@@ -41,7 +40,7 @@ impl RefFlags {
             use toml_query::read::TomlValueReadExt;
 
             v.read(key)
-                .chain_err(|| REK::HeaderTomlError)
+                .map_err(From::from)
                 .and_then(|toml| match toml {
                     Some(&Value::Boolean(b)) => Ok(b),
                     Some(_) => Err(REK::HeaderTypeError.into()),

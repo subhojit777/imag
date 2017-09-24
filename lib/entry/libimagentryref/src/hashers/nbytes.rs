@@ -26,8 +26,7 @@ use crypto::digest::Digest;
 
 use hasher::Hasher;
 use error::Result;
-use error::RefErrorKind as REK;
-use error::ResultExt;
+use error::RefError as RE;
 
 pub struct NBytesHasher {
     hasher: Sha1,
@@ -52,12 +51,13 @@ impl Hasher for NBytesHasher {
     }
 
     fn create_hash<R: Read>(&mut self, _: &PathBuf, contents: &mut R) -> Result<String> {
-        let s = try!(contents
+        let s : String = try!(contents
             .bytes()
             .take(self.n)
             .collect::<RResult<Vec<u8>, _>>()
-            .chain_err(|| REK::IOError)
-            .and_then(|v| String::from_utf8(v).chain_err(|| REK::UTF8Error)));
+            .map_err(From::from)
+            .and_then(|v| String::from_utf8(v).map_err(RE::from)));
+
         self.hasher.input_str(&s[..]);
         Ok(self.hasher.result_str())
     }
