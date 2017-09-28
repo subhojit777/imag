@@ -25,17 +25,6 @@ script:
 - |
   cargo build --all --verbose -j 1 && cargo test --all --verbose -j 1
 
-addons:
-  apt:
-    packages:
-    - cmake
-    - libcurl4-openssl-dev
-    - libdw-dev
-    - libelf-dev
-    - libzzip-dev
-    sources:
-    - kalakris-cmake
-
 notifications:
   email:
     on_success: never
