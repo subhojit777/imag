@@ -1,6 +1,5 @@
 [workspace]
 members = [
-    ".imag-documentation",
     "bin/core/imag",
     "bin/core/imag-gps",
     "bin/core/imag-grep",

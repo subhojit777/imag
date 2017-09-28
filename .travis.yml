@@ -42,13 +42,6 @@ addons:
     sources:
     - kalakris-cmake
 
-after_success:
-- |
-  pushd .imag-documentation &&
-  travis-cargo --only stable doc &&
-  travis-cargo --only stable doc-upload
-  popd
-
 notifications:
   email:
     on_success: never
