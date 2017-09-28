@@ -18,6 +18,9 @@ Version 0.y.z and thus we can break the API like we want and need to.
 
 This section contains the changelog from the last release to the next release.
 
+* Major changes
+    * `imag-counter` and `libimagcounter` was removed.
+
 ## 0.4.0
 
 * Major changes
