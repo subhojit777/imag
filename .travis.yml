@@ -33,7 +33,6 @@ addons:
     - libdw-dev
     - libelf-dev
     - libzzip-dev
-    - tree
     sources:
     - kalakris-cmake
 
