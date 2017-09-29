@@ -84,11 +84,6 @@ destinations = [ "-" ]
 level = "debug"
 enabled = true
 
-[imag.logging.modules.libimagcounter]
-destinations = [ "-" ]
-level = "debug"
-enabled = true
-
 [imag.logging.modules.libimagdiary]
 destinations = [ "-" ]
 level = "debug"
