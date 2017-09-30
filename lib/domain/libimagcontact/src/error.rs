@@ -25,12 +25,12 @@ error_chain! {
     links {
         StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
         RefError(::libimagentryref::error::RefError, ::libimagentryref::error::RefErrorKind);
+        VObjectError(::vobject::error::VObjectError, ::vobject::error::VObjectErrorKind);
     }
 
     foreign_links {
         Io(::std::io::Error);
         TomlQueryError(::toml_query::error::Error);
-        VObjectError(::vobject::ParseError);
     }
 
     errors {
