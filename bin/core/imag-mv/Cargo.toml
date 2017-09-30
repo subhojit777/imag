@@ -1,0 +1,24 @@
+[package]
+name = "imag-mv"
+version = "0.5.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+description = "Part of the imag core distribution: imag command"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../../../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+homepage      = "http://imag-pim.org"
+
+[dependencies]
+version = "2.0"
+clap = ">=2.17"
+log = "0.3"
+
+libimagrt    = { version = "0.5.0", path = "../../../lib/core/libimagrt" }
+libimagerror = { version = "0.5.0", path = "../../../lib/core/libimagerror" }
+libimagstore = { version = "0.5.0", path = "../../../lib/core/libimagstore" }
+
