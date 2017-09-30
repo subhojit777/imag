@@ -54,7 +54,6 @@ use libimagbookmark::collection::BookmarkCollection;
 use libimagbookmark::link::Link as BookmarkLink;
 use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
 use libimagutil::info_result::*;
-use libimagutil::iter::*;
 
 mod ui;
 
@@ -88,9 +87,10 @@ fn add(rt: &Runtime) {
 
     BookmarkCollection::get(rt.store(), &coll)
         .and_then(|mut collection| {
-            scmd.values_of("urls")
-                .unwrap() // enforced by clap
-                .fold_result(|url| collection.add_link(BookmarkLink::from(url)))
+            for url in scmd.values_of("urls").unwrap() { // unwrap saved by clap
+                let _ = try!(collection.add_link(BookmarkLink::from(url)));
+            }
+            Ok(())
         })
         .map_err_trace()
         .map_info_str("Ready")

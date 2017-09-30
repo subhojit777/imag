@@ -29,7 +29,6 @@ use libimagentryref::flags::RefFlags;
 use libimagstore::store::Entry;
 use libimagstore::store::Store;
 use libimagstore::storeid::StoreId;
-use libimagutil::iter::FoldResult;
 
 use std::path::PathBuf;
 
@@ -106,57 +105,57 @@ impl LinkProcessor {
     pub fn process<'a>(&self, entry: &mut Entry, store: &'a Store) -> Result<()> {
         let text = entry.to_str();
         trace!("Processing: {:?}", entry.get_location());
-        extract_links(&text)
-            .into_iter()
-            .fold_result::<_, MarkdownError, _>(|link| {
-                trace!("Processing {:?}", link);
-                match LinkQualification::qualify(&link.link) {
-                    LinkQualification::InternalLink => {
-                        if !self.process_internal_links {
-                            return Ok(());
-                        }
+        for link in extract_links(&text).into_iter() {
+            trace!("Processing {:?}", link);
+            match LinkQualification::qualify(&link.link) {
+                LinkQualification::InternalLink => {
+                    if !self.process_internal_links {
+                        continue
+                    }
 
-                        let spath      = Some(store.path().clone());
-                        let id         = StoreId::new(spath, PathBuf::from(&link.link))?;
-                        let mut target = if self.create_internal_targets {
-                            try!(store.retrieve(id))
-                        } else {
-                            store.get(id.clone())?
-                                .ok_or(ME::from_kind(MEK::StoreGetError(id)))?
-                        };
+                    let spath      = Some(store.path().clone());
+                    let id         = StoreId::new(spath, PathBuf::from(&link.link))?;
+                    let mut target = if self.create_internal_targets {
+                        try!(store.retrieve(id))
+                    } else {
+                        store.get(id.clone())?
+                            .ok_or(ME::from_kind(MEK::StoreGetError(id)))?
+                    };
 
-                        entry.add_internal_link(&mut target).map_err(From::from)
-                    },
-                    LinkQualification::ExternalLink(url) => {
-                        if !self.process_external_links {
-                            return Ok(());
-                        }
+                    let _ = entry.add_internal_link(&mut target)?;
+                },
+                LinkQualification::ExternalLink(url) => {
+                    if !self.process_external_links {
+                        continue
+                    }
 
-                        entry.add_external_link(store, url).map_err(From::from)
-                    },
-                    LinkQualification::RefLink(url) => {
-                        if !self.process_refs {
-                            return Ok(());
-                        }
+                    entry.add_external_link(store, url)?;
+                },
+                LinkQualification::RefLink(url) => {
+                    if !self.process_refs {
+                        continue
+                    }
 
-                        let flags = RefFlags::default()
-                            .with_content_hashing(false)
-                            .with_permission_tracking(false);
-                        trace!("URL            = {:?}", url);
-                        trace!("URL.path()     = {:?}", url.path());
-                        trace!("URL.host_str() = {:?}", url.host_str());
-                        let path = url.host_str().unwrap_or_else(|| url.path());
-                        let path = PathBuf::from(path);
-                        let mut target = try!(RefStore::create(store, path, flags));
+                    let flags = RefFlags::default()
+                        .with_content_hashing(false)
+                        .with_permission_tracking(false);
+                    trace!("URL            = {:?}", url);
+                    trace!("URL.path()     = {:?}", url.path());
+                    trace!("URL.host_str() = {:?}", url.host_str());
+                    let path = url.host_str().unwrap_or_else(|| url.path());
+                    let path = PathBuf::from(path);
+                    let mut target = try!(RefStore::create(store, path, flags));
 
-                        entry.add_internal_link(&mut target).map_err(From::from)
-                    },
-                    LinkQualification::Undecidable(e) => {
-                        // error
-                        Err(e).chain_err(|| MEK::UndecidableLinkType(link.link.clone()))
-                    },
-                }
-            })
+                    entry.add_internal_link(&mut target)?;
+                },
+                LinkQualification::Undecidable(e) => {
+                    // error
+                    return Err(e).chain_err(|| MEK::UndecidableLinkType(link.link.clone()))
+                },
+            }
+        }
+
+        Ok(())
     }
 
 }

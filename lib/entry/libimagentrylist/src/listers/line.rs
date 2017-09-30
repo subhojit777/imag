@@ -25,7 +25,6 @@ use error::Result;
 use error::ResultExt;
 
 use libimagstore::store::FileLockEntry;
-use libimagutil::iter::FoldResult;
 
 pub struct LineLister<'a> {
     unknown_output: &'a str,
@@ -46,10 +45,12 @@ impl<'a> Lister for LineLister<'a> {
     fn list<'b, I: Iterator<Item = FileLockEntry<'b>>>(&self, entries: I) -> Result<()> {
         use error::ListErrorKind as LEK;
 
-        entries.fold_result(|entry| {
+        for entry in entries {
             let s = entry.get_location().to_str().unwrap_or(String::from(self.unknown_output));
-            write!(stdout(), "{:?}\n", s).chain_err(| | LEK::FormatError)
-        })
+            try!(write!(stdout(), "{:?}\n", s).chain_err(|| LEK::FormatError))
+        }
+
+        Ok(())
     }
 
 }

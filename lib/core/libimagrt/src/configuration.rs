@@ -145,11 +145,9 @@ impl Configuration {
     /// If `v` is empty, this is considered to be a successful `override_config()` call.
     pub fn override_config(&mut self, v: Vec<String>) -> Result<()> {
         use libimagutil::key_value_split::*;
-        use libimagutil::iter::*;
-
         use toml_query::read::TomlValueReadExt;
 
-        v.into_iter()
+        let iter = v.into_iter()
             .map(|s| { debug!("Trying to process '{}'", s); s })
             .filter_map(|s| match s.into_kv() {
                 Some(kv) => Some(kv.into()),
@@ -166,15 +164,19 @@ impl Configuration {
                     Some(value) => match into_value(value, v) {
                         Some(v) => {
                             info!("Successfully overridden: {} = {}", k, v);
-                            Ok(v)
+                            Ok(())
                         },
                         None => Err(CE::from_kind(CEK::ConfigOverrideTypeNotMatching)),
                     },
                     None => Err(CE::from_kind(CEK::ConfigOverrideKeyNotAvailable)),
                 })
-            )
-            .fold_result(|i| i)
-            .chain_err(|| CEK::ConfigOverrideError)
+            );
+
+        for elem in iter {
+            let _ = try!(elem.chain_err(|| CEK::ConfigOverrideError));
+        }
+
+        Ok(())
     }
 }
 

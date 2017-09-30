@@ -617,7 +617,6 @@ pub mod store_check {
 
             use libimagstore::storeid::StoreId;
             use libimagstore::iter::get::StoreIdGetIteratorExtension;
-            use libimagutil::iter::FoldResult;
             use libimagutil::debug_result::DebugResult;
 
             // Helper data structure to collect incoming and outgoing links for each StoreId
@@ -674,23 +673,21 @@ pub mod store_check {
             ///
             /// Because why not?
             let all_collected_storeids_exist = |network: &HashMap<StoreId, Linking>| -> LResult<()> {
-                network
-                    .iter()
-                    .fold_result(|(id, _)| {
-                        if is_match!(self.get(id.clone()), Ok(Some(_))) {
-                            debug!("Exists in store: {:?}", id);
+                for (id, _) in network.iter() {
+                    if is_match!(self.get(id.clone()), Ok(Some(_))) {
+                        debug!("Exists in store: {:?}", id);
 
-                            if !try!(id.exists()) {
-                                warn!("Does exist in store but not on FS: {:?}", id);
-                                Err(LE::from_kind(LEK::LinkTargetDoesNotExist))
-                            } else {
-                                Ok(())
-                            }
-                        } else {
-                            warn!("Does not exist in store: {:?}", id);
-                            Err(LE::from_kind(LEK::LinkTargetDoesNotExist))
+                        if !try!(id.exists()) {
+                            warn!("Does exist in store but not on FS: {:?}", id);
+                            return Err(LE::from_kind(LEK::LinkTargetDoesNotExist))
                         }
-                    })
+                    } else {
+                        warn!("Does not exist in store: {:?}", id);
+                        return Err(LE::from_kind(LEK::LinkTargetDoesNotExist))
+                    }
+                }
+
+                Ok(())
             };
 
             /// Helper function to create a SLCECD::OneDirectionalLink error object
@@ -703,46 +700,38 @@ pub mod store_check {
             /// appear in the _outgoing_ list of the linked entry
             let incoming_links_exists_as_outgoing_links =
                 |src: &StoreId, linking: &Linking, network: &HashMap<StoreId, Linking>| -> Result<()> {
-                    linking
-                        .incoming
-                        .iter()
-                        .fold_result(|link| {
+                    for link in linking.incoming.iter() {
+                        // Check whether the links which are _incoming_ on _src_ are outgoing
+                        // in each of the links in the incoming list.
+                        let incoming_consistent = network.get(link)
+                            .map(|l| l.outgoing.contains(src))
+                            .unwrap_or(false);
 
-                            // Check whether the links which are _incoming_ on _src_ are outgoing
-                            // in each of the links in the incoming list.
-                            let incoming_consistent = network.get(link)
-                                .map(|l| l.outgoing.contains(src))
-                                .unwrap_or(false);
+                        if !incoming_consistent {
+                            return Err(mk_one_directional_link_err(src.clone(), link.clone()))
+                        }
+                    }
 
-                            if !incoming_consistent {
-                                Err(mk_one_directional_link_err(src.clone(), link.clone()))
-                            } else {
-                                Ok(())
-                            }
-                        })
+                    Ok(())
                 };
 
             /// Helper lambda to check whether the _outgoing links of each entry actually also
             /// appear in the _incoming_ list of the linked entry
             let outgoing_links_exist_as_incoming_links =
                 |src: &StoreId, linking: &Linking, network: &HashMap<StoreId, Linking>| -> Result<()> {
-                    linking
-                        .outgoing
-                        .iter()
-                        .fold_result(|link| {
+                    for link in linking.outgoing.iter() {
+                        // Check whether the links which are _outgoing_ on _src_ are incoming
+                        // in each of the links in the outgoing list.
+                        let outgoing_consistent = network.get(link)
+                            .map(|l| l.incoming.contains(src))
+                            .unwrap_or(false);
 
-                            // Check whether the links which are _outgoing_ on _src_ are incoming
-                            // in each of the links in the outgoing list.
-                            let outgoing_consistent = network.get(link)
-                                .map(|l| l.incoming.contains(src))
-                                .unwrap_or(false);
+                        if !outgoing_consistent {
+                            return Err(mk_one_directional_link_err(link.clone(), src.clone()))
+                        }
+                    }
 
-                            if !outgoing_consistent {
-                                Err(mk_one_directional_link_err(link.clone(), src.clone()))
-                            } else {
-                                Ok(())
-                            }
-                        })
+                    Ok(())
                 };
 
             aggregate_link_network(&self)
@@ -760,11 +749,11 @@ pub mod store_check {
                         .chain_err(|| LEK::LinkHandlingError)
                 })
                 .and_then(|nw| {
-                    nw.iter().fold_result(|(id, linking)| {
+                    for (id, linking) in nw.iter() {
                         try!(incoming_links_exists_as_outgoing_links(id, linking, &nw));
                         try!(outgoing_links_exist_as_incoming_links(id, linking, &nw));
-                        Ok(())
-                    })
+                    }
+                    Ok(())
                 })
                 .map(|_| ())
         }

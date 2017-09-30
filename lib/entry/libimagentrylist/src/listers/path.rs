@@ -25,7 +25,6 @@ use error::Result;
 use error::ResultExt;
 
 use libimagstore::store::FileLockEntry;
-use libimagutil::iter::FoldResult;
 
 pub struct PathLister {
     absolute: bool,
@@ -46,18 +45,19 @@ impl Lister for PathLister {
     fn list<'a, I: Iterator<Item = FileLockEntry<'a>>>(&self, entries: I) -> Result<()> {
         use error::ListErrorKind as LEK;
 
-        entries.fold_result(|entry| {
-            Ok(entry.get_location().clone())
-                .and_then(|pb| pb.into_pathbuf().chain_err(|| LEK::FormatError))
-                .and_then(|pb| {
-                    if self.absolute {
-                        pb.canonicalize().chain_err(|| LEK::FormatError)
-                    } else {
-                        Ok(pb.into())
-                    }
-                })
-                .and_then(|pb| write!(stdout(), "{:?}\n", pb).chain_err(|| LEK::FormatError))
-            })
+        for entry in entries {
+            let pb = entry.get_location().clone();
+            let pb = try!(pb.into_pathbuf().chain_err(|| LEK::FormatError));
+            let pb = if self.absolute {
+                try!(pb.canonicalize().chain_err(|| LEK::FormatError))
+            } else {
+                pb.into()
+            };
+
+            try!(write!(stdout(), "{:?}\n", pb).chain_err(|| LEK::FormatError))
+        }
+
+        Ok(())
     }
 
 }
