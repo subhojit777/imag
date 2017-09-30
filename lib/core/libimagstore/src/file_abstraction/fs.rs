@@ -130,6 +130,7 @@ impl FileAbstraction for FSFileAbstraction {
     }
 
     fn create_dir_all(&self, path: &PathBuf) -> Result<(), SE> {
+        debug!("Creating: {:?}", path);
         create_dir_all(path).chain_err(|| SEK::DirNotCreated)
     }
 
