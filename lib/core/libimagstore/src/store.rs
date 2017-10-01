@@ -766,6 +766,7 @@ impl Store {
             if hsmap.contains_key(&new_id) {
                 return Err(SE::from_kind(SEK::EntryAlreadyExists(new_id.clone())));
             }
+            debug!("New id does not exist in cache");
 
             // if we do not have an entry here, we fail in `FileAbstraction::rename()` below.
             // if we have one, but it is borrowed, we really should not rename it, as this might
@@ -774,12 +775,15 @@ impl Store {
                 return Err(SE::from_kind(SEK::EntryAlreadyBorrowed(old_id.clone())));
             }
 
+            debug!("Old id is not yet borrowed");
+
             let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
             let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
 
             if try!(self.backend.exists(&new_id_pb)) {
                 return Err(SE::from_kind(SEK::EntryAlreadyExists(new_id.clone())));
             }
+            debug!("New entry does not yet exist on filesystem. Good.");
 
             match self.backend.rename(&old_id_pb, &new_id_pb) {
                 Err(e) => return Err(e).chain_err(|| SEK::EntryRenameError(old_id_pb, new_id_pb)),

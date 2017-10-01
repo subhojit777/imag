@@ -126,10 +126,23 @@ impl FileAbstraction for FSFileAbstraction {
     }
 
     fn rename(&self, from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
+        match to.parent() {
+            Some(p) => if !p.exists() {
+                debug!("Creating: {:?}", p);
+                let _ = try!(create_dir_all(&PathBuf::from(p)));
+            },
+            None => {
+                debug!("Failed to find parent. This looks like it will fail now");
+                //nothing
+            },
+        }
+
+        debug!("Renaming {:?} to {:?}", from, to);
         rename(from, to).chain_err(|| SEK::FileNotRenamed)
     }
 
     fn create_dir_all(&self, path: &PathBuf) -> Result<(), SE> {
+        debug!("Creating: {:?}", path);
         create_dir_all(path).chain_err(|| SEK::DirNotCreated)
     }
 
