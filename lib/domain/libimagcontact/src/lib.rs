@@ -47,6 +47,7 @@ module_entry_path_mod!("contact");
 
 pub mod contact;
 pub mod error;
+pub mod iter;
 pub mod store;
 mod util;
 

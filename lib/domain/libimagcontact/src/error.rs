@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use libimagstore::storeid::StoreId;
+
 error_chain! {
     types {
         ContactError, ContactErrorKind, ResultExt, Result;
@@ -38,6 +40,11 @@ error_chain! {
         HeaderTypeError(ty: &'static str, loc: &'static str) {
             description("Type error in header")
             display("Type error in header, expected {} at '{}', found other type", ty, loc)
+        }
+
+        EntryNotFound(sid: StoreId) {
+            description("Entry not found with StoreId")
+            display("Entry {:?} not found", sid)
         }
 
     }
