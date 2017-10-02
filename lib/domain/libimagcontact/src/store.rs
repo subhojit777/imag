@@ -25,6 +25,7 @@ use toml_query::insert::TomlValueInsertExt;
 
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
+use libimagstore::storeid::StoreIdIterator;
 use libimagentryref::refstore::RefStore;
 use libimagentryref::flags::RefFlags;
 
@@ -45,9 +46,16 @@ pub trait ContactStore<'a> : RefStore {
 
     // getting
 
-    fn search_contact(&'a self /* later more params */) -> Result<FileLockEntry<'a>>;
+    fn all_contacts(&'a self) -> Result<StoreIdIterator>;
 }
 
+/// The extension for the Store to work with contacts
+///
+/// The contact functionality is implemented by using the `libimagentryref` library, so basically
+/// we only reference vcard files from outside the store.
+///
+/// Because of this, we do not have an own store collection `/contacts` or something like that, but
+/// must stress the `libimagentryref` API for everything.
 impl<'a> ContactStore<'a> for Store {
 
     fn create_from_path(&'a self, p: &PathBuf) -> Result<FileLockEntry<'a>> {
@@ -70,8 +78,9 @@ impl<'a> ContactStore<'a> for Store {
             })
     }
 
-    fn search_contact(&'a self /* later more params */) -> Result<FileLockEntry<'a>> {
-        unimplemented!()
+    fn all_contacts(&'a self) -> Result<StoreIdIterator> {
+        self.all_references().map_err(From::from)
     }
 
 }
+
