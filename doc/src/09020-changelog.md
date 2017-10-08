@@ -22,6 +22,9 @@ This section contains the changelog from the last release to the next release.
     * `imag-counter` and `libimagcounter` was removed.
     * `imag-mv` was introduced
     * `imag-view` uses positional args now
+    * `imag-view` uses the configuration file now to find the command to call
+      for viewing the entry. This way one can view the entry in an editor or the
+      browser or on the toaster.
 
 ## 0.4.0
 

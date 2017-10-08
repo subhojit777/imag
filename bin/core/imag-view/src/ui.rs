@@ -17,7 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use clap::{Arg, App, ArgGroup, SubCommand};
+use clap::{Arg, App, SubCommand};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
@@ -41,56 +41,12 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .required(false)
             .help("View content"))
 
-        .subcommand(SubCommand::with_name("view-in")
-                   .about("View the entry in ...")
-                   .version("0.1")
-
-                   .arg(Arg::with_name("view-in-stdout")
-                        .long("stdout")
-                        .short("s")
-                        .takes_value(false)
-                        .required(false)
-                        .help("View by printing to stdout"))
-
-                   .arg(Arg::with_name("view-in-ui")
-                        .long("ui")
-                        .short("u")
-                        .takes_value(false)
-                        .required(false)
-                        .help("View by opening own curses-like UI (default)"))
-
-                   .arg(Arg::with_name("view-in-browser")
-                        .long("browser")
-                        .short("b")
-                        .takes_value(true) // optional, which browser
-                        .required(false)
-                        .help("View content in $BROWSER (fails if no env variable $BROWSER)")
-                        .value_name("BROWSER"))
-
-                   .arg(Arg::with_name("view-in-texteditor")
-                        .long("in-editor")
-                        .short("e")
-                        .takes_value(false)
-                        .required(false)
-                        .help("View content in $EDITOR (can be passed via --editor)"))
-
-                   .arg(Arg::with_name("view-in-custom")
-                        .long("custom")
-                        .short("c")
-                        .takes_value(true) // non-optional, call-string
-                        .required(false)
-                        .help("View content in custom program, for example 'libreoffice %e', replace '%e' with entry path")
-                        .value_name("PROGRAM"))
-
-                   .group(ArgGroup::with_name("viewer")
-                          .args(&["view-in-stdout",
-                                  "view-in-ui",
-                                  "view-in-browser",
-                                  "view-in-texteditor",
-                                  "view-in-custom",
-                          ])
-                          .required(false))
-                   )
+        .arg(Arg::with_name("in")
+            .long("in")
+            .takes_value(true)
+            .required(false)
+            .multiple(false)
+            .help("View content. If no value is given, this fails. Possible viewers are configured via the config file."))
 
         .subcommand(SubCommand::with_name("compile")
                    .about("Compile content to other format for viewing, implies that the entry gets copied to /tmp")

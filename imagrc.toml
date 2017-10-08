@@ -205,3 +205,8 @@ timed = "minutely"
 [bookmark]
 default_collection = "default"
 
+[view.viewers]
+# Configure which viewers there are for `imag view <entry> in <viewer>`.
+editor = "vim -R {{entry}}"
+web    = "chromium {{entry}}"
+
