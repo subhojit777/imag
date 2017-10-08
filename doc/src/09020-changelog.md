@@ -27,6 +27,7 @@ This section contains the changelog from the last release to the next release.
       browser or on the toaster.
     * The logger is now able to handle multiple destinations (file and "-" for
       stderr)
+    * `imag-store` can dump all storeids now
 
 ## 0.4.0
 
