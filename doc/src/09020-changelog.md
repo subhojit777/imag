@@ -25,6 +25,8 @@ This section contains the changelog from the last release to the next release.
     * `imag-view` uses the configuration file now to find the command to call
       for viewing the entry. This way one can view the entry in an editor or the
       browser or on the toaster.
+    * The logger is now able to handle multiple destinations (file and "-" for
+      stderr)
 
 ## 0.4.0
 
