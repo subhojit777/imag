@@ -20,6 +20,9 @@
 use std::io::Write;
 use std::io::stderr;
 use std::collections::BTreeMap;
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::ops::Deref;
 
 use configuration::Configuration;
 use error::RuntimeErrorKind as EK;
@@ -38,7 +41,7 @@ type Result<T> = ::std::result::Result<T, RE>;
 
 enum LogDestination {
     Stderr,
-    File(::std::fs::File),
+    File(Arc<Mutex<::std::fs::File>>),
 }
 
 impl Default for LogDestination {
@@ -163,22 +166,57 @@ impl Log for ImagLogger {
             .render(&format!("{}", record.level()), &data)
             .unwrap_or_else(|e| format!("Failed rendering logging data: {:?}\n", e));
 
+        let log_to_destination = |d: &LogDestination| match d {
+            &LogDestination::Stderr => {
+                let _ = write!(stderr(), "{}\n", logtext);
+            },
+            &LogDestination::File(ref arc_mutex_logdest) => {
+                // if there is an error in the lock, we cannot do anything. So we ignore it here.
+                let _ = arc_mutex_logdest
+                    .deref()
+                    .lock()
+                    .map(|mut logdest| {
+                        write!(logdest, "{}\n", logtext)
+                    });
+            }
+        };
+
+        // hack to get the right target configuration.
+        // If there is no element here, we use the empty string which automatically drops through
+        // to the unwrap_or_else() case
+        let record_target = record
+            .target()
+            .split("::")
+            .next()
+            .unwrap_or("");
+
         self.module_settings
-            .get(record.target())
+            .get(record_target)
             .map(|module_setting| {
                 let set = module_setting.enabled &&
                     module_setting.level.unwrap_or(self.global_loglevel) >= record.level();
 
                 if set {
-                    let _ = write!(stderr(), "{}\n", logtext);
+                    module_setting.destinations.as_ref().map(|destinations| for d in destinations {
+                        // If there's an error, we cannot do anything, can we?
+                        let _ = log_to_destination(&d);
+                    });
+
+                    for d in self.global_destinations.iter() {
+                        // If there's an error, we cannot do anything, can we?
+                        let _ = log_to_destination(&d);
+                    }
                 }
             })
-            .unwrap_or_else(|| {
-                if self.global_loglevel >= record.level() {
-                    // Yes, we log
-                    let _ = write!(stderr(), "{}\n", logtext);
+        .unwrap_or_else(|| {
+            if self.global_loglevel >= record.level() {
+                // Yes, we log
+                for d in self.global_destinations.iter() {
+                    // If there's an error, we cannot do anything, can we?
+                    let _ = log_to_destination(&d);
                 }
-            });
+            }
+        });
     }
 }
 
@@ -230,6 +268,8 @@ fn translate_destination(raw: &str) -> Result<LogDestination> {
                 .append(true)
                 .create(true)
                 .open(other)
+                .map(Mutex::new)
+                .map(Arc::new)
                 .map(LogDestination::File)
                 .chain_err(|| EK::IOLogFileOpenError)
         }
