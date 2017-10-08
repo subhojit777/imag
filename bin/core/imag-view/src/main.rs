@@ -35,25 +35,35 @@
 extern crate clap;
 #[macro_use] extern crate log;
 #[macro_use] extern crate version;
+extern crate handlebars;
+extern crate tempfile;
+extern crate toml;
+extern crate toml_query;
 
 extern crate libimagentryview;
 extern crate libimagerror;
 extern crate libimagrt;
 extern crate libimagstore;
 
-use std::process::exit;
+use std::collections::BTreeMap;
+use std::io::Write;
 use std::path::PathBuf;
+use std::process::Command;
+use std::process::exit;
+
+use handlebars::Handlebars;
+use toml_query::read::TomlValueReadExt;
+use toml::Value;
 
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::trace_error_exit;
+use libimagerror::trace::MapErrTrace;
 use libimagentryview::builtin::stdout::StdoutViewer;
 use libimagentryview::viewer::Viewer;
+use libimagentryview::error::ViewError as VE;
 
 mod ui;
-mod editor;
-
 use ui::build_ui;
-use editor::Editor;
 
 fn main() {
     let rt = generate_runtime_setup( "imag-view",
@@ -76,34 +86,98 @@ fn main() {
         }
     };
 
-    let res = {
-        match rt.cli().subcommand_matches("view-in") {
-            None => {
-                debug!("No commandline call");
-                debug!("Assuming to view in cli (stdout)");
+    if rt.cli().is_present("in") {
+        let viewer = rt
+            .cli()
+            .value_of("in")
+            .ok_or_else::<VE, _>(|| "No viewer given".to_owned().into())
+            .map_err_trace_exit(1)
+            .unwrap(); // saved by above call
+
+        let config = rt
+            .config()
+            .ok_or_else::<VE, _>(|| "No configuration, cannot continue".to_owned().into())
+            .map_err_trace_exit(1)
+            .unwrap();
+
+        let query = format!("view.viewers.{}", viewer);
+        match config.config().read(&query) {
+            Err(e) => trace_error_exit(&e, 1),
+            Ok(None) => {
+                error!("Cannot find '{}' in config", query);
+                exit(1)
             },
-            Some(s) => {
-                if s.is_present("view-in-stdout") {
-                } else if s.is_present("view-in-ui") {
-                    warn!("Viewing in UI is currently not supported, switch to stdout");
-                } else if s.is_present("view-in-browser") {
-                    warn!("Viewing in browser is currently not supported, switch to stdout");
-                } else if s.is_present("view-in-texteditor") {
-                    if let Err(e) = Editor::new(&rt, &entry).show() {
-                        error!("Cannot view in editor: {}", e);
-                        trace_error_exit(&e, 1);
+
+            Ok(Some(&Value::String(ref viewer_template))) => {
+                let mut handlebars = Handlebars::new();
+                handlebars.register_escape_fn(::handlebars::no_escape);
+
+                let _ = handlebars.register_template_string("template", viewer_template)
+                    .map_err_trace_exit(1)
+                    .unwrap();
+
+                let file = {
+                    let mut tmpfile = tempfile::NamedTempFile::new()
+                        .map_err_trace_exit(1)
+                        .unwrap();
+                    if view_header {
+                        let hdr = toml::ser::to_string_pretty(entry.get_header())
+                            .map_err_trace_exit(1)
+                            .unwrap();
+                        let _ = tmpfile.write(format!("---\n{}---\n", hdr).as_bytes())
+                            .map_err_trace_exit(1)
+                            .unwrap();
                     }
-                } else if s.is_present("view-in-custom") {
-                    warn!("Viewing in custom is currently not supported, switch to stdout");
+
+                    if view_content {
+                        let _ = tmpfile.write(entry.get_content().as_bytes())
+                            .map_err_trace_exit(1)
+                            .unwrap();
+                    }
+
+                    tmpfile
+                };
+
+                let file_path = file
+                    .path()
+                    .to_str()
+                    .map(String::from)
+                    .ok_or::<VE>("Cannot build path".to_owned().into())
+                    .map_err_trace_exit(1).unwrap();
+
+                let mut command = {
+                    let mut data = BTreeMap::new();
+                    data.insert("entry", file_path);
+
+                    let call = handlebars.render("template", &data).map_err_trace_exit(1).unwrap();
+                    let mut elems = call.split_whitespace();
+                    let command_string = elems
+                        .next()
+                        .ok_or::<VE>("No command".to_owned().into())
+                        .map_err_trace_exit(1)
+                        .unwrap();
+                    let mut cmd = Command::new(command_string);
+
+                    for arg in elems {
+                        cmd.arg(arg);
+                    }
+
+                    cmd
+                };
+
+                if !command.status().map_err_trace_exit(1).unwrap().success() {
+                    exit(1)
                 }
             },
-        };
-
-        StdoutViewer::new(view_header, view_content).view_entry(&entry)
-    };
-
-    if let Err(e) = res {
-        trace_error_exit(&e, 1);
+            Ok(Some(_)) => {
+                error!("Type error: Expected String at {}, found non-string", query);
+                exit(1)
+            },
+        }
+    } else {
+        let _ = StdoutViewer::new(view_header, view_content)
+            .view_entry(&entry)
+            .map_err_trace_exit(1);
     }
 }
 
