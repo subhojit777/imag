@@ -22,8 +22,7 @@ use clap::{Arg, App, ArgGroup, SubCommand};
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
         .arg(Arg::with_name("id")
-            .long("id")
-            .short("i")
+            .index(1)
             .takes_value(true)
             .required(true)
             .help("View this entry at this store path")
