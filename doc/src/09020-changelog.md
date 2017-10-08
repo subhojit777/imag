@@ -21,6 +21,7 @@ This section contains the changelog from the last release to the next release.
 * Major changes
     * `imag-counter` and `libimagcounter` was removed.
     * `imag-mv` was introduced
+    * `imag-view` uses positional args now
 
 ## 0.4.0
 
