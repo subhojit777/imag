@@ -62,6 +62,7 @@ mod ui;
 mod update;
 mod verify;
 mod util;
+mod ids;
 
 use std::ops::Deref;
 
@@ -73,6 +74,7 @@ use retrieve::retrieve;
 use ui::build_ui;
 use update::update;
 use verify::verify;
+use ids::ids;
 
 fn main() {
     let mut rt = generate_runtime_setup("imag-store",
@@ -92,6 +94,7 @@ fn main() {
             "update"   => update(&rt),
             "verify"   => verify(&rt),
             "dump"     => dump(&mut rt),
+            "ids"      => ids(&rt),
             _ => {
                 debug!("Unknown command");
                 // More error handling
