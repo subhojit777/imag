@@ -255,3 +255,64 @@ default_collection = "default"
 editor = "vim -R {{entry}}"
 web    = "chromium {{entry}}"
 
+[contact]
+
+# Format for listing contacts
+#
+# Available variables:
+#  * "i"            : Integer, counts the output lines
+#  * "id"           : The hash which can be used to print the entry itself.
+#  * "ADR"          : Array
+#  * "ANNIVERSARY"  : String
+#  * "BDAY"         : String
+#  * "CATEGORIES"   : Array<String>
+#  * "CLIENTPIDMAP" : String
+#  * "EMAIL"        : Array<String>
+#  * "FN"           : Array<String>
+#  * "GENDER"       : String
+#  * "GEO"          : Array<String>
+#  * "IMPP"         : Array<String>
+#  * "KEY"          : Array<String>
+#  * "LANG"         : Array<String>
+#  * "LOGO"         : Array<String>
+#  * "MEMBER"       : Array<String>
+#  * "N"            : String
+#  * "NICKNAME"     : Array<String>
+#  * "NOTE"         : Array<String>
+#  * "ORG"          : Array<String>
+#  * "PHOTO"        : Array<String>
+#  * "PRIOD"        : String
+#  * "RELATED"      : Array<String>
+#  * "REV"          : String
+#  * "ROLE"         : Array<String>
+#  * "SOUND"        : Array<String>
+#  * "TEL"          : Array<String>
+#  * "TITLE"        : Array<String>
+#  * "TZ"           : Array<String>
+#  * "UID"          : String
+#  * "URL"          : Array<String>
+#  * "VERSION"      : String
+#
+# Multiple lines shouldn't be used, as this is for listing multiple entries.
+#
+# Note: Abbreviating the hash ("id") is not yet supported in the "show" command,
+# thus we print the id here without abbreviating it. To abbreviate it to 5
+# characters, use:
+#
+#  {{abbrev 5 id}}
+#
+list_format = "{{lpad 5 i}} | {{id}} | {{FN}} | {{mail}} | {{adr}}"
+
+# The format when printing a single contact
+#
+# Here, the same rules like for the list format apply.
+# Multiple lines should work fine.
+# The "i" variable defaults to zero (0)
+show_format = """
+{{id}} - {{UID}}
+
+Full name: {{FN}}
+Email    : {{EMAIL}}
+Address  : {{ADR}}
+"""
+

@@ -19,8 +19,6 @@
 
 use clap::{Arg, App, SubCommand};
 
-use libimagutil::cli_validators::*;
-
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
         .subcommand(SubCommand::with_name("list")
@@ -33,6 +31,13 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .multiple(true)
                         .value_name("FILTER")
                         .help("Filter by these properties (not implemented yet)"))
+                   .arg(Arg::with_name("format")
+                        .long("format")
+                        .takes_value(true)
+                        .required(false)
+                        .multiple(false)
+                        .value_name("FORMAT")
+                        .help("Format to format the listing"))
                    )
 
         .subcommand(SubCommand::with_name("import")
@@ -50,12 +55,19 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
         .subcommand(SubCommand::with_name("show")
                    .about("Show contact")
                    .version("0.1")
-                   .arg(Arg::with_name("ref")
+                   .arg(Arg::with_name("hash")
                         .index(1)
                         .takes_value(true)
                         .required(true)
                         .multiple(false)
-                        .value_name("REF")
+                        .value_name("HASH")
                         .help("Show the contact pointed to by this reference hash"))
+                   .arg(Arg::with_name("format")
+                        .long("format")
+                        .takes_value(true)
+                        .required(false)
+                        .multiple(false)
+                        .value_name("FORMAT")
+                        .help("Format to format the contact when printing it"))
                    )
 }
