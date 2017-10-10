@@ -51,6 +51,7 @@ extern crate toml_query;
 extern crate libimagstore;
 extern crate libimagutil;
 extern crate libimagerror;
+extern crate libimaginteraction;
 
 pub mod error;
 pub mod configuration;

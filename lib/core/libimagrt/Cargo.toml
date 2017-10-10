@@ -29,6 +29,7 @@ handlebars = "0.29.0"
 libimagstore = { version = "0.5.0", path = "../../../lib/core/libimagstore" }
 libimagerror = { version = "0.5.0", path = "../../../lib/core/libimagerror" }
 libimagutil  = { version = "0.5.0", path = "../../../lib/etc/libimagutil" }
+libimaginteraction = { version = "0.5.0", path = "../../../lib/etc/libimaginteraction" }
 
 [features]
 default = []
