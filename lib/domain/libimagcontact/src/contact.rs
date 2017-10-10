@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::ops::Deref;
+
 use vobject::Component;
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
@@ -68,5 +70,21 @@ impl Contact for Entry {
 }
 
 pub struct ContactData(Component);
+
+impl ContactData {
+
+    pub fn into_inner(self) -> Component {
+        self.0
+    }
+
+}
+
+impl Deref for ContactData {
+    type Target = Component;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 
