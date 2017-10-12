@@ -27,6 +27,10 @@ error_chain! {
         LinkError(::libimagentrylink::error::LinkError, ::libimagentrylink::error::LinkErrorKind);
     }
 
+    foreign_links {
+        TomlQueryError(::toml_query::error::Error);
+    }
+
     errors {
         StoreReadError   {
             description("Store read error")
