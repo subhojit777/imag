@@ -29,6 +29,11 @@ This section contains the changelog from the last release to the next release.
       stderr)
     * `imag-store` can dump all storeids now
 
+* Minor changes
+    * `libimagentryannotation` got a rewrite, is not based on `libimagnotes`
+      anymore. This is minor because `libimagentryanntation` is not yet used by
+      any other crate.
+
 ## 0.4.0
 
 * Major changes
