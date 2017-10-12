@@ -1,0 +1,189 @@
+//
+// imag - the personal information management suite for the commandline
+// Copyright (C) 2015, 2016 Matthias Beyer <mail@beyermatthias.de> and contributors
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; version
+// 2.1 of the License.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+
+#![deny(
+    non_camel_case_types,
+    non_snake_case,
+    path_statements,
+    trivial_numeric_casts,
+    unstable_features,
+    unused_allocation,
+    unused_import_braces,
+    unused_imports,
+    unused_must_use,
+    unused_mut,
+    unused_qualifications,
+    while_true,
+)]
+
+extern crate clap;
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate version;
+
+extern crate libimagentryannotation;
+extern crate libimagentryedit;
+extern crate libimagerror;
+extern crate libimagrt;
+extern crate libimagstore;
+extern crate libimagutil;
+
+use std::path::PathBuf;
+
+use libimagentryannotation::annotateable::*;
+use libimagentryannotation::annotation_fetcher::*;
+use libimagentryannotation::error::AnnotationError as AE;
+use libimagentryedit::edit::*;
+use libimagerror::trace::MapErrTrace;
+use libimagrt::runtime::Runtime;
+use libimagrt::setup::generate_runtime_setup;
+use libimagstore::store::FileLockEntry;
+use libimagstore::storeid::IntoStoreId;
+use libimagutil::warn_exit::warn_exit;
+
+mod ui;
+
+fn main() {
+    let rt = generate_runtime_setup("imag-annotation",
+                                    &version!()[..],
+                                    "Add annotations to entries",
+                                    ui::build_ui);
+
+    rt.cli()
+        .subcommand_name()
+        .map(|name| {
+            match name {
+                "add"    => add(&rt),
+                "remove" => remove(&rt),
+                "list"   => list(&rt),
+                _        => warn_exit("No commandline call", 1)
+            }
+        });
+}
+
+fn add(rt: &Runtime) {
+    let scmd            = rt.cli().subcommand_matches("add").unwrap(); // safed by main()
+    let annotation_name = scmd.value_of("annotation_name").unwrap(); // safed by clap
+    let entry_name      = scmd
+        .value_of("entry")
+        .map(PathBuf::from)
+        .map(|pb| pb.into_storeid().map_err_trace_exit(1).unwrap())
+        .unwrap(); // safed by clap
+
+    let _ = rt.store()
+        .get(entry_name)
+        .map_err_trace_exit(1)
+        .unwrap()
+        .ok_or(AE::from("Entry does not exist".to_owned()))
+        .map_err_trace_exit(1)
+        .unwrap()
+        .annotate(rt.store(), annotation_name)
+        .map_err_trace_exit(1)
+        .unwrap()
+        .edit_content(&rt)
+        .map_err_trace_exit(1)
+        .unwrap();
+
+    info!("Ok");
+}
+
+fn remove(rt: &Runtime) {
+    let scmd            = rt.cli().subcommand_matches("remove").unwrap(); // safed by main()
+    let entry_name      = scmd.value_of("entry").unwrap(); // safed by clap
+    let annotation_name = scmd.value_of("annotation_name").unwrap(); // safed by clap
+    let delete          = scmd.is_present("delete-annotation");
+
+    let mut entry = rt.store()
+        .get(PathBuf::from(entry_name).into_storeid().map_err_trace_exit(1).unwrap())
+        .map_err_trace_exit(1)
+        .unwrap()
+        .ok_or(AE::from("Entry does not exist".to_owned()))
+        .map_err_trace_exit(1)
+        .unwrap();
+
+    let annotation = entry
+        .denotate(rt.store(), annotation_name)
+        .map_err_trace_exit(1)
+        .unwrap();
+
+    if delete {
+        if let Some(an) = annotation {
+            let loc = an.get_location().clone();
+            drop(an);
+
+            let _ = rt
+                .store()
+                .delete(loc)
+                .map_err_trace_exit(1)
+                .unwrap();
+        }
+    }
+
+    info!("Ok");
+}
+
+fn list(rt: &Runtime) {
+    let scmd        = rt.cli().subcommand_matches("list").unwrap(); // safed by clap
+    let with_text   = scmd.is_present("list-with-text");
+    match scmd.value_of("entry").map(PathBuf::from) {
+        Some(pb) => {
+            let _ = rt
+                .store()
+                .get(pb.into_storeid().map_err_trace_exit(1).unwrap())
+                .map_err_trace_exit(1)
+                .unwrap()
+                .ok_or(AE::from("Entry does not exist".to_owned()))
+                .map_err_trace_exit(1)
+                .unwrap()
+                .annotations(rt.store())
+                .map_err_trace_exit(1)
+                .unwrap()
+                .enumerate()
+                .map(|(i, a)| list_annotation(i, a.map_err_trace_exit(1).unwrap(), with_text))
+                .collect::<Vec<_>>();
+        }
+
+        None => {
+            // show them all
+            let _ = rt
+                .store()
+                .all_annotations()
+                .map_err_trace_exit(1)
+                .unwrap()
+                .enumerate()
+                .map(|(i, a)| list_annotation(i, a.map_err_trace_exit(1).unwrap(), with_text))
+                .collect::<Vec<_>>();
+        }
+    }
+
+    info!("Ok");
+}
+
+fn list_annotation<'a>(i: usize, a: FileLockEntry<'a>, with_text: bool) {
+    if with_text {
+        println!("--- {i: >5} | {id}\n{text}\n\n",
+                 i = i,
+                 id = a.get_location(),
+                 text = a.get_content());
+    } else {
+        println!("{: >5} | {}", i, a.get_location());
+    }
+}
+
