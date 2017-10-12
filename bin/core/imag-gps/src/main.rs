@@ -82,14 +82,13 @@ fn add(rt: &Runtime) {
     let entry_name  = scmd.value_of("entry").unwrap(); // safed by clap
     let sid         = PathBuf::from(entry_name)
         .into_storeid()
-        .map_err_trace_exit(1)
-        .unwrap(); // safed by above call
+        .map_err_trace_exit_unwrap(1);
 
     let c = {
         let parse = |value: &str| -> Vec<i8> {
             value.split(".")
                 .map(FromStr::from_str)
-                .map(|elem| elem.map_err_trace_exit(1).unwrap())
+                .map(|elem| elem.map_err_trace_exit_unwrap(1))
                 .collect::<Vec<i8>>()
         };
 
@@ -104,8 +103,7 @@ fn add(rt: &Runtime) {
 
     rt.store()
         .get(sid)
-        .map_err_trace_exit(1)
-        .unwrap() // safed by above call
+        .map_err_trace_exit_unwrap(1)
         .map(|mut entry| {
             let _ = entry.set_coordinates(c)
                 .map_err_trace_exit(1);
@@ -122,27 +120,23 @@ fn remove(rt: &Runtime) {
     let entry_name  = scmd.value_of("entry").unwrap(); // safed by clap
     let sid         = PathBuf::from(entry_name)
         .into_storeid()
-        .map_err_trace_exit(1)
-        .unwrap(); // safed by above call
+        .map_err_trace_exit_unwrap(1);
 
     let removed_value = rt
         .store()
         .get(sid)
-        .map_err_trace_exit(1)
-        .unwrap() // safed by above call
+        .map_err_trace_exit_unwrap(1)
         .unwrap_or_else(|| { // if we have Ok(None)
             error!("No such entry: {}", entry_name);
             exit(1)
         })
         .remove_coordinates()
-        .map_err_trace_exit(1) // The delete action failed
-        .unwrap() // safed by above call
+        .map_err_trace_exit_unwrap(1) // The delete action failed
         .unwrap_or_else(|| { // if we have Ok(None)
             error!("Entry had no coordinates: {}", entry_name);
             exit(1)
         })
-        .map_err_trace_exit(1) // The parsing of the deleted values failed
-        .unwrap(); // safed by above call
+        .map_err_trace_exit_unwrap(1); // The parsing of the deleted values failed
 
     if scmd.is_present("print-removed") {
         println!("{}", removed_value);
@@ -157,21 +151,18 @@ fn get(rt: &Runtime) {
     let entry_name  = scmd.value_of("entry").unwrap(); // safed by clap
     let sid         = PathBuf::from(entry_name)
         .into_storeid()
-        .map_err_trace_exit(1)
-        .unwrap(); // safed by above call
+        .map_err_trace_exit_unwrap(1);
 
     let value = rt
         .store()
         .get(sid)
-        .map_err_trace_exit(1)
-        .unwrap() // safed by above call
+        .map_err_trace_exit_unwrap(1)
         .unwrap_or_else(|| { // if we have Ok(None)
             error!("No such entry: {}", entry_name);
             exit(1)
         })
         .get_coordinates()
-        .map_err_trace_exit(1) // The get action failed
-        .unwrap() // safed by above call
+        .map_err_trace_exit_unwrap(1) // The get action failed
         .unwrap_or_else(|| { // if we have Ok(None)
             error!("Entry has no coordinates: {}", entry_name);
             exit(1)
