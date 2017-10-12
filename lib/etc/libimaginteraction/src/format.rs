@@ -152,3 +152,21 @@ impl HelperDef for StrikethroughHelper {
         }
 }
 
+pub fn register_all_color_helpers(handlebars: &mut Handlebars) {
+    handlebars.register_helper("black"  , Box::new(ColorizeBlackHelper));
+    handlebars.register_helper("blue"   , Box::new(ColorizeBlueHelper));
+    handlebars.register_helper("cyan"   , Box::new(ColorizeCyanHelper));
+    handlebars.register_helper("green"  , Box::new(ColorizeGreenHelper));
+    handlebars.register_helper("purple" , Box::new(ColorizePurpleHelper));
+    handlebars.register_helper("red"    , Box::new(ColorizeRedHelper));
+    handlebars.register_helper("white"  , Box::new(ColorizeWhiteHelper));
+    handlebars.register_helper("yellow" , Box::new(ColorizeYellowHelper));
+}
+
+pub fn register_all_format_helpers(handlebars: &mut Handlebars) {
+    handlebars.register_helper("underline"     , Box::new(UnderlineHelper));
+    handlebars.register_helper("bold"          , Box::new(BoldHelper));
+    handlebars.register_helper("blink"         , Box::new(BlinkHelper));
+    handlebars.register_helper("strikethrough" , Box::new(StrikethroughHelper));
+}
+

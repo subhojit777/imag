@@ -35,7 +35,6 @@ use log::{Log, LogLevel, LogRecord, LogMetadata};
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
 use handlebars::Handlebars;
-use libimaginteraction::format::*;
 
 type ModuleName = String;
 type Result<T> = ::std::result::Result<T, RE>;
@@ -83,19 +82,8 @@ impl ImagLogger {
 
         handlebars.register_escape_fn(::handlebars::no_escape);
 
-        handlebars.register_helper("black"  , Box::new(ColorizeBlackHelper));
-        handlebars.register_helper("blue"   , Box::new(ColorizeBlueHelper));
-        handlebars.register_helper("cyan"   , Box::new(ColorizeCyanHelper));
-        handlebars.register_helper("green"  , Box::new(ColorizeGreenHelper));
-        handlebars.register_helper("purple" , Box::new(ColorizePurpleHelper));
-        handlebars.register_helper("red"    , Box::new(ColorizeRedHelper));
-        handlebars.register_helper("white"  , Box::new(ColorizeWhiteHelper));
-        handlebars.register_helper("yellow" , Box::new(ColorizeYellowHelper));
-
-        handlebars.register_helper("underline"     , Box::new(UnderlineHelper));
-        handlebars.register_helper("bold"          , Box::new(BoldHelper));
-        handlebars.register_helper("blink"         , Box::new(BlinkHelper));
-        handlebars.register_helper("strikethrough" , Box::new(StrikethroughHelper));
+        ::libimaginteraction::format::register_all_color_helpers(&mut handlebars);
+        ::libimaginteraction::format::register_all_format_helpers(&mut handlebars);
 
         {
             let fmt = try!(aggregate_global_format_trace(matches, config));
