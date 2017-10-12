@@ -14,7 +14,7 @@ repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
 [dependencies]
-itertools = "0.6"
+itertools = "0.7"
 log = "0.3"
 rust-crypto = "0.2"
 toml = "0.4"
