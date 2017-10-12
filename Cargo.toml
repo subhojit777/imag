@@ -2,6 +2,7 @@
 members = [
     "bin/core/imag",
     "bin/core/imag-annotate",
+    "bin/core/imag-diagnostics",
     "bin/core/imag-gps",
     "bin/core/imag-grep",
     "bin/core/imag-link",
