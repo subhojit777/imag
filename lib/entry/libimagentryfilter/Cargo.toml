@@ -15,7 +15,7 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 clap = ">=2.17"
-filters = "0.1"
+filters = "0.2"
 itertools = "0.7"
 log = "0.3"
 regex = "0.2"
