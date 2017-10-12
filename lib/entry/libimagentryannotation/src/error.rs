@@ -22,6 +22,11 @@ error_chain! {
         AnnotationError, AnnotationErrorKind, ResultExt, Result;
     }
 
+    links {
+        StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
+        LinkError(::libimagentrylink::error::LinkError, ::libimagentrylink::error::LinkErrorKind);
+    }
+
     errors {
         StoreReadError   {
             description("Store read error")

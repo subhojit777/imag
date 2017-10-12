@@ -42,7 +42,6 @@ extern crate toml_query;
 extern crate libimagerror;
 extern crate libimagstore;
 extern crate libimagentrylink;
-extern crate libimagnotes;
 
 pub mod annotateable;
 pub mod annotation_fetcher;

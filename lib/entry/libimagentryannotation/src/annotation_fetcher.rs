@@ -20,12 +20,9 @@
 use libimagstore::store::Entry;
 use libimagstore::store::Store;
 use libimagentrylink::internal::InternalLinker;
-use libimagnotes::notestore::NoteStore;
-use libimagnotes::iter::NoteIterator;
 use libimagstore::storeid::StoreIdIterator;
 
 use error::Result;
-use error::AnnotationErrorKind as AEK;
 use error::ResultExt;
 
 use self::iter::*;
@@ -40,12 +37,10 @@ pub trait AnnotationFetcher<'a> {
 
 impl<'a> AnnotationFetcher<'a> for Store {
 
-    /// Wrapper around `Note::all_notes()` of `libimagnotes` which filters out normal notes and
-    /// leaves only annotations in the iterator.
     fn all_annotations(&'a self) -> Result<AnnotationIter<'a>> {
-        NoteStore::all_notes(self)
+        self.retrieve_for_module("annotations")
             .map(|iter| AnnotationIter::new(iter, self))
-            .chain_err(|| AEK::StoreReadError)
+            .map_err(Into::into)
     }
 
     /// Get all annotations (in an iterator) for an entry
@@ -57,9 +52,8 @@ impl<'a> AnnotationFetcher<'a> for Store {
     /// entry, but should normally be not that heavy.
     fn annotations_for_entry(&'a self, entry: &Entry) -> Result<AnnotationIter<'a>> {
         entry.get_internal_links()
-            .chain_err(|| AEK::StoreReadError)
+            .map_err(Into::into)
             .map(|iter| StoreIdIterator::new(Box::new(iter.map(|e| e.get_store_id().clone()))))
-            .map(NoteIterator::new)
             .map(|i| AnnotationIter::new(i, self))
     }
 
@@ -67,12 +61,11 @@ impl<'a> AnnotationFetcher<'a> for Store {
 
 pub mod iter {
     use toml::Value;
-
     use toml_query::read::TomlValueReadExt;
 
-    use libimagnotes::iter::NoteIterator;
     use libimagstore::store::Store;
     use libimagstore::store::FileLockEntry;
+    use libimagstore::storeid::StoreIdIterator;
 
     use error::Result;
     use error::AnnotationErrorKind as AEK;
@@ -80,12 +73,12 @@ pub mod iter {
     use error::ResultExt;
 
     #[derive(Debug)]
-    pub struct AnnotationIter<'a>(NoteIterator, &'a Store);
+    pub struct AnnotationIter<'a>(StoreIdIterator, &'a Store);
 
     impl<'a> AnnotationIter<'a> {
 
-        pub fn new(noteiter: NoteIterator, store: &'a Store) -> AnnotationIter<'a> {
-            AnnotationIter(noteiter, store)
+        pub fn new(iter: StoreIdIterator, store: &'a Store) -> AnnotationIter<'a> {
+            AnnotationIter(iter, store)
         }
 
     }
@@ -96,10 +89,10 @@ pub mod iter {
         fn next(&mut self) -> Option<Self::Item> {
             loop {
                 match self.0.next().map(|id| self.1.get(id)) {
-                    Some(Ok(Some(note))) => {
-                        match note.get_header().read("annotation.is_annotation") {
+                    Some(Ok(Some(entry))) => {
+                        match entry.get_header().read("annotation.is_annotation") {
                             Ok(None) => continue, // not an annotation
-                            Ok(Some(&Value::Boolean(true))) => return Some(Ok(note)),
+                            Ok(Some(&Value::Boolean(true))) => return Some(Ok(entry)),
                             Ok(Some(_)) => return Some(Err(AE::from_kind(AEK::HeaderTypeError))),
                             Err(e) => return Some(Err(e).chain_err(|| AEK::HeaderReadError)),
                         }
