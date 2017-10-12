@@ -41,6 +41,7 @@ extern crate ansi_term;
 extern crate regex;
 extern crate clap;
 extern crate toml;
+extern crate handlebars;
 #[macro_use] extern crate error_chain;
 
 extern crate libimagstore;
@@ -49,5 +50,6 @@ extern crate libimagerror;
 pub mod ask;
 pub mod error;
 pub mod filter;
+pub mod format;
 pub mod ui;
 
