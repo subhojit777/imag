@@ -72,16 +72,14 @@ fn main() {
         .value_of("pattern")
         .map(Regex::new)
         .unwrap() // ensured by clap
-        .map_err_trace_exit(1)
-        .unwrap(); // ensured by line above
+        .map_err_trace_exit_unwrap(1);
 
     let overall_count = rt
         .store()
         .entries()
-        .map_err_trace_exit(1)
-        .unwrap() // ensured by above line
+        .map_err_trace_exit_unwrap(1)
         .into_get_iter(rt.store())
-        .filter_map(|res| res.map_err_trace_exit(1).unwrap())
+        .filter_map(|res| res.map_err_trace_exit_unwrap(1))
         .filter(|entry| pattern.is_match(entry.get_content()))
         .map(|entry| show(&entry, &pattern, &opts, &mut count))
         .count();

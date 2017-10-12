@@ -63,7 +63,7 @@ fn create_entry<'a>(diary: &'a Store, diaryname: &str, rt: &Runtime) -> FileLock
     let create = rt.cli().subcommand_matches("create").unwrap();
 
     let create_timed = create.value_of("timed")
-        .map(|t| parse_timed_string(t, diaryname).map_err_trace_exit(1).unwrap())
+        .map(|t| parse_timed_string(t, diaryname).map_err_trace_exit_unwrap(1))
         .map(Some)
         .unwrap_or_else(|| match get_diary_timed_config(rt, diaryname) {
             Err(e)      => trace_error_exit(&e, 1),

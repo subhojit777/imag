@@ -63,8 +63,7 @@ fn main() {
         .map(PathBuf::from)
         .map(StoreId::new_baseless)
         .unwrap() // unwrap safe by clap
-        .map_err_trace_exit(1)
-        .unwrap(); //secures by above call
+        .map_err_trace_exit_unwrap(1);
 
     let destname = rt
         .cli()
@@ -72,8 +71,7 @@ fn main() {
         .map(PathBuf::from)
         .map(StoreId::new_baseless)
         .unwrap() // unwrap safe by clap
-        .map_err_trace_exit(1)
-        .unwrap(); //secures by above call
+        .map_err_trace_exit_unwrap(1);
 
     let _ = rt
         .store()

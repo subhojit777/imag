@@ -91,14 +91,12 @@ fn main() {
             .cli()
             .value_of("in")
             .ok_or_else::<VE, _>(|| "No viewer given".to_owned().into())
-            .map_err_trace_exit(1)
-            .unwrap(); // saved by above call
+            .map_err_trace_exit_unwrap(1);
 
         let config = rt
             .config()
             .ok_or_else::<VE, _>(|| "No configuration, cannot continue".to_owned().into())
-            .map_err_trace_exit(1)
-            .unwrap();
+            .map_err_trace_exit_unwrap(1);
 
         let query = format!("view.viewers.{}", viewer);
         match config.config().read(&query) {
@@ -113,26 +111,21 @@ fn main() {
                 handlebars.register_escape_fn(::handlebars::no_escape);
 
                 let _ = handlebars.register_template_string("template", viewer_template)
-                    .map_err_trace_exit(1)
-                    .unwrap();
+                    .map_err_trace_exit_unwrap(1);
 
                 let file = {
                     let mut tmpfile = tempfile::NamedTempFile::new()
-                        .map_err_trace_exit(1)
-                        .unwrap();
+                        .map_err_trace_exit_unwrap(1);
                     if view_header {
                         let hdr = toml::ser::to_string_pretty(entry.get_header())
-                            .map_err_trace_exit(1)
-                            .unwrap();
+                            .map_err_trace_exit_unwrap(1);
                         let _ = tmpfile.write(format!("---\n{}---\n", hdr).as_bytes())
-                            .map_err_trace_exit(1)
-                            .unwrap();
+                            .map_err_trace_exit_unwrap(1);
                     }
 
                     if view_content {
                         let _ = tmpfile.write(entry.get_content().as_bytes())
-                            .map_err_trace_exit(1)
-                            .unwrap();
+                            .map_err_trace_exit_unwrap(1);
                     }
 
                     tmpfile
@@ -143,19 +136,18 @@ fn main() {
                     .to_str()
                     .map(String::from)
                     .ok_or::<VE>("Cannot build path".to_owned().into())
-                    .map_err_trace_exit(1).unwrap();
+                    .map_err_trace_exit_unwrap(1);
 
                 let mut command = {
                     let mut data = BTreeMap::new();
                     data.insert("entry", file_path);
 
-                    let call = handlebars.render("template", &data).map_err_trace_exit(1).unwrap();
+                    let call = handlebars.render("template", &data).map_err_trace_exit_unwrap(1);
                     let mut elems = call.split_whitespace();
                     let command_string = elems
                         .next()
                         .ok_or::<VE>("No command".to_owned().into())
-                        .map_err_trace_exit(1)
-                        .unwrap();
+                        .map_err_trace_exit_unwrap(1);
                     let mut cmd = Command::new(command_string);
 
                     for arg in elems {
@@ -165,7 +157,7 @@ fn main() {
                     cmd
                 };
 
-                if !command.status().map_err_trace_exit(1).unwrap().success() {
+                if !command.status().map_err_trace_exit_unwrap(1).success() {
                     exit(1)
                 }
             },

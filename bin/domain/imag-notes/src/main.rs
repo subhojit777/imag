@@ -74,8 +74,7 @@ fn create(rt: &Runtime) {
     let mut note = rt
         .store()
         .new_note(name.clone(), String::new())
-        .map_err_trace_exit(1)
-        .unwrap();
+        .map_err_trace_exit_unwrap(1);
 
     if rt.cli().subcommand_matches("create").unwrap().is_present("edit") {
         let _ = note
@@ -97,8 +96,7 @@ fn edit(rt: &Runtime) {
     let _ = rt
         .store()
         .get_note(name.clone())
-        .map_err_trace_exit(1)
-        .unwrap()
+        .map_err_trace_exit_unwrap(1)
         .map(|mut note| {
             let _ = note
                 .edit_content(rt)
@@ -118,7 +116,7 @@ fn list(rt: &Runtime) {
         .map_err_trace_exit(1)
         .map(|iter| {
             let notes = iter
-                .filter_map(|noteid| rt.store().get(noteid).map_err_trace_exit(1).unwrap())
+                .filter_map(|noteid| rt.store().get(noteid).map_err_trace_exit_unwrap(1))
                 .sorted_by(|note_a, note_b| {
                     if let (Ok(a), Ok(b)) = (note_a.get_name(), note_b.get_name()) {
                         return a.cmp(&b)

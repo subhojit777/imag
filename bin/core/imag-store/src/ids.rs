@@ -27,15 +27,14 @@ pub fn ids(rt: &Runtime) {
     let _ :Vec<_> = rt
         .store()
         .entries()
-        .map_err_trace_exit(1)
-        .unwrap() //safed
+        .map_err_trace_exit_unwrap(1)
         .map(|e| if full {
             e.with_base(base.clone())
         } else {
-           e.without_base() 
+           e.without_base()
         })
         .map(|i| i.to_str())
-        .map(|elem| elem.map_err_trace_exit(1).unwrap())
+        .map(|elem| elem.map_err_trace_exit_unwrap(1))
         .map(|i| println!("{}", i))
         .collect();
 }
