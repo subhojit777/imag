@@ -114,13 +114,17 @@ fn print_trace_dbg(idx: u64, e: &Error) {
 ///
 /// and variants
 pub trait MapErrTrace {
+    type Output;
+
     fn map_err_trace(self) -> Self;
     fn map_err_dbg_trace(self) -> Self;
     fn map_err_trace_exit(self, code: i32) -> Self;
+    fn map_err_trace_exit_unwrap(self, code: i32) -> Self::Output;
     fn map_err_trace_maxdepth(self, max: u64) -> Self;
 }
 
 impl<U, E: Error> MapErrTrace for Result<U, E> {
+    type Output = U;
 
     /// Simply call `trace_error()` on the Err (if there is one) and return the error.
     ///
@@ -141,6 +145,11 @@ impl<U, E: Error> MapErrTrace for Result<U, E> {
     /// This does not return if there is an Err(e).
     fn map_err_trace_exit(self, code: i32) -> Self {
         self.map_err(|e| { trace_error_exit(&e, code) })
+    }
+
+    /// Helper for calling map_err_trace_exit(n).unwrap() in one call
+    fn map_err_trace_exit_unwrap(self, code: i32) -> Self::Output {
+        self.map_err_trace_exit(code).unwrap()
     }
 
     /// Simply call `trace_error_maxdepth(max)` on the Err (if there is one) and return the error.
