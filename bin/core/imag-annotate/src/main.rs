@@ -124,6 +124,7 @@ fn remove(rt: &Runtime) {
         .unwrap();
 
     if delete {
+        debug!("Deleting annotation object");
         if let Some(an) = annotation {
             let loc = an.get_location().clone();
             drop(an);
@@ -133,7 +134,11 @@ fn remove(rt: &Runtime) {
                 .delete(loc)
                 .map_err_trace_exit(1)
                 .unwrap();
+        } else {
+            warn!("Not having annotation object, cannot delete!");
         }
+    } else {
+        debug!("Not deleting annotation object");
     }
 
     info!("Ok");
