@@ -45,6 +45,7 @@ extern crate libimagstore;
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::MapErrTrace;
 use libimagstore::store::FileLockEntry;
+use libimagstore::storeid::StoreId;
 use libimagstore::iter::get::*;
 use libimagstore::error::StoreError as Error;
 use libimagentrylink::internal::*;
@@ -57,6 +58,7 @@ use std::collections::BTreeMap;
 mod ui;
 
 struct Diagnostic {
+    pub id: StoreId,
     pub entry_store_version: String,
     pub header_sections: usize,
     pub bytecount_content: usize,
@@ -69,6 +71,7 @@ impl<'a> From<FileLockEntry<'a>> for Diagnostic {
 
     fn from(entry: FileLockEntry<'a>) -> Diagnostic {
         Diagnostic {
+            id: entry.get_location().clone(),
             entry_store_version: entry
                 .get_header()
                 .read("imag.version")
@@ -113,14 +116,22 @@ fn main() {
     let mut sum_header_sections   = 0;
     let mut sum_bytecount_content = 0;
     let mut sum_overall_byte_size = 0;
+    let mut max_overall_byte_size : Option<(usize, StoreId)> = None;
     let mut verified_count        = 0;
     let mut unverified_count      = 0;
     let mut num_internal_links    = 0;
+    let mut max_internal_links : Option<(usize, StoreId)> = None;
 
     for diag in diags.iter() {
         sum_header_sections     += diag.header_sections;
         sum_bytecount_content   += diag.bytecount_content;
         sum_overall_byte_size   += diag.overall_byte_size;
+        match max_overall_byte_size {
+            None => max_overall_byte_size = Some((diag.num_internal_links, diag.id.clone())),
+            Some((num, _)) => if num < diag.overall_byte_size {
+                max_overall_byte_size = Some((diag.overall_byte_size, diag.id.clone()));
+            }
+        }
 
         let n = version_counts.get(&diag.entry_store_version).map(Clone::clone).unwrap_or(0);
         version_counts.insert(diag.entry_store_version.clone(), n+1);
@@ -132,6 +143,12 @@ fn main() {
         }
 
         num_internal_links += diag.num_internal_links;
+        match max_internal_links {
+            None => max_internal_links = Some((diag.num_internal_links, diag.id.clone())),
+            Some((num, _)) => if num < diag.num_internal_links {
+                max_internal_links = Some((diag.num_internal_links, diag.id.clone()));
+            }
+        }
     }
 
     let n = diags.len();
@@ -146,7 +163,27 @@ fn main() {
         println!("{} header sections in the average entry", sum_header_sections / n);
         println!("{} average content bytecount", sum_bytecount_content / n);
         println!("{} average overall bytecount", sum_overall_byte_size / n);
+        if let Some((num, path)) = max_overall_byte_size {
+            println!("Largest Entry ({bytes} bytes): {path}",
+                bytes = num,
+                path = path
+                    .into_pathbuf()
+                    .map_err_trace_exit_unwrap(1)
+                    .to_str()
+                    .unwrap_or("Failed converting path to string")
+            );
+        }
         println!("{} average internal link count per entry", num_internal_links / n);
+        if let Some((num, path)) = max_internal_links {
+            println!("Entry with most internal links ({count}): {path}",
+                     count = num,
+                     path = path
+                        .into_pathbuf()
+                        .map_err_trace_exit_unwrap(1)
+                        .to_str()
+                        .unwrap_or("Failed converting path to string")
+            );
+        }
         println!("{} verified entries", verified_count);
         println!("{} unverified entries", unverified_count);
     }
