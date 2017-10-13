@@ -159,6 +159,13 @@ impl FileAbstraction for InMemoryFileAbstraction {
         Ok(backend.contains_key(pb))
     }
 
+    fn is_file(&self, pb: &PathBuf) -> Result<bool, SE> {
+        // Because we only store Entries in the memory-internal backend, we only have to check for
+        // existance here, as if a path exists in the inmemory storage, it is always mapped to an
+        // entry. hence it is always a path to a file
+        self.exists(pb)
+    }
+
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance> {
         Box::new(InMemoryFileAbstractionInstance::new(self.backend().clone(), p))
     }

@@ -140,6 +140,10 @@ impl<W: Write, M: Mapper> FileAbstraction for StdoutFileAbstraction<W, M> {
         self.mem.exists(p)
     }
 
+    fn is_file(&self, p: &PathBuf) -> Result<bool, SE> {
+        self.mem.is_file(p)
+    }
+
     fn drain(&self) -> Result<Drain, SE> {
         self.backend_cloned().map(Drain::new)
     }

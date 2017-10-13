@@ -44,6 +44,7 @@ pub trait FileAbstraction : Debug {
     fn create_dir_all(&self, _: &PathBuf) -> Result<(), SE>;
 
     fn exists(&self, &PathBuf) -> Result<bool, SE>;
+    fn is_file(&self, &PathBuf) -> Result<bool, SE>;
 
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance>;
 
