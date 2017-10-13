@@ -28,6 +28,7 @@ This section contains the changelog from the last release to the next release.
     * The logger is now able to handle multiple destinations (file and "-" for
       stderr)
     * `imag-store` can dump all storeids now
+    * `imag-annotate` was introduced
 
 * Minor changes
     * `libimagentryannotation` got a rewrite, is not based on `libimagnotes`
