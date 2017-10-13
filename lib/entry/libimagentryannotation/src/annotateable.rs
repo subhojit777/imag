@@ -80,6 +80,7 @@ impl Annotateable for Entry {
 
             if name == ann_name {
                 let _ = try!(self.remove_internal_link(&mut anno));
+                return Ok(Some(anno));
             }
         }
 
