@@ -34,6 +34,10 @@ This section contains the changelog from the last release to the next release.
       anymore. This is minor because `libimagentryanntation` is not yet used by
       any other crate.
 
+* Bugfixes
+    * `Store::entries()` does not yield StoreIds which point to directories
+      anymore, only StoreIds pointing to files.
+
 ## 0.4.0
 
 * Major changes

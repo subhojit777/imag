@@ -812,17 +812,21 @@ impl Store {
         self.backend
             .pathes_recursively(self.path().clone())
             .and_then(|iter| {
-                let iter : Result<Vec<StoreId>> = iter
-                    .map(|path| StoreId::from_full_path(self.path(), path))
-                    .fold(Ok(vec![]), |acc, elem| {
-                        acc.and_then(move |mut a| {
-                            a.push(try!(elem));
-                            Ok(a)
-                        })
-                    });
+                let mut elems = vec![];
+                for element in iter {
+                    let is_file = {
+                        let mut base = self.path().clone();
+                        base.push(element.clone());
+                        println!("Checking: {:?}", base);
+                        try!(self.backend.is_file(&base))
+                    };
 
-                let iter = try!(iter);
-                Ok(StoreIdIterator::new(Box::new(iter.into_iter())))
+                    if is_file {
+                        let sid = try!(StoreId::from_full_path(self.path(), element));
+                        elems.push(sid);
+                    }
+                }
+                Ok(StoreIdIterator::new(Box::new(elems.into_iter())))
             })
 
     }

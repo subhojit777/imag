@@ -150,6 +150,10 @@ impl FileAbstraction for FSFileAbstraction {
         Ok(path.exists())
     }
 
+    fn is_file(&self, path: &PathBuf) -> Result<bool, SE> {
+        Ok(path.is_file())
+    }
+
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance> {
         Box::new(FSFileAbstractionInstance::Absent(p))
     }
