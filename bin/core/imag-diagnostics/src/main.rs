@@ -39,6 +39,7 @@ extern crate toml_query;
 
 extern crate libimagrt;
 extern crate libimagerror;
+extern crate libimagentrylink;
 extern crate libimagstore;
 
 use libimagrt::setup::generate_runtime_setup;
@@ -46,6 +47,7 @@ use libimagerror::trace::MapErrTrace;
 use libimagstore::store::FileLockEntry;
 use libimagstore::iter::get::*;
 use libimagstore::error::StoreError as Error;
+use libimagentrylink::internal::*;
 
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
@@ -60,6 +62,7 @@ struct Diagnostic {
     pub bytecount_content: usize,
     pub overall_byte_size: usize,
     pub verified: bool,
+    pub num_internal_links: usize,
 }
 
 impl<'a> From<FileLockEntry<'a>> for Diagnostic {
@@ -82,6 +85,7 @@ impl<'a> From<FileLockEntry<'a>> for Diagnostic {
             bytecount_content: entry.get_content().as_str().len(),
             overall_byte_size: entry.to_str().as_str().len(),
             verified: entry.verify().is_ok(),
+            num_internal_links: entry.get_internal_links().map(Iterator::count).unwrap_or(0),
         }
     }
 }
@@ -111,6 +115,7 @@ fn main() {
     let mut sum_overall_byte_size = 0;
     let mut verified_count        = 0;
     let mut unverified_count      = 0;
+    let mut num_internal_links    = 0;
 
     for diag in diags.iter() {
         sum_header_sections     += diag.header_sections;
@@ -125,6 +130,8 @@ fn main() {
         } else {
             unverified_count += 1;
         }
+
+        num_internal_links += diag.num_internal_links;
     }
 
     let n = diags.len();
@@ -139,6 +146,7 @@ fn main() {
         println!("{} header sections in the average entry", sum_header_sections / n);
         println!("{} average content bytecount", sum_bytecount_content / n);
         println!("{} average overall bytecount", sum_overall_byte_size / n);
+        println!("{} average internal link count per entry", num_internal_links / n);
         println!("{} verified entries", verified_count);
         println!("{} unverified entries", unverified_count);
     }

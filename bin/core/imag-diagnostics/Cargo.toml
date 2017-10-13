@@ -22,4 +22,5 @@ toml-query = "0.4"
 libimagstore     = { version = "0.5.0", path = "../../../lib/core/libimagstore" }
 libimagrt        = { version = "0.5.0", path = "../../../lib/core/libimagrt" }
 libimagerror     = { version = "0.5.0", path = "../../../lib/core/libimagerror" }
+libimagentrylink = { version = "0.5.0", path = "../../../lib/entry/libimagentrylink" }
 
