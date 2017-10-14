@@ -22,8 +22,8 @@ use std::collections::BTreeMap;
 use std::fs::File;
 
 use libimagstore::store::FileLockEntry;
-use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
+use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::Store;
 
@@ -43,13 +43,20 @@ pub trait RefStore {
     /// Check whether there is a reference to the file at `pb`
     fn exists(&self, pb: PathBuf) -> Result<bool>;
 
-    /// Try to get `si` as Ref object from the store
-    fn get<'a>(&'a self, si: StoreId) -> Result<FileLockEntry<'a>>;
-
     /// Get a Ref object from the store by hash.
     ///
     /// Returns None if the hash cannot be found.
     fn get_by_hash<'a>(&'a self, hash: String) -> Result<Option<FileLockEntry<'a>>>;
+
+    /// Find a store id by partial ref (also see documentation for
+    /// `RefStore::get_by_partitial_hash()`.
+    fn find_storeid_by_partial_hash(&self, hash: &String) -> Result<Option<StoreId>>;
+
+    /// Get a Ref object from the store by (eventually partial) hash.
+    ///
+    /// If the hash is complete, `RefStore::get_by_hash()` should be used as it is cheaper.
+    /// If the hash comes from user input and thus might be abbreviated, this function can be used.
+    fn get_by_partitial_hash<'a>(&'a self, hash: &String) -> Result<Option<FileLockEntry<'a>>>;
 
     /// Delete a ref by hash
     ///
@@ -111,14 +118,6 @@ impl RefStore for Store {
             })
     }
 
-    /// Try to get `si` as Ref object from the store
-    fn get<'a>(&'a self, si: StoreId) -> Result<FileLockEntry<'a>> {
-        match self.get(si)? {
-            None      => return Err(RE::from_kind(REK::RefNotInStore)),
-            Some(fle) => Ok(fle),
-        }
-    }
-
     /// Get a Ref object from the store by hash.
     ///
     /// Returns None if the hash cannot be found.
@@ -127,6 +126,32 @@ impl RefStore for Store {
             .into_storeid()
             .and_then(|id| self.get(id))
             .map_err(From::from)
+    }
+
+    fn find_storeid_by_partial_hash(&self, hash: &String) -> Result<Option<StoreId>> {
+        debug!("Trying to find '{}' in store...", hash);
+        for id in self.retrieve_for_module("ref")? {
+            let components_have_hash = id
+                .components()
+                .any(|c| c.as_os_str().to_str().map(|s| s.contains(hash)).unwrap_or(false));
+
+            if components_have_hash {
+                debug!("Found hash '{}' in {:?}", hash, id);
+                return Ok(Some(id))
+            }
+        }
+        Ok(None)
+    }
+
+    /// Get a Ref object from the store by (eventually partial) hash.
+    ///
+    /// If the hash is complete, `RefStore::get_by_hash()` should be used as it is cheaper.
+    /// If the hash comes from user input and thus might be abbreviated, this function can be used.
+    fn get_by_partitial_hash<'a>(&'a self, hash: &String) -> Result<Option<FileLockEntry<'a>>> {
+        match self.find_storeid_by_partial_hash(hash)? {
+            Some(id) => self.get(id).map_err(From::from),
+            None     => Ok(None),
+        }
     }
 
     /// Delete a ref by hash
