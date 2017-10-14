@@ -22,7 +22,6 @@ use std::collections::BTreeMap;
 use std::fs::File;
 
 use libimagstore::store::FileLockEntry;
-use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::Store;
@@ -47,6 +46,12 @@ pub trait RefStore {
     ///
     /// Returns None if the hash cannot be found.
     fn get_by_hash<'a>(&'a self, hash: String) -> Result<Option<FileLockEntry<'a>>>;
+
+    /// Get a Ref object from the store by (eventually partial) hash.
+    ///
+    /// If the hash is complete, `RefStore::get_by_hash()` should be used as it is cheaper.
+    /// If the hash comes from user input and thus might be abbreviated, this function can be used.
+    fn get_by_partitial_hash<'a>(&'a self, hash: &String) -> Result<Option<FileLockEntry<'a>>>;
 
     /// Delete a ref by hash
     ///
@@ -116,6 +121,23 @@ impl RefStore for Store {
             .into_storeid()
             .and_then(|id| self.get(id))
             .map_err(From::from)
+    }
+
+    /// Get a Ref object from the store by (eventually partial) hash.
+    ///
+    /// If the hash is complete, `RefStore::get_by_hash()` should be used as it is cheaper.
+    /// If the hash comes from user input and thus might be abbreviated, this function can be used.
+    fn get_by_partitial_hash<'a>(&'a self, hash: &String) -> Result<Option<FileLockEntry<'a>>> {
+        for id in self.retrieve_for_module("ref")? {
+            let components_have_hash = id
+                .components()
+                .any(|c| c.as_os_str().to_str().map(|s| s.contains(hash)).unwrap_or(false));
+
+            if components_have_hash {
+                return self.get(id).map_err(From::from);
+            }
+        }
+        Ok(None)
     }
 
     /// Delete a ref by hash
