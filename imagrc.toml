@@ -1,6 +1,49 @@
 # This is a example configuration file for the imag suite.
 # It is written in TOML
 
+#
+# imag supports templates when specifying formats. The templates support several
+# functionalities, from colorizing to underlining and such things.
+#
+# Here goes a list of supported formatting helpers:
+#
+# These functions can be applied for colorizing the output:
+#  {{black <input>}}
+#  {{blue <input>}}
+#  {{cyan <input>}}
+#  {{green <input>}}
+#  {{purple <input>}}
+#  {{red <input>}}
+#  {{white <input>}}
+#  {{yellow <input>}}
+#
+# The following functions are allowed for formatting text:
+#  {{lpad <count> <input>}}   - to "left pad" by <count> spaces
+#  {{rpad <count> <input>}}   - to "right pad" by <count> spaces
+#  {{abbrev <count> <input>}} - to "abbreviate" the output to <count> chars
+#  {{underline <input>}}      - for underlining
+#  {{bold <input>}}           - for making input bold
+#  {{blink <input>}}          - for making input blinking
+#  {{strikethrough <input>}}  - for making input struck through
+#
+# Strings can only be printed. Arrays can be indexed with the `lookup` function.
+#
+#
+# The underlying templating engine also supports these:
+#
+# {{#raw}} ... {{/raw}} escape handlebars expression within the block
+# {{#if ...}} ... {{else}} ... {{/if}} if-else block
+# {{#unless ...}} ... {{else}} .. {{/unless}} if-not-else block
+# {{#each ...}} ... {{/each}} iterates over an array or object.
+#   Handlebar-rust doesn't support mustach iteration syntax so use this instead.
+# {{#with ...}} ... {{/with}} change current context. Similar to {{#each}}, used for replace corresponding mustach syntax.
+# {{lookup ... ...}} get value from array by @index or @key
+# {{> ...}} include template with name
+# {{log ...}} log value with rust logger, default level: INFO. Currently you cannot change the level.
+#
+# Warning: These are _not_ tested and should be used with care.
+#
+
 # The alias section
 #
 # In this section one can define aliases for imag subcommands.
@@ -19,6 +62,7 @@ store = [ "s", "st" ]
 level = "debug"
 destinations = [ "-" ]
 
+#
 # Valid variables for logging:
 #  * "level"
 #  * "module_path"
@@ -27,15 +71,6 @@ destinations = [ "-" ]
 #  * "target"
 #  * "message"
 #
-# Valid functions to be applied:
-#  * "black"
-#  * "blue"
-#  * "cyan"
-#  * "green"
-#  * "purple"
-#  * "red"
-#  * "white"
-#  * "yellow"
 
 [imag.logging.format]
 trace = "[imag][{{red level}}][{{module_path}}]: {{message}}"
