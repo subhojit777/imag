@@ -7,6 +7,17 @@ works.
 Lets work our way up from the store and how to extend it to the commandline user
 interface.
 
+## Versioning
+
+All imag crates are versioned with the same version number until we reach some
+`"1.0.0"` version.
+This means that all imag tools are only tested for compatibility with libraries
+and such if their version numbers match.
+It might not be possible to import one imag library in version 0.3.0 and another
+one in 0.4.0 and make them work together.
+It also means that if new tools are introduced into the imag codebase, they
+might start with their first version not at 0.1.0 but at something like 0.5.0.
+
 ## Store and Entry functionality
 
 A `Entry` does not offer much functionality by itself. So its the job of
