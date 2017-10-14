@@ -47,10 +47,12 @@ mod ui;
 use ui::build_ui;
 
 use std::path::PathBuf;
+use std::process::exit;
 
 use libimagentryref::refstore::RefStore;
 use libimagentryref::flags::RefFlags;
 use libimagerror::trace::trace_error;
+use libimagerror::trace::MapErrTrace;
 use libimagrt::setup::generate_runtime_setup;
 use libimagrt::runtime::Runtime;
 
@@ -101,15 +103,20 @@ fn remove(rt: &Runtime) {
     let hash = cmd.value_of("hash").map(String::from).unwrap(); // saved by clap
     let yes  = cmd.is_present("yes");
 
-    if yes || ask_bool(&format!("Delete Ref with hash '{}'", hash)[..], None) {
-        match rt.store().get_by_partitial_hash(
-        match rt.store().delete_by_hash(hash) {
-            Err(e) => trace_error(&e),
-            Ok(_) => info!("Ok"),
-        }
-    } else {
-        info!("Aborted");
-    }
+    match rt.store().find_storeid_by_partial_hash(&hash).map_err_trace_exit_unwrap(1) {
+        Some(sid) => {
+            if yes || ask_bool(&format!("Delete Ref with hash '{}'", hash)[..], None) {
+                debug!("Found for hash '{}' -> {:?}", hash, sid);
+                rt.store().delete(sid).map_err_trace_exit_unwrap(1)
+            } else {
+                info!("Aborted");
+            }
+        },
+        None => {
+            error!("Not id for hash '{}' found", hash);
+            exit(1)
+        },
+    };
 
 }
 
