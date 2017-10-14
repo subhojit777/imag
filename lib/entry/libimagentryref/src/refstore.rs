@@ -43,9 +43,6 @@ pub trait RefStore {
     /// Check whether there is a reference to the file at `pb`
     fn exists(&self, pb: PathBuf) -> Result<bool>;
 
-    /// Try to get `si` as Ref object from the store
-    fn get<'a>(&'a self, si: StoreId) -> Result<FileLockEntry<'a>>;
-
     /// Get a Ref object from the store by hash.
     ///
     /// Returns None if the hash cannot be found.
@@ -109,14 +106,6 @@ impl RefStore for Store {
 
                 Ok(false)
             })
-    }
-
-    /// Try to get `si` as Ref object from the store
-    fn get<'a>(&'a self, si: StoreId) -> Result<FileLockEntry<'a>> {
-        match self.get(si)? {
-            None      => return Err(RE::from_kind(REK::RefNotInStore)),
-            Some(fle) => Ok(fle),
-        }
     }
 
     /// Get a Ref object from the store by hash.
