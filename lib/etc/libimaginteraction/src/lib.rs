@@ -42,6 +42,7 @@ extern crate regex;
 extern crate clap;
 extern crate toml;
 extern crate handlebars;
+extern crate serde_json;
 #[macro_use] extern crate error_chain;
 
 extern crate libimagstore;

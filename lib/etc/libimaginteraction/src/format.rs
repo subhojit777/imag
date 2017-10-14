@@ -18,6 +18,7 @@
 //
 
 use handlebars::{Handlebars, HelperDef, JsonRender, RenderError, RenderContext, Helper};
+use serde_json::value::Value;
 use ansi_term::Colour;
 use ansi_term::Style;
 
@@ -152,6 +153,51 @@ impl HelperDef for StrikethroughHelper {
         }
 }
 
+fn param_to_number(idx: usize, h: &Helper) -> Result<u64, RenderError> {
+    match try!(h.param(idx).ok_or(RenderError::new("Too few arguments"))).value() {
+        &Value::Number(ref num) => num.as_u64().ok_or_else(|| RenderError::new("Number cannot be parsed")),
+        _ => Err(RenderError::new("Type error: First argument should be a number")),
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct LeftPadHelper;
+
+impl HelperDef for LeftPadHelper {
+    fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+        let count = param_to_number(0, h)? as usize;
+        let text = try!(h.param(1).ok_or(RenderError::new("Too few arguments")));
+        let text = format!("{:>width$}", text.value().render(), width = count);
+        try!(write!(rc.writer(), "{}", text));
+        Ok(())
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct RightPadHelper;
+
+impl HelperDef for RightPadHelper {
+    fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+        let count = param_to_number(0, h)? as usize;
+        let text = try!(h.param(1).ok_or(RenderError::new("Too few arguments")));
+        let text = format!("{:width$}", text.value().render(), width = count);
+        try!(write!(rc.writer(), "{}", text));
+        Ok(())
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct AbbrevHelper;
+
+impl HelperDef for AbbrevHelper {
+    fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+        let count = param_to_number(0, h)? as usize;
+        let text = try!(h.param(1).ok_or(RenderError::new("Too few arguments"))).value().render();
+        try!(write!(rc.writer(), "{}", text.chars().take(count).collect::<String>()));
+        Ok(())
+    }
+}
+
 pub fn register_all_color_helpers(handlebars: &mut Handlebars) {
     handlebars.register_helper("black"  , Box::new(ColorizeBlackHelper));
     handlebars.register_helper("blue"   , Box::new(ColorizeBlueHelper));
@@ -168,5 +214,8 @@ pub fn register_all_format_helpers(handlebars: &mut Handlebars) {
     handlebars.register_helper("bold"          , Box::new(BoldHelper));
     handlebars.register_helper("blink"         , Box::new(BlinkHelper));
     handlebars.register_helper("strikethrough" , Box::new(StrikethroughHelper));
+    handlebars.register_helper("lpad"          , Box::new(LeftPadHelper));
+    handlebars.register_helper("rpad"          , Box::new(RightPadHelper));
+    handlebars.register_helper("abbrev"        , Box::new(AbbrevHelper));
 }
 
