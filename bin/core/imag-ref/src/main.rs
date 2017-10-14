@@ -102,6 +102,7 @@ fn remove(rt: &Runtime) {
     let yes  = cmd.is_present("yes");
 
     if yes || ask_bool(&format!("Delete Ref with hash '{}'", hash)[..], None) {
+        match rt.store().get_by_partitial_hash(
         match rt.store().delete_by_hash(hash) {
             Err(e) => trace_error(&e),
             Ok(_) => info!("Ok"),
