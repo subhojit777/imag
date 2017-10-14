@@ -21,7 +21,7 @@ might start with their first version not at 0.1.0 but at something like 0.5.0.
 ## Store and Entry functionality
 
 A `Entry` does not offer much functionality by itself. So its the job of
-libraries to _extend_ their functionality. This should never be done by wrapping
+libraries to _extend_ its functionality. This should never be done by wrapping
 the `Entry` type itself but by providing and implementing an extension trait on
 it.
 
@@ -79,7 +79,7 @@ they depend on one or more "libimagentrything" libraries. They should be named
 
 If such a library needs to depend on another "libimagthing", for example if
 "libimagdiary" needs to depend on "libimagnote", one should think about this and
-whether the functionality could ve outsourced to a more general
+whether the functionality could be outsourced to a more general
 "libimagentrything". It is not forbidden, though.
 
 A library which implements a functionality for imag may contain helper functions
