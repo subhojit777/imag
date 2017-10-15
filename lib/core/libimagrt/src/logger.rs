@@ -223,27 +223,43 @@ fn match_log_level_str(s: &str) -> Result<LogLevel> {
 fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Configuration>)
     -> Result<LogLevel>
 {
-    match config {
-        Some(cfg) => match cfg.read("imag.logging.level") {
+    fn get_arg_loglevel(matches: &ArgMatches) -> Result<Option<LogLevel>> {
+        if matches.is_present(Runtime::arg_debugging_name()) {
+            return Ok(Some(LogLevel::Debug))
+        }
+
+        if matches.is_present(Runtime::arg_verbosity_name()) {
+            return Ok(Some(LogLevel::Info))
+        }
+
+        match matches.value_of(Runtime::arg_verbosity_name()) {
+            Some(v) => match_log_level_str(v).map(Some),
+            None    => Ok(None),
+        }
+    }
+
+    if let Some(cfg) = config {
+        let cfg_loglevel = match cfg.read("imag.logging.level") {
             Ok(Some(&Value::String(ref s))) => match_log_level_str(s),
             Ok(Some(_)) => {
                 let path = "imag.logging.level".to_owned();
                 let ty   = "String";
-                Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
+                return Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
             },
-            Ok(None)    => Err(RE::from_kind(EK::GlobalLogLevelConfigMissing)),
-            Err(e)      => Err(e).map_err(From::from),
-        },
-        None => {
-            if matches.is_present(Runtime::arg_debugging_name()) {
-                return Ok(LogLevel::Debug)
-            }
+            Ok(None)    => return Err(RE::from_kind(EK::GlobalLogLevelConfigMissing)),
+            Err(e)      => return Err(e).map_err(From::from),
+        }?;
 
-            matches
-                .value_of(Runtime::arg_verbosity_name())
-                .map(match_log_level_str)
-                .unwrap_or(Ok(LogLevel::Info))
+        if let Some(cli_loglevel) = get_arg_loglevel(matches)? {
+            if cli_loglevel > cfg_loglevel {
+                return Ok(cli_loglevel)
+            }
         }
+
+        Ok(cfg_loglevel)
+
+    } else {
+        get_arg_loglevel(matches).map(|o| o.unwrap_or(LogLevel::Info))
     }
 }
 
