@@ -11,16 +11,17 @@ section](#prerequisites). If you don't know what you could do, start here.
 
 ## Without Github
 
-If you do not want to use github for your contribution, this is completely okay.
+Contributing without a github account is perfectly fine.
 Feel free to contact [us via our mailinglist](http://imag-pim.org/mailinglist/)
-via mail, feel also free to submit patches via mail (use `git format-patch` and
+and/or submit patches via mail (use `git format-patch` and
 `git send-email`, always add a cover letter to describe your submission).
 
 Also ensure that each commit has
 [a "Signed-off-by: " line](https://stackoverflow.com/questions/1962094/what-is-the-sign-off-feature-in-git-for).
 By adding that line, you agree to our
 [developer certificate of origin](#developer-certificate-of-origin).
-If you do not add the "Signed-off-by: " line, I cannot take your patch, sorry.
+If you do not add the "Signed-off-by: " line,
+I reserve the right to reject your patch.
 
 Once _I am_ okay with your patchset, I will
 submit it as PR in the github repository, so more people can review it and CI
@@ -36,6 +37,8 @@ Finding an issue is simple: We have
 [a special label in our issues section](https://github.com/matthiasbeyer/imag/issues?q=is%3Aissue+is%3Aopen+label%3Acomplexity%2Feasy)
 for easy-to-solve issues. You can start there, don't hesitate to ask questions
 if you do not understand the issue comment!
+If there are currently no issues with that tag, just browse the issues or the
+code... you'll always find things to improve!
 
 Also, if you've found bugs or outdated stuff in our documentation, feel free to
 file issues about them or even better: Write a pull request to fix them!
@@ -47,8 +50,6 @@ file issues about them or even better: Write a pull request to fix them!
 Dependencies are listed in the
 [default.nix file](http://git.imag-pim.org/imag/tree/default.nix),
 though you do not have to have `nix` installed to build imag.
-
-`make` can be helpful to automate the build process.
 
 Note that this software is targeted towards commandline linux users and we do
 not aim to be portable to Windows or Mac OSX (though I wouldn't mind merging
@@ -70,10 +71,14 @@ All dependencies are installable with the nix package manager by using a
 Please don't refer to issues or PRs from inside a commit message, if possible.
 Make sure your PR does not contain "Fixup" commits when publishing it, but feel
 free to push "Fixup" commits in the review process. We will ask you to clean
-your history before merging! If you're submitting via patch-mail, I will do the fixup squashing myself.
+your history before merging! If you're submitting via patch-mail, I will do the
+fixup squashing myself.
 
 Make sure to prefix your commits with `"doc: "` if you change the document. Do
 not change document and code in one commit, always separate them.
+
+If your changes are user-visible, make sure to add a note in the
+`CHANGELOG.md` file.
 
 We do not follow some official Rust styleguide for our codebase, but we try to
 write minimal and readable code. 100 characters per line, as few lines as
@@ -93,9 +98,9 @@ for example "libimagstore/add-debugging-calls", that would be awesome.
 
 You are welcome to publish your PR as soon as there is one commit in your
 branch. This gives us the possibility to review whether your ideas go into a
-nice direction or whether there are issues with your approach and we can report
-them to you rather quickly. Rewriting a whole PR is not satisfactory and we'd
-like to make your contribution process enjoyable.
+nice direction or whether there are issues with your approach so we can report
+them to you quickly. Rewriting a whole PR is not satisfactory and we'd
+like to make your contribution process enjoyable for you.
 
 # Merging tools which use the imag core functionality into this repo
 
@@ -107,12 +112,14 @@ requirements:
 1. It has a commandline interface which is the main interface to the module
    OR it is a utility library for creating new kinds of functionality within the
    imag core.
+   The commandline interface should be structured like the existing interfaces
+   (as in commands, options and arguments).
 1. It is licensed under the terms of GNU LGPLv2.1 OR all of your contributors
    approve a commit which changes the license of your codebase to GNU LGPLv2.1
    (The word "approve" in this sentence is to be defined).
 
-(If your tool does not fulfill these requirements, I won't merge it into the
-imag core distribution.)
+If your tool does not fulfill these requirements, I won't merge it into the
+imag core distribution.
 
 ## Code of Conduct
 
