@@ -337,13 +337,6 @@ fn forward_commandline_arguments(m: &ArgMatches, scmd: &mut Vec<String>) {
          Runtime::arg_generate_compl(), m , scmd);
 
     push(None , Runtime::arg_logdest_name()                         , m , scmd);
-    push(None , Runtime::arg_override_module_logging_setting_name() , m , scmd);
-    push(None , Runtime::arg_override_trace_logging_format()        , m , scmd);
-    push(None , Runtime::arg_override_debug_logging_format()        , m , scmd);
-    push(None , Runtime::arg_override_info_logging_format()         , m , scmd);
-    push(None , Runtime::arg_override_warn_logging_format()         , m , scmd);
-    push(None , Runtime::arg_override_error_logging_format()        , m , scmd);
-
 
 }
 

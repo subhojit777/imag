@@ -255,54 +255,6 @@ impl<'a> Runtime<'a> {
                 .takes_value(true)
                 .value_name("LOGDESTS"))
 
-            .arg(Arg::with_name(Runtime::arg_override_module_logging_setting_name())
-                .long(Runtime::arg_override_module_logging_setting_name())
-                .help("Override a module logging setting for one module. Format: <modulename>=<setting>=<value>, whereas <setting> is either 'enabled', 'level' or 'destinations' - This commandline argument is CURRENTLY NOT IMPLEMENTED")
-                .multiple(true)
-                .required(false)
-                .takes_value(true)
-                .value_name("SPEC"))
-
-            .arg(Arg::with_name(Runtime::arg_override_trace_logging_format())
-                 .long(Runtime::arg_override_trace_logging_format())
-                 .help("Override the logging format for the trace logging")
-                 .multiple(false)
-                 .required(false)
-                 .takes_value(true)
-                 .value_name("FMT"))
-
-            .arg(Arg::with_name(Runtime::arg_override_debug_logging_format())
-                 .long(Runtime::arg_override_debug_logging_format())
-                 .help("Override the logging format for the debug logging")
-                 .multiple(false)
-                 .required(false)
-                 .takes_value(true)
-                 .value_name("FMT"))
-
-            .arg(Arg::with_name(Runtime::arg_override_info_logging_format())
-                 .long(Runtime::arg_override_info_logging_format())
-                 .help("Override the logging format for the info logging")
-                 .multiple(false)
-                 .required(false)
-                 .takes_value(true)
-                 .value_name("FMT"))
-
-            .arg(Arg::with_name(Runtime::arg_override_warn_logging_format())
-                 .long(Runtime::arg_override_warn_logging_format())
-                 .help("Override the logging format for the warn logging")
-                 .multiple(false)
-                 .required(false)
-                 .takes_value(true)
-                 .value_name("FMT"))
-
-            .arg(Arg::with_name(Runtime::arg_override_error_logging_format())
-                 .long(Runtime::arg_override_error_logging_format())
-                 .help("Override the logging format for the error logging")
-                 .multiple(false)
-                 .required(false)
-                 .takes_value(true)
-                 .value_name("FMT"))
-
     }
 
     /// Get the argument names of the Runtime which are available
@@ -390,30 +342,6 @@ impl<'a> Runtime<'a> {
     /// Get the argument name for the logging destination
     pub fn arg_logdest_name() -> &'static str {
         "logging-destinations"
-    }
-
-    pub fn arg_override_module_logging_setting_name() -> &'static str {
-        "override-module-log-setting"
-    }
-
-    pub fn arg_override_trace_logging_format() -> &'static str {
-        "override-logging-format-trace"
-    }
-
-    pub fn arg_override_debug_logging_format() -> &'static str {
-        "override-logging-format-debug"
-    }
-
-    pub fn arg_override_info_logging_format() -> &'static str {
-        "override-logging-format-info"
-    }
-
-    pub fn arg_override_warn_logging_format() -> &'static str {
-        "override-logging-format-warn"
-    }
-
-    pub fn arg_override_error_logging_format() -> &'static str {
-        "override-logging-format-error"
     }
 
     /// Initialize the internal logger
