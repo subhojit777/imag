@@ -1,0 +1,443 @@
+//
+// imag - the personal information management suite for the commandline
+// Copyright (C) 2015, 2016 Matthias Beyer <mail@beyermatthias.de> and contributors
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; version
+// 2.1 of the License.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+//
+
+use std::collections::BTreeMap;
+use std::process::exit;
+use std::io::Write;
+use std::io::stdout;
+use std::path::PathBuf;
+use std::fs::OpenOptions;
+
+use vobject::vcard::Vcard;
+use vobject::write_component;
+use toml_query::read::TomlValueReadExt;
+use toml::Value;
+use uuid::Uuid;
+
+use libimagrt::runtime::Runtime;
+use libimagerror::trace::MapErrTrace;
+use libimagerror::trace::trace_error;
+use libimagerror::trace::trace_error_exit;
+use libimagutil::warn_result::WarnResult;
+use libimagentryref::refstore::RefStore;
+use libimagentryref::flags::RefFlags;
+
+const TEMPLATE : &'static str = include_str!("../static/new-contact-template.toml");
+
+#[cfg(test)]
+mod test {
+    use toml::Value;
+    use super::TEMPLATE;
+
+    const TEMPLATE_WITH_DATA : &'static str = include_str!("../static/new-contact-template-test.toml");
+
+    #[test]
+    fn test_validity_template_toml() {
+        let _ : Value = ::toml::de::from_str(TEMPLATE).unwrap();
+    }
+
+    #[test]
+    fn test_validity_template_toml_without_comments() {
+        let _ : Value = ::toml::de::from_str(TEMPLATE_WITH_DATA).unwrap();
+    }
+}
+
+macro_rules! ask_continue {
+    () => {
+        if ::libimaginteraction::ask::ask_bool("Edit tempfile", Some(true)) {
+            continue;
+        } else {
+            exit(1);
+        }
+    };
+}
+
+pub fn create(rt: &Runtime) {
+    let scmd         = rt.cli().subcommand_matches("create").unwrap();
+    let mut template = String::from(TEMPLATE);
+
+    let (mut dest, location) : (Box<Write>, Option<PathBuf>) = {
+        if let Some(mut fl) = scmd.value_of("file-location").map(PathBuf::from) {
+            if fl.is_file() {
+                error!("File does exist, cannot create/override");
+                exit(1);
+            } else if fl.is_dir() {
+                fl.set_file_name(Uuid::new_v4().hyphenated().to_string());
+            }
+
+            let file = OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(fl.clone())
+                .map_warn_err_str("Cannot create/open destination File. Stopping.")
+                .map_err_trace_exit_unwrap(1);
+
+            (Box::new(file), Some(fl))
+        } else {
+            (Box::new(stdout()), None)
+        }
+    };
+
+    loop {
+        ::libimagentryedit::edit::edit_in_tmpfile(&rt, &mut template)
+            .map_warn_err_str("Editing failed.")
+            .map_err_trace_exit_unwrap(1);
+
+        if template == TEMPLATE || template.is_empty() {
+            error!("No (changed) content in tempfile. Not doing anything.");
+            exit(2);
+        }
+
+        match ::toml::de::from_str(&template) {
+            Err(e) => {
+                error!("Error parsing template");
+                trace_error(&e);
+                ask_continue!();
+            },
+
+            Ok(toml) => {
+                debug!("");
+                let mut vcard = Vcard::default();
+
+                { // parse name
+                    debug!("Parsing name");
+                    let firstname = read_str_from_toml(&toml, "name.first");
+                    trace!("firstname = {:?}", firstname);
+
+                    let lastname  = read_str_from_toml(&toml, "name.last");
+                    trace!("lastname = {:?}", lastname);
+
+                    vcard = vcard.with_name(parameters!(),
+                        read_str_from_toml(&toml, "name.prefix"),
+                        firstname.clone(),
+                        read_str_from_toml(&toml, "name.additional"),
+                        lastname.clone(),
+                        read_str_from_toml(&toml, "name.suffix"));
+
+                    if let (Some(first), Some(last)) = (firstname, lastname) {
+                        trace!("Building fullname: '{} {}'", first, last);
+                        vcard = vcard.with_fullname(format!("{} {}", first, last));
+                    }
+                }
+
+                { // parse nicknames
+                    debug!("Parsing nicknames");
+                    match toml.read("nickname").map_err_trace_exit_unwrap(1) {
+                        Some(&Value::Array(ref ary)) => {
+                            for (i, element) in ary.iter().enumerate() {
+                                let nicktype = match read_str_from_toml(element, "type") {
+                                    Some(p) => {
+                                        let mut m = BTreeMap::new();
+                                        m.insert("TYPE".into(), p);
+                                        m
+                                    },
+                                    None    => BTreeMap::new(),
+                                };
+
+                                let name = match read_str_from_toml(element, "name") {
+                                    None => {
+                                        error!("Key 'nickname.[{}].name' missing", i);
+                                        ask_continue!()
+                                    },
+                                    Some(p) => p,
+                                };
+
+                                trace!("nick type = {:?}", nicktype);
+                                trace!("name      = {:?}", name);
+
+                                vcard = vcard.with_nickname(nicktype, name);
+                            }
+                        },
+
+                        Some(&Value::String(ref name)) => {
+                            vcard = vcard.with_nickname(parameters!(), name.clone());
+                        }
+
+                        Some(_) => {
+                            error!("Type Error: Expected Array or String at 'nickname'");
+                            ask_continue!();
+                        },
+                        None => {
+                            // nothing
+                        },
+                    }
+                }
+
+                { // parse organisation
+                    debug!("Parsing organisation");
+
+                    if let Some(orgs) = read_strary_from_toml(&toml, "organisation.name") {
+                        trace!("orgs = {:?}", orgs);
+                        vcard = vcard.with_org(orgs);
+                    } else {
+                        error!("Key 'organisation.name' missing");
+                        ask_continue!();
+                    }
+
+                    if let Some(title) = read_str_from_toml(&toml, "organisation.title") {
+                        trace!("title = {:?}", title);
+                        vcard = vcard.with_title(title);
+                    }
+
+                    if let Some(role) = read_str_from_toml(&toml, "organisation.role") {
+                        trace!("role = {:?}", role);
+                        vcard = vcard.with_role(role);
+                    }
+                }
+
+                { // parse phone
+                    debug!("Parse phone");
+                    match toml.read("phone").map_err_trace_exit_unwrap(1) {
+                        Some(&Value::Array(ref ary)) => {
+                            for (i, element) in ary.iter().enumerate() {
+                                let phonetype = match read_str_from_toml(element, "type") {
+                                    Some(p) => p,
+                                    None => {
+                                        error!("Key 'phones.[{}].type' missing", i);
+                                        ask_continue!()
+                                    }
+                                };
+
+                                let number = match read_str_from_toml(element, "number") {
+                                    Some(p) => p,
+                                    None => {
+                                        error!("Key 'phones.[{}].number' missing", i);
+                                        ask_continue!()
+                                    }
+                                };
+
+                                trace!("phonetype = {:?}", phonetype);
+                                trace!("number    = {:?}", number);
+
+                                vcard = vcard.with_tel(parameters!("TYPE" => phonetype), number);
+                            }
+                        },
+
+                        Some(_) => {
+                            error!("Expected Array at 'phones'.");
+                            ask_continue!()
+                        },
+                        None => {
+                            // nothing
+                        },
+                    }
+                }
+
+                { // parse address
+                    debug!("Parsing address");
+                    match toml.read("addresses").map_err_trace_exit_unwrap(1) {
+                        Some(&Value::Array(ref ary)) => {
+                            for (i, element) in ary.iter().enumerate() {
+                                let adrtype  = match read_str_from_toml(element, "type") {
+                                    None => {
+                                        error!("Key 'adresses.[{}].type' missing", i);
+                                        ask_continue!()
+                                    },
+                                    Some(p) => p,
+                                };
+                                trace!("adrtype = {:?}", adrtype);
+
+                                let bx       = read_str_from_toml(element, "box");
+                                let extended = read_str_from_toml(element, "extended");
+                                let street   = read_str_from_toml(element, "street");
+                                let code     = read_str_from_toml(element, "code");
+                                let city     = read_str_from_toml(element, "city");
+                                let region   = read_str_from_toml(element, "region");
+                                let country  = read_str_from_toml(element, "country");
+
+                                trace!("bx       = {:?}", bx);
+                                trace!("extended = {:?}", extended);
+                                trace!("street   = {:?}", street);
+                                trace!("code     = {:?}", code);
+                                trace!("city     = {:?}", city);
+                                trace!("region   = {:?}", region);
+                                trace!("country  = {:?}", country);
+
+                                vcard = vcard.with_adr(
+                                    parameters!("TYPE" => adrtype),
+                                    bx, extended, street, code, city, region, country
+                                );
+                            }
+                        },
+
+                        Some(_) => {
+                            error!("Type Error: Expected Array at 'addresses'");
+                            ask_continue!();
+                        },
+                        None => {
+                            // nothing
+                        },
+                    }
+                }
+
+                { // parse email
+                    debug!("Parsing email");
+                    match toml.read("email").map_err_trace_exit_unwrap(1) {
+                        Some(&Value::Array(ref ary)) => {
+                            for (i, element) in ary.iter().enumerate() {
+                                let mailtype  = match read_str_from_toml(element, "type") {
+                                    None => {
+                                        error!("Error: 'email.[{}].type' missing", i);
+                                        ask_continue!()
+                                    },
+                                    Some(p) => p,
+                                }; // TODO: Unused, because unsupported by vobject
+
+                                let mail = match read_str_from_toml(element, "addr") {
+                                    None => {
+                                        error!("Error: 'email.[{}].addr' missing", i);
+                                        ask_continue!()
+                                    },
+                                    Some(p) => p,
+                                };
+
+                                trace!("mailtype = {:?} (UNUSED)", mailtype);
+                                trace!("mail     = {:?}", mail);
+
+                                vcard = vcard.with_email(mail);
+                            }
+                        },
+
+                        Some(_) => {
+                            error!("Type Error: Expected Array at 'email'");
+                            ask_continue!();
+                        },
+                        None => {
+                            // nothing
+                        },
+                    }
+                }
+
+                { // parse others
+                    debug!("Parsing others");
+                    if let Some(categories) = read_strary_from_toml(&toml, "others.categories") {
+                        vcard = vcard.with_categories(categories);
+                    } else {
+                        debug!("No categories");
+                    }
+
+                    if let Some(webpage) = read_str_from_toml(&toml, "others.webpage") {
+                        vcard = vcard.with_url(webpage);
+                    } else {
+                        debug!("No webpage");
+                    }
+
+                    if let Some(note) = read_str_from_toml(&toml, "others.note") {
+                        vcard = vcard.with_note(note);
+                    } else {
+                        debug!("No note");
+                    }
+
+                }
+
+                //println!("{:#?}", vcard);
+                if template == TEMPLATE || template.is_empty() {
+                    if ::libimaginteraction::ask::ask_bool("Abort contact creating", Some(false)) {
+                        exit(1);
+                    } else {
+                        continue;
+                    }
+                }
+
+                let vcard_string = write_component(&vcard);
+                if let Err(e) = dest.write_all(&vcard_string.as_bytes()) {
+                    warn!("Error while writing out vcard content");
+                    trace_error_exit(&e, 1);
+                }
+
+                break;
+            }
+        }
+    }
+
+    if let Some(location) = location {
+        if !scmd.is_present("dont-track") {
+            let flags = RefFlags::default()
+                .with_content_hashing(true)
+                .with_permission_tracking(false);
+
+            RefStore::create(rt.store(), location, flags)
+                .map_err_trace_exit_unwrap(1);
+
+            info!("Created entry in store");
+        } else {
+            info!("Not creating entry in store");
+        }
+    } else {
+        info!("Cannot track stdout-created contact information");
+    }
+
+    info!("Ready");
+}
+
+fn read_strary_from_toml(toml: &Value, path: &'static str) -> Option<Vec<String>> {
+    match toml.read(path).map_warn_err_str(&format!("Failed to read value at '{}'", path)) {
+        Ok(Some(&Value::Array(ref vec))) => {
+            let mut v = Vec::new();
+            for elem in vec {
+                match *elem {
+                    Value::String(ref s) => v.push(s.clone()),
+                    _ => {
+                        error!("Type Error: '{}' must be Array<String>", path);
+                        return None
+                    },
+                }
+            }
+
+            Some(v)
+        }
+        Ok(Some(&Value::String(ref s))) => {
+            warn!("Having String, wanting Array<String> ... going to auto-fix");
+            Some(vec![s.clone()])
+        },
+        Ok(Some(_)) => {
+            error!("Type Error: '{}' must be Array<String>", path);
+            None
+        },
+        Ok(None) => None,
+        Err(_) => None,
+    }
+}
+
+fn read_str_from_toml(toml: &Value, path: &'static str) -> Option<String> {
+    let v = toml.read(path)
+        .map_warn_err_str(&format!("Failed to read value at '{}'", path));
+
+    match v {
+        Ok(Some(&Value::String(ref s))) => Some(s.clone()),
+        Ok(Some(_)) => {
+            error!("Type Error: '{}' must be String", path);
+            None
+        },
+        Ok(None) => {
+            error!("Expected '{}' to be present, but is not.", path);
+            None
+        },
+        Err(e) => {
+            trace_error(&e);
+            None
+        }
+    }
+}
+
+#[cfg(test)]
+mod test_entry {
+    // TODO
+}
+

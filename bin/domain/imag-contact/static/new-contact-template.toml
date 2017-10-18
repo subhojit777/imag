@@ -1,0 +1,90 @@
+# Contact template for imag-contact version 0.5.0
+#
+# This file is explicitely _not_ distributed under the terms of the original imag license, but
+# public domain.
+#
+# Use this TOML formatted template to create a new contact.
+
+[name]
+
+# every entry may contain a string or a list of strings
+# E.G.:
+# first = "Foo"
+# last = [ "bar", "bar", "a" ]
+#prefix     = ""
+first      = ""
+#additional = ""
+last       = ""
+#suffix     = ""
+
+[person]
+
+# Birthday
+# Format: YYYY-MM-DD
+#birthday = ""
+
+# Nickname
+# "type" is optional
+#[[nickname]]
+#type = "work"
+#name = "boss"
+
+[organisation]
+
+# Organisation name
+# May contain a string or a list of strings
+#name = ""
+
+# Organisation title and role
+# May contain a string or a list of strings
+#title = ""
+
+# Role at organisation
+# May contain a string or a list of strings
+#role  = ""
+
+# allowed types:
+#   vcard 3.0: At least one of bbs, car, cell, fax, home, isdn, msg, modem,
+#                              pager, pcs, pref, video, voice, work
+#   vcard 4.0: At least one of home, work, pref, text, voice, fax, cell, video,
+#                              pager, textphone
+#phone = [
+#    { "type" = "home", "number" = "0123 123456789" },
+#]
+
+#
+# Email addresses
+#
+#email = [
+#    { "type" = "home", "addr" = "examle@examplemail.org" },
+#]
+
+# post addresses
+#
+# allowed types:
+#   vcard 3.0: At least one of dom, intl, home, parcel, postal, pref, work
+#   vcard 4.0: At least one of home, pref, work
+#[[addresses]]
+#type     = "home"
+#box      = ""
+#extended = ""
+#street   = ""
+#code     = ""
+#city     = ""
+#region   = ""
+#country  = ""
+
+[other]
+
+# categories or tags
+# May contain a string or a list of strings
+#categories = ""
+
+# Web pages
+# May contain a string or a list of strings
+#webpage = ""
+
+# Notes
+# May contain a string or a list of strings
+#note = ""
+

@@ -33,6 +33,3 @@ libimagentryref = { version = "0.5.0", path = "../../../lib/entry/libimagentryre
 libimagentryedit = { version = "0.5.0", path = "../../../lib/entry/libimagentryedit" }
 libimaginteraction    = { version = "0.5.0", path = "../../../lib/etc/libimaginteraction" }
 
-[dev-dependencies]
-regex = "0.2"
-
