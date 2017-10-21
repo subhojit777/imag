@@ -28,14 +28,14 @@ use error::HabitError as HE;
 use error::HabitErrorKind as HEK;
 use error::*;
 use iter::HabitInstanceStoreIdIterator;
+use util::date_to_string;
+use util::date_from_string;
 
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Entry;
 use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagstore::storeid::IntoStoreId;
-
-pub const NAIVE_DATE_STRING_FORMAT : &'static str = "%Y-%m-%d";
 
 /// A HabitTemplate is a "template" of a habit. A user may define a habit "Eat vegetable".
 /// If the user ate a vegetable, she should create a HabitInstance from the Habit with the
@@ -133,9 +133,8 @@ pub mod builder {
     use error::HabitError as HE;
     use error::HabitErrorKind as HEK;
     use error::*;
-
-    use super::date_to_string;
-    use super::date_from_string;
+    use util::date_to_string;
+    use util::date_from_string;
 
     pub struct HabitBuilder {
         name: Option<String>,
@@ -198,13 +197,5 @@ pub mod builder {
         ModuleEntryPath::new(format!("template/{}", name)).into_storeid().map_err(From::from)
     }
 
-}
-
-fn date_to_string(ndt: &NaiveDate) -> String {
-    ndt.format(NAIVE_DATE_STRING_FORMAT).to_string()
-}
-
-fn date_from_string(s: &str) -> Result<NaiveDate> {
-    NaiveDate::parse_from_str(s, NAIVE_DATE_STRING_FORMAT).map_err(From::from)
 }
 

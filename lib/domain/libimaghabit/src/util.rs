@@ -17,24 +17,16 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-extern crate chrono;
-extern crate toml;
-extern crate toml_query;
-#[macro_use] extern crate log;
-#[macro_use] extern crate error_chain;
-#[macro_use] extern crate is_match;
+use chrono::NaiveDate;
+use error::Result;
 
-#[macro_use] extern crate libimagerror;
-#[macro_use] extern crate libimagstore;
-extern crate libimagentryedit;
+pub const NAIVE_DATE_STRING_FORMAT : &'static str = "%Y-%m-%d";
 
-module_entry_path_mod!("habit");
+pub fn date_to_string(ndt: &NaiveDate) -> String {
+    ndt.format(NAIVE_DATE_STRING_FORMAT).to_string()
+}
 
-pub mod error;
-pub mod habit;
-pub mod instance;
-pub mod iter;
-pub mod result;
-pub mod store;
-mod util;
+pub fn date_from_string(s: &str) -> Result<NaiveDate> {
+    NaiveDate::parse_from_str(s, NAIVE_DATE_STRING_FORMAT).map_err(From::from)
+}
 
