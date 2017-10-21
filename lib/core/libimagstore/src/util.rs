@@ -64,6 +64,6 @@ pub fn entry_buffer_to_header_content(buf: &str) -> Result<(Value, String)> {
 
     let content = matches.name("content").map(|r| r.as_str()).unwrap_or("");
 
-    Ok((try!(Value::parse(header.as_str())), String::from(content)))
+    Ok((Value::parse(header.as_str())?, String::from(content)))
 }
 

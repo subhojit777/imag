@@ -48,8 +48,8 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
             FSFileAbstractionInstance::File(ref mut f, _) => return {
                 // We seek to the beginning of the file since we expect each
                 // access to the file to be in a different context
-                try!(f.seek(SeekFrom::Start(0))
-                    .chain_err(|| SEK::FileNotSeeked));
+                f.seek(SeekFrom::Start(0))
+                    .chain_err(|| SEK::FileNotSeeked)?;
 
                 let mut s = String::new();
                 f.read_to_string(&mut s)
@@ -58,7 +58,7 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
                     .and_then(|s| Entry::from_str(id, &s))
             },
             FSFileAbstractionInstance::Absent(ref p) =>
-                (try!(open_file(p).chain_err(|| SEK::FileNotFound)), p.clone()),
+                (open_file(p).chain_err(|| SEK::FileNotFound)?, p.clone()),
         };
         *self = FSFileAbstractionInstance::File(file, path);
         if let FSFileAbstractionInstance::File(ref mut f, _) = *self {
@@ -84,15 +84,15 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
             FSFileAbstractionInstance::File(ref mut f, _) => return {
                 // We seek to the beginning of the file since we expect each
                 // access to the file to be in a different context
-                try!(f.seek(SeekFrom::Start(0))
-                    .chain_err(|| SEK::FileNotCreated));
+                f.seek(SeekFrom::Start(0))
+                    .chain_err(|| SEK::FileNotCreated)?;
 
-                try!(f.set_len(buf.len() as u64).chain_err(|| SEK::FileNotWritten));
+                f.set_len(buf.len() as u64).chain_err(|| SEK::FileNotWritten)?;
 
                 f.write_all(&buf).chain_err(|| SEK::FileNotWritten)
             },
             FSFileAbstractionInstance::Absent(ref p) =>
-                (try!(create_file(p).chain_err(|| SEK::FileNotCreated)), p.clone()),
+                (create_file(p).chain_err(|| SEK::FileNotCreated)?, p.clone()),
         };
         *self = FSFileAbstractionInstance::File(file, path);
         if let FSFileAbstractionInstance::File(ref mut f, _) = *self {
@@ -129,7 +129,7 @@ impl FileAbstraction for FSFileAbstraction {
         match to.parent() {
             Some(p) => if !p.exists() {
                 debug!("Creating: {:?}", p);
-                let _ = try!(create_dir_all(&PathBuf::from(p)));
+                let _ = create_dir_all(&PathBuf::from(p))?;
             },
             None => {
                 debug!("Failed to find parent. This looks like it will fail now");
@@ -184,11 +184,11 @@ impl FileAbstraction for FSFileAbstraction {
             })
             .fold(Ok(vec![]), |acc, e| {
                 acc.and_then(move |mut a| {
-                    a.push(try!(e));
+                    a.push(e?);
                     Ok(a)
                 })
             });
-        Ok(PathIterator::new(Box::new(try!(i).into_iter())))
+        Ok(PathIterator::new(Box::new(i?.into_iter())))
     }
 }
 

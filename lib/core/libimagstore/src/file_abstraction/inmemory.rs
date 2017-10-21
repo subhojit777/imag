@@ -131,7 +131,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
         let mut mtx = self.backend().lock().expect("Locking Mutex failed");
         let backend = mtx.get_mut();
 
-        let a = try!(backend.get(from).cloned().ok_or(SE::from_kind(SEK::FileNotFound)));
+        let a = backend.get(from).cloned().ok_or(SE::from_kind(SEK::FileNotFound))?;
         backend.insert(to.clone(), a);
         debug!("Copying: {:?} -> {:?} worked", from, to);
         Ok(())
@@ -142,7 +142,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
         let mut mtx = self.backend().lock().expect("Locking Mutex failed");
         let backend = mtx.get_mut();
 
-        let a = try!(backend.get(from).cloned().ok_or(SE::from_kind(SEK::FileNotFound)));
+        let a = backend.get(from).cloned().ok_or(SE::from_kind(SEK::FileNotFound))?;
         backend.insert(to.clone(), a);
         debug!("Renaming: {:?} -> {:?} worked", from, to);
         Ok(())
@@ -176,7 +176,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
 
     fn fill<'a>(&'a mut self, mut d: Drain) -> Result<(), SE> {
         debug!("Draining into : {:?}", self);
-        let mut mtx = try!(self.backend().lock().map_err(|_| SEK::LockError));
+        let mut mtx = self.backend().lock().map_err(|_| SEK::LockError)?;
         let backend = mtx.get_mut();
 
         for (path, element) in d.iter() {
