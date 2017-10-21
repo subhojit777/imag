@@ -18,9 +18,17 @@
 //
 
 use chrono::NaiveDate;
+use toml::Value;
+use toml_query::read::TomlValueReadExt;
+use toml_query::set::TomlValueSetExt;
 
-use error::Result;
+use error::HabitError as HE;
+use error::HabitErrorKind as HEK;
+use error::*;
 use habit::HabitTemplate;
+use util::*;
+
+use libimagstore::store::Entry;
 
 /// An instance of a habit is created for each time a habit is done.
 ///
@@ -34,9 +42,64 @@ pub trait HabitInstance {
     fn is_habit_instance(&self) -> Result<bool>;
 
     fn get_date(&self) -> Result<NaiveDate>;
-    fn set_date(&self, n: NaiveDate) -> Result<()>;
+    fn set_date(&mut self, n: &NaiveDate) -> Result<()>;
     fn get_comment(&self) -> Result<String>;
-    fn set_comment(&self, c: String) -> Result<()>;
+    fn set_comment(&mut self, c: String) -> Result<()>;
     fn get_template_name(&self) -> Result<String>;
 }
 
+impl HabitInstance for Entry {
+    fn is_habit_instance(&self) -> Result<bool> {
+        [
+            "habit.instance.name",
+            "habit.instance.date",
+            "habit.instance.comment",
+        ].iter().fold(Ok(true), |acc, path| acc.and_then(|b| {
+            self.get_header()
+                .read(path)
+                .map(|o| is_match!(o, Some(&Value::String(_))))
+                .map_err(From::from)
+        }))
+    }
+
+    fn get_date(&self) -> Result<NaiveDate> {
+        match self.get_header().read("habit.instance.date")? {
+            Some(&Value::String(ref s)) => date_from_string(s),
+            Some(_) => Err(HEK::HeaderTypeError("habit.instance.date", "String").into()),
+            None    => Err(HEK::HeaderFieldMissing("habit.instance.date").into()),
+        }
+    }
+
+    fn set_date(&mut self, n: &NaiveDate) -> Result<()> {
+        // Using `set` here because when creating the entry, these headers should be made present.
+        self.get_header_mut()
+            .set("habit.instance.date", Value::String(date_to_string(n)))
+            .map_err(From::from)
+            .map(|_| ())
+    }
+
+    fn get_comment(&self) -> Result<String> {
+        match self.get_header().read("habit.instance.comment")? {
+            Some(&Value::String(ref s)) => Ok(s.clone()),
+            Some(_) => Err(HEK::HeaderTypeError("habit.instance.comment", "String").into()),
+            None    => Err(HEK::HeaderFieldMissing("habit.instance.comment").into()),
+        }
+    }
+
+    fn set_comment(&mut self, c: String) -> Result<()> {
+        // Using `set` here because when creating the entry, these headers should be made present.
+        self.get_header_mut()
+            .set("habit.instance.comment", Value::String(c))
+            .map_err(From::from)
+            .map(|_| ())
+    }
+
+    fn get_template_name(&self) -> Result<String> {
+        match self.get_header().read("habit.instance.name")? {
+            Some(&Value::String(ref s)) => Ok(s.clone()),
+            Some(_) => Err(HEK::HeaderTypeError("habit.instance.name", "String").into()),
+            None    => Err(HEK::HeaderFieldMissing("habit.instance.name").into()),
+        }
+    }
+
+}
