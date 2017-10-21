@@ -393,38 +393,35 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Value>)
                 let mut settings = BTreeMap::new();
 
                 for (module_name, v) in t {
-                    let destinations = match v.read("destinations") {
-                        Ok(Some(&Value::Array(ref a))) => translate_destinations(a).map(Some),
-                        Ok(None)    => Ok(None),
-                        Ok(Some(_)) => {
+                    let destinations = match v.read("destinations")? {
+                        Some(&Value::Array(ref a)) => Some(translate_destinations(a)?),
+                        None                       => None,
+                        Some(_) => {
                             let path = "imag.logging.modules.<mod>.destinations".to_owned();
                             let ty = "Array";
-                            Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
+                            return Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
                         },
-                        Err(e)      => Err(e).map_err(From::from),
-                    }?;
+                    };
 
-                    let level = match v.read("level") {
-                        Ok(Some(&Value::String(ref s))) => match_log_level_str(s).map(Some),
-                        Ok(None)    => Ok(None),
-                        Ok(Some(_)) => {
+                    let level = match v.read("level")? {
+                        Some(&Value::String(ref s)) => Some(match_log_level_str(s)?),
+                        None                        => None,
+                        Some(_) => {
                             let path = "imag.logging.modules.<mod>.level".to_owned();
                             let ty = "String";
-                            Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
+                            return Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
                         },
-                        Err(e)      => Err(e).map_err(From::from),
-                    }?;
+                    };
 
-                    let enabled = match v.read("enabled") {
-                        Ok(Some(&Value::Boolean(b))) => Ok(b),
-                        Ok(None)    => Ok(false),
-                        Ok(Some(_)) => {
+                    let enabled = match v.read("enabled")? {
+                        Some(&Value::Boolean(b)) => b,
+                        None                     => false,
+                        Some(_) => {
                             let path = "imag.logging.modules.<mod>.enabled".to_owned();
                             let ty = "Boolean";
-                            Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
+                            return Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
                         },
-                        Err(e)      => Err(e).map_err(From::from),
-                    }?;
+                    };
 
                     let module_settings = ModuleSettings {
                         enabled: enabled,
