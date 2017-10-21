@@ -85,30 +85,30 @@ impl ImagLogger {
         ::libimaginteraction::format::register_all_format_helpers(&mut handlebars);
 
         {
-            let fmt = try!(aggregate_global_format_trace(config));
-            try!(handlebars.register_template_string("TRACE", fmt)); // name must be uppercase
+            let fmt = aggregate_global_format_trace(config)?;
+            handlebars.register_template_string("TRACE", fmt)?; // name must be uppercase
         }
         {
-            let fmt = try!(aggregate_global_format_debug(config));
-            try!(handlebars.register_template_string("DEBUG", fmt)); // name must be uppercase
+            let fmt = aggregate_global_format_debug(config)?;
+            handlebars.register_template_string("DEBUG", fmt)?; // name must be uppercase
         }
         {
-            let fmt = try!(aggregate_global_format_info(config));
-            try!(handlebars.register_template_string("INFO", fmt)); // name must be uppercase
+            let fmt = aggregate_global_format_info(config)?;
+            handlebars.register_template_string("INFO", fmt)?; // name must be uppercase
         }
         {
-            let fmt = try!(aggregate_global_format_warn(config));
-            try!(handlebars.register_template_string("WARN", fmt)); // name must be uppercase
+            let fmt = aggregate_global_format_warn(config)?;
+            handlebars.register_template_string("WARN", fmt)?; // name must be uppercase
         }
         {
-            let fmt = try!(aggregate_global_format_error(config));
-            try!(handlebars.register_template_string("ERROR", fmt)); // name must be uppercase
+            let fmt = aggregate_global_format_error(config)?;
+            handlebars.register_template_string("ERROR", fmt)?; // name must be uppercase
         }
 
         Ok(ImagLogger {
-            global_loglevel     : try!(aggregate_global_loglevel(matches, config)),
-            global_destinations : try!(aggregate_global_destinations(matches, config)),
-            module_settings     : try!(aggregate_module_settings(matches, config)),
+            global_loglevel     : aggregate_global_loglevel(matches, config)?,
+            global_destinations : aggregate_global_destinations(matches, config)?,
+            module_settings     : aggregate_module_settings(matches, config)?,
             handlebars          : handlebars,
         })
     }
@@ -286,7 +286,7 @@ fn translate_destinations(raw: &Vec<Value>) -> Result<Vec<LogDestination>> {
         .fold(Ok(vec![]), |acc, val| {
             acc.and_then(|mut v| {
                 let dest = match *val {
-                    Value::String(ref s) => try!(translate_destination(s)),
+                    Value::String(ref s) => translate_destination(s)?,
                     _ => {
                         let path = "imag.logging.modules.<mod>.destinations".to_owned();
                         let ty   = "Array<String>";
@@ -321,7 +321,7 @@ fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Value>)
                 values.split(",")
                     .fold(Ok(vec![]), move |acc, dest| {
                         acc.and_then(|mut v| {
-                            v.push(try!(translate_destination(dest)));
+                            v.push(translate_destination(dest)?);
                             Ok(v)
                         })
                     })
@@ -393,7 +393,7 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Value>)
                 let mut settings = BTreeMap::new();
 
                 for (module_name, v) in t {
-                    let destinations = try!(match v.read("destinations") {
+                    let destinations = match v.read("destinations") {
                         Ok(Some(&Value::Array(ref a))) => translate_destinations(a).map(Some),
                         Ok(None)    => Ok(None),
                         Ok(Some(_)) => {
@@ -402,9 +402,9 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Value>)
                             Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
                         },
                         Err(e)      => Err(e).map_err(From::from),
-                    });
+                    }?;
 
-                    let level = try!(match v.read("level") {
+                    let level = match v.read("level") {
                         Ok(Some(&Value::String(ref s))) => match_log_level_str(s).map(Some),
                         Ok(None)    => Ok(None),
                         Ok(Some(_)) => {
@@ -413,9 +413,9 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Value>)
                             Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
                         },
                         Err(e)      => Err(e).map_err(From::from),
-                    });
+                    }?;
 
-                    let enabled = try!(match v.read("enabled") {
+                    let enabled = match v.read("enabled") {
                         Ok(Some(&Value::Boolean(b))) => Ok(b),
                         Ok(None)    => Ok(false),
                         Ok(Some(_)) => {
@@ -424,7 +424,7 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Value>)
                             Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
                         },
                         Err(e)      => Err(e).map_err(From::from),
-                    });
+                    }?;
 
                     let module_settings = ModuleSettings {
                         enabled: enabled,
