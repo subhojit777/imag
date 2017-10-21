@@ -95,9 +95,9 @@ impl HelperDef for ColorizeYellowHelper {
 }
 
 fn colorize(color: Colour, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
-    let p = try!(h.param(0).ok_or(RenderError::new("Too few arguments")));
+    let p = h.param(0).ok_or(RenderError::new("Too few arguments"))?;
 
-    try!(write!(rc.writer(), "{}", color.paint(p.value().render())));
+    write!(rc.writer(), "{}", color.paint(p.value().render()))?;
     Ok(())
 }
 
@@ -107,9 +107,9 @@ pub struct UnderlineHelper;
 impl HelperDef for UnderlineHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(),
         RenderError> {
-            let p = try!(h.param(0).ok_or(RenderError::new("Too few arguments")));
+            let p = h.param(0).ok_or(RenderError::new("Too few arguments"))?;
             let s = Style::new().underline();
-            try!(write!(rc.writer(), "{}", s.paint(p.value().render())));
+            write!(rc.writer(), "{}", s.paint(p.value().render()))?;
             Ok(())
         }
 }
@@ -120,9 +120,9 @@ pub struct BoldHelper;
 impl HelperDef for BoldHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(),
         RenderError> {
-            let p = try!(h.param(0).ok_or(RenderError::new("Too few arguments")));
+            let p = h.param(0).ok_or(RenderError::new("Too few arguments"))?;
             let s = Style::new().bold();
-            try!(write!(rc.writer(), "{}", s.paint(p.value().render())));
+            write!(rc.writer(), "{}", s.paint(p.value().render()))?;
             Ok(())
         }
 }
@@ -133,9 +133,9 @@ pub struct BlinkHelper;
 impl HelperDef for BlinkHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(),
         RenderError> {
-            let p = try!(h.param(0).ok_or(RenderError::new("Too few arguments")));
+            let p = h.param(0).ok_or(RenderError::new("Too few arguments"))?;
             let s = Style::new().blink();
-            try!(write!(rc.writer(), "{}", s.paint(p.value().render())));
+            write!(rc.writer(), "{}", s.paint(p.value().render()))?;
             Ok(())
         }
 }
@@ -146,15 +146,15 @@ pub struct StrikethroughHelper;
 impl HelperDef for StrikethroughHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(),
         RenderError> {
-            let p = try!(h.param(0).ok_or(RenderError::new("Too few arguments")));
+            let p = h.param(0).ok_or(RenderError::new("Too few arguments"))?;
             let s = Style::new().strikethrough();
-            try!(write!(rc.writer(), "{}", s.paint(p.value().render())));
+            write!(rc.writer(), "{}", s.paint(p.value().render()))?;
             Ok(())
         }
 }
 
 fn param_to_number(idx: usize, h: &Helper) -> Result<u64, RenderError> {
-    match try!(h.param(idx).ok_or(RenderError::new("Too few arguments"))).value() {
+    match h.param(idx).ok_or(RenderError::new("Too few arguments"))?.value() {
         &Value::Number(ref num) => num.as_u64().ok_or_else(|| RenderError::new("Number cannot be parsed")),
         _ => Err(RenderError::new("Type error: First argument should be a number")),
     }
@@ -166,9 +166,9 @@ pub struct LeftPadHelper;
 impl HelperDef for LeftPadHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
         let count = param_to_number(0, h)? as usize;
-        let text = try!(h.param(1).ok_or(RenderError::new("Too few arguments")));
+        let text = h.param(1).ok_or(RenderError::new("Too few arguments"))?;
         let text = format!("{:>width$}", text.value().render(), width = count);
-        try!(write!(rc.writer(), "{}", text));
+        write!(rc.writer(), "{}", text)?;
         Ok(())
     }
 }
@@ -179,9 +179,9 @@ pub struct RightPadHelper;
 impl HelperDef for RightPadHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
         let count = param_to_number(0, h)? as usize;
-        let text = try!(h.param(1).ok_or(RenderError::new("Too few arguments")));
+        let text = h.param(1).ok_or(RenderError::new("Too few arguments"))?;
         let text = format!("{:width$}", text.value().render(), width = count);
-        try!(write!(rc.writer(), "{}", text));
+        write!(rc.writer(), "{}", text)?;
         Ok(())
     }
 }
@@ -192,8 +192,8 @@ pub struct AbbrevHelper;
 impl HelperDef for AbbrevHelper {
     fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
         let count = param_to_number(0, h)? as usize;
-        let text = try!(h.param(1).ok_or(RenderError::new("Too few arguments"))).value().render();
-        try!(write!(rc.writer(), "{}", text.chars().take(count).collect::<String>()));
+        let text = h.param(1).ok_or(RenderError::new("Too few arguments"))?.value().render();
+        write!(rc.writer(), "{}", text.chars().take(count).collect::<String>())?;
         Ok(())
     }
 }

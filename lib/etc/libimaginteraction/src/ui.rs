@@ -59,7 +59,7 @@ pub fn get_id(matches: &ArgMatches) -> Result<Vec<StoreId>> {
                 .fold(Ok(vec![]), |acc, elem| {
                     acc.and_then(|mut v| {
                         let elem = StoreId::new_baseless(PathBuf::from(String::from(elem)));
-                        let elem = try!(elem.chain_err(|| IEK::StoreIdParsingError));
+                        let elem = elem.chain_err(|| IEK::StoreIdParsingError)?;
                         v.push(elem);
                         Ok(v)
                     })
@@ -74,8 +74,8 @@ pub fn get_or_select_id(matches: &ArgMatches, store_path: &PathBuf) -> Result<Ve
         Ok(v) => Ok(v),
         Err(_) => {
             let path = store_path.clone();
-            let p  = try!(pick_file(default_menu_cmd, path).chain_err(|| IEK::IdSelectingError));
-            let id = try!(StoreId::new_baseless(p).chain_err(|| IEK::StoreIdParsingError));
+            let p  = pick_file(default_menu_cmd, path).chain_err(|| IEK::IdSelectingError)?;
+            let id = StoreId::new_baseless(p).chain_err(|| IEK::StoreIdParsingError)?;
             Ok(vec![id])
         },
     }
