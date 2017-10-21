@@ -1,0 +1,33 @@
+[package]
+name = "imag-habit"
+version = "0.5.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+description = "Part of the imag core distribution: imag-habit command"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../../../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+homepage      = "http://imag-pim.org"
+
+[dependencies]
+chrono = "0.4"
+version = "2.0"
+clap = ">=2.17"
+log = "0.3"
+toml = "0.4"
+toml-query = "^0.4"
+kairos = "0.1.0-beta-2"
+
+libimagerror       = { version = "0.5.0", path = "../../../lib/core/libimagerror" }
+libimagstore       = { version = "0.5.0", path = "../../../lib/core/libimagstore" }
+libimagrt          = { version = "0.5.0", path = "../../../lib/core/libimagrt" }
+libimagentryedit   = { version = "0.5.0", path = "../../../lib/entry/libimagentryedit" }
+libimaginteraction = { version = "0.5.0", path = "../../../lib/etc/libimaginteraction" }
+libimagutil        = { version = "0.5.0", path = "../../../lib/etc/libimagutil" }
+libimagtimeui      = { version = "0.5.0", path = "../../../lib/etc/libimagtimeui" }
+libimaghabit       = { version = "0.5.0", path = "../../../lib/domain/libimaghabit" }
+
