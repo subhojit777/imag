@@ -54,7 +54,8 @@ pub trait HabitTemplate : Sized {
     fn is_habit_template(&self) -> Result<bool>;
 
     fn habit_name(&self) -> Result<String>;
-    fn habit_date(&self) -> Result<String>;
+    fn habit_basedate(&self) -> Result<String>;
+    fn habit_recur_spec(&self) -> Result<String>;
     fn habit_comment(&self) -> Result<String>;
 
 }
@@ -87,7 +88,7 @@ impl HabitTemplate for Entry {
     fn is_habit_template(&self) -> Result<bool> {
         [
             "habit.template.name",
-            "habit.template.date",
+            "habit.template.basedate",
             "habit.template.comment",
         ].iter().fold(Ok(true), |acc, path| acc.and_then(|b| {
             self.get_header()
@@ -101,8 +102,12 @@ impl HabitTemplate for Entry {
         get_string_header_from_habit(self, "habit.template.name")
     }
 
-    fn habit_date(&self) -> Result<String> {
-        get_string_header_from_habit(self, "habit.template.date")
+    fn habit_basedate(&self) -> Result<String> {
+        get_string_header_from_habit(self, "habit.template.basedate")
+    }
+
+    fn habit_recur_spec(&self) -> Result<String> {
+        get_string_header_from_habit(self, "habit.template.recurspec")
     }
 
     fn habit_comment(&self) -> Result<String> {
@@ -139,7 +144,8 @@ pub mod builder {
     pub struct HabitBuilder {
         name: Option<String>,
         comment: Option<String>,
-        date: Option<NaiveDate>,
+        basedate: Option<NaiveDate>,
+        recurspec: Option<String>,
     }
 
     impl HabitBuilder {
@@ -154,8 +160,13 @@ pub mod builder {
             self
         }
 
-        pub fn with_date(&mut self, date: NaiveDate) -> &mut Self {
-            self.date = Some(date);
+        pub fn with_basedate(&mut self, date: NaiveDate) -> &mut Self {
+            self.basedate = Some(date);
+            self
+        }
+
+        pub fn with_recurspec(&mut self, spec: String) -> &mut Self {
+            self.recurspec = Some(spec);
             self
         }
 
@@ -166,14 +177,19 @@ pub mod builder {
             }
 
             let name      = try!(self.name.ok_or_else(|| mkerr("name")));
-            let dateobj   = try!(self.date.ok_or_else(|| mkerr("date")));
+            let dateobj   = try!(self.basedate.ok_or_else(|| mkerr("date")));
+            let recur     = try!(self.recurspec.ok_or_else(|| mkerr("recurspec")));
+            if let Err(e) = ::kairos::parser::parse(&recur) {
+                return Err(e).map_err(From::from);
+            }
             let date      = date_to_string(&dateobj);
             let comment   = self.comment.unwrap_or_else(|| String::new());
             let sid       = try!(build_habit_template_sid(&name));
             let mut entry = try!(store.create(sid));
 
             try!(entry.get_header_mut().insert("habit.template.name", Value::String(name)));
-            try!(entry.get_header_mut().insert("habit.template.date", Value::String(date)));
+            try!(entry.get_header_mut().insert("habit.template.basedate", Value::String(date)));
+            try!(entry.get_header_mut().insert("habit.template.recurspec", Value::String(recur)));
             try!(entry.get_header_mut().insert("habit.template.comment", Value::String(comment)));
 
             Ok(entry)
@@ -186,7 +202,8 @@ pub mod builder {
             HabitBuilder {
                 name: None,
                 comment: None,
-                date: None,
+                basedate: None,
+                recurspec: None,
             }
         }
     }

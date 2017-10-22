@@ -20,6 +20,7 @@
 extern crate chrono;
 extern crate toml;
 extern crate toml_query;
+extern crate kairos;
 #[macro_use] extern crate log;
 #[macro_use] extern crate error_chain;
 #[macro_use] extern crate is_match;
