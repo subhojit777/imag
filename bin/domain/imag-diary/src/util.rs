@@ -53,7 +53,6 @@ pub fn get_diary_timed_config(rt: &Runtime, diary_name: &str) -> Result<Option<T
         None      => Ok(None),
         Some(cfg) => {
             let v = cfg
-                .config()
                 .read(&format!("diary.diaries.{}.timed", diary_name))
                 .chain_err(|| DiaryErrorKind::IOError);
 

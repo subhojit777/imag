@@ -169,7 +169,7 @@ fn get_collection_name(rt: &Runtime,
         .and_then(|scmd| scmd.value_of(collection_argument_name).map(String::from))
         .unwrap_or_else(|| {
             rt.config()
-                .map(|cfg| match cfg.config().read("bookmark.default_collection") {
+                .map(|cfg| match cfg.read("bookmark.default_collection") {
                     Err(e) => trace_error_exit(&e, 1),
                     Ok(Some(&Value::String(ref name))) => name.clone(),
                     Ok(None) => {

@@ -99,7 +99,7 @@ fn main() {
             .map_err_trace_exit_unwrap(1);
 
         let query = format!("view.viewers.{}", viewer);
-        match config.config().read(&query) {
+        match config.read(&query) {
             Err(e) => trace_error_exit(&e, 1),
             Ok(None) => {
                 error!("Cannot find '{}' in config", query);
