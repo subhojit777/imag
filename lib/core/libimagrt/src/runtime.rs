@@ -23,11 +23,13 @@ use std::env;
 use std::process::exit;
 
 pub use clap::App;
+use toml::Value;
+use toml_query::read::TomlValueReadExt;
 
 use clap::{Arg, ArgMatches};
 use log;
 
-use configuration::{Configuration, InternalConfiguration};
+use configuration::{fetch_config, override_config, InternalConfiguration};
 use error::RuntimeError;
 use error::RuntimeErrorKind;
 use error::ResultExt;
@@ -44,7 +46,7 @@ use spec::CliSpec;
 #[derive(Debug)]
 pub struct Runtime<'a> {
     rtp: PathBuf,
-    configuration: Option<Configuration>,
+    configuration: Option<Value>,
     cli_matches: ArgMatches<'a>,
     store: Store,
 }
@@ -61,8 +63,6 @@ impl<'a> Runtime<'a> {
     {
         use libimagerror::trace::trace_error;
 
-        use configuration::ConfigErrorKind;
-
         let matches = cli_app.clone().matches();
 
         let rtp = get_rtp_match(&matches);
@@ -72,8 +72,8 @@ impl<'a> Runtime<'a> {
 
         debug!("Config path = {:?}", configpath);
 
-        let config = match Configuration::new(&configpath) {
-            Err(e) => if !is_match!(e.kind(), &ConfigErrorKind::NoConfigFileFound) {
+        let config = match fetch_config(&configpath) {
+            Err(e) => if !is_match!(e.kind(), &RuntimeErrorKind::ConfigNoConfigFileFound) {
                 return Err(e).chain_err(|| RuntimeErrorKind::Instantiate);
             } else {
                 println!("No config file found.");
@@ -82,7 +82,7 @@ impl<'a> Runtime<'a> {
             },
 
             Ok(mut config) => {
-                if let Err(e) = config.override_config(get_override_specs(&matches)) {
+                if let Err(e) = override_config(&mut config, get_override_specs(&matches)) {
                     error!("Could not apply config overrides");
                     trace_error(&e);
 
@@ -97,7 +97,7 @@ impl<'a> Runtime<'a> {
     }
 
     /// Builds the Runtime object using the given `config`.
-    pub fn with_configuration<C>(cli_app: C, config: Option<Configuration>)
+    pub fn with_configuration<C>(cli_app: C, config: Option<Value>)
                                  -> Result<Runtime<'a>, RuntimeError>
         where C: Clone + CliSpec<'a> + InternalConfiguration
     {
@@ -105,7 +105,7 @@ impl<'a> Runtime<'a> {
         Runtime::_new(cli_app, matches, config)
     }
 
-    fn _new<C>(mut cli_app: C, matches: ArgMatches<'a>, config: Option<Configuration>)
+    fn _new<C>(mut cli_app: C, matches: ArgMatches<'a>, config: Option<Value>)
                -> Result<Runtime<'a>, RuntimeError>
     where C: Clone + CliSpec<'a> + InternalConfiguration
     {
@@ -139,7 +139,7 @@ impl<'a> Runtime<'a> {
         debug!("Store path  = {:?}", storepath);
 
         let store_config = match config {
-            Some(ref c) => c.store_config().cloned(),
+            Some(ref c) => c.read("store").chain_err(|| RuntimeErrorKind::Instantiate)?.cloned(),
             None        => None,
         };
 
@@ -345,7 +345,7 @@ impl<'a> Runtime<'a> {
     }
 
     /// Initialize the internal logger
-    fn init_logger(matches: &ArgMatches, config: Option<&Configuration>) {
+    fn init_logger(matches: &ArgMatches, config: Option<&Value>) {
         use std::env::var as env_var;
         use env_logger;
 
@@ -386,7 +386,7 @@ impl<'a> Runtime<'a> {
     }
 
     /// Get the configuration object
-    pub fn config(&self) -> Option<&Configuration> {
+    pub fn config(&self) -> Option<&Value> {
         self.configuration.as_ref()
     }
 
@@ -444,10 +444,6 @@ impl<'a> Runtime<'a> {
         self.cli()
             .value_of("editor")
             .map(String::from)
-            .or(match self.configuration {
-                Some(ref c) => c.editor().cloned(),
-                _ => None,
-            })
             .or(env::var("EDITOR").ok())
             .map(Command::new)
     }
