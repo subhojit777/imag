@@ -1,0 +1,32 @@
+[package]
+name = "imag-wiki"
+version = "0.7.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+description = "Part of the imag core distribution: imag-wiki command"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../../../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+homepage      = "http://imag-pim.org"
+
+build = "../../../build.rs"
+
+[dependencies]
+clap = ">=2.17"
+log = "0.3"
+toml = "0.4"
+toml-query = "0.6"
+is-match = "0.1"
+version = "2.0.1"
+
+libimagentrylink     = { version = "0.7.0", path = "../../../lib/entry/libimagentrylink" }
+libimagentrymarkdown = { version = "0.7.0", path = "../../../lib/entry/libimagentrymarkdown" }
+libimagerror         = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
+libimagrt            = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
+libimagstore         = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
+libimagwiki          = { version = "0.7.0", path = "../../../lib/domain/libimagwiki" }
+

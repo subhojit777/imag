@@ -23,6 +23,7 @@ members = [
     "bin/domain/imag-notes",
     "bin/domain/imag-timetrack",
     "bin/domain/imag-todo",
+    "bin/domain/imag-wiki",
     "lib/core/libimagerror",
     "lib/core/libimagrt",
     "lib/core/libimagstore",
