@@ -406,7 +406,7 @@ impl InternalLinker for Entry {
             new_links.push(link.get_location().clone().into());
         }
 
-        let new_links = try!(LinkIter::new(new_links)
+        let new_links = LinkIter::new(new_links)
                              .into_values()
                              .into_iter()
                              .fold(Ok(vec![]), |acc, elem| {
@@ -417,7 +417,7 @@ impl InternalLinker for Entry {
                                             v
                                         })
                                 })
-                            }));
+                            })?;
         let res = self
             .get_header_mut()
             .insert("links.internal", Value::Array(new_links))
@@ -477,7 +477,7 @@ fn add_internal_link_with_instance(this: &mut Entry, link: &mut Entry, instance:
 }
 
 fn rewrite_links<I: Iterator<Item = Link>>(header: &mut Value, links: I) -> Result<()> {
-    let links = try!(links.into_values()
+    let links = links.into_values()
                      .into_iter()
                      .fold(Ok(vec![]), |acc, elem| {
                         acc.and_then(move |mut v| {
@@ -487,7 +487,7 @@ fn rewrite_links<I: Iterator<Item = Link>>(header: &mut Value, links: I) -> Resu
                                     v
                                 })
                         })
-                     }));
+                     })?;
 
     debug!("Setting new link array: {:?}", links);
     let process = header
@@ -502,7 +502,7 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
     debug!("Linking back from {:?} to {:?}", target.get_location(), from);
     target.get_internal_links()
         .and_then(|links| {
-            let links = try!(links
+            let links = links
                              .chain(LinkIter::new(vec![from.into()]))
                              .into_values()
                              .into_iter()
@@ -514,7 +514,7 @@ fn add_foreign_link(target: &mut Entry, from: StoreId) -> Result<()> {
                                             v
                                         })
                                 })
-                             }));
+                             })?;
             debug!("Setting links in {:?}: {:?}", target.get_location(), links);
 
             let res = target
@@ -551,7 +551,7 @@ fn process_rw_result(links: Result<Option<Value>>) -> Result<LinkIter> {
         return Err(LEK::ExistingLinkTypeWrong.into());
     }
 
-    let links : Vec<Link> = try!(links.into_iter()
+    let links : Vec<Link> = links.into_iter()
         .map(|link| {
             debug!("Matching the link: {:?}", link);
             match link {
@@ -566,11 +566,11 @@ fn process_rw_result(links: Result<Option<Value>>) -> Result<LinkIter> {
                         debug!("Things missing... returning Error instance");
                         Err(LE::from_kind(LEK::LinkParserError))
                     } else {
-                        let link = try!(tab.remove("link")
-                            .ok_or(LE::from_kind(LEK::LinkParserFieldMissingError)));
+                        let link = tab.remove("link")
+                            .ok_or(LE::from_kind(LEK::LinkParserFieldMissingError))?;
 
-                        let anno = try!(tab.remove("annotation")
-                            .ok_or(LE::from_kind(LEK::LinkParserFieldMissingError)));
+                        let anno = tab.remove("annotation")
+                            .ok_or(LE::from_kind(LEK::LinkParserFieldMissingError))?;
 
                         debug!("Ok, here we go with building a Link::Annotated");
                         match (link, anno) {
@@ -591,7 +591,7 @@ fn process_rw_result(links: Result<Option<Value>>) -> Result<LinkIter> {
                 _ => unreachable!(),
             }
         })
-        .collect());
+        .collect::<Result<Vec<Link>>>()?;
 
     debug!("Ok, the RW action was successful, returning link vector now!");
     Ok(LinkIter::new(links))
@@ -641,7 +641,7 @@ pub mod store_check {
                 let mut map = HashMap::new();
                 for element in iter {
                     debug!("Checking element = {:?}", element);
-                    let entry = match try!(element) {
+                    let entry = match element? {
                         Some(e) => e,
                         None    => {
                             let e = String::from("TODO: Not yet handled");
@@ -659,7 +659,7 @@ pub mod store_check {
                     for internal_link in internal_links {
                         debug!("internal link = {:?}", internal_link);
 
-                        linking.outgoing.push(try!(internal_link).get_location().clone());
+                        linking.outgoing.push(internal_link?.get_location().clone());
                         linking.incoming.push(entry.get_location().clone());
                     }
 
@@ -677,7 +677,7 @@ pub mod store_check {
                     if is_match!(self.get(id.clone()), Ok(Some(_))) {
                         debug!("Exists in store: {:?}", id);
 
-                        if !try!(id.exists()) {
+                        if !id.exists()? {
                             warn!("Does exist in store but not on FS: {:?}", id);
                             return Err(LE::from_kind(LEK::LinkTargetDoesNotExist))
                         }
@@ -750,8 +750,8 @@ pub mod store_check {
                 })
                 .and_then(|nw| {
                     for (id, linking) in nw.iter() {
-                        try!(incoming_links_exists_as_outgoing_links(id, linking, &nw));
-                        try!(outgoing_links_exist_as_incoming_links(id, linking, &nw));
+                        incoming_links_exists_as_outgoing_links(id, linking, &nw)?;
+                        outgoing_links_exist_as_incoming_links(id, linking, &nw)?;
                     }
                     Ok(())
                 })
