@@ -29,6 +29,7 @@ This section contains the changelog from the last release to the next release.
       stderr)
     * `imag-store` can dump all storeids now
     * `imag-annotate` was introduced
+    * `imag-diagnostics` was added
 
 * Minor changes
     * `libimagentryannotation` got a rewrite, is not based on `libimagnotes`
