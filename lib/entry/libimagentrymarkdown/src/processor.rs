@@ -116,7 +116,7 @@ impl LinkProcessor {
                     let spath      = Some(store.path().clone());
                     let id         = StoreId::new(spath, PathBuf::from(&link.link))?;
                     let mut target = if self.create_internal_targets {
-                        try!(store.retrieve(id))
+                        store.retrieve(id)?
                     } else {
                         store.get(id.clone())?
                             .ok_or(ME::from_kind(MEK::StoreGetError(id)))?
@@ -144,7 +144,7 @@ impl LinkProcessor {
                     trace!("URL.host_str() = {:?}", url.host_str());
                     let path = url.host_str().unwrap_or_else(|| url.path());
                     let path = PathBuf::from(path);
-                    let mut target = try!(RefStore::create(store, path, flags));
+                    let mut target = RefStore::create(store, path, flags)?;
 
                     entry.add_internal_link(&mut target)?;
                 },
