@@ -254,12 +254,12 @@ fn main() {
 }
 
 fn fetch_aliases(rt: &Runtime) -> Result<BTreeMap<String, String>, String> {
-    let cfg   = try!(rt.config().ok_or_else(|| String::from("No configuration found")));
+    let cfg   = rt.config().ok_or_else(|| String::from("No configuration found"))?;
     let value = cfg
         .read("imag.aliases")
         .map_err(|_| String::from("Reading from config failed"));
 
-    match try!(value) {
+    match value? {
         None                         => Ok(BTreeMap::new()),
         Some(&Value::Table(ref tbl)) => {
             let mut alias_mappings = BTreeMap::new();
