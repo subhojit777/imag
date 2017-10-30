@@ -112,11 +112,11 @@ impl EntryDate for Entry {
     /// header in an inconsistent state.
     ///
     fn delete_date_range(&mut self) -> Result<()> {
-        let _ = try!(self
+        let _ = self
              .get_header_mut()
             .delete(&DATE_RANGE_START_HEADER_LOCATION)
             .map(|_| ())
-            .chain_err(|| DEK::DeleteDateTimeRangeError));
+            .chain_err(|| DEK::DeleteDateTimeRangeError)?;
 
         self.get_header_mut()
             .delete(&DATE_RANGE_END_HEADER_LOCATION)
@@ -125,7 +125,7 @@ impl EntryDate for Entry {
     }
 
     fn read_date_range(&self) -> Result<DateTimeRange> {
-        let start = try!(self
+        let start = self
             .get_header()
             .read(&DATE_RANGE_START_HEADER_LOCATION)
             .chain_err(|| DEK::ReadDateTimeRangeError)
@@ -136,9 +136,9 @@ impl EntryDate for Entry {
                     Some(_) => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
                     _ => Err(DE::from_kind(DEK::ReadDateError)),
                 }
-            }));
+            })?;
 
-        let end = try!(self
+        let end = self
             .get_header()
             .read(&DATE_RANGE_START_HEADER_LOCATION)
             .chain_err(|| DEK::ReadDateTimeRangeError)
@@ -149,7 +149,7 @@ impl EntryDate for Entry {
                     Some(_) => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
                     _ => Err(DE::from_kind(DEK::ReadDateError)),
                 }
-            }));
+            })?;
 
         DateTimeRange::new(start, end)
             .chain_err(|| DEK::DateTimeRangeError)
@@ -168,7 +168,7 @@ impl EntryDate for Entry {
         let start = start.format(&DATE_FMT).to_string();
         let end   = end.format(&DATE_FMT).to_string();
 
-        let opt_old_start = try!(self
+        let opt_old_start = self
             .get_header_mut()
             .insert(&DATE_RANGE_START_HEADER_LOCATION, Value::String(start))
             .map(|opt| opt.map(|stri| {
@@ -178,9 +178,9 @@ impl EntryDate for Entry {
                     _ => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
                 }
             }))
-            .chain_err(|| DEK::SetDateTimeRangeError));
+            .chain_err(|| DEK::SetDateTimeRangeError)?;
 
-        let opt_old_end = try!(self
+        let opt_old_end = self
             .get_header_mut()
             .insert(&DATE_RANGE_END_HEADER_LOCATION, Value::String(end))
             .map(|opt| opt.map(|stri| {
@@ -190,7 +190,7 @@ impl EntryDate for Entry {
                     _ => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
                 }
             }))
-            .chain_err(|| DEK::SetDateTimeRangeError));
+            .chain_err(|| DEK::SetDateTimeRangeError)?;
 
         match (opt_old_start, opt_old_end) {
             (Some(Ok(old_start)), Some(Ok(old_end))) => {
