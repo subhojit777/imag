@@ -88,7 +88,7 @@ fn add(rt: &Runtime) {
     BookmarkCollection::get(rt.store(), &coll)
         .and_then(|mut collection| {
             for url in scmd.values_of("urls").unwrap() { // unwrap saved by clap
-                let _ = try!(collection.add_link(BookmarkLink::from(url)));
+                let _ = collection.add_link(BookmarkLink::from(url))?;
             }
             Ok(())
         })
