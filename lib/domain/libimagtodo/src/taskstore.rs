@@ -54,7 +54,7 @@ impl<'a> TaskStore<'a> for Store {
 
     fn import_task_from_reader<R: BufRead>(&'a self, mut r: R) -> Result<(FileLockEntry<'a>, String, Uuid)> {
         let mut line = String::new();
-        try!(r.read_line(&mut line).map_err(|_| TE::from_kind(TEK::UTF8Error)));
+        r.read_line(&mut line).map_err(|_| TE::from_kind(TEK::UTF8Error))?;
         import_task(&line.as_str())
             .map_err(|_| TE::from_kind(TEK::ImportError))
             .and_then(|t| {
@@ -74,7 +74,7 @@ impl<'a> TaskStore<'a> for Store {
     ///
     fn get_task_from_import<R: BufRead>(&'a self, mut r: R) -> Result<RResult<FileLockEntry<'a>, String>> {
         let mut line = String::new();
-        try!(r.read_line(&mut line).chain_err(|| TEK::UTF8Error));
+        r.read_line(&mut line).chain_err(|| TEK::UTF8Error)?;
         self.get_task_from_string(line)
     }
 
@@ -107,7 +107,7 @@ impl<'a> TaskStore<'a> for Store {
     /// implicitely create the task if it does not exist.
     fn retrieve_task_from_import<R: BufRead>(&'a self, mut r: R) -> Result<FileLockEntry<'a>> {
         let mut line = String::new();
-        try!(r.read_line(&mut line).chain_err(|| TEK::UTF8Error));
+        r.read_line(&mut line).chain_err(|| TEK::UTF8Error)?;
         self.retrieve_task_from_string(line)
     }
 
@@ -186,14 +186,14 @@ impl<'a> TaskStore<'a> for Store {
                     .and_then(|mut fle| {
                         {
                             let hdr = fle.get_header_mut();
-                            if try!(hdr.read("todo").chain_err(|| TEK::StoreError)).is_none() {
-                                try!(hdr
+                            if hdr.read("todo").chain_err(|| TEK::StoreError)?.is_none() {
+                                hdr
                                     .set("todo", Value::Table(BTreeMap::new()))
-                                    .chain_err(|| TEK::StoreError));
+                                    .chain_err(|| TEK::StoreError)?;
                             }
 
-                            try!(hdr.set("todo.uuid", Value::String(format!("{}",uuid)))
-                                 .chain_err(|| TEK::StoreError));
+                            hdr.set("todo.uuid", Value::String(format!("{}",uuid)))
+                                 .chain_err(|| TEK::StoreError)?;
                         }
 
                         // If none of the errors above have returned the function, everything is fine
