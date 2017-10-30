@@ -54,10 +54,10 @@ impl DiaryViewer {
                 Ok(id) => println!("{} :\n", id),
                 Err(e) => trace_error(&e),
             }
-            let _ = try!(self.0
+            let _ = self.0
                          .view_entry(&entry)
                          .chain_err(|| DEK::ViewError)
-                         .chain_err(|| DEK::IOError));
+                         .chain_err(|| DEK::IOError)?;
             println!("\n---\n");
         }
 
