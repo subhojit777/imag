@@ -49,7 +49,7 @@ pub trait Tagable {
 impl Tagable for Value {
 
     fn get_tags(&self) -> Result<Vec<Tag>> {
-        let tags = try!(self.read("tag.values").chain_err(|| TagErrorKind::HeaderReadError));
+        let tags = self.read("tag.values").chain_err(|| TagErrorKind::HeaderReadError)?;
 
         match tags {
             Some(&Value::Array(ref tags)) => {
@@ -92,7 +92,7 @@ impl Tagable for Value {
     }
 
     fn add_tag(&mut self, t: Tag) -> Result<()> {
-        if !try!(is_tag_str(&t).map(|_| true).map_err(|_| TE::from_kind(TagErrorKind::NotATag))) {
+        if !is_tag_str(&t).map(|_| true).map_err(|_| TE::from_kind(TagErrorKind::NotATag))? {
             debug!("Not a tag: '{}'", t);
             return Err(TagErrorKind::NotATag.into());
         }
@@ -107,7 +107,7 @@ impl Tagable for Value {
     }
 
     fn remove_tag(&mut self, t: Tag) -> Result<()> {
-        if !try!(is_tag_str(&t).map(|_| true).map_err(|_| TE::from_kind(TagErrorKind::NotATag))) {
+        if !is_tag_str(&t).map(|_| true).map_err(|_| TE::from_kind(TagErrorKind::NotATag))? {
             debug!("Not a tag: '{}'", t);
             return Err(TagErrorKind::NotATag.into());
         }
@@ -121,7 +121,7 @@ impl Tagable for Value {
     }
 
     fn has_tag(&self, t: TagSlice) -> Result<bool> {
-        let tags = try!(self.read("tag.values").chain_err(|| TagErrorKind::HeaderReadError));
+        let tags = self.read("tag.values").chain_err(|| TagErrorKind::HeaderReadError)?;
 
         if !tags.iter().all(|t| is_match!(*t, &Value::String(_))) {
             return Err(TagErrorKind::TagTypeError.into());
@@ -140,7 +140,7 @@ impl Tagable for Value {
     fn has_tags(&self, tags: &[Tag]) -> Result<bool> {
         let mut result = true;
         for tag in tags {
-            result = result && try!(self.has_tag(tag));
+            result = result && self.has_tag(tag)?;
         }
 
         Ok(result)
