@@ -49,10 +49,10 @@ impl<'a> NoteStore<'a> for Store {
 
         debug!("Creating new Note: '{}'", name);
         let fle = {
-            let mut lockentry = try!(ModuleEntryPath::new(name.clone())
+            let mut lockentry = ModuleEntryPath::new(name.clone())
                 .into_storeid()
                 .and_then(|id| self.create(id))
-                .chain_err(|| NEK::StoreWriteError));
+                .chain_err(|| NEK::StoreWriteError)?;
 
             {
                 let entry  = lockentry.deref_mut();
