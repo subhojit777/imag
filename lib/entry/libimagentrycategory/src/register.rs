@@ -57,7 +57,7 @@ impl CategoryRegister for Store {
 
     /// Check whether a category exists
     fn category_exists(&self, name: &str) -> Result<bool> {
-        let sid = try!(mk_category_storeid(self.path().clone(), name));
+        let sid = mk_category_storeid(self.path().clone(), name)?;
         represents_category(self, sid, name)
     }
 
@@ -67,7 +67,7 @@ impl CategoryRegister for Store {
     fn create_category(&self, name: &str) -> Result<bool> {
         use libimagstore::error::StoreErrorKind as SEK;
 
-        let sid = try!(mk_category_storeid(self.path().clone(), name));
+        let sid = mk_category_storeid(self.path().clone(), name)?;
 
 
         match self.create(sid) {
@@ -94,7 +94,7 @@ impl CategoryRegister for Store {
 
     /// Delete a category
     fn delete_category(&self, name: &str) -> Result<()> {
-        let sid = try!(mk_category_storeid(self.path().clone(), name));
+        let sid = mk_category_storeid(self.path().clone(), name)?;
 
         self.delete(sid).chain_err(|| CEK::StoreWriteError)
     }
@@ -111,7 +111,7 @@ impl CategoryRegister for Store {
     /// Returns the FileLockEntry which represents the category, so one can link to it and use it
     /// like a normal file in the store (which is exactly what it is).
     fn get_category_by_name(&self, name: &str) -> Result<Option<FileLockEntry>> {
-        let sid = try!(mk_category_storeid(self.path().clone(), name));
+        let sid = mk_category_storeid(self.path().clone(), name)?;
 
         self.get(sid)
             .chain_err(|| CEK::StoreWriteError)
