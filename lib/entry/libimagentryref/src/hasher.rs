@@ -55,7 +55,7 @@ impl Hasher for DefaultHasher {
 
     fn create_hash<R: Read>(&mut self, _: &PathBuf, c: &mut R) -> Result<String> {
         let mut s = String::new();
-        try!(c.read_to_string(&mut s));
+        c.read_to_string(&mut s)?;
         self.hasher.input_str(&s[..]);
         Ok(self.hasher.result_str())
     }

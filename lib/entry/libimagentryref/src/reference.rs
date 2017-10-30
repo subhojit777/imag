@@ -219,8 +219,8 @@ impl Ref for Entry {
 
     /// Check whether the Hashsum of the referenced file is equal to the stored hashsum
     fn fs_link_valid_hash(&self) -> Result<bool> {
-        let stored_hash  = try!(self.get_stored_hash());
-        let current_hash = try!(self.get_current_hash());
+        let stored_hash  = self.get_stored_hash()?;
+        let current_hash = self.get_current_hash()?;
         Ok(stored_hash == current_hash)
     }
 
@@ -233,18 +233,18 @@ impl Ref for Entry {
     /// Update the Ref by re-checking the file from FS using the passed Hasher instance
     /// This errors if the file is not present or cannot be read()
     fn update_ref_with_hasher<H: Hasher>(&mut self, h: &H) -> Result<()> {
-        let current_hash = try!(self.get_current_hash()); // uses the default hasher
-        let current_perm = try!(self.get_current_permissions());
+        let current_hash = self.get_current_hash()?; // uses the default hasher
+        let current_perm = self.get_current_permissions()?;
 
-        try!(self
+        self
             .get_header_mut()
             .set("ref.permissions.ro", Value::Boolean(current_perm.readonly()))
-        );
+        ?;
 
-        try!(self
+        self
             .get_header_mut()
             .set(&format!("ref.content_hash.{}", h.hash_name())[..], Value::String(current_hash))
-        );
+        ?;
 
         Ok(())
     }

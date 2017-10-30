@@ -89,7 +89,7 @@ impl Lister for RefLister {
                     debug!("Listing Entry: {:?}", entry);
                     {
                         let is_dead = if self.check_dead {
-                            if try!(lerror::ResultExt::chain_err(entry.fs_link_exists(), || LEK::FormatError)) {
+                            if lerror::ResultExt::chain_err(entry.fs_link_exists(), || LEK::FormatError)? {
                                 "dead"
                             } else {
                                 "alive"

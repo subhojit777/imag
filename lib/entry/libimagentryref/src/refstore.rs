@@ -91,10 +91,10 @@ impl RefStore for Store {
                 // manually here. If you can come up with a better version of this, feel free to
                 // take this note as a todo.
                 for r in possible_refs {
-                    let contains_hash = try!(r.to_str()
+                    let contains_hash = r.to_str()
                         .chain_err(|| REK::TypeConversionError)
                         .map(|s| s.contains(&hash[..]))
-                    );
+                    ?;
 
                     if !contains_hash {
                         continue;
@@ -182,14 +182,14 @@ impl RefStore for Store {
         }
 
         let (mut fle, content_hash, permissions, canonical_path) = { // scope to be able to fold
-            try!(File::open(pb.clone())
+            File::open(pb.clone())
                 .chain_err(|| REK::RefTargetFileCannotBeOpened)
 
                 // If we were able to open this file,
                 // we hash the contents of the file and return (file, hash)
                 .and_then(|mut file| {
                     let opt_contenthash = if flags.get_content_hashing() {
-                        Some(try!(h.create_hash(&pb, &mut file)))
+                        Some(h.create_hash(&pb, &mut file)?)
                     } else {
                         None
                     };
@@ -201,11 +201,9 @@ impl RefStore for Store {
                 // and return (file, content hash, permissions)
                 .and_then(|(file, opt_contenthash)| {
                     let opt_permissions = if flags.get_permission_tracking() {
-                        Some(try!(file
-                                  .metadata()
-                                  .map(|md| md.permissions())
-                                  .chain_err(|| REK::RefTargetCannotReadPermissions)
-                        ))
+                        Some(file.metadata()
+                              .map(|md| md.permissions())
+                              .chain_err(|| REK::RefTargetCannotReadPermissions)?)
                     } else {
                         None
                     };
@@ -226,7 +224,7 @@ impl RefStore for Store {
                 // and then we hash the canonicalized path
                 // and return (file, content hash, permissions, canonicalized path, path hash)
                 .and_then(|(opt_contenthash, opt_permissions, can)| {
-                    let path_hash = try!(hash_path(&can).chain_err(|| REK::PathHashingError));
+                    let path_hash = hash_path(&can).chain_err(|| REK::PathHashingError)?;
 
                     Ok((opt_contenthash, opt_permissions, can, path_hash))
                 })
@@ -246,10 +244,9 @@ impl RefStore for Store {
                 // and then we create the FileLockEntry in the Store
                 // and return (filelockentry, content hash, permissions, canonicalized path)
                 .and_then(|(opt_conhash, opt_perm, can, path_hash)| {
-                    let fle = try!(self.create(ModuleEntryPath::new(path_hash)));
+                    let fle = self.create(ModuleEntryPath::new(path_hash))?;
                     Ok((fle, opt_conhash, opt_perm, can))
-                })
-            )
+                })?
         };
 
         for tpl in [
