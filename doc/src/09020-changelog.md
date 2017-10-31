@@ -38,6 +38,8 @@ This section contains the changelog from the last release to the next release.
     * `libimagentryannotation` got a rewrite, is not based on `libimagnotes`
       anymore. This is minor because `libimagentryanntation` is not yet used by
       any other crate.
+    * imag now reads the `IMAG_RTP` environment variable before trying to access
+      `$HOME/.imag` for its runtimepath.
 
 * Bugfixes
     * `Store::entries()` does not yield StoreIds which point to directories

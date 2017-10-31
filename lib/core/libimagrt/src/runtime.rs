@@ -454,14 +454,20 @@ fn get_rtp_match<'a>(matches: &ArgMatches<'a>) -> PathBuf {
 
     matches.value_of(Runtime::arg_runtimepath_name())
         .map_or_else(|| {
-            env::var("HOME")
-                .map(PathBuf::from)
-                .map(|mut p| { p.push(".imag"); p })
-                .unwrap_or_else(|_| {
-                    panic!("You seem to be $HOME-less. Please get a $HOME before using this \
-                            software. We are sorry for you and hope you have some \
-                            accommodation anyways.");
-                })
+            if let Ok(home) = env::var("IMAG_RTP") {
+                return PathBuf::from(home);
+            }
+
+            match env::var("HOME") {
+                Ok(home) => {
+                    let mut p = PathBuf::from(home);
+                    p.push(".imag");
+                    return p;
+                },
+                Err(_) => panic!("You seem to be $HOME-less. Please get a $HOME before using this \
+                    software. We are sorry for you and hope you have some \
+                    accommodation anyways."),
+            }
         }, PathBuf::from)
 }
 
