@@ -209,7 +209,7 @@ impl FromStoreId for DiaryId {
 
         let mut cmps   = s.components().rev();
 
-        let (hour, minute) = try!(next_component(&mut cmps).and_then(|time| {
+        let (hour, minute) = next_component(&mut cmps).and_then(|time| {
             let mut time = time.split(":");
             let hour     = time.next().and_then(|s| FromStr::from_str(s).ok());
             let minute   = time.next()
@@ -223,7 +223,7 @@ impl FromStoreId for DiaryId {
                 (Some(h), Some(m)) => Ok((h, m)),
                 _ => return Err(DE::from_kind(DEK::IdParseError)),
             }
-        }));
+        })?;
 
         let day: Result<u32,_> = next_component(&mut cmps)
             .and_then(|s| s.parse::<u32>()
@@ -244,10 +244,10 @@ impl FromStoreId for DiaryId {
         debug!("Year  = {:?}", year);
         debug!("Name  = {:?}", name);
 
-        let day    = try!(day);
-        let month  = try!(month);
-        let year   = try!(year);
-        let name   = try!(name);
+        let day    = day?;
+        let month  = month?;
+        let year   = year?;
+        let name   = name?;
 
         Ok(DiaryId::new(name, year, month, day, hour, minute))
     }

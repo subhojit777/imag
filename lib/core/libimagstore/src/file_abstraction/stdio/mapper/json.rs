@@ -73,15 +73,15 @@ impl Mapper for JsonMapper {
         let mut document = {
             debug!("Reading Document");
             let mut s = String::new();
-            try!(r.read_to_string(&mut s).chain_err(|| SEK::IoError));
+            r.read_to_string(&mut s).chain_err(|| SEK::IoError)?;
             debug!("Document = {:?}", s);
             debug!("Parsing Document");
-            let doc : Document = try!(serde_json::from_str(&s).chain_err(|| SEK::IoError));
+            let doc : Document = serde_json::from_str(&s).chain_err(|| SEK::IoError)?;
             debug!("Document = {:?}", doc);
             doc
         };
 
-        let _ = try!(::semver::Version::parse(&document.version)
+        let _ = ::semver::Version::parse(&document.version)
             .chain_err(|| SEK::VersionError)
             .and_then(|doc_vers| {
                 // safe because cargo does not compile if crate version is not valid
@@ -96,7 +96,7 @@ impl Mapper for JsonMapper {
                 } else {
                     Ok(())
                 }
-            }));
+            })?;
 
         for (key, val) in document.store.drain() {
             debug!("(key, value) ({:?}, {:?})", key, val);
@@ -110,7 +110,7 @@ impl Mapper for JsonMapper {
                 })
                 .map(|_| ());
 
-            let _ = try!(res);
+            let _ = res?;
         }
 
         Ok(())

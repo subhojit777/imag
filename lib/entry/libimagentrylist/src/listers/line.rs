@@ -47,7 +47,7 @@ impl<'a> Lister for LineLister<'a> {
 
         for entry in entries {
             let s = entry.get_location().to_str().unwrap_or(String::from(self.unknown_output));
-            try!(write!(stdout(), "{:?}\n", s).chain_err(|| LEK::FormatError))
+            write!(stdout(), "{:?}\n", s).chain_err(|| LEK::FormatError)?
         }
 
         Ok(())

@@ -59,9 +59,9 @@ impl StoreId {
     pub fn from_full_path<D>(store_part: &PathBuf, full_path: D) -> Result<StoreId>
         where D: Deref<Target = Path>
     {
-        let p = try!(
-            full_path.strip_prefix(store_part).chain_err(|| SEK::StoreIdBuildFromFullPathError)
-        );
+        let p = full_path
+            .strip_prefix(store_part)
+            .chain_err(|| SEK::StoreIdBuildFromFullPathError)?;
         StoreId::new(Some(store_part.clone()), PathBuf::from(p))
     }
 
@@ -91,7 +91,7 @@ impl StoreId {
     /// specified.
     pub fn into_pathbuf(mut self) -> Result<PathBuf> {
         let base = self.base.take();
-        let mut base = try!(base.ok_or_else(|| SEK::StoreIdHasNoBaseError(self.id.clone())));
+        let mut base = base.ok_or_else(|| SEK::StoreIdHasNoBaseError(self.id.clone()))?;
         base.push(self.id);
         Ok(base)
     }

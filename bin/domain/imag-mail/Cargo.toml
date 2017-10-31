@@ -9,6 +9,12 @@ keywords    = ["imag", "PIM", "personal", "information", "management"]
 readme      = "../../../README.md"
 license     = "LGPL-2.1"
 
+[badges]
+travis-ci                         = { repository = "matthiasbeyer/imag" }
+is-it-maintained-issue-resolution = { repository = "matthiasbeyer/imag" }
+is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
+maintenance                       = { status     = "actively-developed" }
+
 [dependencies]
 clap = ">=2.17"
 log = "0.3"

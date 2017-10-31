@@ -27,11 +27,11 @@ use std::io::Error as IOError;
 use tempfile::NamedTempFile;
 
 pub fn edit_in_tmpfile_with_command(mut cmd: Command, s: &mut String) -> Result<bool, IOError> {
-    let mut file  = &try!(NamedTempFile::new());
+    let mut file  = &NamedTempFile::new()?;
     let file_path = file.path();
 
-    try!(file.write_all(&s.clone().into_bytes()[..]));
-    try!(file.sync_data());
+    file.write_all(&s.clone().into_bytes()[..])?;
+    file.sync_data()?;
 
     cmd.arg(file_path)
         .status()

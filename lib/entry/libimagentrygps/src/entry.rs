@@ -89,7 +89,7 @@ impl GPSEntry for Entry {
 
         let mut hdr = self.get_header_mut();
         for pattern in patterns.iter() {
-            let _ = try!(hdr.delete(pattern).chain_err(|| GPSEK::HeaderWriteError));
+            let _ = hdr.delete(pattern).chain_err(|| GPSEK::HeaderWriteError)?;
         }
 
         match coordinates {

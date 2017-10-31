@@ -91,13 +91,13 @@ pub fn list(rt: &Runtime) -> i32 {
                     acc.and_then(|_| {
                         debug!("Processing {:?}", e.get_location());
 
-                        let tag   = try!(e.get_timetrack_tag());
+                        let tag   = e.get_timetrack_tag()?;
                         debug!(" -> tag = {:?}", tag);
 
-                        let start = try!(e.get_start_datetime());
+                        let start = e.get_start_datetime()?;
                         debug!(" -> start = {:?}", start);
 
-                        let end   = try!(e.get_end_datetime());
+                        let end   = e.get_end_datetime()?;
                         debug!(" -> end = {:?}", end);
 
                         match (start, end) {

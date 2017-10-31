@@ -140,13 +140,13 @@ impl Iterator for Walk {
 impl StoreEntry {
 
     fn new(id: StoreId, backend: &Box<FileAbstraction>) -> Result<StoreEntry> {
-        let pb = try!(id.clone().into_pathbuf());
+        let pb = id.clone().into_pathbuf()?;
 
         #[cfg(feature = "fs-lock")]
         {
-            try!(open_file(pb.clone())
+            open_file(pb.clone())
                 .and_then(|f| f.lock_exclusive())
-                .chain_err(|| SEK::IoError));
+                .chain_err(|| SEK::IoError)?;
         }
 
         Ok(StoreEntry {
@@ -258,7 +258,7 @@ impl Store {
         use configuration::*;
 
         debug!("Validating Store configuration");
-        let _ = try!(config_is_valid(&store_config).chain_err(|| SEK::ConfigurationError));
+        let _ = config_is_valid(&store_config).chain_err(|| SEK::ConfigurationError)?;
 
         debug!("Building new Store object");
         if !location.exists() {
@@ -268,9 +268,10 @@ impl Store {
                     .chain_err(|| SEK::IoError);
             }
 
-            try!(backend.create_dir_all(&location)
-                 .chain_err(|| SEK::StorePathCreate(location.clone()))
-                 .map_dbg_err_str("Failed"));
+            backend
+                .create_dir_all(&location)
+                .chain_err(|| SEK::StorePathCreate(location.clone()))
+                .map_dbg_err_str("Failed")?;
         } else if location.is_file() {
             debug!("Store path exists as file");
             return Err(SE::from_kind(SEK::StorePathExists(location)));
@@ -391,7 +392,7 @@ impl Store {
     ///  - CreateCallError(EntryAlreadyExists()) if the entry exists already.
     ///
     pub fn create<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
-        let id = try!(id.into_storeid()).with_base(self.path().clone());
+        let id = id.into_storeid()?.with_base(self.path().clone());
 
         debug!("Creating id: '{}'", id);
 
@@ -408,7 +409,7 @@ impl Store {
             }
             hsmap.insert(id.clone(), {
                 debug!("Creating: '{}'", id);
-                let mut se = try!(StoreEntry::new(id.clone(), &self.backend));
+                let mut se = StoreEntry::new(id.clone(), &self.backend)?;
                 se.status = StoreEntryStatus::Borrowed;
                 se
             });
@@ -434,21 +435,20 @@ impl Store {
     ///  - RetrieveCallError(LockPoisoned()) if the internal lock is poisened.
     ///
     pub fn retrieve<'a, S: IntoStoreId>(&'a self, id: S) -> Result<FileLockEntry<'a>> {
-        let id = try!(id.into_storeid()).with_base(self.path().clone());
+        let id = id.into_storeid()?.with_base(self.path().clone());
         debug!("Retrieving id: '{}'", id);
-        let entry = try!({
-            self.entries
-                .write()
-                .map_err(|_| SE::from_kind(SEK::LockPoisoned))
-                .and_then(|mut es| {
-                    let new_se = try!(StoreEntry::new(id.clone(), &self.backend));
-                    let se = es.entry(id.clone()).or_insert(new_se);
-                    let entry = se.get_entry();
-                    se.status = StoreEntryStatus::Borrowed;
-                    entry
-                })
-                .chain_err(|| SEK::RetrieveCallError)
-        });
+        let entry = self
+            .entries
+            .write()
+            .map_err(|_| SE::from_kind(SEK::LockPoisoned))
+            .and_then(|mut es| {
+                let new_se = StoreEntry::new(id.clone(), &self.backend)?;
+                let se = es.entry(id.clone()).or_insert(new_se);
+                let entry = se.get_entry();
+                se.status = StoreEntryStatus::Borrowed;
+                entry
+            })
+            .chain_err(|| SEK::RetrieveCallError)?;
 
         debug!("Constructing FileLockEntry: '{}'", id);
         Ok(FileLockEntry::new(self, entry))
@@ -465,16 +465,15 @@ impl Store {
     ///  - Errors Store::retrieve() might return
     ///
     pub fn get<'a, S: IntoStoreId + Clone>(&'a self, id: S) -> Result<Option<FileLockEntry<'a>>> {
-        let id = try!(id.into_storeid()).with_base(self.path().clone());
+        let id = id.into_storeid()?.with_base(self.path().clone());
 
         debug!("Getting id: '{}'", id);
 
-        let exists = try!(id.exists()) || try!(self.entries
+        let exists = id.exists()? || self.entries
             .read()
             .map(|map| map.contains_key(&id))
             .map_err(|_| SE::from_kind(SEK::LockPoisoned))
-            .chain_err(|| SEK::GetCallError)
-        );
+            .chain_err(|| SEK::GetCallError)?;
 
         if !exists {
             debug!("Does not exist in internal cache or filesystem: {:?}", id);
@@ -558,17 +557,17 @@ impl Store {
             Ok(e) => e,
         };
 
-        let se = try!(hsmap.get_mut(&entry.location).ok_or_else(|| {
+        let se = hsmap.get_mut(&entry.location).ok_or_else(|| {
             SE::from_kind(SEK::IdNotFound(entry.location.clone()))
-        }));
+        })?;
 
         assert!(se.is_borrowed(), "Tried to update a non borrowed entry.");
 
         debug!("Verifying Entry");
-        try!(entry.entry.verify());
+        entry.entry.verify()?;
 
         debug!("Writing Entry");
-        try!(se.write_entry(&entry.entry));
+        se.write_entry(&entry.entry)?;
         if modify_presence {
             debug!("Modifying ppresence of {} -> Present", entry.get_location());
             se.status = StoreEntryStatus::Present;
@@ -590,7 +589,7 @@ impl Store {
     ///  - Errors StoreEntry::new() might return
     ///
     pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
-        let id = try!(id.into_storeid()).with_base(self.path().clone());
+        let id = id.into_storeid()?.with_base(self.path().clone());
         debug!("Retrieving copy of '{}'", id);
         let entries = match self.entries.write() {
             Err(_) => {
@@ -605,7 +604,7 @@ impl Store {
             return Err(SE::from_kind(SEK::IdLocked)).chain_err(|| SEK::RetrieveCopyCallError);
         }
 
-        try!(StoreEntry::new(id, &self.backend)).get_entry()
+        StoreEntry::new(id, &self.backend)?.get_entry()
     }
 
     /// Delete an entry
@@ -620,7 +619,7 @@ impl Store {
     ///  - DeleteCallError(FileError()) if the internals failed to remove the file.
     ///
     pub fn delete<S: IntoStoreId>(&self, id: S) -> Result<()> {
-        let id = try!(id.into_storeid()).with_base(self.path().clone());
+        let id = id.into_storeid()?.with_base(self.path().clone());
 
         debug!("Deleting id: '{}'", id);
 
@@ -641,7 +640,7 @@ impl Store {
                     // StoreId::exists(), a PathBuf object gets allocated. So we simply get a
                     // PathBuf here, check whether it is there and if it is, we can re-use it to
                     // delete the filesystem file.
-                    let pb = try!(id.into_pathbuf());
+                    let pb = id.into_pathbuf()?;
 
                     if pb.exists() {
                         // looks like we're deleting a not-loaded file from the store.
@@ -660,7 +659,7 @@ impl Store {
 
             // remove the entry first, then the file
             entries.remove(&id);
-            let pb = try!(id.clone().with_base(self.path().clone()).into_pathbuf());
+            let pb = id.clone().with_base(self.path().clone()).into_pathbuf()?;
             if let Err(e) = self.backend.remove_file(&pb) {
                 return Err(e)
                     .chain_err(|| SEK::FileError)
@@ -689,12 +688,11 @@ impl Store {
         -> Result<()>
     {
         let new_id = new_id.with_base(self.path().clone());
-        let hsmap = try!(
-            self.entries
-                .write()
-                .map_err(|_| SE::from_kind(SEK::LockPoisoned))
-                .chain_err(|| SEK::MoveCallError)
-        );
+        let hsmap = self
+            .entries
+            .write()
+            .map_err(|_| SE::from_kind(SEK::LockPoisoned))
+            .chain_err(|| SEK::MoveCallError)?;
 
         if hsmap.contains_key(&new_id) {
             return Err(SE::from_kind(SEK::EntryAlreadyExists(new_id.clone())))
@@ -703,8 +701,8 @@ impl Store {
 
         let old_id = entry.get_location().clone();
 
-        let old_id_as_path = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
-        let new_id_as_path = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
+        let old_id_as_path = old_id.clone().with_base(self.path().clone()).into_pathbuf()?;
+        let new_id_as_path = new_id.clone().with_base(self.path().clone()).into_pathbuf()?;
         self.backend.copy(&old_id_as_path, &new_id_as_path)
             .and_then(|_| {
                 if remove_old {
@@ -777,10 +775,10 @@ impl Store {
 
             debug!("Old id is not yet borrowed");
 
-            let old_id_pb = try!(old_id.clone().with_base(self.path().clone()).into_pathbuf());
-            let new_id_pb = try!(new_id.clone().with_base(self.path().clone()).into_pathbuf());
+            let old_id_pb = old_id.clone().with_base(self.path().clone()).into_pathbuf()?;
+            let new_id_pb = new_id.clone().with_base(self.path().clone()).into_pathbuf()?;
 
-            if try!(self.backend.exists(&new_id_pb)) {
+            if self.backend.exists(&new_id_pb)? {
                 return Err(SE::from_kind(SEK::EntryAlreadyExists(new_id.clone())));
             }
             debug!("New entry does not yet exist on filesystem. Good.");
@@ -817,11 +815,12 @@ impl Store {
                     let is_file = {
                         let mut base = self.path().clone();
                         base.push(element.clone());
-                        try!(self.backend.is_file(&base))
+                        println!("Checking: {:?}", base);
+                        self.backend.is_file(&base)?
                     };
 
                     if is_file {
-                        let sid = try!(StoreId::from_full_path(self.path(), element));
+                        let sid = StoreId::from_full_path(self.path(), element)?;
                         elems.push(sid);
                     }
                 }
@@ -841,14 +840,14 @@ impl Debug for Store {
 
     /// TODO: Make pretty.
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FMTError> {
-        try!(write!(fmt, " --- Store ---\n"));
-        try!(write!(fmt, "\n"));
-        try!(write!(fmt, " - location               : {:?}\n", self.location));
-        try!(write!(fmt, " - configuration          : {:?}\n", self.configuration));
-        try!(write!(fmt, "\n"));
-        try!(write!(fmt, "Entries:\n"));
-        try!(write!(fmt, "{:?}", self.entries));
-        try!(write!(fmt, "\n"));
+        write!(fmt, " --- Store ---\n")?;
+        write!(fmt, "\n")?;
+        write!(fmt, " - location               : {:?}\n", self.location)?;
+        write!(fmt, " - configuration          : {:?}\n", self.configuration)?;
+        write!(fmt, "\n")?;
+        write!(fmt, "Entries:\n")?;
+        write!(fmt, "{:?}", self.entries)?;
+        write!(fmt, "\n")?;
         Ok(())
     }
 
@@ -979,7 +978,7 @@ impl Entry {
     pub fn from_reader<S: IntoStoreId>(loc: S, file: &mut Read) -> Result<Entry> {
         let text = {
             let mut s = String::new();
-            try!(file.read_to_string(&mut s));
+            file.read_to_string(&mut s)?;
             s
         };
         Self::from_str(loc, &text[..])
@@ -1000,10 +999,10 @@ impl Entry {
     pub fn from_str<S: IntoStoreId>(loc: S, s: &str) -> Result<Entry> {
         use util::entry_buffer_to_header_content;
 
-        let (header, content) = try!(entry_buffer_to_header_content(s));
+        let (header, content) = entry_buffer_to_header_content(s)?;
 
         Ok(Entry {
-            location: try!(loc.into_storeid()),
+            location: loc.into_storeid()?,
             header: header,
             content: content,
         })

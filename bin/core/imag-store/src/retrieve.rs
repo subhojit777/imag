@@ -35,7 +35,7 @@ pub fn retrieve(rt: &Runtime) {
             let id    = scmd.value_of("id").unwrap();
             let path  = PathBuf::from(id);
             let store = Some(rt.store().path().clone());
-            let path  = try!(StoreId::new(store, path).map_err_trace_exit(1));
+            let path  = StoreId::new(store, path).map_err_trace_exit(1)?;
             debug!("path = {:?}", path);
 
             rt.store()

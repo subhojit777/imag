@@ -48,13 +48,13 @@ impl Annotateable for Entry {
     /// Annotate an entry, returns the new entry which is used to annotate
     fn annotate<'a>(&mut self, store: &'a Store, ann_name: &str) -> Result<FileLockEntry<'a>> {
         use module_path::ModuleEntryPath;
-        store.retrieve(try!(ModuleEntryPath::new(ann_name).into_storeid()))
+        store.retrieve(ModuleEntryPath::new(ann_name).into_storeid()?)
             .map_err(From::from)
             .and_then(|mut anno| {
                 {
                     let header = anno.get_header_mut();
-                    try!(header.insert("annotation.is_annotation", Value::Boolean(true)));
-                    try!(header.insert("annotation.name", Value::String(String::from(ann_name))));
+                    header.insert("annotation.is_annotation", Value::Boolean(true))?;
+                    header.insert("annotation.name", Value::String(String::from(ann_name)))?;
                 }
                 Ok(anno)
             })
@@ -69,7 +69,7 @@ impl Annotateable for Entry {
     /// `ann_name`, which is then returned
     fn denotate<'a>(&mut self, store: &'a Store, ann_name: &str) -> Result<Option<FileLockEntry<'a>>> {
         for annotation in self.annotations(store)? {
-            let mut anno = try!(annotation);
+            let mut anno = annotation?;
             let name = match anno.get_header().read("annotation.name")? {
                 None      => continue,
                 Some(val) => match *val {
@@ -79,7 +79,7 @@ impl Annotateable for Entry {
             };
 
             if name == ann_name {
-                let _ = try!(self.remove_internal_link(&mut anno));
+                let _ = self.remove_internal_link(&mut anno)?;
                 return Ok(Some(anno));
             }
         }

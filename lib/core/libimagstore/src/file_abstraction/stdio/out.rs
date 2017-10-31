@@ -150,7 +150,7 @@ impl<W: Write, M: Mapper> FileAbstraction for StdoutFileAbstraction<W, M> {
 
     fn fill(&mut self, mut d: Drain) -> Result<(), SE> {
         debug!("Draining into : {:?}", self);
-        let mut mtx = try!(self.backend().lock().map_err(|_| SE::from_kind(SEK::IoError)));
+        let mut mtx = self.backend().lock().map_err(|_| SE::from_kind(SEK::IoError))?;
         let backend = mtx.get_mut();
 
         for (path, element) in d.iter() {

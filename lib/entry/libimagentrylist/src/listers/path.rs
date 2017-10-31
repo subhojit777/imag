@@ -47,14 +47,14 @@ impl Lister for PathLister {
 
         for entry in entries {
             let pb = entry.get_location().clone();
-            let pb = try!(pb.into_pathbuf().chain_err(|| LEK::FormatError));
+            let pb = pb.into_pathbuf().chain_err(|| LEK::FormatError)?;
             let pb = if self.absolute {
-                try!(pb.canonicalize().chain_err(|| LEK::FormatError))
+                pb.canonicalize().chain_err(|| LEK::FormatError)?
             } else {
                 pb.into()
             };
 
-            try!(write!(stdout(), "{:?}\n", pb).chain_err(|| LEK::FormatError))
+            write!(stdout(), "{:?}\n", pb).chain_err(|| LEK::FormatError)?
         }
 
         Ok(())

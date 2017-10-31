@@ -9,6 +9,12 @@ keywords    = ["imag", "PIM", "personal", "information", "management"]
 readme      = "../../../README.md"
 license     = "LGPL-2.1"
 
+[badges]
+travis-ci                         = { repository = "matthiasbeyer/imag" }
+is-it-maintained-issue-resolution = { repository = "matthiasbeyer/imag" }
+is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
+maintenance                       = { status     = "actively-developed" }
+
 [dependencies]
 lazy_static = "0.2"
 toml = "0.4"

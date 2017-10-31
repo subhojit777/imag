@@ -34,48 +34,48 @@ pub struct Readline {
 impl Readline {
 
     pub fn new(rt: &Runtime) -> Result<Readline> {
-        let c = try!(rt.config().ok_or(IEK::NoConfigError));
+        let c = rt.config().ok_or(IEK::NoConfigError)?;
 
-        let histfile     = try!(c.lookup("ui.cli.readline_history_file").ok_or(IEK::ConfigError));
-        let histsize     = try!(c.lookup("ui.cli.readline_history_size").ok_or(IEK::ConfigError));
-        let histigndups  = try!(c.lookup("ui.cli.readline_history_ignore_dups").ok_or(IEK::ConfigError));
-        let histignspace = try!(c.lookup("ui.cli.readline_history_ignore_space").ok_or(IEK::ConfigError));
-        let prompt       = try!(c.lookup("ui.cli.readline_prompt").ok_or(IEK::ConfigError));
+        let histfile     = c.lookup("ui.cli.readline_history_file").ok_or(IEK::ConfigError)?;
+        let histsize     = c.lookup("ui.cli.readline_history_size").ok_or(IEK::ConfigError)?;
+        let histigndups  = c.lookup("ui.cli.readline_history_ignore_dups").ok_or(IEK::ConfigError)?;
+        let histignspace = c.lookup("ui.cli.readline_history_ignore_space").ok_or(IEK::ConfigError)?;
+        let prompt       = c.lookup("ui.cli.readline_prompt").ok_or(IEK::ConfigError)?;
 
-        let histfile = try!(match histfile {
+        let histfile = match histfile {
             Value::String(s) => PathBuf::from(s),
             _ => Err(IE::from_kind(IEK::ConfigTypeError))
                 .chain_err(|| IEK::ConfigError)
                 .chain_err(|| IEK::ReadlineError)
-        });
+        }?;
 
-        let histsize = try!(match histsize {
+        let histsize = match histsize {
             Value::Integer(i) => i,
             _ => Err(IE::from_kind(IEK::ConfigTypeError))
                 .chain_err(|| IEK::ConfigError)
                 .chain_err(|| IEK::ReadlineError)
-        });
+        }?;
 
-        let histigndups = try!(match histigndups {
+        let histigndups = match histigndups {
             Value::Boolean(b) => b,
             _ => Err(IE::from_kind(IEK::ConfigTypeError))
                 .chain_err(|| IEK::ConfigError)
                 .chain_err(|| IEK::ReadlineError)
-        });
+        }?;
 
-        let histignspace = try!(match histignspace {
+        let histignspace = match histignspace {
             Value::Boolean(b) => b,
             _ => Err(IE::from_kind(IEK::ConfigTypeError))
                 .chain_err(|| IEK::ConfigError)
                 .chain_err(|| IEK::ReadlineError)
-        });
+        }?;
 
-        let prompt = try!(match prompt {
+        let prompt = match prompt {
             Value::String(s) => s,
             _ => Err(IE::from_kind(IEK::ConfigTypeError))
                 .chain_err(|| IEK::ConfigError)
                 .chain_err(|| IEK::ReadlineError)
-        });
+        }?;
 
         let config = Config::builder().
             .max_history_size(histsize)
@@ -86,11 +86,11 @@ impl Readline {
         let mut editor = Editor::new(config);
 
         if !histfile.exists() {
-            let _ = try!(File::create(histfile.clone())
-                         .chain_err(|| IEK::ReadlineHistoryFileCreationError));
+            let _ = File::create(histfile.clone())
+                         .chain_err(|| IEK::ReadlineHistoryFileCreationError)?;
         }
 
-        let _ = try!(editor.load_history(&histfile).chain_err(|| ReadlineError));
+        let _ = editor.load_history(&histfile).chain_err(|| ReadlineError)?;
 
         Ok(Readline {
             editor: editor,

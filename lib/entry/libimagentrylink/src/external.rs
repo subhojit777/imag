@@ -325,12 +325,12 @@ impl ExternalLinker for Entry {
                 s.input_str(&link.as_str()[..]);
                 s.result_str()
             };
-            let file_id = try!(
+            let file_id =
                 ModuleEntryPath::new(format!("external/{}", hash)).into_storeid()
                     .map_dbg_err(|_| {
                         format!("Failed to build StoreId for this hash '{:?}'", hash)
                     })
-                );
+                ?;
 
             debug!("Link    = '{:?}'", link);
             debug!("Hash    = '{:?}'", hash);
@@ -338,17 +338,17 @@ impl ExternalLinker for Entry {
 
             // retrieve the file from the store, which implicitely creates the entry if it does not
             // exist
-            let mut file = try!(store
+            let mut file = store
                 .retrieve(file_id.clone())
                 .map_dbg_err(|_| {
                     format!("Failed to create or retrieve an file for this link '{:?}'", link)
-                }));
+                })?;
 
             debug!("Generating header content!");
             {
                 let hdr = file.deref_mut().get_header_mut();
 
-                let mut table = match try!(hdr.read("links.external.content")) {
+                let mut table = match hdr.read("links.external.content")? {
                     Some(&Value::Table(ref table)) => table.clone(),
                     Some(_) => {
                         warn!("There is a value at 'links.external.content' which is not a table.");
@@ -363,12 +363,12 @@ impl ExternalLinker for Entry {
                 debug!("setting URL = '{:?}", v);
                 table.insert(String::from("url"), v);
 
-                let _ = try!(hdr.insert("links.external.content", Value::Table(table)));
+                let _ = hdr.insert("links.external.content", Value::Table(table))?;
                 debug!("Setting URL worked");
             }
 
             // then add an internal link to the new file or return an error if this fails
-            let _ = try!(self.add_internal_link(file.deref_mut()));
+            let _ = self.add_internal_link(file.deref_mut())?;
             debug!("Error adding internal link");
         }
         debug!("Ready iterating");

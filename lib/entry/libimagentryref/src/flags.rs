@@ -49,8 +49,8 @@ impl RefFlags {
         }
 
         Ok(RefFlags {
-            content_hashing:     try!(get_field(v, "ref.flags.content_hashing")),
-            permission_tracking: try!(get_field(v, "ref.flags.permission_tracking")),
+            content_hashing:     get_field(v, "ref.flags.content_hashing")?,
+            permission_tracking: get_field(v, "ref.flags.permission_tracking")?,
         })
     }
 

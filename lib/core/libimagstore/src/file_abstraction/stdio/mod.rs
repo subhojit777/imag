@@ -56,11 +56,10 @@ impl<W, M> StdIoFileAbstraction<W, M>
     pub fn new<R: Read>(in_stream: &mut R, out_stream: Rc<RefCell<W>>, mapper: M) -> Result<StdIoFileAbstraction<W, M>, SE> {
         StdoutFileAbstraction::new(out_stream, mapper)
             .and_then(|out| {
-                let _ = try!(out
-                             .backend()
-                             .lock()
-                             .map_err(|_| SE::from_kind(SEK::LockError))
-                             .map(|mut mtx| out.mapper().read_to_fs(in_stream, mtx.get_mut())));
+                let _ = out.backend()
+                     .lock()
+                     .map_err(|_| SE::from_kind(SEK::LockError))
+                     .map(|mut mtx| out.mapper().read_to_fs(in_stream, mtx.get_mut()))?;
 
                 Ok(StdIoFileAbstraction(out))
             })
