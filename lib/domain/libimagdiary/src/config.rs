@@ -34,10 +34,8 @@ pub fn get_default_diary_name(rt: &Runtime) -> Option<String> {
 }
 
 pub fn get_diary_config_section<'a>(rt: &'a Runtime) -> Option<&'a Value> {
-    rt.config()
-        .map(|config| config.config())
-        .and_then(|config| match config.read(&String::from("diary")) {
-            Ok(x)  => x,
-            Err(_) => None,
-        })
+    rt.config().and_then(|config| match config.read(&String::from("diary")) {
+        Ok(x)  => x,
+        Err(_) => None,
+    })
 }

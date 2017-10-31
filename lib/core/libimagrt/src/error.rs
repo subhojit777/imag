@@ -93,6 +93,31 @@ error_chain! {
             display("Missing config for logging format for error logging")
         }
 
+        ConfigTOMLParserError {
+            description("Configuration: TOML Parsing error")
+            display("Configuration: TOML Parsing error")
+        }
+
+        ConfigNoConfigFileFound   {
+            description("Configuration: No config file found")
+            display("Configuration: No config file found")
+        }
+
+        ConfigOverrideError {
+            description("Configuration: Config override error")
+            display("Configuration: Config override error")
+        }
+
+        ConfigOverrideKeyNotAvailable {
+            description("Configuration: Key not available")
+            display("Configuration: Key not available")
+        }
+
+        ConfigOverrideTypeNotMatching {
+            description("Configuration: Configuration Type not matching")
+            display("Configuration: Configuration Type not matching")
+        }
+
     }
 }
 

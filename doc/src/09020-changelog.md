@@ -30,6 +30,9 @@ This section contains the changelog from the last release to the next release.
     * `imag-store` can dump all storeids now
     * `imag-annotate` was introduced
     * `imag-diagnostics` was added
+    * The runtime does not read the config file for editor settings anymore.
+      Specifying an editor either via CLI or via the `$EDITOR` environment
+      variable still possible.
 
 * Minor changes
     * `libimagentryannotation` got a rewrite, is not based on `libimagnotes`

@@ -24,7 +24,6 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::ops::Deref;
 
-use configuration::Configuration;
 use error::RuntimeErrorKind as EK;
 use error::RuntimeError as RE;
 use error::ResultExt;
@@ -77,7 +76,7 @@ pub struct ImagLogger {
 impl ImagLogger {
 
     /// Create a new ImagLogger object with a certain level
-    pub fn new(matches: &ArgMatches, config: Option<&Configuration>) -> Result<ImagLogger> {
+    pub fn new(matches: &ArgMatches, config: Option<&Value>) -> Result<ImagLogger> {
         let mut handlebars = Handlebars::new();
 
         handlebars.register_escape_fn(::handlebars::no_escape);
@@ -220,7 +219,7 @@ fn match_log_level_str(s: &str) -> Result<LogLevel> {
     }
 }
 
-fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Configuration>)
+fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Value>)
     -> Result<LogLevel>
 {
     fn get_arg_loglevel(matches: &ArgMatches) -> Result<Option<LogLevel>> {
@@ -300,7 +299,7 @@ fn translate_destinations(raw: &Vec<Value>) -> Result<Vec<LogDestination>> {
         })
 }
 
-fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Configuration>)
+fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Value>)
     -> Result<Vec<LogDestination>>
 {
 
@@ -344,7 +343,7 @@ macro_rules! aggregate_global_format {
     };
 }
 
-fn aggregate_global_format_trace(config: Option<&Configuration>)
+fn aggregate_global_format_trace(config: Option<&Value>)
     -> Result<String>
 {
     aggregate_global_format!("imag.logging.format.trace",
@@ -352,7 +351,7 @@ fn aggregate_global_format_trace(config: Option<&Configuration>)
                             config)
 }
 
-fn aggregate_global_format_debug(config: Option<&Configuration>)
+fn aggregate_global_format_debug(config: Option<&Value>)
     -> Result<String>
 {
     aggregate_global_format!("imag.logging.format.debug",
@@ -360,7 +359,7 @@ fn aggregate_global_format_debug(config: Option<&Configuration>)
                             config)
 }
 
-fn aggregate_global_format_info(config: Option<&Configuration>)
+fn aggregate_global_format_info(config: Option<&Value>)
     -> Result<String>
 {
     aggregate_global_format!("imag.logging.format.info",
@@ -368,7 +367,7 @@ fn aggregate_global_format_info(config: Option<&Configuration>)
                             config)
 }
 
-fn aggregate_global_format_warn(config: Option<&Configuration>)
+fn aggregate_global_format_warn(config: Option<&Value>)
     -> Result<String>
 {
     aggregate_global_format!("imag.logging.format.warn",
@@ -376,7 +375,7 @@ fn aggregate_global_format_warn(config: Option<&Configuration>)
                             config)
 }
 
-fn aggregate_global_format_error(config: Option<&Configuration>)
+fn aggregate_global_format_error(config: Option<&Value>)
     -> Result<String>
 {
     aggregate_global_format!("imag.logging.format.error",
@@ -384,7 +383,7 @@ fn aggregate_global_format_error(config: Option<&Configuration>)
                             config)
 }
 
-fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Configuration>)
+fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Value>)
     -> Result<BTreeMap<ModuleName, ModuleSettings>>
 {
     match config {

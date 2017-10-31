@@ -34,9 +34,8 @@ pub struct Readline {
 impl Readline {
 
     pub fn new(rt: &Runtime) -> Result<Readline> {
-        let cfg = try!(rt.config().ok_or(IEK::NoConfigError));
+        let c = try!(rt.config().ok_or(IEK::NoConfigError));
 
-        let c = cfg.config();
         let histfile     = try!(c.lookup("ui.cli.readline_history_file").ok_or(IEK::ConfigError));
         let histsize     = try!(c.lookup("ui.cli.readline_history_size").ok_or(IEK::ConfigError));
         let histigndups  = try!(c.lookup("ui.cli.readline_history_ignore_dups").ok_or(IEK::ConfigError));

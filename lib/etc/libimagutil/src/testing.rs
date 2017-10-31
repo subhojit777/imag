@@ -51,7 +51,8 @@ macro_rules! make_mock_app {
             use libimagrt::spec::CliSpec;
             use libimagrt::runtime::Runtime;
             use libimagrt::error::RuntimeError;
-            use libimagrt::configuration::{Configuration, InternalConfiguration};
+            use libimagrt::configuration::InternalConfiguration;
+            use toml::Value;
 
             #[derive(Clone)]
             struct MockLinkApp<'a> {
@@ -89,9 +90,8 @@ macro_rules! make_mock_app {
             }
 
             #[allow(unused)]
-            pub fn generate_minimal_test_config() -> Option<Configuration> { ::toml::de::from_str("[store]\nimplicit-create=true")
-                            .map(Configuration::with_value)
-                            .ok()
+            pub fn generate_minimal_test_config() -> Option<Value> {
+                ::toml::de::from_str("[store]\nimplicit-create=true").ok()
             }
 
             #[allow(unused)]
