@@ -32,14 +32,17 @@
     while_true,
 )]
 
+#[cfg(test)] extern crate regex;
+
 extern crate clap;
 #[macro_use] extern crate log;
 #[macro_use] extern crate version;
+#[macro_use] extern crate vobject;
 extern crate toml;
 extern crate toml_query;
 extern crate handlebars;
-extern crate vobject;
 extern crate walkdir;
+extern crate uuid;
 
 extern crate libimagcontact;
 extern crate libimagstore;
@@ -48,6 +51,7 @@ extern crate libimagerror;
 extern crate libimagutil;
 extern crate libimaginteraction;
 extern crate libimagentryref;
+extern crate libimagentryedit;
 
 use std::process::exit;
 use std::collections::BTreeMap;

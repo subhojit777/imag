@@ -22,6 +22,7 @@ toml-query = "^0.3.1"
 handlebars = "0.29"
 vobject     = { git = 'https://github.com/matthiasbeyer/rust-vobject', branch = "next" }
 walkdir = "1"
+uuid = { version = "0.5", features = ["v4"] }
 
 libimagrt      = { version = "0.5.0", path = "../../../lib/core/libimagrt" }
 libimagstore   = { version = "0.5.0", path = "../../../lib/core/libimagstore" }
@@ -29,5 +30,9 @@ libimagerror   = { version = "0.5.0", path = "../../../lib/core/libimagerror" }
 libimagcontact = { version = "0.5.0", path = "../../../lib/domain/libimagcontact" }
 libimagutil    = { version = "0.5.0", path = "../../../lib/etc/libimagutil" }
 libimagentryref = { version = "0.5.0", path = "../../../lib/entry/libimagentryref" }
+libimagentryedit = { version = "0.5.0", path = "../../../lib/entry/libimagentryedit" }
 libimaginteraction    = { version = "0.5.0", path = "../../../lib/etc/libimaginteraction" }
+
+[dev-dependencies]
+regex = "0.2"
 
