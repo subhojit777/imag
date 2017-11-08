@@ -178,6 +178,16 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
         }
     }
 
+    { // parse personal
+        debug!("Parsing person information");
+        let birthday = read_str_from_toml(&toml, "person.birthday");
+        trace!("birthday = {:?}", birthday);
+
+        if let Some(bday) = birthday {
+            vcard = vcard.with_bday(parameters!(), bday);
+        }
+    }
+
     { // parse nicknames
         debug!("Parsing nicknames");
         match toml.read("nickname").map_err_trace_exit_unwrap(1) {
