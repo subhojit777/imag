@@ -78,8 +78,11 @@ pub fn create(rt: &Runtime) {
                 error!("File does exist, cannot create/override");
                 exit(1);
             } else if fl.is_dir() {
-                fl.set_file_name(Uuid::new_v4().hyphenated().to_string());
+                fl.push(Uuid::new_v4().hyphenated().to_string());
+                info!("Creating file: {:?}", fl);
             }
+
+            debug!("Destination = {:?}", fl);
 
             let file = OpenOptions::new()
                 .write(true)
