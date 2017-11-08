@@ -21,6 +21,7 @@ members = [
     "lib/core/libimagrt",
     "lib/core/libimagstore",
     "lib/domain/libimagbookmark",
+    "lib/domain/libimagcontact",
     "lib/domain/libimagdiary",
     "lib/domain/libimagmail",
     "lib/domain/libimagnotes",
