@@ -381,19 +381,19 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
 
     { // parse others
         debug!("Parsing others");
-        if let Some(categories) = read_strary_from_toml(&toml, "others.categories") {
+        if let Some(categories) = read_strary_from_toml(&toml, "other.categories") {
             vcard = vcard.with_categories(categories);
         } else {
             debug!("No categories");
         }
 
-        if let Some(webpage) = read_str_from_toml(&toml, "others.webpage") {
+        if let Some(webpage) = read_str_from_toml(&toml, "other.webpage") {
             vcard = vcard.with_url(webpage);
         } else {
             debug!("No webpage");
         }
 
-        if let Some(note) = read_str_from_toml(&toml, "others.note") {
+        if let Some(note) = read_str_from_toml(&toml, "other.note") {
             vcard = vcard.with_note(note);
         } else {
             debug!("No note");
