@@ -452,7 +452,118 @@ fn read_str_from_toml(toml: &Value, path: &'static str) -> Option<String> {
 }
 
 #[cfg(test)]
-mod test_entry {
+mod test_parsing {
+    use super::parse_toml_into_vcard;
+
     // TODO
+    const TEMPLATE : &'static str = include_str!("../static/new-contact-template-test.toml");
+
+    #[test]
+    fn test_template_names() {
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        assert!(vcard.is_some(), "Failed to parse test template.");
+        let vcard = vcard.unwrap();
+
+        assert!(vcard.name().is_some());
+
+        assert_eq!(vcard.name().unwrap().surname().unwrap(), "test");
+        assert_eq!(vcard.name().unwrap().given_name().unwrap(), "test");
+        assert_eq!(vcard.name().unwrap().additional_names().unwrap(), "test");
+        assert_eq!(vcard.name().unwrap().honorific_prefixes().unwrap(), "test");
+        assert_eq!(vcard.name().unwrap().honorific_suffixes().unwrap(), "test");
+    }
+
+    #[test]
+    fn test_template_person() {
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        assert!(vcard.is_some(), "Failed to parse test template.");
+        let vcard = vcard.unwrap();
+
+        assert!(vcard.bday().is_some());
+
+        assert_eq!(vcard.bday().unwrap().raw(), "2017-01-01");
+
+        assert_eq!(vcard.nickname().len(), 1);
+        assert_eq!(vcard.nickname()[0].raw(), "boss");
+
+        // TODO: parameters() not yet implemented in underlying API
+        // assert!(vcard.nickname()[0].parameters().contains_key("work"));
+    }
+
+    #[test]
+    fn test_template_organization() {
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        assert!(vcard.is_some(), "Failed to parse test template.");
+        let vcard = vcard.unwrap();
+
+        assert_eq!(vcard.org().len(), 1);
+        assert_eq!(vcard.org()[0].raw(), "test");
+
+        assert_eq!(vcard.title().len(), 1);
+        assert_eq!(vcard.title()[0].raw(), "test");
+
+        assert_eq!(vcard.role().len(), 1);
+        assert_eq!(vcard.role()[0].raw(), "test");
+    }
+
+    #[test]
+    fn test_template_phone() {
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        assert!(vcard.is_some(), "Failed to parse test template.");
+        let vcard = vcard.unwrap();
+
+        assert_eq!(vcard.tel().len(), 1);
+        assert_eq!(vcard.tel()[0].raw(), "0123 123456789");
+
+        // TODO: parameters() not yet implemented in underlying API
+        // assert!(vcard.tel()[0].parameters().contains_key("type"));
+        // assert_eq!(vcard.tel()[0].parameters().get("type").unwrap(), "home");
+    }
+
+    #[test]
+    fn test_template_email() {
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        assert!(vcard.is_some(), "Failed to parse test template.");
+        let vcard = vcard.unwrap();
+
+        assert_eq!(vcard.email().len(), 1);
+        assert_eq!(vcard.email()[0].raw(), "examle@examplemail.org");
+
+        // TODO: parameters() not yet implemented in underlying API
+        // assert!(vcard.email()[0].parameters().contains_key("type"));
+        // assert_eq!(vcard.email()[0].parameters().get("type").unwrap(), "home");
+    }
+
+    #[test]
+    fn test_template_addresses() {
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        assert!(vcard.is_some(), "Failed to parse test template.");
+        let vcard = vcard.unwrap();
+
+        assert_eq!(vcard.adr().len(), 1);
+        assert_eq!(vcard.adr()[0].raw(), "testbox;testextended;teststreet;testcode;testcity;testregion;testcountry");
+
+        // TODO: parameters() not yet implemented in underlying API
+        //for e in &["box", "extended", "street", "code", "city", "region", "country"] {
+        //    assert!(vcard.adr()[0].parameters().contains_key(e));
+        //    assert_eq!(vcard.adr()[0].parameters().get(e).unwrap(), "test");
+        //}
+    }
+
+    #[test]
+    fn test_template_other() {
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        assert!(vcard.is_some(), "Failed to parse test template.");
+        let vcard = vcard.unwrap();
+
+        assert_eq!(vcard.categories().len(), 1);
+        assert_eq!(vcard.categories()[0].raw(), "test");
+
+        assert_eq!(vcard.url().len(), 1);
+        assert_eq!(vcard.url()[0].raw(), "test");
+
+        assert_eq!(vcard.note().len(), 1);
+        assert_eq!(vcard.note()[0].raw(), "test");
+    }
 }
 
