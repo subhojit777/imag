@@ -23,26 +23,6 @@ last       = ""
 # Format: YYYY-MM-DD
 #birthday = ""
 
-# Nickname
-# "type" is optional
-#[[nickname]]
-#type = "work"
-#name = "boss"
-
-[organisation]
-
-# Organisation name
-# May contain a string or a list of strings
-#name = ""
-
-# Organisation title and role
-# May contain a string or a list of strings
-#title = ""
-
-# Role at organisation
-# May contain a string or a list of strings
-#role  = ""
-
 # allowed types:
 #   vcard 3.0: At least one of bbs, car, cell, fax, home, isdn, msg, modem,
 #                              pager, pcs, pref, video, voice, work
@@ -73,6 +53,26 @@ last       = ""
 #city     = ""
 #region   = ""
 #country  = ""
+
+# Nickname
+# "type" is optional
+#[[nickname]]
+#type = "work"
+#name = "boss"
+
+[organisation]
+
+# Organisation name
+# May contain a string or a list of strings
+#name = ""
+
+# Organisation title and role
+# May contain a string or a list of strings
+#title = ""
+
+# Role at organisation
+# May contain a string or a list of strings
+#role  = ""
 
 [other]
 

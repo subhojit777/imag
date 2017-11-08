@@ -23,26 +23,6 @@ suffix     = "test"
 # Format: YYYY-MM-DD
 birthday = "2017-01-01"
 
-# Nickname
-# "type" is optional
-[[nickname]]
-type = "work"
-name = "boss"
-
-[organisation]
-
-# Organisation name
-# May contain a string or a list of strings
-name = "test"
-
-# Organisation title and role
-# May contain a string or a list of strings
-title = "test"
-
-# Role at organisation
-# May contain a string or a list of strings
-role  = "test"
-
 # allowed types:
 #   vcard 3.0: At least one of bbs, car, cell, fax, home, isdn, msg, modem,
 #                              pager, pcs, pref, video, voice, work
@@ -66,13 +46,33 @@ email = [
 #   vcard 4.0: At least one of home, pref, work
 [[addresses]]
 type     = "home"
-box      = "test"
-extended = "test"
-street   = "test"
-code     = "test"
-city     = "test"
-region   = "test"
-country  = "test"
+box      = "testbox"
+extended = "testextended"
+street   = "teststreet"
+code     = "testcode"
+city     = "testcity"
+region   = "testregion"
+country  = "testcountry"
+
+# Nickname
+# "type" is optional
+[[nickname]]
+type = "work"
+name = "boss"
+
+[organisation]
+
+# Organisation name
+# May contain a string or a list of strings
+name = "test"
+
+# Organisation title and role
+# May contain a string or a list of strings
+title = "test"
+
+# Role at organisation
+# May contain a string or a list of strings
+role  = "test"
 
 [other]
 
