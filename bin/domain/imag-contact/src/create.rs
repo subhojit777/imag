@@ -116,8 +116,6 @@ pub fn create(rt: &Runtime) {
 
             Ok(None)        => continue,
             Ok(Some(vcard)) => {
-                debug!("Parsed:\n{:#?}", vcard);
-
                 if template == TEMPLATE || template.is_empty() {
                     if ::libimaginteraction::ask::ask_bool("Abort contact creating", Some(false)) {
                         exit(1);
