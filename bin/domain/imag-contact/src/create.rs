@@ -258,7 +258,7 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
 
     { // parse phone
         debug!("Parse phone");
-        match toml.read("phone").map_err_trace_exit_unwrap(1) {
+        match toml.read("person.phone").map_err_trace_exit_unwrap(1) {
             Some(&Value::Array(ref ary)) => {
                 for (i, element) in ary.iter().enumerate() {
                     let phonetype = match read_str_from_toml(element, "type") {
@@ -343,7 +343,7 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
 
     { // parse email
         debug!("Parsing email");
-        match toml.read("email").map_err_trace_exit_unwrap(1) {
+        match toml.read("person.email").map_err_trace_exit_unwrap(1) {
             Some(&Value::Array(ref ary)) => {
                 for (i, element) in ary.iter().enumerate() {
                     let mailtype  = match read_str_from_toml(element, "type") {
