@@ -59,11 +59,11 @@ mod test {
 }
 
 macro_rules! ask_continue {
-    () => {
+    { yes => $yes:expr; no => $no:expr } => {
         if ::libimaginteraction::ask::ask_bool("Edit tempfile", Some(true)) {
-            continue;
+            $yes
         } else {
-            exit(1);
+            $no
         }
     };
 }
@@ -104,249 +104,17 @@ pub fn create(rt: &Runtime) {
             exit(2);
         }
 
-        match ::toml::de::from_str(&template) {
+        match ::toml::de::from_str(&template).map(parse_toml_into_vcard) {
             Err(e) => {
                 error!("Error parsing template");
                 trace_error(&e);
-                ask_continue!();
+                ask_continue! { yes => continue; no => exit(1) };
             },
 
-            Ok(toml) => {
-                debug!("");
-                let mut vcard = Vcard::default();
+            Ok(None)        => continue,
+            Ok(Some(vcard)) => {
+                debug!("Parsed:\n{:#?}", vcard);
 
-                { // parse name
-                    debug!("Parsing name");
-                    let firstname = read_str_from_toml(&toml, "name.first");
-                    trace!("firstname = {:?}", firstname);
-
-                    let lastname  = read_str_from_toml(&toml, "name.last");
-                    trace!("lastname = {:?}", lastname);
-
-                    vcard = vcard.with_name(parameters!(),
-                        read_str_from_toml(&toml, "name.prefix"),
-                        firstname.clone(),
-                        read_str_from_toml(&toml, "name.additional"),
-                        lastname.clone(),
-                        read_str_from_toml(&toml, "name.suffix"));
-
-                    if let (Some(first), Some(last)) = (firstname, lastname) {
-                        trace!("Building fullname: '{} {}'", first, last);
-                        vcard = vcard.with_fullname(format!("{} {}", first, last));
-                    }
-                }
-
-                { // parse nicknames
-                    debug!("Parsing nicknames");
-                    match toml.read("nickname").map_err_trace_exit_unwrap(1) {
-                        Some(&Value::Array(ref ary)) => {
-                            for (i, element) in ary.iter().enumerate() {
-                                let nicktype = match read_str_from_toml(element, "type") {
-                                    Some(p) => {
-                                        let mut m = BTreeMap::new();
-                                        m.insert("TYPE".into(), p);
-                                        m
-                                    },
-                                    None    => BTreeMap::new(),
-                                };
-
-                                let name = match read_str_from_toml(element, "name") {
-                                    None => {
-                                        error!("Key 'nickname.[{}].name' missing", i);
-                                        ask_continue!()
-                                    },
-                                    Some(p) => p,
-                                };
-
-                                trace!("nick type = {:?}", nicktype);
-                                trace!("name      = {:?}", name);
-
-                                vcard = vcard.with_nickname(nicktype, name);
-                            }
-                        },
-
-                        Some(&Value::String(ref name)) => {
-                            vcard = vcard.with_nickname(parameters!(), name.clone());
-                        }
-
-                        Some(_) => {
-                            error!("Type Error: Expected Array or String at 'nickname'");
-                            ask_continue!();
-                        },
-                        None => {
-                            // nothing
-                        },
-                    }
-                }
-
-                { // parse organisation
-                    debug!("Parsing organisation");
-
-                    if let Some(orgs) = read_strary_from_toml(&toml, "organisation.name") {
-                        trace!("orgs = {:?}", orgs);
-                        vcard = vcard.with_org(orgs);
-                    } else {
-                        error!("Key 'organisation.name' missing");
-                        ask_continue!();
-                    }
-
-                    if let Some(title) = read_str_from_toml(&toml, "organisation.title") {
-                        trace!("title = {:?}", title);
-                        vcard = vcard.with_title(title);
-                    }
-
-                    if let Some(role) = read_str_from_toml(&toml, "organisation.role") {
-                        trace!("role = {:?}", role);
-                        vcard = vcard.with_role(role);
-                    }
-                }
-
-                { // parse phone
-                    debug!("Parse phone");
-                    match toml.read("phone").map_err_trace_exit_unwrap(1) {
-                        Some(&Value::Array(ref ary)) => {
-                            for (i, element) in ary.iter().enumerate() {
-                                let phonetype = match read_str_from_toml(element, "type") {
-                                    Some(p) => p,
-                                    None => {
-                                        error!("Key 'phones.[{}].type' missing", i);
-                                        ask_continue!()
-                                    }
-                                };
-
-                                let number = match read_str_from_toml(element, "number") {
-                                    Some(p) => p,
-                                    None => {
-                                        error!("Key 'phones.[{}].number' missing", i);
-                                        ask_continue!()
-                                    }
-                                };
-
-                                trace!("phonetype = {:?}", phonetype);
-                                trace!("number    = {:?}", number);
-
-                                vcard = vcard.with_tel(parameters!("TYPE" => phonetype), number);
-                            }
-                        },
-
-                        Some(_) => {
-                            error!("Expected Array at 'phones'.");
-                            ask_continue!()
-                        },
-                        None => {
-                            // nothing
-                        },
-                    }
-                }
-
-                { // parse address
-                    debug!("Parsing address");
-                    match toml.read("addresses").map_err_trace_exit_unwrap(1) {
-                        Some(&Value::Array(ref ary)) => {
-                            for (i, element) in ary.iter().enumerate() {
-                                let adrtype  = match read_str_from_toml(element, "type") {
-                                    None => {
-                                        error!("Key 'adresses.[{}].type' missing", i);
-                                        ask_continue!()
-                                    },
-                                    Some(p) => p,
-                                };
-                                trace!("adrtype = {:?}", adrtype);
-
-                                let bx       = read_str_from_toml(element, "box");
-                                let extended = read_str_from_toml(element, "extended");
-                                let street   = read_str_from_toml(element, "street");
-                                let code     = read_str_from_toml(element, "code");
-                                let city     = read_str_from_toml(element, "city");
-                                let region   = read_str_from_toml(element, "region");
-                                let country  = read_str_from_toml(element, "country");
-
-                                trace!("bx       = {:?}", bx);
-                                trace!("extended = {:?}", extended);
-                                trace!("street   = {:?}", street);
-                                trace!("code     = {:?}", code);
-                                trace!("city     = {:?}", city);
-                                trace!("region   = {:?}", region);
-                                trace!("country  = {:?}", country);
-
-                                vcard = vcard.with_adr(
-                                    parameters!("TYPE" => adrtype),
-                                    bx, extended, street, code, city, region, country
-                                );
-                            }
-                        },
-
-                        Some(_) => {
-                            error!("Type Error: Expected Array at 'addresses'");
-                            ask_continue!();
-                        },
-                        None => {
-                            // nothing
-                        },
-                    }
-                }
-
-                { // parse email
-                    debug!("Parsing email");
-                    match toml.read("email").map_err_trace_exit_unwrap(1) {
-                        Some(&Value::Array(ref ary)) => {
-                            for (i, element) in ary.iter().enumerate() {
-                                let mailtype  = match read_str_from_toml(element, "type") {
-                                    None => {
-                                        error!("Error: 'email.[{}].type' missing", i);
-                                        ask_continue!()
-                                    },
-                                    Some(p) => p,
-                                }; // TODO: Unused, because unsupported by vobject
-
-                                let mail = match read_str_from_toml(element, "addr") {
-                                    None => {
-                                        error!("Error: 'email.[{}].addr' missing", i);
-                                        ask_continue!()
-                                    },
-                                    Some(p) => p,
-                                };
-
-                                trace!("mailtype = {:?} (UNUSED)", mailtype);
-                                trace!("mail     = {:?}", mail);
-
-                                vcard = vcard.with_email(mail);
-                            }
-                        },
-
-                        Some(_) => {
-                            error!("Type Error: Expected Array at 'email'");
-                            ask_continue!();
-                        },
-                        None => {
-                            // nothing
-                        },
-                    }
-                }
-
-                { // parse others
-                    debug!("Parsing others");
-                    if let Some(categories) = read_strary_from_toml(&toml, "others.categories") {
-                        vcard = vcard.with_categories(categories);
-                    } else {
-                        debug!("No categories");
-                    }
-
-                    if let Some(webpage) = read_str_from_toml(&toml, "others.webpage") {
-                        vcard = vcard.with_url(webpage);
-                    } else {
-                        debug!("No webpage");
-                    }
-
-                    if let Some(note) = read_str_from_toml(&toml, "others.note") {
-                        vcard = vcard.with_note(note);
-                    } else {
-                        debug!("No note");
-                    }
-
-                }
-
-                //println!("{:#?}", vcard);
                 if template == TEMPLATE || template.is_empty() {
                     if ::libimaginteraction::ask::ask_bool("Abort contact creating", Some(false)) {
                         exit(1);
@@ -384,6 +152,243 @@ pub fn create(rt: &Runtime) {
     }
 
     info!("Ready");
+}
+
+fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
+    let mut vcard = Vcard::default();
+
+    { // parse name
+        debug!("Parsing name");
+        let firstname = read_str_from_toml(&toml, "name.first");
+        trace!("firstname = {:?}", firstname);
+
+        let lastname  = read_str_from_toml(&toml, "name.last");
+        trace!("lastname = {:?}", lastname);
+
+        vcard = vcard.with_name(parameters!(),
+            read_str_from_toml(&toml, "name.prefix"),
+            firstname.clone(),
+            read_str_from_toml(&toml, "name.additional"),
+            lastname.clone(),
+            read_str_from_toml(&toml, "name.suffix"));
+
+        if let (Some(first), Some(last)) = (firstname, lastname) {
+            trace!("Building fullname: '{} {}'", first, last);
+            vcard = vcard.with_fullname(format!("{} {}", first, last));
+        }
+    }
+
+    { // parse nicknames
+        debug!("Parsing nicknames");
+        match toml.read("nickname").map_err_trace_exit_unwrap(1) {
+            Some(&Value::Array(ref ary)) => {
+                for (i, element) in ary.iter().enumerate() {
+                    let nicktype = match read_str_from_toml(element, "type") {
+                        None    => BTreeMap::new(),
+                        Some(p) => {
+                            let mut m = BTreeMap::new();
+                            m.insert("TYPE".into(), p);
+                            m
+                        },
+                    };
+
+                    let name = match read_str_from_toml(element, "name") {
+                        Some(p) => p,
+                        None    => {
+                            error!("Key 'nickname.[{}].name' missing", i);
+                            ask_continue! { yes => return None; no => exit(1) };
+                        },
+                    };
+
+                    trace!("nick type = {:?}", nicktype);
+                    trace!("name      = {:?}", name);
+
+                    vcard = vcard.with_nickname(nicktype, name);
+                }
+            },
+
+            Some(&Value::String(ref name)) => {
+                vcard = vcard.with_nickname(parameters!(), name.clone());
+            }
+
+            Some(_) => {
+                error!("Type Error: Expected Array or String at 'nickname'");
+                ask_continue! { yes => return None; no => exit(1) };
+            },
+            None => {
+                // nothing
+            },
+        }
+    }
+
+    { // parse organisation
+        debug!("Parsing organisation");
+
+        if let Some(orgs) = read_strary_from_toml(&toml, "organisation.name") {
+            trace!("orgs = {:?}", orgs);
+            vcard = vcard.with_org(orgs);
+        } else {
+            error!("Key 'organisation.name' missing");
+            ask_continue! { yes => return None; no => exit(1) };
+        }
+
+        if let Some(title) = read_str_from_toml(&toml, "organisation.title") {
+            trace!("title = {:?}", title);
+            vcard = vcard.with_title(title);
+        }
+
+        if let Some(role) = read_str_from_toml(&toml, "organisation.role") {
+            trace!("role = {:?}", role);
+            vcard = vcard.with_role(role);
+        }
+    }
+
+    { // parse phone
+        debug!("Parse phone");
+        match toml.read("phone").map_err_trace_exit_unwrap(1) {
+            Some(&Value::Array(ref ary)) => {
+                for (i, element) in ary.iter().enumerate() {
+                    let phonetype = match read_str_from_toml(element, "type") {
+                        Some(p) => p,
+                        None => {
+                            error!("Key 'phones.[{}].type' missing", i);
+                            ask_continue! { yes => return None; no => exit(1) };
+                        }
+                    };
+
+                    let number = match read_str_from_toml(element, "number") {
+                        Some(p) => p,
+                        None => {
+                            error!("Key 'phones.[{}].number' missing", i);
+                            ask_continue! { yes => return None; no => exit(1) };
+                        }
+                    };
+
+                    trace!("phonetype = {:?}", phonetype);
+                    trace!("number    = {:?}", number);
+
+                    vcard = vcard.with_tel(parameters!("TYPE" => phonetype), number);
+                }
+            },
+
+            Some(_) => {
+                error!("Expected Array at 'phones'.");
+                ask_continue! { yes => return None; no => exit(1) };
+            },
+            None => {
+                // nothing
+            },
+        }
+    }
+
+    { // parse address
+        debug!("Parsing address");
+        match toml.read("addresses").map_err_trace_exit_unwrap(1) {
+            Some(&Value::Array(ref ary)) => {
+                for (i, element) in ary.iter().enumerate() {
+                    let adrtype  = match read_str_from_toml(element, "type") {
+                        None => {
+                            error!("Key 'adresses.[{}].type' missing", i);
+                            ask_continue! { yes => return None; no => exit(1) };
+                        },
+                        Some(p) => p,
+                    };
+                    trace!("adrtype = {:?}", adrtype);
+
+                    let bx       = read_str_from_toml(element, "box");
+                    let extended = read_str_from_toml(element, "extended");
+                    let street   = read_str_from_toml(element, "street");
+                    let code     = read_str_from_toml(element, "code");
+                    let city     = read_str_from_toml(element, "city");
+                    let region   = read_str_from_toml(element, "region");
+                    let country  = read_str_from_toml(element, "country");
+
+                    trace!("bx       = {:?}", bx);
+                    trace!("extended = {:?}", extended);
+                    trace!("street   = {:?}", street);
+                    trace!("code     = {:?}", code);
+                    trace!("city     = {:?}", city);
+                    trace!("region   = {:?}", region);
+                    trace!("country  = {:?}", country);
+
+                    vcard = vcard.with_adr(
+                        parameters!("TYPE" => adrtype),
+                        bx, extended, street, code, city, region, country
+                    );
+                }
+            },
+
+            Some(_) => {
+                error!("Type Error: Expected Array at 'addresses'");
+                ask_continue! { yes => return None; no => exit(1) };
+            },
+            None => {
+                // nothing
+            },
+        }
+    }
+
+    { // parse email
+        debug!("Parsing email");
+        match toml.read("email").map_err_trace_exit_unwrap(1) {
+            Some(&Value::Array(ref ary)) => {
+                for (i, element) in ary.iter().enumerate() {
+                    let mailtype  = match read_str_from_toml(element, "type") {
+                        None => {
+                            error!("Error: 'email.[{}].type' missing", i);
+                            ask_continue! { yes => return None; no => exit(1) };
+                        },
+                        Some(p) => p,
+                    }; // TODO: Unused, because unsupported by vobject
+
+                    let mail = match read_str_from_toml(element, "addr") {
+                        None => {
+                            error!("Error: 'email.[{}].addr' missing", i);
+                            ask_continue! { yes => return None; no => exit(1) };
+                        },
+                        Some(p) => p,
+                    };
+
+                    trace!("mailtype = {:?} (UNUSED)", mailtype);
+                    trace!("mail     = {:?}", mail);
+
+                    vcard = vcard.with_email(mail);
+                }
+            },
+
+            Some(_) => {
+                error!("Type Error: Expected Array at 'email'");
+                ask_continue! { yes => return None; no => exit(1) };
+            },
+            None => {
+                // nothing
+            },
+        }
+    }
+
+    { // parse others
+        debug!("Parsing others");
+        if let Some(categories) = read_strary_from_toml(&toml, "others.categories") {
+            vcard = vcard.with_categories(categories);
+        } else {
+            debug!("No categories");
+        }
+
+        if let Some(webpage) = read_str_from_toml(&toml, "others.webpage") {
+            vcard = vcard.with_url(webpage);
+        } else {
+            debug!("No webpage");
+        }
+
+        if let Some(note) = read_str_from_toml(&toml, "others.note") {
+            vcard = vcard.with_note(note);
+        } else {
+            debug!("No note");
+        }
+
+    }
+
+    Some(vcard)
 }
 
 fn read_strary_from_toml(toml: &Value, path: &'static str) -> Option<Vec<String>> {
