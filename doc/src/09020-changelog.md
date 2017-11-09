@@ -33,6 +33,7 @@ This section contains the changelog from the last release to the next release.
     * The runtime does not read the config file for editor settings anymore.
       Specifying an editor either via CLI or via the `$EDITOR` environment
       variable still possible.
+    * `imag-contact` was added (with basic contact support so far).
 
 * Minor changes
     * `libimagentryannotation` got a rewrite, is not based on `libimagnotes`
