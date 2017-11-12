@@ -51,21 +51,20 @@ extern crate libimagutil;
 #[cfg(not(test))]
 extern crate libimagutil;
 
-use std::ops::Deref;
+use std::path::PathBuf;
 
+use libimagentrylink::external::ExternalLinker;
+use libimagentrylink::internal::InternalLinker;
+use libimagentrylink::internal::store_check::StoreLinkConsistentExt;
+use libimagentrylink::error::LinkError as LE;
+use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagstore::error::StoreError;
-use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
-use libimagstore::store::Store;
-use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
-use libimagentrylink::external::ExternalLinker;
-use libimagentrylink::internal::InternalLinker;
-use libimagutil::warn_result::*;
 use libimagutil::warn_exit::warn_exit;
-use libimagutil::info_result::*;
-use clap::ArgMatches;
+use libimagutil::warn_result::*;
+
 use url::Url;
 
 mod ui;
@@ -77,266 +76,175 @@ fn main() {
                                     &version!()[..],
                                     "Link entries",
                                     build_ui);
+    if rt.cli().is_present("check-consistency") {
+        let exit_code = match rt.store().check_link_consistency() {
+            Ok(_) => {
+                info!("Store is consistent");
+                0
+            }
+            Err(e) => {
+                trace_error(&e);
+                1
+            }
+        };
+        ::std::process::exit(exit_code);
+    }
 
-    rt.cli()
+    let _ = rt.cli()
         .subcommand_name()
         .map(|name| {
             match name {
-                "internal" => handle_internal_linking(&rt),
-                "external" => handle_external_linking(&rt),
-                _ => warn_exit("No commandline call", 1)
+                "remove" => remove_linking(&rt),
+                "list"   => list_linkings(&rt),
+                _ => panic!("BUG"),
             }
-        });
-}
-
-fn handle_internal_linking(rt: &Runtime) {
-    use libimagentrylink::internal::store_check::StoreLinkConsistentExt;
-
-    debug!("Handle internal linking call");
-    let cmd = rt.cli().subcommand_matches("internal").unwrap();
-
-    if cmd.is_present("check-consistency") {
-        match rt.store().check_link_consistency() {
-            Ok(_) => {
-                info!("Store is consistent");
-                return;
-            }
-            Err(e) => {
-                trace_error(&e);
-                ::std::process::exit(1);
-            }
-        }
-    }
-
-    match cmd.subcommand_name() {
-        Some("list") => {
-            cmd.subcommand_matches("list")
-                .map(|matches| handle_internal_linking_list_call(rt, cmd, matches));
-        },
-        Some("add") => {
-            let (mut from, to) = get_from_to_entry(&rt, "add");
-            for mut to_entry in to {
-                if let Err(e) = to_entry.add_internal_link(&mut from) {
-                    trace_error_exit(&e, 1);
-                }
-            };
-        },
-
-        Some("remove") => {
-            let (mut from, to) = get_from_to_entry(&rt, "remove");
-            for mut to_entry in to {
-                if let Err(e) = to_entry.remove_internal_link(&mut from) {
-                    trace_error_exit(&e, 1);
-                }
-            };
-        },
-
-        _ => unreachable!(),
-    }
-}
-
-#[inline]
-fn handle_internal_linking_list_call(rt: &Runtime, cmd: &ArgMatches, list: &ArgMatches) {
-    use libimagentrylink::external::is_external_link_storeid;
-
-    debug!("List...");
-    for entry in list.values_of("entries").unwrap() { // clap has our back
-        debug!("Listing for '{}'", entry);
-        match get_entry_by_name(rt, entry) {
-            Ok(Some(e)) => {
-                e.get_internal_links()
-                    .map(|iter| {
-                        iter.filter(move |id| {
-                            cmd.is_present("list-externals-too") || !is_external_link_storeid(&id)
-                        })
-                    })
-                    .map(|links| {
-                        let i = links
-                            .filter_map(|l| {
-                                l.to_str()
-                                    .map_warn_err(|e| format!("Failed to convert StoreId to string: {:?}", e))
-                                    .ok()
-                            })
-                            .enumerate();
-
-                        for (i, link) in i {
-                            println!("{: <3}: {}", i, link);
-                        }
-                    })
-                    .map_err_trace()
-                    .ok();
-            },
-
-            Ok(None) => {
-                warn!("Entry not found: {:?}", entry);
-                break;
-            }
-
-            Err(e) => {
-                trace_error(&e);
-                break;
-            },
-        }
-    }
-    debug!("Listing ready!");
-}
-
-fn get_from_to_entry<'a>(rt: &'a Runtime, subcommand: &str) -> (FileLockEntry<'a>, Vec<FileLockEntry<'a>>) {
-    let from = match get_from_entry(&rt, subcommand) {
-        None => warn_exit("No 'from' entry", 1),
-        Some(s) => s,
-    };
-    debug!("Link from = {:?}", from.deref());
-
-    let to = match get_to_entries(&rt, subcommand) {
-        None => warn_exit("No 'to' entry", 1),
-        Some(to) => to,
-    };
-    debug!("Link to = {:?}", to.iter().map(|f| f.deref()).collect::<Vec<&Entry>>());
-
-    (from, to)
-}
-
-fn get_from_entry<'a>(rt: &'a Runtime, subcommand: &str) -> Option<FileLockEntry<'a>> {
-    rt.cli()
-        .subcommand_matches("internal")
-        .unwrap() // safe, we know there is an "internal" subcommand"
-        .subcommand_matches(subcommand)
-        .unwrap() // safe, we know there is an "add" subcommand
-        .value_of("from")
-        .and_then(|from_name| {
-            match get_entry_by_name(rt, from_name) {
-                Err(e) => {
-                    debug!("We couldn't get the entry from name: '{:?}'", from_name);
-                    trace_error(&e); None
-                },
-                Ok(Some(e)) => Some(e),
-                Ok(None)    => None,
-            }
-
         })
-}
-
-fn get_to_entries<'a>(rt: &'a Runtime, subcommand: &str) -> Option<Vec<FileLockEntry<'a>>> {
-    rt.cli()
-        .subcommand_matches("internal")
-        .unwrap() // safe, we know there is an "internal" subcommand"
-        .subcommand_matches(subcommand)
-        .unwrap() // safe, we know there is an "add" subcommand
-        .values_of("to")
-        .map(|values| {
-            let mut v = vec![];
-            for entry in values.map(|v| get_entry_by_name(rt, v)) {
-                match entry {
-                    Err(e) => trace_error(&e),
-                    Ok(Some(e)) => v.push(e),
-                    Ok(None) => warn!("Entry not found: {:?}", v),
-                }
+        .or_else(|| {
+            if let (Some(from), Some(to)) = (rt.cli().value_of("from"), rt.cli().values_of("to")) {
+                Some(link_from_to(&rt, from, to))
+            } else {
+                warn_exit("No commandline call", 1)
             }
-            v
         })
+        .ok_or(LE::from("No commandline call".to_owned()))
+        .map_err_trace_exit(1);
 }
 
 fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<Option<FileLockEntry<'a>>, StoreError> {
-    use std::path::PathBuf;
     use libimagstore::storeid::StoreId;
 
     StoreId::new(Some(rt.store().path().clone()), PathBuf::from(name))
         .and_then(|id| rt.store().get(id))
 }
 
-fn handle_external_linking(rt: &Runtime) {
-    let scmd       = rt.cli().subcommand_matches("external").unwrap();
-    let entry_name = scmd.value_of("id").unwrap(); // enforced by clap
-    let mut entry  = match get_entry_by_name(rt, entry_name) {
-        Err(e) => trace_error_exit(&e, 1),
-        Ok(None) => {
-            warn!("Entry not found: {:?}", entry_name);
-            return;
-        },
-        Ok(Some(entry)) => entry
+fn link_from_to<'a>(rt: &'a Runtime, from: &'a str, to: clap::Values<'a>) {
+    let mut from_entry = match get_entry_by_name(rt, from) {
+        Ok(Some(e)) => e,
+        Ok(None)    => warn_exit("No 'from' entry", 1),
+        Err(e)      => trace_error_exit(&e, 1),
     };
 
-    if scmd.is_present("add") {
-        debug!("Adding link to entry!");
-        add_link_to_entry(rt.store(), scmd, &mut entry);
-        return;
-    }
-
-    if scmd.is_present("remove") {
-        debug!("Removing link from entry!");
-        remove_link_from_entry(rt.store(), scmd, &mut entry);
-        return;
-    }
-
-    if scmd.is_present("set") {
-        debug!("Setting links in entry!");
-        set_links_for_entry(rt.store(), scmd, &mut entry);
-        return;
-    }
-
-    if scmd.is_present("list") {
-        debug!("Listing links in entry!");
-        list_links_for_entry(rt.store(), &mut entry);
-        return;
-    }
-
-    panic!("Clap failed to enforce one of 'add', 'remove', 'set' or 'list'");
-}
-
-fn add_link_to_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLockEntry) {
-    Url::parse(matches.value_of("add").unwrap())
-        .map_err_trace_exit(1)
-        .map(|link| entry.add_external_link(store, link).map_err_trace().map_info_str("Ok"))
-        .ok();
-}
-
-fn remove_link_from_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLockEntry) {
-    Url::parse(matches.value_of("remove").unwrap())
-        .map_err_trace_exit(1)
-        .map(|link| entry.remove_external_link(store, link).map_err_trace().map_info_str("Ok"))
-        .ok();
-}
-
-fn set_links_for_entry(store: &Store, matches: &ArgMatches, entry: &mut FileLockEntry) {
-    let links = matches
-        .value_of("links")
-        .map(String::from)
-        .unwrap()
-        .split(',')
-        .map(|uri| {
-            match Url::parse(uri) {
-                Err(e) => {
-                    warn!("Could not parse '{}' as URL, ignoring", uri);
-                    trace_error(&e);
-                    None
+    for entry in to {
+        if PathBuf::from(entry).exists() {
+            debug!("Linking externally: {:?} -> {:?}", from, entry);
+            let url = Url::parse(entry).map_err_trace_exit_unwrap(1);
+            let _ = from_entry
+                .add_external_link(rt.store(), url)
+                .map_err_trace_exit_unwrap(1);
+        } else {
+            debug!("Linking internally: {:?} -> {:?}", from, entry);
+            let mut to_entry = match get_entry_by_name(rt, entry) {
+                Ok(Some(e)) => e,
+                Ok(None)    => {
+                    warn!("No 'to' entry: {}", entry);
+                    ::std::process::exit(1)
                 },
-                Ok(u) => Some(u),
-            }
-        })
-        .filter_map(|x| x)
-        .collect();
+                Err(e)      => trace_error_exit(&e, 1),
+            };
+            let _ = from_entry
+                .add_internal_link(&mut to_entry)
+                .map_err_trace_exit_unwrap(1);
+        }
 
-    entry.set_external_links(store, links)
-        .map_err_trace()
-        .map_info_str("Ok")
-        .ok();
+        info!("Ok: {} -> {}", from, entry);
+    }
+
+    info!("Ok");
 }
 
-fn list_links_for_entry(store: &Store, entry: &mut FileLockEntry) {
-    entry.get_external_links(store)
-        .and_then(|links| {
-            for (i, link) in links.enumerate() {
-                match link {
-                    Ok(link) => println!("{: <3}: {}", i, link),
-                    Err(e)   => trace_error(&e),
+fn remove_linking(rt: &Runtime) {
+
+    fn get_from_entry<'a>(rt: &'a Runtime) -> Option<FileLockEntry<'a>> {
+        rt.cli()
+            .subcommand_matches("remove")
+            .unwrap() // safe, we know there is an "remove" subcommand
+            .value_of("from")
+            .and_then(|from_name| {
+                match get_entry_by_name(rt, from_name) {
+                    Err(e) => {
+                        debug!("We couldn't get the entry from name: '{:?}'", from_name);
+                        trace_error(&e); None
+                    },
+                    Ok(Some(e)) => Some(e),
+                    Ok(None)    => None,
+                }
+
+            })
+    }
+
+    let mut from = match get_from_entry(&rt) {
+        None => warn_exit("No 'from' entry", 1),
+        Some(s) => s,
+    };
+
+    rt.cli()
+        .subcommand_matches("remove")
+        .unwrap()
+        .values_of("to")
+        .map(|values| {
+            for (entry, value) in values.map(|v| (get_entry_by_name(rt, v), v)) {
+                match entry {
+                    Err(e) => trace_error(&e),
+                    Ok(Some(mut to_entry)) => {
+                        if let Err(e) = to_entry.remove_internal_link(&mut from) {
+                            trace_error_exit(&e, 1);
+                        }
+                    },
+                    Ok(None) => {
+                        // looks like this is not an entry, but a filesystem URI and therefor an
+                        // external link...?
+                        if PathBuf::from(value).is_file() {
+                            let url = Url::parse(value).map_err_trace_exit_unwrap(1);
+                            from.remove_external_link(rt.store(), url).map_err_trace_exit_unwrap(1);
+                            info!("Ok: {}", value);
+                        } else {
+                            warn!("Entry not found: {:?}", value);
+                        }
+                    }
                 }
             }
-            Ok(())
-        })
-        .map_err_trace()
-        .map_info_str("Ok")
-        .ok();
+        });
+}
+
+fn list_linkings(rt: &Runtime) {
+    let cmd = rt.cli()
+        .subcommand_matches("list")
+        .unwrap(); // safed by clap
+
+    let list_externals = cmd.is_present("list-externals-too");
+
+    for entry in cmd.values_of("entries").unwrap() { // safed by clap
+        match rt.store().get(PathBuf::from(entry)) {
+            Ok(Some(entry)) => {
+                let mut i = 0;
+
+                for link in entry.get_internal_links().map_err_trace_exit_unwrap(1) {
+                    let link = link
+                        .to_str()
+                        .map_warn_err(|e| format!("Failed to convert StoreId to string: {:?}", e))
+                        .ok();
+
+                    if let Some(link) = link {
+                        println!("{: <3}: {}", i, link);
+                        i += 1;
+                    }
+                }
+
+                if list_externals {
+                    for link in entry.get_external_links(rt.store()).map_err_trace_exit_unwrap(1) {
+                        let link = link
+                            .map_err_trace_exit_unwrap(1)
+                            .into_string();
+
+                        println!("{: <3}: {}", i, link);
+                        i += 1;
+                    }
+                }
+            },
+            Ok(None)        => warn!("Not found: {}", entry),
+            Err(e)          => trace_error(&e),
+        }
+    }
 }
 
 #[cfg(test)]
