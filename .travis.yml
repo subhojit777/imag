@@ -22,8 +22,8 @@ cache:
   cargo: true
 
 script:
-- |
-  cargo build --all --verbose -j 1 && cargo test --all --verbose -j 1
+  - cargo build --all --all-features --verbose -j 1
+  - cargo test  --all --all-features --verbose -j 1
 
 notifications:
   email:
