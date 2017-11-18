@@ -30,7 +30,7 @@ use error::StoreError as SE;
 macro_rules! if_cfg_panic {
     ()                       => { panic!() };
     ($msg:expr)              => { panic!($msg) };
-    ($fmt:expr, $($arg:tt)+) => { panic!($fmt, $($($arg),*)) };
+    ($fmt:expr, $($arg:tt)+) => { panic!($fmt, $($arg),+) };
 }
 
 #[cfg(not(feature = "early-panic"))]
