@@ -17,11 +17,17 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use chrono::NaiveDate;
+
 use error::Result;
+use error::HabitError as HE;
 use habit::builder::HabitBuilder;
 use iter::HabitTemplateStoreIdIterator;
+use iter::HabitInstanceStoreIdIterator;
 
 use libimagstore::store::Store;
+use libimagstore::store::FileLockEntry;
+use libimagstore::storeid::StoreIdIterator;
 
 /// Extension trait for libimagstore::store::Store which is basically our Habit-Store
 pub trait HabitStore {
@@ -34,6 +40,14 @@ pub trait HabitStore {
     /// Get an iterator over all habits
     fn all_habit_templates(&self) -> Result<HabitTemplateStoreIdIterator>;
 
+    /// Get instances
+    fn all_habit_instances(&self) -> Result<HabitInstanceStoreIdIterator>;
+
+    // /// Get instances of a certain date
+    // fn all_habit_instances_on(&self, date: &NaiveDate) -> Result<HabitInstanceStoreIdIterator>;
+
+    // /// Get instances between two dates
+    // fn all_habit_instances_between(&self, start: &NaiveDate, end: &NaiveDate) -> Result<HabitInstanceStoreIdIterator>;
 }
 
 impl HabitStore for Store {
@@ -41,4 +55,9 @@ impl HabitStore for Store {
     fn all_habit_templates(&self) -> Result<HabitTemplateStoreIdIterator> {
         self.entries().map(HabitTemplateStoreIdIterator::from).map_err(From::from)
     }
+
+    fn all_habit_instances(&self) -> Result<HabitInstanceStoreIdIterator> {
+        self.entries().map(HabitInstanceStoreIdIterator::from).map_err(From::from)
+    }
 }
+

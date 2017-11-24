@@ -21,12 +21,14 @@ use toml::Value;
 use toml_query::read::TomlValueReadExt;
 
 use libimagstore::store::FileLockEntry;
+use libimagstore::store::Store;
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::storeid::StoreId;
 
 use error::HabitError as HE;
 use error::HabitErrorKind as HEK;
 use error::*;
+use util::IsHabitCheck;
 
 pub struct HabitTemplateStoreIdIterator(StoreIdIterator);
 
@@ -35,7 +37,7 @@ impl Iterator for HabitTemplateStoreIdIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(n) = self.0.next() {
-            if n.is_in_collection(&["habit", "template"]) {
+            if n.is_habit_template() {
                 return Some(n)
             }
         }
@@ -56,7 +58,7 @@ impl Iterator for HabitInstanceStoreIdIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(n) = self.0.next() {
-            if n.is_in_collection(&["habit", "instance"]) {
+            if n.is_habit_instance() {
                 return Some(n)
             }
         }
