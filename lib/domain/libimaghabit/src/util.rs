@@ -25,6 +25,9 @@ use error::Result;
 use habit::HabitTemplate;
 use instance::HabitInstance;
 
+use libimagstore::storeid::StoreId;
+use libimagstore::store::Entry;
+
 pub const NAIVE_DATE_STRING_FORMAT : &'static str = "%Y-%m-%d";
 
 pub fn date_to_string(ndt: &NaiveDate) -> String {
@@ -48,5 +51,42 @@ impl<H> IsValidHabitObj for H
     where H: HabitInstance + HabitTemplate
 {
     // Empty
+}
+
+pub trait IsHabitCheck {
+    fn is_habit(&self) -> bool;
+    fn is_habit_instance(&self) -> bool;
+    fn is_habit_template(&self) -> bool;
+}
+
+impl IsHabitCheck for StoreId {
+    fn is_habit(&self) -> bool {
+        self.is_in_collection(&["habit"])
+    }
+
+    fn is_habit_instance(&self) -> bool {
+        self.is_in_collection(&["habit", "instance"])
+    }
+
+    fn is_habit_template(&self) -> bool {
+        self.is_in_collection(&["habit", "template"])
+    }
+}
+
+impl IsHabitCheck for Entry {
+    /// Helper function to check whether an entry is a habit (either instance or template)
+    fn is_habit(&self) -> bool {
+        self.get_location().is_habit()
+    }
+
+    /// Check whether an entry is a habit instance
+    fn is_habit_instance(&self) -> bool {
+        self.get_location().is_habit_instance()
+    }
+
+    /// Check whether an entry is a habit template
+    fn is_habit_template(&self) -> bool {
+        self.get_location().is_habit_template()
+    }
 }
 
