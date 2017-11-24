@@ -35,6 +35,7 @@ use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Entry;
 use libimagstore::iter::get::StoreIdGetIteratorExtension;
+use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 
 /// A HabitTemplate is a "template" of a habit. A user may define a habit "Eat vegetable".
@@ -58,18 +59,17 @@ pub trait HabitTemplate : Sized {
     fn habit_recur_spec(&self) -> Result<String>;
     fn habit_comment(&self) -> Result<String>;
 
+    /// Create a StoreId for a habit name and a date the habit should be instantiated for
+    fn instance_id_for(habit_name: &String, habit_date: &NaiveDate) -> Result<StoreId>;
 }
 
 impl HabitTemplate for Entry {
 
     fn create_instance<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
-        use module_path::ModuleEntryPath;
-        let date = date_to_string(&Local::today().naive_local());
-        let name = self.habit_name()?;
+        let name    = self.habit_name()?;
         let comment = self.habit_comment()?;
-        let id = ModuleEntryPath::new(format!("instance/{}-{}", name, date))
-            .into_storeid()
-            .map_err(HE::from)?;
+        let date    = date_to_string(&Local::today().naive_local());
+        let id      = instance_id_for_name_and_datestr(&name, &date)?;
 
         store.retrieve(id)
             .map_err(From::from)
@@ -114,6 +114,18 @@ impl HabitTemplate for Entry {
         get_string_header_from_habit(self, "habit.template.comment")
     }
 
+    fn instance_id_for(habit_name: &String, habit_date: &NaiveDate) -> Result<StoreId> {
+        instance_id_for_name_and_datestr(habit_name, &date_to_string(habit_date))
+    }
+
+}
+
+fn instance_id_for_name_and_datestr(habit_name: &String, habit_date: &String) -> Result<StoreId> {
+    use module_path::ModuleEntryPath;
+
+    ModuleEntryPath::new(format!("instance/{}-{}", habit_name, habit_date))
+        .into_storeid()
+        .map_err(HE::from)
 }
 
 #[inline]
