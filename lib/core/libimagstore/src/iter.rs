@@ -27,14 +27,13 @@ macro_rules! mk_iterator_mod {
         fun       = $fun:expr
     } => {
         pub mod $modname {
-            use storeid::StoreIdIterator;
             use storeid::StoreId;
             #[allow(unused_imports)]
             use store::FileLockEntry;
             use store::Store;
             use error::Result;
 
-            pub struct $itername<'a>(StoreIdIterator, &'a Store);
+            pub struct $itername<'a>(Box<Iterator<Item = StoreId>>, &'a Store);
 
             impl<'a> Iterator for $itername<'a> {
                 type Item = Result<$yield>;
@@ -48,11 +47,14 @@ macro_rules! mk_iterator_mod {
                 fn $extfnname(self, store: &'a Store) -> $itername<'a>;
             }
 
-            impl<'a> $extname<'a> for StoreIdIterator {
+            impl<'a, I> $extname<'a> for I
+                where I: Iterator<Item = StoreId> + 'static
+            {
                 fn $extfnname(self, store: &'a Store) -> $itername<'a> {
-                    $itername(self, store)
+                    $itername(Box::new(self), store)
                 }
             }
+
         }
     }
 }
