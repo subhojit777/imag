@@ -81,7 +81,7 @@ impl<F: Fn(&FileLockEntry) -> Vec<String>> Lister for TableLister<F> {
             },
         }
 
-        entries.fold(Ok(table), |table, entry| {
+        entries.enumerate().fold(Ok(table), |table, (i, entry)| {
             table.and_then(|mut table| {
                 let mut v = (self.line_generator)(&entry);
                 {
@@ -95,6 +95,10 @@ impl<F: Fn(&FileLockEntry) -> Vec<String>> Lister for TableLister<F> {
                     while header_len.map(|l| v.len() != l).unwrap_or(false) {
                         v.push(String::from(""));
                     }
+                }
+
+                if self.with_idx {
+                    v.insert(0, format!("{}", i));
                 }
 
                 table.add_row(v.iter().map(|s| Cell::new(s)).collect());
