@@ -53,6 +53,12 @@ impl From<StoreIdIterator> for HabitTemplateStoreIdIterator {
 
 pub struct HabitInstanceStoreIdIterator(StoreIdIterator);
 
+impl HabitInstanceStoreIdIterator {
+    pub fn new(sid: StoreIdIterator) -> HabitInstanceStoreIdIterator {
+        HabitInstanceStoreIdIterator(sid)
+    }
+}
+
 impl Iterator for HabitInstanceStoreIdIterator {
     type Item = StoreId;
 
