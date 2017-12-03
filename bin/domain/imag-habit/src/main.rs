@@ -81,7 +81,35 @@ fn main() {
 }
 
 fn create(rt: &Runtime) {
-    unimplemented!()
+    let scmd = rt.cli().subcommand_matches("create").unwrap();                      // safe by call from main()
+    let name = scmd.value_of("create-name").map(String::from).unwrap();             // safe by clap
+    let recu = scmd.value_of("create-date-recurr-spec").map(String::from).unwrap(); // safe by clap
+    let comm = scmd.value_of("create-comment").map(String::from).unwrap();          // safe by clap
+    let date = scmd.value_of("create-date").unwrap();                               // safe by clap
+
+    let date = match ::kairos::parser::parse(date).map_err_trace_exit_unwrap(1) {
+        ::kairos::parser::Parsed::TimeType(tt) => match tt.get_moment() {
+            Some(mom) => mom.date(),
+            None => {
+                error!("Error: 'date' parameter does not yield a point in time");
+                exit(1);
+            },
+        },
+        _ => {
+            error!("Error: 'date' parameter does not yield a point in time");
+            exit(1);
+        },
+    };
+
+    let _ = HabitBuilder::default()
+        .with_name(name)
+        .with_basedate(date)
+        .with_recurspec(recu)
+        .with_comment(comm)
+        .build(rt.store())
+        .map_err_trace_exit_unwrap(1);
+
+    info!("Ok");
 }
 
 fn delete(rt: &Runtime) {
