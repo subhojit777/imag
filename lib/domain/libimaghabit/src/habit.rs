@@ -162,22 +162,22 @@ pub mod builder {
 
     impl HabitBuilder {
 
-        pub fn with_name(&mut self, name: String) -> &mut Self {
+        pub fn with_name(mut self, name: String) -> Self {
             self.name = Some(name);
             self
         }
 
-        pub fn with_comment(&mut self, comment: String) -> &mut Self {
+        pub fn with_comment(mut self, comment: String) -> Self {
             self.comment = Some(comment);
             self
         }
 
-        pub fn with_basedate(&mut self, date: NaiveDate) -> &mut Self {
+        pub fn with_basedate(mut self, date: NaiveDate) -> Self {
             self.basedate = Some(date);
             self
         }
 
-        pub fn with_recurspec(&mut self, spec: String) -> &mut Self {
+        pub fn with_recurspec(mut self, spec: String) -> Self {
             self.recurspec = Some(spec);
             self
         }
