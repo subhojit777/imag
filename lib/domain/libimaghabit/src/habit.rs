@@ -189,14 +189,24 @@ pub mod builder {
             }
 
             let name      = try!(self.name.ok_or_else(|| mkerr("name")));
+            debug!("Success: Name present");
+
             let dateobj   = try!(self.basedate.ok_or_else(|| mkerr("date")));
+            debug!("Success: Date present");
+
             let recur     = try!(self.recurspec.ok_or_else(|| mkerr("recurspec")));
+            debug!("Success: Recurr spec present");
+
             if let Err(e) = ::kairos::parser::parse(&recur) {
                 return Err(e).map_err(From::from);
             }
             let date      = date_to_string(&dateobj);
+            debug!("Success: Date valid");
+
             let comment   = self.comment.unwrap_or_else(|| String::new());
             let sid       = try!(build_habit_template_sid(&name));
+
+            debug!("Creating entry in store for: {:?}", sid);
             let mut entry = try!(store.create(sid));
 
             try!(entry.get_header_mut().insert("habit.template.name", Value::String(name)));
@@ -204,6 +214,7 @@ pub mod builder {
             try!(entry.get_header_mut().insert("habit.template.recurspec", Value::String(recur)));
             try!(entry.get_header_mut().insert("habit.template.comment", Value::String(comment)));
 
+            debug!("Success: Created entry in store and set headers");
             Ok(entry)
         }
 
