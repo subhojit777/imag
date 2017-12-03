@@ -38,5 +38,5 @@ pub mod instance;
 pub mod iter;
 pub mod result;
 pub mod store;
-mod util;
+pub mod util;
 
