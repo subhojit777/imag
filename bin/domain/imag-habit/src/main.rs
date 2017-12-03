@@ -160,6 +160,71 @@ fn list(rt: &Runtime) {
 }
 
 fn show(rt: &Runtime) {
-    unimplemented!()
+    let scmd = rt.cli().subcommand_matches("show").unwrap();          // safe by call from main()
+    let name = scmd
+        .value_of("show-name")
+        .map(String::from)
+        .unwrap(); // safe by clap
+
+    fn instance_lister_header() -> Vec<String> {
+        ["Date", "Comment"].iter().map(|x| String::from(*x)).collect()
+    }
+
+    fn instance_lister_fn(i: &FileLockEntry) -> Vec<String> {
+        use libimaghabit::util::date_to_string;
+        use libimaghabit::instance::HabitInstance;
+
+        let date = date_to_string(&i.get_date().map_err_trace_exit_unwrap(1));
+        let comm = i.get_comment().map_err_trace_exit_unwrap(1);
+
+        vec![date, comm]
+    }
+
+
+    let _ = rt
+        .store()
+        .all_habit_templates()
+        .map_err_trace_exit_unwrap(1)
+        .filter_map(|id| match rt.store().get(id.clone()) {
+            Ok(Some(h)) => Some(h),
+            Ok(None) => {
+                error!("Cannot get habit for {:?} in 'show' subcommand", id);
+                None
+            },
+            Err(e) => {
+                trace_error(&e);
+                None
+            },
+        })
+        .filter(|h| h.habit_name().map(|n| name == n).map_err_trace_exit_unwrap(1))
+        .enumerate()
+        .map(|(i, habit)| {
+            let name     = habit.habit_name().map_err_trace_exit_unwrap(1);
+            let basedate = habit.habit_basedate().map_err_trace_exit_unwrap(1);
+            let recur    = habit.habit_recur_spec().map_err_trace_exit_unwrap(1);
+            let comm     = habit.habit_comment().map_err_trace_exit_unwrap(1);
+
+            println!("{i} - {name}\nBase      : {b},\nRecurrence: {r}\nComment   : {c}\n",
+                     i    = i,
+                     name = name,
+                     b    = basedate,
+                     r    = recur,
+                     c    = comm);
+
+            let instances_iter = habit
+                .linked_instances()
+                .map_err_trace_exit_unwrap(1)
+                .filter_map(|instance_id| {
+                    debug!("Getting: {:?}", instance_id);
+                    rt.store().get(instance_id).map_err_trace_exit_unwrap(1)
+                });
+
+            TableLister::new(instance_lister_fn)
+                .with_header(instance_lister_header())
+                .with_idx(true)
+                .list(instances_iter)
+                .map_err_trace_exit_unwrap(1);
+        })
+        .collect::<Vec<_>>();
 }
 
