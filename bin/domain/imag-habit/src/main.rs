@@ -44,6 +44,7 @@ extern crate libimagstore;
 extern crate libimagrt;
 extern crate libimagerror;
 extern crate libimagutil;
+extern crate libimagentrylist;
 
 use std::process::exit;
 
@@ -53,6 +54,9 @@ use libimagerror::trace::{MapErrTrace, trace_error};
 use libimaghabit::store::HabitStore;
 use libimaghabit::habit::builder::HabitBuilder;
 use libimaghabit::habit::HabitTemplate;
+use libimagstore::store::FileLockEntry;
+use libimagentrylist::listers::table::TableLister;
+use libimagentrylist::lister::Lister;
 
 mod ui;
 
@@ -117,7 +121,42 @@ fn delete(rt: &Runtime) {
 }
 
 fn list(rt: &Runtime) {
-    unimplemented!()
+    fn lister_fn(h: &FileLockEntry) -> Vec<String> {
+        debug!("Listing: {:?}", h);
+        let name     = h.habit_name().map_err_trace_exit_unwrap(1);
+        let basedate = h.habit_basedate().map_err_trace_exit_unwrap(1);
+        let recur    = h.habit_recur_spec().map_err_trace_exit_unwrap(1);
+        let comm     = h.habit_comment().map_err_trace_exit_unwrap(1);
+
+        vec![name, basedate, recur, comm]
+    }
+
+    fn lister_header() -> Vec<String> {
+        ["Name", "Basedate", "Recurr", "Comment"].iter().map(|x| String::from(*x)).collect()
+    }
+
+    let iter = rt
+        .store()
+        .all_habit_templates()
+        .map_err_trace_exit_unwrap(1)
+        .filter_map(|id| match rt.store().get(id.clone()) {
+            Ok(Some(h)) => Some(h),
+            Ok(None) => {
+                error!("No habit found for {:?}", id);
+                None
+            },
+            Err(e) => {
+                trace_error(&e);
+                None
+            },
+        });
+
+
+    TableLister::new(lister_fn)
+        .with_header(lister_header())
+        .with_idx(true)
+        .list(iter)
+        .map_err_trace_exit_unwrap(1);
 }
 
 fn show(rt: &Runtime) {
