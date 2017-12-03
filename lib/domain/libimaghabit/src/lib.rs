@@ -28,6 +28,7 @@ extern crate kairos;
 #[macro_use] extern crate libimagerror;
 #[macro_use] extern crate libimagstore;
 extern crate libimagentryedit;
+extern crate libimagentrylink;
 
 module_entry_path_mod!("habit");
 

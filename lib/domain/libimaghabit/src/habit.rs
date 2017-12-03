@@ -30,13 +30,16 @@ use error::*;
 use iter::HabitInstanceStoreIdIterator;
 use util::date_to_string;
 use util::date_from_string;
+use util::IsHabitCheck;
 
+use libimagentrylink::internal::InternalLinker;
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Entry;
 use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
+use libimagstore::storeid::StoreIdIterator;
 
 /// A HabitTemplate is a "template" of a habit. A user may define a habit "Eat vegetable".
 /// If the user ate a vegetable, she should create a HabitInstance from the Habit with the
@@ -50,6 +53,9 @@ pub trait HabitTemplate : Sized {
     ///
     /// It uses `Store::retrieve()` underneath
     fn create_instance<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
+
+    /// Get instances for this template
+    fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator>;
 
     /// Check whether the instance is a habit by checking its headers for the habit data
     fn is_habit_template(&self) -> Result<bool>;
@@ -82,6 +88,16 @@ impl HabitTemplate for Entry {
                 }
                 Ok(entry)
             })
+    }
+
+    fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator> {
+        let iter = self
+            .get_internal_links()?
+            .map(|link| link.get_store_id().clone())
+            .filter(IsHabitCheck::is_habit_instance);
+
+        let sidi = StoreIdIterator::new(Box::new(iter));
+        Ok(HabitInstanceStoreIdIterator::new(sidi))
     }
 
     /// Check whether the instance is a habit by checking its headers for the habit data
