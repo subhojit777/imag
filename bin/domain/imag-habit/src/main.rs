@@ -127,12 +127,16 @@ fn list(rt: &Runtime) {
         let basedate = h.habit_basedate().map_err_trace_exit_unwrap(1);
         let recur    = h.habit_recur_spec().map_err_trace_exit_unwrap(1);
         let comm     = h.habit_comment().map_err_trace_exit_unwrap(1);
+        let due      = h.next_instance_date().map_err_trace_exit_unwrap(1);
+        let due      = libimaghabit::util::date_to_string(&due);
 
-        vec![name, basedate, recur, comm]
+        let v = vec![name, basedate, recur, comm, due];
+        debug!(" -> {:?}", v);
+        v
     }
 
     fn lister_header() -> Vec<String> {
-        ["Name", "Basedate", "Recurr", "Comment"].iter().map(|x| String::from(*x)).collect()
+        ["Name", "Basedate", "Recurr", "Comment", "Next Due"].iter().map(|x| String::from(*x)).collect()
     }
 
     let iter = rt
