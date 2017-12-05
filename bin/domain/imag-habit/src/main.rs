@@ -38,6 +38,7 @@ extern crate clap;
 extern crate toml;
 extern crate toml_query;
 extern crate kairos;
+extern crate chrono;
 
 extern crate libimaghabit;
 extern crate libimagstore;
@@ -75,6 +76,7 @@ fn main() {
                 "create" => create(&rt),
                 "delete" => delete(&rt),
                 "list"   => list(&rt),
+                "today"  => today(&rt),
                 "show"   => show(&rt),
                 _        => {
                     debug!("Unknown command"); // More error handling
@@ -118,6 +120,59 @@ fn create(rt: &Runtime) {
 
 fn delete(rt: &Runtime) {
     unimplemented!()
+}
+
+// Almost the same as `list()` but with other lister functions and an additional filter for only
+// listing entries which are due today.
+fn today(rt: &Runtime) {
+    fn lister_fn(h: &FileLockEntry) -> Vec<String> {
+        debug!("Listing: {:?}", h);
+        let name     = h.habit_name().map_err_trace_exit_unwrap(1);
+        let basedate = h.habit_basedate().map_err_trace_exit_unwrap(1);
+        let recur    = h.habit_recur_spec().map_err_trace_exit_unwrap(1);
+        let comm     = h.habit_comment().map_err_trace_exit_unwrap(1);
+
+        let v = vec![name, basedate, recur, comm];
+        debug!(" -> {:?}", v);
+        v
+    }
+
+    fn lister_header() -> Vec<String> {
+        ["Name", "Basedate", "Recurr", "Comment"].iter().map(|x| String::from(*x)).collect()
+    }
+
+    let today = ::chrono::offset::Local::today().naive_local();
+
+    let today_relevant : Vec<_> = rt
+        .store()
+        .all_habit_templates()
+        .map_err_trace_exit_unwrap(1)
+        .filter_map(|id| match rt.store().get(id.clone()) {
+            Ok(Some(h)) => Some(h),
+            Ok(None) => {
+                error!("No habit found for {:?}", id);
+                None
+            },
+            Err(e) => {
+                trace_error(&e);
+                None
+            },
+        })
+        .filter(|h| {
+            let due = h.next_instance_date().map_err_trace_exit_unwrap(1);
+            due == today
+        })
+        .collect();
+
+    if today_relevant.is_empty() {
+        info!("No Habits due today.");
+    } else {
+        TableLister::new(lister_fn)
+            .with_header(lister_header())
+            .with_idx(true)
+            .list(today_relevant.into_iter())
+            .map_err_trace_exit_unwrap(1);
+    }
 }
 
 fn list(rt: &Runtime) {

@@ -107,4 +107,9 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .value_name("NAME")
                         .help("Name of the habit to show"))
                    )
+
+        .subcommand(SubCommand::with_name("today")
+                   .about("List habits which are due today")
+                   .version("0.1")
+                   )
 }
