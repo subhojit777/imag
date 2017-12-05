@@ -57,6 +57,9 @@ pub trait HabitTemplate : Sized {
     /// Get instances for this template
     fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator>;
 
+    /// Get the date of the next date when the habit should be done
+    fn next_instance_date(&self) -> Result<NaiveDate>;
+
     /// Check whether the instance is a habit by checking its headers for the habit data
     fn is_habit_template(&self) -> Result<bool>;
 
@@ -98,6 +101,48 @@ impl HabitTemplate for Entry {
 
         let sidi = StoreIdIterator::new(Box::new(iter));
         Ok(HabitInstanceStoreIdIterator::new(sidi))
+    }
+
+    /// Get the date of the next date when the habit should be done
+    fn next_instance_date(&self) -> Result<NaiveDate> {
+        use kairos::timetype::TimeType;
+        use kairos::parser::parse;
+        use kairos::parser::Parsed;
+        use kairos::iter::extensions::Every;
+
+        let date_from_s = |r: String| -> Result<TimeType> {
+            match parse(&r)? {
+                Parsed::TimeType(tt) => Ok(tt),
+                Parsed::Iterator(_) => {
+                    Err(format!("'{}' yields an iterator. Cannot use.", r).into())
+                },
+            }
+        };
+
+        let today = TimeType::today();
+        let today = today.get_moment().unwrap(); // we know this is safe.
+        debug!("Today is {:?}", today);
+
+        let basedate  = date_from_s(self.habit_basedate()?)?;
+        debug!("Basedate is {:?}", today);
+
+        let increment = date_from_s(self.habit_recur_spec()?)?;
+        debug!("Increment is {:?}", today);
+
+        for element in basedate.every(increment)? {
+            debug!("Calculating: {:?}", element);
+            let element = element?.calculate()?;
+            if let Some(ndt) = element.get_moment() {
+                if ndt > today {
+                    debug!("-> {:?} > {:?}", ndt, today);
+                    return Ok(ndt.date())
+                }
+            } else {
+                return Err("Iterator seems to return bogus values.".to_owned().into());
+            }
+        }
+
+        unreachable!() // until we have habit-end-date support
     }
 
     /// Check whether the instance is a habit by checking its headers for the habit data
