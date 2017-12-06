@@ -22,7 +22,7 @@ maintenance                       = { status     = "actively-developed" }
 [dependencies]
 walkdir = "1"
 clap = ">=2.17"
-log = "0.3"
+log = "0.4.0-rc.1"
 toml = "0.4"
 toml-query = "0.6"
 
