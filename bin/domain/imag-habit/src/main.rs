@@ -208,6 +208,7 @@ fn today(rt: &Runtime) {
         TableLister::new(lister_fn)
             .with_header(lister_header())
             .with_idx(true)
+            .print_empty(false)
             .list(relevant.into_iter())
             .map_err_trace_exit_unwrap(1);
     }
@@ -252,6 +253,7 @@ fn list(rt: &Runtime) {
     TableLister::new(lister_fn)
         .with_header(lister_header())
         .with_idx(true)
+        .print_empty(false)
         .list(iter)
         .map_err_trace_exit_unwrap(1);
 }
@@ -319,6 +321,7 @@ fn show(rt: &Runtime) {
             TableLister::new(instance_lister_fn)
                 .with_header(instance_lister_header())
                 .with_idx(true)
+                .print_empty(false)
                 .list(instances_iter)
                 .map_err_trace_exit_unwrap(1);
         })
