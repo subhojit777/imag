@@ -759,7 +759,6 @@ impl Store {
                     let is_file = {
                         let mut base = self.path().clone();
                         base.push(element.clone());
-                        println!("Checking: {:?}", base);
                         self.backend.is_file(&base)?
                     };
 
