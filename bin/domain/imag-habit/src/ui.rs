@@ -111,5 +111,13 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
         .subcommand(SubCommand::with_name("today")
                    .about("List habits which are due today")
                    .version("0.1")
+                   .arg(Arg::with_name("today-show-next-n")
+                        .long("show")
+                        .short("s")
+                        .multiple(false)
+                        .required(false)
+                        .takes_value(true)
+                        .value_name("N")
+                        .help("Show the N next relevant entries. Default = 5"))
                    )
 }

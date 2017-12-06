@@ -125,6 +125,9 @@ fn delete(rt: &Runtime) {
 // Almost the same as `list()` but with other lister functions and an additional filter for only
 // listing entries which are due today.
 fn today(rt: &Runtime) {
+    use libimaghabit::error::ResultExt;
+    use libimaghabit::error::HabitErrorKind as HEK;
+
     fn lister_fn(h: &FileLockEntry) -> Vec<String> {
         debug!("Listing: {:?}", h);
         let name     = h.habit_name().map_err_trace_exit_unwrap(1);
@@ -143,34 +146,67 @@ fn today(rt: &Runtime) {
 
     let today = ::chrono::offset::Local::today().naive_local();
 
-    let today_relevant : Vec<_> = rt
-        .store()
-        .all_habit_templates()
-        .map_err_trace_exit_unwrap(1)
-        .filter_map(|id| match rt.store().get(id.clone()) {
-            Ok(Some(h)) => Some(h),
-            Ok(None) => {
-                error!("No habit found for {:?}", id);
-                None
-            },
-            Err(e) => {
-                trace_error(&e);
-                None
-            },
-        })
+    let relevant : Vec<_> = { // scope, to have variable non-mutable in outer scope
+        let mut relevant : Vec<_> = rt
+            .store()
+            .all_habit_templates()
+            .map_err_trace_exit_unwrap(1)
+            .filter_map(|id| match rt.store().get(id.clone()) {
+                Ok(Some(h)) => Some(h),
+                Ok(None) => {
+                    error!("No habit found for {:?}", id);
+                    None
+                },
+                Err(e) => {
+                    trace_error(&e);
+                    None
+                },
+            })
+            .filter(|h| {
+                let due = h.next_instance_date().map_err_trace_exit_unwrap(1);
+                due == today || due > today // today or in future
+            })
+            .collect();
+
+        relevant.sort_by_key(|h| h.next_instance_date().map_err_trace_exit_unwrap(1));
+        relevant
+    };
+
+    let any_today_relevant = relevant
+        .iter()
         .filter(|h| {
             let due = h.next_instance_date().map_err_trace_exit_unwrap(1);
-            due == today
+            due == today // relevant today
         })
-        .collect();
+        .count() == 0;
 
-    if today_relevant.is_empty() {
+    if any_today_relevant {
+        let n = rt
+            .cli()
+            .subcommand_matches("today")
+            .and_then(|am| {
+                am.value_of("today-show-next-n")
+                    .map(|x| {
+                        x.parse::<usize>()
+                            .chain_err(|| HEK::from(format!("Cannot parse String '{}' to integer", x)))
+                            .map_err_trace_exit_unwrap(1)
+                    })
+            }).unwrap_or(5);
+
         info!("No Habits due today.");
+        info!("Upcoming:");
+        // list `n` which are relevant in the future.
+        for element in relevant.iter().take(n) {
+            let date = element.next_instance_date().map_err_trace_exit_unwrap(1);
+            let name = element.habit_name().map_err_trace_exit_unwrap(1);
+
+            info!(" * {date}: {name}", date = date, name = name);
+        }
     } else {
         TableLister::new(lister_fn)
             .with_header(lister_header())
             .with_idx(true)
-            .list(today_relevant.into_iter())
+            .list(relevant.into_iter())
             .map_err_trace_exit_unwrap(1);
     }
 }
