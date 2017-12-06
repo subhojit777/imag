@@ -34,6 +34,7 @@ pub struct TableLister<F: Fn(&FileLockEntry) -> Vec<String>> {
     header: Option<Vec<String>>,
 
     with_idx: bool,
+    print_empty: bool,
 }
 
 impl<F: Fn(&FileLockEntry) -> Vec<String>> TableLister<F> {
@@ -43,6 +44,7 @@ impl<F: Fn(&FileLockEntry) -> Vec<String>> TableLister<F> {
             line_generator: gen,
             header: None,
             with_idx: true,
+            print_empty: false,
         }
     }
 
@@ -53,6 +55,11 @@ impl<F: Fn(&FileLockEntry) -> Vec<String>> TableLister<F> {
 
     pub fn with_idx(mut self, b: bool) -> TableLister<F> {
         self.with_idx = b;
+        self
+    }
+
+    pub fn print_empty(mut self, b: bool) -> TableLister<F> {
+        self.print_empty = b;
         self
     }
 
@@ -81,6 +88,8 @@ impl<F: Fn(&FileLockEntry) -> Vec<String>> Lister for TableLister<F> {
             },
         }
 
+        let mut entries_added = 0;
+
         entries.enumerate().fold(Ok(table), |table, (i, entry)| {
             table.and_then(|mut table| {
                 let mut v = (self.line_generator)(&entry);
@@ -102,12 +111,17 @@ impl<F: Fn(&FileLockEntry) -> Vec<String>> Lister for TableLister<F> {
                 }
 
                 table.add_row(v.iter().map(|s| Cell::new(s)).collect());
+                entries_added += 1;
                 Ok(table)
             })
         })
         .and_then(|tbl| {
-            let mut io = stdout();
-            tbl.print(&mut io).chain_err(|| LEK::IOError)
+            if entries_added != 0 && !self.print_empty {
+                let mut io = stdout();
+                tbl.print(&mut io).chain_err(|| LEK::IOError)
+            } else {
+                Ok(())
+            }
         })
     }
 
