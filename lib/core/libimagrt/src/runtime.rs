@@ -26,7 +26,6 @@ pub use clap::App;
 use toml::Value;
 
 use clap::{Arg, ArgMatches};
-use log;
 
 use configuration::{fetch_config, override_config, InternalConfiguration};
 use error::RuntimeError;
@@ -335,22 +334,25 @@ impl<'a> Runtime<'a> {
 
     /// Initialize the internal logger
     fn init_logger(matches: &ArgMatches, config: Option<&Value>) {
+        use log::set_max_level;
+        use log::set_boxed_logger;
         use std::env::var as env_var;
         use env_logger;
 
         if env_var("IMAG_LOG_ENV").is_ok() {
             env_logger::init().unwrap();
         } else {
-            log::set_logger(|max_log_lvl| {
-                let logger = ImagLogger::new(matches, config)
-                    .map_err_trace()
-                    .unwrap_or_else(|_| exit(1));
-                max_log_lvl.set(logger.global_loglevel().to_log_level_filter());
-                debug!("Init logger with {}", logger.global_loglevel());
-                Box::new(logger)
-            })
-            .map_err(|e| panic!("Could not setup logger: {:?}", e))
-            .ok();
+            let logger = ImagLogger::new(matches, config)
+                .map_err_trace()
+                .unwrap_or_else(|_| exit(1));
+
+            set_max_level(logger.global_loglevel().to_level_filter());
+
+            debug!("Init logger with {}", logger.global_loglevel());
+
+            set_boxed_logger(Box::new(logger))
+                .map_err(|e| panic!("Could not setup logger: {:?}", e))
+                .ok();
         }
     }
 
