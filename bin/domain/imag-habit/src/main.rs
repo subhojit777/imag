@@ -68,7 +68,8 @@ fn main() {
                                     ui::build_ui);
 
 
-    rt.cli()
+    let _ = rt
+        .cli()
         .subcommand_name()
         .map(|name| {
             debug!("Call {}", name);
@@ -83,7 +84,8 @@ fn main() {
                     exit(1)
                 },
             }
-        });
+        })
+        .unwrap_or_else(|| today(&rt));
 }
 
 fn create(rt: &Runtime) {
