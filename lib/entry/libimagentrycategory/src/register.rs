@@ -175,7 +175,7 @@ mod tests {
 
     #[test]
     fn test_creating_category_creates_store_entry_with_header_field_set() {
-        let _ = env_logger::init();
+        let _ = env_logger::try_init();
         let category_name = "examplecategory";
         let store         = get_store();
         let res           = store.create_category(category_name);

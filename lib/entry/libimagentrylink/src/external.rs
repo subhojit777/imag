@@ -411,7 +411,7 @@ mod tests {
 
     fn setup_logging() {
         use env_logger;
-        let _ = env_logger::init().unwrap_or(());
+        let _ = env_logger::try_init();
     }
 
     pub fn get_store() -> Store {

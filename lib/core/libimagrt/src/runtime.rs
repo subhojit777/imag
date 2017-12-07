@@ -340,7 +340,7 @@ impl<'a> Runtime<'a> {
         use env_logger;
 
         if env_var("IMAG_LOG_ENV").is_ok() {
-            env_logger::init().unwrap();
+            let _ = env_logger::try_init();
         } else {
             let logger = ImagLogger::new(matches, config)
                 .map_err_trace()
