@@ -24,6 +24,7 @@ members = [
     "lib/domain/libimagbookmark",
     "lib/domain/libimagcontact",
     "lib/domain/libimagdiary",
+    "lib/domain/libimaghabit",
     "lib/domain/libimagmail",
     "lib/domain/libimagnotes",
     "lib/domain/libimagtimetrack",
