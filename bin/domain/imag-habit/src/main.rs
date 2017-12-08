@@ -46,6 +46,7 @@ extern crate libimagrt;
 extern crate libimagerror;
 extern crate libimagutil;
 extern crate libimagentrylist;
+extern crate libimaginteraction;
 
 use std::process::exit;
 
@@ -58,6 +59,7 @@ use libimaghabit::habit::HabitTemplate;
 use libimagstore::store::FileLockEntry;
 use libimagentrylist::listers::table::TableLister;
 use libimagentrylist::lister::Lister;
+use libimaginteraction::ask::ask_bool;
 
 mod ui;
 
@@ -121,7 +123,70 @@ fn create(rt: &Runtime) {
 }
 
 fn delete(rt: &Runtime) {
-    unimplemented!()
+    use libimaghabit::instance::HabitInstance;
+
+    let scmd = rt.cli().subcommand_matches("delete").unwrap();          // safe by call from main()
+    let name = scmd.value_of("delete-name").map(String::from).unwrap(); // safe by clap
+    let yes  = scmd.is_present("delete-yes");
+    let delete_instances = scmd.is_present("delete-instances");
+
+    let _ = rt
+        .store()
+        .all_habit_templates()
+        .map_err_trace_exit_unwrap(1)
+        .map(|sid| (sid.clone(), rt.store().get(sid).map_err_trace_exit_unwrap(1))) // get the FileLockEntry
+        .filter(|&(_, ref habit)| match habit { // filter for name of habit == name we look for
+            &Some(ref h) => h.habit_name().map_err_trace_exit_unwrap(1) == name,
+            &None => false,
+        })
+        .filter_map(|(a, o)| o.map(|x| (a, x))) // map: (a, Option<b>) -> Option<(a, b)> -> (a, b)
+        .map(|(sid, fle)| {
+            if delete_instances {
+
+                // if this does not succeed, we did something terribly wrong
+                let t_name = fle.habit_name().map_err_trace_exit_unwrap(1);
+                assert_eq!(t_name, name);
+
+                let get_instance          =  |iid| rt.store().get(iid).map_err_trace_exit_unwrap(1);
+                let has_template_name     =  |i: &FileLockEntry| t_name ==  i.get_template_name().map_err_trace_exit_unwrap(1);
+                let instance_location     =  |i: FileLockEntry| i.get_location().clone();
+                let delete_instance_by_id =  |id| {
+                    let do_delete = |id| rt.store().delete(id).map_err_trace_exit_unwrap(1);
+                    if !yes {
+                        let q = format!("Really delete {}", id);
+                        if ask_bool(&q, Some(false)) {
+                            let _ = do_delete(id);
+                        }
+                    } else {
+                        let _ = do_delete(id);
+                    }
+                };
+
+                fle
+                    .linked_instances()
+                    .map_err_trace_exit_unwrap(1)
+                    .filter_map(get_instance)
+                    .filter(has_template_name)
+                    .map(instance_location)
+                    .map(delete_instance_by_id)
+                    .collect::<Vec<_>>();
+            }
+
+            drop(fle);
+
+            let do_delete_template = |sid| rt.store().delete(sid).map_err_trace_exit_unwrap(1);
+            if !yes {
+                let q = format!("Really delete template {}", sid);
+                if ask_bool(&q, Some(false)) {
+                    let _ = do_delete_template(sid);
+                }
+            } else {
+                let _ = do_delete_template(sid);
+            }
+        })
+        .collect::<Vec<_>>();
+
+    info!("Done");
 }
 
 // Almost the same as `list()` but with other lister functions and an additional filter for only
