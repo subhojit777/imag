@@ -51,8 +51,14 @@ pub trait HabitTemplate : Sized {
     /// By default creates an instance with the name of the template, the current time and the
     /// current date and copies the comment from the template to the instance.
     ///
-    /// It uses `Store::retrieve()` underneath
-    fn create_instance<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
+    /// It uses `Store::retrieve()` underneath. So if there is already an instance for the day
+    /// passed, this will simply return the instance.
+    fn create_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate)
+        -> Result<FileLockEntry<'a>>;
+
+    /// Shortcut for calling `Self::create_instance_with_date()` with an instance of
+    /// `::chrono::Local::today().naive_local()`.
+    fn create_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
 
     /// Get instances for this template
     fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator>;
@@ -74,10 +80,10 @@ pub trait HabitTemplate : Sized {
 
 impl HabitTemplate for Entry {
 
-    fn create_instance<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
+    fn create_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate) -> Result<FileLockEntry<'a>> {
         let name    = self.habit_name()?;
         let comment = self.habit_comment()?;
-        let date    = date_to_string(&Local::today().naive_local());
+        let date    = date_to_string(date);
         let id      = instance_id_for_name_and_datestr(&name, &date)?;
 
         store.retrieve(id)
@@ -85,12 +91,16 @@ impl HabitTemplate for Entry {
             .and_then(|mut entry| {
                 {
                     let mut hdr = entry.get_header_mut();
-                    try!(hdr.insert("habit.instance.name",    Value::String(name)));
-                    try!(hdr.insert("habit.instance.date",    Value::String(date)));
-                    try!(hdr.insert("habit.instance.comment", Value::String(comment)));
+                    hdr.insert("habit.instance.name",    Value::String(name))?;
+                    hdr.insert("habit.instance.date",    Value::String(date))?;
+                    hdr.insert("habit.instance.comment", Value::String(comment))?;
                 }
                 Ok(entry)
             })
+    }
+
+    fn create_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
+        self.create_instance_with_date(store, &Local::today().naive_local())
     }
 
     fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator> {
