@@ -64,6 +64,9 @@ pub trait HabitTemplate : Sized {
     fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator>;
 
     /// Get the date of the next date when the habit should be done
+    fn next_instance_date_after(&self, base: &NaiveDateTime) -> Result<NaiveDate>;
+
+    /// Get the date of the next date when the habit should be done
     fn next_instance_date(&self) -> Result<NaiveDate>;
 
     /// Check whether the instance is a habit by checking its headers for the habit data
@@ -113,8 +116,7 @@ impl HabitTemplate for Entry {
         Ok(HabitInstanceStoreIdIterator::new(sidi))
     }
 
-    /// Get the date of the next date when the habit should be done
-    fn next_instance_date(&self) -> Result<NaiveDate> {
+    fn next_instance_date_after(&self, base: &NaiveDateTime) -> Result<NaiveDate> {
         use kairos::timetype::TimeType;
         use kairos::parser::parse;
         use kairos::parser::Parsed;
@@ -129,22 +131,21 @@ impl HabitTemplate for Entry {
             }
         };
 
-        let today = TimeType::today();
-        let today = today.get_moment().unwrap(); // we know this is safe.
-        debug!("Today is {:?}", today);
+        debug!("Base is {:?}", base);
 
         let basedate  = date_from_s(self.habit_basedate()?)?;
-        debug!("Basedate is {:?}", today);
+        debug!("Basedate is {:?}", basedate);
 
         let increment = date_from_s(self.habit_recur_spec()?)?;
-        debug!("Increment is {:?}", today);
+        debug!("Increment is {:?}", increment);
 
         for element in basedate.every(increment)? {
             debug!("Calculating: {:?}", element);
             let element = element?.calculate()?;
+            debug!(" = {:?}", element);
             if let Some(ndt) = element.get_moment() {
-                if ndt > today {
-                    debug!("-> {:?} > {:?}", ndt, today);
+                if ndt >= base {
+                    debug!("-> {:?} >= {:?}", ndt, base);
                     return Ok(ndt.date())
                 }
             } else {
@@ -153,6 +154,17 @@ impl HabitTemplate for Entry {
         }
 
         unreachable!() // until we have habit-end-date support
+    }
+
+    /// Get the date of the next date when the habit should be done
+    fn next_instance_date(&self) -> Result<NaiveDate> {
+        use kairos::timetype::TimeType;
+
+        let today = TimeType::today();
+        let today = today.get_moment().unwrap(); // we know this is safe.
+        debug!("Today is {:?}", today);
+
+        self.next_instance_date_after(&today.date().and_hms(0, 0, 0))
     }
 
     /// Check whether the instance is a habit by checking its headers for the habit data
