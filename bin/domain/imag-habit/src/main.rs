@@ -208,15 +208,17 @@ fn today(rt: &Runtime, future: bool) {
         let name     = h.habit_name().map_err_trace_exit_unwrap(1);
         let basedate = h.habit_basedate().map_err_trace_exit_unwrap(1);
         let recur    = h.habit_recur_spec().map_err_trace_exit_unwrap(1);
+        let due      = h.next_instance_date().map_err_trace_exit_unwrap(1);
+        let due      = libimaghabit::util::date_to_string(&due);
         let comm     = h.habit_comment().map_err_trace_exit_unwrap(1);
 
-        let v = vec![name, basedate, recur, comm];
+        let v = vec![name, basedate, recur, due, comm];
         debug!(" -> {:?}", v);
         v
     }
 
     fn lister_header() -> Vec<String> {
-        ["Name", "Basedate", "Recurr", "Comment"].iter().map(|x| String::from(*x)).collect()
+        ["Name", "Basedate", "Recurr", "Next Due", "Comment"].iter().map(|x| String::from(*x)).collect()
     }
 
     let future = {
