@@ -120,4 +120,16 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .value_name("N")
                         .help("Show the N next relevant entries. Default = 5"))
                    )
+
+        .subcommand(SubCommand::with_name("done")
+                    .about("Mark one or more habits (which are pending) as done")
+                    .version("0.1")
+                    .arg(Arg::with_name("done-name")
+                        .index(1)
+                        .multiple(true)
+                        .required(true)
+                        .takes_value(true)
+                        .value_name("NAME")
+                        .help("The names of the habits to be marked as done."))
+                    )
 }

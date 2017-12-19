@@ -57,6 +57,8 @@ use libimaghabit::store::HabitStore;
 use libimaghabit::habit::builder::HabitBuilder;
 use libimaghabit::habit::HabitTemplate;
 use libimagstore::store::FileLockEntry;
+use libimagstore::store::Store;
+use libimagstore::storeid::StoreId;
 use libimagentrylist::listers::table::TableLister;
 use libimagentrylist::lister::Lister;
 use libimaginteraction::ask::ask_bool;
@@ -81,6 +83,7 @@ fn main() {
                 "list"   => list(&rt),
                 "today"  => today(&rt),
                 "show"   => show(&rt),
+                "done"   => done(&rt),
                 _        => {
                     debug!("Unknown command"); // More error handling
                     exit(1)
@@ -349,17 +352,7 @@ fn show(rt: &Runtime) {
         .store()
         .all_habit_templates()
         .map_err_trace_exit_unwrap(1)
-        .filter_map(|id| match rt.store().get(id.clone()) {
-            Ok(Some(h)) => Some(h),
-            Ok(None) => {
-                error!("Cannot get habit for {:?} in 'show' subcommand", id);
-                None
-            },
-            Err(e) => {
-                trace_error(&e);
-                None
-            },
-        })
+        .filter_map(|id| get_from_store(rt.store(), id))
         .filter(|h| h.habit_name().map(|n| name == n).map_err_trace_exit_unwrap(1))
         .enumerate()
         .map(|(i, habit)| {
@@ -393,3 +386,57 @@ fn show(rt: &Runtime) {
         .collect::<Vec<_>>();
 }
 
+fn done(rt: &Runtime) {
+    let scmd = rt.cli().subcommand_matches("done").unwrap(); // safe by call from main()
+    let names : Vec<_> = scmd.values_of("done-name").unwrap().map(String::from).collect();
+
+    let today = ::chrono::offset::Local::today().naive_local();
+
+    let relevant : Vec<_> = { // scope, to have variable non-mutable in outer scope
+        let mut relevant : Vec<_> = rt
+            .store()
+            .all_habit_templates()
+            .map_err_trace_exit_unwrap(1)
+            .filter_map(|id| get_from_store(rt.store(), id))
+            .filter(|h| {
+                let due = h.next_instance_date().map_err_trace_exit_unwrap(1);
+                (due == today || due < today) || scmd.is_present("allow-future")
+            })
+            .filter(|h| {
+                names.contains(&h.habit_name().map_err_trace_exit_unwrap(1))
+            })
+            .collect();
+
+        relevant.sort_by_key(|h| h.next_instance_date().map_err_trace_exit_unwrap(1));
+        relevant
+    };
+
+    for r in relevant.iter() {
+        let next_instance_name = r.habit_name().map_err_trace_exit_unwrap(1);
+        let next_instance_date = r.next_instance_date().map_err_trace_exit_unwrap(1);
+
+        debug!("Creating new instance on {:?}", next_instance_date);
+        r.create_instance_with_date(rt.store(), &next_instance_date)
+            .map_err_trace_exit_unwrap(1);
+
+        info!("Done on {date}: {name}",
+              date = libimaghabit::util::date_to_string(&next_instance_date),
+              name = next_instance_name);
+    }
+    info!("Done.");
+}
+
+/// Helper function for `Iterator::filter_map()`ing `all_habit_templates()` and `Store::get` them.
+fn get_from_store<'a>(store: &'a Store, id: StoreId) -> Option<FileLockEntry<'a>> {
+    match store.get(id.clone()) {
+        Ok(Some(h)) => Some(h),
+        Ok(None) => {
+            error!("No habit found for {:?}", id);
+            None
+        },
+        Err(e) => {
+            trace_error(&e);
+            None
+        },
+    }
+}
