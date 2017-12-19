@@ -81,7 +81,8 @@ fn main() {
                 "create" => create(&rt),
                 "delete" => delete(&rt),
                 "list"   => list(&rt),
-                "today"  => today(&rt),
+                "today"  => today(&rt, false),
+                "status" => today(&rt, true),
                 "show"   => show(&rt),
                 "done"   => done(&rt),
                 _        => {
@@ -90,7 +91,7 @@ fn main() {
                 },
             }
         })
-        .unwrap_or_else(|| today(&rt));
+        .unwrap_or_else(|| today(&rt, true));
 }
 
 fn create(rt: &Runtime) {
@@ -194,7 +195,11 @@ fn delete(rt: &Runtime) {
 
 // Almost the same as `list()` but with other lister functions and an additional filter for only
 // listing entries which are due today.
-fn today(rt: &Runtime) {
+//
+// if `future` is false, the `rt.cli()` will be checked or a subcommand "today" and the related
+// future flag. If it is true, the check will not be performed and it is assumed that `--future`
+// was passed.
+fn today(rt: &Runtime, future: bool) {
     use libimaghabit::error::ResultExt;
     use libimaghabit::error::HabitErrorKind as HEK;
 
@@ -214,6 +219,13 @@ fn today(rt: &Runtime) {
         ["Name", "Basedate", "Recurr", "Comment"].iter().map(|x| String::from(*x)).collect()
     }
 
+    let future = {
+        if !future {
+            rt.cli().subcommand_matches("today").unwrap().is_present("today-show-future")
+        } else {
+            true
+        }
+    };
     let today = ::chrono::offset::Local::today().naive_local();
 
     let relevant : Vec<_> = { // scope, to have variable non-mutable in outer scope
@@ -234,7 +246,7 @@ fn today(rt: &Runtime) {
             })
             .filter(|h| {
                 let due = h.next_instance_date().map_err_trace_exit_unwrap(1);
-                due == today || due > today // today or in future
+                due == today || (future && due > today) // today or in future
             })
             .collect();
 
