@@ -22,7 +22,7 @@ use clap::{Arg, App, SubCommand};
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
         .subcommand(SubCommand::with_name("status")
-                   .about("Show the current status. Remind of not-yet-done habits, shows upcoming. Default if no command is passed.")
+                   .about("Show the current status. Remind of not-yet-done habits, shows upcoming. Default if no command is passed. Also alias for 'today --future'")
                    .version("0.1")
                    )
 
