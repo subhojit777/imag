@@ -17,14 +17,20 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#[macro_use]
-extern crate error_chain;
-extern crate toml;
-extern crate toml_query;
+error_chain! {
+    types {
+        LogError, LogErrorKind, ResultExt, Result;
+    }
 
-extern crate libimagdiary;
-extern crate libimagstore;
+    foreign_links {
+        TomlQueryError(::toml_query::error::Error);
+    }
 
-pub mod error;
-pub mod log;
+    errors {
+        HeaderTypeError(expected: &'static str, got: &'static str) {
+            description("Header Type Error")
+            display("Error: Expected {} in header, got {}", expected, got)
+        }
+    }
+}
 
