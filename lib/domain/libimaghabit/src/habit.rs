@@ -51,11 +51,20 @@ pub trait HabitTemplate : Sized {
     /// By default creates an instance with the name of the template, the current time and the
     /// current date and copies the comment from the template to the instance.
     ///
-    /// It uses `Store::retrieve()` underneath
-    fn create_instance<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
+    /// It uses `Store::retrieve()` underneath. So if there is already an instance for the day
+    /// passed, this will simply return the instance.
+    fn create_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate)
+        -> Result<FileLockEntry<'a>>;
+
+    /// Shortcut for calling `Self::create_instance_with_date()` with an instance of
+    /// `::chrono::Local::today().naive_local()`.
+    fn create_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
 
     /// Get instances for this template
     fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator>;
+
+    /// Get the date of the next date when the habit should be done
+    fn next_instance_date_after(&self, base: &NaiveDateTime) -> Result<NaiveDate>;
 
     /// Get the date of the next date when the habit should be done
     fn next_instance_date(&self) -> Result<NaiveDate>;
@@ -74,10 +83,10 @@ pub trait HabitTemplate : Sized {
 
 impl HabitTemplate for Entry {
 
-    fn create_instance<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
+    fn create_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate) -> Result<FileLockEntry<'a>> {
         let name    = self.habit_name()?;
         let comment = self.habit_comment()?;
-        let date    = date_to_string(&Local::today().naive_local());
+        let date    = date_to_string(date);
         let id      = instance_id_for_name_and_datestr(&name, &date)?;
 
         store.retrieve(id)
@@ -85,12 +94,16 @@ impl HabitTemplate for Entry {
             .and_then(|mut entry| {
                 {
                     let mut hdr = entry.get_header_mut();
-                    try!(hdr.insert("habit.instance.name",    Value::String(name)));
-                    try!(hdr.insert("habit.instance.date",    Value::String(date)));
-                    try!(hdr.insert("habit.instance.comment", Value::String(comment)));
+                    hdr.insert("habit.instance.name",    Value::String(name))?;
+                    hdr.insert("habit.instance.date",    Value::String(date))?;
+                    hdr.insert("habit.instance.comment", Value::String(comment))?;
                 }
                 Ok(entry)
             })
+    }
+
+    fn create_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
+        self.create_instance_with_date(store, &Local::today().naive_local())
     }
 
     fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator> {
@@ -103,8 +116,7 @@ impl HabitTemplate for Entry {
         Ok(HabitInstanceStoreIdIterator::new(sidi))
     }
 
-    /// Get the date of the next date when the habit should be done
-    fn next_instance_date(&self) -> Result<NaiveDate> {
+    fn next_instance_date_after(&self, base: &NaiveDateTime) -> Result<NaiveDate> {
         use kairos::timetype::TimeType;
         use kairos::parser::parse;
         use kairos::parser::Parsed;
@@ -119,22 +131,21 @@ impl HabitTemplate for Entry {
             }
         };
 
-        let today = TimeType::today();
-        let today = today.get_moment().unwrap(); // we know this is safe.
-        debug!("Today is {:?}", today);
+        debug!("Base is {:?}", base);
 
         let basedate  = date_from_s(self.habit_basedate()?)?;
-        debug!("Basedate is {:?}", today);
+        debug!("Basedate is {:?}", basedate);
 
         let increment = date_from_s(self.habit_recur_spec()?)?;
-        debug!("Increment is {:?}", today);
+        debug!("Increment is {:?}", increment);
 
         for element in basedate.every(increment)? {
             debug!("Calculating: {:?}", element);
             let element = element?.calculate()?;
+            debug!(" = {:?}", element);
             if let Some(ndt) = element.get_moment() {
-                if ndt > today {
-                    debug!("-> {:?} > {:?}", ndt, today);
+                if ndt >= base {
+                    debug!("-> {:?} >= {:?}", ndt, base);
                     return Ok(ndt.date())
                 }
             } else {
@@ -143,6 +154,17 @@ impl HabitTemplate for Entry {
         }
 
         unreachable!() // until we have habit-end-date support
+    }
+
+    /// Get the date of the next date when the habit should be done
+    fn next_instance_date(&self) -> Result<NaiveDate> {
+        use kairos::timetype::TimeType;
+
+        let today = TimeType::today();
+        let today = today.get_moment().unwrap(); // we know this is safe.
+        debug!("Today is {:?}", today);
+
+        self.next_instance_date_after(&today.date().and_hms(0, 0, 0))
     }
 
     /// Check whether the instance is a habit by checking its headers for the habit data
