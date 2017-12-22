@@ -24,7 +24,6 @@ use std::process::exit;
 
 pub use clap::App;
 use toml::Value;
-use toml_query::read::TomlValueReadExt;
 
 use clap::{Arg, ArgMatches};
 use log;
@@ -138,22 +137,12 @@ impl<'a> Runtime<'a> {
         debug!("RTP path    = {:?}", rtp);
         debug!("Store path  = {:?}", storepath);
 
-        let store_config = match config {
-            Some(ref c) => c.read("store").chain_err(|| RuntimeErrorKind::Instantiate)?.cloned(),
-            None        => None,
-        };
-
-        if matches.is_present(Runtime::arg_debugging_name()) {
-            debug!("Config: {:?}\n", config);
-            debug!("Store-config: {:?}\n", store_config);
-        }
-
         let store_result = if cli_app.use_inmemory_fs() {
             Store::new_with_backend(storepath,
-                                    store_config,
+                                    &config,
                                     Box::new(InMemoryFileAbstraction::new()))
         } else {
-            Store::new(storepath, store_config)
+            Store::new(storepath, &config)
         };
 
         store_result.map(|store| {

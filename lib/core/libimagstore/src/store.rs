@@ -236,7 +236,7 @@ impl Store {
     ///
     /// - On success: Store object
     ///
-    pub fn new(location: PathBuf, store_config: Option<&Value>) -> Result<Store> {
+    pub fn new(location: PathBuf, store_config: &Option<Value>) -> Result<Store> {
         let backend = Box::new(FSFileAbstraction::new());
         Store::new_with_backend(location, store_config, backend)
     }
@@ -246,7 +246,7 @@ impl Store {
     ///
     /// Do not use directly, only for testing purposes.
     pub fn new_with_backend(location: PathBuf,
-                            store_config: Option<&Value>,
+                            store_config: &Option<Value>,
                             backend: Box<FileAbstraction>) -> Result<Store> {
         use configuration::*;
 
@@ -1293,7 +1293,7 @@ mod store_tests {
 
     pub fn get_store() -> Store {
         let backend = Box::new(InMemoryFileAbstraction::new());
-        Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+        Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
     }
 
     #[test]
@@ -1346,7 +1346,7 @@ mod store_tests {
                 let backend = StdIoFileAbstraction::new(&mut input, output.clone(), mapper).unwrap();
                 let backend = Box::new(backend);
 
-                Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+                Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
             };
 
             for n in 1..100 {
@@ -1619,7 +1619,7 @@ mod store_tests {
             let backend = InMemoryFileAbstraction::new();
             let backend = Box::new(backend);
 
-            Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+            Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
         };
 
         for n in 1..100 {
@@ -1694,7 +1694,7 @@ mod store_tests {
                 let backend = StdIoFileAbstraction::new(&mut input, output, mapper).unwrap();
                 let backend = Box::new(backend);
 
-                Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+                Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
             };
 
             // Replacing the backend
