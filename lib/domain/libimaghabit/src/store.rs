@@ -17,17 +17,12 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use chrono::NaiveDate;
-
 use error::Result;
-use error::HabitError as HE;
 use habit::builder::HabitBuilder;
 use iter::HabitTemplateStoreIdIterator;
 use iter::HabitInstanceStoreIdIterator;
 
 use libimagstore::store::Store;
-use libimagstore::store::FileLockEntry;
-use libimagstore::storeid::StoreIdIterator;
 
 /// Extension trait for libimagstore::store::Store which is basically our Habit-Store
 pub trait HabitStore {

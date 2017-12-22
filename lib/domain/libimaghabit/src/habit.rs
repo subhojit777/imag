@@ -29,14 +29,12 @@ use error::HabitErrorKind as HEK;
 use error::*;
 use iter::HabitInstanceStoreIdIterator;
 use util::date_to_string;
-use util::date_from_string;
 use util::IsHabitCheck;
 
 use libimagentrylink::internal::InternalLinker;
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Entry;
-use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreIdIterator;
@@ -188,7 +186,7 @@ impl HabitTemplate for Entry {
             "habit.template.name",
             "habit.template.basedate",
             "habit.template.comment",
-        ].iter().fold(Ok(true), |acc, path| acc.and_then(|b| {
+        ].iter().fold(Ok(true), |acc, path| acc.and_then(|_| {
             self.get_header()
                 .read(path)
                 .map(|o| is_match!(o, Some(&Value::String(_))))
@@ -253,7 +251,6 @@ pub mod builder {
     use error::HabitErrorKind as HEK;
     use error::*;
     use util::date_to_string;
-    use util::date_from_string;
 
     pub struct HabitBuilder {
         name: Option<String>,

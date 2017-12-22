@@ -17,17 +17,9 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use toml::Value;
-use toml_query::read::TomlValueReadExt;
-
-use libimagstore::store::FileLockEntry;
-use libimagstore::store::Store;
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::storeid::StoreId;
 
-use error::HabitError as HE;
-use error::HabitErrorKind as HEK;
-use error::*;
 use util::IsHabitCheck;
 
 pub struct HabitTemplateStoreIdIterator(StoreIdIterator);

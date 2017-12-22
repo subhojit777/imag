@@ -22,10 +22,8 @@ use toml::Value;
 use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
-use error::HabitError as HE;
 use error::HabitErrorKind as HEK;
 use error::*;
-use habit::HabitTemplate;
 use util::*;
 
 use libimagstore::store::Entry;
@@ -54,7 +52,7 @@ impl HabitInstance for Entry {
             "habit.instance.name",
             "habit.instance.date",
             "habit.instance.comment",
-        ].iter().fold(Ok(true), |acc, path| acc.and_then(|b| {
+        ].iter().fold(Ok(true), |acc, path| acc.and_then(|_| {
             self.get_header()
                 .read(path)
                 .map(|o| is_match!(o, Some(&Value::String(_))))
