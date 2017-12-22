@@ -171,7 +171,7 @@ impl HabitTemplate for Entry {
             "habit.template.name",
             "habit.template.basedate",
             "habit.template.comment",
-        ].iter().fold(Ok(true), |acc, path| acc.and_then(|b| {
+        ].iter().fold(Ok(true), |acc, path| acc.and_then(|_| {
             self.get_header()
                 .read(path)
                 .map(|o| is_match!(o, Some(&Value::String(_))))

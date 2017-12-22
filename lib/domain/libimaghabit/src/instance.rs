@@ -52,7 +52,7 @@ impl HabitInstance for Entry {
             "habit.instance.name",
             "habit.instance.date",
             "habit.instance.comment",
-        ].iter().fold(Ok(true), |acc, path| acc.and_then(|b| {
+        ].iter().fold(Ok(true), |acc, path| acc.and_then(|_| {
             self.get_header()
                 .read(path)
                 .map(|o| is_match!(o, Some(&Value::String(_))))
