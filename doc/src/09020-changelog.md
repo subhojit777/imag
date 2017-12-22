@@ -34,6 +34,7 @@ This section contains the changelog from the last release to the next release.
       Specifying an editor either via CLI or via the `$EDITOR` environment
       variable still possible.
     * `imag-contact` was added (with basic contact support so far).
+    * `imag-habit` was introduced
 
 * Minor changes
     * `libimagentryannotation` got a rewrite, is not based on `libimagnotes`
