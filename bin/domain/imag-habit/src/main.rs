@@ -95,34 +95,48 @@ fn main() {
 }
 
 fn create(rt: &Runtime) {
-    let scmd = rt.cli().subcommand_matches("create").unwrap();                      // safe by call from main()
-    let name = scmd.value_of("create-name").map(String::from).unwrap();             // safe by clap
-    let recu = scmd.value_of("create-date-recurr-spec").map(String::from).unwrap(); // safe by clap
-    let comm = scmd.value_of("create-comment").map(String::from).unwrap();          // safe by clap
-    let date = scmd.value_of("create-date").unwrap();                               // safe by clap
+    use kairos::parser::parse as kairos_parse;
+    use kairos::parser::Parsed;
+    let scmd  = rt.cli().subcommand_matches("create").unwrap();                      // safe by call from main()
+    let name  = scmd.value_of("create-name").map(String::from).unwrap();             // safe by clap
+    let recu  = scmd.value_of("create-date-recurr-spec").map(String::from).unwrap(); // safe by clap
+    let comm  = scmd.value_of("create-comment").map(String::from).unwrap();          // safe by clap
+    let date  = scmd.value_of("create-date").unwrap();                               // safe by clap
 
-    let date = match ::kairos::parser::parse(date).map_err_trace_exit_unwrap(1) {
-        ::kairos::parser::Parsed::TimeType(tt) => match tt.get_moment() {
-            Some(mom) => mom.date(),
-            None => {
-                error!("Error: 'date' parameter does not yield a point in time");
-                exit(1);
+    let parsedate = |d, pname| match kairos_parse(d).map_err_trace_exit_unwrap(1) {
+        Parsed::TimeType(tt) => match tt.calculate() {
+            Ok(tt) => match tt.get_moment() {
+                Some(mom) => mom.date(),
+                None => {
+                    debug!("TimeType yielded: '{:?}'", tt);
+                    error!("Error: '{}' parameter does not yield a point in time", pname);
+                    exit(1);
+                },
             },
+            Err(e) => {
+                error!("Error: '{:?}'", e);
+                exit(1);
+            }
         },
         _ => {
-            error!("Error: 'date' parameter does not yield a point in time");
+            error!("Error: '{}' parameter does not yield a point in time", pname);
             exit(1);
         },
     };
 
-    let _ = HabitBuilder::default()
+    let hb = HabitBuilder::default()
         .with_name(name)
-        .with_basedate(date)
+        .with_basedate(parsedate(date, "date"))
         .with_recurspec(recu)
-        .with_comment(comm)
-        .build(rt.store())
-        .map_err_trace_exit_unwrap(1);
+        .with_comment(comm);
 
+    let hb = if let Some(until) = scmd.value_of("create-until") {
+        hb.with_until(parsedate(until, "until"))
+    } else {
+        hb
+    };
+
+    hb.build(rt.store()).map_err_trace_exit_unwrap(1);
     info!("Ok");
 }
 
