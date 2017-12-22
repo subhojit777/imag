@@ -203,24 +203,6 @@ fn today(rt: &Runtime, future: bool) {
     use libimaghabit::error::ResultExt;
     use libimaghabit::error::HabitErrorKind as HEK;
 
-    fn lister_fn(h: &FileLockEntry) -> Vec<String> {
-        debug!("Listing: {:?}", h);
-        let name     = h.habit_name().map_err_trace_exit_unwrap(1);
-        let basedate = h.habit_basedate().map_err_trace_exit_unwrap(1);
-        let recur    = h.habit_recur_spec().map_err_trace_exit_unwrap(1);
-        let due      = h.next_instance_date().map_err_trace_exit_unwrap(1);
-        let due      = libimaghabit::util::date_to_string(&due);
-        let comm     = h.habit_comment().map_err_trace_exit_unwrap(1);
-
-        let v = vec![name, basedate, recur, due, comm];
-        debug!(" -> {:?}", v);
-        v
-    }
-
-    fn lister_header() -> Vec<String> {
-        ["Name", "Basedate", "Recurr", "Next Due", "Comment"].iter().map(|x| String::from(*x)).collect()
-    }
-
     let future = {
         if !future {
             rt.cli().subcommand_matches("today").unwrap().is_present("today-show-future")
@@ -248,11 +230,13 @@ fn today(rt: &Runtime, future: bool) {
             })
             .filter(|h| {
                 let due = h.next_instance_date().map_err_trace_exit_unwrap(1);
-                due == today || (future && due > today) // today or in future
+                // today or in future
+                due.map(|d| d == today || (future && d > today)).unwrap_or(false)
             })
             .collect();
 
-        relevant.sort_by_key(|h| h.next_instance_date().map_err_trace_exit_unwrap(1));
+        // unwrap is safe because we filtered above
+        relevant.sort_by_key(|h| h.next_instance_date().map_err_trace_exit_unwrap(1).unwrap());
         relevant
     };
 
@@ -260,7 +244,7 @@ fn today(rt: &Runtime, future: bool) {
         .iter()
         .filter(|h| {
             let due = h.next_instance_date().map_err_trace_exit_unwrap(1);
-            due == today // relevant today
+            due.map(|d| d == today).unwrap_or(false) // relevant today
         })
         .count() == 0;
 
@@ -284,9 +268,31 @@ fn today(rt: &Runtime, future: bool) {
             let date = element.next_instance_date().map_err_trace_exit_unwrap(1);
             let name = element.habit_name().map_err_trace_exit_unwrap(1);
 
-            info!(" * {date}: {name}", date = date, name = name);
+            if let Some(date) = date { // if there is a date
+                info!(" * {date}: {name}", date = date, name = name);
+            }
         }
     } else {
+        fn lister_fn(h: &FileLockEntry) -> Vec<String> {
+            debug!("Listing: {:?}", h);
+            let name     = h.habit_name().map_err_trace_exit_unwrap(1);
+            let basedate = h.habit_basedate().map_err_trace_exit_unwrap(1);
+            let recur    = h.habit_recur_spec().map_err_trace_exit_unwrap(1);
+            let due      = h.next_instance_date().map_err_trace_exit_unwrap(1)
+                .map(date_to_string_helper)
+                .unwrap_or_else(|| String::from("<finished>"));
+            let comm     = h.habit_comment().map_err_trace_exit_unwrap(1);
+
+            let v = vec![name, basedate, recur, due, comm];
+            debug!(" -> {:?}", v);
+            v
+        }
+
+        fn lister_header() -> Vec<String> {
+            ["Name", "Basedate", "Recurr", "Next Due", "Comment"]
+                .iter().map(|x| String::from(*x)).collect()
+        }
+
         TableLister::new(lister_fn)
             .with_header(lister_header())
             .with_idx(true)
@@ -303,8 +309,9 @@ fn list(rt: &Runtime) {
         let basedate = h.habit_basedate().map_err_trace_exit_unwrap(1);
         let recur    = h.habit_recur_spec().map_err_trace_exit_unwrap(1);
         let comm     = h.habit_comment().map_err_trace_exit_unwrap(1);
-        let due      = h.next_instance_date().map_err_trace_exit_unwrap(1);
-        let due      = libimaghabit::util::date_to_string(&due);
+        let due      = h.next_instance_date().map_err_trace_exit_unwrap(1)
+            .map(date_to_string_helper)
+            .unwrap_or_else(|| String::from("<finished>"));
 
         let v = vec![name, basedate, recur, comm, due];
         debug!(" -> {:?}", v);
@@ -414,28 +421,35 @@ fn done(rt: &Runtime) {
             .filter_map(|id| get_from_store(rt.store(), id))
             .filter(|h| {
                 let due = h.next_instance_date().map_err_trace_exit_unwrap(1);
-                (due == today || due < today) || scmd.is_present("allow-future")
+                due.map(|d| (d == today || d < today) || scmd.is_present("allow-future"))
+                    .unwrap_or(false)
             })
             .filter(|h| {
                 names.contains(&h.habit_name().map_err_trace_exit_unwrap(1))
             })
             .collect();
 
-        relevant.sort_by_key(|h| h.next_instance_date().map_err_trace_exit_unwrap(1));
+        // unwrap is safe because we filtered above
+        relevant.sort_by_key(|h| h.next_instance_date().map_err_trace_exit_unwrap(1).unwrap());
         relevant
     };
 
     for r in relevant.iter() {
         let next_instance_name = r.habit_name().map_err_trace_exit_unwrap(1);
         let next_instance_date = r.next_instance_date().map_err_trace_exit_unwrap(1);
+        if let Some(next) = next_instance_date {
+            debug!("Creating new instance on {:?}", next);
+            r.create_instance_with_date(rt.store(), &next)
+                .map_err_trace_exit_unwrap(1);
 
-        debug!("Creating new instance on {:?}", next_instance_date);
-        r.create_instance_with_date(rt.store(), &next_instance_date)
-            .map_err_trace_exit_unwrap(1);
+            info!("Done on {date}: {name}",
+                  date = libimaghabit::util::date_to_string(&next),
+                  name = next_instance_name);
+        } else {
+            info!("Ignoring: {}, because there is no due date (the habit is finised)",
+                next_instance_name);
+        }
 
-        info!("Done on {date}: {name}",
-              date = libimaghabit::util::date_to_string(&next_instance_date),
-              name = next_instance_name);
     }
     info!("Done.");
 }
@@ -454,3 +468,8 @@ fn get_from_store<'a>(store: &'a Store, id: StoreId) -> Option<FileLockEntry<'a>
         },
     }
 }
+
+fn date_to_string_helper(d: chrono::NaiveDate) -> String {
+    libimaghabit::util::date_to_string(&d)
+}
+
