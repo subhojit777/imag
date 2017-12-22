@@ -17,12 +17,20 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-extern crate notify_rust;
-#[macro_use] extern crate error_chain;
+error_chain! {
+    types {
+        NotificationError, NotificationErrorKind, ResultExt, Result;
+    }
 
-#[macro_use] extern crate libimagerror;
+    foreign_links {
+        NotifyError(::notify_rust::error::Error);
+    }
 
-pub mod error;
-pub mod notificator;
-pub mod result_notification;
+    errors {
+        Unknown {
+            description("Unknown Error")
+            display("Unknown Error")
+        }
+    }
+}
 

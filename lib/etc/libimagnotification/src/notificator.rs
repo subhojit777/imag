@@ -17,7 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use result::Result;
+use error::Result;
+use error::ResultExt;
 
 /// A Notificator provides a function that can be called to notify about a certain object.
 ///
@@ -34,7 +35,7 @@ pub mod default {
     use std::fmt::Debug;
     use std::fmt::Display;
 
-    use result::Result;
+    use error::Result;
 
     use notify_rust::Notification as RustNotification;
     use notify_rust::NotificationUrgency;
