@@ -1067,7 +1067,16 @@ pub trait Header {
 impl Header for Value {
 
     fn verify(&self) -> Result<()> {
-        verify_header(self)
+        if !has_main_section(self)? {
+            Err(SE::from_kind(SEK::MissingMainSection))
+        } else if !has_imag_version_in_main_section(self)? {
+            Err(SE::from_kind(SEK::MissingVersionInfo))
+        } else if !has_only_tables(self)? {
+            debug!("Could not verify that it only has tables in its base table");
+            Err(SE::from_kind(SEK::NonTableInBaseTable))
+        } else {
+            Ok(())
+        }
     }
 
     fn parse(s: &str) -> Result<Value> {
@@ -1075,7 +1084,7 @@ impl Header for Value {
 
         from_str(s)
             .map_err(From::from)
-            .and_then(verify_header_consistency)
+            .and_then(|h: Value| h.verify().map(|_| h))
     }
 
     fn default_header() -> Value {
@@ -1092,23 +1101,6 @@ impl Header for Value {
         Value::Table(m)
     }
 
-}
-
-fn verify_header_consistency(t: Value) -> Result<Value> {
-    verify_header(&t).chain_err(|| SEK::HeaderInconsistency).map(|_| t)
-}
-
-fn verify_header(t: &Value) -> Result<()> {
-    if !has_main_section(t)? {
-        Err(SE::from_kind(SEK::MissingMainSection))
-    } else if !has_imag_version_in_main_section(t)? {
-        Err(SE::from_kind(SEK::MissingVersionInfo))
-    } else if !has_only_tables(t)? {
-        debug!("Could not verify that it only has tables in its base table");
-        Err(SE::from_kind(SEK::NonTableInBaseTable))
-    } else {
-        Ok(())
-    }
 }
 
 fn has_only_tables(t: &Value) -> Result<bool> {
@@ -1142,9 +1134,9 @@ mod test {
 
     use std::collections::BTreeMap;
     use storeid::StoreId;
+    use store::Header;
     use store::has_main_section;
     use store::has_imag_version_in_main_section;
-    use store::verify_header_consistency;
 
     use toml::Value;
 
@@ -1153,7 +1145,7 @@ mod test {
         let mut map = BTreeMap::new();
         map.insert("imag".into(), Value::Table(BTreeMap::new()));
 
-        assert!(has_main_section(&map));
+        assert!(has_main_section(&Value::Table(map)).unwrap());
     }
 
     #[test]
@@ -1169,7 +1161,7 @@ mod test {
         let mut map = BTreeMap::new();
         map.insert("not_imag".into(), Value::Boolean(false));
 
-        assert!(!has_main_section(&map));
+        assert!(has_main_section(&Value::Table(map)).is_err());
     }
 
     #[test]
@@ -1177,7 +1169,7 @@ mod test {
         let mut map = BTreeMap::new();
         map.insert("imag".into(), Value::Table(BTreeMap::new()));
 
-        assert!(has_imag_version_in_main_section(&map).is_err());
+        assert!(has_imag_version_in_main_section(&Value::Table(map)).is_err());
     }
 
     #[test]
@@ -1187,7 +1179,7 @@ mod test {
         sub.insert("version".into(), Value::String("0.0.0".into()));
         map.insert("imag".into(), Value::Table(sub));
 
-        assert!(has_imag_version_in_main_section(&map)?);
+        assert!(has_imag_version_in_main_section(&Value::Table(map)).unwrap());
     }
 
     #[test]
@@ -1197,7 +1189,7 @@ mod test {
         sub.insert("version".into(), Value::Boolean(false));
         map.insert("imag".into(), Value::Table(sub));
 
-        assert!(has_imag_version_in_main_section(&map).is_err());
+        assert!(has_imag_version_in_main_section(&Value::Table(map)).is_err());
     }
 
     #[test]
@@ -1212,7 +1204,7 @@ mod test {
 
         header.insert("imag".into(), sub);
 
-        assert!(verify_header_consistency(header).is_ok());
+        assert!(Value::Table(header).verify().is_ok());
     }
 
     #[test]
@@ -1227,7 +1219,7 @@ mod test {
 
         header.insert("imag".into(), sub);
 
-        assert!(!verify_header_consistency(header).is_ok());
+        assert!(!Value::Table(header).verify().is_ok());
     }
 
 
@@ -1243,7 +1235,7 @@ mod test {
 
         header.insert("imag".into(), sub);
 
-        assert!(verify_header_consistency(header).is_ok());
+        assert!(Value::Table(header).verify().is_ok());
     }
 
     static TEST_ENTRY : &'static str = "---
