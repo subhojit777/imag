@@ -1149,14 +1149,6 @@ mod test {
     }
 
     #[test]
-    fn test_imag_invalid_section_type() {
-        let mut map = BTreeMap::new();
-        map.insert("imag".into(), Value::Boolean(false));
-
-        assert!(!has_main_section(&map));
-    }
-
-    #[test]
     fn test_imag_abscent_main_section() {
         let mut map = BTreeMap::new();
         map.insert("not_imag".into(), Value::Boolean(false));
