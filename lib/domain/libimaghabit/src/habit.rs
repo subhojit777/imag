@@ -74,7 +74,7 @@ pub trait HabitTemplate : Sized {
     fn habit_basedate(&self) -> Result<String>;
     fn habit_recur_spec(&self) -> Result<String>;
     fn habit_comment(&self) -> Result<String>;
-    fn habit_until_date(&self) -> Result<String>;
+    fn habit_until_date(&self) -> Result<Option<String>>;
 
     /// Create a StoreId for a habit name and a date the habit should be instantiated for
     fn instance_id_for(habit_name: &String, habit_date: &NaiveDate) -> Result<StoreId>;
@@ -138,14 +138,17 @@ impl HabitTemplate for Entry {
         let increment = date_from_s(self.habit_recur_spec()?)?;
         debug!("Increment is {:?}", increment);
 
-        let until = date_from_s(self.habit_until_date()?)?
-            .calculate()?
-            .get_moment()
-            .map(Clone::clone)
-            .ok_or_else(|| {
-                let kind : HEK = "until-date seems to have non-date value".to_owned().into();
-                HE::from_kind(kind)
-            })?;
+        let until = self.habit_until_date()?.map(|s| -> Result<_> {
+            try!(date_from_s(s))
+                .calculate()?
+                .get_moment()
+                .map(Clone::clone)
+                .ok_or_else(|| {
+                    let kind : HEK = "until-date seems to have non-date value".to_owned().into();
+                    HE::from_kind(kind)
+                })
+        });
+
         debug!("Until-Date is {:?}", basedate);
 
         for element in basedate.every(increment)? {
@@ -155,8 +158,12 @@ impl HabitTemplate for Entry {
             if let Some(ndt) = element.get_moment() {
                 if ndt >= base {
                     debug!("-> {:?} >= {:?}", ndt, base);
-                    if ndt > &until {
-                        return Ok(None);
+                    if let Some(u) = until {
+                        if ndt > &(u?) {
+                            return Ok(None);
+                        } else {
+                            return Ok(Some(ndt.date()));
+                        }
                     } else {
                         return Ok(Some(ndt.date()));
                     }
@@ -210,8 +217,12 @@ impl HabitTemplate for Entry {
         get_string_header_from_habit(self, "habit.template.comment")
     }
 
-    fn habit_until_date(&self) -> Result<String> {
-        get_string_header_from_habit(self, "habit.template.until")
+    fn habit_until_date(&self) -> Result<Option<String>> {
+        match self.get_header().read("habit.template.until")? {
+            Some(&Value::String(ref s)) => Ok(Some(s.clone())),
+            Some(_) => Err(HEK::HeaderTypeError("habit.template.until", "String").into()),
+            None    => Ok(None),
+        }
     }
 
     fn instance_id_for(habit_name: &String, habit_date: &NaiveDate) -> Result<StoreId> {
@@ -302,19 +313,18 @@ pub mod builder {
             let recur     = try!(self.recurspec.ok_or_else(|| mkerr("recurspec")));
             debug!("Success: Recurr spec present");
 
-            let until     = try!(self.untildate.ok_or_else(|| mkerr("until-date")));
-            debug!("Success: Until-Date present");
-
-            if dateobj > until {
-                let e = HE::from_kind(HEK::HabitBuilderLogicError("until-date before start date"));
-                return Err(e);
+            if let Some(until) = self.untildate {
+                debug!("Success: Until-Date present");
+                if dateobj > until {
+                    let e = HE::from_kind(HEK::HabitBuilderLogicError("until-date before start date"));
+                    return Err(e);
+                }
             }
 
             if let Err(e) = ::kairos::parser::parse(&recur) {
                 return Err(e).map_err(From::from);
             }
             let date      = date_to_string(&dateobj);
-            let until     = date_to_string(&until);
             debug!("Success: Date valid");
 
             let comment   = self.comment.unwrap_or_else(|| String::new());
@@ -327,7 +337,10 @@ pub mod builder {
             try!(entry.get_header_mut().insert("habit.template.basedate", Value::String(date)));
             try!(entry.get_header_mut().insert("habit.template.recurspec", Value::String(recur)));
             try!(entry.get_header_mut().insert("habit.template.comment", Value::String(comment)));
-            try!(entry.get_header_mut().insert("habit.template.until", Value::String(until)));
+            if let Some(until) = self.untildate {
+                let until = date_to_string(&until);
+                try!(entry.get_header_mut().insert("habit.template.until", Value::String(until)));
+            }
 
             debug!("Success: Created entry in store and set headers");
             Ok(entry)
