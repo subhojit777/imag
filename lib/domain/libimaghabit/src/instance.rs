@@ -22,10 +22,8 @@ use toml::Value;
 use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
-use error::HabitError as HE;
 use error::HabitErrorKind as HEK;
 use error::*;
-use habit::HabitTemplate;
 use util::*;
 
 use libimagstore::store::Entry;

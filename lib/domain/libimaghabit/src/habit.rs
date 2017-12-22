@@ -29,14 +29,12 @@ use error::HabitErrorKind as HEK;
 use error::*;
 use iter::HabitInstanceStoreIdIterator;
 use util::date_to_string;
-use util::date_from_string;
 use util::IsHabitCheck;
 
 use libimagentrylink::internal::InternalLinker;
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Entry;
-use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreIdIterator;
@@ -234,7 +232,6 @@ pub mod builder {
     use error::HabitErrorKind as HEK;
     use error::*;
     use util::date_to_string;
-    use util::date_from_string;
 
     pub struct HabitBuilder {
         name: Option<String>,
