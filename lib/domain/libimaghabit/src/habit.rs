@@ -64,10 +64,10 @@ pub trait HabitTemplate : Sized {
     fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator>;
 
     /// Get the date of the next date when the habit should be done
-    fn next_instance_date_after(&self, base: &NaiveDateTime) -> Result<NaiveDate>;
+    fn next_instance_date_after(&self, base: &NaiveDateTime) -> Result<Option<NaiveDate>>;
 
     /// Get the date of the next date when the habit should be done
-    fn next_instance_date(&self) -> Result<NaiveDate>;
+    fn next_instance_date(&self) -> Result<Option<NaiveDate>>;
 
     /// Check whether the instance is a habit by checking its headers for the habit data
     fn is_habit_template(&self) -> Result<bool>;
@@ -76,6 +76,7 @@ pub trait HabitTemplate : Sized {
     fn habit_basedate(&self) -> Result<String>;
     fn habit_recur_spec(&self) -> Result<String>;
     fn habit_comment(&self) -> Result<String>;
+    fn habit_until_date(&self) -> Result<String>;
 
     /// Create a StoreId for a habit name and a date the habit should be instantiated for
     fn instance_id_for(habit_name: &String, habit_date: &NaiveDate) -> Result<StoreId>;
@@ -116,7 +117,7 @@ impl HabitTemplate for Entry {
         Ok(HabitInstanceStoreIdIterator::new(sidi))
     }
 
-    fn next_instance_date_after(&self, base: &NaiveDateTime) -> Result<NaiveDate> {
+    fn next_instance_date_after(&self, base: &NaiveDateTime) -> Result<Option<NaiveDate>> {
         use kairos::timetype::TimeType;
         use kairos::parser::parse;
         use kairos::parser::Parsed;
@@ -139,6 +140,16 @@ impl HabitTemplate for Entry {
         let increment = date_from_s(self.habit_recur_spec()?)?;
         debug!("Increment is {:?}", increment);
 
+        let until = date_from_s(self.habit_until_date()?)?
+            .calculate()?
+            .get_moment()
+            .map(Clone::clone)
+            .ok_or_else(|| {
+                let kind : HEK = "until-date seems to have non-date value".to_owned().into();
+                HE::from_kind(kind)
+            })?;
+        debug!("Until-Date is {:?}", basedate);
+
         for element in basedate.every(increment)? {
             debug!("Calculating: {:?}", element);
             let element = element?.calculate()?;
@@ -146,7 +157,11 @@ impl HabitTemplate for Entry {
             if let Some(ndt) = element.get_moment() {
                 if ndt >= base {
                     debug!("-> {:?} >= {:?}", ndt, base);
-                    return Ok(ndt.date())
+                    if ndt > &until {
+                        return Ok(None);
+                    } else {
+                        return Ok(Some(ndt.date()));
+                    }
                 }
             } else {
                 return Err("Iterator seems to return bogus values.".to_owned().into());
@@ -157,7 +172,7 @@ impl HabitTemplate for Entry {
     }
 
     /// Get the date of the next date when the habit should be done
-    fn next_instance_date(&self) -> Result<NaiveDate> {
+    fn next_instance_date(&self) -> Result<Option<NaiveDate>> {
         use kairos::timetype::TimeType;
 
         let today = TimeType::today();
@@ -195,6 +210,10 @@ impl HabitTemplate for Entry {
 
     fn habit_comment(&self) -> Result<String> {
         get_string_header_from_habit(self, "habit.template.comment")
+    }
+
+    fn habit_until_date(&self) -> Result<String> {
+        get_string_header_from_habit(self, "habit.template.until")
     }
 
     fn instance_id_for(habit_name: &String, habit_date: &NaiveDate) -> Result<StoreId> {
@@ -241,6 +260,7 @@ pub mod builder {
         comment: Option<String>,
         basedate: Option<NaiveDate>,
         recurspec: Option<String>,
+        untildate: Option<NaiveDate>,
     }
 
     impl HabitBuilder {
@@ -265,6 +285,11 @@ pub mod builder {
             self
         }
 
+        pub fn with_until(mut self, date: NaiveDate) -> Self {
+            self.untildate = Some(date);
+            self
+        }
+
         pub fn build<'a>(self, store: &'a Store) -> Result<FileLockEntry<'a>> {
             #[inline]
             fn mkerr(s: &'static str) -> HE {
@@ -280,10 +305,19 @@ pub mod builder {
             let recur     = try!(self.recurspec.ok_or_else(|| mkerr("recurspec")));
             debug!("Success: Recurr spec present");
 
+            let until     = try!(self.untildate.ok_or_else(|| mkerr("until-date")));
+            debug!("Success: Until-Date present");
+
+            if dateobj > until {
+                let e = HE::from_kind(HEK::HabitBuilderLogicError("until-date before start date"));
+                return Err(e);
+            }
+
             if let Err(e) = ::kairos::parser::parse(&recur) {
                 return Err(e).map_err(From::from);
             }
             let date      = date_to_string(&dateobj);
+            let until     = date_to_string(&until);
             debug!("Success: Date valid");
 
             let comment   = self.comment.unwrap_or_else(|| String::new());
@@ -296,6 +330,7 @@ pub mod builder {
             try!(entry.get_header_mut().insert("habit.template.basedate", Value::String(date)));
             try!(entry.get_header_mut().insert("habit.template.recurspec", Value::String(recur)));
             try!(entry.get_header_mut().insert("habit.template.comment", Value::String(comment)));
+            try!(entry.get_header_mut().insert("habit.template.until", Value::String(until)));
 
             debug!("Success: Created entry in store and set headers");
             Ok(entry)
@@ -310,6 +345,7 @@ pub mod builder {
                 comment: None,
                 basedate: None,
                 recurspec: None,
+                untildate: None,
             }
         }
     }

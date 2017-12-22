@@ -35,8 +35,13 @@ error_chain! {
 
     errors {
         HabitBuilderMissing(variable_name: &'static str) {
-            description("Habbit builder has not all required information")
+            description("Habit builder has not all required information")
             display("Habit builder misses {}", variable_name)
+        }
+
+        HabitBuilderLogicError(text: &'static str) {
+            description("Logic error in Habit builder")
+            display("Logic error: {}", text)
         }
 
         HeaderFieldMissing(path: &'static str) {
