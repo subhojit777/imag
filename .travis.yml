@@ -22,6 +22,12 @@ matrix:
 cache:
   cargo: true
 
+addons:
+  apt:
+    packages:
+    - libdbus-1-dev
+    - pkg-config
+
 script:
   - cargo build --all --all-features --verbose -j 1
   - cargo test  --all --all-features --verbose -j 1
