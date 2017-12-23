@@ -18,6 +18,8 @@ Version 0.y.z and thus we can break the API like we want and need to.
 
 This section contains the changelog from the last release to the next release.
 
+## 0.5.0
+
 * Major changes
     * `imag-counter` and `libimagcounter` was removed.
     * `imag-mv` was introduced
@@ -50,6 +52,13 @@ This section contains the changelog from the last release to the next release.
 * Bugfixes
     * `Store::entries()` does not yield StoreIds which point to directories
       anymore, only StoreIds pointing to files.
+
+* Stats
+    * 227 commits
+    * 51 merge-commits / 176 non-merge commits
+    * 2 contributors
+    * 186 files changed
+    * 6707 insertions(+) / 3255 deletions(-)
 
 ## 0.4.0
 
