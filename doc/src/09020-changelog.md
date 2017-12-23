@@ -44,6 +44,8 @@ This section contains the changelog from the last release to the next release.
       any other crate.
     * imag now reads the `IMAG_RTP` environment variable before trying to access
       `$HOME/.imag` for its runtimepath.
+    * `libimagnotification` was introduced, though not yet integrated into the
+      CLI tools
 
 * Bugfixes
     * `Store::entries()` does not yield StoreIds which point to directories
