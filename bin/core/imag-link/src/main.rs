@@ -117,7 +117,9 @@ fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<Option<FileLockE
         .and_then(|id| rt.store().get(id))
 }
 
-fn link_from_to<'a>(rt: &'a Runtime, from: &'a str, to: clap::Values<'a>) {
+fn link_from_to<'a, I>(rt: &'a Runtime, from: &'a str, to: I)
+    where I: Iterator<Item = &'a str>
+{
     let mut from_entry = match get_entry_by_name(rt, from) {
         Ok(Some(e)) => e,
         Ok(None)    => warn_exit("No 'from' entry", 1),
@@ -249,7 +251,8 @@ fn list_linkings(rt: &Runtime) {
 
 #[cfg(test)]
 mod tests {
-    use handle_internal_linking;
+    use super::link_from_to;
+    use super::remove_linking;
 
     use std::path::PathBuf;
     use std::ffi::OsStr;
@@ -307,7 +310,7 @@ mod tests {
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
         let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
 
-        handle_internal_linking(&rt);
+        link_from_to(&rt, "test1", vec!["test2"].into_iter());
 
         let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
         let test_links1 = get_entry_links(&test_entry1).unwrap();
@@ -327,7 +330,7 @@ mod tests {
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
         let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
 
-        handle_internal_linking(&rt);
+        link_from_to(&rt, "test1", vec!["test2"].into_iter());
 
         let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
         let test_links1 = get_entry_links(&test_entry1).unwrap();
@@ -347,8 +350,8 @@ mod tests {
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
         let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
 
-        handle_internal_linking(&rt);
-        handle_internal_linking(&rt);
+        link_from_to(&rt, "test1", vec!["test2"].into_iter());
+        link_from_to(&rt, "test1", vec!["test2"].into_iter());
 
         let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
         let test_links1 = get_entry_links(&test_entry1).unwrap();
@@ -369,8 +372,8 @@ mod tests {
         let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
         let test_id3 = create_test_default_entry(&rt, "test3").unwrap();
 
-        handle_internal_linking(&rt);
-        handle_internal_linking(&rt);
+        link_from_to(&rt, "test1", vec!["test2", "test3"].into_iter());
+        link_from_to(&rt, "test1", vec!["test2", "test3"].into_iter());
 
         let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
         let test_links1 = get_entry_links(&test_entry1).unwrap();
@@ -396,12 +399,12 @@ mod tests {
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
         let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
 
-        handle_internal_linking(&rt);
+        link_from_to(&rt, "test1", vec!["test2"].into_iter());
 
-        let rt = reset_test_runtime(vec!["internal", "remove", "test1", "test2"], rt)
+        let rt = reset_test_runtime(vec!["remove", "test1", "test2"], rt)
             .unwrap();
 
-        handle_internal_linking(&rt);
+        remove_linking(&rt);
 
         let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
         let test_links1 = get_entry_links(&test_entry1).unwrap();
@@ -422,12 +425,12 @@ mod tests {
         let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
         let test_id3 = create_test_default_entry(&rt, "test3").unwrap();
 
-        handle_internal_linking(&rt);
+        link_from_to(&rt, "test1", vec!["test2", "test3"].into_iter());
 
-        let rt = reset_test_runtime(vec!["internal", "remove", "test1", "test2", "test3"], rt)
+        let rt = reset_test_runtime(vec!["remove", "test1", "test2", "test3"], rt)
             .unwrap();
 
-        handle_internal_linking(&rt);
+        remove_linking(&rt);
 
         let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
         let test_links1 = get_entry_links(&test_entry1).unwrap();
