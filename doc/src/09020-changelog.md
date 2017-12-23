@@ -1,4 +1,4 @@
-# Changelog
+# Changelog {#sec:changelog}
 
 This section contains the changelog.
 
