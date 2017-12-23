@@ -35,6 +35,8 @@ This section contains the changelog from the last release to the next release.
       variable still possible.
     * `imag-contact` was added (with basic contact support so far).
     * `imag-habit` was introduced
+    * `imag-link` commandline was redesigned to be easier but with the same
+      features.
 
 * Minor changes
     * `libimagentryannotation` got a rewrite, is not based on `libimagnotes`
