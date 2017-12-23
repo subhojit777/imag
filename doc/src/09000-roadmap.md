@@ -66,6 +66,13 @@ maximum.
   * [ ] TUI for 'imag-timetrack'
   * [ ] TUI for 'imag-todo'
   * [ ] TUI for ...
+* [ ] Find a way to include the CLI interfaces from core modules into domain
+  modules. This is an experiment and we are not sure whether we want such a thing.
+  Example:
+    * `imag-link` -> `imag diary create and-link --to foo`
+    * `imag-ref` -> `imag diary create and-ref --to /home/user/file.txt`
+    * `imag-tag` -> `imag contact add and-view`
+    * `imag-annotate` -> `imag contact add and-annotate and-ref --to /file and-link --to contacts/alice`
 
 ## 0.6.0
 
