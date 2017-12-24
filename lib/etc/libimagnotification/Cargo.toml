@@ -1,12 +1,12 @@
 [package]
 name = "libimagnotification"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
 
 keywords    = ["imag", "PIM", "personal", "information", "management"]
-readme      = "../README.md"
+readme      = "../../../README.md"
 license     = "LGPL-2.1"
 
 documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
