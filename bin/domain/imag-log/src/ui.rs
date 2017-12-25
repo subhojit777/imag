@@ -17,7 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use clap::{Arg, ArgGroup, App, SubCommand};
+use clap::{Arg, App, SubCommand};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
@@ -34,8 +34,7 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .multiple(true)
             .required(false)
             .help("Text to log. Multiple will be concatenated")
-            .value_name("TEXT")
-            .value_names("TEXTS"))
+            .value_name("TEXT"))
 
         .subcommand(SubCommand::with_name("show")
                    .about("View log(s)")
