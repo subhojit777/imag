@@ -316,3 +316,7 @@ Email    : {{EMAIL}}
 Address  : {{ADR}}
 """
 
+[log]
+logs = ["default"]
+default = "default"
+
