@@ -32,10 +32,10 @@ use std::fmt::Debug;
 use std::fmt::Error as FMTError;
 
 use toml::Value;
-use toml::value::Table;
 use glob::glob;
 use walkdir::WalkDir;
 use walkdir::Iter as WalkDirIter;
+use toml_query::read::TomlValueReadExt;
 
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::ResultExt;
@@ -1067,9 +1067,15 @@ pub trait Header {
 impl Header for Value {
 
     fn verify(&self) -> Result<()> {
-        match *self {
-            Value::Table(ref t) => verify_header(&t),
-            _ => Err(SE::from_kind(SEK::HeaderTypeFailure)),
+        if !has_main_section(self)? {
+            Err(SE::from_kind(SEK::MissingMainSection))
+        } else if !has_imag_version_in_main_section(self)? {
+            Err(SE::from_kind(SEK::MissingVersionInfo))
+        } else if !has_only_tables(self)? {
+            debug!("Could not verify that it only has tables in its base table");
+            Err(SE::from_kind(SEK::NonTableInBaseTable))
+        } else {
+            Ok(())
         }
     }
 
@@ -1078,8 +1084,7 @@ impl Header for Value {
 
         from_str(s)
             .map_err(From::from)
-            .and_then(verify_header_consistency)
-            .map(Value::Table)
+            .and_then(|h: Value| h.verify().map(|_| h))
     }
 
     fn default_header() -> Value {
@@ -1098,48 +1103,28 @@ impl Header for Value {
 
 }
 
-fn verify_header_consistency(t: Table) -> Result<Table> {
-    verify_header(&t).chain_err(|| SEK::HeaderInconsistency).map(|_| t)
-}
-
-fn verify_header(t: &Table) -> Result<()> {
-    if !has_main_section(t) {
-        Err(SE::from_kind(SEK::MissingMainSection))
-    } else if !has_imag_version_in_main_section(t) {
-        Err(SE::from_kind(SEK::MissingVersionInfo))
-    } else if !has_only_tables(t) {
-        debug!("Could not verify that it only has tables in its base table");
-        Err(SE::from_kind(SEK::NonTableInBaseTable))
-    } else {
-        Ok(())
-    }
-}
-
-fn has_only_tables(t: &Table) -> bool {
+fn has_only_tables(t: &Value) -> Result<bool> {
     debug!("Verifying that table has only tables");
-    t.iter().all(|(_, x)| is_match!(*x, Value::Table(_)))
-}
-
-fn has_main_section(t: &Table) -> bool {
-    t.contains_key("imag") && is_match!(t.get("imag"), Some(&Value::Table(_)))
-}
-
-fn has_imag_version_in_main_section(t: &Table) -> bool {
-    use semver::Version;
-
-    match *t.get("imag").unwrap() {
-        Value::Table(ref sec) => {
-            sec.get("version")
-                .and_then(|v| {
-                    match *v {
-                        Value::String(ref s) => Some(Version::parse(&s[..]).is_ok()),
-                        _                    => Some(false),
-                    }
-                })
-            .unwrap_or(false)
-        }
-        _ => false,
+    match *t {
+        Value::Table(ref tab) => Ok(tab.iter().all(|(_, x)| is_match!(*x, Value::Table(_)))),
+        _ => Err(SE::from_kind(SEK::HeaderTypeFailure)),
     }
+}
+
+fn has_main_section(t: &Value) -> Result<bool> {
+    t.read("imag")?
+        .ok_or(SE::from_kind(SEK::ConfigKeyMissingError("imag")))
+        .map(Value::is_table)
+}
+
+fn has_imag_version_in_main_section(t: &Value) -> Result<bool> {
+    use toml_query::read::TomlValueReadExt;
+
+    t.read("imag.version")?
+        .ok_or(SE::from_kind(SEK::ConfigKeyMissingError("imag.version")))?
+        .as_str()
+        .map(|s| ::semver::Version::parse(s).is_ok())
+        .ok_or(SE::from_kind(SEK::ConfigTypeError("imag.version", "String")))
 }
 
 
@@ -1149,9 +1134,9 @@ mod test {
 
     use std::collections::BTreeMap;
     use storeid::StoreId;
+    use store::Header;
     use store::has_main_section;
     use store::has_imag_version_in_main_section;
-    use store::verify_header_consistency;
 
     use toml::Value;
 
@@ -1160,15 +1145,7 @@ mod test {
         let mut map = BTreeMap::new();
         map.insert("imag".into(), Value::Table(BTreeMap::new()));
 
-        assert!(has_main_section(&map));
-    }
-
-    #[test]
-    fn test_imag_invalid_section_type() {
-        let mut map = BTreeMap::new();
-        map.insert("imag".into(), Value::Boolean(false));
-
-        assert!(!has_main_section(&map));
+        assert!(has_main_section(&Value::Table(map)).unwrap());
     }
 
     #[test]
@@ -1176,7 +1153,7 @@ mod test {
         let mut map = BTreeMap::new();
         map.insert("not_imag".into(), Value::Boolean(false));
 
-        assert!(!has_main_section(&map));
+        assert!(has_main_section(&Value::Table(map)).is_err());
     }
 
     #[test]
@@ -1184,7 +1161,7 @@ mod test {
         let mut map = BTreeMap::new();
         map.insert("imag".into(), Value::Table(BTreeMap::new()));
 
-        assert!(!has_imag_version_in_main_section(&map));
+        assert!(has_imag_version_in_main_section(&Value::Table(map)).is_err());
     }
 
     #[test]
@@ -1194,7 +1171,7 @@ mod test {
         sub.insert("version".into(), Value::String("0.0.0".into()));
         map.insert("imag".into(), Value::Table(sub));
 
-        assert!(has_imag_version_in_main_section(&map));
+        assert!(has_imag_version_in_main_section(&Value::Table(map)).unwrap());
     }
 
     #[test]
@@ -1204,7 +1181,7 @@ mod test {
         sub.insert("version".into(), Value::Boolean(false));
         map.insert("imag".into(), Value::Table(sub));
 
-        assert!(!has_imag_version_in_main_section(&map));
+        assert!(has_imag_version_in_main_section(&Value::Table(map)).is_err());
     }
 
     #[test]
@@ -1219,7 +1196,7 @@ mod test {
 
         header.insert("imag".into(), sub);
 
-        assert!(verify_header_consistency(header).is_ok());
+        assert!(Value::Table(header).verify().is_ok());
     }
 
     #[test]
@@ -1234,7 +1211,7 @@ mod test {
 
         header.insert("imag".into(), sub);
 
-        assert!(!verify_header_consistency(header).is_ok());
+        assert!(!Value::Table(header).verify().is_ok());
     }
 
 
@@ -1250,7 +1227,7 @@ mod test {
 
         header.insert("imag".into(), sub);
 
-        assert!(verify_header_consistency(header).is_ok());
+        assert!(Value::Table(header).verify().is_ok());
     }
 
     static TEST_ENTRY : &'static str = "---
