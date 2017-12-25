@@ -182,6 +182,7 @@ mk_iterator_mod! {
 }
 
 #[cfg(test)]
+#[allow(dead_code)]
 mod compile_test {
 
     // This module contains code to check whether this actually compiles the way we would like it to
@@ -190,12 +191,10 @@ mod compile_test {
     use store::Store;
     use storeid::StoreId;
 
-    #[allow(dead_code)]
     fn store() -> Store {
         unimplemented!()
     }
 
-    #[allow(dead_code)]
     fn test_compile_get() {
         use super::get::StoreIdGetIteratorExtension;
 
@@ -206,7 +205,6 @@ mod compile_test {
             .into_get_iter(&store);
     }
 
-    #[allow(dead_code)]
     fn test_compile_get_result() {
         use super::get::StoreIdGetResultIteratorExtension;
 
