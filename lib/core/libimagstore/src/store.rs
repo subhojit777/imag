@@ -205,11 +205,6 @@ pub struct Store {
     location: PathBuf,
 
     ///
-    /// Configuration object of the store
-    ///
-    configuration: Option<Value>,
-
-    ///
     /// Internal Path->File cache map
     ///
     /// Caches the files, so they remain flock()ed
@@ -228,10 +223,8 @@ impl Store {
 
     /// Create a new Store object
     ///
-    /// This opens a Store in `location` using the configuration from `store_config` (if absent, it
-    /// uses defaults).
-    ///
-    /// If the configuration is not valid, this fails.
+    /// This opens a Store in `location`. The store_config is used to check whether creating the
+    /// store implicitely is allowed.
     ///
     /// If the location does not exist, creating directories is by default denied and the operation
     /// fails, if not configured otherwise.
@@ -243,7 +236,7 @@ impl Store {
     ///
     /// - On success: Store object
     ///
-    pub fn new(location: PathBuf, store_config: Option<Value>) -> Result<Store> {
+    pub fn new(location: PathBuf, store_config: &Option<Value>) -> Result<Store> {
         let backend = Box::new(FSFileAbstraction::new());
         Store::new_with_backend(location, store_config, backend)
     }
@@ -253,16 +246,13 @@ impl Store {
     ///
     /// Do not use directly, only for testing purposes.
     pub fn new_with_backend(location: PathBuf,
-                            store_config: Option<Value>,
+                            store_config: &Option<Value>,
                             backend: Box<FileAbstraction>) -> Result<Store> {
         use configuration::*;
 
-        debug!("Validating Store configuration");
-        let _ = config_is_valid(&store_config).chain_err(|| SEK::ConfigurationError)?;
-
         debug!("Building new Store object");
         if !location.exists() {
-            if !config_implicit_store_create_allowed(store_config.as_ref()) {
+            if !config_implicit_store_create_allowed(store_config)? {
                 return Err(SE::from_kind(SEK::CreateStoreDirDenied))
                     .chain_err(|| SEK::FileError)
                     .chain_err(|| SEK::IoError);
@@ -279,7 +269,6 @@ impl Store {
 
         let store = Store {
             location: location.clone(),
-            configuration: store_config,
             entries: Arc::new(RwLock::new(HashMap::new())),
             backend: backend,
         };
@@ -317,11 +306,6 @@ impl Store {
             .drain()
             .and_then(|drain| backend.fill(drain))
             .map(|_| self.backend = backend)
-    }
-
-    /// Get the store configuration
-    pub fn config(&self) -> Option<&Value> {
-        self.configuration.as_ref()
     }
 
     /// Creates the Entry at the given location (inside the entry)
@@ -786,7 +770,6 @@ impl Debug for Store {
         write!(fmt, " --- Store ---\n")?;
         write!(fmt, "\n")?;
         write!(fmt, " - location               : {:?}\n", self.location)?;
-        write!(fmt, " - configuration          : {:?}\n", self.configuration)?;
         write!(fmt, "\n")?;
         write!(fmt, "Entries:\n")?;
         write!(fmt, "{:?}", self.entries)?;
@@ -1310,7 +1293,7 @@ mod store_tests {
 
     pub fn get_store() -> Store {
         let backend = Box::new(InMemoryFileAbstraction::new());
-        Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+        Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
     }
 
     #[test]
@@ -1363,7 +1346,7 @@ mod store_tests {
                 let backend = StdIoFileAbstraction::new(&mut input, output.clone(), mapper).unwrap();
                 let backend = Box::new(backend);
 
-                Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+                Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
             };
 
             for n in 1..100 {
@@ -1636,7 +1619,7 @@ mod store_tests {
             let backend = InMemoryFileAbstraction::new();
             let backend = Box::new(backend);
 
-            Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+            Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
         };
 
         for n in 1..100 {
@@ -1711,7 +1694,7 @@ mod store_tests {
                 let backend = StdIoFileAbstraction::new(&mut input, output, mapper).unwrap();
                 let backend = Box::new(backend);
 
-                Store::new_with_backend(PathBuf::from("/"), None, backend).unwrap()
+                Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
             };
 
             // Replacing the backend

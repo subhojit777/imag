@@ -21,48 +21,23 @@ use toml::Value;
 
 use store::Result;
 use error::StoreError as SE;
+use error::StoreErrorKind as SEK;
 
-/// Check whether the configuration is valid for the store
-pub fn config_is_valid(config: &Option<Value>) -> Result<()> {
-    use error::StoreErrorKind as SEK;
-
-    if config.is_none() {
-        return Ok(());
-    }
-
-    match *config {
-        Some(Value::Table(_)) => Ok(()),
-        _ => {
-            warn!("Store config is no table");
-            Err(SE::from_kind(SEK::ConfigTypeError))
-        },
-    }
-}
+use toml_query::read::TomlValueReadExt;
 
 /// Checks whether the store configuration has a key "implicit-create" which maps to a boolean
 /// value. If that key is present, the boolean is returned, otherwise false is returned.
-pub fn config_implicit_store_create_allowed(config: Option<&Value>) -> bool {
-    config.map(|t| {
-        match *t {
-            Value::Table(ref t) => {
-                match t.get("implicit-create") {
-                    Some(&Value::Boolean(b)) => b,
-                    Some(_) => {
-                        warn!("Key 'implicit-create' does not contain a Boolean value");
-                        false
-                    }
-                    None => {
-                        warn!("Key 'implicit-create' in store configuration missing");
-                        false
-                    },
-                }
-            }
-            _ => {
-                warn!("Store configuration seems to be no Table");
-                false
-            },
-        }
-    }).unwrap_or(false)
+pub fn config_implicit_store_create_allowed(config: &Option<Value>) -> Result<bool> {
+    let key = "store.implicit-create";
+
+    if let Some(ref t) = *config {
+        t.read(key)?
+            .ok_or(SE::from_kind(SEK::ConfigKeyMissingError(key)))?
+            .as_bool()
+            .ok_or(SE::from_kind(SEK::ConfigTypeError(key, "boolean")))
+    } else {
+        Ok(false)
+    }
 }
 
 #[cfg(test)]
@@ -72,31 +47,33 @@ mod tests {
 
     #[test]
     fn test_implicit_store_create_allowed_no_toml() {
-        assert!(!config_implicit_store_create_allowed(None));
+        assert!(!config_implicit_store_create_allowed(&None).unwrap());
     }
 
     #[test]
     fn test_implicit_store_create_allowed_toml_empty() {
         let config = toml_from_str("").unwrap();
-        assert!(!config_implicit_store_create_allowed(Some(config).as_ref()));
+        assert!(config_implicit_store_create_allowed(&Some(config)).is_err());
     }
 
     #[test]
     fn test_implicit_store_create_allowed_toml_false() {
         let config = toml_from_str(r#"
+        [store]
             implicit-create = false
         "#).unwrap();
 
-        assert!(!config_implicit_store_create_allowed(Some(config).as_ref()));
+        assert!(!config_implicit_store_create_allowed(&Some(config)).unwrap());
     }
 
     #[test]
     fn test_implicit_store_create_allowed_toml_true() {
         let config = toml_from_str(r#"
+        [store]
             implicit-create = true
         "#).unwrap();
 
-        assert!(config_implicit_store_create_allowed(Some(config).as_ref()));
+        assert!(config_implicit_store_create_allowed(&Some(config)).unwrap());
     }
 
 }

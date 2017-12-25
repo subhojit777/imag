@@ -48,6 +48,7 @@ extern crate walkdir;
 extern crate serde_json;
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate error_chain;
+extern crate toml_query;
 
 extern crate libimagerror;
 extern crate libimagutil;

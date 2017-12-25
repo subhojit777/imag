@@ -30,6 +30,7 @@ error_chain! {
         Io(::std::io::Error);
         TomlDeserError(::toml::de::Error);
         GlobPatternError(::glob::PatternError);
+        TomlQueryError(::toml_query::error::Error);
     }
 
     errors {
@@ -39,14 +40,14 @@ error_chain! {
             display("Store Configuration Error")
         }
 
-        ConfigTypeError         {
+        ConfigTypeError(key: &'static str, expected: &'static str) {
             description("Store configuration type error")
-            display("Store configuration type error")
+            display("Store configuration type error at '{}', expected {}", key, expected)
         }
 
-        ConfigKeyMissingError   {
+        ConfigKeyMissingError(key: &'static str) {
             description("Configuration Key missing")
-            display("Configuration Key missing")
+            display("Configuration Key missing: '{}'", key)
         }
 
         VersionError            {
