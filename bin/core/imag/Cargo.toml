@@ -1,6 +1,6 @@
 [package]
 name = "imag"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag command"
@@ -27,7 +27,7 @@ log = "0.3"
 toml = "0.4"
 toml-query = "^0.4"
 
-libimagrt    = { version = "0.5.0", path = "../../../lib/core/libimagrt" }
-libimagerror = { version = "0.5.0", path = "../../../lib/core/libimagerror" }
+libimagrt    = { version = "0.6.0", path = "../../../lib/core/libimagrt" }
+libimagerror = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
 
 

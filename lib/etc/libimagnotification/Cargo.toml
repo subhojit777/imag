@@ -1,6 +1,6 @@
 [package]
 name = "libimagnotification"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -17,5 +17,5 @@ homepage      = "http://imag-pim.org"
 notify-rust = "3.4.2"
 error-chain = "0.11"
 
-libimagerror       = { version = "0.5.0", path = "../../../lib/core/libimagerror" }
+libimagerror       = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
 
