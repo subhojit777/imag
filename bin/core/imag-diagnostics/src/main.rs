@@ -46,7 +46,7 @@ use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::MapErrTrace;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
-use libimagstore::iter::get::*;
+use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagstore::error::StoreError as Error;
 use libimagentrylink::internal::*;
 

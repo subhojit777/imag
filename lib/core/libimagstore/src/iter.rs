@@ -17,7 +17,105 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+macro_rules! mk_iterator {
+    {
+        modname   = $modname:ident,
+        itername  = $itername:ident,
+        iteryield = $yield:ty,
+        extname   = $extname:ident,
+        extfnname = $extfnname:ident,
+        fun       = $fun:expr
+    } => {
+        use storeid::StoreId;
+        #[allow(unused_imports)]
+        use store::FileLockEntry;
+        use store::Store;
+        use error::Result;
+
+        pub struct $itername<'a>(Box<Iterator<Item = StoreId>>, &'a Store);
+
+        impl<'a> Iterator for $itername<'a> {
+            type Item = Result<$yield>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                self.0.next().map(|id| $fun(id, self.1))
+            }
+        }
+
+        pub trait $extname<'a> {
+            fn $extfnname(self, store: &'a Store) -> $itername<'a>;
+        }
+
+        impl<'a, I> $extname<'a> for I
+            where I: Iterator<Item = StoreId> + 'static
+        {
+            fn $extfnname(self, store: &'a Store) -> $itername<'a> {
+                $itername(Box::new(self), store)
+            }
+        }
+    }
+}
+
+use error::StoreError;
+
+pub enum ExtensionError<E> {
+    Forwarded(E),
+    StoreError(StoreError)
+}
+
 macro_rules! mk_iterator_mod {
+    {
+        modname        = $modname:ident,
+        itername       = $itername:ident,
+        iteryield      = $yield:ty,
+        extname        = $extname:ident,
+        extfnname      = $extfnname:ident,
+        fun            = $fun:expr,
+        resultitername = $resultitername:ident,
+        resultextname  = $resultextname:ident
+    } => {
+        pub mod $modname {
+            mk_iterator! {
+                modname   = $modname,
+                itername  = $itername,
+                iteryield = $yield,
+                extname   = $extname,
+                extfnname = $extfnname,
+                fun       = $fun
+            }
+
+            use std::result::Result as RResult;
+
+            pub struct $resultitername<'a, I>(I, &'a Store);
+
+            impl<'a, I, E> Iterator for $resultitername<'a, I>
+                where I: Iterator<Item = RResult<StoreId, E>>
+            {
+                type Item = RResult<$yield, $crate::iter::ExtensionError<E>>;
+
+                fn next(&mut self) -> Option<Self::Item> {
+                    match self.0.next() {
+                        Some(Ok(sid)) => Some($fun(sid, self.1).map_err($crate::iter::ExtensionError::StoreError)),
+                        Some(Err(e))  => Some(Err($crate::iter::ExtensionError::Forwarded(e))),
+                        None => None,
+                    }
+                }
+            }
+
+            pub trait $resultextname<'a> : Iterator {
+                fn $extfnname(self, store: &'a Store) -> $resultitername<'a, Self>
+                    where Self: Sized
+                {
+                    $resultitername(self, store)
+                }
+            }
+
+            impl<'a, I> $resultextname<'a> for I
+                where I: Iterator
+            { /* empty */ }
+        }
+    };
+
     {
         modname   = $modname:ident,
         itername  = $itername:ident,
@@ -27,31 +125,13 @@ macro_rules! mk_iterator_mod {
         fun       = $fun:expr
     } => {
         pub mod $modname {
-            use storeid::StoreIdIterator;
-            use storeid::StoreId;
-            #[allow(unused_imports)]
-            use store::FileLockEntry;
-            use store::Store;
-            use error::Result;
-
-            pub struct $itername<'a>(StoreIdIterator, &'a Store);
-
-            impl<'a> Iterator for $itername<'a> {
-                type Item = Result<$yield>;
-
-                fn next(&mut self) -> Option<Self::Item> {
-                    self.0.next().map(|id| $fun(id, self.1))
-                }
-            }
-
-            pub trait $extname<'a> {
-                fn $extfnname(self, store: &'a Store) -> $itername<'a>;
-            }
-
-            impl<'a> $extname<'a> for StoreIdIterator {
-                fn $extfnname(self, store: &'a Store) -> $itername<'a> {
-                    $itername(self, store)
-                }
+            mk_iterator! {
+                modname   = $modname,
+                itername  = $itername,
+                iteryield = $yield,
+                extname   = $extname,
+                extfnname = $extfnname,
+                fun       = $fun
             }
         }
     }
@@ -63,7 +143,9 @@ mk_iterator_mod! {
     iteryield = FileLockEntry<'a>,
     extname   = StoreIdCreateIteratorExtension,
     extfnname = into_create_iter,
-    fun       = |id: StoreId, store: &'a Store| store.create(id)
+    fun       = |id: StoreId, store: &'a Store| store.create(id),
+    resultitername = StoreCreateResultIterator,
+    resultextname  = StoreIdCreateResultIteratorExtension
 }
 
 mk_iterator_mod! {
@@ -72,7 +154,9 @@ mk_iterator_mod! {
     iteryield = (),
     extname   = StoreIdDeleteIteratorExtension,
     extfnname = into_delete_iter,
-    fun       = |id: StoreId, store: &'a Store| store.delete(id)
+    fun       = |id: StoreId, store: &'a Store| store.delete(id),
+    resultitername = StoreDeleteResultIterator,
+    resultextname  = StoreIdDeleteResultIteratorExtension
 }
 
 mk_iterator_mod! {
@@ -81,7 +165,9 @@ mk_iterator_mod! {
     iteryield = Option<FileLockEntry<'a>>,
     extname   = StoreIdGetIteratorExtension,
     extfnname = into_get_iter,
-    fun       = |id: StoreId, store: &'a Store| store.get(id)
+    fun       = |id: StoreId, store: &'a Store| store.get(id),
+    resultitername = StoreGetResultIterator,
+    resultextname  = StoreIdGetResultIteratorExtension
 }
 
 mk_iterator_mod! {
@@ -90,6 +176,48 @@ mk_iterator_mod! {
     iteryield = FileLockEntry<'a>,
     extname   = StoreIdRetrieveIteratorExtension,
     extfnname = into_retrieve_iter,
-    fun       = |id: StoreId, store: &'a Store| store.retrieve(id)
+    fun       = |id: StoreId, store: &'a Store| store.retrieve(id),
+    resultitername = StoreRetrieveResultIterator,
+    resultextname  = StoreIdRetrieveResultIteratorExtension
+}
+
+#[cfg(test)]
+#[allow(dead_code)]
+mod compile_test {
+
+    // This module contains code to check whether this actually compiles the way we would like it to
+    // compile
+
+    use store::Store;
+    use storeid::StoreId;
+
+    fn store() -> Store {
+        unimplemented!()
+    }
+
+    fn test_compile_get() {
+        use super::get::StoreIdGetIteratorExtension;
+
+        let store = store();
+        let _ = store
+            .entries()
+            .unwrap()
+            .into_get_iter(&store);
+    }
+
+    fn test_compile_get_result() {
+        use super::get::StoreIdGetResultIteratorExtension;
+
+        fn to_result(e: StoreId) -> Result<StoreId, ()> {
+            Ok(e)
+        }
+
+        let store = store();
+        let _ = store
+            .entries()
+            .unwrap()
+            .map(to_result)
+            .into_get_iter(&store);
+    }
 }
 
