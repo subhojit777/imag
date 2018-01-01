@@ -72,8 +72,11 @@ fn main() {
             },
         }
     } else {
-        let diary_name = get_diary_name(&rt);
-        let text = get_log_text(&rt);
+        let text       = get_log_text(&rt);
+        let diary_name = rt.cli()
+            .value_of("diaryname")
+            .map(String::from)
+            .unwrap_or_else(|| get_diary_name(&rt));
 
         debug!("Writing to '{}': {}", diary_name, text);
 
@@ -90,7 +93,46 @@ fn main() {
 }
 
 fn show(rt: &Runtime) {
-    unimplemented!()
+    use libimagdiary::iter::DiaryEntryIterator;
+    use libimagdiary::entry::DiaryEntry;
+
+    let scmd = rt.cli().subcommand_matches("show").unwrap(); // safed by main()
+    let iters : Vec<DiaryEntryIterator> = match scmd.values_of("show-name") {
+        Some(values) => values
+            .map(|diary_name| Diary::entries(rt.store(), diary_name).map_err_trace_exit_unwrap(1))
+            .collect(),
+
+        None => if scmd.is_present("show-all") {
+            rt.store()
+                .diary_names()
+                .map_err_trace_exit_unwrap(1)
+                .map(|diary_name| {
+                    let diary_name = diary_name.map_err_trace_exit_unwrap(1);
+                    Diary::entries(rt.store(), &diary_name).map_err_trace_exit_unwrap(1)
+                })
+                .collect()
+        } else {
+            // showing default logs
+            vec![Diary::entries(rt.store(), &get_diary_name(rt)).map_err_trace_exit_unwrap(1)]
+        }
+    };
+
+    for iter in iters {
+        for element in iter {
+            let e  = element.map_err_trace_exit_unwrap(1);
+            let id = e.diary_id().map_err_trace_exit_unwrap(1);
+            println!("{dname: >10} - {y: >4}-{m:0>2}-{d:0>2}T{H:0>2}:{M:0>2} - {text}",
+                     dname = id.diary_name(),
+                     y = id.year(),
+                     m = id.month(),
+                     d = id.day(),
+                     H = id.hour(),
+                     M = id.minute(),
+                     text = e.get_content());
+        }
+    }
+
+    info!("Ready.");
 }
 
 fn get_diary_name(rt: &Runtime) -> String {
