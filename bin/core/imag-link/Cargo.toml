@@ -21,7 +21,7 @@ maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
 clap = ">=2.17"
-log = "0.4.0-rc.1"
+log = "0.4.0"
 url = "1.5"
 toml = "0.4"
 toml-query = "0.6"

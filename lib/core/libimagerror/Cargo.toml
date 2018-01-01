@@ -20,5 +20,5 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-log = "0.4.0-rc.1"
+log = "0.4.0"
 ansi_term = "0.10"
