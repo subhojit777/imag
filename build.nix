@@ -18,20 +18,13 @@ let kernel = buildPlatform.parsed.kernel.name;
       else
         features
     ) (if hasDefault feat then [ "default" ] else []) (builtins.attrNames feat);
-    aho_corasick_0_6_3_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    aho_corasick_0_6_4_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "aho-corasick";
-      version = "0.6.3";
+      version = "0.6.4";
       authors = [ "Andrew Gallant <jamslam@gmail.com>" ];
-      sha256 = "1cpqzf6acj8lm06z3f1cg41wn6c2n9l3v49nh0dvimv4055qib6k";
+      sha256 = "189v919mp6rzzgjp1khpn4zlq8ls81gh43x1lmc8kbkagdlpq888";
       libName = "aho_corasick";
       crateBin = [ {  name = "aho-corasick-dot"; } ];
-      inherit dependencies buildDependencies features;
-    };
-    ansi_term_0_9_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
-      crateName = "ansi_term";
-      version = "0.9.0";
-      authors = [ "ogham@bsago.me" "Ryan Scheel (Havvy) <ryan.havvy@gmail.com>" ];
-      sha256 = "1vcd8m2hglrdi4zmqnkkz5zy3c73ifgii245k7vj6qr5dzpn9hij";
       inherit dependencies buildDependencies features;
     };
     ansi_term_0_10_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -41,18 +34,18 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "07k0hfmlhv43lihyxb9d81l5mq5zlpqvv30dkfd3knmv2ginasn9";
       inherit dependencies buildDependencies features;
     };
-    atty_0_2_3_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    atty_0_2_6_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "atty";
-      version = "0.2.3";
+      version = "0.2.6";
       authors = [ "softprops <d.tangren@gmail.com>" ];
-      sha256 = "0zl0cjfgarp5y78nd755lpki5bbkj4hgmi88v265m543yg29i88f";
+      sha256 = "1y2nmvx04iqxaz4a5alhbgbpkdf1wqb7z0097qmw08b5iqhfa4wv";
       inherit dependencies buildDependencies features;
     };
-    backtrace_0_3_3_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    backtrace_0_3_4_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "backtrace";
-      version = "0.3.3";
+      version = "0.3.4";
       authors = [ "Alex Crichton <alex@alexcrichton.com>" "The Rust Project Developers" ];
-      sha256 = "0invfdxkj85v8zyrjs3amfxjdk2a36x8irq7wq7kny6q49hh8y0z";
+      sha256 = "1caba8w3rqd5ghr88ghyz5wgkf81dgx18bj1llkax6qmianc6gk7";
       inherit dependencies buildDependencies features;
     };
     backtrace_sys_0_1_16_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -77,18 +70,18 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "0bgw1kiy121kikjrwj6zsd7l8n1gg1jirivzkc7zpjsvqa3p0hla";
       inherit dependencies buildDependencies features;
     };
-    bitflags_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    bitflags_1_0_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "bitflags";
-      version = "0.7.0";
+      version = "1.0.1";
       authors = [ "The Rust Project Developers" ];
-      sha256 = "1hr72xg5slm0z4pxs2hiy4wcyx3jva70h58b7mid8l0a4c8f7gn5";
+      sha256 = "0p4b3nr0s5nda2qmm7xdhnvh4lkqk3xd8l9ffmwbvqw137vx7mj1";
       inherit dependencies buildDependencies features;
     };
-    bitflags_0_9_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
-      crateName = "bitflags";
-      version = "0.9.1";
-      authors = [ "The Rust Project Developers" ];
-      sha256 = "18h073l5jd88rx4qdr95fjddr9rk79pb1aqnshzdnw16cfmb9rws";
+    block_0_1_6_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "block";
+      version = "0.1.6";
+      authors = [ "Steven Sheldon" ];
+      sha256 = "1hwfh5992ya0dsbn1ldrlbbdi2a8fqmnvdnla5rdbnd4g2bsc6q5";
       inherit dependencies buildDependencies features;
     };
     boolinator_2_4_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -98,11 +91,11 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "1kls4qphqdyrb0vr4y71dnii5az5jk235m9xjsy5g81iqd0ffklm";
       inherit dependencies buildDependencies features;
     };
-    byteorder_1_1_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    byteorder_1_2_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "byteorder";
-      version = "1.1.0";
+      version = "1.2.1";
       authors = [ "Andrew Gallant <jamslam@gmail.com>" ];
-      sha256 = "1i2n0161jm00zvzh4bncgv9zrwa6ydbxdn5j4bx0wwn7rvi9zycp";
+      sha256 = "1wsxnqcscg4gchdmgdbwc78lw2qx2i6bnjd564xq7h7qc4fp2157";
       inherit dependencies buildDependencies features;
     };
     cc_1_0_3_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -133,11 +126,11 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "0hm53hi6v7b6b1va6vn96lx26wvj8gzi2g51s1j02nlz0jcprw6a";
       inherit dependencies buildDependencies features;
     };
-    clap_2_27_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    clap_2_29_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "clap";
-      version = "2.27.1";
+      version = "2.29.0";
       authors = [ "Kevin K. <kbknapp@gmail.com>" ];
-      sha256 = "0zx8rskqfl3iqn3vlyxzyd99hpifa7bm871akhxpz9wvrm688zaj";
+      sha256 = "06pbf6amdpjhzyxmc763v1yds40gmgaxrjfbmx5chxsy1hr4mxlw";
       inherit dependencies buildDependencies features;
     };
     csv_0_15_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -157,6 +150,14 @@ let kernel = buildPlatform.parsed.kernel.name;
       build = "build.rs";
       inherit dependencies buildDependencies features;
     };
+    dbus_0_4_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "dbus";
+      version = "0.4.1";
+      authors = [ "David Henningsson <diwic@ubuntu.com>" ];
+      sha256 = "0qw32qj2rys318h780klxlznkwg93dfimbn8mc34m4940l8v00g9";
+      build = "build.rs";
+      inherit dependencies buildDependencies features;
+    };
     dtoa_0_4_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "dtoa";
       version = "0.4.2";
@@ -164,11 +165,11 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "1bxsh6fags7nr36vlz07ik2a1rzyipc8x1y30kjk832hf2pzadmw";
       inherit dependencies buildDependencies features;
     };
-    either_1_3_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    either_1_4_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "either";
-      version = "1.3.0";
+      version = "1.4.0";
       authors = [ "bluss" ];
-      sha256 = "1x6xpy9qvmm82ng776m58160djnd6i5b4v1zi1ldpn9mfxayczhk";
+      sha256 = "04kpfd84lvyrkb2z4sljlz2d3d5qczd0sb1yy37fgijq2yx3vb37";
       inherit dependencies buildDependencies features;
     };
     email_0_0_17_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -274,18 +275,18 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "0nswwx4smfy8i04k6q5yd4mriai0h3ciyfmlpp13lg4l0cxsld0k";
       inherit dependencies buildDependencies features;
     };
-    fuchsia_zircon_0_2_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    fuchsia_zircon_0_3_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "fuchsia-zircon";
-      version = "0.2.1";
+      version = "0.3.2";
       authors = [ "Raph Levien <raph@google.com>" ];
-      sha256 = "0yd4rd7ql1vdr349p6vgq2dnwmpylky1kjp8g1zgvp250jxrhddb";
+      sha256 = "1zhxksplv52nlqd4j21h8462b5s913ngnhd303qsxsxn8dpaxgkq";
       inherit dependencies buildDependencies features;
     };
-    fuchsia_zircon_sys_0_2_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    fuchsia_zircon_sys_0_3_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "fuchsia-zircon-sys";
-      version = "0.2.0";
+      version = "0.3.2";
       authors = [ "Raph Levien <raph@google.com>" ];
-      sha256 = "1yrqsrjwlhl3di6prxf5xmyd82gyjaysldbka5wwk83z11mpqh4w";
+      sha256 = "0p8mrhg8pxk4kpzziv6nlxd8xgkj916gsg2b0x2mvf9dxwzrqhnk";
       inherit dependencies buildDependencies features;
     };
     gcc_0_3_54_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -325,128 +326,135 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "15j44qgjx1skwg9i7f4cm36ni4n99b1ayx23yxx7axxcw8vjf336";
       inherit dependencies buildDependencies features;
     };
-    imag_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/core/imag;
       inherit dependencies buildDependencies features;
     };
-    imag_annotate_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_annotate_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-annotate";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/core/imag-annotate;
       inherit dependencies buildDependencies features;
     };
-    imag_bookmark_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_bookmark_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-bookmark";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/domain/imag-bookmark;
       inherit dependencies buildDependencies features;
     };
-    imag_contact_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_contact_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-contact";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/domain/imag-contact;
       inherit dependencies buildDependencies features;
     };
-    imag_diagnostics_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_diagnostics_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-diagnostics";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/core/imag-diagnostics;
       inherit dependencies buildDependencies features;
     };
-    imag_diary_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_diary_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-diary";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/domain/imag-diary;
       inherit dependencies buildDependencies features;
     };
-    imag_gps_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_gps_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-gps";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/core/imag-gps;
       inherit dependencies buildDependencies features;
     };
-    imag_grep_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_grep_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-grep";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/core/imag-grep;
       inherit dependencies buildDependencies features;
     };
-    imag_link_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_habit_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "imag-habit";
+      version = "0.6.0";
+      authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
+      src = bin/domain/imag-habit;
+      inherit dependencies buildDependencies features;
+    };
+    imag_link_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-link";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/core/imag-link;
       inherit dependencies buildDependencies features;
     };
-    imag_mail_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_mail_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-mail";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/domain/imag-mail;
       inherit dependencies buildDependencies features;
     };
-    imag_mv_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_mv_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-mv";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/core/imag-mv;
       inherit dependencies buildDependencies features;
     };
-    imag_notes_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_notes_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-notes";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/domain/imag-notes;
       inherit dependencies buildDependencies features;
     };
-    imag_ref_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_ref_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-ref";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/core/imag-ref;
       inherit dependencies buildDependencies features;
     };
-    imag_store_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_store_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-store";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/core/imag-store;
       inherit dependencies buildDependencies features;
     };
-    imag_tag_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_tag_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-tag";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/core/imag-tag;
       inherit dependencies buildDependencies features;
     };
-    imag_timetrack_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_timetrack_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-timetrack";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/domain/imag-timetrack;
       inherit dependencies buildDependencies features;
     };
-    imag_todo_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_todo_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-todo";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "mario <mario-krehl@gmx.de>" ];
       src = bin/domain/imag-todo;
       inherit dependencies buildDependencies features;
     };
-    imag_view_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    imag_view_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "imag-view";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = bin/core/imag-view;
       inherit dependencies buildDependencies features;
@@ -472,11 +480,11 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "18zm5pnc26q1q8l65r702bcnvkdzzbdmsq96gxcwa00lxja7l2d4";
       inherit dependencies buildDependencies features;
     };
-    itertools_0_7_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    itertools_0_7_4_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "itertools";
-      version = "0.7.2";
+      version = "0.7.4";
       authors = [ "bluss" ];
-      sha256 = "15w30f3h711qps50vb866f0ganqm3409xy3x9hf89q7sks34ligv";
+      sha256 = "1nvvwbwmpa9labsgi9xjghnwa26ikhla7wv4kcdfxcx62ygapxlj";
       inherit dependencies buildDependencies features;
     };
     itoa_0_3_4_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -502,207 +510,243 @@ let kernel = buildPlatform.parsed.kernel.name;
       build = "build.rs";
       inherit dependencies buildDependencies features;
     };
-    lazy_static_0_2_9_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    lazy_static_0_2_11_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "lazy_static";
-      version = "0.2.9";
+      version = "0.2.11";
       authors = [ "Marvin Löbel <loebel.marvin@gmail.com>" ];
-      sha256 = "08ldzr5292y3hvi6l6v8l4i6v95lm1aysmnfln65h10sqrfh6iw7";
+      sha256 = "1x6871cvpy5b96yv4c7jvpq316fp5d4609s9py7qk6cd6x9k34vm";
       inherit dependencies buildDependencies features;
     };
-    libc_0_2_33_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    lazy_static_1_0_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "lazy_static";
+      version = "1.0.0";
+      authors = [ "Marvin Löbel <loebel.marvin@gmail.com>" ];
+      sha256 = "0wfvqyr2nvx2mbsrscg5y7gfa9skhb8p72ayanl8vl49pw24v4fh";
+      inherit dependencies buildDependencies features;
+    };
+    libc_0_2_34_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libc";
-      version = "0.2.33";
+      version = "0.2.34";
       authors = [ "The Rust Project Developers" ];
-      sha256 = "1l7synziccnvarsq2kk22vps720ih6chmn016bhr2bq54hblbnl1";
+      sha256 = "11jmqdxmv0ka10ay0l8nzx0nl7s2lc3dbrnh1mgbr2grzwdyxi2s";
       inherit dependencies buildDependencies features;
     };
-    libimagbookmark_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagbookmark_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagbookmark";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/domain/libimagbookmark;
       inherit dependencies buildDependencies features;
     };
-    libimagcontact_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagcontact_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagcontact";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/domain/libimagcontact;
       inherit dependencies buildDependencies features;
     };
-    libimagdiary_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagdiary_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagdiary";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/domain/libimagdiary;
       inherit dependencies buildDependencies features;
     };
-    libimagentryannotation_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagentryannotation_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagentryannotation";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/entry/libimagentryannotation;
       inherit dependencies buildDependencies features;
     };
-    libimagentrycategory_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagentrycategory_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagentrycategory";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/entry/libimagentrycategory;
       inherit dependencies buildDependencies features;
     };
-    libimagentrydatetime_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagentrydatetime_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagentrydatetime";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/entry/libimagentrydatetime;
       inherit dependencies buildDependencies features;
     };
-    libimagentryedit_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagentryedit_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagentryedit";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/entry/libimagentryedit;
       inherit dependencies buildDependencies features;
     };
-    libimagentryfilter_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagentryfilter_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagentryfilter";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/entry/libimagentryfilter;
       inherit dependencies buildDependencies features;
     };
-    libimagentrygps_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagentrygps_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagentrygps";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/entry/libimagentrygps;
       inherit dependencies buildDependencies features;
     };
-    libimagentrylink_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagentrylink_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagentrylink";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/entry/libimagentrylink;
       inherit dependencies buildDependencies features;
     };
-    libimagentrylist_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagentrylist_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagentrylist";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/entry/libimagentrylist;
       inherit dependencies buildDependencies features;
     };
-    libimagentrymarkdown_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagentrymarkdown_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagentrymarkdown";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/entry/libimagentrymarkdown;
       inherit dependencies buildDependencies features;
     };
-    libimagentryref_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagentryref_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagentryref";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/entry/libimagentryref;
       inherit dependencies buildDependencies features;
     };
-    libimagentrytag_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagentrytag_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagentrytag";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/entry/libimagentrytag;
       inherit dependencies buildDependencies features;
     };
-    libimagentryview_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagentryview_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagentryview";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/entry/libimagentryview;
       inherit dependencies buildDependencies features;
     };
-    libimagerror_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagerror_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagerror";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/core/libimagerror;
       inherit dependencies buildDependencies features;
     };
-    libimaghabit_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimaghabit_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimaghabit";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/domain/libimaghabit;
       inherit dependencies buildDependencies features;
     };
-    libimaginteraction_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimaginteraction_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimaginteraction";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/etc/libimaginteraction;
       inherit dependencies buildDependencies features;
     };
-    libimagmail_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagmail_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagmail";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/domain/libimagmail;
       inherit dependencies buildDependencies features;
     };
-    libimagnotes_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagnotes_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagnotes";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/domain/libimagnotes;
       inherit dependencies buildDependencies features;
     };
-    libimagrt_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagnotification_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "libimagnotification";
+      version = "0.6.0";
+      authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
+      src = lib/etc/libimagnotification;
+      inherit dependencies buildDependencies features;
+    };
+    libimagrt_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagrt";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/core/libimagrt;
       inherit dependencies buildDependencies features;
     };
-    libimagstore_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagstore_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagstore";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/core/libimagstore;
       inherit dependencies buildDependencies features;
     };
-    libimagtimetrack_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagtimetrack_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagtimetrack";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/domain/libimagtimetrack;
       inherit dependencies buildDependencies features;
     };
-    libimagtimeui_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagtimeui_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagtimeui";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
       src = lib/etc/libimagtimeui;
       inherit dependencies buildDependencies features;
     };
-    libimagtodo_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagtodo_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagtodo";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "mario <mario-krehl@gmx.de>" ];
       src = lib/domain/libimagtodo;
       inherit dependencies buildDependencies features;
     };
-    libimagutil_0_5_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    libimagutil_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "libimagutil";
-      version = "0.5.0";
+      version = "0.6.0";
       authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
-      src = ./.;
+      src = lib/etc/libimagutil;
       inherit dependencies buildDependencies features;
     };
-    log_0_3_8_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    log_0_3_9_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "log";
-      version = "0.3.8";
+      version = "0.3.9";
       authors = [ "The Rust Project Developers" ];
-      sha256 = "1c43z4z85sxrsgir4s1hi84558ab5ic7jrn5qgmsiqcv90vvn006";
+      sha256 = "19i9pwp7lhaqgzangcpw00kc3zsgcqcx84crv07xgz3v7d3kvfa2";
+      inherit dependencies buildDependencies features;
+    };
+    log_0_4_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "log";
+      version = "0.4.1";
+      authors = [ "The Rust Project Developers" ];
+      sha256 = "01vm8yy3wngvyj6qp1x3xpcb4xq7v67yn9l7fsma8kz28mliz90d";
+      inherit dependencies buildDependencies features;
+    };
+    mac_notification_sys_0_1_3_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "mac-notification-sys";
+      version = "0.1.3";
+      authors = [ "Felix Döring <development@felixdoering.com>" ];
+      sha256 = "0crjbfnrr76chh0l1386ky67v1gv79qqj9q4w1l610mb8f9fvpwi";
+      build = "build.rs";
+      inherit dependencies buildDependencies features;
+    };
+    malloc_buf_0_0_6_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "malloc_buf";
+      version = "0.0.6";
+      authors = [ "Steven Sheldon" ];
+      sha256 = "0g3n9a74vnvz3ip8fp90ss2jwr27mzkb5q6r61fcv8n829rwhxfp";
       inherit dependencies buildDependencies features;
     };
     matches_0_1_6_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -720,6 +764,13 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "0dfb8ifl9nrc9kzgd5z91q6qg87sh285q1ih7xgrsglmqfav9lg7";
       inherit dependencies buildDependencies features;
     };
+    memchr_2_0_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "memchr";
+      version = "2.0.1";
+      authors = [ "Andrew Gallant <jamslam@gmail.com>" "bluss" ];
+      sha256 = "0ls2y47rjwapjdax6bp974gdp06ggm1v8d1h69wyydmh1nhgm5gr";
+      inherit dependencies buildDependencies features;
+    };
     nom_3_2_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "nom";
       version = "3.2.1";
@@ -727,11 +778,18 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "1vcllxrz9hdw6j25kn020ka3psz1vkaqh1hm3yfak2240zrxgi07";
       inherit dependencies buildDependencies features;
     };
-    num_0_1_40_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    notify_rust_3_4_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "notify-rust";
+      version = "3.4.2";
+      authors = [ "Hendrik Sollich <hendrik@hoodie.de>" "panicbit <panicbit@users.noreply.github.com>" ];
+      sha256 = "0xx347dxsbvdn4vcxjyabrr0acwxrl04lnqk8f5vlng4nkp4hxg6";
+      inherit dependencies buildDependencies features;
+    };
+    num_0_1_41_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "num";
-      version = "0.1.40";
+      version = "0.1.41";
       authors = [ "The Rust Project Developers" ];
-      sha256 = "0b29c25n9mpf6a921khj7a6y3hz5va4vgwppcd2if975qq1shakg";
+      sha256 = "05v5llf5yl4y1i89jcgqr6gwxhylrgrpv0n440c3lya7hwng9s73";
       inherit dependencies buildDependencies features;
     };
     num_integer_0_1_35_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -748,18 +806,39 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "02cld7x9dzbqbs6sxxzq1i22z3awlcd6ljkgvhkfr9rsnaxphzl9";
       inherit dependencies buildDependencies features;
     };
-    num_traits_0_1_40_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    num_traits_0_1_41_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "num-traits";
-      version = "0.1.40";
+      version = "0.1.41";
       authors = [ "The Rust Project Developers" ];
-      sha256 = "1fr8ghp4i97q3agki54i0hpmqxv3s65i2mqd1pinc7w7arc3fplw";
+      sha256 = "134gv890n1gv8v0jys55k0940gqp2hibgf1fs8q9jmyk2xp1jp9m";
       inherit dependencies buildDependencies features;
     };
-    percent_encoding_1_0_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    objc_0_2_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "objc";
+      version = "0.2.2";
+      authors = [ "Steven Sheldon" ];
+      sha256 = "12kaldivbks67j0jfc82f8962j2ry0z1jlkhjihmnm82gc4w2vjm";
+      inherit dependencies buildDependencies features;
+    };
+    objc_foundation_0_1_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "objc-foundation";
+      version = "0.1.1";
+      authors = [ "Steven Sheldon" ];
+      sha256 = "0xab2xw363mmp4gchxa4sjbh9dlivvcqc03h85lx0nhmxyim1cgw";
+      inherit dependencies buildDependencies features;
+    };
+    objc_id_0_1_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "objc_id";
+      version = "0.1.0";
+      authors = [ "Steven Sheldon" ];
+      sha256 = "0dal9z7lchkmmyw5jff6psb09q17pjrw1mwh84q5dqc30krmhmrh";
+      inherit dependencies buildDependencies features;
+    };
+    percent_encoding_1_0_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "percent-encoding";
-      version = "1.0.0";
+      version = "1.0.1";
       authors = [ "The rust-url developers" ];
-      sha256 = "0c91wp8inj7z270i2kilxjl00kcagqalxxnnjg7fsdlimdwb7q1z";
+      sha256 = "04ahrp7aw4ip7fmadb0bknybmkfav0kk0gw4ps3ydq5w6hr0ib5i";
       libPath = "lib.rs";
       inherit dependencies buildDependencies features;
     };
@@ -768,6 +847,13 @@ let kernel = buildPlatform.parsed.kernel.name;
       version = "0.3.3";
       authors = [ "Dragoș Tiselice <dragostiselice@gmail.com>" ];
       sha256 = "17wrz0vn21i23c89y6mxcmi9vnig30vbf99fhqqv0ch9lxdfbbbp";
+      inherit dependencies buildDependencies features;
+    };
+    pkg_config_0_3_9_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "pkg-config";
+      version = "0.3.9";
+      authors = [ "Alex Crichton <alex@alexcrichton.com>" ];
+      sha256 = "06k8fxgrsrxj8mjpjcq1n7mn2p1shpxif4zg9y5h09c7vy20s146";
       inherit dependencies buildDependencies features;
     };
     prettytable_rs_0_6_7_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -793,18 +879,18 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "09il61jv4kd1360spaj46qwyl21fv1qz18fsv2jra8wdnlgl5jsg";
       inherit dependencies buildDependencies features;
     };
-    rand_0_3_18_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    rand_0_3_19_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "rand";
-      version = "0.3.18";
+      version = "0.3.19";
       authors = [ "The Rust Project Developers" ];
-      sha256 = "15d7c3myn968dzjs0a2pgv58hzdavxnq6swgj032lw2v966ir4xv";
+      sha256 = "19zx65w7rrrfnjifmjp2i80w9bc6ld7pcwnk5hmr9xszmmvhk8zp";
       inherit dependencies buildDependencies features;
     };
-    redox_syscall_0_1_31_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    redox_syscall_0_1_33_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "redox_syscall";
-      version = "0.1.31";
+      version = "0.1.33";
       authors = [ "Jeremy Soller <jackpot51@gmail.com>" ];
-      sha256 = "0kipd9qslzin4fgj4jrxv6yz5l3l71gnbd7fq1jhk2j7f2sq33j4";
+      sha256 = "1s1kaadgz6l0s11gyhlvbzsvq2fkm17ilxg0nawvncwdsbb9c44q";
       libName = "syscall";
       inherit dependencies buildDependencies features;
     };
@@ -816,18 +902,18 @@ let kernel = buildPlatform.parsed.kernel.name;
       libPath = "src/lib.rs";
       inherit dependencies buildDependencies features;
     };
-    regex_0_2_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    regex_0_2_5_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "regex";
-      version = "0.2.2";
+      version = "0.2.5";
       authors = [ "The Rust Project Developers" ];
-      sha256 = "1f1zrrynfylg0vcfyfp60bybq4rp5g1yk2k7lc7fyz7mmc7k2qr7";
+      sha256 = "04s62pldipr1aamifrq9x93x17y4yavnpr8jbxyjmlbzkz3xnwch";
       inherit dependencies buildDependencies features;
     };
-    regex_syntax_0_4_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    regex_syntax_0_4_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "regex-syntax";
-      version = "0.4.1";
+      version = "0.4.2";
       authors = [ "The Rust Project Developers" ];
-      sha256 = "01yrsm68lj86ad1whgg1z95c2pfsvv58fz8qjcgw7mlszc0c08ls";
+      sha256 = "1pch2dmdnh712c9d2k7mxbkl6wbr433x6asip65mp76cn8syrqdw";
       inherit dependencies buildDependencies features;
     };
     rust_crypto_0_2_36_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -888,33 +974,33 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "1da66c8413yakx0y15k8c055yna5lyb6fr0fw9318kdwkrk5k12h";
       inherit dependencies buildDependencies features;
     };
-    serde_1_0_19_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    serde_1_0_27_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "serde";
-      version = "1.0.19";
+      version = "1.0.27";
       authors = [ "Erick Tryzelaar <erick.tryzelaar@gmail.com>" "David Tolnay <dtolnay@gmail.com>" ];
-      sha256 = "0dfhkkbrpr0vr1b2hhbddizb8bq4phi5ck0jhy3yx31bc2byb1l1";
+      sha256 = "1mpx1p6rjhajhxwapxsswqi7fdh3ms2cz6aj0h615wx17ckl6cyw";
       inherit dependencies buildDependencies features;
     };
-    serde_derive_1_0_19_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    serde_derive_1_0_27_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "serde_derive";
-      version = "1.0.19";
+      version = "1.0.27";
       authors = [ "Erick Tryzelaar <erick.tryzelaar@gmail.com>" "David Tolnay <dtolnay@gmail.com>" ];
-      sha256 = "1fbr1zi25fgwy49mvpjq8g611mnv3vcd4n0mgca2lfdsp5n2nw5v";
+      sha256 = "0h70hzs973fjhmipmhxy1sh4s1dbj984vwlkcxqfjipwgggj1m19";
       procMacro = true;
       inherit dependencies buildDependencies features;
     };
-    serde_derive_internals_0_17_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    serde_derive_internals_0_19_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "serde_derive_internals";
-      version = "0.17.0";
+      version = "0.19.0";
       authors = [ "Erick Tryzelaar <erick.tryzelaar@gmail.com>" "David Tolnay <dtolnay@gmail.com>" ];
-      sha256 = "1g1j3v6pj9wbcz3v3w4smjpwrcdwjicmf6yd5cbai04as9iwhw74";
+      sha256 = "12gg08kq295npvhrl1ryzgn0rn2az4kvmj7zlzdda4094qwqgrzz";
       inherit dependencies buildDependencies features;
     };
-    serde_json_1_0_5_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    serde_json_1_0_9_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "serde_json";
-      version = "1.0.5";
+      version = "1.0.9";
       authors = [ "Erick Tryzelaar <erick.tryzelaar@gmail.com>" "David Tolnay <dtolnay@gmail.com>" ];
-      sha256 = "1yka3aa2gfi30415jpf0935k54r08jhyw6r7rjz2nv1kqgbw2brs";
+      sha256 = "1pcclssyndz54cncsizkqrblmqqr1p2g6xhkpwldbk6qc95m4yw3";
       inherit dependencies buildDependencies features;
     };
     strsim_0_6_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -973,11 +1059,11 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "02gq4vd8iws1f3gjrgrgpajsk2bk43nds5acbbb4s8dvrdvr8nf1";
       inherit dependencies buildDependencies features;
     };
-    termios_0_2_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    termios_0_3_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "termios";
-      version = "0.2.2";
+      version = "0.3.0";
       authors = [ "David Cuddeback <david.cuddeback@gmail.com>" ];
-      sha256 = "0hjy4idvcapx9i6qbhf5536aqnf6rqk2aaj424sfwy7qhv6xmcx3";
+      sha256 = "0d5vpwdaimbq2pz4a4njcyxc2spvssxn2v8n9mc6flys4h0ir9nv";
       inherit dependencies buildDependencies features;
     };
     textwrap_0_9_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -987,11 +1073,11 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "18jg79ndjlwndz01mlbh82kkr2arqm658yn5kwp65l5n1hz8w4yb";
       inherit dependencies buildDependencies features;
     };
-    thread_local_0_3_4_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    thread_local_0_3_5_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "thread_local";
-      version = "0.3.4";
+      version = "0.3.5";
       authors = [ "Amanieu d'Antras <amanieu@gmail.com>" ];
-      sha256 = "1y6cwyhhx2nkz4b3dziwhqdvgq830z8wjp32b40pjd8r0hxqv2jr";
+      sha256 = "0mkp0sp91aqsk7brgygai4igv751r1754rsxn37mig3ag5rx8np6";
       inherit dependencies buildDependencies features;
     };
     time_0_1_38_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -1093,11 +1179,11 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "0kfh38mvjyiirprb557m1sd4k8x70a6ys9cdd1hah4c74v0v0vzn";
       inherit dependencies buildDependencies features;
     };
-    vobject_0_4_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+    vobject_0_4_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "vobject";
-      version = "0.4.0";
+      version = "0.4.1";
       authors = [ "Markus Unterwaditzer <markus@unterwaditzer.net>" ];
-      sha256 = "1nf8wvslfh0mqk0yb8q4q33pndarpy2rm5ifm9x8ldnz3y7mw740";
+      sha256 = "0z663bkn3vwlnmf86ysdxgfwbqs7qziqx1ibgg1mg8z2qgyisa1r";
       inherit dependencies buildDependencies features;
     };
     void_1_0_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -1121,12 +1207,36 @@ let kernel = buildPlatform.parsed.kernel.name;
       sha256 = "0a45b58ywf12vb7gvj6h3j264nydynmzyqz8d8rqxsj6icqv82as";
       inherit dependencies buildDependencies features;
     };
+    winapi_0_3_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "winapi";
+      version = "0.3.2";
+      authors = [ "Peter Atashian <retep998@gmail.com>" ];
+      sha256 = "1hhfnc88rvlbkv3l7dzdbhvphnllzrw9hnpi3db6k3cj6ix0hbg9";
+      build = "build.rs";
+      inherit dependencies buildDependencies features;
+    };
     winapi_build_0_1_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
       crateName = "winapi-build";
       version = "0.1.1";
       authors = [ "Peter Atashian <retep998@gmail.com>" ];
       sha256 = "1lxlpi87rkhxcwp2ykf1ldw3p108hwm24nywf3jfrvmff4rjhqga";
       libName = "build";
+      inherit dependencies buildDependencies features;
+    };
+    winapi_i686_pc_windows_gnu_0_3_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "winapi-i686-pc-windows-gnu";
+      version = "0.3.2";
+      authors = [ "Peter Atashian <retep998@gmail.com>" ];
+      sha256 = "1q9xhkhv1pd5kixnh1qkbim4196khywh63avv77z0j4394dq6vns";
+      build = "build.rs";
+      inherit dependencies buildDependencies features;
+    };
+    winapi_x86_64_pc_windows_gnu_0_3_2_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
+      crateName = "winapi-x86_64-pc-windows-gnu";
+      version = "0.3.2";
+      authors = [ "Peter Atashian <retep998@gmail.com>" ];
+      sha256 = "052jwc587hijmcyb6bwplkibv76bihqvc1pphxypy123yga2wiy3";
+      build = "build.rs";
       inherit dependencies buildDependencies features;
     };
     xdg_basedir_1_0_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -1140,81 +1250,84 @@ let kernel = buildPlatform.parsed.kernel.name;
 
 in
 rec {
-  aho_corasick_0_6_3 = aho_corasick_0_6_3_ rec {
-    dependencies = [ memchr_1_0_2 ];
+  aho_corasick_0_6_4 = aho_corasick_0_6_4_ rec {
+    dependencies = [ memchr_2_0_1 ];
   };
-  memchr_1_0_2_features."default".from_aho_corasick_0_6_3__default = true;
-  ansi_term_0_9_0 = ansi_term_0_9_0_ rec {};
+  memchr_2_0_1_features."default".from_aho_corasick_0_6_4__default = true;
   ansi_term_0_10_2 = ansi_term_0_10_2_ rec {};
-  atty_0_2_3 = atty_0_2_3_ rec {
+  atty_0_2_6 = atty_0_2_6_ rec {
     dependencies = (if kernel == "redox" then [ termion_1_5_1 ] else [])
-      ++ (if (kernel == "linux" || kernel == "darwin") then [ libc_0_2_33 ] else [])
-      ++ (if kernel == "windows" then [ kernel32_sys_0_2_2 winapi_0_2_8 ] else []);
+      ++ (if (kernel == "linux" || kernel == "darwin") then [ libc_0_2_34 ] else [])
+      ++ (if kernel == "windows" then [ winapi_0_3_2 ] else []);
   };
-  termion_1_5_1_features."default".from_atty_0_2_3__default = true;
-  libc_0_2_33_features."default".from_atty_0_2_3__default = false;
-  kernel32_sys_0_2_2_features."default".from_atty_0_2_3__default = true;
-  winapi_0_2_8_features."default".from_atty_0_2_3__default = true;
-  backtrace_0_3_3 = backtrace_0_3_3_ rec {
+  termion_1_5_1_features."default".from_atty_0_2_6__default = true;
+  libc_0_2_34_features."default".from_atty_0_2_6__default = false;
+  winapi_0_3_2_features."consoleapi".from_atty_0_2_6 = true;
+  winapi_0_3_2_features."processenv".from_atty_0_2_6 = true;
+  winapi_0_3_2_features."minwinbase".from_atty_0_2_6 = true;
+  winapi_0_3_2_features."minwindef".from_atty_0_2_6 = true;
+  winapi_0_3_2_features."winbase".from_atty_0_2_6 = true;
+  winapi_0_3_2_features."default".from_atty_0_2_6__default = true;
+  backtrace_0_3_4 = backtrace_0_3_4_ rec {
     dependencies = [ cfg_if_0_1_2 rustc_demangle_0_1_5 ]
-      ++ (if (kernel == "linux" || kernel == "darwin") && !(kernel == "emscripten") && !(kernel == "darwin") && !(kernel == "ios") then [ backtrace_sys_0_1_16 ]
+      ++ (if (kernel == "linux" || kernel == "darwin") && !(kernel == "fuchsia") && !(kernel == "emscripten") && !(kernel == "darwin") && !(kernel == "ios") then [ backtrace_sys_0_1_16 ]
       ++ (if lib.lists.any (x: x == "backtrace-sys") features then [backtrace_sys_0_1_16] else []) else [])
-      ++ (if (kernel == "linux" || kernel == "darwin") then [ libc_0_2_33 ] else [])
+      ++ (if (kernel == "linux" || kernel == "darwin") then [ libc_0_2_34 ] else [])
       ++ (if kernel == "windows" then [ dbghelp_sys_0_2_0 kernel32_sys_0_2_2 winapi_0_2_8 ]
       ++ (if lib.lists.any (x: x == "dbghelp-sys") features then [dbghelp_sys_0_2_0] else [])      ++ (if lib.lists.any (x: x == "kernel32-sys") features then [kernel32_sys_0_2_2] else [])      ++ (if lib.lists.any (x: x == "winapi") features then [winapi_0_2_8] else []) else []);
-    features = mkFeatures backtrace_0_3_3_features;
+    features = mkFeatures backtrace_0_3_4_features;
   };
-  backtrace_0_3_3_features."".self = true;
-  backtrace_0_3_3_features."kernel32-sys".self_dbghelp = hasFeature (backtrace_0_3_3_features."dbghelp" or {});
-  backtrace_0_3_3_features."winapi".self_dbghelp = hasFeature (backtrace_0_3_3_features."dbghelp" or {});
-  backtrace_0_3_3_features."dbghelp-sys".self_dbghelp = hasFeature (backtrace_0_3_3_features."dbghelp" or {});
-  backtrace_0_3_3_features."libunwind".self_default = hasDefault backtrace_0_3_3_features;
-  backtrace_0_3_3_features."libbacktrace".self_default = hasDefault backtrace_0_3_3_features;
-  backtrace_0_3_3_features."coresymbolication".self_default = hasDefault backtrace_0_3_3_features;
-  backtrace_0_3_3_features."dladdr".self_default = hasDefault backtrace_0_3_3_features;
-  backtrace_0_3_3_features."dbghelp".self_default = hasDefault backtrace_0_3_3_features;
-  backtrace_0_3_3_features."addr2line".self_gimli-symbolize = hasFeature (backtrace_0_3_3_features."gimli-symbolize" or {});
-  backtrace_0_3_3_features."findshlibs".self_gimli-symbolize = hasFeature (backtrace_0_3_3_features."gimli-symbolize" or {});
-  backtrace_0_3_3_features."backtrace-sys".self_libbacktrace = hasFeature (backtrace_0_3_3_features."libbacktrace" or {});
-  backtrace_0_3_3_features."rustc-serialize".self_serialize-rustc = hasFeature (backtrace_0_3_3_features."serialize-rustc" or {});
-  backtrace_0_3_3_features."serde".self_serialize-serde = hasFeature (backtrace_0_3_3_features."serialize-serde" or {});
-  backtrace_0_3_3_features."serde_derive".self_serialize-serde = hasFeature (backtrace_0_3_3_features."serialize-serde" or {});
-  addr2line_0_0_0_features."default".from_backtrace_0_3_3__default = true;
-  cfg_if_0_1_2_features."default".from_backtrace_0_3_3__default = true;
-  cpp_demangle_0_0_0_features."default".from_backtrace_0_3_3__default = false;
-  findshlibs_0_0_0_features."default".from_backtrace_0_3_3__default = true;
-  rustc_demangle_0_1_5_features."default".from_backtrace_0_3_3__default = true;
-  rustc_serialize_0_0_0_features."default".from_backtrace_0_3_3__default = true;
-  serde_0_0_0_features."default".from_backtrace_0_3_3__default = true;
-  serde_derive_0_0_0_features."default".from_backtrace_0_3_3__default = true;
-  backtrace_sys_0_1_16_features."default".from_backtrace_0_3_3__default = true;
-  libc_0_2_33_features."default".from_backtrace_0_3_3__default = true;
-  dbghelp_sys_0_2_0_features."default".from_backtrace_0_3_3__default = true;
-  kernel32_sys_0_2_2_features."default".from_backtrace_0_3_3__default = true;
-  winapi_0_2_8_features."default".from_backtrace_0_3_3__default = true;
+  backtrace_0_3_4_features."".self = true;
+  backtrace_0_3_4_features."kernel32-sys".self_dbghelp = hasFeature (backtrace_0_3_4_features."dbghelp" or {});
+  backtrace_0_3_4_features."winapi".self_dbghelp = hasFeature (backtrace_0_3_4_features."dbghelp" or {});
+  backtrace_0_3_4_features."dbghelp-sys".self_dbghelp = hasFeature (backtrace_0_3_4_features."dbghelp" or {});
+  backtrace_0_3_4_features."libunwind".self_default = hasDefault backtrace_0_3_4_features;
+  backtrace_0_3_4_features."libbacktrace".self_default = hasDefault backtrace_0_3_4_features;
+  backtrace_0_3_4_features."coresymbolication".self_default = hasDefault backtrace_0_3_4_features;
+  backtrace_0_3_4_features."dladdr".self_default = hasDefault backtrace_0_3_4_features;
+  backtrace_0_3_4_features."dbghelp".self_default = hasDefault backtrace_0_3_4_features;
+  backtrace_0_3_4_features."addr2line".self_gimli-symbolize = hasFeature (backtrace_0_3_4_features."gimli-symbolize" or {});
+  backtrace_0_3_4_features."findshlibs".self_gimli-symbolize = hasFeature (backtrace_0_3_4_features."gimli-symbolize" or {});
+  backtrace_0_3_4_features."backtrace-sys".self_libbacktrace = hasFeature (backtrace_0_3_4_features."libbacktrace" or {});
+  backtrace_0_3_4_features."rustc-serialize".self_serialize-rustc = hasFeature (backtrace_0_3_4_features."serialize-rustc" or {});
+  backtrace_0_3_4_features."serde".self_serialize-serde = hasFeature (backtrace_0_3_4_features."serialize-serde" or {});
+  backtrace_0_3_4_features."serde_derive".self_serialize-serde = hasFeature (backtrace_0_3_4_features."serialize-serde" or {});
+  addr2line_0_0_0_features."default".from_backtrace_0_3_4__default = true;
+  cfg_if_0_1_2_features."default".from_backtrace_0_3_4__default = true;
+  cpp_demangle_0_0_0_features."default".from_backtrace_0_3_4__default = false;
+  findshlibs_0_0_0_features."default".from_backtrace_0_3_4__default = true;
+  rustc_demangle_0_1_5_features."default".from_backtrace_0_3_4__default = true;
+  rustc_serialize_0_0_0_features."default".from_backtrace_0_3_4__default = true;
+  serde_0_0_0_features."default".from_backtrace_0_3_4__default = true;
+  serde_derive_0_0_0_features."default".from_backtrace_0_3_4__default = true;
+  backtrace_sys_0_1_16_features."default".from_backtrace_0_3_4__default = true;
+  libc_0_2_34_features."default".from_backtrace_0_3_4__default = true;
+  dbghelp_sys_0_2_0_features."default".from_backtrace_0_3_4__default = true;
+  kernel32_sys_0_2_2_features."default".from_backtrace_0_3_4__default = true;
+  winapi_0_2_8_features."default".from_backtrace_0_3_4__default = true;
   backtrace_sys_0_1_16 = backtrace_sys_0_1_16_ rec {
-    dependencies = [ libc_0_2_33 ];
+    dependencies = [ libc_0_2_34 ];
     buildDependencies = [ cc_1_0_3 ];
   };
-  libc_0_2_33_features."default".from_backtrace_sys_0_1_16__default = true;
+  libc_0_2_34_features."default".from_backtrace_sys_0_1_16__default = true;
   base64_0_5_2 = base64_0_5_2_ rec {
-    dependencies = [ byteorder_1_1_0 ];
+    dependencies = [ byteorder_1_2_1 ];
   };
-  byteorder_1_1_0_features."default".from_base64_0_5_2__default = true;
+  byteorder_1_2_1_features."default".from_base64_0_5_2__default = true;
   bitflags_0_5_0 = bitflags_0_5_0_ rec {
     features = mkFeatures bitflags_0_5_0_features;
   };
   bitflags_0_5_0_features."".self = true;
-  bitflags_0_7_0 = bitflags_0_7_0_ rec {};
-  bitflags_0_9_1 = bitflags_0_9_1_ rec {
-    features = mkFeatures bitflags_0_9_1_features;
+  bitflags_1_0_1 = bitflags_1_0_1_ rec {
+    features = mkFeatures bitflags_1_0_1_features;
   };
-  bitflags_0_9_1_features."example_generated".self_default = hasDefault bitflags_0_9_1_features;
+  bitflags_1_0_1_features."example_generated".self_default = hasDefault bitflags_1_0_1_features;
+  block_0_1_6 = block_0_1_6_ rec {};
   boolinator_2_4_0 = boolinator_2_4_0_ rec {};
-  byteorder_1_1_0 = byteorder_1_1_0_ rec {
-    features = mkFeatures byteorder_1_1_0_features;
+  byteorder_1_2_1 = byteorder_1_2_1_ rec {
+    features = mkFeatures byteorder_1_2_1_features;
   };
-  byteorder_1_1_0_features."std".self_default = hasDefault byteorder_1_1_0_features;
+  byteorder_1_2_1_features."std".self_default = hasDefault byteorder_1_2_1_features;
   cc_1_0_3 = cc_1_0_3_ rec {
     dependencies = [];
     features = mkFeatures cc_1_0_3_features;
@@ -1223,50 +1336,50 @@ rec {
   rayon_0_0_0_features."default".from_cc_1_0_3__default = true;
   cfg_if_0_1_2 = cfg_if_0_1_2_ rec {};
   chrono_0_3_0 = chrono_0_3_0_ rec {
-    dependencies = [ num_0_1_40 time_0_1_38 ];
+    dependencies = [ num_0_1_41 time_0_1_38 ];
   };
-  num_0_1_40_features."default".from_chrono_0_3_0__default = false;
+  num_0_1_41_features."default".from_chrono_0_3_0__default = false;
   rustc_serialize_0_0_0_features."default".from_chrono_0_3_0__default = true;
   serde_0_0_0_features."default".from_chrono_0_3_0__default = true;
   time_0_1_38_features."default".from_chrono_0_3_0__default = true;
   chrono_0_4_0 = chrono_0_4_0_ rec {
-    dependencies = [ num_0_1_40 time_0_1_38 ];
+    dependencies = [ num_0_1_41 time_0_1_38 ];
   };
-  num_0_1_40_features."default".from_chrono_0_4_0__default = false;
+  num_0_1_41_features."default".from_chrono_0_4_0__default = false;
   rustc_serialize_0_0_0_features."default".from_chrono_0_4_0__default = true;
   serde_0_0_0_features."default".from_chrono_0_4_0__default = true;
   time_0_1_38_features."default".from_chrono_0_4_0__default = true;
-  clap_2_27_1 = clap_2_27_1_ rec {
-    dependencies = [ ansi_term_0_9_0 atty_0_2_3 bitflags_0_9_1 strsim_0_6_0 textwrap_0_9_0 unicode_width_0_1_4 vec_map_0_8_0 ]
-      ++ (if lib.lists.any (x: x == "ansi_term") features then [ansi_term_0_9_0] else [])      ++ (if lib.lists.any (x: x == "atty") features then [atty_0_2_3] else [])      ++ (if lib.lists.any (x: x == "strsim") features then [strsim_0_6_0] else [])      ++ (if lib.lists.any (x: x == "vec_map") features then [vec_map_0_8_0] else []);
-    features = mkFeatures clap_2_27_1_features;
+  clap_2_29_0 = clap_2_29_0_ rec {
+    dependencies = [ ansi_term_0_10_2 atty_0_2_6 bitflags_1_0_1 strsim_0_6_0 textwrap_0_9_0 unicode_width_0_1_4 vec_map_0_8_0 ]
+      ++ (if lib.lists.any (x: x == "ansi_term") features then [ansi_term_0_10_2] else [])      ++ (if lib.lists.any (x: x == "atty") features then [atty_0_2_6] else [])      ++ (if lib.lists.any (x: x == "strsim") features then [strsim_0_6_0] else [])      ++ (if lib.lists.any (x: x == "vec_map") features then [vec_map_0_8_0] else []);
+    features = mkFeatures clap_2_29_0_features;
   };
-  clap_2_27_1_features."".self = true;
-  clap_2_27_1_features."ansi_term".self_color = hasFeature (clap_2_27_1_features."color" or {});
-  clap_2_27_1_features."atty".self_color = hasFeature (clap_2_27_1_features."color" or {});
-  clap_2_27_1_features."suggestions".self_default = hasDefault clap_2_27_1_features;
-  clap_2_27_1_features."color".self_default = hasDefault clap_2_27_1_features;
-  clap_2_27_1_features."vec_map".self_default = hasDefault clap_2_27_1_features;
-  clap_2_27_1_features."yaml".self_doc = hasFeature (clap_2_27_1_features."doc" or {});
-  clap_2_27_1_features."clippy".self_lints = hasFeature (clap_2_27_1_features."lints" or {});
-  clap_2_27_1_features."strsim".self_suggestions = hasFeature (clap_2_27_1_features."suggestions" or {});
-  clap_2_27_1_features."term_size".self_wrap_help = hasFeature (clap_2_27_1_features."wrap_help" or {});
-  clap_2_27_1_features."yaml-rust".self_yaml = hasFeature (clap_2_27_1_features."yaml" or {});
-  ansi_term_0_9_0_features."default".from_clap_2_27_1__default = true;
-  atty_0_2_3_features."default".from_clap_2_27_1__default = true;
-  bitflags_0_9_1_features."default".from_clap_2_27_1__default = true;
-  clippy_0_0_0_features."default".from_clap_2_27_1__default = true;
-  strsim_0_6_0_features."default".from_clap_2_27_1__default = true;
-  term_size_0_0_0_features."default".from_clap_2_27_1__default = true;
-  textwrap_0_9_0_features."term_size".from_clap_2_27_1__wrap_help = hasFeature (clap_2_27_1_features."wrap_help" or {});
-  textwrap_0_9_0_features."default".from_clap_2_27_1__default = true;
-  unicode_width_0_1_4_features."default".from_clap_2_27_1__default = true;
-  vec_map_0_8_0_features."default".from_clap_2_27_1__default = true;
-  yaml_rust_0_0_0_features."default".from_clap_2_27_1__default = true;
+  clap_2_29_0_features."".self = true;
+  clap_2_29_0_features."ansi_term".self_color = hasFeature (clap_2_29_0_features."color" or {});
+  clap_2_29_0_features."atty".self_color = hasFeature (clap_2_29_0_features."color" or {});
+  clap_2_29_0_features."suggestions".self_default = hasDefault clap_2_29_0_features;
+  clap_2_29_0_features."color".self_default = hasDefault clap_2_29_0_features;
+  clap_2_29_0_features."vec_map".self_default = hasDefault clap_2_29_0_features;
+  clap_2_29_0_features."yaml".self_doc = hasFeature (clap_2_29_0_features."doc" or {});
+  clap_2_29_0_features."clippy".self_lints = hasFeature (clap_2_29_0_features."lints" or {});
+  clap_2_29_0_features."strsim".self_suggestions = hasFeature (clap_2_29_0_features."suggestions" or {});
+  clap_2_29_0_features."term_size".self_wrap_help = hasFeature (clap_2_29_0_features."wrap_help" or {});
+  clap_2_29_0_features."yaml-rust".self_yaml = hasFeature (clap_2_29_0_features."yaml" or {});
+  ansi_term_0_10_2_features."default".from_clap_2_29_0__default = true;
+  atty_0_2_6_features."default".from_clap_2_29_0__default = true;
+  bitflags_1_0_1_features."default".from_clap_2_29_0__default = true;
+  clippy_0_0_0_features."default".from_clap_2_29_0__default = true;
+  strsim_0_6_0_features."default".from_clap_2_29_0__default = true;
+  term_size_0_0_0_features."default".from_clap_2_29_0__default = true;
+  textwrap_0_9_0_features."term_size".from_clap_2_29_0__wrap_help = hasFeature (clap_2_29_0_features."wrap_help" or {});
+  textwrap_0_9_0_features."default".from_clap_2_29_0__default = true;
+  unicode_width_0_1_4_features."default".from_clap_2_29_0__default = true;
+  vec_map_0_8_0_features."default".from_clap_2_29_0__default = true;
+  yaml_rust_0_0_0_features."default".from_clap_2_29_0__default = true;
   csv_0_15_0 = csv_0_15_0_ rec {
-    dependencies = [ byteorder_1_1_0 memchr_1_0_2 rustc_serialize_0_3_24 ];
+    dependencies = [ byteorder_1_2_1 memchr_1_0_2 rustc_serialize_0_3_24 ];
   };
-  byteorder_1_1_0_features."default".from_csv_0_15_0__default = true;
+  byteorder_1_2_1_features."default".from_csv_0_15_0__default = true;
   memchr_1_0_2_features."default".from_csv_0_15_0__default = true;
   rustc_serialize_0_3_24_features."default".from_csv_0_15_0__default = true;
   dbghelp_sys_0_2_0 = dbghelp_sys_0_2_0_ rec {
@@ -1274,16 +1387,21 @@ rec {
     buildDependencies = [ winapi_build_0_1_1 ];
   };
   winapi_0_2_8_features."default".from_dbghelp_sys_0_2_0__default = true;
-  dtoa_0_4_2 = dtoa_0_4_2_ rec {};
-  either_1_3_0 = either_1_3_0_ rec {
-    dependencies = [];
-    features = mkFeatures either_1_3_0_features;
+  dbus_0_4_1 = dbus_0_4_1_ rec {
+    dependencies = [ libc_0_2_34 ];
+    buildDependencies = [ pkg_config_0_3_9 ];
   };
-  either_1_3_0_features."use_std".self_default = hasDefault either_1_3_0_features;
-  serde_0_0_0_features."derive".from_either_1_3_0 = true;
-  serde_0_0_0_features."default".from_either_1_3_0__default = true;
+  libc_0_2_34_features."default".from_dbus_0_4_1__default = true;
+  dtoa_0_4_2 = dtoa_0_4_2_ rec {};
+  either_1_4_0 = either_1_4_0_ rec {
+    dependencies = [];
+    features = mkFeatures either_1_4_0_features;
+  };
+  either_1_4_0_features."use_std".self_default = hasDefault either_1_4_0_features;
+  serde_0_0_0_features."derive".from_either_1_4_0 = true;
+  serde_0_0_0_features."default".from_either_1_4_0__default = true;
   email_0_0_17 = email_0_0_17_ rec {
-    dependencies = [ base64_0_5_2 chrono_0_3_0 encoding_0_2_33 lazy_static_0_2_9 rand_0_3_18 time_0_1_38 ];
+    dependencies = [ base64_0_5_2 chrono_0_3_0 encoding_0_2_33 lazy_static_0_2_11 rand_0_3_19 time_0_1_38 ];
     buildDependencies = [ rustc_version_0_1_7 ];
     features = mkFeatures email_0_0_17_features;
   };
@@ -1291,8 +1409,8 @@ rec {
   base64_0_5_2_features."default".from_email_0_0_17__default = true;
   chrono_0_3_0_features."default".from_email_0_0_17__default = true;
   encoding_0_2_33_features."default".from_email_0_0_17__default = true;
-  lazy_static_0_2_9_features."default".from_email_0_0_17__default = true;
-  rand_0_3_18_features."default".from_email_0_0_17__default = true;
+  lazy_static_0_2_11_features."default".from_email_0_0_17__default = true;
+  rand_0_3_19_features."default".from_email_0_0_17__default = true;
   time_0_1_38_features."default".from_email_0_0_17__default = true;
   encode_unicode_0_3_1 = encode_unicode_0_3_1_ rec {
     dependencies = [];
@@ -1331,44 +1449,42 @@ rec {
   encoding_index_tests_0_1_4_features."default".from_encoding_index_tradchinese_1_20141219_5__default = true;
   encoding_index_tests_0_1_4 = encoding_index_tests_0_1_4_ rec {};
   env_logger_0_4_3 = env_logger_0_4_3_ rec {
-    dependencies = [ log_0_3_8 regex_0_2_2 ]
-      ++ (if lib.lists.any (x: x == "regex") features then [regex_0_2_2] else []);
+    dependencies = [ log_0_3_9 regex_0_2_5 ]
+      ++ (if lib.lists.any (x: x == "regex") features then [regex_0_2_5] else []);
     features = mkFeatures env_logger_0_4_3_features;
   };
   env_logger_0_4_3_features."".self = true;
   env_logger_0_4_3_features."regex".self_default = hasDefault env_logger_0_4_3_features;
-  log_0_3_8_features."default".from_env_logger_0_4_3__default = true;
-  regex_0_2_2_features."default".from_env_logger_0_4_3__default = true;
+  log_0_3_9_features."default".from_env_logger_0_4_3__default = true;
+  regex_0_2_5_features."default".from_env_logger_0_4_3__default = true;
   error_chain_0_10_0 = error_chain_0_10_0_ rec {
-    dependencies = [ backtrace_0_3_3 ]
-      ++ (if lib.lists.any (x: x == "backtrace") features then [backtrace_0_3_3] else []);
+    dependencies = [ backtrace_0_3_4 ]
+      ++ (if lib.lists.any (x: x == "backtrace") features then [backtrace_0_3_4] else []);
     features = mkFeatures error_chain_0_10_0_features;
   };
   error_chain_0_10_0_features."".self = true;
   error_chain_0_10_0_features."backtrace".self_default = hasDefault error_chain_0_10_0_features;
   error_chain_0_10_0_features."example_generated".self_default = hasDefault error_chain_0_10_0_features;
-  backtrace_0_3_3_features."default".from_error_chain_0_10_0__default = true;
+  backtrace_0_3_4_features."default".from_error_chain_0_10_0__default = true;
   error_chain_0_11_0 = error_chain_0_11_0_ rec {
-    dependencies = [ backtrace_0_3_3 ]
-      ++ (if lib.lists.any (x: x == "backtrace") features then [backtrace_0_3_3] else []);
+    dependencies = [ backtrace_0_3_4 ]
+      ++ (if lib.lists.any (x: x == "backtrace") features then [backtrace_0_3_4] else []);
     features = mkFeatures error_chain_0_11_0_features;
   };
   error_chain_0_11_0_features."".self = true;
   error_chain_0_11_0_features."backtrace".self_default = hasDefault error_chain_0_11_0_features;
   error_chain_0_11_0_features."example_generated".self_default = hasDefault error_chain_0_11_0_features;
-  backtrace_0_3_3_features."default".from_error_chain_0_11_0__default = true;
+  backtrace_0_3_4_features."default".from_error_chain_0_11_0__default = true;
   filters_0_2_0 = filters_0_2_0_ rec {
     features = mkFeatures filters_0_2_0_features;
   };
   filters_0_2_0_features."".self = true;
-  fuchsia_zircon_0_2_1 = fuchsia_zircon_0_2_1_ rec {
-    dependencies = [ fuchsia_zircon_sys_0_2_0 ];
+  fuchsia_zircon_0_3_2 = fuchsia_zircon_0_3_2_ rec {
+    dependencies = [ bitflags_1_0_1 fuchsia_zircon_sys_0_3_2 ];
   };
-  fuchsia_zircon_sys_0_2_0_features."default".from_fuchsia_zircon_0_2_1__default = true;
-  fuchsia_zircon_sys_0_2_0 = fuchsia_zircon_sys_0_2_0_ rec {
-    dependencies = [ bitflags_0_7_0 ];
-  };
-  bitflags_0_7_0_features."default".from_fuchsia_zircon_sys_0_2_0__default = true;
+  bitflags_1_0_1_features."default".from_fuchsia_zircon_0_3_2__default = true;
+  fuchsia_zircon_sys_0_3_2_features."default".from_fuchsia_zircon_0_3_2__default = true;
+  fuchsia_zircon_sys_0_3_2 = fuchsia_zircon_sys_0_3_2_ rec {};
   gcc_0_3_54 = gcc_0_3_54_ rec {
     dependencies = [];
     features = mkFeatures gcc_0_3_54_features;
@@ -1377,279 +1493,298 @@ rec {
   rayon_0_0_0_features."default".from_gcc_0_3_54__default = true;
   glob_0_2_11 = glob_0_2_11_ rec {};
   handlebars_0_29_1 = handlebars_0_29_1_ rec {
-    dependencies = [ lazy_static_0_2_9 log_0_3_8 pest_0_3_3 quick_error_1_2_1 regex_0_2_2 serde_1_0_19 serde_json_1_0_5 ];
+    dependencies = [ lazy_static_0_2_11 log_0_3_9 pest_0_3_3 quick_error_1_2_1 regex_0_2_5 serde_1_0_27 serde_json_1_0_9 ];
   };
-  lazy_static_0_2_9_features."default".from_handlebars_0_29_1__default = true;
-  log_0_3_8_features."default".from_handlebars_0_29_1__default = true;
+  lazy_static_0_2_11_features."default".from_handlebars_0_29_1__default = true;
+  log_0_3_9_features."default".from_handlebars_0_29_1__default = true;
   pest_0_3_3_features."default".from_handlebars_0_29_1__default = true;
   quick_error_1_2_1_features."default".from_handlebars_0_29_1__default = true;
-  regex_0_2_2_features."default".from_handlebars_0_29_1__default = true;
-  serde_1_0_19_features."default".from_handlebars_0_29_1__default = true;
-  serde_json_1_0_5_features."default".from_handlebars_0_29_1__default = true;
+  regex_0_2_5_features."default".from_handlebars_0_29_1__default = true;
+  serde_1_0_27_features."default".from_handlebars_0_29_1__default = true;
+  serde_json_1_0_9_features."default".from_handlebars_0_29_1__default = true;
   hoedown_6_0_0 = hoedown_6_0_0_ rec {
-    dependencies = [ bitflags_0_5_0 libc_0_2_33 ];
+    dependencies = [ bitflags_0_5_0 libc_0_2_34 ];
     buildDependencies = [ gcc_0_3_54 ];
   };
   bitflags_0_5_0_features."default".from_hoedown_6_0_0__default = true;
-  libc_0_2_33_features."default".from_hoedown_6_0_0__default = true;
+  libc_0_2_34_features."default".from_hoedown_6_0_0__default = true;
   idna_0_1_4 = idna_0_1_4_ rec {
     dependencies = [ matches_0_1_6 unicode_bidi_0_3_4 unicode_normalization_0_1_5 ];
   };
   matches_0_1_6_features."default".from_idna_0_1_4__default = true;
   unicode_bidi_0_3_4_features."default".from_idna_0_1_4__default = true;
   unicode_normalization_0_1_5_features."default".from_idna_0_1_4__default = true;
-  imag_0_5_0 = imag_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 libimagerror_0_5_0 libimagrt_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 version_2_0_1 walkdir_1_0_7 ];
+  imag_0_6_0 = imag_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 libimagerror_0_6_0 libimagrt_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 version_2_0_1 walkdir_1_0_7 ];
   };
-  clap_2_27_1_features."default".from_imag_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_0_5_0__default = true;
-  toml_0_4_5_features."default".from_imag_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_imag_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_0_5_0__default = true;
-  walkdir_1_0_7_features."default".from_imag_0_5_0__default = true;
-  imag_annotate_0_5_0 = imag_annotate_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 libimagentryannotation_0_5_0 libimagentryedit_0_5_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 libimagutil_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 url_1_6_0 version_2_0_1 ];
+  clap_2_29_0_features."default".from_imag_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_imag_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_0_6_0__default = true;
+  walkdir_1_0_7_features."default".from_imag_0_6_0__default = true;
+  imag_annotate_0_6_0 = imag_annotate_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 libimagentryannotation_0_6_0 libimagentryedit_0_6_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 libimagutil_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 url_1_6_0 version_2_0_1 ];
   };
-  clap_2_27_1_features."default".from_imag_annotate_0_5_0__default = true;
-  libimagentryannotation_0_5_0_features."default".from_imag_annotate_0_5_0__default = true;
-  libimagentryedit_0_5_0_features."default".from_imag_annotate_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_annotate_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_annotate_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_imag_annotate_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_imag_annotate_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_annotate_0_5_0__default = true;
-  toml_0_4_5_features."default".from_imag_annotate_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_imag_annotate_0_5_0__default = true;
-  url_1_6_0_features."default".from_imag_annotate_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_annotate_0_5_0__default = true;
-  imag_bookmark_0_5_0 = imag_bookmark_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 libimagbookmark_0_5_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagutil_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 version_2_0_1 ];
+  clap_2_29_0_features."default".from_imag_annotate_0_6_0__default = true;
+  libimagentryannotation_0_6_0_features."default".from_imag_annotate_0_6_0__default = true;
+  libimagentryedit_0_6_0_features."default".from_imag_annotate_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_annotate_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_annotate_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_imag_annotate_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_imag_annotate_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_annotate_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_annotate_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_imag_annotate_0_6_0__default = true;
+  url_1_6_0_features."default".from_imag_annotate_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_annotate_0_6_0__default = true;
+  imag_bookmark_0_6_0 = imag_bookmark_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 libimagbookmark_0_6_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagutil_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 version_2_0_1 ];
   };
-  clap_2_27_1_features."default".from_imag_bookmark_0_5_0__default = true;
-  libimagbookmark_0_5_0_features."default".from_imag_bookmark_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_bookmark_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_bookmark_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_imag_bookmark_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_bookmark_0_5_0__default = true;
-  toml_0_4_5_features."default".from_imag_bookmark_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_imag_bookmark_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_bookmark_0_5_0__default = true;
-  imag_contact_0_5_0 = imag_contact_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 handlebars_0_29_1 libimagcontact_0_5_0 libimagentryedit_0_5_0 libimagentryref_0_5_0 libimagerror_0_5_0 libimaginteraction_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 libimagutil_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_3_1 uuid_0_5_1 version_2_0_1 vobject_0_4_0 walkdir_1_0_7 ];
+  clap_2_29_0_features."default".from_imag_bookmark_0_6_0__default = true;
+  libimagbookmark_0_6_0_features."default".from_imag_bookmark_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_bookmark_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_bookmark_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_imag_bookmark_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_bookmark_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_bookmark_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_imag_bookmark_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_bookmark_0_6_0__default = true;
+  imag_contact_0_6_0 = imag_contact_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 handlebars_0_29_1 libimagcontact_0_6_0 libimagentryedit_0_6_0 libimagentryref_0_6_0 libimagerror_0_6_0 libimaginteraction_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 libimagutil_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_3_1 uuid_0_5_1 version_2_0_1 vobject_0_4_1 walkdir_1_0_7 ];
   };
-  clap_2_27_1_features."default".from_imag_contact_0_5_0__default = true;
-  handlebars_0_29_1_features."default".from_imag_contact_0_5_0__default = true;
-  libimagcontact_0_5_0_features."default".from_imag_contact_0_5_0__default = true;
-  libimagentryedit_0_5_0_features."default".from_imag_contact_0_5_0__default = true;
-  libimagentryref_0_5_0_features."default".from_imag_contact_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_contact_0_5_0__default = true;
-  libimaginteraction_0_5_0_features."default".from_imag_contact_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_contact_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_imag_contact_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_imag_contact_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_contact_0_5_0__default = true;
-  toml_0_4_5_features."default".from_imag_contact_0_5_0__default = true;
-  toml_query_0_3_1_features."default".from_imag_contact_0_5_0__default = true;
-  uuid_0_5_1_features."v4".from_imag_contact_0_5_0 = true;
-  uuid_0_5_1_features."default".from_imag_contact_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_contact_0_5_0__default = true;
-  vobject_0_4_0_features."default".from_imag_contact_0_5_0__default = true;
-  walkdir_1_0_7_features."default".from_imag_contact_0_5_0__default = true;
-  imag_diagnostics_0_5_0 = imag_diagnostics_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 libimagentrylink_0_5_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 toml_0_4_5 toml_query_0_4_0 version_2_0_1 ];
+  clap_2_29_0_features."default".from_imag_contact_0_6_0__default = true;
+  handlebars_0_29_1_features."default".from_imag_contact_0_6_0__default = true;
+  libimagcontact_0_6_0_features."default".from_imag_contact_0_6_0__default = true;
+  libimagentryedit_0_6_0_features."default".from_imag_contact_0_6_0__default = true;
+  libimagentryref_0_6_0_features."default".from_imag_contact_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_contact_0_6_0__default = true;
+  libimaginteraction_0_6_0_features."default".from_imag_contact_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_contact_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_imag_contact_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_imag_contact_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_contact_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_contact_0_6_0__default = true;
+  toml_query_0_3_1_features."default".from_imag_contact_0_6_0__default = true;
+  uuid_0_5_1_features."v4".from_imag_contact_0_6_0 = true;
+  uuid_0_5_1_features."default".from_imag_contact_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_contact_0_6_0__default = true;
+  vobject_0_4_1_features."default".from_imag_contact_0_6_0__default = true;
+  walkdir_1_0_7_features."default".from_imag_contact_0_6_0__default = true;
+  imag_diagnostics_0_6_0 = imag_diagnostics_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 libimagentrylink_0_6_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 toml_0_4_5 toml_query_0_4_0 version_2_0_1 ];
   };
-  clap_2_27_1_features."default".from_imag_diagnostics_0_5_0__default = true;
-  libimagentrylink_0_5_0_features."default".from_imag_diagnostics_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_diagnostics_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_diagnostics_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_imag_diagnostics_0_5_0__default = true;
-  toml_0_4_5_features."default".from_imag_diagnostics_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_imag_diagnostics_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_diagnostics_0_5_0__default = true;
-  imag_diary_0_5_0 = imag_diary_0_5_0_ rec {
-    dependencies = [ chrono_0_4_0 clap_2_27_1 libimagdiary_0_5_0 libimagentryedit_0_5_0 libimagentrylist_0_5_0 libimagerror_0_5_0 libimaginteraction_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 libimagtimeui_0_5_0 libimagutil_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 version_2_0_1 ];
+  clap_2_29_0_features."default".from_imag_diagnostics_0_6_0__default = true;
+  libimagentrylink_0_6_0_features."default".from_imag_diagnostics_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_diagnostics_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_diagnostics_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_imag_diagnostics_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_diagnostics_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_imag_diagnostics_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_diagnostics_0_6_0__default = true;
+  imag_diary_0_6_0 = imag_diary_0_6_0_ rec {
+    dependencies = [ chrono_0_4_0 clap_2_29_0 libimagdiary_0_6_0 libimagentryedit_0_6_0 libimagentrylist_0_6_0 libimagerror_0_6_0 libimaginteraction_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 libimagtimeui_0_6_0 libimagutil_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 version_2_0_1 ];
   };
-  chrono_0_4_0_features."default".from_imag_diary_0_5_0__default = true;
-  clap_2_27_1_features."default".from_imag_diary_0_5_0__default = true;
-  libimagdiary_0_5_0_features."default".from_imag_diary_0_5_0__default = true;
-  libimagentryedit_0_5_0_features."default".from_imag_diary_0_5_0__default = true;
-  libimagentrylist_0_5_0_features."default".from_imag_diary_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_diary_0_5_0__default = true;
-  libimaginteraction_0_5_0_features."default".from_imag_diary_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_diary_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_imag_diary_0_5_0__default = true;
-  libimagtimeui_0_5_0_features."default".from_imag_diary_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_imag_diary_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_diary_0_5_0__default = true;
-  toml_0_4_5_features."default".from_imag_diary_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_imag_diary_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_diary_0_5_0__default = true;
-  imag_gps_0_5_0 = imag_gps_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 libimagentrygps_0_5_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 libimagutil_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 url_1_6_0 version_2_0_1 ];
+  chrono_0_4_0_features."default".from_imag_diary_0_6_0__default = true;
+  clap_2_29_0_features."default".from_imag_diary_0_6_0__default = true;
+  libimagdiary_0_6_0_features."default".from_imag_diary_0_6_0__default = true;
+  libimagentryedit_0_6_0_features."default".from_imag_diary_0_6_0__default = true;
+  libimagentrylist_0_6_0_features."default".from_imag_diary_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_diary_0_6_0__default = true;
+  libimaginteraction_0_6_0_features."default".from_imag_diary_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_diary_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_imag_diary_0_6_0__default = true;
+  libimagtimeui_0_6_0_features."default".from_imag_diary_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_imag_diary_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_diary_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_diary_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_imag_diary_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_diary_0_6_0__default = true;
+  imag_gps_0_6_0 = imag_gps_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 libimagentrygps_0_6_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 libimagutil_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 url_1_6_0 version_2_0_1 ];
   };
-  clap_2_27_1_features."default".from_imag_gps_0_5_0__default = true;
-  libimagentrygps_0_5_0_features."default".from_imag_gps_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_gps_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_gps_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_imag_gps_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_imag_gps_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_gps_0_5_0__default = true;
-  toml_0_4_5_features."default".from_imag_gps_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_imag_gps_0_5_0__default = true;
-  url_1_6_0_features."default".from_imag_gps_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_gps_0_5_0__default = true;
-  imag_grep_0_5_0 = imag_grep_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 regex_0_2_2 version_2_0_1 ];
+  clap_2_29_0_features."default".from_imag_gps_0_6_0__default = true;
+  libimagentrygps_0_6_0_features."default".from_imag_gps_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_gps_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_gps_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_imag_gps_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_imag_gps_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_gps_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_gps_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_imag_gps_0_6_0__default = true;
+  url_1_6_0_features."default".from_imag_gps_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_gps_0_6_0__default = true;
+  imag_grep_0_6_0 = imag_grep_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 regex_0_2_5 version_2_0_1 ];
   };
-  clap_2_27_1_features."default".from_imag_grep_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_grep_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_grep_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_imag_grep_0_5_0__default = true;
-  regex_0_2_2_features."default".from_imag_grep_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_grep_0_5_0__default = true;
-  imag_link_0_5_0 = imag_link_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 libimagentrylink_0_5_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 libimagutil_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 url_1_6_0 version_2_0_1 ];
+  clap_2_29_0_features."default".from_imag_grep_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_grep_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_grep_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_imag_grep_0_6_0__default = true;
+  regex_0_2_5_features."default".from_imag_grep_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_grep_0_6_0__default = true;
+  imag_habit_0_6_0 = imag_habit_0_6_0_ rec {
+    dependencies = [ chrono_0_4_0 clap_2_29_0 kairos_0_1_0 libimagentryedit_0_6_0 libimagentrylist_0_6_0 libimagerror_0_6_0 libimaghabit_0_6_0 libimaginteraction_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 libimagtimeui_0_6_0 libimagutil_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 version_2_0_1 ];
   };
-  clap_2_27_1_features."default".from_imag_link_0_5_0__default = true;
-  libimagentrylink_0_5_0_features."default".from_imag_link_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_link_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_link_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_imag_link_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_imag_link_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_link_0_5_0__default = true;
-  toml_0_4_5_features."default".from_imag_link_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_imag_link_0_5_0__default = true;
-  url_1_6_0_features."default".from_imag_link_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_link_0_5_0__default = true;
-  imag_mail_0_5_0 = imag_mail_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 libimagerror_0_5_0 libimagmail_0_5_0 libimagrt_0_5_0 libimagutil_0_5_0 log_0_3_8 version_2_0_1 ];
+  chrono_0_4_0_features."default".from_imag_habit_0_6_0__default = true;
+  clap_2_29_0_features."default".from_imag_habit_0_6_0__default = true;
+  kairos_0_1_0beta-2_features."default".from_imag_habit_0_6_0__default = true;
+  libimagentryedit_0_6_0_features."default".from_imag_habit_0_6_0__default = true;
+  libimagentrylist_0_6_0_features."default".from_imag_habit_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_habit_0_6_0__default = true;
+  libimaghabit_0_6_0_features."default".from_imag_habit_0_6_0__default = true;
+  libimaginteraction_0_6_0_features."default".from_imag_habit_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_habit_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_imag_habit_0_6_0__default = true;
+  libimagtimeui_0_6_0_features."default".from_imag_habit_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_imag_habit_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_habit_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_habit_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_imag_habit_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_habit_0_6_0__default = true;
+  imag_link_0_6_0 = imag_link_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 libimagentrylink_0_6_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 libimagutil_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 url_1_6_0 version_2_0_1 ];
   };
-  clap_2_27_1_features."default".from_imag_mail_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_mail_0_5_0__default = true;
-  libimagmail_0_5_0_features."default".from_imag_mail_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_mail_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_imag_mail_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_mail_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_mail_0_5_0__default = true;
-  imag_mv_0_5_0 = imag_mv_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 log_0_3_8 version_2_0_1 ];
+  clap_2_29_0_features."default".from_imag_link_0_6_0__default = true;
+  libimagentrylink_0_6_0_features."default".from_imag_link_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_link_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_link_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_imag_link_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_imag_link_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_link_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_link_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_imag_link_0_6_0__default = true;
+  url_1_6_0_features."default".from_imag_link_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_link_0_6_0__default = true;
+  imag_mail_0_6_0 = imag_mail_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 libimagerror_0_6_0 libimagmail_0_6_0 libimagrt_0_6_0 libimagutil_0_6_0 log_0_3_9 version_2_0_1 ];
   };
-  clap_2_27_1_features."default".from_imag_mv_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_mv_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_mv_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_imag_mv_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_mv_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_mv_0_5_0__default = true;
-  imag_notes_0_5_0 = imag_notes_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 itertools_0_7_2 libimagentryedit_0_5_0 libimagerror_0_5_0 libimagnotes_0_5_0 libimagrt_0_5_0 libimagutil_0_5_0 log_0_3_8 version_2_0_1 ];
+  clap_2_29_0_features."default".from_imag_mail_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_mail_0_6_0__default = true;
+  libimagmail_0_6_0_features."default".from_imag_mail_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_mail_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_imag_mail_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_mail_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_mail_0_6_0__default = true;
+  imag_mv_0_6_0 = imag_mv_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 log_0_3_9 version_2_0_1 ];
   };
-  clap_2_27_1_features."default".from_imag_notes_0_5_0__default = true;
-  itertools_0_7_2_features."default".from_imag_notes_0_5_0__default = true;
-  libimagentryedit_0_5_0_features."default".from_imag_notes_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_notes_0_5_0__default = true;
-  libimagnotes_0_5_0_features."default".from_imag_notes_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_notes_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_imag_notes_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_notes_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_notes_0_5_0__default = true;
-  imag_ref_0_5_0 = imag_ref_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 libimagentrylist_0_5_0 libimagentryref_0_5_0 libimagerror_0_5_0 libimaginteraction_0_5_0 libimagrt_0_5_0 libimagutil_0_5_0 log_0_3_8 version_2_0_1 ];
+  clap_2_29_0_features."default".from_imag_mv_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_mv_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_mv_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_imag_mv_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_mv_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_mv_0_6_0__default = true;
+  imag_notes_0_6_0 = imag_notes_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 itertools_0_7_4 libimagentryedit_0_6_0 libimagerror_0_6_0 libimagnotes_0_6_0 libimagrt_0_6_0 libimagutil_0_6_0 log_0_3_9 version_2_0_1 ];
   };
-  clap_2_27_1_features."default".from_imag_ref_0_5_0__default = true;
-  libimagentrylist_0_5_0_features."default".from_imag_ref_0_5_0__default = true;
-  libimagentryref_0_5_0_features."default".from_imag_ref_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_ref_0_5_0__default = true;
-  libimaginteraction_0_5_0_features."default".from_imag_ref_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_ref_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_imag_ref_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_ref_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_ref_0_5_0__default = true;
-  imag_store_0_5_0 = imag_store_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 error_chain_0_11_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 libimagutil_0_5_0 log_0_3_8 toml_0_4_5 version_2_0_1 ];
-    features = mkFeatures imag_store_0_5_0_features;
+  clap_2_29_0_features."default".from_imag_notes_0_6_0__default = true;
+  itertools_0_7_4_features."default".from_imag_notes_0_6_0__default = true;
+  libimagentryedit_0_6_0_features."default".from_imag_notes_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_notes_0_6_0__default = true;
+  libimagnotes_0_6_0_features."default".from_imag_notes_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_notes_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_imag_notes_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_notes_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_notes_0_6_0__default = true;
+  imag_ref_0_6_0 = imag_ref_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 libimagentrylist_0_6_0 libimagentryref_0_6_0 libimagerror_0_6_0 libimaginteraction_0_6_0 libimagrt_0_6_0 libimagutil_0_6_0 log_0_3_9 version_2_0_1 ];
   };
-  imag_store_0_5_0_features."".self = true;
-  clap_2_27_1_features."default".from_imag_store_0_5_0__default = true;
-  error_chain_0_11_0_features."default".from_imag_store_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_store_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_store_0_5_0__default = true;
-  libimagstore_0_5_0_features."verify".from_imag_store_0_5_0 = true;
-  libimagstore_0_5_0_features."early-panic".from_imag_store_0_5_0__early-panic = hasFeature (imag_store_0_5_0_features."early-panic" or {});
-  libimagstore_0_5_0_features."default".from_imag_store_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_imag_store_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_store_0_5_0__default = true;
-  toml_0_4_5_features."default".from_imag_store_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_store_0_5_0__default = true;
-  imag_tag_0_5_0 = imag_tag_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 libimagentrytag_0_5_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 libimagutil_0_5_0 log_0_3_8 toml_0_4_5 version_2_0_1 ];
+  clap_2_29_0_features."default".from_imag_ref_0_6_0__default = true;
+  libimagentrylist_0_6_0_features."default".from_imag_ref_0_6_0__default = true;
+  libimagentryref_0_6_0_features."default".from_imag_ref_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_ref_0_6_0__default = true;
+  libimaginteraction_0_6_0_features."default".from_imag_ref_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_ref_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_imag_ref_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_ref_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_ref_0_6_0__default = true;
+  imag_store_0_6_0 = imag_store_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 error_chain_0_11_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 libimagutil_0_6_0 log_0_3_9 toml_0_4_5 version_2_0_1 ];
+    features = mkFeatures imag_store_0_6_0_features;
   };
-  clap_2_27_1_features."default".from_imag_tag_0_5_0__default = true;
-  libimagentrytag_0_5_0_features."default".from_imag_tag_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_tag_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_tag_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_imag_tag_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_imag_tag_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_tag_0_5_0__default = true;
-  toml_0_4_5_features."default".from_imag_tag_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_tag_0_5_0__default = true;
-  imag_timetrack_0_5_0 = imag_timetrack_0_5_0_ rec {
-    dependencies = [ chrono_0_4_0 clap_2_27_1 filters_0_2_0 itertools_0_7_2 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 libimagtimetrack_0_5_0 log_0_3_8 version_2_0_1 ];
+  imag_store_0_6_0_features."".self = true;
+  clap_2_29_0_features."default".from_imag_store_0_6_0__default = true;
+  error_chain_0_11_0_features."default".from_imag_store_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_store_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_store_0_6_0__default = true;
+  libimagstore_0_6_0_features."verify".from_imag_store_0_6_0 = true;
+  libimagstore_0_6_0_features."early-panic".from_imag_store_0_6_0__early-panic = hasFeature (imag_store_0_6_0_features."early-panic" or {});
+  libimagstore_0_6_0_features."default".from_imag_store_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_imag_store_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_store_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_store_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_store_0_6_0__default = true;
+  imag_tag_0_6_0 = imag_tag_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 libimagentrytag_0_6_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 libimagutil_0_6_0 log_0_3_9 toml_0_4_5 version_2_0_1 ];
   };
-  chrono_0_4_0_features."default".from_imag_timetrack_0_5_0__default = true;
-  clap_2_27_1_features."default".from_imag_timetrack_0_5_0__default = true;
-  filters_0_2_0_features."default".from_imag_timetrack_0_5_0__default = true;
-  itertools_0_7_2_features."default".from_imag_timetrack_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_timetrack_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_timetrack_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_imag_timetrack_0_5_0__default = true;
-  libimagtimetrack_0_5_0_features."default".from_imag_timetrack_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_timetrack_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_timetrack_0_5_0__default = true;
-  imag_todo_0_5_0 = imag_todo_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 is_match_0_1_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagtodo_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 version_2_0_1 ];
+  clap_2_29_0_features."default".from_imag_tag_0_6_0__default = true;
+  libimagentrytag_0_6_0_features."default".from_imag_tag_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_tag_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_tag_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_imag_tag_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_imag_tag_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_tag_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_tag_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_tag_0_6_0__default = true;
+  imag_timetrack_0_6_0 = imag_timetrack_0_6_0_ rec {
+    dependencies = [ chrono_0_4_0 clap_2_29_0 filters_0_2_0 itertools_0_7_4 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 libimagtimetrack_0_6_0 log_0_3_9 version_2_0_1 ];
   };
-  clap_2_27_1_features."default".from_imag_todo_0_5_0__default = true;
-  is_match_0_1_0_features."default".from_imag_todo_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_todo_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_todo_0_5_0__default = true;
-  libimagtodo_0_5_0_features."default".from_imag_todo_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_todo_0_5_0__default = true;
-  toml_0_4_5_features."default".from_imag_todo_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_imag_todo_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_todo_0_5_0__default = true;
-  imag_view_0_5_0 = imag_view_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 handlebars_0_29_1 libimagentryview_0_5_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 log_0_3_8 tempfile_2_2_0 toml_0_4_5 toml_query_0_4_0 version_2_0_1 ];
+  chrono_0_4_0_features."default".from_imag_timetrack_0_6_0__default = true;
+  clap_2_29_0_features."default".from_imag_timetrack_0_6_0__default = true;
+  filters_0_2_0_features."default".from_imag_timetrack_0_6_0__default = true;
+  itertools_0_7_4_features."default".from_imag_timetrack_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_timetrack_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_timetrack_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_imag_timetrack_0_6_0__default = true;
+  libimagtimetrack_0_6_0_features."default".from_imag_timetrack_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_timetrack_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_timetrack_0_6_0__default = true;
+  imag_todo_0_6_0 = imag_todo_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 is_match_0_1_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagtodo_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 version_2_0_1 ];
   };
-  clap_2_27_1_features."default".from_imag_view_0_5_0__default = true;
-  handlebars_0_29_1_features."default".from_imag_view_0_5_0__default = true;
-  libimagentryview_0_5_0_features."default".from_imag_view_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_imag_view_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_imag_view_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_imag_view_0_5_0__default = true;
-  log_0_3_8_features."default".from_imag_view_0_5_0__default = true;
-  tempfile_2_2_0_features."default".from_imag_view_0_5_0__default = true;
-  toml_0_4_5_features."default".from_imag_view_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_imag_view_0_5_0__default = true;
-  version_2_0_1_features."default".from_imag_view_0_5_0__default = true;
+  clap_2_29_0_features."default".from_imag_todo_0_6_0__default = true;
+  is_match_0_1_0_features."default".from_imag_todo_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_todo_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_todo_0_6_0__default = true;
+  libimagtodo_0_6_0_features."default".from_imag_todo_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_todo_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_todo_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_imag_todo_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_todo_0_6_0__default = true;
+  imag_view_0_6_0 = imag_view_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 handlebars_0_29_1 libimagentryview_0_6_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 log_0_3_9 tempfile_2_2_0 toml_0_4_5 toml_query_0_4_0 version_2_0_1 ];
+  };
+  clap_2_29_0_features."default".from_imag_view_0_6_0__default = true;
+  handlebars_0_29_1_features."default".from_imag_view_0_6_0__default = true;
+  libimagentryview_0_6_0_features."default".from_imag_view_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_imag_view_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_imag_view_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_imag_view_0_6_0__default = true;
+  log_0_3_9_features."default".from_imag_view_0_6_0__default = true;
+  tempfile_2_2_0_features."default".from_imag_view_0_6_0__default = true;
+  toml_0_4_5_features."default".from_imag_view_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_imag_view_0_6_0__default = true;
+  version_2_0_1_features."default".from_imag_view_0_6_0__default = true;
   interactor_0_1_1 = interactor_0_1_1_ rec {
-    dependencies = [ libc_0_2_33 termios_0_2_2 ];
+    dependencies = [ libc_0_2_34 termios_0_3_0 ];
   };
-  libc_0_2_33_features."default".from_interactor_0_1_1__default = true;
-  termios_0_2_2_features."default".from_interactor_0_1_1__default = true;
+  libc_0_2_34_features."default".from_interactor_0_1_1__default = true;
+  termios_0_3_0_features."default".from_interactor_0_1_1__default = true;
   is_match_0_1_0 = is_match_0_1_0_ rec {};
   iso8601_0_2_0 = iso8601_0_2_0_ rec {
     dependencies = [ nom_3_2_1 ];
   };
   clippy_0_0_0_features."default".from_iso8601_0_2_0__default = true;
   nom_3_2_1_features."default".from_iso8601_0_2_0__default = true;
-  itertools_0_7_2 = itertools_0_7_2_ rec {
-    dependencies = [ either_1_3_0 ];
-    features = mkFeatures itertools_0_7_2_features;
+  itertools_0_7_4 = itertools_0_7_4_ rec {
+    dependencies = [ either_1_4_0 ];
+    features = mkFeatures itertools_0_7_4_features;
   };
-  itertools_0_7_2_features."use_std".self_default = hasDefault itertools_0_7_2_features;
-  either_1_3_0_features."default".from_itertools_0_7_2__default = false;
+  itertools_0_7_4_features."use_std".self_default = hasDefault itertools_0_7_4_features;
+  either_1_4_0_features."default".from_itertools_0_7_4__default = false;
   itoa_0_3_4 = itoa_0_3_4_ rec {
     features = mkFeatures itoa_0_3_4_features;
   };
@@ -1669,342 +1804,404 @@ rec {
     buildDependencies = [ winapi_build_0_1_1 ];
   };
   winapi_0_2_8_features."default".from_kernel32_sys_0_2_2__default = true;
-  lazy_static_0_2_9 = lazy_static_0_2_9_ rec {
+  lazy_static_0_2_11 = lazy_static_0_2_11_ rec {
     dependencies = [];
-    features = mkFeatures lazy_static_0_2_9_features;
+    features = mkFeatures lazy_static_0_2_11_features;
   };
-  lazy_static_0_2_9_features."nightly".self_spin_no_std = hasFeature (lazy_static_0_2_9_features."spin_no_std" or {});
-  lazy_static_0_2_9_features."spin".self_spin_no_std = hasFeature (lazy_static_0_2_9_features."spin_no_std" or {});
-  spin_0_0_0_features."default".from_lazy_static_0_2_9__default = true;
-  libc_0_2_33 = libc_0_2_33_ rec {
-    features = mkFeatures libc_0_2_33_features;
+  lazy_static_0_2_11_features."compiletest_rs".self_compiletest = hasFeature (lazy_static_0_2_11_features."compiletest" or {});
+  lazy_static_0_2_11_features."nightly".self_spin_no_std = hasFeature (lazy_static_0_2_11_features."spin_no_std" or {});
+  lazy_static_0_2_11_features."spin".self_spin_no_std = hasFeature (lazy_static_0_2_11_features."spin_no_std" or {});
+  compiletest_rs_0_0_0_features."default".from_lazy_static_0_2_11__default = true;
+  spin_0_0_0_features."default".from_lazy_static_0_2_11__default = true;
+  lazy_static_1_0_0 = lazy_static_1_0_0_ rec {
+    dependencies = [];
+    features = mkFeatures lazy_static_1_0_0_features;
   };
-  libc_0_2_33_features."use_std".self_default = hasDefault libc_0_2_33_features;
-  libimagbookmark_0_5_0 = libimagbookmark_0_5_0_ rec {
-    dependencies = [ error_chain_0_11_0 libimagentrylink_0_5_0 libimagerror_0_5_0 libimagstore_0_5_0 regex_0_2_2 url_1_6_0 ];
+  lazy_static_1_0_0_features."compiletest_rs".self_compiletest = hasFeature (lazy_static_1_0_0_features."compiletest" or {});
+  lazy_static_1_0_0_features."nightly".self_spin_no_std = hasFeature (lazy_static_1_0_0_features."spin_no_std" or {});
+  lazy_static_1_0_0_features."spin".self_spin_no_std = hasFeature (lazy_static_1_0_0_features."spin_no_std" or {});
+  compiletest_rs_0_0_0_features."default".from_lazy_static_1_0_0__default = true;
+  spin_0_0_0_features."default".from_lazy_static_1_0_0__default = true;
+  libc_0_2_34 = libc_0_2_34_ rec {
+    features = mkFeatures libc_0_2_34_features;
   };
-  error_chain_0_11_0_features."default".from_libimagbookmark_0_5_0__default = true;
-  libimagentrylink_0_5_0_features."default".from_libimagbookmark_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagbookmark_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagbookmark_0_5_0__default = true;
-  regex_0_2_2_features."default".from_libimagbookmark_0_5_0__default = true;
-  url_1_6_0_features."default".from_libimagbookmark_0_5_0__default = true;
-  libimagcontact_0_5_0 = libimagcontact_0_5_0_ rec {
-    dependencies = [ error_chain_0_11_0 libimagentryref_0_5_0 libimagerror_0_5_0 libimagstore_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 vobject_0_4_0 ];
+  libc_0_2_34_features."use_std".self_default = hasDefault libc_0_2_34_features;
+  libimagbookmark_0_6_0 = libimagbookmark_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 libimagentrylink_0_6_0 libimagerror_0_6_0 libimagstore_0_6_0 regex_0_2_5 url_1_6_0 ];
   };
-  error_chain_0_11_0_features."default".from_libimagcontact_0_5_0__default = true;
-  libimagentryref_0_5_0_features."default".from_libimagcontact_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagcontact_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagcontact_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagcontact_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagcontact_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagcontact_0_5_0__default = true;
-  vobject_0_4_0_features."default".from_libimagcontact_0_5_0__default = true;
-  libimagdiary_0_5_0 = libimagdiary_0_5_0_ rec {
-    dependencies = [ chrono_0_4_0 error_chain_0_11_0 itertools_0_7_2 libimagentryedit_0_5_0 libimagentryview_0_5_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 ];
+  error_chain_0_11_0_features."default".from_libimagbookmark_0_6_0__default = true;
+  libimagentrylink_0_6_0_features."default".from_libimagbookmark_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagbookmark_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagbookmark_0_6_0__default = true;
+  regex_0_2_5_features."default".from_libimagbookmark_0_6_0__default = true;
+  url_1_6_0_features."default".from_libimagbookmark_0_6_0__default = true;
+  libimagcontact_0_6_0 = libimagcontact_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 libimagentryref_0_6_0 libimagerror_0_6_0 libimagstore_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 vobject_0_4_1 ];
   };
-  chrono_0_4_0_features."default".from_libimagdiary_0_5_0__default = true;
-  error_chain_0_11_0_features."default".from_libimagdiary_0_5_0__default = true;
-  itertools_0_7_2_features."default".from_libimagdiary_0_5_0__default = true;
-  libimagentryedit_0_5_0_features."default".from_libimagdiary_0_5_0__default = true;
-  libimagentryview_0_5_0_features."default".from_libimagdiary_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagdiary_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_libimagdiary_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagdiary_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagdiary_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagdiary_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagdiary_0_5_0__default = true;
-  libimagentryannotation_0_5_0 = libimagentryannotation_0_5_0_ rec {
-    dependencies = [ error_chain_0_11_0 lazy_static_0_2_9 libimagentrylink_0_5_0 libimagerror_0_5_0 libimagstore_0_5_0 toml_0_4_5 toml_query_0_4_0 ];
+  error_chain_0_11_0_features."default".from_libimagcontact_0_6_0__default = true;
+  libimagentryref_0_6_0_features."default".from_libimagcontact_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagcontact_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagcontact_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagcontact_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagcontact_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagcontact_0_6_0__default = true;
+  vobject_0_4_1_features."default".from_libimagcontact_0_6_0__default = true;
+  libimagdiary_0_6_0 = libimagdiary_0_6_0_ rec {
+    dependencies = [ chrono_0_4_0 error_chain_0_11_0 itertools_0_7_4 libimagentryedit_0_6_0 libimagentryview_0_6_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 ];
   };
-  error_chain_0_11_0_features."default".from_libimagentryannotation_0_5_0__default = true;
-  lazy_static_0_2_9_features."default".from_libimagentryannotation_0_5_0__default = true;
-  libimagentrylink_0_5_0_features."default".from_libimagentryannotation_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagentryannotation_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagentryannotation_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagentryannotation_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagentryannotation_0_5_0__default = true;
-  libimagentrycategory_0_5_0 = libimagentrycategory_0_5_0_ rec {
-    dependencies = [ error_chain_0_11_0 is_match_0_1_0 libimagerror_0_5_0 libimagstore_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 ];
+  chrono_0_4_0_features."default".from_libimagdiary_0_6_0__default = true;
+  error_chain_0_11_0_features."default".from_libimagdiary_0_6_0__default = true;
+  itertools_0_7_4_features."default".from_libimagdiary_0_6_0__default = true;
+  libimagentryedit_0_6_0_features."default".from_libimagdiary_0_6_0__default = true;
+  libimagentryview_0_6_0_features."default".from_libimagdiary_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagdiary_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_libimagdiary_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagdiary_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagdiary_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagdiary_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagdiary_0_6_0__default = true;
+  libimagentryannotation_0_6_0 = libimagentryannotation_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 lazy_static_0_2_11 libimagentrylink_0_6_0 libimagerror_0_6_0 libimagstore_0_6_0 toml_0_4_5 toml_query_0_4_0 ];
   };
-  error_chain_0_11_0_features."default".from_libimagentrycategory_0_5_0__default = true;
-  is_match_0_1_0_features."default".from_libimagentrycategory_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagentrycategory_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagentrycategory_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagentrycategory_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagentrycategory_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagentrycategory_0_5_0__default = true;
-  libimagentrydatetime_0_5_0 = libimagentrydatetime_0_5_0_ rec {
-    dependencies = [ chrono_0_4_0 error_chain_0_11_0 lazy_static_0_2_9 libimagerror_0_5_0 libimagstore_0_5_0 toml_0_4_5 toml_query_0_4_0 ];
+  error_chain_0_11_0_features."default".from_libimagentryannotation_0_6_0__default = true;
+  lazy_static_0_2_11_features."default".from_libimagentryannotation_0_6_0__default = true;
+  libimagentrylink_0_6_0_features."default".from_libimagentryannotation_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagentryannotation_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagentryannotation_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagentryannotation_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagentryannotation_0_6_0__default = true;
+  libimagentrycategory_0_6_0 = libimagentrycategory_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 is_match_0_1_0 libimagerror_0_6_0 libimagstore_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 ];
   };
-  chrono_0_4_0_features."default".from_libimagentrydatetime_0_5_0__default = true;
-  error_chain_0_11_0_features."default".from_libimagentrydatetime_0_5_0__default = true;
-  lazy_static_0_2_9_features."default".from_libimagentrydatetime_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagentrydatetime_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagentrydatetime_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagentrydatetime_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagentrydatetime_0_5_0__default = true;
-  libimagentryedit_0_5_0 = libimagentryedit_0_5_0_ rec {
-    dependencies = [ error_chain_0_11_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 libimagutil_0_5_0 ];
+  error_chain_0_11_0_features."default".from_libimagentrycategory_0_6_0__default = true;
+  is_match_0_1_0_features."default".from_libimagentrycategory_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagentrycategory_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagentrycategory_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagentrycategory_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagentrycategory_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagentrycategory_0_6_0__default = true;
+  libimagentrydatetime_0_6_0 = libimagentrydatetime_0_6_0_ rec {
+    dependencies = [ chrono_0_4_0 error_chain_0_11_0 lazy_static_0_2_11 libimagerror_0_6_0 libimagstore_0_6_0 toml_0_4_5 toml_query_0_4_0 ];
   };
-  error_chain_0_11_0_features."default".from_libimagentryedit_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagentryedit_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_libimagentryedit_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagentryedit_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_libimagentryedit_0_5_0__default = true;
-  libimagentryfilter_0_5_0 = libimagentryfilter_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 filters_0_2_0 itertools_0_7_2 libimagentrytag_0_5_0 libimagstore_0_5_0 log_0_3_8 regex_0_2_2 semver_0_8_0 toml_0_4_5 toml_query_0_4_0 ];
+  chrono_0_4_0_features."default".from_libimagentrydatetime_0_6_0__default = true;
+  error_chain_0_11_0_features."default".from_libimagentrydatetime_0_6_0__default = true;
+  lazy_static_0_2_11_features."default".from_libimagentrydatetime_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagentrydatetime_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagentrydatetime_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagentrydatetime_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagentrydatetime_0_6_0__default = true;
+  libimagentryedit_0_6_0 = libimagentryedit_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 libimagutil_0_6_0 ];
   };
-  clap_2_27_1_features."default".from_libimagentryfilter_0_5_0__default = true;
-  filters_0_2_0_features."default".from_libimagentryfilter_0_5_0__default = true;
-  itertools_0_7_2_features."default".from_libimagentryfilter_0_5_0__default = true;
-  libimagentrytag_0_5_0_features."default".from_libimagentryfilter_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagentryfilter_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagentryfilter_0_5_0__default = true;
-  regex_0_2_2_features."default".from_libimagentryfilter_0_5_0__default = true;
-  semver_0_8_0_features."default".from_libimagentryfilter_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagentryfilter_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagentryfilter_0_5_0__default = true;
-  libimagentrygps_0_5_0 = libimagentrygps_0_5_0_ rec {
-    dependencies = [ error_chain_0_11_0 libimagerror_0_5_0 libimagstore_0_5_0 serde_1_0_19 serde_derive_1_0_19 toml_0_4_5 toml_query_0_4_0 ];
+  error_chain_0_11_0_features."default".from_libimagentryedit_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagentryedit_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_libimagentryedit_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagentryedit_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_libimagentryedit_0_6_0__default = true;
+  libimagentryfilter_0_6_0 = libimagentryfilter_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 filters_0_2_0 itertools_0_7_4 libimagentrytag_0_6_0 libimagstore_0_6_0 log_0_3_9 regex_0_2_5 semver_0_8_0 toml_0_4_5 toml_query_0_4_0 ];
   };
-  error_chain_0_11_0_features."default".from_libimagentrygps_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagentrygps_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagentrygps_0_5_0__default = true;
-  serde_1_0_19_features."default".from_libimagentrygps_0_5_0__default = true;
-  serde_derive_1_0_19_features."default".from_libimagentrygps_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagentrygps_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagentrygps_0_5_0__default = true;
-  libimagentrylink_0_5_0 = libimagentrylink_0_5_0_ rec {
-    dependencies = [ error_chain_0_11_0 is_match_0_1_0 itertools_0_7_2 libimagerror_0_5_0 libimagstore_0_5_0 libimagutil_0_5_0 log_0_3_8 rust_crypto_0_2_36 toml_0_4_5 toml_query_0_4_0 url_1_6_0 ];
+  clap_2_29_0_features."default".from_libimagentryfilter_0_6_0__default = true;
+  filters_0_2_0_features."default".from_libimagentryfilter_0_6_0__default = true;
+  itertools_0_7_4_features."default".from_libimagentryfilter_0_6_0__default = true;
+  libimagentrytag_0_6_0_features."default".from_libimagentryfilter_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagentryfilter_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagentryfilter_0_6_0__default = true;
+  regex_0_2_5_features."default".from_libimagentryfilter_0_6_0__default = true;
+  semver_0_8_0_features."default".from_libimagentryfilter_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagentryfilter_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagentryfilter_0_6_0__default = true;
+  libimagentrygps_0_6_0 = libimagentrygps_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 libimagerror_0_6_0 libimagstore_0_6_0 serde_1_0_27 serde_derive_1_0_27 toml_0_4_5 toml_query_0_4_0 ];
   };
-  error_chain_0_11_0_features."default".from_libimagentrylink_0_5_0__default = true;
-  is_match_0_1_0_features."default".from_libimagentrylink_0_5_0__default = true;
-  itertools_0_7_2_features."default".from_libimagentrylink_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagentrylink_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagentrylink_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_libimagentrylink_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagentrylink_0_5_0__default = true;
-  rust_crypto_0_2_36_features."default".from_libimagentrylink_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagentrylink_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagentrylink_0_5_0__default = true;
-  url_1_6_0_features."default".from_libimagentrylink_0_5_0__default = true;
-  libimagentrylist_0_5_0 = libimagentrylist_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 error_chain_0_11_0 libimagerror_0_5_0 libimagstore_0_5_0 libimagutil_0_5_0 log_0_3_8 prettytable_rs_0_6_7 ];
+  error_chain_0_11_0_features."default".from_libimagentrygps_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagentrygps_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagentrygps_0_6_0__default = true;
+  serde_1_0_27_features."default".from_libimagentrygps_0_6_0__default = true;
+  serde_derive_1_0_27_features."default".from_libimagentrygps_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagentrygps_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagentrygps_0_6_0__default = true;
+  libimagentrylink_0_6_0 = libimagentrylink_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 is_match_0_1_0 itertools_0_7_4 libimagerror_0_6_0 libimagstore_0_6_0 libimagutil_0_6_0 log_0_3_9 rust_crypto_0_2_36 toml_0_4_5 toml_query_0_4_0 url_1_6_0 ];
   };
-  clap_2_27_1_features."default".from_libimagentrylist_0_5_0__default = true;
-  error_chain_0_11_0_features."default".from_libimagentrylist_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagentrylist_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagentrylist_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_libimagentrylist_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagentrylist_0_5_0__default = true;
-  prettytable_rs_0_6_7_features."default".from_libimagentrylist_0_5_0__default = true;
-  libimagentrymarkdown_0_5_0 = libimagentrymarkdown_0_5_0_ rec {
-    dependencies = [ env_logger_0_4_3 error_chain_0_11_0 hoedown_6_0_0 libimagentrylink_0_5_0 libimagentryref_0_5_0 libimagerror_0_5_0 libimagstore_0_5_0 libimagutil_0_5_0 log_0_3_8 url_1_6_0 ];
+  error_chain_0_11_0_features."default".from_libimagentrylink_0_6_0__default = true;
+  is_match_0_1_0_features."default".from_libimagentrylink_0_6_0__default = true;
+  itertools_0_7_4_features."default".from_libimagentrylink_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagentrylink_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagentrylink_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_libimagentrylink_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagentrylink_0_6_0__default = true;
+  rust_crypto_0_2_36_features."default".from_libimagentrylink_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagentrylink_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagentrylink_0_6_0__default = true;
+  url_1_6_0_features."default".from_libimagentrylink_0_6_0__default = true;
+  libimagentrylist_0_6_0 = libimagentrylist_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 error_chain_0_11_0 libimagerror_0_6_0 libimagstore_0_6_0 libimagutil_0_6_0 log_0_3_9 prettytable_rs_0_6_7 ];
   };
-  env_logger_0_4_3_features."default".from_libimagentrymarkdown_0_5_0__default = true;
-  error_chain_0_11_0_features."default".from_libimagentrymarkdown_0_5_0__default = true;
-  hoedown_6_0_0_features."default".from_libimagentrymarkdown_0_5_0__default = true;
-  libimagentrylink_0_5_0_features."default".from_libimagentrymarkdown_0_5_0__default = true;
-  libimagentryref_0_5_0_features."default".from_libimagentrymarkdown_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagentrymarkdown_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagentrymarkdown_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_libimagentrymarkdown_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagentrymarkdown_0_5_0__default = true;
-  url_1_6_0_features."default".from_libimagentrymarkdown_0_5_0__default = true;
-  libimagentryref_0_5_0 = libimagentryref_0_5_0_ rec {
-    dependencies = [ error_chain_0_11_0 itertools_0_7_2 libimagentrylist_0_5_0 libimagerror_0_5_0 libimagstore_0_5_0 log_0_3_8 rust_crypto_0_2_36 toml_0_4_5 toml_query_0_4_0 walkdir_1_0_7 ];
+  clap_2_29_0_features."default".from_libimagentrylist_0_6_0__default = true;
+  error_chain_0_11_0_features."default".from_libimagentrylist_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagentrylist_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagentrylist_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_libimagentrylist_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagentrylist_0_6_0__default = true;
+  prettytable_rs_0_6_7_features."default".from_libimagentrylist_0_6_0__default = true;
+  libimagentrymarkdown_0_6_0 = libimagentrymarkdown_0_6_0_ rec {
+    dependencies = [ env_logger_0_4_3 error_chain_0_11_0 hoedown_6_0_0 libimagentrylink_0_6_0 libimagentryref_0_6_0 libimagerror_0_6_0 libimagstore_0_6_0 libimagutil_0_6_0 log_0_3_9 url_1_6_0 ];
   };
-  error_chain_0_11_0_features."default".from_libimagentryref_0_5_0__default = true;
-  itertools_0_7_2_features."default".from_libimagentryref_0_5_0__default = true;
-  libimagentrylist_0_5_0_features."default".from_libimagentryref_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagentryref_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagentryref_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagentryref_0_5_0__default = true;
-  rust_crypto_0_2_36_features."default".from_libimagentryref_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagentryref_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagentryref_0_5_0__default = true;
-  walkdir_1_0_7_features."default".from_libimagentryref_0_5_0__default = true;
-  libimagentrytag_0_5_0 = libimagentrytag_0_5_0_ rec {
-    dependencies = [ clap_2_27_1 error_chain_0_11_0 filters_0_2_0 is_match_0_1_0 itertools_0_7_2 libimagerror_0_5_0 libimagstore_0_5_0 log_0_3_8 regex_0_2_2 toml_0_4_5 toml_query_0_4_0 ];
+  env_logger_0_4_3_features."default".from_libimagentrymarkdown_0_6_0__default = true;
+  error_chain_0_11_0_features."default".from_libimagentrymarkdown_0_6_0__default = true;
+  hoedown_6_0_0_features."default".from_libimagentrymarkdown_0_6_0__default = true;
+  libimagentrylink_0_6_0_features."default".from_libimagentrymarkdown_0_6_0__default = true;
+  libimagentryref_0_6_0_features."default".from_libimagentrymarkdown_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagentrymarkdown_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagentrymarkdown_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_libimagentrymarkdown_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagentrymarkdown_0_6_0__default = true;
+  url_1_6_0_features."default".from_libimagentrymarkdown_0_6_0__default = true;
+  libimagentryref_0_6_0 = libimagentryref_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 itertools_0_7_4 libimagentrylist_0_6_0 libimagerror_0_6_0 libimagstore_0_6_0 log_0_3_9 rust_crypto_0_2_36 toml_0_4_5 toml_query_0_4_0 walkdir_1_0_7 ];
   };
-  clap_2_27_1_features."default".from_libimagentrytag_0_5_0__default = true;
-  error_chain_0_11_0_features."default".from_libimagentrytag_0_5_0__default = true;
-  filters_0_2_0_features."default".from_libimagentrytag_0_5_0__default = true;
-  is_match_0_1_0_features."default".from_libimagentrytag_0_5_0__default = true;
-  itertools_0_7_2_features."default".from_libimagentrytag_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagentrytag_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagentrytag_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagentrytag_0_5_0__default = true;
-  regex_0_2_2_features."default".from_libimagentrytag_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagentrytag_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagentrytag_0_5_0__default = true;
-  libimagentryview_0_5_0 = libimagentryview_0_5_0_ rec {
-    dependencies = [ error_chain_0_11_0 libimagentryedit_0_5_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 log_0_3_8 toml_0_4_5 ];
+  error_chain_0_11_0_features."default".from_libimagentryref_0_6_0__default = true;
+  itertools_0_7_4_features."default".from_libimagentryref_0_6_0__default = true;
+  libimagentrylist_0_6_0_features."default".from_libimagentryref_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagentryref_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagentryref_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagentryref_0_6_0__default = true;
+  rust_crypto_0_2_36_features."default".from_libimagentryref_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagentryref_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagentryref_0_6_0__default = true;
+  walkdir_1_0_7_features."default".from_libimagentryref_0_6_0__default = true;
+  libimagentrytag_0_6_0 = libimagentrytag_0_6_0_ rec {
+    dependencies = [ clap_2_29_0 error_chain_0_11_0 filters_0_2_0 is_match_0_1_0 itertools_0_7_4 libimagerror_0_6_0 libimagstore_0_6_0 log_0_3_9 regex_0_2_5 toml_0_4_5 toml_query_0_4_0 ];
   };
-  error_chain_0_11_0_features."default".from_libimagentryview_0_5_0__default = true;
-  libimagentryedit_0_5_0_features."default".from_libimagentryview_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagentryview_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_libimagentryview_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagentryview_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagentryview_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagentryview_0_5_0__default = true;
-  libimagerror_0_5_0 = libimagerror_0_5_0_ rec {
-    dependencies = [ ansi_term_0_10_2 log_0_3_8 ];
+  clap_2_29_0_features."default".from_libimagentrytag_0_6_0__default = true;
+  error_chain_0_11_0_features."default".from_libimagentrytag_0_6_0__default = true;
+  filters_0_2_0_features."default".from_libimagentrytag_0_6_0__default = true;
+  is_match_0_1_0_features."default".from_libimagentrytag_0_6_0__default = true;
+  itertools_0_7_4_features."default".from_libimagentrytag_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagentrytag_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagentrytag_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagentrytag_0_6_0__default = true;
+  regex_0_2_5_features."default".from_libimagentrytag_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagentrytag_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagentrytag_0_6_0__default = true;
+  libimagentryview_0_6_0 = libimagentryview_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 libimagentryedit_0_6_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 log_0_3_9 toml_0_4_5 ];
   };
-  ansi_term_0_10_2_features."default".from_libimagerror_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagerror_0_5_0__default = true;
-  libimaghabit_0_5_0 = libimaghabit_0_5_0_ rec {
-    dependencies = [ chrono_0_4_0 error_chain_0_11_0 is_match_0_1_0 kairos_0_1_0 libimagentryedit_0_5_0 libimagentrylink_0_5_0 libimagerror_0_5_0 libimagstore_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 ];
+  error_chain_0_11_0_features."default".from_libimagentryview_0_6_0__default = true;
+  libimagentryedit_0_6_0_features."default".from_libimagentryview_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagentryview_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_libimagentryview_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagentryview_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagentryview_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagentryview_0_6_0__default = true;
+  libimagerror_0_6_0 = libimagerror_0_6_0_ rec {
+    dependencies = [ ansi_term_0_10_2 log_0_3_9 ];
   };
-  chrono_0_4_0_features."default".from_libimaghabit_0_5_0__default = true;
-  error_chain_0_11_0_features."default".from_libimaghabit_0_5_0__default = true;
-  is_match_0_1_0_features."default".from_libimaghabit_0_5_0__default = true;
-  kairos_0_1_0beta-2_features."default".from_libimaghabit_0_5_0__default = true;
-  libimagentryedit_0_5_0_features."default".from_libimaghabit_0_5_0__default = true;
-  libimagentrylink_0_5_0_features."default".from_libimaghabit_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimaghabit_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimaghabit_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimaghabit_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimaghabit_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimaghabit_0_5_0__default = true;
-  libimaginteraction_0_5_0 = libimaginteraction_0_5_0_ rec {
-    dependencies = [ ansi_term_0_10_2 clap_2_27_1 error_chain_0_11_0 handlebars_0_29_1 interactor_0_1_1 lazy_static_0_2_9 libimagerror_0_5_0 libimagstore_0_5_0 log_0_3_8 regex_0_2_2 serde_json_1_0_5 toml_0_4_5 ];
+  ansi_term_0_10_2_features."default".from_libimagerror_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagerror_0_6_0__default = true;
+  libimaghabit_0_6_0 = libimaghabit_0_6_0_ rec {
+    dependencies = [ chrono_0_4_0 error_chain_0_11_0 is_match_0_1_0 kairos_0_1_0 libimagentryedit_0_6_0 libimagentrylink_0_6_0 libimagerror_0_6_0 libimagstore_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 ];
   };
-  ansi_term_0_10_2_features."default".from_libimaginteraction_0_5_0__default = true;
-  clap_2_27_1_features."default".from_libimaginteraction_0_5_0__default = true;
-  error_chain_0_11_0_features."default".from_libimaginteraction_0_5_0__default = true;
-  handlebars_0_29_1_features."default".from_libimaginteraction_0_5_0__default = true;
-  interactor_0_1_1_features."default".from_libimaginteraction_0_5_0__default = true;
-  lazy_static_0_2_9_features."default".from_libimaginteraction_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimaginteraction_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimaginteraction_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimaginteraction_0_5_0__default = true;
-  regex_0_2_2_features."default".from_libimaginteraction_0_5_0__default = true;
-  serde_json_1_0_5_features."default".from_libimaginteraction_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimaginteraction_0_5_0__default = true;
-  libimagmail_0_5_0 = libimagmail_0_5_0_ rec {
-    dependencies = [ email_0_0_17 error_chain_0_11_0 filters_0_2_0 libimagentryref_0_5_0 libimagerror_0_5_0 libimagstore_0_5_0 log_0_3_8 ];
+  chrono_0_4_0_features."default".from_libimaghabit_0_6_0__default = true;
+  error_chain_0_11_0_features."default".from_libimaghabit_0_6_0__default = true;
+  is_match_0_1_0_features."default".from_libimaghabit_0_6_0__default = true;
+  kairos_0_1_0beta-2_features."default".from_libimaghabit_0_6_0__default = true;
+  libimagentryedit_0_6_0_features."default".from_libimaghabit_0_6_0__default = true;
+  libimagentrylink_0_6_0_features."default".from_libimaghabit_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimaghabit_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimaghabit_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimaghabit_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimaghabit_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimaghabit_0_6_0__default = true;
+  libimaginteraction_0_6_0 = libimaginteraction_0_6_0_ rec {
+    dependencies = [ ansi_term_0_10_2 clap_2_29_0 error_chain_0_11_0 handlebars_0_29_1 interactor_0_1_1 lazy_static_0_2_11 libimagerror_0_6_0 libimagstore_0_6_0 log_0_3_9 regex_0_2_5 serde_json_1_0_9 toml_0_4_5 ];
   };
-  email_0_0_17_features."default".from_libimagmail_0_5_0__default = true;
-  error_chain_0_11_0_features."default".from_libimagmail_0_5_0__default = true;
-  filters_0_2_0_features."default".from_libimagmail_0_5_0__default = true;
-  libimagentryref_0_5_0_features."default".from_libimagmail_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagmail_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagmail_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagmail_0_5_0__default = true;
-  libimagnotes_0_5_0 = libimagnotes_0_5_0_ rec {
-    dependencies = [ error_chain_0_11_0 libimagentryedit_0_5_0 libimagerror_0_5_0 libimagrt_0_5_0 libimagstore_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 ];
+  ansi_term_0_10_2_features."default".from_libimaginteraction_0_6_0__default = true;
+  clap_2_29_0_features."default".from_libimaginteraction_0_6_0__default = true;
+  error_chain_0_11_0_features."default".from_libimaginteraction_0_6_0__default = true;
+  handlebars_0_29_1_features."default".from_libimaginteraction_0_6_0__default = true;
+  interactor_0_1_1_features."default".from_libimaginteraction_0_6_0__default = true;
+  lazy_static_0_2_11_features."default".from_libimaginteraction_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimaginteraction_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimaginteraction_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimaginteraction_0_6_0__default = true;
+  regex_0_2_5_features."default".from_libimaginteraction_0_6_0__default = true;
+  serde_json_1_0_9_features."default".from_libimaginteraction_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimaginteraction_0_6_0__default = true;
+  libimagmail_0_6_0 = libimagmail_0_6_0_ rec {
+    dependencies = [ email_0_0_17 error_chain_0_11_0 filters_0_2_0 libimagentryref_0_6_0 libimagerror_0_6_0 libimagstore_0_6_0 log_0_3_9 ];
   };
-  error_chain_0_11_0_features."default".from_libimagnotes_0_5_0__default = true;
-  libimagentryedit_0_5_0_features."default".from_libimagnotes_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagnotes_0_5_0__default = true;
-  libimagrt_0_5_0_features."default".from_libimagnotes_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagnotes_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagnotes_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagnotes_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagnotes_0_5_0__default = true;
-  libimagrt_0_5_0 = libimagrt_0_5_0_ rec {
-    dependencies = [ ansi_term_0_10_2 clap_2_27_1 env_logger_0_4_3 error_chain_0_11_0 handlebars_0_29_1 is_match_0_1_0 itertools_0_7_2 libimagerror_0_5_0 libimaginteraction_0_5_0 libimagstore_0_5_0 libimagutil_0_5_0 log_0_3_8 toml_0_4_5 toml_query_0_4_0 xdg_basedir_1_0_0 ];
-    features = mkFeatures libimagrt_0_5_0_features;
+  email_0_0_17_features."default".from_libimagmail_0_6_0__default = true;
+  error_chain_0_11_0_features."default".from_libimagmail_0_6_0__default = true;
+  filters_0_2_0_features."default".from_libimagmail_0_6_0__default = true;
+  libimagentryref_0_6_0_features."default".from_libimagmail_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagmail_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagmail_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagmail_0_6_0__default = true;
+  libimagnotes_0_6_0 = libimagnotes_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 libimagentryedit_0_6_0 libimagerror_0_6_0 libimagrt_0_6_0 libimagstore_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 ];
   };
-  libimagrt_0_5_0_features."".self = true;
-  ansi_term_0_10_2_features."default".from_libimagrt_0_5_0__default = true;
-  clap_2_27_1_features."default".from_libimagrt_0_5_0__default = true;
-  env_logger_0_4_3_features."default".from_libimagrt_0_5_0__default = true;
-  error_chain_0_11_0_features."default".from_libimagrt_0_5_0__default = true;
-  handlebars_0_29_1_features."default".from_libimagrt_0_5_0__default = true;
-  is_match_0_1_0_features."default".from_libimagrt_0_5_0__default = true;
-  itertools_0_7_2_features."default".from_libimagrt_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagrt_0_5_0__default = true;
-  libimaginteraction_0_5_0_features."default".from_libimagrt_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagrt_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_libimagrt_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagrt_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagrt_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagrt_0_5_0__default = true;
-  xdg_basedir_1_0_0_features."default".from_libimagrt_0_5_0__default = true;
-  libimagstore_0_5_0 = libimagstore_0_5_0_ rec {
-    dependencies = [ error_chain_0_11_0 glob_0_2_11 is_match_0_1_0 lazy_static_0_2_9 libimagerror_0_5_0 libimagutil_0_5_0 log_0_3_8 regex_0_2_2 semver_0_8_0 serde_1_0_19 serde_derive_1_0_19 serde_json_1_0_5 toml_0_4_5 version_2_0_1 walkdir_1_0_7 ];
-    features = mkFeatures libimagstore_0_5_0_features;
+  error_chain_0_11_0_features."default".from_libimagnotes_0_6_0__default = true;
+  libimagentryedit_0_6_0_features."default".from_libimagnotes_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagnotes_0_6_0__default = true;
+  libimagrt_0_6_0_features."default".from_libimagnotes_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagnotes_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagnotes_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagnotes_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagnotes_0_6_0__default = true;
+  libimagnotification_0_6_0 = libimagnotification_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 libimagerror_0_6_0 notify_rust_3_4_2 ];
   };
-  libimagstore_0_5_0_features."".self = true;
-  error_chain_0_11_0_features."default".from_libimagstore_0_5_0__default = true;
-  glob_0_2_11_features."default".from_libimagstore_0_5_0__default = true;
-  is_match_0_1_0_features."default".from_libimagstore_0_5_0__default = true;
-  lazy_static_0_2_9_features."default".from_libimagstore_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagstore_0_5_0__default = true;
-  libimagutil_0_5_0_features."default".from_libimagstore_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagstore_0_5_0__default = true;
-  regex_0_2_2_features."default".from_libimagstore_0_5_0__default = true;
-  semver_0_8_0_features."default".from_libimagstore_0_5_0__default = true;
-  serde_1_0_19_features."default".from_libimagstore_0_5_0__default = true;
-  serde_derive_1_0_19_features."default".from_libimagstore_0_5_0__default = true;
-  serde_json_1_0_5_features."default".from_libimagstore_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagstore_0_5_0__default = true;
-  version_2_0_1_features."default".from_libimagstore_0_5_0__default = true;
-  walkdir_1_0_7_features."default".from_libimagstore_0_5_0__default = true;
-  libimagtimetrack_0_5_0 = libimagtimetrack_0_5_0_ rec {
-    dependencies = [ chrono_0_4_0 error_chain_0_11_0 filters_0_2_0 is_match_0_1_0 lazy_static_0_2_9 libimagentrydatetime_0_5_0 libimagentrytag_0_5_0 libimagerror_0_5_0 libimagstore_0_5_0 toml_0_4_5 toml_query_0_4_0 ];
+  error_chain_0_11_0_features."default".from_libimagnotification_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagnotification_0_6_0__default = true;
+  notify_rust_3_4_2_features."default".from_libimagnotification_0_6_0__default = true;
+  libimagrt_0_6_0 = libimagrt_0_6_0_ rec {
+    dependencies = [ ansi_term_0_10_2 clap_2_29_0 env_logger_0_4_3 error_chain_0_11_0 handlebars_0_29_1 is_match_0_1_0 itertools_0_7_4 libimagerror_0_6_0 libimaginteraction_0_6_0 libimagstore_0_6_0 libimagutil_0_6_0 log_0_3_9 toml_0_4_5 toml_query_0_4_0 xdg_basedir_1_0_0 ];
+    features = mkFeatures libimagrt_0_6_0_features;
   };
-  chrono_0_4_0_features."default".from_libimagtimetrack_0_5_0__default = true;
-  error_chain_0_11_0_features."default".from_libimagtimetrack_0_5_0__default = true;
-  filters_0_2_0_features."default".from_libimagtimetrack_0_5_0__default = true;
-  is_match_0_1_0_features."default".from_libimagtimetrack_0_5_0__default = true;
-  lazy_static_0_2_9_features."default".from_libimagtimetrack_0_5_0__default = true;
-  libimagentrydatetime_0_5_0_features."default".from_libimagtimetrack_0_5_0__default = true;
-  libimagentrytag_0_5_0_features."default".from_libimagtimetrack_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagtimetrack_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagtimetrack_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagtimetrack_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagtimetrack_0_5_0__default = true;
-  libimagtimeui_0_5_0 = libimagtimeui_0_5_0_ rec {
-    dependencies = [ chrono_0_4_0 clap_2_27_1 lazy_static_0_2_9 log_0_3_8 regex_0_2_2 ];
+  libimagrt_0_6_0_features."".self = true;
+  ansi_term_0_10_2_features."default".from_libimagrt_0_6_0__default = true;
+  clap_2_29_0_features."default".from_libimagrt_0_6_0__default = true;
+  env_logger_0_4_3_features."default".from_libimagrt_0_6_0__default = true;
+  error_chain_0_11_0_features."default".from_libimagrt_0_6_0__default = true;
+  handlebars_0_29_1_features."default".from_libimagrt_0_6_0__default = true;
+  is_match_0_1_0_features."default".from_libimagrt_0_6_0__default = true;
+  itertools_0_7_4_features."default".from_libimagrt_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagrt_0_6_0__default = true;
+  libimaginteraction_0_6_0_features."default".from_libimagrt_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagrt_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_libimagrt_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagrt_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagrt_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagrt_0_6_0__default = true;
+  xdg_basedir_1_0_0_features."default".from_libimagrt_0_6_0__default = true;
+  libimagstore_0_6_0 = libimagstore_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 glob_0_2_11 is_match_0_1_0 lazy_static_0_2_11 libimagerror_0_6_0 libimagutil_0_6_0 log_0_3_9 regex_0_2_5 semver_0_8_0 serde_1_0_27 serde_derive_1_0_27 serde_json_1_0_9 toml_0_4_5 toml_query_0_4_0 version_2_0_1 walkdir_1_0_7 ];
+    features = mkFeatures libimagstore_0_6_0_features;
   };
-  chrono_0_4_0_features."default".from_libimagtimeui_0_5_0__default = true;
-  clap_2_27_1_features."default".from_libimagtimeui_0_5_0__default = true;
-  lazy_static_0_2_9_features."default".from_libimagtimeui_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagtimeui_0_5_0__default = true;
-  regex_0_2_2_features."default".from_libimagtimeui_0_5_0__default = true;
-  libimagtodo_0_5_0 = libimagtodo_0_5_0_ rec {
-    dependencies = [ error_chain_0_11_0 libimagerror_0_5_0 libimagstore_0_5_0 log_0_3_8 serde_json_1_0_5 task_hookrs_0_4_0 toml_0_4_5 toml_query_0_4_0 uuid_0_5_1 ];
+  libimagstore_0_6_0_features."".self = true;
+  error_chain_0_11_0_features."default".from_libimagstore_0_6_0__default = true;
+  glob_0_2_11_features."default".from_libimagstore_0_6_0__default = true;
+  is_match_0_1_0_features."default".from_libimagstore_0_6_0__default = true;
+  lazy_static_0_2_11_features."default".from_libimagstore_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagstore_0_6_0__default = true;
+  libimagutil_0_6_0_features."default".from_libimagstore_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagstore_0_6_0__default = true;
+  regex_0_2_5_features."default".from_libimagstore_0_6_0__default = true;
+  semver_0_8_0_features."default".from_libimagstore_0_6_0__default = true;
+  serde_1_0_27_features."default".from_libimagstore_0_6_0__default = true;
+  serde_derive_1_0_27_features."default".from_libimagstore_0_6_0__default = true;
+  serde_json_1_0_9_features."default".from_libimagstore_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagstore_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagstore_0_6_0__default = true;
+  version_2_0_1_features."default".from_libimagstore_0_6_0__default = true;
+  walkdir_1_0_7_features."default".from_libimagstore_0_6_0__default = true;
+  libimagtimetrack_0_6_0 = libimagtimetrack_0_6_0_ rec {
+    dependencies = [ chrono_0_4_0 error_chain_0_11_0 filters_0_2_0 is_match_0_1_0 lazy_static_0_2_11 libimagentrydatetime_0_6_0 libimagentrytag_0_6_0 libimagerror_0_6_0 libimagstore_0_6_0 toml_0_4_5 toml_query_0_4_0 ];
   };
-  error_chain_0_11_0_features."default".from_libimagtodo_0_5_0__default = true;
-  libimagerror_0_5_0_features."default".from_libimagtodo_0_5_0__default = true;
-  libimagstore_0_5_0_features."default".from_libimagtodo_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagtodo_0_5_0__default = true;
-  serde_json_1_0_5_features."default".from_libimagtodo_0_5_0__default = true;
-  task_hookrs_0_4_0_features."default".from_libimagtodo_0_5_0__default = true;
-  toml_0_4_5_features."default".from_libimagtodo_0_5_0__default = true;
-  toml_query_0_4_0_features."default".from_libimagtodo_0_5_0__default = true;
-  uuid_0_5_1_features."default".from_libimagtodo_0_5_0__default = true;
-  libimagutil_0_5_0 = libimagutil_0_5_0_ rec {
-    dependencies = [ boolinator_2_4_0 lazy_static_0_2_9 log_0_3_8 regex_0_2_2 tempfile_2_2_0 url_1_6_0 ];
-    features = mkFeatures libimagutil_0_5_0_features;
+  chrono_0_4_0_features."default".from_libimagtimetrack_0_6_0__default = true;
+  error_chain_0_11_0_features."default".from_libimagtimetrack_0_6_0__default = true;
+  filters_0_2_0_features."default".from_libimagtimetrack_0_6_0__default = true;
+  is_match_0_1_0_features."default".from_libimagtimetrack_0_6_0__default = true;
+  lazy_static_0_2_11_features."default".from_libimagtimetrack_0_6_0__default = true;
+  libimagentrydatetime_0_6_0_features."default".from_libimagtimetrack_0_6_0__default = true;
+  libimagentrytag_0_6_0_features."default".from_libimagtimetrack_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagtimetrack_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagtimetrack_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagtimetrack_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagtimetrack_0_6_0__default = true;
+  libimagtimeui_0_6_0 = libimagtimeui_0_6_0_ rec {
+    dependencies = [ chrono_0_4_0 clap_2_29_0 lazy_static_0_2_11 log_0_3_9 regex_0_2_5 ];
   };
-  libimagutil_0_5_0_features."".self = true;
-  boolinator_2_4_0_features."default".from_libimagutil_0_5_0__default = true;
-  lazy_static_0_2_9_features."default".from_libimagutil_0_5_0__default = true;
-  log_0_3_8_features."default".from_libimagutil_0_5_0__default = true;
-  regex_0_2_2_features."default".from_libimagutil_0_5_0__default = true;
-  tempfile_2_2_0_features."default".from_libimagutil_0_5_0__default = true;
-  url_1_6_0_features."default".from_libimagutil_0_5_0__default = true;
-  log_0_3_8 = log_0_3_8_ rec {
-    features = mkFeatures log_0_3_8_features;
+  chrono_0_4_0_features."default".from_libimagtimeui_0_6_0__default = true;
+  clap_2_29_0_features."default".from_libimagtimeui_0_6_0__default = true;
+  lazy_static_0_2_11_features."default".from_libimagtimeui_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagtimeui_0_6_0__default = true;
+  regex_0_2_5_features."default".from_libimagtimeui_0_6_0__default = true;
+  libimagtodo_0_6_0 = libimagtodo_0_6_0_ rec {
+    dependencies = [ error_chain_0_11_0 libimagerror_0_6_0 libimagstore_0_6_0 log_0_3_9 serde_json_1_0_9 task_hookrs_0_4_0 toml_0_4_5 toml_query_0_4_0 uuid_0_5_1 ];
   };
-  log_0_3_8_features."use_std".self_default = hasDefault log_0_3_8_features;
+  error_chain_0_11_0_features."default".from_libimagtodo_0_6_0__default = true;
+  libimagerror_0_6_0_features."default".from_libimagtodo_0_6_0__default = true;
+  libimagstore_0_6_0_features."default".from_libimagtodo_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagtodo_0_6_0__default = true;
+  serde_json_1_0_9_features."default".from_libimagtodo_0_6_0__default = true;
+  task_hookrs_0_4_0_features."default".from_libimagtodo_0_6_0__default = true;
+  toml_0_4_5_features."default".from_libimagtodo_0_6_0__default = true;
+  toml_query_0_4_0_features."default".from_libimagtodo_0_6_0__default = true;
+  uuid_0_5_1_features."default".from_libimagtodo_0_6_0__default = true;
+  libimagutil_0_6_0 = libimagutil_0_6_0_ rec {
+    dependencies = [ boolinator_2_4_0 lazy_static_0_2_11 log_0_3_9 regex_0_2_5 tempfile_2_2_0 url_1_6_0 ];
+    features = mkFeatures libimagutil_0_6_0_features;
+  };
+  libimagutil_0_6_0_features."".self = true;
+  boolinator_2_4_0_features."default".from_libimagutil_0_6_0__default = true;
+  lazy_static_0_2_11_features."default".from_libimagutil_0_6_0__default = true;
+  log_0_3_9_features."default".from_libimagutil_0_6_0__default = true;
+  regex_0_2_5_features."default".from_libimagutil_0_6_0__default = true;
+  tempfile_2_2_0_features."default".from_libimagutil_0_6_0__default = true;
+  url_1_6_0_features."default".from_libimagutil_0_6_0__default = true;
+  log_0_3_9 = log_0_3_9_ rec {
+    dependencies = [];
+    features = mkFeatures log_0_3_9_features;
+  };
+  log_0_3_9_features."use_std".self_default = hasDefault log_0_3_9_features;
+  log_0_0_0_features."max_level_debug".from_log_0_3_9__max_level_debug = hasFeature (log_0_3_9_features."max_level_debug" or {});
+  log_0_0_0_features."max_level_error".from_log_0_3_9__max_level_error = hasFeature (log_0_3_9_features."max_level_error" or {});
+  log_0_0_0_features."max_level_info".from_log_0_3_9__max_level_info = hasFeature (log_0_3_9_features."max_level_info" or {});
+  log_0_0_0_features."max_level_off".from_log_0_3_9__max_level_off = hasFeature (log_0_3_9_features."max_level_off" or {});
+  log_0_0_0_features."max_level_trace".from_log_0_3_9__max_level_trace = hasFeature (log_0_3_9_features."max_level_trace" or {});
+  log_0_0_0_features."max_level_warn".from_log_0_3_9__max_level_warn = hasFeature (log_0_3_9_features."max_level_warn" or {});
+  log_0_0_0_features."release_max_level_debug".from_log_0_3_9__release_max_level_debug = hasFeature (log_0_3_9_features."release_max_level_debug" or {});
+  log_0_0_0_features."release_max_level_error".from_log_0_3_9__release_max_level_error = hasFeature (log_0_3_9_features."release_max_level_error" or {});
+  log_0_0_0_features."release_max_level_info".from_log_0_3_9__release_max_level_info = hasFeature (log_0_3_9_features."release_max_level_info" or {});
+  log_0_0_0_features."release_max_level_off".from_log_0_3_9__release_max_level_off = hasFeature (log_0_3_9_features."release_max_level_off" or {});
+  log_0_0_0_features."release_max_level_trace".from_log_0_3_9__release_max_level_trace = hasFeature (log_0_3_9_features."release_max_level_trace" or {});
+  log_0_0_0_features."release_max_level_warn".from_log_0_3_9__release_max_level_warn = hasFeature (log_0_3_9_features."release_max_level_warn" or {});
+  log_0_0_0_features."std".from_log_0_3_9__use_std = hasFeature (log_0_3_9_features."use_std" or {});
+  log_0_0_0_features."default".from_log_0_3_9__default = true;
+  log_0_4_1 = log_0_4_1_ rec {
+    dependencies = [ cfg_if_0_1_2 ];
+    features = mkFeatures log_0_4_1_features;
+  };
+  log_0_4_1_features."".self = true;
+  cfg_if_0_1_2_features."default".from_log_0_4_1__default = true;
+  serde_0_0_0_features."default".from_log_0_4_1__default = false;
+  mac_notification_sys_0_1_3 = mac_notification_sys_0_1_3_ rec {
+    dependencies = [ chrono_0_4_0 error_chain_0_10_0 objc_foundation_0_1_1 ];
+    buildDependencies = [ gcc_0_3_54 ];
+  };
+  chrono_0_4_0_features."default".from_mac_notification_sys_0_1_3__default = true;
+  error_chain_0_10_0_features."default".from_mac_notification_sys_0_1_3__default = true;
+  objc_foundation_0_1_1_features."default".from_mac_notification_sys_0_1_3__default = true;
+  malloc_buf_0_0_6 = malloc_buf_0_0_6_ rec {
+    dependencies = [ libc_0_2_34 ];
+  };
+  libc_0_2_34_features."default".from_malloc_buf_0_0_6__default = true;
   matches_0_1_6 = matches_0_1_6_ rec {};
   memchr_1_0_2 = memchr_1_0_2_ rec {
-    dependencies = [ libc_0_2_33 ]
-      ++ (if lib.lists.any (x: x == "libc") features then [libc_0_2_33] else []);
+    dependencies = [ libc_0_2_34 ]
+      ++ (if lib.lists.any (x: x == "libc") features then [libc_0_2_34] else []);
     features = mkFeatures memchr_1_0_2_features;
   };
   memchr_1_0_2_features."".self = true;
   memchr_1_0_2_features."use_std".self_default = hasDefault memchr_1_0_2_features;
   memchr_1_0_2_features."libc".self_default = hasDefault memchr_1_0_2_features;
   memchr_1_0_2_features."libc".self_use_std = hasFeature (memchr_1_0_2_features."use_std" or {});
-  libc_0_2_33_features."use_std".from_memchr_1_0_2__use_std = hasFeature (memchr_1_0_2_features."use_std" or {});
-  libc_0_2_33_features."default".from_memchr_1_0_2__default = false;
+  libc_0_2_34_features."use_std".from_memchr_1_0_2__use_std = hasFeature (memchr_1_0_2_features."use_std" or {});
+  libc_0_2_34_features."default".from_memchr_1_0_2__default = false;
+  memchr_2_0_1 = memchr_2_0_1_ rec {
+    dependencies = [ libc_0_2_34 ]
+      ++ (if lib.lists.any (x: x == "libc") features then [libc_0_2_34] else []);
+    features = mkFeatures memchr_2_0_1_features;
+  };
+  memchr_2_0_1_features."".self = true;
+  memchr_2_0_1_features."use_std".self_default = hasDefault memchr_2_0_1_features;
+  memchr_2_0_1_features."libc".self_default = hasDefault memchr_2_0_1_features;
+  memchr_2_0_1_features."libc".self_use_std = hasFeature (memchr_2_0_1_features."use_std" or {});
+  libc_0_2_34_features."use_std".from_memchr_2_0_1__use_std = hasFeature (memchr_2_0_1_features."use_std" or {});
+  libc_0_2_34_features."default".from_memchr_2_0_1__default = false;
   nom_3_2_1 = nom_3_2_1_ rec {
     dependencies = [ memchr_1_0_2 ];
     features = mkFeatures nom_3_2_1_features;
@@ -2020,90 +2217,121 @@ rec {
   memchr_1_0_2_features."use_std".from_nom_3_2_1__std = hasFeature (nom_3_2_1_features."std" or {});
   memchr_1_0_2_features."default".from_nom_3_2_1__default = false;
   regex_0_0_0_features."default".from_nom_3_2_1__default = true;
-  num_0_1_40 = num_0_1_40_ rec {
-    dependencies = [ num_integer_0_1_35 num_iter_0_1_34 num_traits_0_1_40 ];
-    features = mkFeatures num_0_1_40_features;
+  notify_rust_3_4_2 = notify_rust_3_4_2_ rec {
+    dependencies = [ error_chain_0_10_0 ]
+      ++ (if (kernel == "linux" || kernel == "darwin") && !(kernel == "darwin") then [ dbus_0_4_1 ] else [])
+      ++ (if kernel == "darwin" then [ mac_notification_sys_0_1_3 ] else []);
+    features = mkFeatures notify_rust_3_4_2_features;
   };
-  num_0_1_40_features."num-bigint".self_bigint = hasFeature (num_0_1_40_features."bigint" or {});
-  num_0_1_40_features."num-complex".self_complex = hasFeature (num_0_1_40_features."complex" or {});
-  num_0_1_40_features."bigint".self_default = hasDefault num_0_1_40_features;
-  num_0_1_40_features."complex".self_default = hasDefault num_0_1_40_features;
-  num_0_1_40_features."rational".self_default = hasDefault num_0_1_40_features;
-  num_0_1_40_features."rustc-serialize".self_default = hasDefault num_0_1_40_features;
-  num_0_1_40_features."num-rational".self_rational = hasFeature (num_0_1_40_features."rational" or {});
-  num_bigint_0_0_0_features."rustc-serialize".from_num_0_1_40__rustc-serialize = hasFeature (num_0_1_40_features."rustc-serialize" or {});
-  num_bigint_0_0_0_features."serde".from_num_0_1_40__serde = hasFeature (num_0_1_40_features."serde" or {});
-  num_bigint_0_0_0_features."default".from_num_0_1_40__default = true;
-  num_complex_0_0_0_features."rustc-serialize".from_num_0_1_40__rustc-serialize = hasFeature (num_0_1_40_features."rustc-serialize" or {});
-  num_complex_0_0_0_features."serde".from_num_0_1_40__serde = hasFeature (num_0_1_40_features."serde" or {});
-  num_complex_0_0_0_features."default".from_num_0_1_40__default = true;
-  num_integer_0_1_35_features."default".from_num_0_1_40__default = true;
-  num_iter_0_1_34_features."default".from_num_0_1_40__default = true;
-  num_rational_0_0_0_features."rustc-serialize".from_num_0_1_40__rustc-serialize = hasFeature (num_0_1_40_features."rustc-serialize" or {});
-  num_rational_0_0_0_features."serde".from_num_0_1_40__serde = hasFeature (num_0_1_40_features."serde" or {});
-  num_rational_0_0_0_features."default".from_num_0_1_40__default = true;
-  num_traits_0_1_40_features."default".from_num_0_1_40__default = true;
+  notify_rust_3_4_2_features."image".self_images = hasFeature (notify_rust_3_4_2_features."images" or {});
+  notify_rust_3_4_2_features."lazy_static".self_images = hasFeature (notify_rust_3_4_2_features."images" or {});
+  error_chain_0_10_0_features."default".from_notify_rust_3_4_2__default = true;
+  dbus_0_4_1_features."default".from_notify_rust_3_4_2__default = true;
+  image_0_0_0_features."default".from_notify_rust_3_4_2__default = true;
+  lazy_static_0_0_0_features."default".from_notify_rust_3_4_2__default = true;
+  mac_notification_sys_0_1_3_features."default".from_notify_rust_3_4_2__default = true;
+  num_0_1_41 = num_0_1_41_ rec {
+    dependencies = [ num_integer_0_1_35 num_iter_0_1_34 num_traits_0_1_41 ];
+    features = mkFeatures num_0_1_41_features;
+  };
+  num_0_1_41_features."num-bigint".self_bigint = hasFeature (num_0_1_41_features."bigint" or {});
+  num_0_1_41_features."num-complex".self_complex = hasFeature (num_0_1_41_features."complex" or {});
+  num_0_1_41_features."bigint".self_default = hasDefault num_0_1_41_features;
+  num_0_1_41_features."complex".self_default = hasDefault num_0_1_41_features;
+  num_0_1_41_features."rational".self_default = hasDefault num_0_1_41_features;
+  num_0_1_41_features."rustc-serialize".self_default = hasDefault num_0_1_41_features;
+  num_0_1_41_features."num-rational".self_rational = hasFeature (num_0_1_41_features."rational" or {});
+  num_bigint_0_0_0_features."rustc-serialize".from_num_0_1_41__rustc-serialize = hasFeature (num_0_1_41_features."rustc-serialize" or {});
+  num_bigint_0_0_0_features."serde".from_num_0_1_41__serde = hasFeature (num_0_1_41_features."serde" or {});
+  num_bigint_0_0_0_features."default".from_num_0_1_41__default = true;
+  num_complex_0_0_0_features."rustc-serialize".from_num_0_1_41__rustc-serialize = hasFeature (num_0_1_41_features."rustc-serialize" or {});
+  num_complex_0_0_0_features."serde".from_num_0_1_41__serde = hasFeature (num_0_1_41_features."serde" or {});
+  num_complex_0_0_0_features."default".from_num_0_1_41__default = true;
+  num_integer_0_1_35_features."default".from_num_0_1_41__default = true;
+  num_iter_0_1_34_features."default".from_num_0_1_41__default = true;
+  num_rational_0_0_0_features."rustc-serialize".from_num_0_1_41__rustc-serialize = hasFeature (num_0_1_41_features."rustc-serialize" or {});
+  num_rational_0_0_0_features."serde".from_num_0_1_41__serde = hasFeature (num_0_1_41_features."serde" or {});
+  num_rational_0_0_0_features."default".from_num_0_1_41__default = true;
+  num_traits_0_1_41_features."default".from_num_0_1_41__default = true;
   num_integer_0_1_35 = num_integer_0_1_35_ rec {
-    dependencies = [ num_traits_0_1_40 ];
+    dependencies = [ num_traits_0_1_41 ];
   };
-  num_traits_0_1_40_features."default".from_num_integer_0_1_35__default = true;
+  num_traits_0_1_41_features."default".from_num_integer_0_1_35__default = true;
   num_iter_0_1_34 = num_iter_0_1_34_ rec {
-    dependencies = [ num_integer_0_1_35 num_traits_0_1_40 ];
+    dependencies = [ num_integer_0_1_35 num_traits_0_1_41 ];
   };
   num_integer_0_1_35_features."default".from_num_iter_0_1_34__default = true;
-  num_traits_0_1_40_features."default".from_num_iter_0_1_34__default = true;
-  num_traits_0_1_40 = num_traits_0_1_40_ rec {};
-  percent_encoding_1_0_0 = percent_encoding_1_0_0_ rec {};
+  num_traits_0_1_41_features."default".from_num_iter_0_1_34__default = true;
+  num_traits_0_1_41 = num_traits_0_1_41_ rec {};
+  objc_0_2_2 = objc_0_2_2_ rec {
+    dependencies = [ malloc_buf_0_0_6 ];
+    features = mkFeatures objc_0_2_2_features;
+  };
+  objc_0_2_2_features."objc_exception".self_exception = hasFeature (objc_0_2_2_features."exception" or {});
+  malloc_buf_0_0_6_features."default".from_objc_0_2_2__default = true;
+  objc_exception_0_0_0_features."default".from_objc_0_2_2__default = true;
+  objc_foundation_0_1_1 = objc_foundation_0_1_1_ rec {
+    dependencies = [ block_0_1_6 objc_0_2_2 objc_id_0_1_0 ];
+  };
+  block_0_1_6_features."default".from_objc_foundation_0_1_1__default = true;
+  objc_0_2_2_features."default".from_objc_foundation_0_1_1__default = true;
+  objc_id_0_1_0_features."default".from_objc_foundation_0_1_1__default = true;
+  objc_id_0_1_0 = objc_id_0_1_0_ rec {
+    dependencies = [ objc_0_2_2 ];
+  };
+  objc_0_2_2_features."default".from_objc_id_0_1_0__default = true;
+  percent_encoding_1_0_1 = percent_encoding_1_0_1_ rec {};
   pest_0_3_3 = pest_0_3_3_ rec {};
+  pkg_config_0_3_9 = pkg_config_0_3_9_ rec {};
   prettytable_rs_0_6_7 = prettytable_rs_0_6_7_ rec {
-    dependencies = [ atty_0_2_3 csv_0_15_0 encode_unicode_0_3_1 lazy_static_0_2_9 term_0_4_6 unicode_width_0_1_4 ]
+    dependencies = [ atty_0_2_6 csv_0_15_0 encode_unicode_0_3_1 lazy_static_0_2_11 term_0_4_6 unicode_width_0_1_4 ]
       ++ (if lib.lists.any (x: x == "csv") features then [csv_0_15_0] else []);
     features = mkFeatures prettytable_rs_0_6_7_features;
   };
   prettytable_rs_0_6_7_features."".self = true;
   prettytable_rs_0_6_7_features."win_crlf".self_default = hasDefault prettytable_rs_0_6_7_features;
   prettytable_rs_0_6_7_features."csv".self_default = hasDefault prettytable_rs_0_6_7_features;
-  atty_0_2_3_features."default".from_prettytable_rs_0_6_7__default = true;
+  atty_0_2_6_features."default".from_prettytable_rs_0_6_7__default = true;
   csv_0_15_0_features."default".from_prettytable_rs_0_6_7__default = true;
   encode_unicode_0_3_1_features."default".from_prettytable_rs_0_6_7__default = true;
-  lazy_static_0_2_9_features."default".from_prettytable_rs_0_6_7__default = true;
+  lazy_static_0_2_11_features."default".from_prettytable_rs_0_6_7__default = true;
   term_0_4_6_features."default".from_prettytable_rs_0_6_7__default = true;
   unicode_width_0_1_4_features."default".from_prettytable_rs_0_6_7__default = true;
   quick_error_1_2_1 = quick_error_1_2_1_ rec {};
   quote_0_3_15 = quote_0_3_15_ rec {};
-  rand_0_3_18 = rand_0_3_18_ rec {
-    dependencies = [ libc_0_2_33 ]
-      ++ (if kernel == "fuchsia" then [ fuchsia_zircon_0_2_1 ] else []);
-    features = mkFeatures rand_0_3_18_features;
+  rand_0_3_19 = rand_0_3_19_ rec {
+    dependencies = [ libc_0_2_34 ]
+      ++ (if kernel == "fuchsia" then [ fuchsia_zircon_0_3_2 ] else []);
+    features = mkFeatures rand_0_3_19_features;
   };
-  rand_0_3_18_features."i128_support".self_nightly = hasFeature (rand_0_3_18_features."nightly" or {});
-  libc_0_2_33_features."default".from_rand_0_3_18__default = true;
-  fuchsia_zircon_0_2_1_features."default".from_rand_0_3_18__default = true;
-  redox_syscall_0_1_31 = redox_syscall_0_1_31_ rec {};
+  rand_0_3_19_features."i128_support".self_nightly = hasFeature (rand_0_3_19_features."nightly" or {});
+  libc_0_2_34_features."default".from_rand_0_3_19__default = true;
+  fuchsia_zircon_0_3_2_features."default".from_rand_0_3_19__default = true;
+  redox_syscall_0_1_33 = redox_syscall_0_1_33_ rec {};
   redox_termios_0_1_1 = redox_termios_0_1_1_ rec {
-    dependencies = [ redox_syscall_0_1_31 ];
+    dependencies = [ redox_syscall_0_1_33 ];
   };
-  redox_syscall_0_1_31_features."default".from_redox_termios_0_1_1__default = true;
-  regex_0_2_2 = regex_0_2_2_ rec {
-    dependencies = [ aho_corasick_0_6_3 memchr_1_0_2 regex_syntax_0_4_1 thread_local_0_3_4 utf8_ranges_1_0_0 ];
-    features = mkFeatures regex_0_2_2_features;
+  redox_syscall_0_1_33_features."default".from_redox_termios_0_1_1__default = true;
+  regex_0_2_5 = regex_0_2_5_ rec {
+    dependencies = [ aho_corasick_0_6_4 memchr_2_0_1 regex_syntax_0_4_2 thread_local_0_3_5 utf8_ranges_1_0_0 ];
+    features = mkFeatures regex_0_2_5_features;
   };
-  regex_0_2_2_features."simd".self_simd-accel = hasFeature (regex_0_2_2_features."simd-accel" or {});
-  aho_corasick_0_6_3_features."default".from_regex_0_2_2__default = true;
-  memchr_1_0_2_features."default".from_regex_0_2_2__default = true;
-  regex_syntax_0_4_1_features."default".from_regex_0_2_2__default = true;
-  simd_0_0_0_features."default".from_regex_0_2_2__default = true;
-  thread_local_0_3_4_features."default".from_regex_0_2_2__default = true;
-  utf8_ranges_1_0_0_features."default".from_regex_0_2_2__default = true;
-  regex_syntax_0_4_1 = regex_syntax_0_4_1_ rec {};
+  regex_0_2_5_features."simd".self_simd-accel = hasFeature (regex_0_2_5_features."simd-accel" or {});
+  aho_corasick_0_6_4_features."default".from_regex_0_2_5__default = true;
+  memchr_2_0_1_features."default".from_regex_0_2_5__default = true;
+  regex_syntax_0_4_2_features."default".from_regex_0_2_5__default = true;
+  simd_0_0_0_features."default".from_regex_0_2_5__default = true;
+  thread_local_0_3_5_features."default".from_regex_0_2_5__default = true;
+  utf8_ranges_1_0_0_features."default".from_regex_0_2_5__default = true;
+  regex_syntax_0_4_2 = regex_syntax_0_4_2_ rec {};
   rust_crypto_0_2_36 = rust_crypto_0_2_36_ rec {
-    dependencies = [ libc_0_2_33 rand_0_3_18 rustc_serialize_0_3_24 time_0_1_38 ];
+    dependencies = [ libc_0_2_34 rand_0_3_19 rustc_serialize_0_3_24 time_0_1_38 ];
     buildDependencies = [ gcc_0_3_54 ];
     features = mkFeatures rust_crypto_0_2_36_features;
   };
   rust_crypto_0_2_36_features."".self = true;
-  libc_0_2_33_features."default".from_rust_crypto_0_2_36__default = true;
-  rand_0_3_18_features."default".from_rust_crypto_0_2_36__default = true;
+  libc_0_2_34_features."default".from_rust_crypto_0_2_36__default = true;
+  rand_0_3_19_features."default".from_rust_crypto_0_2_36__default = true;
   rustc_serialize_0_3_24_features."default".from_rust_crypto_0_2_36__default = true;
   time_0_1_38_features."default".from_rust_crypto_0_2_36__default = true;
   rustc_demangle_0_1_5 = rustc_demangle_0_1_5_ rec {};
@@ -2126,38 +2354,40 @@ rec {
   semver_parser_0_7_0_features."default".from_semver_0_8_0__default = true;
   serde_0_0_0_features."default".from_semver_0_8_0__default = true;
   semver_parser_0_7_0 = semver_parser_0_7_0_ rec {};
-  serde_1_0_19 = serde_1_0_19_ rec {
+  serde_1_0_27 = serde_1_0_27_ rec {
     dependencies = [];
-    features = mkFeatures serde_1_0_19_features;
+    features = mkFeatures serde_1_0_27_features;
   };
-  serde_1_0_19_features."unstable".self_alloc = hasFeature (serde_1_0_19_features."alloc" or {});
-  serde_1_0_19_features."std".self_default = hasDefault serde_1_0_19_features;
-  serde_1_0_19_features."serde_derive".self_derive = hasFeature (serde_1_0_19_features."derive" or {});
-  serde_1_0_19_features."serde_derive".self_playground = hasFeature (serde_1_0_19_features."playground" or {});
-  serde_derive_0_0_0_features."default".from_serde_1_0_19__default = true;
-  serde_derive_1_0_19 = serde_derive_1_0_19_ rec {
-    dependencies = [ quote_0_3_15 serde_derive_internals_0_17_0 syn_0_11_11 ];
+  serde_1_0_27_features."unstable".self_alloc = hasFeature (serde_1_0_27_features."alloc" or {});
+  serde_1_0_27_features."std".self_default = hasDefault serde_1_0_27_features;
+  serde_1_0_27_features."serde_derive".self_derive = hasFeature (serde_1_0_27_features."derive" or {});
+  serde_1_0_27_features."serde_derive".self_playground = hasFeature (serde_1_0_27_features."playground" or {});
+  serde_derive_0_0_0_features."default".from_serde_1_0_27__default = true;
+  serde_derive_1_0_27 = serde_derive_1_0_27_ rec {
+    dependencies = [ quote_0_3_15 serde_derive_internals_0_19_0 syn_0_11_11 ];
+    features = mkFeatures serde_derive_1_0_27_features;
   };
-  quote_0_3_15_features."default".from_serde_derive_1_0_19__default = true;
-  serde_derive_internals_0_17_0_features."default".from_serde_derive_1_0_19__default = false;
-  syn_0_11_11_features."visit".from_serde_derive_1_0_19 = true;
-  syn_0_11_11_features."default".from_serde_derive_1_0_19__default = true;
-  serde_derive_internals_0_17_0 = serde_derive_internals_0_17_0_ rec {
+  serde_derive_1_0_27_features."".self = true;
+  quote_0_3_15_features."default".from_serde_derive_1_0_27__default = true;
+  serde_derive_internals_0_19_0_features."default".from_serde_derive_1_0_27__default = false;
+  syn_0_11_11_features."visit".from_serde_derive_1_0_27 = true;
+  syn_0_11_11_features."default".from_serde_derive_1_0_27__default = true;
+  serde_derive_internals_0_19_0 = serde_derive_internals_0_19_0_ rec {
     dependencies = [ syn_0_11_11 synom_0_11_3 ];
   };
-  syn_0_11_11_features."parsing".from_serde_derive_internals_0_17_0 = true;
-  syn_0_11_11_features."default".from_serde_derive_internals_0_17_0__default = false;
-  synom_0_11_3_features."default".from_serde_derive_internals_0_17_0__default = true;
-  serde_json_1_0_5 = serde_json_1_0_5_ rec {
-    dependencies = [ dtoa_0_4_2 itoa_0_3_4 num_traits_0_1_40 serde_1_0_19 ];
-    features = mkFeatures serde_json_1_0_5_features;
+  syn_0_11_11_features."parsing".from_serde_derive_internals_0_19_0 = true;
+  syn_0_11_11_features."default".from_serde_derive_internals_0_19_0__default = false;
+  synom_0_11_3_features."default".from_serde_derive_internals_0_19_0__default = true;
+  serde_json_1_0_9 = serde_json_1_0_9_ rec {
+    dependencies = [ dtoa_0_4_2 itoa_0_3_4 num_traits_0_1_41 serde_1_0_27 ];
+    features = mkFeatures serde_json_1_0_9_features;
   };
-  serde_json_1_0_5_features."linked-hash-map".self_preserve_order = hasFeature (serde_json_1_0_5_features."preserve_order" or {});
-  dtoa_0_4_2_features."default".from_serde_json_1_0_5__default = true;
-  itoa_0_3_4_features."default".from_serde_json_1_0_5__default = true;
-  linked_hash_map_0_0_0_features."default".from_serde_json_1_0_5__default = true;
-  num_traits_0_1_40_features."default".from_serde_json_1_0_5__default = true;
-  serde_1_0_19_features."default".from_serde_json_1_0_5__default = true;
+  serde_json_1_0_9_features."linked-hash-map".self_preserve_order = hasFeature (serde_json_1_0_9_features."preserve_order" or {});
+  dtoa_0_4_2_features."default".from_serde_json_1_0_9__default = true;
+  itoa_0_3_4_features."default".from_serde_json_1_0_9__default = true;
+  linked_hash_map_0_0_0_features."default".from_serde_json_1_0_9__default = true;
+  num_traits_0_1_41_features."default".from_serde_json_1_0_9__default = true;
+  serde_1_0_27_features."default".from_serde_json_1_0_9__default = true;
   strsim_0_6_0 = strsim_0_6_0_ rec {};
   syn_0_11_11 = syn_0_11_11_ rec {
     dependencies = [ quote_0_3_15 synom_0_11_3 unicode_xid_0_0_4 ]
@@ -2178,27 +2408,27 @@ rec {
   };
   unicode_xid_0_0_4_features."default".from_synom_0_11_3__default = true;
   task_hookrs_0_4_0 = task_hookrs_0_4_0_ rec {
-    dependencies = [ chrono_0_4_0 serde_1_0_19 serde_derive_1_0_19 serde_json_1_0_5 uuid_0_5_1 ];
+    dependencies = [ chrono_0_4_0 serde_1_0_27 serde_derive_1_0_27 serde_json_1_0_9 uuid_0_5_1 ];
   };
   chrono_0_4_0_features."default".from_task_hookrs_0_4_0__default = true;
-  serde_1_0_19_features."default".from_task_hookrs_0_4_0__default = true;
-  serde_derive_1_0_19_features."default".from_task_hookrs_0_4_0__default = true;
-  serde_json_1_0_5_features."default".from_task_hookrs_0_4_0__default = true;
+  serde_1_0_27_features."default".from_task_hookrs_0_4_0__default = true;
+  serde_derive_1_0_27_features."default".from_task_hookrs_0_4_0__default = true;
+  serde_json_1_0_9_features."default".from_task_hookrs_0_4_0__default = true;
   uuid_0_5_1_features."serde".from_task_hookrs_0_4_0 = true;
   uuid_0_5_1_features."default".from_task_hookrs_0_4_0__default = true;
   tempdir_0_3_5 = tempdir_0_3_5_ rec {
-    dependencies = [ rand_0_3_18 ];
+    dependencies = [ rand_0_3_19 ];
   };
-  rand_0_3_18_features."default".from_tempdir_0_3_5__default = true;
+  rand_0_3_19_features."default".from_tempdir_0_3_5__default = true;
   tempfile_2_2_0 = tempfile_2_2_0_ rec {
-    dependencies = [ rand_0_3_18 ]
-      ++ (if kernel == "redox" then [ redox_syscall_0_1_31 ] else [])
-      ++ (if (kernel == "linux" || kernel == "darwin") then [ libc_0_2_33 ] else [])
+    dependencies = [ rand_0_3_19 ]
+      ++ (if kernel == "redox" then [ redox_syscall_0_1_33 ] else [])
+      ++ (if (kernel == "linux" || kernel == "darwin") then [ libc_0_2_34 ] else [])
       ++ (if kernel == "windows" then [ kernel32_sys_0_2_2 winapi_0_2_8 ] else []);
   };
-  rand_0_3_18_features."default".from_tempfile_2_2_0__default = true;
-  redox_syscall_0_1_31_features."default".from_tempfile_2_2_0__default = true;
-  libc_0_2_33_features."default".from_tempfile_2_2_0__default = true;
+  rand_0_3_19_features."default".from_tempfile_2_2_0__default = true;
+  redox_syscall_0_1_33_features."default".from_tempfile_2_2_0__default = true;
+  libc_0_2_34_features."default".from_tempfile_2_2_0__default = true;
   kernel32_sys_0_2_2_features."default".from_tempfile_2_2_0__default = true;
   winapi_0_2_8_features."default".from_tempfile_2_2_0__default = true;
   term_0_4_6 = term_0_4_6_ rec {
@@ -2207,62 +2437,62 @@ rec {
   kernel32_sys_0_2_2_features."default".from_term_0_4_6__default = true;
   winapi_0_2_8_features."default".from_term_0_4_6__default = true;
   termion_1_5_1 = termion_1_5_1_ rec {
-    dependencies = (if !(kernel == "redox") then [ libc_0_2_33 ] else [])
-      ++ (if kernel == "redox" then [ redox_syscall_0_1_31 redox_termios_0_1_1 ] else []);
+    dependencies = (if !(kernel == "redox") then [ libc_0_2_34 ] else [])
+      ++ (if kernel == "redox" then [ redox_syscall_0_1_33 redox_termios_0_1_1 ] else []);
   };
-  libc_0_2_33_features."default".from_termion_1_5_1__default = true;
-  redox_syscall_0_1_31_features."default".from_termion_1_5_1__default = true;
+  libc_0_2_34_features."default".from_termion_1_5_1__default = true;
+  redox_syscall_0_1_33_features."default".from_termion_1_5_1__default = true;
   redox_termios_0_1_1_features."default".from_termion_1_5_1__default = true;
-  termios_0_2_2 = termios_0_2_2_ rec {
-    dependencies = [ libc_0_2_33 ];
+  termios_0_3_0 = termios_0_3_0_ rec {
+    dependencies = [ libc_0_2_34 ];
   };
-  libc_0_2_33_features."default".from_termios_0_2_2__default = true;
+  libc_0_2_34_features."default".from_termios_0_3_0__default = true;
   textwrap_0_9_0 = textwrap_0_9_0_ rec {
     dependencies = [ unicode_width_0_1_4 ];
   };
   hyphenation_0_0_0_features."default".from_textwrap_0_9_0__default = true;
   term_size_0_0_0_features."default".from_textwrap_0_9_0__default = true;
   unicode_width_0_1_4_features."default".from_textwrap_0_9_0__default = true;
-  thread_local_0_3_4 = thread_local_0_3_4_ rec {
-    dependencies = [ lazy_static_0_2_9 unreachable_1_0_0 ];
+  thread_local_0_3_5 = thread_local_0_3_5_ rec {
+    dependencies = [ lazy_static_1_0_0 unreachable_1_0_0 ];
   };
-  lazy_static_0_2_9_features."default".from_thread_local_0_3_4__default = true;
-  unreachable_1_0_0_features."default".from_thread_local_0_3_4__default = true;
+  lazy_static_1_0_0_features."default".from_thread_local_0_3_5__default = true;
+  unreachable_1_0_0_features."default".from_thread_local_0_3_5__default = true;
   time_0_1_38 = time_0_1_38_ rec {
-    dependencies = [ libc_0_2_33 ]
-      ++ (if kernel == "redox" then [ redox_syscall_0_1_31 ] else [])
+    dependencies = [ libc_0_2_34 ]
+      ++ (if kernel == "redox" then [ redox_syscall_0_1_33 ] else [])
       ++ (if kernel == "windows" then [ kernel32_sys_0_2_2 winapi_0_2_8 ] else []);
   };
-  libc_0_2_33_features."default".from_time_0_1_38__default = true;
+  libc_0_2_34_features."default".from_time_0_1_38__default = true;
   rustc_serialize_0_0_0_features."default".from_time_0_1_38__default = true;
-  redox_syscall_0_1_31_features."default".from_time_0_1_38__default = true;
+  redox_syscall_0_1_33_features."default".from_time_0_1_38__default = true;
   kernel32_sys_0_2_2_features."default".from_time_0_1_38__default = true;
   winapi_0_2_8_features."default".from_time_0_1_38__default = true;
   toml_0_4_5 = toml_0_4_5_ rec {
-    dependencies = [ serde_1_0_19 ];
+    dependencies = [ serde_1_0_27 ];
   };
-  serde_1_0_19_features."default".from_toml_0_4_5__default = true;
+  serde_1_0_27_features."default".from_toml_0_4_5__default = true;
   toml_query_0_3_1 = toml_query_0_3_1_ rec {
-    dependencies = [ error_chain_0_10_0 is_match_0_1_0 lazy_static_0_2_9 regex_0_2_2 toml_0_4_5 ];
+    dependencies = [ error_chain_0_10_0 is_match_0_1_0 lazy_static_0_2_11 regex_0_2_5 toml_0_4_5 ];
     features = mkFeatures toml_query_0_3_1_features;
   };
   toml_query_0_3_1_features."log".self_logging = hasFeature (toml_query_0_3_1_features."logging" or {});
   error_chain_0_10_0_features."default".from_toml_query_0_3_1__default = true;
   is_match_0_1_0_features."default".from_toml_query_0_3_1__default = true;
-  lazy_static_0_2_9_features."default".from_toml_query_0_3_1__default = true;
+  lazy_static_0_2_11_features."default".from_toml_query_0_3_1__default = true;
   log_0_0_0_features."default".from_toml_query_0_3_1__default = true;
-  regex_0_2_2_features."default".from_toml_query_0_3_1__default = true;
+  regex_0_2_5_features."default".from_toml_query_0_3_1__default = true;
   toml_0_4_5_features."default".from_toml_query_0_3_1__default = true;
   toml_query_0_4_0 = toml_query_0_4_0_ rec {
-    dependencies = [ error_chain_0_11_0 is_match_0_1_0 lazy_static_0_2_9 regex_0_2_2 toml_0_4_5 ];
+    dependencies = [ error_chain_0_11_0 is_match_0_1_0 lazy_static_0_2_11 regex_0_2_5 toml_0_4_5 ];
     features = mkFeatures toml_query_0_4_0_features;
   };
   toml_query_0_4_0_features."log".self_logging = hasFeature (toml_query_0_4_0_features."logging" or {});
   error_chain_0_11_0_features."default".from_toml_query_0_4_0__default = true;
   is_match_0_1_0_features."default".from_toml_query_0_4_0__default = true;
-  lazy_static_0_2_9_features."default".from_toml_query_0_4_0__default = true;
+  lazy_static_0_2_11_features."default".from_toml_query_0_4_0__default = true;
   log_0_0_0_features."default".from_toml_query_0_4_0__default = true;
-  regex_0_2_2_features."default".from_toml_query_0_4_0__default = true;
+  regex_0_2_5_features."default".from_toml_query_0_4_0__default = true;
   toml_0_4_5_features."default".from_toml_query_0_4_0__default = true;
   unicode_bidi_0_3_4 = unicode_bidi_0_3_4_ rec {
     dependencies = [ matches_0_1_6 ];
@@ -2290,7 +2520,7 @@ rec {
   };
   void_1_0_2_features."default".from_unreachable_1_0_0__default = false;
   url_1_6_0 = url_1_6_0_ rec {
-    dependencies = [ idna_0_1_4 matches_0_1_6 percent_encoding_1_0_0 ];
+    dependencies = [ idna_0_1_4 matches_0_1_6 percent_encoding_1_0_1 ];
     features = mkFeatures url_1_6_0_features;
   };
   url_1_6_0_features."heapsize".self_heap_size = hasFeature (url_1_6_0_features."heap_size" or {});
@@ -2299,13 +2529,13 @@ rec {
   heapsize_0_0_0_features."default".from_url_1_6_0__default = true;
   idna_0_1_4_features."default".from_url_1_6_0__default = true;
   matches_0_1_6_features."default".from_url_1_6_0__default = true;
-  percent_encoding_1_0_0_features."default".from_url_1_6_0__default = true;
+  percent_encoding_1_0_1_features."default".from_url_1_6_0__default = true;
   rustc_serialize_0_0_0_features."default".from_url_1_6_0__default = true;
   serde_0_0_0_features."default".from_url_1_6_0__default = true;
   utf8_ranges_1_0_0 = utf8_ranges_1_0_0_ rec {};
   uuid_0_5_1 = uuid_0_5_1_ rec {
-    dependencies = [ rand_0_3_18 serde_1_0_19 ]
-      ++ (if lib.lists.any (x: x == "rand") features then [rand_0_3_18] else [])      ++ (if lib.lists.any (x: x == "serde") features then [serde_1_0_19] else []);
+    dependencies = [ rand_0_3_19 serde_1_0_27 ]
+      ++ (if lib.lists.any (x: x == "rand") features then [rand_0_3_19] else [])      ++ (if lib.lists.any (x: x == "serde") features then [serde_1_0_27] else []);
     features = mkFeatures uuid_0_5_1_features;
   };
   uuid_0_5_1_features."".self = true;
@@ -2314,9 +2544,9 @@ rec {
   uuid_0_5_1_features."rand".self_v4 = hasFeature (uuid_0_5_1_features."v4" or {});
   uuid_0_5_1_features."sha1".self_v5 = hasFeature (uuid_0_5_1_features."v5" or {});
   md5_0_0_0_features."default".from_uuid_0_5_1__default = true;
-  rand_0_3_18_features."default".from_uuid_0_5_1__default = true;
+  rand_0_3_19_features."default".from_uuid_0_5_1__default = true;
   rustc_serialize_0_0_0_features."default".from_uuid_0_5_1__default = true;
-  serde_1_0_19_features."default".from_uuid_0_5_1__default = true;
+  serde_1_0_27_features."default".from_uuid_0_5_1__default = true;
   sha1_0_0_0_features."default".from_uuid_0_5_1__default = true;
   vec_map_0_8_0 = vec_map_0_8_0_ rec {
     dependencies = [];
@@ -2327,10 +2557,13 @@ rec {
   serde_0_0_0_features."default".from_vec_map_0_8_0__default = true;
   serde_derive_0_0_0_features."default".from_vec_map_0_8_0__default = true;
   version_2_0_1 = version_2_0_1_ rec {};
-  vobject_0_4_0 = vobject_0_4_0_ rec {
+  vobject_0_4_1 = vobject_0_4_1_ rec {
     dependencies = [ error_chain_0_11_0 ];
+    features = mkFeatures vobject_0_4_1_features;
   };
-  error_chain_0_11_0_features."default".from_vobject_0_4_0__default = true;
+  vobject_0_4_1_features."chrono".self_timeconversions = hasFeature (vobject_0_4_1_features."timeconversions" or {});
+  chrono_0_0_0_features."default".from_vobject_0_4_1__default = true;
+  error_chain_0_11_0_features."default".from_vobject_0_4_1__default = true;
   void_1_0_2 = void_1_0_2_ rec {
     features = mkFeatures void_1_0_2_features;
   };
@@ -2343,7 +2576,17 @@ rec {
   kernel32_sys_0_2_2_features."default".from_walkdir_1_0_7__default = true;
   winapi_0_2_8_features."default".from_walkdir_1_0_7__default = true;
   winapi_0_2_8 = winapi_0_2_8_ rec {};
+  winapi_0_3_2 = winapi_0_3_2_ rec {
+    dependencies = (if kernel == "i686-pc-windows-gnu" then [ winapi_i686_pc_windows_gnu_0_3_2 ] else [])
+      ++ (if kernel == "x86_64-pc-windows-gnu" then [ winapi_x86_64_pc_windows_gnu_0_3_2 ] else []);
+    features = mkFeatures winapi_0_3_2_features;
+  };
+  winapi_0_3_2_features."".self = true;
+  winapi_i686_pc_windows_gnu_0_3_2_features."default".from_winapi_0_3_2__default = true;
+  winapi_x86_64_pc_windows_gnu_0_3_2_features."default".from_winapi_0_3_2__default = true;
   winapi_build_0_1_1 = winapi_build_0_1_1_ rec {};
+  winapi_i686_pc_windows_gnu_0_3_2 = winapi_i686_pc_windows_gnu_0_3_2_ rec {};
+  winapi_x86_64_pc_windows_gnu_0_3_2 = winapi_x86_64_pc_windows_gnu_0_3_2_ rec {};
   xdg_basedir_1_0_0 = xdg_basedir_1_0_0_ rec {
     features = mkFeatures xdg_basedir_1_0_0_features;
   };
