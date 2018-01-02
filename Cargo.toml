@@ -5,6 +5,7 @@ members = [
     "bin/core/imag-diagnostics",
     "bin/core/imag-gps",
     "bin/core/imag-grep",
+    "bin/core/imag-init",
     "bin/core/imag-link",
     "bin/core/imag-mv",
     "bin/core/imag-ref",
