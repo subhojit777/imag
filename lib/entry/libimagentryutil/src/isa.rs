@@ -22,6 +22,7 @@ use error::Result;
 
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
+use toml_query::insert::TomlValueInsertExt;
 
 /// Trait to check whether an entry is a certain kind of entry
 ///
@@ -68,6 +69,7 @@ use toml_query::read::TomlValueReadExt;
 ///
 pub trait Is {
     fn is<T: IsKindHeaderPathProvider>(&self) -> Result<bool>;
+    fn set_isflag<T: IsKindHeaderPathProvider>(&mut self) -> Result<()>;
 }
 
 impl Is for ::libimagstore::store::Entry {
@@ -80,6 +82,13 @@ impl Is for ::libimagstore::store::Entry {
             Ok(None)    => Err(format!("Field {} not available", field)).map_err(EUE::from),
             Err(e)      => Err(EUE::from(e))
         }
+    }
+
+    fn set_isflag<T: IsKindHeaderPathProvider>(&mut self) -> Result<()> {
+        self.get_header_mut()
+            .insert(T::kindflag_header_location(), Value::Boolean(true))
+            .map_err(EUE::from)
+            .map(|_| ())
     }
 }
 
