@@ -33,6 +33,7 @@
 )]
 
 extern crate clap;
+extern crate spinner;
 #[macro_use] extern crate version;
 
 #[cfg(test)]
@@ -45,6 +46,8 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::path::Path;
 use std::process::Command;
+
+use spinner::SpinnerBuilder;
 
 const CONFIGURATION_STR : &'static str = include_str!("../../../../imagrc.toml");
 const GITIGNORE_STR : &'static str = r#"
@@ -61,14 +64,21 @@ imagrc.toml
 "#;
 
 fn main() {
+    let sp = SpinnerBuilder::new("imag-init".into()).start();
+
+    sp.update("Building ui".into());
     let app = ui::build_ui();
+
+    sp.update("Getting matches".into());
     let matches = app.get_matches();
 
+    sp.update("Evaluating commandline".into());
     let path = matches
         .value_of("path")
         .map(String::from)
         .map(PathBuf::from)
         .unwrap_or_else(|| {
+            sp.update("Fetching $HOME and building imag path".into());
             ::std::env::var("HOME")
                 .map(PathBuf::from)
                 .map(|mut p| { p.push(".imag"); p })
@@ -82,6 +92,7 @@ fn main() {
                 .expect("Failed to retrieve/build path for imag directory.")
         });
 
+    sp.update("Creating imag directories".into());
     let _ = ::std::fs::create_dir_all(path.clone())
         .expect("Failed to create directory");
 
@@ -91,6 +102,7 @@ fn main() {
         config_path
     };
 
+    sp.update("Writing configuration file".into());
     let _ = OpenOptions::new()
         .write(true)
         .create(true)
@@ -107,6 +119,7 @@ fn main() {
         })
         .expect("Failed to open new configuration file");
 
+    sp.update("Checking for git".into());
     if find_command("git").is_some() && !matches.is_present("nogit") {
         // we initialize a git repository
         println!("Going to initialize a git repository in the imag directory...");
@@ -117,6 +130,7 @@ fn main() {
             gitignore_path.to_str().map(String::from).expect("Cannot convert path to string")
         };
 
+        sp.update("Writing gitignore".into());
         let _ = OpenOptions::new()
             .write(true)
             .create(true)
@@ -131,46 +145,43 @@ fn main() {
         let worktree = format!("--work-tree={}", path_str);
         let gitdir   = format!("--git-dir={}", path_str);
 
+        sp.update("Initializing git repository".into());
         {
             let output = Command::new("git")
                 .args(&[&worktree, &gitdir, "--no-pager", "init"])
                 .output()
                 .expect("Calling 'git init' failed");
 
-            if output.status.success() {
-                println!("{}", String::from_utf8(output.stdout).expect("No UTF-8 output"));
-                println!("'git {} {} --no-pager init' succeeded", worktree, gitdir);
-            } else {
+            if !output.status.success() {
+                sp.close();
                 println!("{}", String::from_utf8(output.stderr).expect("No UTF-8 output"));
-                ::std::process::exit(output.status.code().unwrap_or(1));
+                ::std::process::exit(output.status.code().unwrap_or(1))
             }
         }
 
+        sp.update("Adding gitignore to repository".into());
         {
             let output = Command::new("git")
                 .args(&[&worktree, &gitdir, "--no-pager", "add", &gitignore_path])
                 .output()
                 .expect("Calling 'git add' failed");
-            if output.status.success() {
-                println!("{}", String::from_utf8(output.stdout).expect("No UTF-8 output"));
-                println!("'git {} {} --no-pager add {}' succeeded", worktree, gitdir, gitignore_path);
-            } else {
+            if !output.status.success() {
+                sp.close();
                 println!("{}", String::from_utf8(output.stderr).expect("No UTF-8 output"));
-                ::std::process::exit(output.status.code().unwrap_or(1));
+                ::std::process::exit(output.status.code().unwrap_or(1))
             }
         }
 
+        sp.update("Committing gitignore to repository".into());
         {
             let output = Command::new("git")
                 .args(&[&worktree, &gitdir, "--no-pager", "commit", &gitignore_path, "-m", "'Initial import'"])
                 .output()
                 .expect("Calling 'git commit' failed");
-            if output.status.success() {
-                println!("{}", String::from_utf8(output.stdout).expect("No UTF-8 output"));
-                println!("'git {} {} --no-pager commit {} -m 'Initial import'' succeeded", worktree, gitdir, gitignore_path);
-            } else {
+            if !output.status.success() {
+                sp.close();
                 println!("{}", String::from_utf8(output.stderr).expect("No UTF-8 output"));
-                ::std::process::exit(output.status.code().unwrap_or(1));
+                ::std::process::exit(output.status.code().unwrap_or(1))
             }
         }
 
@@ -179,6 +190,7 @@ fn main() {
         println!("No git repository will be initialized");
     }
 
+    sp.message("Done".into());
     println!("Ready. Have fun with imag!");
 }
 
