@@ -23,12 +23,12 @@ extern crate toml_query;
 extern crate kairos;
 #[macro_use] extern crate log;
 #[macro_use] extern crate error_chain;
-#[macro_use] extern crate is_match;
 
 #[macro_use] extern crate libimagstore;
 extern crate libimagerror;
 extern crate libimagentryedit;
 extern crate libimagentrylink;
+#[macro_use] extern crate libimagentryutil;
 
 module_entry_path_mod!("habit");
 

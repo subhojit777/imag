@@ -26,6 +26,7 @@ error_chain! {
         StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
         LinkError(::libimagentrylink::error::LinkError, ::libimagentrylink::error::LinkErrorKind);
         KairosError(::kairos::error::KairosError, ::kairos::error::KairosErrorKind);
+        EntryUtilError(::libimagentryutil::error::EntryUtilError, ::libimagentryutil::error::EntryUtilErrorKind);
     }
 
     foreign_links {
