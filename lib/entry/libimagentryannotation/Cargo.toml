@@ -24,3 +24,4 @@ error-chain = "0.11"
 libimagstore     = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
 libimagerror     = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
 libimagentrylink = { version = "0.6.0", path = "../../../lib/entry/libimagentrylink" }
+libimagentryutil = { version = "0.6.0", path = "../../../lib/entry/libimagentryutil" }

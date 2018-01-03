@@ -25,6 +25,8 @@ use libimagstore::store::Store;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreIdIterator;
 use libimagentrylink::internal::InternalLinker;
+use libimagentryutil::isa::Is;
+use libimagentryutil::isa::IsKindHeaderPathProvider;
 
 use toml_query::read::TomlValueReadExt;
 use toml_query::insert::TomlValueInsertExt;
@@ -43,6 +45,8 @@ pub trait Annotateable {
     fn is_annotation(&self) -> Result<bool>;
 }
 
+provide_kindflag_path!(IsAnnotation, "annotation.is_annotation");
+
 impl Annotateable for Entry {
 
     /// Annotate an entry, returns the new entry which is used to annotate
@@ -52,9 +56,10 @@ impl Annotateable for Entry {
             .map_err(From::from)
             .and_then(|mut anno| {
                 {
-                    let header = anno.get_header_mut();
-                    header.insert("annotation.is_annotation", Value::Boolean(true))?;
-                    header.insert("annotation.name", Value::String(String::from(ann_name)))?;
+                    let _ = anno.set_isflag::<IsAnnotation>()?;
+                    let _ = anno
+                        .get_header_mut()
+                        .insert("annotation.name", Value::String(String::from(ann_name)))?;
                 }
                 Ok(anno)
             })
@@ -96,10 +101,7 @@ impl Annotateable for Entry {
     }
 
     fn is_annotation(&self) -> Result<bool> {
-        self.get_header()
-            .read("annotation.is_annotation")?
-            .map(|val| val.as_bool().unwrap_or(false))
-            .ok_or(AE::from_kind(AEK::HeaderTypeError))
+        self.is::<IsAnnotation>().map_err(From::from)
     }
 
 }
