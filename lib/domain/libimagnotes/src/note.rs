@@ -46,13 +46,12 @@ impl Note for Entry {
     }
 
     fn get_name(&self) -> Result<String> {
-        match self.get_header().read("note.name") {
-            Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
-            Ok(_) => {
-                Err(NE::from_kind(NEK::HeaderTypeError)).chain_err(|| NEK::StoreReadError)
-            },
-            Err(e) => Err(e).chain_err(|| NEK::StoreReadError)
-        }
+        self.get_header()
+            .read("note.name")
+            .chain_err(|| NEK::StoreReadError)?
+            .and_then(Value::as_str)
+            .map(String::from)
+            .ok_or(NE::from_kind(NEK::HeaderTypeError))
     }
 
     fn set_text(&mut self, n: String) {
