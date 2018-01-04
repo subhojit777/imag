@@ -44,11 +44,12 @@ pub struct DiaryId {
     day: u32,
     hour: u32,
     minute: u32,
+    second: u32,
 }
 
 impl DiaryId {
 
-    pub fn new(name: String, y: i32, m: u32, d: u32, h: u32, min: u32) -> DiaryId {
+    pub fn new(name: String, y: i32, m: u32, d: u32, h: u32, min: u32, sec: u32) -> DiaryId {
         DiaryId {
             name: name,
             year: y,
@@ -56,11 +57,18 @@ impl DiaryId {
             day: d,
             hour: h,
             minute: min,
+            second: sec,
         }
     }
 
     pub fn from_datetime<DT: Datelike + Timelike>(diary_name: String, dt: DT) -> DiaryId {
-        DiaryId::new(diary_name, dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute())
+        DiaryId::new(diary_name,
+                     dt.year(),
+                     dt.month(),
+                     dt.day(),
+                     dt.hour(),
+                     dt.minute(),
+                     dt.second())
     }
 
     pub fn diary_name(&self) -> &String {
@@ -85,6 +93,10 @@ impl DiaryId {
 
     pub fn minute(&self) -> u32 {
         self.minute
+    }
+
+    pub fn second(&self) -> u32 {
+        self.second
     }
 
     pub fn with_diary_name(mut self, name: String) -> DiaryId {
@@ -117,6 +129,11 @@ impl DiaryId {
         self
     }
 
+    pub fn with_second(mut self, sec: u32) -> DiaryId {
+        self.second = sec;
+        self
+    }
+
     pub fn now(name: String) -> DiaryId {
         use chrono::offset::Local;
 
@@ -125,19 +142,9 @@ impl DiaryId {
         let now_time = now.time();
         let dt = NaiveDateTime::new(now_date, now_time);
 
-        DiaryId::new(name, dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute())
+        DiaryId::new(name, dt.year(), dt.month(), dt.day(), dt.hour(), dt.minute(), dt.second())
     }
 
-}
-
-impl Default for DiaryId {
-
-    /// Create a default DiaryId which is a diaryid for a diary named "default" with
-    /// time = 0000-00-00 00:00:00
-    fn default() -> DiaryId {
-        let dt = NaiveDateTime::new(NaiveDate::from_ymd(0, 0, 0), NaiveTime::from_hms(0, 0, 0));
-        DiaryId::from_datetime(String::from("default"), dt)
-    }
 }
 
 impl IntoStoreId for DiaryId {
@@ -152,8 +159,8 @@ impl IntoStoreId for DiaryId {
 impl Into<String> for DiaryId {
 
     fn into(self) -> String {
-        format!("{}/{:0>4}/{:0>2}/{:0>2}/{:0>2}:{:0>2}",
-                self.name, self.year, self.month, self.day, self.hour, self.minute)
+        format!("{}/{:0>4}/{:0>2}/{:0>2}/{:0>2}:{:0>2}:{:0>2}",
+                self.name, self.year, self.month, self.day, self.hour, self.minute, self.second)
     }
 
 }
@@ -161,8 +168,8 @@ impl Into<String> for DiaryId {
 impl Display for DiaryId {
 
     fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
-        write!(fmt, "{}/{:0>4}/{:0>2}/{:0>2}/{:0>2}:{:0>2}",
-                self.name, self.year, self.month, self.day, self.hour, self.minute)
+        write!(fmt, "{}/{:0>4}/{:0>2}/{:0>2}/{:0>2}:{:0>2}:{:0>2}",
+                self.name, self.year, self.month, self.day, self.hour, self.minute, self.second)
     }
 
 }
@@ -171,7 +178,7 @@ impl Into<NaiveDateTime> for DiaryId {
 
     fn into(self) -> NaiveDateTime {
         let d = NaiveDate::from_ymd(self.year, self.month, self.day);
-        let t = NaiveTime::from_hms(self.hour, self.minute, 0);
+        let t = NaiveTime::from_hms(self.hour, self.minute, self.second);
         NaiveDateTime::new(d, t)
     }
 
@@ -209,18 +216,18 @@ impl FromStoreId for DiaryId {
 
         let mut cmps   = s.components().rev();
 
-        let (hour, minute) = next_component(&mut cmps).and_then(|time| {
+        let (hour, minute, second) = next_component(&mut cmps).and_then(|time| {
             let mut time = time.split(":");
             let hour     = time.next().and_then(|s| FromStr::from_str(s).ok());
-            let minute   = time.next()
-                .and_then(|s| s.split("~").next())
-                .and_then(|s| FromStr::from_str(s).ok());
+            let minute   = time.next().and_then(|s| FromStr::from_str(s).ok());
+            let second   = time.next().and_then(|s| FromStr::from_str(s).ok());
 
             debug!("Hour   = {:?}", hour);
             debug!("Minute = {:?}", minute);
+            debug!("Second = {:?}", second);
 
-            match (hour, minute) {
-                (Some(h), Some(m)) => Ok((h, m)),
+            match (hour, minute, second) {
+                (Some(h), Some(m), Some(s)) => Ok((h, m, s)),
                 _ => return Err(DE::from_kind(DEK::IdParseError)),
             }
         })?;
@@ -249,7 +256,7 @@ impl FromStoreId for DiaryId {
         let year   = year?;
         let name   = name?;
 
-        Ok(DiaryId::new(name, year, month, day, hour, minute))
+        Ok(DiaryId::new(name, year, month, day, hour, minute, second))
     }
 
 }
