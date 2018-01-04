@@ -49,33 +49,39 @@ pub trait Tagable {
 impl Tagable for Value {
 
     fn get_tags(&self) -> Result<Vec<Tag>> {
-        let tags = self.read("tag.values").chain_err(|| TagErrorKind::HeaderReadError)?;
-
-        match tags {
-            Some(&Value::Array(ref tags)) => {
-                if !tags.iter().all(|t| is_match!(*t, Value::String(_))) {
-                    return Err(TagErrorKind::TagTypeError.into());
-                }
-                if tags.iter().any(|t| match *t {
-                    Value::String(ref s) => !is_tag_str(s).is_ok(),
-                    _ => unreachable!()})
-                {
-                    return Err(TagErrorKind::NotATag.into());
-                }
-
-                Ok(tags.iter()
-                    .cloned()
-                    .map(|t| {
-                        match t {
-                           Value::String(s) => s,
-                           _ => unreachable!(),
+        self.read("tag.values")
+            .chain_err(|| TagErrorKind::HeaderReadError)?
+            .map(|val| {
+                debug!("Got Value of tags...");
+                val.as_array()
+                    .map(|tags| {
+                        debug!("Got Array<T> of tags...");
+                        if !tags.iter().all(|t| is_match!(*t, Value::String(_))) {
+                            debug!("Got Array<T>, T != String of tags: {:?}", tags);
+                            return Err(TagErrorKind::TagTypeError.into());
                         }
+                        debug!("Got Array<String> of tags...");
+                        if tags.iter().any(|t| match *t {
+                            Value::String(ref s) => !is_tag_str(s).is_ok(),
+                            _ => unreachable!()})
+                        {
+                            debug!("At least one tag is not a valid tag string");
+                            return Err(TagErrorKind::NotATag.into());
+                        }
+
+                        Ok(tags.iter()
+                            .cloned()
+                            .map(|t| {
+                                match t {
+                                   Value::String(s) => s,
+                                   _ => unreachable!(),
+                                }
+                            })
+                            .collect())
                     })
-                    .collect())
-            },
-            None => Ok(vec![]),
-            _ => Err(TagErrorKind::TagTypeError.into()),
-        }
+                    .unwrap_or(Ok(vec![]))
+            })
+            .unwrap_or(Ok(vec![]))
     }
 
     fn set_tags(&mut self, ts: &[Tag]) -> Result<()> {
