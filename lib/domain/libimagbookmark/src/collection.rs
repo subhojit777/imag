@@ -90,13 +90,8 @@ impl<'a> BookmarkCollection<'a> {
             .and_then(|id| store.get(id))
             .chain_err(|| BEK::StoreReadError)
             .and_then(|fle| {
-                match fle {
-                    None => Err(BE::from_kind(BEK::CollectionNotFound)),
-                    Some(e) => Ok(BookmarkCollection {
-                        fle: e,
-                        store: store,
-                    }),
-                }
+                fle.ok_or(BE::from_kind(BEK::CollectionNotFound))
+                    .map(|e| BookmarkCollection { fle: e, store: store })
             })
     }
 
