@@ -219,11 +219,10 @@ impl HabitTemplate for Entry {
     }
 
     fn habit_until_date(&self) -> Result<Option<String>> {
-        match self.get_header().read("habit.template.until")? {
-            Some(&Value::String(ref s)) => Ok(Some(s.clone())),
-            Some(_) => Err(HEK::HeaderTypeError("habit.template.until", "String").into()),
-            None    => Ok(None),
-        }
+        self.get_header()
+            .read("habit.template.until")?
+            .map(|v| v.as_str().map(String::from))
+            .ok_or(HEK::HeaderTypeError("habit.template.until", "String").into())
     }
 
     fn instance_id_for(habit_name: &String, habit_date: &NaiveDate) -> Result<StoreId> {
