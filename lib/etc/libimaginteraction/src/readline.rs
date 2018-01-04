@@ -42,40 +42,36 @@ impl Readline {
         let histignspace = c.lookup("ui.cli.readline_history_ignore_space").ok_or(IEK::ConfigError)?;
         let prompt       = c.lookup("ui.cli.readline_prompt").ok_or(IEK::ConfigError)?;
 
-        let histfile = match histfile {
-            Value::String(s) => PathBuf::from(s),
-            _ => Err(IE::from_kind(IEK::ConfigTypeError))
-                .chain_err(|| IEK::ConfigError)
-                .chain_err(|| IEK::ReadlineError)
-        }?;
+        let histfile = histfile
+            .as_str()
+            .map(PathBuf::from)
+            .ok_or(IE::from_kind(IEK::ConfigTypeError))
+            .chain_err(|| IEK::ConfigError)
+            .chain_err(|| IEK::ReadlineError)?;
 
-        let histsize = match histsize {
-            Value::Integer(i) => i,
-            _ => Err(IE::from_kind(IEK::ConfigTypeError))
-                .chain_err(|| IEK::ConfigError)
-                .chain_err(|| IEK::ReadlineError)
-        }?;
+        let histsize = histsize
+            .as_int()
+            .ok_or(IE::from_kind(IEK::ConfigTypeError))
+            .chain_err(|| IEK::ConfigError)
+            .chain_err(|| IEK::ReadlineError)?;
 
-        let histigndups = match histigndups {
-            Value::Boolean(b) => b,
-            _ => Err(IE::from_kind(IEK::ConfigTypeError))
-                .chain_err(|| IEK::ConfigError)
-                .chain_err(|| IEK::ReadlineError)
-        }?;
+        let histigndups = histigndups
+            .as_bool()
+            .ok_or(IE::from_kind(IEK::ConfigTypeError))
+            .chain_err(|| IEK::ConfigError)
+            .chain_err(|| IEK::ReadlineError)?;
 
-        let histignspace = match histignspace {
-            Value::Boolean(b) => b,
-            _ => Err(IE::from_kind(IEK::ConfigTypeError))
-                .chain_err(|| IEK::ConfigError)
-                .chain_err(|| IEK::ReadlineError)
-        }?;
+        let histignspace = histignspace
+            .as_bool()
+            .ok_or(IE::from_kind(IEK::ConfigTypeError))
+            .chain_err(|| IEK::ConfigError)
+            .chain_err(|| IEK::ReadlineError)?;
 
-        let prompt = match prompt {
-            Value::String(s) => s,
-            _ => Err(IE::from_kind(IEK::ConfigTypeError))
-                .chain_err(|| IEK::ConfigError)
-                .chain_err(|| IEK::ReadlineError)
-        }?;
+        let prompt = prompt
+            .as_str()
+            .ok_or(IE::from_kind(IEK::ConfigTypeError))
+            .chain_err(|| IEK::ConfigError)
+            .chain_err(|| IEK::ReadlineError)?;
 
         let config = Config::builder().
             .max_history_size(histsize)
