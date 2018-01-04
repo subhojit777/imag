@@ -34,8 +34,8 @@ pub fn date_to_string(ndt: &NaiveDate) -> String {
     ndt.format(NAIVE_DATE_STRING_FORMAT).to_string()
 }
 
-pub fn date_from_string(s: &str) -> Result<NaiveDate> {
-    NaiveDate::parse_from_str(s, NAIVE_DATE_STRING_FORMAT).map_err(From::from)
+pub fn date_from_string(s: String) -> Result<NaiveDate> {
+    NaiveDate::parse_from_str(&s, NAIVE_DATE_STRING_FORMAT).map_err(From::from)
 }
 
 /// Helper trait to check whether a object which can be a habit instance and a habit template is
@@ -88,5 +88,16 @@ impl IsHabitCheck for Entry {
     fn is_habit_template(&self) -> bool {
         self.get_location().is_habit_template()
     }
+}
+
+#[inline]
+pub fn get_string_header_from_entry(e: &Entry, path: &'static str) -> Result<String> {
+    use error::HabitErrorKind as HEK;
+    use toml_query::read::TomlValueReadExt;
+
+    e.get_header()
+        .read(path)?
+        .ok_or(HEK::HeaderFieldMissing(path).into())
+        .and_then(|o| o.as_str().map(String::from).ok_or(HEK::HeaderTypeError(path, "String").into()))
 }
 
