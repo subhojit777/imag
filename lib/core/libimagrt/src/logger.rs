@@ -238,16 +238,16 @@ fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Value>)
     }
 
     if let Some(cfg) = config {
-        let cfg_loglevel = match cfg.read("imag.logging.level") {
-            Ok(Some(&Value::String(ref s))) => match_log_level_str(s),
-            Ok(Some(_)) => {
+        let cfg_loglevel = cfg
+            .read("imag.logging.level")?
+            .ok_or(RE::from_kind(EK::GlobalLogLevelConfigMissing))?
+            .as_str()
+            .ok_or_else(|| {
                 let path = "imag.logging.level".to_owned();
                 let ty   = "String";
-                return Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
-            },
-            Ok(None)    => return Err(RE::from_kind(EK::GlobalLogLevelConfigMissing)),
-            Err(e)      => return Err(e).map_err(From::from),
-        }?;
+                RE::from_kind(EK::ConfigTypeError(path, ty))
+            })
+            .and_then(match_log_level_str)?;
 
         if let Some(cli_loglevel) = get_arg_loglevel(matches)? {
             if cli_loglevel > cfg_loglevel {
@@ -285,14 +285,13 @@ fn translate_destinations(raw: &Vec<Value>) -> Result<Vec<LogDestination>> {
     raw.iter()
         .fold(Ok(vec![]), |acc, val| {
             acc.and_then(|mut v| {
-                let dest = match *val {
-                    Value::String(ref s) => translate_destination(s)?,
-                    _ => {
+                let dest = val.as_str()
+                    .ok_or_else(|| {
                         let path = "imag.logging.modules.<mod>.destinations".to_owned();
                         let ty   = "Array<String>";
-                        return Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
-                    },
-                };
+                        RE::from_kind(EK::ConfigTypeError(path, ty))
+                    })
+                    .and_then(translate_destination)?;
                 v.push(dest);
                 Ok(v)
             })
@@ -304,16 +303,16 @@ fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Value>)
 {
 
     match config {
-        Some(cfg) => match cfg.read("imag.logging.destinations") {
-            Ok(Some(&Value::Array(ref a))) => translate_destinations(a),
-            Ok(Some(_)) => {
+        Some(cfg) => cfg
+            .read("imag.logging.destinations")?
+            .ok_or_else(|| RE::from_kind(EK::GlobalDestinationConfigMissing))?
+            .as_array()
+            .ok_or_else(|| {
                 let path = "imag.logging.destinations".to_owned();
                 let ty   = "Array";
-                Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
-            },
-            Ok(None)    => Err(RE::from_kind(EK::GlobalDestinationConfigMissing)),
-            Err(e)      => Err(e).map_err(From::from),
-        },
+                RE::from_kind(EK::ConfigTypeError(path, ty))
+            })
+            .and_then(translate_destinations),
         None => {
             if let Some(values) = matches.value_of(Runtime::arg_logdest_name()) {
                 // parse logdest specification from commandline
@@ -334,12 +333,12 @@ fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Value>)
 
 macro_rules! aggregate_global_format {
     ($read_str:expr, $error_kind_if_missing:expr, $config:expr) => {
-        match try!($config.ok_or(RE::from_kind($error_kind_if_missing))).read($read_str) {
-            Ok(Some(&Value::String(ref s))) => Ok(s.clone()),
-            Ok(Some(_)) => Err(RE::from_kind(EK::ConfigTypeError($read_str.to_owned(), "String"))),
-            Ok(None)    => Err(RE::from_kind($error_kind_if_missing)),
-            Err(e)      => Err(e).map_err(From::from),
-        }
+        try!($config.ok_or(RE::from_kind($error_kind_if_missing)))
+            .read($read_str)?
+            .ok_or_else(|| RE::from_kind($error_kind_if_missing))?
+            .as_str()
+            .map(String::from)
+            .ok_or_else(|| RE::from_kind(EK::ConfigTypeError($read_str.to_owned(), "String")))
     };
 }
 
@@ -386,6 +385,18 @@ fn aggregate_global_format_error(config: Option<&Value>)
 fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Value>)
     -> Result<BTreeMap<ModuleName, ModuleSettings>>
 {
+    // Helper macro to return the error from Some(Err(_)) and map everything else to an
+    // Option<_>
+    macro_rules! inner_try {
+        ($v:expr) => {
+            match $v {
+                Some(Ok(v))  => Some(v),
+                Some(Err(e)) => return Err(e),
+                None         => None,
+            }
+        }
+    };
+
     match config {
         Some(cfg) => match cfg.read("imag.logging.modules") {
             Ok(Some(&Value::Table(ref t))) => {
@@ -393,35 +404,39 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Value>)
                 let mut settings = BTreeMap::new();
 
                 for (module_name, v) in t {
-                    let destinations = match v.read("destinations")? {
-                        Some(&Value::Array(ref a)) => Some(translate_destinations(a)?),
-                        None                       => None,
-                        Some(_) => {
-                            let path = "imag.logging.modules.<mod>.destinations".to_owned();
-                            let ty = "Array";
-                            return Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
-                        },
+                    let destinations = inner_try! {
+                        v.read("destinations")?
+                            .map(|val| {
+                                val.as_array()
+                                    .ok_or_else(|| {
+                                        let path = "imag.logging.modules.<mod>.destinations".to_owned();
+                                        let ty = "Array";
+                                        RE::from_kind(EK::ConfigTypeError(path, ty))
+                                    })
+                                    .and_then(translate_destinations)
+                            })
                     };
 
-                    let level = match v.read("level")? {
-                        Some(&Value::String(ref s)) => Some(match_log_level_str(s)?),
-                        None                        => None,
-                        Some(_) => {
-                            let path = "imag.logging.modules.<mod>.level".to_owned();
-                            let ty = "String";
-                            return Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
-                        },
+                    let level = inner_try! {
+                        v.read("level")?
+                            .map(|val| {
+                                val.as_str()
+                                    .ok_or_else(|| {
+                                        let path = "imag.logging.modules.<mod>.level".to_owned();
+                                        let ty = "String";
+                                        RE::from_kind(EK::ConfigTypeError(path, ty))
+                                    })
+                                    .and_then(match_log_level_str)
+                            })
                     };
 
-                    let enabled = match v.read("enabled")? {
-                        Some(&Value::Boolean(b)) => b,
-                        None                     => false,
-                        Some(_) => {
+                    let enabled = v.read("enabled")?
+                        .map(|v| v.as_bool().unwrap_or(false))
+                        .ok_or_else(|| {
                             let path = "imag.logging.modules.<mod>.enabled".to_owned();
                             let ty = "Boolean";
-                            return Err(RE::from_kind(EK::ConfigTypeError(path, ty)))
-                        },
-                    };
+                            RE::from_kind(EK::ConfigTypeError(path, ty))
+                        })?;
 
                     let module_settings = ModuleSettings {
                         enabled: enabled,
