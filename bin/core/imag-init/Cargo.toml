@@ -22,7 +22,6 @@ maintenance                       = { status     = "actively-developed" }
 [dependencies]
 clap = ">=2.17"
 version = "2.0.1"
-spinner = "0.3"
 
 [dev-dependencies]
 toml = "0.4"
