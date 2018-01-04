@@ -12,6 +12,6 @@ then
     echo >&2 "All good"
 else
     echo -en >&2 "${RED}Got $faulty non Signed-off-by commits${NORMAL}"
-    echo -e  >&2 "${RED}between $1 and $2${NORMAL}"
+    echo -e  >&2 "${RED} between $1 and $2${NORMAL}"
 fi
 
