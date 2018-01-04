@@ -115,20 +115,16 @@ pub fn override_config(val: &mut Value, v: Vec<String>) -> Result<()> {
             warn!("Could split at '=' - will be ignore override");
             None
         }))
-        .map(|(k, v)| val
-             .read(&k[..])
-             .chain_err(|| REK::ConfigTOMLParserError)
-             .map(|toml| match toml {
-                Some(value) => match into_value(value, v) {
-                    Some(v) => {
-                        info!("Successfully overridden: {} = {}", k, v);
-                        Ok(())
-                    },
-                    None => Err(RE::from_kind(REK::ConfigOverrideTypeNotMatching)),
-                },
-                None => Err(RE::from_kind(REK::ConfigOverrideKeyNotAvailable)),
-            })
-        );
+        .map(|(k, v)| {
+            let value = val
+                .read(&k)
+                .chain_err(|| REK::ConfigTOMLParserError)?
+                .ok_or(RE::from_kind(REK::ConfigOverrideKeyNotAvailable))?;
+
+            into_value(value, v)
+                .map(|v| info!("Successfully overridden: {} = {}", k, v))
+                .ok_or_else(|| RE::from_kind(REK::ConfigOverrideTypeNotMatching))
+        });
 
     for elem in iter {
         let _ = try!(elem.chain_err(|| REK::ConfigOverrideError));
