@@ -92,7 +92,7 @@ impl HabitTemplate for Entry {
             .map_err(From::from)
             .and_then(|mut entry| {
                 {
-                    let mut hdr = entry.get_header_mut();
+                    let hdr = entry.get_header_mut();
                     hdr.insert("habit.instance.name",    Value::String(name))?;
                     hdr.insert("habit.instance.date",    Value::String(date))?;
                     hdr.insert("habit.instance.comment", Value::String(comment))?;
