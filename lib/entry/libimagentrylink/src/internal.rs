@@ -641,13 +641,9 @@ pub mod store_check {
                 let mut map = HashMap::new();
                 for element in iter {
                     debug!("Checking element = {:?}", element);
-                    let entry = match element? {
-                        Some(e) => e,
-                        None    => {
-                            let e = String::from("TODO: Not yet handled");
-                            return Err(e).map_err(From::from);
-                        },
-                    };
+                    let entry = element?.ok_or_else(|| {
+                        LE::from(String::from("TODO: Not yet handled"))
+                    })?;
 
                     debug!("Checking entry = {:?}", entry.get_location());
 
