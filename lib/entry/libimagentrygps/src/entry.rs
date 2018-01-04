@@ -87,7 +87,7 @@ impl GPSEntry for Entry {
             "gps",
         ];
 
-        let mut hdr = self.get_header_mut();
+        let hdr = self.get_header_mut();
         for pattern in patterns.iter() {
             let _ = hdr.delete(pattern).chain_err(|| GPSEK::HeaderWriteError)?;
         }
