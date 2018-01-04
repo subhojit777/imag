@@ -80,21 +80,18 @@ pub fn fetch_config(searchpath: &PathBuf) -> Result<Value> {
                 s
             };
 
-            match ::toml::de::from_str::<::toml::Value>(&content[..]) {
-                Ok(res) => Some(res),
-                Err(e) => {
+            ::toml::de::from_str::<::toml::Value>(&content[..])
+                .map(Some)
+                .unwrap_or_else(|e| {
                     let line_col = e
                         .line_col()
-                        .map(|(line, col)| {
-                            format!("Line {}, Column {}", line, col)
-                        })
+                        .map(|(line, col)| format!("Line {}, Column {}", line, col))
                         .unwrap_or_else(|| String::from("Line unknown, Column unknown"));
 
                     let _ = write!(stderr(), "Config file parser error at {}", line_col);
                     trace_error(&e);
                     None
-                }
-            }
+                })
         })
         .nth(0)
         .ok_or(RE::from_kind(REK::ConfigNoConfigFileFound))
