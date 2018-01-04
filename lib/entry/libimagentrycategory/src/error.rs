@@ -22,6 +22,14 @@ error_chain! {
         CategoryError, CategoryErrorKind, ResultExt, Result;
     }
 
+    links {
+        StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
+    }
+
+    foreign_links {
+        TomlQueryError(::toml_query::error::Error);
+    }
+
     errors {
         StoreReadError {
             description("Store Read error")
