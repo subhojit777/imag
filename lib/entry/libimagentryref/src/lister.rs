@@ -142,20 +142,16 @@ fn check_changed<R: Ref>(r: &R) -> bool {
 }
 
 fn check_changed_content<R: Ref>(r: &R) -> bool {
-    let eq = r.get_current_hash()
+    r.get_current_hash()
         .and_then(|hash| r.get_stored_hash().map(|stored| (hash, stored)))
-        .map(|(hash, stored)| hash == stored);
-
-    match eq {
-        Ok(eq) => eq,
-        Err(e) => {
+        .map(|(hash, stored)| hash == stored)
+        .unwrap_or_else(|e| {
             warn!("Could not check whether the ref changed on the FS");
             trace_error(&e);
 
             // We continue here and tell the callee that this reference is unchanged
             false
-        },
-    }
+        })
 }
 
 fn check_changed_permiss<R: Ref>(_: &R) -> bool {
