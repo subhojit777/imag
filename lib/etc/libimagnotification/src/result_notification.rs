@@ -105,9 +105,7 @@ pub mod ok {
 
     use notificator::default::Notification;
     use notificator::Notificator;
-    use error::NotificationErrorKind as NEK;
     use error::Result;
-    use error::ResultExt;
 
     #[derive(Debug, Default, Clone)]
     pub struct OkNotification(Notification);
