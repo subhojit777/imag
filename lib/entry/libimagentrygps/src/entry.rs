@@ -64,10 +64,9 @@ impl GPSEntry for Entry {
     }
 
     fn get_coordinates(&self) -> Result<Option<Coordinates>> {
-        match self.get_header().read("gps.coordinates").chain_err(|| GPSEK::HeaderWriteError) {
-            Ok(Some(hdr)) => Coordinates::from_value(hdr).map(Some),
-            Ok(None)      => Ok(None),
-            Err(e)        => Err(e),
+        match self.get_header().read("gps.coordinates").chain_err(|| GPSEK::HeaderWriteError)? {
+            Some(hdr) => Coordinates::from_value(hdr).map(Some),
+            None      => Ok(None),
         }
     }
 

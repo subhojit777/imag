@@ -78,31 +78,27 @@ impl Into<Value> for GPSValue {
 
 impl FromValue for GPSValue {
     fn from_value(v: &Value) -> Result<Self> {
+        let int_to_appropriate_width = |v: &Value| {
+            v.as_integer()
+             .ok_or(GPSE::from_kind(GPSEK::HeaderTypeError)).and_then(i64_to_i8)
+        };
+
         match *v {
             Value::Table(ref map) => {
                 Ok(GPSValue::new(
                     map.get("degree")
                         .ok_or_else(|| GPSE::from_kind(GPSEK::DegreeMissing))
-                        .and_then(|v| match *v {
-                            Value::Integer(i) => i64_to_i8(i),
-                            _ => Err(GPSE::from_kind(GPSEK::HeaderTypeError)),
-                        })?,
+                        .and_then(&int_to_appropriate_width)?,
 
                     map
                         .get("minutes")
                         .ok_or_else(|| GPSE::from_kind(GPSEK::MinutesMissing))
-                        .and_then(|v| match *v {
-                            Value::Integer(i) => i64_to_i8(i),
-                            _ => Err(GPSE::from_kind(GPSEK::HeaderTypeError)),
-                        })?,
+                        .and_then(&int_to_appropriate_width)?,
 
                     map
                         .get("seconds")
                         .ok_or_else(|| GPSE::from_kind(GPSEK::SecondsMissing))
-                        .and_then(|v| match *v {
-                            Value::Integer(i) => i64_to_i8(i),
-                            _ => Err(GPSE::from_kind(GPSEK::HeaderTypeError)),
-                        })?
+                        .and_then(&int_to_appropriate_width)?
                 ))
             }
             _ => Err(GPSE::from_kind(GPSEK::TypeError))
@@ -154,22 +150,18 @@ impl Into<Value> for Coordinates {
 
 impl FromValue for Coordinates {
     fn from_value(v: &Value) -> Result<Self> {
-        match *v {
-            Value::Table(ref map) => {
-                Ok(Coordinates::new(
-                    match map.get("longitude") {
-                        Some(v) => GPSValue::from_value(v),
-                        None    => Err(GPSE::from_kind(GPSEK::LongitudeMissing)),
-                    }?,
+        v.as_table()
+            .ok_or(GPSE::from_kind(GPSEK::TypeError))
+            .and_then(|t| {
+                let get = |m: &BTreeMap<_, _>, what: &'static str, ek| -> Result<GPSValue> {
+                    m.get(what).ok_or(GPSE::from_kind(ek)).and_then(GPSValue::from_value)
+                };
 
-                    match map.get("latitude") {
-                        Some(v) => GPSValue::from_value(v),
-                        None    => Err(GPSE::from_kind(GPSEK::LongitudeMissing)),
-                    }?
+                Ok(Coordinates::new(
+                    get(t, "longitude", GPSEK::LongitudeMissing)?,
+                    get(t, "latitude", GPSEK::LatitudeMissing)?
                 ))
-            }
-            _ => Err(GPSE::from_kind(GPSEK::TypeError))
-        }
+            })
     }
 
 }
