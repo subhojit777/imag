@@ -20,7 +20,7 @@
 extern crate notify_rust;
 #[macro_use] extern crate error_chain;
 
-#[macro_use] extern crate libimagerror;
+extern crate libimagerror;
 
 pub mod error;
 pub mod notificator;

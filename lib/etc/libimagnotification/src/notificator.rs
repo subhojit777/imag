@@ -18,7 +18,6 @@
 //
 
 use error::Result;
-use error::ResultExt;
 
 /// A Notificator provides a function that can be called to notify about a certain object.
 ///
