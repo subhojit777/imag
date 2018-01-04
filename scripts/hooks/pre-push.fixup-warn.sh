@@ -14,10 +14,8 @@ z40=0000000000000000000000000000000000000000
 
 while read local_ref local_sha remote_ref remote_sha
 do
-    if [ "$local_sha" = $z40 ]
+    if [ "$local_sha" != $z40 ]
     then
-        # Branch is deleted, nothing to check here, move along.
-    else
         if [ "$remote_sha" = $z40 ]
         then
             # New branch, examine all commits
