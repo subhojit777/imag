@@ -626,13 +626,13 @@ pub mod store_check {
                 incoming: Vec<StoreId>,
             }
 
-            /// Helper function to aggregate the Link network
-            ///
-            /// This function aggregates a HashMap which maps each StoreId object in the store onto
-            /// a Linking object, which contains a list of StoreIds which this entry links to and a
-            /// list of StoreIds which link to the current one.
-            ///
-            /// The lambda returns an error if something fails
+            // Helper function to aggregate the Link network
+            //
+            // This function aggregates a HashMap which maps each StoreId object in the store onto
+            // a Linking object, which contains a list of StoreIds which this entry links to and a
+            // list of StoreIds which link to the current one.
+            //
+            // The lambda returns an error if something fails
             let aggregate_link_network = |store: &Store| -> Result<HashMap<StoreId, Linking>> {
                 let iter = store
                     .entries()?
@@ -669,9 +669,9 @@ pub mod store_check {
                 Ok(map)
             };
 
-            /// Helper to check whethre all StoreIds in the network actually exists
-            ///
-            /// Because why not?
+            // Helper to check whethre all StoreIds in the network actually exists
+            //
+            // Because why not?
             let all_collected_storeids_exist = |network: &HashMap<StoreId, Linking>| -> LResult<()> {
                 for (id, _) in network.iter() {
                     if is_match!(self.get(id.clone()), Ok(Some(_))) {
@@ -690,14 +690,14 @@ pub mod store_check {
                 Ok(())
             };
 
-            /// Helper function to create a SLCECD::OneDirectionalLink error object
+            // Helper function to create a SLCECD::OneDirectionalLink error object
             #[inline]
             let mk_one_directional_link_err = |src: StoreId, target: StoreId| -> LE {
                 LE::from_kind(LEK::DeadLink(src, target))
             };
 
-            /// Helper lambda to check whether the _incoming_ links of each entry actually also
-            /// appear in the _outgoing_ list of the linked entry
+            // Helper lambda to check whether the _incoming_ links of each entry actually also
+            // appear in the _outgoing_ list of the linked entry
             let incoming_links_exists_as_outgoing_links =
                 |src: &StoreId, linking: &Linking, network: &HashMap<StoreId, Linking>| -> Result<()> {
                     for link in linking.incoming.iter() {
@@ -715,8 +715,8 @@ pub mod store_check {
                     Ok(())
                 };
 
-            /// Helper lambda to check whether the _outgoing links of each entry actually also
-            /// appear in the _incoming_ list of the linked entry
+            // Helper lambda to check whether the _outgoing links of each entry actually also
+            // appear in the _incoming_ list of the linked entry
             let outgoing_links_exist_as_incoming_links =
                 |src: &StoreId, linking: &Linking, network: &HashMap<StoreId, Linking>| -> Result<()> {
                     for link in linking.outgoing.iter() {
