@@ -18,7 +18,6 @@
 //
 
 use semver::Version;
-use toml::Value;
 
 use libimagstore::store::Entry;
 
@@ -44,15 +43,9 @@ impl Filter<Entry> for VersionLt {
             .read("imag.version")
             .map(|val| {
                 val.map_or(false, |v| {
-                    match *v {
-                        Value::String(ref s) => {
-                            match Version::parse(&s[..]) {
-                                Ok(v) => v < self.version,
-                                _ => false
-                            }
-                        },
-                        _ => false,
-                    }
+                    v.as_str()
+                        .map(|s| Version::parse(s).map(|v| v < self.version).unwrap_or(false))
+                        .unwrap_or(false)
                 })
             })
             .unwrap_or(false)
