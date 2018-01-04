@@ -63,12 +63,11 @@ impl EntryDate for Entry {
             .read(&DATE_HEADER_LOCATION)
             .chain_err(|| DEK::ReadDateError)
             .and_then(|v| {
-                match v {
-                    Some(&Value::String(ref s)) => s.parse::<NaiveDateTime>()
-                        .chain_err(|| DEK::DateTimeParsingError),
-                    Some(_) => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
-                    _ => Err(DE::from_kind(DEK::ReadDateError)),
-                }
+                v.ok_or(DE::from_kind(DEK::ReadDateError))?
+                    .as_str()
+                    .ok_or(DE::from_kind(DEK::DateHeaderFieldTypeError))?
+                    .parse::<NaiveDateTime>()
+                    .chain_err(|| DEK::DateTimeParsingError)
             })
     }
 
@@ -94,11 +93,10 @@ impl EntryDate for Entry {
         self.get_header_mut()
             .insert(&DATE_HEADER_LOCATION, Value::String(date))
             .map(|opt| opt.map(|stri| {
-                match stri {
-                    Value::String(ref s) => s.parse::<NaiveDateTime>()
-                                             .chain_err(|| DEK::DateTimeParsingError),
-                    _ => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
-                }
+                stri.as_str()
+                    .ok_or(DE::from_kind(DEK::DateHeaderFieldTypeError))?
+                    .parse::<NaiveDateTime>()
+                    .chain_err(|| DEK::DateTimeParsingError)
             }))
             .chain_err(|| DEK::SetDateError)
     }
@@ -129,30 +127,15 @@ impl EntryDate for Entry {
             .get_header()
             .read(&DATE_RANGE_START_HEADER_LOCATION)
             .chain_err(|| DEK::ReadDateTimeRangeError)
-            .and_then(|v| {
-                match v {
-                    Some(&Value::String(ref s)) => s.parse::<NaiveDateTime>()
-                        .chain_err(|| DEK::DateTimeParsingError),
-                    Some(_) => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
-                    _ => Err(DE::from_kind(DEK::ReadDateError)),
-                }
-            })?;
+            .and_then(|v| str_to_ndt(v.ok_or(DE::from_kind(DEK::ReadDateError))?))?;
 
         let end = self
             .get_header()
             .read(&DATE_RANGE_START_HEADER_LOCATION)
             .chain_err(|| DEK::ReadDateTimeRangeError)
-            .and_then(|v| {
-                match v {
-                    Some(&Value::String(ref s)) => s.parse::<NaiveDateTime>()
-                        .chain_err(|| DEK::DateTimeParsingError),
-                    Some(_) => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
-                    _ => Err(DE::from_kind(DEK::ReadDateError)),
-                }
-            })?;
+            .and_then(|v| str_to_ndt(v.ok_or(DE::from_kind(DEK::ReadDateError))?))?;
 
-        DateTimeRange::new(start, end)
-            .chain_err(|| DEK::DateTimeRangeError)
+        DateTimeRange::new(start, end).chain_err(|| DEK::DateTimeRangeError)
     }
 
     /// Set the date range
@@ -171,25 +154,13 @@ impl EntryDate for Entry {
         let opt_old_start = self
             .get_header_mut()
             .insert(&DATE_RANGE_START_HEADER_LOCATION, Value::String(start))
-            .map(|opt| opt.map(|stri| {
-                match stri {
-                    Value::String(ref s) => s.parse::<NaiveDateTime>()
-                                             .chain_err(|| DEK::DateTimeParsingError),
-                    _ => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
-                }
-            }))
+            .map(|opt| opt.as_ref().map(str_to_ndt))
             .chain_err(|| DEK::SetDateTimeRangeError)?;
 
         let opt_old_end = self
             .get_header_mut()
             .insert(&DATE_RANGE_END_HEADER_LOCATION, Value::String(end))
-            .map(|opt| opt.map(|stri| {
-                match stri {
-                    Value::String(ref s) => s.parse::<NaiveDateTime>()
-                                             .chain_err(|| DEK::DateTimeParsingError),
-                    _ => Err(DE::from_kind(DEK::DateHeaderFieldTypeError)),
-                }
-            }))
+            .map(|opt| opt.as_ref().map(str_to_ndt))
             .chain_err(|| DEK::SetDateTimeRangeError)?;
 
         match (opt_old_start, opt_old_end) {
@@ -208,6 +179,13 @@ impl EntryDate for Entry {
         }
     }
 
+}
+
+fn str_to_ndt(v: &Value) -> Result<NaiveDateTime> {
+    v.as_str()
+        .ok_or(DE::from_kind(DEK::DateHeaderFieldTypeError))?
+        .parse::<NaiveDateTime>()
+        .chain_err(|| DEK::DateTimeParsingError)
 }
 
 #[cfg(test)]
