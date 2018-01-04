@@ -114,13 +114,10 @@ pub fn override_config(val: &mut Value, v: Vec<String>) -> Result<()> {
 
     let iter = v.into_iter()
         .map(|s| { debug!("Trying to process '{}'", s); s })
-        .filter_map(|s| match s.into_kv() {
-            Some(kv) => Some(kv.into()),
-            None => {
-                warn!("Could split at '=' - will be ignore override");
-                None
-            }
-        })
+        .filter_map(|s| s.into_kv().map(Into::into).or_else(|| {
+            warn!("Could split at '=' - will be ignore override");
+            None
+        }))
         .map(|(k, v)| val
              .read(&k[..])
              .chain_err(|| REK::ConfigTOMLParserError)
