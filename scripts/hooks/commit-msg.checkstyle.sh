@@ -19,7 +19,7 @@ if grep -q -i -e "WIP" -e "work in progress" $1; then
     read -p "You're about to add a WIP commit, do you want to run the CI? [y|n] " -n 1 -r < /dev/tty
     echo
     if echo $REPLY | grep -E '^[Nn]$' > /dev/null; then
-        echo "[skip ci]" >> $1
+        sed -i '1,1s,.*,[ci skip] &,' $1
     fi
 fi
 
