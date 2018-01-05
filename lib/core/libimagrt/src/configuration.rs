@@ -80,21 +80,18 @@ pub fn fetch_config(searchpath: &PathBuf) -> Result<Value> {
                 s
             };
 
-            match ::toml::de::from_str::<::toml::Value>(&content[..]) {
-                Ok(res) => Some(res),
-                Err(e) => {
+            ::toml::de::from_str::<::toml::Value>(&content[..])
+                .map(Some)
+                .unwrap_or_else(|e| {
                     let line_col = e
                         .line_col()
-                        .map(|(line, col)| {
-                            format!("Line {}, Column {}", line, col)
-                        })
+                        .map(|(line, col)| format!("Line {}, Column {}", line, col))
                         .unwrap_or_else(|| String::from("Line unknown, Column unknown"));
 
                     let _ = write!(stderr(), "Config file parser error at {}", line_col);
                     trace_error(&e);
                     None
-                }
-            }
+                })
         })
         .nth(0)
         .ok_or(RE::from_kind(REK::ConfigNoConfigFileFound))
@@ -114,27 +111,20 @@ pub fn override_config(val: &mut Value, v: Vec<String>) -> Result<()> {
 
     let iter = v.into_iter()
         .map(|s| { debug!("Trying to process '{}'", s); s })
-        .filter_map(|s| match s.into_kv() {
-            Some(kv) => Some(kv.into()),
-            None => {
-                warn!("Could split at '=' - will be ignore override");
-                None
-            }
-        })
-        .map(|(k, v)| val
-             .read(&k[..])
-             .chain_err(|| REK::ConfigTOMLParserError)
-             .map(|toml| match toml {
-                Some(value) => match into_value(value, v) {
-                    Some(v) => {
-                        info!("Successfully overridden: {} = {}", k, v);
-                        Ok(())
-                    },
-                    None => Err(RE::from_kind(REK::ConfigOverrideTypeNotMatching)),
-                },
-                None => Err(RE::from_kind(REK::ConfigOverrideKeyNotAvailable)),
-            })
-        );
+        .filter_map(|s| s.into_kv().map(Into::into).or_else(|| {
+            warn!("Could split at '=' - will be ignore override");
+            None
+        }))
+        .map(|(k, v)| {
+            let value = val
+                .read(&k)
+                .chain_err(|| REK::ConfigTOMLParserError)?
+                .ok_or(RE::from_kind(REK::ConfigOverrideKeyNotAvailable))?;
+
+            into_value(value, v)
+                .map(|v| info!("Successfully overridden: {} = {}", k, v))
+                .ok_or_else(|| RE::from_kind(REK::ConfigOverrideTypeNotMatching))
+        });
 
     for elem in iter {
         let _ = try!(elem.chain_err(|| REK::ConfigOverrideError));

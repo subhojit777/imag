@@ -140,17 +140,12 @@ impl Ref for Entry {
     /// Get the hahs of the link target which is stored in the ref object, which is hashed with a
     /// custom Hasher instance.
     fn get_stored_hash_with_hasher<H: Hasher>(&self, h: &H) -> Result<String> {
-        match self.get_header().read(&format!("ref.content_hash.{}", h.hash_name())[..])? {
-            // content hash stored...
-            Some(&Value::String(ref s)) => Ok(s.clone()),
-
-            // content hash header field has wrong type
-            Some(_) => Err(RE::from_kind(REK::HeaderTypeError)),
-
-            // content hash not stored
-            None => Err(RE::from_kind(REK::HeaderFieldMissingError)),
-
-        }
+        self.get_header()
+            .read(&format!("ref.content_hash.{}", h.hash_name())[..])?
+            .ok_or(RE::from_kind(REK::HeaderFieldMissingError))?
+            .as_str()
+            .map(String::from)
+            .ok_or(RE::from_kind(REK::HeaderTypeError))
     }
 
     /// Get the hash of the link target by reading the link target and hashing the contents
@@ -207,11 +202,9 @@ impl Ref for Entry {
             .read("ref.permissions.ro")
             .chain_err(|| REK::HeaderFieldReadError)
             .and_then(|ro| {
-                match ro {
-                    Some(&Value::Boolean(b)) => Ok(b),
-                    Some(_)                 => Err(RE::from_kind(REK::HeaderTypeError)),
-                    None                    => Err(RE::from_kind(REK::HeaderFieldMissingError)),
-                }
+                ro.ok_or(RE::from_kind(REK::HeaderFieldMissingError))?
+                    .as_bool()
+                    .ok_or(RE::from_kind(REK::HeaderTypeError))
             })
             .and_then(|ro| self.get_current_permissions().map(|perm| ro == perm.readonly()))
             .chain_err(|| REK::RefTargetCannotReadPermissions)
@@ -251,11 +244,12 @@ impl Ref for Entry {
 
     /// Get the path of the file which is reffered to by this Ref
     fn fs_file(&self) -> Result<PathBuf> {
-        match self.get_header().read("ref.path")? {
-            Some(&Value::String(ref s)) => Ok(PathBuf::from(s)),
-            Some(_) => Err(RE::from_kind(REK::HeaderTypeError)),
-            None    => Err(RE::from_kind(REK::HeaderFieldMissingError)),
-        }
+        self.get_header()
+            .read("ref.path")?
+            .ok_or(RE::from_kind(REK::HeaderFieldMissingError))?
+            .as_str()
+            .map(PathBuf::from)
+            .ok_or(RE::from_kind(REK::HeaderTypeError))
     }
 
     /// Re-find a referenced file

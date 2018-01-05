@@ -97,13 +97,9 @@ impl Annotateable for Entry {
 
     fn is_annotation(&self) -> Result<bool> {
         self.get_header()
-            .read("annotation.is_annotation")
-            .map_err(From::from)
-            .and_then(|res| match res {
-                Some(&Value::Boolean(b)) => Ok(b),
-                None                     => Ok(false),
-                _                        => Err(AE::from_kind(AEK::HeaderTypeError)),
-            })
+            .read("annotation.is_annotation")?
+            .map(|val| val.as_bool().unwrap_or(false))
+            .ok_or(AE::from_kind(AEK::HeaderTypeError))
     }
 
 }

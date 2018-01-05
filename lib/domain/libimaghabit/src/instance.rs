@@ -22,7 +22,6 @@ use toml::Value;
 use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
-use error::HabitErrorKind as HEK;
 use error::*;
 use util::*;
 
@@ -61,11 +60,8 @@ impl HabitInstance for Entry {
     }
 
     fn get_date(&self) -> Result<NaiveDate> {
-        match self.get_header().read("habit.instance.date")? {
-            Some(&Value::String(ref s)) => date_from_string(s),
-            Some(_) => Err(HEK::HeaderTypeError("habit.instance.date", "String").into()),
-            None    => Err(HEK::HeaderFieldMissing("habit.instance.date").into()),
-        }
+        use util::date_from_string;
+        get_string_header_from_entry(self, "habit.instance.date").and_then(date_from_string)
     }
 
     fn set_date(&mut self, n: &NaiveDate) -> Result<()> {
@@ -77,11 +73,7 @@ impl HabitInstance for Entry {
     }
 
     fn get_comment(&self) -> Result<String> {
-        match self.get_header().read("habit.instance.comment")? {
-            Some(&Value::String(ref s)) => Ok(s.clone()),
-            Some(_) => Err(HEK::HeaderTypeError("habit.instance.comment", "String").into()),
-            None    => Err(HEK::HeaderFieldMissing("habit.instance.comment").into()),
-        }
+        get_string_header_from_entry(self, "habit.instance.comment")
     }
 
     fn set_comment(&mut self, c: String) -> Result<()> {
@@ -93,11 +85,7 @@ impl HabitInstance for Entry {
     }
 
     fn get_template_name(&self) -> Result<String> {
-        match self.get_header().read("habit.instance.name")? {
-            Some(&Value::String(ref s)) => Ok(s.clone()),
-            Some(_) => Err(HEK::HeaderTypeError("habit.instance.name", "String").into()),
-            None    => Err(HEK::HeaderFieldMissing("habit.instance.name").into()),
-        }
+        get_string_header_from_entry(self, "habit.instance.name")
     }
 
 }

@@ -65,11 +65,13 @@ impl TimeTracking for Entry {
     fn get_timetrack_tag(&self) -> Result<TTT> {
         self.get_header()
             .read(DATE_TIME_TAG_HEADER_PATH)
-            .chain_err(|| TTEK::HeaderReadError)
-            .and_then(|value| match value {
-                Some(&Value::String(ref s)) => Ok(s.clone().into()),
-                Some(_) => Err(TTE::from_kind(TTEK::HeaderFieldTypeError)),
-                _ => Err(TTE::from_kind(TTEK::HeaderReadError))
+            .chain_err(|| TTEK::HeaderReadError)?
+            .ok_or(TTE::from_kind(TTEK::HeaderReadError))
+            .and_then(|v| {
+                v.as_str()
+                    .map(String::from)
+                    .map(Into::into)
+                    .ok_or(TTE::from_kind(TTEK::HeaderFieldTypeError))
             })
     }
 

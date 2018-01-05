@@ -19,7 +19,6 @@
 
 use toml_query::insert::TomlValueInsertExt;
 use toml_query::read::TomlValueReadExt;
-use toml_query::error::ErrorKind as TQEK;
 use toml::Value;
 
 use libimagstore::store::Entry;
@@ -81,17 +80,17 @@ impl EntryCategory for Entry {
     }
 
     fn get_category(&self) -> Result<Option<Category>> {
-        match self.get_header().read(&String::from("category.value")) {
-            Err(res) => match res.kind() {
-                &TQEK::IdentifierNotFoundInDocument(_) => Ok(None),
-                _                                      => Err(res),
-            }
-            .chain_err(|| CEK::HeaderReadError),
-
-            Ok(Some(&Value::String(ref s))) => Ok(Some(s.clone().into())),
-            Ok(None) => Err(CE::from_kind(CEK::StoreReadError)).chain_err(|| CEK::HeaderReadError),
-            Ok(_) => Err(CE::from_kind(CEK::TypeError)).chain_err(|| CEK::HeaderReadError),
-        }
+        self.get_header()
+            .read("category.value")
+            .chain_err(|| CEK::HeaderReadError)
+            .and_then(|opt| {
+                opt.map(|v| {
+                    v.as_str()
+                        .map(String::from)
+                        .map(Category::from)
+                })
+                .ok_or(CE::from_kind(CEK::TypeError))
+            })
     }
 
     fn has_category(&self) -> Result<bool> {

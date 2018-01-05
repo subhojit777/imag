@@ -52,12 +52,7 @@ impl<P: Predicate> Filter<Entry> for FieldPredicate<P> {
     fn filter(&self, e: &Entry) -> bool {
         e.get_header()
             .read(&self.header_field_path[..])
-            .map(|val| {
-                match val {
-                    None => false,
-                    Some(v) => (*self.predicate).evaluate(v),
-                }
-            })
+            .map(|val| val.map(|v| (*self.predicate).evaluate(v)).unwrap_or(false))
             .unwrap_or(false)
     }
 

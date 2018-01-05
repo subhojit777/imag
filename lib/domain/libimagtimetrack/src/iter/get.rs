@@ -45,11 +45,10 @@ impl<'a> Iterator for GetTimeTrackIter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next().map(|sid| {
-            match self.store.get(sid).chain_err(|| TTEK::StoreReadError) {
-                Ok(None) => Err(TTE::from_kind(TTEK::StoreReadError)),
-                Ok(Some(s)) => Ok(s),
-                Err(e) => Err(e)
-            }
+            self.store
+                .get(sid)
+                .chain_err(|| TTEK::StoreReadError)?
+                .ok_or(TTE::from_kind(TTEK::StoreReadError))
         })
     }
 }

@@ -325,10 +325,11 @@ impl Store {
         debug!("Creating id: '{}'", id);
 
         {
-            let mut hsmap = match self.entries.write() {
-                Err(_) => return Err(SE::from_kind(SEK::LockPoisoned)).chain_err(|| SEK::CreateCallError),
-                Ok(s) => s,
-            };
+            let mut hsmap = self
+                .entries
+                .write()
+                .map_err(|_| SE::from_kind(SEK::LockPoisoned))
+                .chain_err(|| SEK::CreateCallError)?;
 
             if hsmap.contains_key(&id) {
                 debug!("Cannot create, internal cache already contains: '{}'", id);
@@ -480,10 +481,7 @@ impl Store {
     ///  - Errors StoreEntry::write_entry() might return
     ///
     fn _update<'a>(&'a self, entry: &mut FileLockEntry<'a>, modify_presence: bool) -> Result<()> {
-        let mut hsmap = match self.entries.write() {
-            Err(_) => return Err(SE::from_kind(SEK::LockPoisoned)),
-            Ok(e) => e,
-        };
+        let mut hsmap = self.entries.write().map_err(|_| SE::from_kind(SEK::LockPoisoned))?;
 
         let se = hsmap.get_mut(&entry.location).ok_or_else(|| {
             SE::from_kind(SEK::IdNotFound(entry.location.clone()))
@@ -519,13 +517,9 @@ impl Store {
     pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
         let id = id.into_storeid()?.with_base(self.path().clone());
         debug!("Retrieving copy of '{}'", id);
-        let entries = match self.entries.write() {
-            Err(_) => {
-                return Err(SE::from_kind(SEK::LockPoisoned))
-                    .chain_err(|| SEK::RetrieveCopyCallError);
-            },
-            Ok(e) => e,
-        };
+        let entries = self.entries.write()
+            .map_err(|_| SE::from_kind(SEK::LockPoisoned))
+            .chain_err(|| SEK::RetrieveCopyCallError)?;
 
         // if the entry is currently modified by the user, we cannot drop it
         if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
@@ -552,11 +546,11 @@ impl Store {
         debug!("Deleting id: '{}'", id);
 
         {
-            let mut entries = match self.entries.write() {
-                Err(_) => return Err(SE::from_kind(SEK::LockPoisoned))
-                    .chain_err(|| SEK::DeleteCallError),
-                Ok(e) => e,
-            };
+            let mut entries = self
+                .entries
+                .write()
+                .map_err(|_| SE::from_kind(SEK::LockPoisoned))
+                .chain_err(|| SEK::DeleteCallError)?;
 
             // if the entry is currently modified by the user, we cannot drop it
             match entries.get(&id) {
@@ -588,11 +582,11 @@ impl Store {
             // remove the entry first, then the file
             entries.remove(&id);
             let pb = id.clone().with_base(self.path().clone()).into_pathbuf()?;
-            if let Err(e) = self.backend.remove_file(&pb) {
-                return Err(e)
-                    .chain_err(|| SEK::FileError)
-                    .chain_err(|| SEK::DeleteCallError);
-            }
+            let _ = self
+                .backend
+                .remove_file(&pb)
+                .chain_err(|| SEK::FileError)
+                .chain_err(|| SEK::DeleteCallError)?;
         }
 
         debug!("Deleted");
@@ -631,14 +625,13 @@ impl Store {
 
         let old_id_as_path = old_id.clone().with_base(self.path().clone()).into_pathbuf()?;
         let new_id_as_path = new_id.clone().with_base(self.path().clone()).into_pathbuf()?;
-        self.backend.copy(&old_id_as_path, &new_id_as_path)
-            .and_then(|_| {
-                if remove_old {
-                    debug!("Removing old '{:?}'", old_id_as_path);
-                    self.backend.remove_file(&old_id_as_path)
-                } else {
-                    Ok(())
-                }
+        self.backend
+            .copy(&old_id_as_path, &new_id_as_path)
+            .and_then(|_| if remove_old {
+                debug!("Removing old '{:?}'", old_id_as_path);
+                self.backend.remove_file(&old_id_as_path)
+            } else {
+                Ok(())
             })
             .chain_err(|| SEK::FileError)
             .chain_err(|| SEK::MoveCallError)
@@ -684,10 +677,7 @@ impl Store {
         debug!("Moving '{}' to '{}'", old_id, new_id);
 
         {
-            let mut hsmap = match self.entries.write() {
-                Err(_) => return Err(SE::from_kind(SEK::LockPoisoned)),
-                Ok(m)  => m,
-            };
+            let mut hsmap = self.entries.write().map_err(|_| SE::from_kind(SEK::LockPoisoned))?;
 
             if hsmap.contains_key(&new_id) {
                 return Err(SE::from_kind(SEK::EntryAlreadyExists(new_id.clone())));
@@ -711,22 +701,21 @@ impl Store {
             }
             debug!("New entry does not yet exist on filesystem. Good.");
 
-            match self.backend.rename(&old_id_pb, &new_id_pb) {
-                Err(e) => return Err(e).chain_err(|| SEK::EntryRenameError(old_id_pb, new_id_pb)),
-                Ok(_) => {
-                    debug!("Rename worked on filesystem");
+            let _ = self
+                .backend
+                .rename(&old_id_pb, &new_id_pb)
+                .chain_err(|| SEK::EntryRenameError(old_id_pb, new_id_pb))?;
 
-                    // assert enforced through check hsmap.contains_key(&new_id) above.
-                    // Should therefor never fail
-                    assert!(hsmap
-                            .remove(&old_id)
-                            .and_then(|mut entry| {
-                                entry.id = new_id.clone();
-                                hsmap.insert(new_id.clone(), entry)
-                            }).is_none())
-                }
-            }
+            debug!("Rename worked on filesystem");
 
+            // assert enforced through check hsmap.contains_key(&new_id) above.
+            // Should therefor never fail
+            assert!(hsmap
+                    .remove(&old_id)
+                    .and_then(|mut entry| {
+                        entry.id = new_id.clone();
+                        hsmap.insert(new_id.clone(), entry)
+                    }).is_none())
         }
 
         debug!("Moved");
@@ -1035,16 +1024,11 @@ mod glob_store_iter {
             while let Some(o) = self.paths.next() {
                 debug!("GlobStoreIdIterator::next() => {:?}", o);
                 match o.chain_err(|| SEK::StoreIdHandlingError) {
-                    Err(e) => return Some(Err(e)),
-                    Ok(path) => {
-                        if path.exists() && path.is_file() {
-                            return match StoreId::from_full_path(&self.store_path, path) {
-                                Ok(id) => Some(Ok(id)),
-                                Err(e) => Some(Err(e)),
-                            }
-                        /* } else { */
-                            /* continue */
-                        }
+                    Err(e)   => return Some(Err(e)),
+                    Ok(path) => if path.exists() && path.is_file() {
+                        return Some(StoreId::from_full_path(&self.store_path, path));
+                    /* } else { */
+                        /* continue */
                     }
                 }
             }

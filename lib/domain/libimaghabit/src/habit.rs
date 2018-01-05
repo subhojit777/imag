@@ -30,6 +30,7 @@ use error::*;
 use iter::HabitInstanceStoreIdIterator;
 use util::date_to_string;
 use util::IsHabitCheck;
+use util::get_string_header_from_entry;
 
 use libimagentrylink::internal::InternalLinker;
 use libimagstore::store::Store;
@@ -202,27 +203,26 @@ impl HabitTemplate for Entry {
     }
 
     fn habit_name(&self) -> Result<String> {
-        get_string_header_from_habit(self, "habit.template.name")
+        get_string_header_from_entry(self, "habit.template.name")
     }
 
     fn habit_basedate(&self) -> Result<String> {
-        get_string_header_from_habit(self, "habit.template.basedate")
+        get_string_header_from_entry(self, "habit.template.basedate")
     }
 
     fn habit_recur_spec(&self) -> Result<String> {
-        get_string_header_from_habit(self, "habit.template.recurspec")
+        get_string_header_from_entry(self, "habit.template.recurspec")
     }
 
     fn habit_comment(&self) -> Result<String> {
-        get_string_header_from_habit(self, "habit.template.comment")
+        get_string_header_from_entry(self, "habit.template.comment")
     }
 
     fn habit_until_date(&self) -> Result<Option<String>> {
-        match self.get_header().read("habit.template.until")? {
-            Some(&Value::String(ref s)) => Ok(Some(s.clone())),
-            Some(_) => Err(HEK::HeaderTypeError("habit.template.until", "String").into()),
-            None    => Ok(None),
-        }
+        self.get_header()
+            .read("habit.template.until")?
+            .map(|v| v.as_str().map(String::from))
+            .ok_or(HEK::HeaderTypeError("habit.template.until", "String").into())
     }
 
     fn instance_id_for(habit_name: &String, habit_date: &NaiveDate) -> Result<StoreId> {
@@ -237,15 +237,6 @@ fn instance_id_for_name_and_datestr(habit_name: &String, habit_date: &String) ->
     ModuleEntryPath::new(format!("instance/{}-{}", habit_name, habit_date))
         .into_storeid()
         .map_err(HE::from)
-}
-
-#[inline]
-fn get_string_header_from_habit(e: &Entry, path: &'static str) -> Result<String> {
-    match e.get_header().read(path)? {
-        Some(&Value::String(ref s)) => Ok(s.clone()),
-        Some(_) => Err(HEK::HeaderTypeError(path, "String").into()),
-        None    => Err(HEK::HeaderFieldMissing(path).into()),
-    }
 }
 
 pub mod builder {

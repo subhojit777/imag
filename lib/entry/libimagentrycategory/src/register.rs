@@ -225,14 +225,13 @@ fn represents_category(store: &Store, sid: StoreId, name: &str) -> Result<bool> 
                     .chain_err(|| CEK::StoreReadError)
                     .and_then(|fle| {
                         if let Some(fle) = fle {
-                            match fle.get_header()
+                            fle.get_header()
                                 .read(&String::from(CATEGORY_REGISTER_NAME_FIELD_PATH))
-                                .chain_err(|| CEK::HeaderReadError)
-                            {
-                                Ok(Some(&Value::String(ref s))) => Ok(s == name),
-                                Ok(_)                     => Err(CE::from_kind(CEK::TypeError)),
-                                Err(e)                    => Err(e).chain_err(|| CEK::HeaderReadError),
-                            }
+                                .chain_err(|| CEK::HeaderReadError)?
+                                .ok_or(CE::from_kind(CEK::TypeError))?
+                                .as_str()
+                                .map(|s| s == name)
+                                .ok_or(CE::from_kind(CEK::TypeError))
                         } else {
                             Ok(false)
                         }
@@ -276,14 +275,15 @@ impl<'a> Iterator for CategoryNameIter<'a> {
             .next()
             .map(|sid| {
                 self.0
-                    .get(sid)
-                    .chain_err(|| CEK::StoreReadError)
-                    .and_then(|fle| fle.ok_or(CE::from_kind(CEK::StoreReadError)))
-                    .and_then(|fle| match fle.get_header().read(&query) {
-                        Ok(Some(&Value::String(ref s))) => Ok(Category::from(s.clone())),
-                        Ok(_)  => Err(CE::from_kind(CEK::TypeError)),
-                        Err(e) => Err(e).chain_err(|| CEK::HeaderReadError),
-                    })
+                    .get(sid)?
+                    .ok_or_else(|| CE::from_kind(CEK::StoreReadError))?
+                    .get_header()
+                    .read(&query)
+                    .chain_err(|| CEK::HeaderReadError)?
+                    .and_then(Value::as_str)
+                    .map(String::from)
+                    .map(Category::from)
+                    .ok_or_else(|| CE::from_kind(CEK::TypeError))
             })
     }
 }

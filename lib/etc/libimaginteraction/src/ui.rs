@@ -70,14 +70,13 @@ pub fn get_id(matches: &ArgMatches) -> Result<Vec<StoreId>> {
 pub fn get_or_select_id(matches: &ArgMatches, store_path: &PathBuf) -> Result<Vec<StoreId>> {
     use interactor::{pick_file, default_menu_cmd};
 
-    match get_id(matches).chain_err(|| IEK::IdSelectingError) {
-        Ok(v) => Ok(v),
-        Err(_) => {
+    get_id(matches)
+        .chain_err(|| IEK::IdSelectingError)
+        .or_else(|_| {
             let path = store_path.clone();
-            let p  = pick_file(default_menu_cmd, path).chain_err(|| IEK::IdSelectingError)?;
-            let id = StoreId::new_baseless(p).chain_err(|| IEK::StoreIdParsingError)?;
+            let p    = pick_file(default_menu_cmd, path).chain_err(|| IEK::IdSelectingError)?;
+            let id   = StoreId::new_baseless(p).chain_err(|| IEK::StoreIdParsingError)?;
             Ok(vec![id])
-        },
-    }
+        })
 }
 

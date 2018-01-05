@@ -36,11 +36,10 @@ pub trait Log : DiaryEntry {
 impl Log for Entry {
     fn is_log(&self) -> Result<bool> {
         let location = "log.is_log";
-        match self.get_header().read(location)? {
-            Some(&Value::Boolean(b)) => Ok(b),
-            Some(_) => Err(LE::from_kind(LEK::HeaderTypeError("boolean", location))),
-            None    => Ok(false)
-        }
+        self.get_header()
+            .read(location)?
+            .ok_or(LE::from_kind(LEK::HeaderTypeError("boolean", location)))
+            .map(|v| v.as_bool().unwrap_or(false))
     }
 
     fn make_log_entry(&mut self) -> Result<()> {
