@@ -22,7 +22,7 @@ in
 
 pkgs.stdenv.mkDerivation rec {
     name = "imag";
-    src = ./.;
+    src = /var/empty;
     version = "0.0.0";
 
     buildInputs = env ++ dependencies;
