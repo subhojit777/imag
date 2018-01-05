@@ -1,0 +1,30 @@
+[package]
+name = "libimagflashcard"
+version = "0.8.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+description = "Library for the imag core distribution"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../../../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+homepage      = "http://imag-pim.org"
+
+[dependencies]
+chrono = "0.4"
+toml = "0.4"
+toml-query = "0.6.0"
+is-match = "0.1"
+error-chain = "0.11"
+filters = "0.2"
+
+libimagentryedit = { version = "0.8.0", path = "../../../lib/entry/libimagentryedit" }
+libimagentrylink = { version = "0.8.0", path = "../../../lib/entry/libimagentrylink" }
+libimagentryutil = { version = "0.8.0", path = "../../../lib/entry/libimagentryutil" }
+libimagerror     = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
+libimagstore     = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
+libimagutil      = { version = "0.8.0", path = "../../../lib/etc/libimagutil" }
+
