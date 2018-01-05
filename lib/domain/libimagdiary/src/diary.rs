@@ -61,7 +61,7 @@ impl Diary for Store {
     fn new_entry_today(&self, diary_name: &str) -> Result<FileLockEntry> {
         let dt  = Local::now();
         let ndt = dt.naive_local();
-        let id  = DiaryId::new(String::from(diary_name), ndt.year(), ndt.month(), ndt.day(), 0, 0);
+        let id  = DiaryId::new(String::from(diary_name), ndt.year(), ndt.month(), ndt.day(), 0, 0, 0);
 
         self.retrieve(id).chain_err(|| DEK::StoreReadError)
     }
@@ -74,7 +74,8 @@ impl Diary for Store {
                                ndt.month(),
                                ndt.day(),
                                ndt.hour(),
-                               ndt.minute());
+                               ndt.minute(),
+                               ndt.second());
 
         self.retrieve(id).chain_err(|| DEK::StoreReadError)
     }
