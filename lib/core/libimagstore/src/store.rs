@@ -502,8 +502,7 @@ impl Store {
         Ok(())
     }
 
-    /// Retrieve a copy of a given entry, this cannot be used to mutate
-    /// the one on disk
+    /// Get a copy of a given entry, this cannot be used to mutate the one on disk
     ///
     /// # Return value
     ///
@@ -514,7 +513,7 @@ impl Store {
     ///  - RetrieveCopyCallError(IdLocked()) if the Entry is borrowed currently
     ///  - Errors StoreEntry::new() might return
     ///
-    pub fn retrieve_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
+    pub fn get_copy<S: IntoStoreId>(&self, id: S) -> Result<Entry> {
         let id = id.into_storeid()?.with_base(self.path().clone());
         debug!("Retrieving copy of '{}'", id);
         let entries = self.entries.write()
