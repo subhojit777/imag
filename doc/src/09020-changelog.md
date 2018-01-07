@@ -29,6 +29,7 @@ This section contains the changelog from the last release to the next release.
 * Minor changes
     * Internals were refactored from `match`ing all the things into function
       chaining
+    * `libimagbookmark` does not longer wrap types from the store.
 * Bugfixes
 
 ## 0.5.0
