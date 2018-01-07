@@ -18,6 +18,19 @@ Version 0.y.z and thus we can break the API like we want and need to.
 
 This section contains the changelog from the last release to the next release.
 
+* Major changes
+    * The config infrastructure of `libimagstore` was removed, as it was unused.
+    * The iterators of `libimagstore` were improved and are now abstract over
+      all iterator types. For example, all iterators over `StoreId` can now be
+      transformed into a `StoreGetIterator`.
+    * `imag-log` was introduced
+    * `imag-init` was introduced
+    * `libimagdiary` supports second-granularity now.
+* Minor changes
+    * Internals were refactored from `match`ing all the things into function
+      chaining
+* Bugfixes
+
 ## 0.5.0
 
 * Major changes
