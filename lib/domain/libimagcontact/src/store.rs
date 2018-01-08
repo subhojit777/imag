@@ -20,15 +20,15 @@
 use std::path::PathBuf;
 
 use vobject::parse_component;
-use toml::Value;
-use toml_query::insert::TomlValueInsertExt;
 
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreIdIterator;
 use libimagentryref::refstore::RefStore;
 use libimagentryref::flags::RefFlags;
+use libimagentryutil::isa::Is;
 
+use contact::IsContact;
 use error::Result;
 use util;
 
@@ -71,8 +71,7 @@ impl<'a> ContactStore<'a> for Store {
         RefStore::create(self, p.clone(), flags)
             .map_err(From::from)
             .and_then(|mut entry| {
-                entry.get_header_mut()
-                    .insert("contact.marker", Value::Boolean(true))
+                entry.set_isflag::<IsContact>()
                     .map_err(From::from)
                     .map(|_| entry)
             })
