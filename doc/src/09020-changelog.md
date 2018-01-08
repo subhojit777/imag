@@ -31,6 +31,7 @@ This section contains the changelog from the last release to the next release.
       the function way better.
     * `libimagentryutil` was introduced, a library for helpers for
       `libimagstore::store::Entry` handling and writing extension-writing.
+    * `imag-edit` was introduced
 * Minor changes
     * Internals were refactored from `match`ing all the things into function
       chaining
