@@ -29,6 +29,8 @@ This section contains the changelog from the last release to the next release.
     * `libimagstore::store::Store::retrieve_copy` was renamed to
       `libimagstore::store::Store::get_copy`, which describes the semantics of
       the function way better.
+    * `libimagentryutil` was introduced, a library for helpers for
+      `libimagstore::store::Entry` handling and writing extension-writing.
 * Minor changes
     * Internals were refactored from `match`ing all the things into function
       chaining
