@@ -137,7 +137,7 @@ fn main() {
              .multiple(false)
              .help("Get the versions of the imag commands"))
         .subcommand(SubCommand::with_name("help").help("Show help"))
-        .help(helptext.as_str());
+        .after_help(helptext.as_str());
     let rt = Runtime::new(app)
         .unwrap_or_else(|e| {
             println!("Runtime couldn't be setup. Exiting");
