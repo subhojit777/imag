@@ -23,20 +23,16 @@
 //! from the libimagentrylink::external::ExternalLinker trait on this to generate external links.
 //!
 //! The BookmarkCollection type offers helper functions to get all links or such things.
-use std::ops::Deref;
-use std::ops::DerefMut;
 
 use regex::Regex;
 
-use error::BookmarkErrorKind as BEK;
-use error::BookmarkError as BE;
-use error::ResultExt;
 use error::Result;
 use module_path::ModuleEntryPath;
 
 use libimagstore::store::Store;
-use libimagstore::storeid::IntoStoreId;
+use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
+use libimagstore::storeid::IntoStoreId;
 use libimagentrylink::external::ExternalLinker;
 use libimagentrylink::external::iter::UrlIter;
 use libimagentrylink::internal::InternalLinker;
@@ -46,99 +42,81 @@ use link::Link;
 
 use self::iter::LinksMatchingRegexIter;
 
-pub struct BookmarkCollection<'a> {
-    fle: FileLockEntry<'a>,
-    store: &'a Store,
+pub trait BookmarkCollectionStore<'a> {
+    fn new(&'a self, name: &str)                     -> Result<FileLockEntry<'a>>;
+    fn get(&'a self, name: &str)                     -> Result<Option<FileLockEntry<'a>>>;
+    fn delete(&'a self, name: &str)                     -> Result<()>;
 }
 
-/// {Internal, External}Linker is implemented as Deref is implemented
-impl<'a> Deref for BookmarkCollection<'a> {
-    type Target = FileLockEntry<'a>;
+impl<'a> BookmarkCollectionStore<'a> for Store {
 
-    fn deref(&self) -> &FileLockEntry<'a> {
-        &self.fle
+    fn new(&'a self, name: &str) -> Result<FileLockEntry<'a>> {
+        ModuleEntryPath::new(name)
+            .into_storeid()
+            .and_then(|id| self.create(id).map_err(From::from))
+            .map_err(From::from)
+    }
+
+    fn get(&'a self, name: &str) -> Result<Option<FileLockEntry<'a>>> {
+        ModuleEntryPath::new(name)
+            .into_storeid()
+            .and_then(|id| self.get(id).map_err(From::from))
+            .map_err(From::from)
+    }
+
+    fn delete(&'a self, name: &str) -> Result<()> {
+        ModuleEntryPath::new(name)
+            .into_storeid()
+            .and_then(|id| self.delete(id).map_err(From::from))
+            .map_err(From::from)
     }
 
 }
 
-impl<'a> DerefMut for BookmarkCollection<'a> {
-
-    fn deref_mut(&mut self) -> &mut FileLockEntry<'a> {
-        &mut self.fle
-    }
-
+pub trait BookmarkCollection : Sized + InternalLinker + ExternalLinker {
+    fn links<'a>(&self, store: &'a Store)                        -> Result<UrlIter<'a>>;
+    fn link_entries(&self)                                   -> Result<Vec<StoreLink>>;
+    fn add_link(&mut self, store: &Store, l: Link)           -> Result<()>;
+    fn get_links_matching<'a>(&self, store: &'a Store, r: Regex) -> Result<LinksMatchingRegexIter<'a>>;
+    fn remove_link(&mut self, store: &Store, l: Link)        -> Result<()>;
 }
 
-impl<'a> BookmarkCollection<'a> {
+impl BookmarkCollection for Entry {
 
-    pub fn new(store: &'a Store, name: &str) -> Result<BookmarkCollection<'a>> {
-        ModuleEntryPath::new(name)
-            .into_storeid()
-            .and_then(|id| store.create(id))
-            .map(|fle| {
-                BookmarkCollection {
-                    fle: fle,
-                    store: store,
-                }
-            })
-            .chain_err(|| BEK::StoreReadError)
+    fn links<'a>(&self, store: &'a Store) -> Result<UrlIter<'a>> {
+        self.get_external_links(store).map_err(From::from)
     }
 
-    pub fn get(store: &'a Store, name: &str) -> Result<BookmarkCollection<'a>> {
-        ModuleEntryPath::new(name)
-            .into_storeid()
-            .and_then(|id| store.get(id))
-            .chain_err(|| BEK::StoreReadError)
-            .and_then(|fle| {
-                fle.ok_or(BE::from_kind(BEK::CollectionNotFound))
-                    .map(|e| BookmarkCollection { fle: e, store: store })
-            })
-    }
-
-    pub fn delete(store: &Store, name: &str) -> Result<()> {
-        ModuleEntryPath::new(name)
-            .into_storeid()
-            .and_then(|id| store.delete(id))
-            .chain_err(|| BEK::StoreReadError)
-    }
-
-    pub fn links(&self) -> Result<UrlIter> {
-        self.fle.get_external_links(&self.store).chain_err(|| BEK::LinkError)
-    }
-
-    pub fn link_entries(&self) -> Result<Vec<StoreLink>> {
+    fn link_entries(&self) -> Result<Vec<StoreLink>> {
         use libimagentrylink::external::is_external_link_storeid;
 
-        self.fle
-            .get_internal_links()
+        self.get_internal_links()
             .map(|v| v.filter(|id| is_external_link_storeid(id)).collect())
-            .chain_err(|| BEK::StoreReadError)
+            .map_err(From::from)
     }
 
-    pub fn add_link(&mut self, l: Link) -> Result<()> {
+    fn add_link(&mut self, store: &Store, l: Link) -> Result<()> {
         use link::IntoUrl;
 
         l.into_url()
-            .and_then(|url| self.add_external_link(self.store, url).chain_err(|| BEK::LinkingError))
-            .chain_err(|| BEK::LinkError)
+            .and_then(|url| self.add_external_link(store, url).map_err(From::from))
+            .map_err(From::from)
     }
 
-    pub fn get_links_matching(&self, r: Regex) -> Result<LinksMatchingRegexIter<'a>> {
+    fn get_links_matching<'a>(&self, store: &'a Store, r: Regex) -> Result<LinksMatchingRegexIter<'a>> {
         use self::iter::IntoLinksMatchingRegexIter;
 
-        self.get_external_links(self.store)
-            .chain_err(|| BEK::LinkError)
+        self.get_external_links(store)
             .map(|iter| iter.matching_regex(r))
+            .map_err(From::from)
     }
 
-    pub fn remove_link(&mut self, l: Link) -> Result<()> {
+    fn remove_link(&mut self, store: &Store, l: Link) -> Result<()> {
         use link::IntoUrl;
 
         l.into_url()
-            .and_then(|url| {
-                self.remove_external_link(self.store, url).chain_err(|| BEK::LinkingError)
-            })
-            .chain_err(|| BEK::LinkError)
+            .and_then(|url| self.remove_external_link(store, url).map_err(From::from))
+            .map_err(From::from)
     }
 
 }
@@ -146,7 +124,7 @@ impl<'a> BookmarkCollection<'a> {
 pub mod iter {
     use link::Link;
     use error::Result;
-    use error::{ResultExt, BookmarkErrorKind as BEK};
+    use error::BookmarkError as BE;
 
     pub struct LinkIter<I>(I)
         where I: Iterator<Item = Link>;
@@ -189,7 +167,7 @@ pub mod iter {
             loop {
                 let n = match self.0.next() {
                     Some(Ok(n))  => n,
-                    Some(Err(e)) => return Some(Err(e).chain_err(|| BEK::LinkError)),
+                    Some(Err(e)) => return Some(Err(BE::from(e))),
                     None         => return None,
                 };
 

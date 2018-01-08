@@ -51,9 +51,10 @@ use toml_query::read::TomlValueReadExt;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagbookmark::collection::BookmarkCollection;
+use libimagbookmark::collection::BookmarkCollectionStore;
+use libimagbookmark::error::BookmarkError as BE;
 use libimagbookmark::link::Link as BookmarkLink;
 use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
-use libimagutil::info_result::*;
 
 mod ui;
 
@@ -85,16 +86,18 @@ fn add(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("add").unwrap();
     let coll = get_collection_name(rt, "add", "collection");
 
-    BookmarkCollection::get(rt.store(), &coll)
-        .and_then(|mut collection| {
-            for url in scmd.values_of("urls").unwrap() { // unwrap saved by clap
-                let _ = collection.add_link(BookmarkLink::from(url))?;
-            }
-            Ok(())
-        })
-        .map_err_trace()
-        .map_info_str("Ready")
-        .ok();
+    let mut collection = BookmarkCollectionStore::get(rt.store(), &coll)
+        .map_err_trace_exit_unwrap(1)
+        .ok_or(BE::from(format!("No BookmarkcollectionStore '{}' found", coll)))
+        .map_err_trace_exit_unwrap(1);
+
+    for url in scmd.values_of("urls").unwrap() { // unwrap saved by clap
+        let _ = collection
+            .add_link(rt.store(), BookmarkLink::from(url))
+            .map_err_trace_exit_unwrap(1);
+    }
+
+    info!("Ready");
 }
 
 fn collection(rt: &Runtime) {
@@ -102,7 +105,7 @@ fn collection(rt: &Runtime) {
 
     if scmd.is_present("add") { // adding a new collection
         let name = scmd.value_of("add").unwrap();
-        if let Ok(_) = BookmarkCollection::new(rt.store(), &name) {
+        if let Ok(_) = BookmarkCollectionStore::new(rt.store(), &name) {
             info!("Created: {}", name);
         } else {
             warn!("Creating collection {} failed", name);
@@ -112,7 +115,7 @@ fn collection(rt: &Runtime) {
 
     if scmd.is_present("remove") { // remove a collection
         let name = scmd.value_of("remove").unwrap();
-        if let Ok(_) = BookmarkCollection::delete(rt.store(), &name) {
+        if let Ok(_) = BookmarkCollectionStore::delete(rt.store(), &name) {
             info!("Deleted: {}", name);
         } else {
             warn!("Deleting collection {} failed", name);
@@ -124,23 +127,25 @@ fn collection(rt: &Runtime) {
 fn list(rt: &Runtime) {
     let coll = get_collection_name(rt, "list", "collection");
 
-    BookmarkCollection::get(rt.store(), &coll)
-        .map(|collection| {
-            match collection.links() {
-                Ok(links) => {
-                    debug!("Listing...");
-                    for (i, link) in links.enumerate() {
-                        match link {
-                            Ok(link) => println!("{: >3}: {}", i, link),
-                            Err(e)   => trace_error(&e)
-                        }
-                    };
-                    debug!("... ready with listing");
-                },
-                Err(e) => trace_error_exit(&e, 1),
-            }
-        })
-        .ok();
+    let collection = BookmarkCollectionStore::get(rt.store(), &coll)
+        .map_err_trace_exit_unwrap(1)
+        .ok_or(BE::from(format!("No BookmarkcollectionStore '{}' found", coll)))
+        .map_err_trace_exit_unwrap(1);
+
+    match collection.links(rt.store()) {
+        Ok(links) => {
+            debug!("Listing...");
+            for (i, link) in links.enumerate() {
+                match link {
+                    Ok(link) => println!("{: >3}: {}", i, link),
+                    Err(e)   => trace_error(&e)
+                }
+            };
+            debug!("... ready with listing");
+        },
+        Err(e) => trace_error_exit(&e, 1),
+    }
+
     info!("Ready");
 }
 
@@ -148,13 +153,17 @@ fn remove(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("remove").unwrap();
     let coll = get_collection_name(rt, "list", "collection");
 
-    BookmarkCollection::get(rt.store(), &coll)
-        .map(|mut collection| {
-            for url in scmd.values_of("urls").unwrap() { // enforced by clap
-                collection.remove_link(BookmarkLink::from(url)).map_err(|e| trace_error(&e)).ok();
-            }
-        })
-        .ok();
+    let mut collection = BookmarkCollectionStore::get(rt.store(), &coll)
+        .map_err_trace_exit_unwrap(1)
+        .ok_or(BE::from(format!("No BookmarkcollectionStore '{}' found", coll)))
+        .map_err_trace_exit_unwrap(1);
+
+    for url in scmd.values_of("urls").unwrap() { // enforced by clap
+        collection
+            .remove_link(rt.store(), BookmarkLink::from(url))
+            .map_err_trace_exit_unwrap(1);
+    }
+
     info!("Ready");
 }
 
