@@ -31,3 +31,4 @@ walkdir = "1"
 libimagstore     = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
 libimagerror     = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
 libimagentrylist = { version = "0.6.0", path = "../../../lib/entry/libimagentrylist" }
+libimagentryutil = { version = "0.6.0", path = "../../../lib/entry/libimagentryutil" }

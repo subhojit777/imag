@@ -25,6 +25,8 @@ use std::fs::File;
 use std::fs::Permissions;
 
 use libimagstore::store::Entry;
+use libimagentryutil::isa::Is;
+use libimagentryutil::isa::IsKindHeaderPathProvider;
 
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
@@ -37,6 +39,9 @@ use error::Result;
 use hasher::*;
 
 pub trait Ref {
+
+    /// Check whether the underlying object is actually a ref
+    fn is_ref(&self) -> Result<bool>;
 
     /// Get the hash from the path of the ref
     fn get_path_hash(&self) -> Result<String>;
@@ -113,8 +118,14 @@ pub trait Ref {
     fn get_current_permissions(&self) -> Result<Permissions>;
 }
 
+provide_kindflag_path!(pub IsRef, "ref.is_ref");
 
 impl Ref for Entry {
+
+    /// Check whether the underlying object is actually a ref
+    fn is_ref(&self) -> Result<bool> {
+        self.is::<IsRef>().map_err(From::from)
+    }
 
     /// Get the hash from the path of the ref
     fn get_path_hash(&self) -> Result<String> {
