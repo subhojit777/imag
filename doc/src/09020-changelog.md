@@ -26,6 +26,9 @@ This section contains the changelog from the last release to the next release.
     * `imag-log` was introduced
     * `imag-init` was introduced
     * `libimagdiary` supports second-granularity now.
+    * `libimagstore::store::Store::retrieve_copy` was renamed to
+      `libimagstore::store::Store::get_copy`, which describes the semantics of
+      the function way better.
 * Minor changes
     * Internals were refactored from `match`ing all the things into function
       chaining
