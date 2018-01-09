@@ -26,6 +26,8 @@ use error::*;
 use util::*;
 
 use libimagstore::store::Entry;
+use libimagentryutil::isa::Is;
+use libimagentryutil::isa::IsKindHeaderPathProvider;
 
 /// An instance of a habit is created for each time a habit is done.
 ///
@@ -45,18 +47,11 @@ pub trait HabitInstance {
     fn get_template_name(&self) -> Result<String>;
 }
 
+provide_kindflag_path!(pub IsHabitInstance, "habit.instance.is_habit_instance");
+
 impl HabitInstance for Entry {
     fn is_habit_instance(&self) -> Result<bool> {
-        [
-            "habit.instance.name",
-            "habit.instance.date",
-            "habit.instance.comment",
-        ].iter().fold(Ok(true), |acc, path| acc.and_then(|_| {
-            self.get_header()
-                .read(path)
-                .map(|o| is_match!(o, Some(&Value::String(_))))
-                .map_err(From::from)
-        }))
+        self.is::<IsHabitInstance>().map_err(From::from)
     }
 
     fn get_date(&self) -> Result<NaiveDate> {

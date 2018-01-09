@@ -19,10 +19,10 @@ log = "0.3"
 toml = "0.4"
 toml-query = "0.4.0"
 error-chain = "0.11"
-is-match = "0.1"
 kairos = "0.1.0-beta-2"
 
 libimagstore     = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
 libimagerror     = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
 libimagentryedit = { version = "0.6.0", path = "../../../lib/entry/libimagentryedit" }
 libimagentrylink = { version = "0.6.0", path = "../../../lib/entry/libimagentrylink" }
+libimagentryutil = { version = "0.6.0", path = "../../../lib/entry/libimagentryutil" }

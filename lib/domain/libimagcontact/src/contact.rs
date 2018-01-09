@@ -20,14 +20,12 @@
 use std::ops::Deref;
 
 use vobject::Component;
-use toml::Value;
-use toml_query::read::TomlValueReadExt;
 
 use libimagstore::store::Entry;
 use libimagentryref::reference::Ref;
+use libimagentryutil::isa::Is;
+use libimagentryutil::isa::IsKindHeaderPathProvider;
 
-use error::ContactError as CE;
-use error::ContactErrorKind as CEK;
 use error::Result;
 use util;
 
@@ -46,15 +44,12 @@ pub trait Contact : Ref {
 
 }
 
+provide_kindflag_path!(pub IsContact, "contact.is_contact");
+
 impl Contact for Entry {
 
     fn is_contact(&self) -> Result<bool> {
-        let location = "contact.marker";
-        match self.get_header().read(location)? {
-            Some(&Value::Boolean(b)) => Ok(b),
-            Some(_) => Err(CE::from_kind(CEK::HeaderTypeError("boolean", location))),
-            None    => Ok(false)
-        }
+        self.is::<IsContact>().map_err(From::from)
     }
 
     fn get_contact_data(&self) -> Result<ContactData> {

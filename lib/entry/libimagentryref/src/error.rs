@@ -26,6 +26,7 @@ error_chain! {
         ListError(::libimagentrylist::error::ListError, ::libimagentrylist::error::ListErrorKind);
         StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
         TomlQueryError(::toml_query::error::Error, ::toml_query::error::ErrorKind);
+        EntryUtilError(::libimagentryutil::error::EntryUtilError, ::libimagentryutil::error::EntryUtilErrorKind);
     }
 
     foreign_links {

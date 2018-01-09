@@ -26,6 +26,7 @@ use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::Store;
+use libimagentryutil::isa::Is;
 
 use toml::Value;
 
@@ -34,6 +35,7 @@ use error::RefError as RE;
 use error::ResultExt;
 use error::Result;
 use flags::RefFlags;
+use reference::IsRef;
 use hasher::*;
 use module_path::ModuleEntryPath;
 use util::*;
@@ -281,6 +283,8 @@ impl RefStore for Store {
                 }
             }
         }
+
+        let _ = fle.set_isflag::<IsRef>()?;
 
         Ok(fle)
     }

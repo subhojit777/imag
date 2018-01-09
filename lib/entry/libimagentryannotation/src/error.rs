@@ -25,6 +25,7 @@ error_chain! {
     links {
         StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
         LinkError(::libimagentrylink::error::LinkError, ::libimagentrylink::error::LinkErrorKind);
+        EntryUtilError(::libimagentryutil::error::EntryUtilError, ::libimagentryutil::error::EntryUtilErrorKind);
     }
 
     foreign_links {

@@ -1,5 +1,5 @@
 [package]
-name = "libimagentryref"
+name = "libimagentryutil"
 version = "0.6.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
@@ -20,15 +20,9 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-itertools = "0.7"
-log = "0.3"
-rust-crypto = "0.2"
 toml = "0.4"
-toml-query = "^0.4"
+toml-query = "0.4"
 error-chain = "0.11"
-walkdir = "1"
 
-libimagstore     = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
-libimagerror     = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
-libimagentrylist = { version = "0.6.0", path = "../../../lib/entry/libimagentrylist" }
-libimagentryutil = { version = "0.6.0", path = "../../../lib/entry/libimagentryutil" }
+libimagstore = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
+libimagerror = { version = "0.6.0", path = "../../../lib/core/libimagerror" }

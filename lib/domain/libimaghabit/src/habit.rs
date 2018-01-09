@@ -31,6 +31,7 @@ use iter::HabitInstanceStoreIdIterator;
 use util::date_to_string;
 use util::IsHabitCheck;
 use util::get_string_header_from_entry;
+use instance::IsHabitInstance;
 
 use libimagentrylink::internal::InternalLinker;
 use libimagstore::store::Store;
@@ -39,6 +40,8 @@ use libimagstore::store::Entry;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreIdIterator;
+use libimagentryutil::isa::Is;
+use libimagentryutil::isa::IsKindHeaderPathProvider;
 
 /// A HabitTemplate is a "template" of a habit. A user may define a habit "Eat vegetable".
 /// If the user ate a vegetable, she should create a HabitInstance from the Habit with the
@@ -81,6 +84,8 @@ pub trait HabitTemplate : Sized {
     fn instance_id_for(habit_name: &String, habit_date: &NaiveDate) -> Result<StoreId>;
 }
 
+provide_kindflag_path!(pub IsHabitTemplate, "habit.template.is_habit_template");
+
 impl HabitTemplate for Entry {
 
     fn create_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate) -> Result<FileLockEntry<'a>> {
@@ -93,10 +98,11 @@ impl HabitTemplate for Entry {
             .map_err(From::from)
             .and_then(|mut entry| {
                 {
+                    let _   = entry.set_isflag::<IsHabitInstance>()?;
                     let hdr = entry.get_header_mut();
-                    hdr.insert("habit.instance.name",    Value::String(name))?;
-                    hdr.insert("habit.instance.date",    Value::String(date))?;
-                    hdr.insert("habit.instance.comment", Value::String(comment))?;
+                    let _   = hdr.insert("habit.instance.name",    Value::String(name))?;
+                    let _   = hdr.insert("habit.instance.date",    Value::String(date))?;
+                    let _   = hdr.insert("habit.instance.comment", Value::String(comment))?;
                 }
                 Ok(entry)
             })
@@ -190,16 +196,7 @@ impl HabitTemplate for Entry {
 
     /// Check whether the instance is a habit by checking its headers for the habit data
     fn is_habit_template(&self) -> Result<bool> {
-        [
-            "habit.template.name",
-            "habit.template.basedate",
-            "habit.template.comment",
-        ].iter().fold(Ok(true), |acc, path| acc.and_then(|_| {
-            self.get_header()
-                .read(path)
-                .map(|o| is_match!(o, Some(&Value::String(_))))
-                .map_err(From::from)
-        }))
+        self.is::<IsHabitTemplate>().map_err(From::from)
     }
 
     fn habit_name(&self) -> Result<String> {
@@ -248,11 +245,13 @@ pub mod builder {
     use libimagstore::storeid::StoreId;
     use libimagstore::storeid::IntoStoreId;
     use libimagstore::store::FileLockEntry;
+    use libimagentryutil::isa::Is;
 
     use error::HabitError as HE;
     use error::HabitErrorKind as HEK;
     use error::*;
     use util::date_to_string;
+    use habit::IsHabitTemplate;
 
     pub struct HabitBuilder {
         name: Option<String>,
@@ -324,10 +323,15 @@ pub mod builder {
             debug!("Creating entry in store for: {:?}", sid);
             let mut entry = try!(store.create(sid));
 
-            try!(entry.get_header_mut().insert("habit.template.name", Value::String(name)));
-            try!(entry.get_header_mut().insert("habit.template.basedate", Value::String(date)));
-            try!(entry.get_header_mut().insert("habit.template.recurspec", Value::String(recur)));
-            try!(entry.get_header_mut().insert("habit.template.comment", Value::String(comment)));
+            let _ = entry.set_isflag::<IsHabitTemplate>()?;
+            {
+                let h = entry.get_header_mut();
+                let _ = h.insert("habit.template.name", Value::String(name))?;
+                let _ = h.insert("habit.template.basedate", Value::String(date))?;
+                let _ = h.insert("habit.template.recurspec", Value::String(recur))?;
+                let _ = h.insert("habit.template.comment", Value::String(comment))?;
+            }
+
             if let Some(until) = self.untildate {
                 let until = date_to_string(&until);
                 try!(entry.get_header_mut().insert("habit.template.until", Value::String(until)));
