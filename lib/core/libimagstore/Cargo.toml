@@ -39,7 +39,7 @@ libimagutil  = { version = "0.6.0", path = "../../../lib/etc/libimagutil" }
 
 [dev-dependencies]
 tempdir = "0.3"
-env_logger = "0.5.0-rc.1"
+env_logger = "0.5.0-rc.2"
 
 [features]
 default = []

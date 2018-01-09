@@ -24,7 +24,7 @@ log = "0.4.0"
 hoedown = "6.0.0"
 url = "1.5"
 error-chain = "0.11"
-env_logger = "0.5.0-rc.1"
+env_logger = "0.5.0-rc.2"
 
 libimagstore     = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
 libimagerror     = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
