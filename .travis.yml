@@ -42,6 +42,7 @@ addons:
     packages:
     - libdbus-1-dev
     - pkg-config
+    - sqlite
 
 notifications:
   email:
