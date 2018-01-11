@@ -17,7 +17,7 @@ homepage      = "http://imag-pim.org"
 chrono = "0.4"
 log = "0.3"
 toml = "0.4"
-toml-query = "0.4.0"
+toml-query = "0.6"
 error-chain = "0.11"
 kairos = "0.1.0-beta-2"
 

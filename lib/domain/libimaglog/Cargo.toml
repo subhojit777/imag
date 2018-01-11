@@ -21,7 +21,7 @@ maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
 toml = "0.4"
-toml-query = "0.3"
+toml-query = "0.6"
 error-chain = "0.11"
 
 libimagstore = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
