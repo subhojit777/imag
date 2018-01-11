@@ -34,7 +34,6 @@
 
 extern crate clap;
 #[macro_use] extern crate log;
-#[macro_use] extern crate version;
 extern crate toml;
 extern crate toml_query;
 extern crate kairos;
@@ -67,7 +66,7 @@ mod ui;
 
 fn main() {
     let rt = generate_runtime_setup("imag-habit",
-                                    &version!()[..],
+                                    env!("CARGO_PKG_VERSION"),
                                     "Habit tracking tool",
                                     ui::build_ui);
 

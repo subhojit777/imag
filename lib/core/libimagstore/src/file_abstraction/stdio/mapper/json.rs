@@ -85,7 +85,7 @@ impl Mapper for JsonMapper {
             .chain_err(|| SEK::VersionError)
             .and_then(|doc_vers| {
                 // safe because cargo does not compile if crate version is not valid
-                let crate_version = ::semver::Version::parse(version!()).unwrap();
+                let crate_version = ::semver::Version::parse(env!("CARGO_PKG_VERSION")).unwrap();
 
                 debug!("Document version vs. own version: {doc_vers} > {crate_vers}",
                        doc_vers = doc_vers,
@@ -144,7 +144,7 @@ impl Mapper for JsonMapper {
         }
 
         let doc = OutDocument {
-            version: String::from(version!()),
+            version: String::from(env!("CARGO_PKG_VERSION")),
             store:   store,
         };
 

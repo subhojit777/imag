@@ -19,7 +19,6 @@
 
 extern crate clap;
 #[macro_use] extern crate log;
-#[macro_use] extern crate version;
 extern crate itertools;
 
 extern crate libimagnotes;
@@ -45,7 +44,7 @@ use ui::build_ui;
 
 fn main() {
     let rt = generate_runtime_setup("imag-notes",
-                                    &version!()[..],
+                                    env!("CARGO_PKG_VERSION"),
                                     "Note taking helper",
                                     build_ui);
 

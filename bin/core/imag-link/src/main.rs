@@ -35,7 +35,6 @@
 #[macro_use] extern crate log;
 extern crate clap;
 extern crate url;
-#[macro_use] extern crate version;
 #[cfg(test)] extern crate toml;
 #[cfg(test)] extern crate toml_query;
 
@@ -73,7 +72,7 @@ use ui::build_ui;
 
 fn main() {
     let rt = generate_runtime_setup("imag-link",
-                                    &version!()[..],
+                                    env!("CARGO_PKG_VERSION"),
                                     "Link entries",
                                     build_ui);
     if rt.cli().is_present("check-consistency") {

@@ -35,8 +35,6 @@
 extern crate clap;
 #[macro_use]
 extern crate log;
-#[macro_use]
-extern crate version;
 
 extern crate libimagentryannotation;
 extern crate libimagentryedit;
@@ -62,7 +60,7 @@ mod ui;
 
 fn main() {
     let rt = generate_runtime_setup("imag-annotation",
-                                    &version!()[..],
+                                    env!("CARGO_PKG_VERSION"),
                                     "Add annotations to entries",
                                     ui::build_ui);
 

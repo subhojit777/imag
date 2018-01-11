@@ -21,7 +21,6 @@
 extern crate log;
 
 #[macro_use]
-extern crate version;
 
 extern crate clap;
 extern crate chrono;
@@ -59,7 +58,7 @@ use libimagrt::setup::generate_runtime_setup;
 
 fn main() {
     let rt = generate_runtime_setup("imag-timetrack",
-                                    &version!()[..],
+                                    env!("CARGO_PKG_VERSION"),
                                     "Time tracking module",
                                     build_ui);
 

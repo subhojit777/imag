@@ -33,7 +33,6 @@
 )]
 
 #[macro_use] extern crate log;
-#[macro_use] extern crate version;
 extern crate clap;
 
 extern crate libimagrt;
@@ -51,7 +50,7 @@ use libimagstore::storeid::StoreId;
 
 fn main() {
     let rt = generate_runtime_setup("imag-mv",
-                                    &version!()[..],
+                                    env!("CARGO_PKG_VERSION"),
                                     "Move things around in the store",
                                     build_ui);
 

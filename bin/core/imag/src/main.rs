@@ -18,7 +18,6 @@
 //
 
 extern crate clap;
-#[macro_use] extern crate version;
 #[macro_use] extern crate log;
 extern crate walkdir;
 extern crate toml;
@@ -118,7 +117,7 @@ fn get_commands() -> Vec<String> {
 fn main() {
     // Initialize the Runtime and build the CLI
     let appname  = "imag";
-    let version  = &version!();
+    let version  = env!("CARGO_PKG_VERSION");
     let about    = "imag - the PIM suite for the commandline";
     let commands = get_commands();
     let helptext = help_text(commands.clone());
@@ -152,7 +151,7 @@ fn main() {
 
     if matches.is_present("version") {
         debug!("Showing version");
-        println!("imag {}", &version!()[..]);
+        println!("imag {}", env!("CARGO_PKG_VERSION"));
         exit(0);
     }
 
