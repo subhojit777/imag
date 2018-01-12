@@ -19,6 +19,7 @@
 
 use toml_query::insert::TomlValueInsertExt;
 use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 use toml::Value;
 
 use libimagstore::store::Entry;
@@ -81,22 +82,16 @@ impl EntryCategory for Entry {
 
     fn get_category(&self) -> Result<Option<Category>> {
         self.get_header()
-            .read("category.value")
+            .read_string("category.value")
             .chain_err(|| CEK::HeaderReadError)
-            .and_then(|opt| {
-                opt.map(|v| {
-                    v.as_str()
-                        .map(String::from)
-                        .map(Category::from)
-                })
-                .ok_or(CE::from_kind(CEK::TypeError))
-            })
+            .and_then(|o| o.map(Category::from).ok_or(CE::from_kind(CEK::TypeError)))
+            .map(Some)
     }
 
     fn has_category(&self) -> Result<bool> {
-        self.get_header().read(&String::from("category.value"))
+        self.get_header().read("category.value")
             .chain_err(|| CEK::HeaderReadError)
-            .map(|e| e.is_some())
+            .map(|x| x.is_some())
     }
 
 }

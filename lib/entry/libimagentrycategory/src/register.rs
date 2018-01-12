@@ -20,7 +20,7 @@
 use std::path::PathBuf;
 
 use toml_query::insert::TomlValueInsertExt;
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 use toml::Value;
 
 use libimagstore::store::Store;
@@ -194,14 +194,13 @@ mod tests {
         assert!(category.is_some());
         let category = category.unwrap();
 
-        let header_field = category.get_header().read(CATEGORY_REGISTER_NAME_FIELD_PATH);
+        let header_field = category.get_header().read_string(CATEGORY_REGISTER_NAME_FIELD_PATH);
         assert!(header_field.is_ok(), format!("Expected Ok(_), got: {:?}", header_field));
         let header_field = header_field.unwrap();
 
         match header_field {
-            Some(&Value::String(ref s)) => assert_eq!(category_name, s),
-            Some(_) => assert!(false, "Header field has wrong type"),
-            None    => assert!(false, "Header field not present"),
+            Some(ref s) => assert_eq!(category_name, s),
+            None        => assert!(false, "Header field not present"),
         }
     }
 }
@@ -226,12 +225,10 @@ fn represents_category(store: &Store, sid: StoreId, name: &str) -> Result<bool> 
                     .and_then(|fle| {
                         if let Some(fle) = fle {
                             fle.get_header()
-                                .read(&String::from(CATEGORY_REGISTER_NAME_FIELD_PATH))
+                                .read_string(&String::from(CATEGORY_REGISTER_NAME_FIELD_PATH))
                                 .chain_err(|| CEK::HeaderReadError)?
-                                .ok_or(CE::from_kind(CEK::TypeError))?
-                                .as_str()
-                                .map(|s| s == name)
                                 .ok_or(CE::from_kind(CEK::TypeError))
+                                .map(|s| s == name)
                         } else {
                             Ok(false)
                         }
@@ -278,12 +275,10 @@ impl<'a> Iterator for CategoryNameIter<'a> {
                     .get(sid)?
                     .ok_or_else(|| CE::from_kind(CEK::StoreReadError))?
                     .get_header()
-                    .read(&query)
+                    .read_string(&query)
                     .chain_err(|| CEK::HeaderReadError)?
-                    .and_then(Value::as_str)
-                    .map(String::from)
                     .map(Category::from)
-                    .ok_or_else(|| CE::from_kind(CEK::TypeError))
+                    .ok_or_else(|| CE::from_kind(CEK::StoreReadError))
             })
     }
 }
