@@ -21,7 +21,7 @@ use error::EntryUtilError as EUE;
 use error::Result;
 
 use toml::Value;
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 use toml_query::insert::TomlValueInsertExt;
 
 /// Trait to check whether an entry is a certain kind of entry
@@ -76,11 +76,9 @@ impl Is for ::libimagstore::store::Entry {
     fn is<T: IsKindHeaderPathProvider>(&self) -> Result<bool> {
         let field = T::kindflag_header_location();
 
-        match self.get_header().read(field) {
-            Ok(Some(&Value::Boolean(b))) => Ok(b),
-            Ok(Some(_)) => Err(format!("Field {} has not a boolean type", field)).map_err(EUE::from),
-            Ok(None)    => Err(format!("Field {} not available", field)).map_err(EUE::from),
-            Err(e)      => Err(EUE::from(e))
+        match self.get_header().read_bool(field)? {
+            Some(b) => Ok(b),
+            None    => Err(format!("Field {} not available", field)).map_err(EUE::from),
         }
     }
 
