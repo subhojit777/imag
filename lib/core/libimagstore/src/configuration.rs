@@ -26,15 +26,12 @@ use error::StoreErrorKind as SEK;
 /// Checks whether the store configuration has a key "implicit-create" which maps to a boolean
 /// value. If that key is present, the boolean is returned, otherwise false is returned.
 pub fn config_implicit_store_create_allowed(config: &Option<Value>) -> Result<bool> {
-    use toml_query::read::TomlValueReadExt;
+    use toml_query::read::TomlValueReadTypeExt;
 
     let key = "store.implicit-create";
 
     if let Some(ref t) = *config {
-        t.read(key)?
-            .ok_or(SE::from_kind(SEK::ConfigKeyMissingError(key)))?
-            .as_bool()
-            .ok_or(SE::from_kind(SEK::ConfigTypeError(key, "boolean")))
+        t.read_bool(key)?.ok_or(SE::from_kind(SEK::ConfigKeyMissingError(key)))
     } else {
         Ok(false)
     }

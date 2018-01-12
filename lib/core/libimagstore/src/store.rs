@@ -36,6 +36,7 @@ use glob::glob;
 use walkdir::WalkDir;
 use walkdir::Iter as WalkDirIter;
 use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::ResultExt;
@@ -1102,13 +1103,10 @@ fn has_main_section(t: &Value) -> Result<bool> {
 }
 
 fn has_imag_version_in_main_section(t: &Value) -> Result<bool> {
-    use toml_query::read::TomlValueReadExt;
-
-    t.read("imag.version")?
-        .ok_or(SE::from_kind(SEK::ConfigKeyMissingError("imag.version")))?
-        .as_str()
-        .map(|s| ::semver::Version::parse(s).is_ok())
-        .ok_or(SE::from_kind(SEK::ConfigTypeError("imag.version", "String")))
+    t.read_string("imag.version")?
+        .ok_or(SE::from_kind(SEK::ConfigKeyMissingError("imag.version")))
+        .map(String::from)
+        .map(|s| ::semver::Version::parse(&s).is_ok())
 }
 
 
