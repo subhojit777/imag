@@ -34,7 +34,6 @@
 
 extern crate clap;
 #[macro_use] extern crate log;
-#[macro_use] extern crate version;
 
 extern crate libimagentryedit;
 extern crate libimagerror;
@@ -54,7 +53,7 @@ mod ui;
 
 fn main() {
     let rt = generate_runtime_setup("imag-edit",
-                                    &version!()[..],
+                                    env!("CARGO_PKG_VERSION"),
                                     "Edit store entries with $EDITOR",
                                     ui::build_ui);
 

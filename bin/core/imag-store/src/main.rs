@@ -36,7 +36,6 @@ extern crate clap;
 #[macro_use] extern crate log;
 extern crate toml;
 #[cfg(test)] extern crate toml_query;
-#[macro_use] extern crate version;
 #[macro_use] extern crate error_chain;
 
 extern crate libimagrt;
@@ -78,7 +77,7 @@ use ids::ids;
 
 fn main() {
     let mut rt = generate_runtime_setup("imag-store",
-                                        &version!()[..],
+                                        env!("CARGO_PKG_VERSION"),
                                         "Direct interface to the store. Use with great care!",
                                         build_ui);
 

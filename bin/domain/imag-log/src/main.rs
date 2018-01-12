@@ -35,7 +35,6 @@
 extern crate clap;
 #[macro_use] extern crate is_match;
 #[macro_use] extern crate log;
-#[macro_use] extern crate version;
 extern crate toml;
 extern crate toml_query;
 
@@ -58,7 +57,7 @@ use toml::Value;
 
 fn main() {
     let rt = generate_runtime_setup("imag-log",
-                                    &version!()[..],
+                                    env!("CARGO_PKG_VERSION"),
                                     "Overlay to imag-diary to 'log' single lines of text",
                                     build_ui);
 

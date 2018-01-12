@@ -34,7 +34,6 @@
 
 extern crate clap;
 #[macro_use] extern crate log;
-#[macro_use] extern crate version;
 #[macro_use] extern crate vobject;
 extern crate toml;
 extern crate toml_query;
@@ -81,7 +80,7 @@ use create::create;
 
 fn main() {
     let rt = generate_runtime_setup("imag-contact",
-                                    &version!()[..],
+                                    env!("CARGO_PKG_VERSION"),
                                     "Contact management tool",
                                     build_ui);
 

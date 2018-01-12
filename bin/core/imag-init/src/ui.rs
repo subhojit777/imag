@@ -21,7 +21,7 @@ use clap::{Arg, App};
 
 pub fn build_ui<'a>() -> App<'a, 'a> {
     App::new("imag-init")
-        .version(&version!()[..])
+        .version(env!("CARGO_PKG_VERSION"))
         .author("Matthias Beyer <mail@beyermatthias.de>")
         .about("Initialize a ~/.imag repository. Optionally with git")
 

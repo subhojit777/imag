@@ -1076,7 +1076,8 @@ impl Header for Value {
         m.insert(String::from("imag"), {
             let mut imag_map = BTreeMap::<String, Value>::new();
 
-            imag_map.insert(String::from("version"), Value::String(String::from(version!())));
+            imag_map.insert(String::from("version"),
+                Value::String(String::from(env!("CARGO_PKG_VERSION"))));
 
             Value::Table(imag_map)
         });
@@ -1203,7 +1204,7 @@ mod test {
         let mut header = BTreeMap::new();
         let sub = {
             let mut sub = BTreeMap::new();
-            sub.insert("version".into(), Value::String(String::from(version!())));
+            sub.insert("version".into(), Value::String(String::from(env!("CARGO_PKG_VERSION"))));
 
             Value::Table(sub)
         };

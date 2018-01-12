@@ -33,7 +33,6 @@
 )]
 
 extern crate clap;
-#[macro_use] extern crate version;
 
 #[cfg(test)]
 extern crate toml;

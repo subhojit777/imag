@@ -36,7 +36,6 @@
 )]
 
 #[macro_use] extern crate log;
-#[macro_use] extern crate version;
 extern crate glob;
 #[macro_use] extern crate lazy_static;
 extern crate regex;

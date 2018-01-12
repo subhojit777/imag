@@ -33,7 +33,6 @@
 )]
 
 #[macro_use] extern crate log;
-#[macro_use] extern crate version;
 extern crate clap;
 extern crate chrono;
 extern crate toml;
@@ -70,7 +69,7 @@ use view::view;
 
 fn main() {
     let name = "imag-diary";
-    let version = &version!()[..];
+    let version = env!("CARGO_PKG_VERSION");
     let about = "Personal Diary/Diaries";
     let ui = build_ui(Runtime::get_default_cli_builder(name, version, about));
     let rt = {

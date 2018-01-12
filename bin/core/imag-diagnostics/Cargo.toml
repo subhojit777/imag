@@ -15,7 +15,6 @@ homepage      = "http://imag-pim.org"
 
 [dependencies]
 clap = ">=2.17"
-version = "2.0.1"
 toml = "0.4"
 toml-query = "0.4"
 

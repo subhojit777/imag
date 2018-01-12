@@ -34,7 +34,6 @@
 
 extern crate clap;
 extern crate regex;
-#[macro_use] extern crate version;
 
 extern crate libimagstore;
 extern crate libimagrt;
@@ -56,7 +55,7 @@ struct Options {
 
 fn main() {
     let rt = generate_runtime_setup("imag-grep",
-                                    &version!()[..],
+                                    env!("CARGO_PKG_VERSION"),
                                     "grep through entries text",
                                     ui::build_ui);
 

@@ -19,7 +19,6 @@
 
 extern crate clap;
 #[macro_use] extern crate log;
-#[macro_use] extern crate version;
 
 #[cfg(test)] extern crate toml;
 
@@ -59,7 +58,7 @@ use ui::build_ui;
 
 fn main() {
     let rt = generate_runtime_setup("imag-store",
-                                    &version!()[..],
+                                    env!("CARGO_PKG_VERSION"),
                                     "Direct interface to the store. Use with great care!",
                                     build_ui);
 

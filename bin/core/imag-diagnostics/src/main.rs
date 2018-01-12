@@ -35,7 +35,6 @@
 extern crate clap;
 extern crate toml;
 extern crate toml_query;
-#[macro_use] extern crate version;
 
 extern crate libimagrt;
 extern crate libimagerror;
@@ -95,7 +94,7 @@ impl<'a> From<FileLockEntry<'a>> for Diagnostic {
 
 fn main() {
     let rt = generate_runtime_setup("imag-diagnostics",
-                                    &version!()[..],
+                                    &env!("CARGO_PKG_VERSION")[..],
                                     "Print diagnostics about imag and the imag store",
                                     ui::build_ui);
 
@@ -153,7 +152,7 @@ fn main() {
 
     let n = diags.len();
 
-    println!("imag version {}", version!());
+    println!("imag version {}", env!("CARGO_PKG_VERSION"));
     println!("");
     println!("{} entries", n);
     for (k, v) in version_counts {
