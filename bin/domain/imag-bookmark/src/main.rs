@@ -44,8 +44,7 @@ extern crate libimagutil;
 
 use std::process::exit;
 
-use toml::Value;
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
@@ -177,19 +176,15 @@ fn get_collection_name(rt: &Runtime,
         .and_then(|scmd| scmd.value_of(collection_argument_name).map(String::from))
         .unwrap_or_else(|| {
             rt.config()
-                .map(|cfg| match cfg.read("bookmark.default_collection") {
-                    Err(e) => trace_error_exit(&e, 1),
-                    Ok(Some(&Value::String(ref name))) => name.clone(),
-                    Ok(None) => {
-                        error!("Missing config: 'bookmark.default_collection'. Set or use commandline to specify.");
-                        exit(1)
-                    },
-
-                    Ok(Some(_)) => {
-                        error!("Type error in configuration: 'bookmark.default_collection' should be string");
-                        exit(1)
-                    }
-
+                .map(|cfg| {
+                    cfg.read_string("bookmark.default_collection")
+                        .map_err_trace_exit_unwrap(1)
+                        .ok_or_else(|| {
+                            error!("Missing config: 'bookmark.default_collection'. Set or use commandline to specify.");
+                            exit(1)
+                        })
+                        .unwrap()
+                        .clone()
                 })
                 .unwrap_or_else(|| {
                     error!("Failed to read configuration");
