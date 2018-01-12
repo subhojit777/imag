@@ -21,11 +21,10 @@ use libimagdiary::entry::DiaryEntry;
 use libimagstore::store::Entry;
 
 use error::LogError as LE;
-use error::LogErrorKind as LEK;
 use error::Result;
 
 use toml::Value;
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 use toml_query::insert::TomlValueInsertExt;
 
 pub trait Log : DiaryEntry {
@@ -35,11 +34,7 @@ pub trait Log : DiaryEntry {
 
 impl Log for Entry {
     fn is_log(&self) -> Result<bool> {
-        let location = "log.is_log";
-        self.get_header()
-            .read(location)?
-            .ok_or(LE::from_kind(LEK::HeaderTypeError("boolean", location)))
-            .map(|v| v.as_bool().unwrap_or(false))
+        self.get_header().read_bool("log.is_log").map(|v| v.unwrap_or(false)).map_err(From::from)
     }
 
     fn make_log_entry(&mut self) -> Result<()> {
