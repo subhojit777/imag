@@ -20,7 +20,7 @@
 use chrono::naive::NaiveDateTime;
 use toml_query::delete::TomlValueDeleteExt;
 use toml_query::insert::TomlValueInsertExt;
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 use toml::Value;
 
 use libimagstore::store::Entry;
@@ -60,15 +60,11 @@ impl EntryDate for Entry {
 
     fn read_date(&self) -> Result<NaiveDateTime> {
         self.get_header()
-            .read(&DATE_HEADER_LOCATION)
-            .chain_err(|| DEK::ReadDateError)
-            .and_then(|v| {
-                v.ok_or(DE::from_kind(DEK::ReadDateError))?
-                    .as_str()
-                    .ok_or(DE::from_kind(DEK::DateHeaderFieldTypeError))?
-                    .parse::<NaiveDateTime>()
-                    .chain_err(|| DEK::DateTimeParsingError)
-            })
+            .read_string(&DATE_HEADER_LOCATION)
+            .chain_err(|| DEK::ReadDateError)?
+            .ok_or(DE::from_kind(DEK::ReadDateError))?
+            .parse::<NaiveDateTime>()
+            .chain_err(|| DEK::DateTimeParsingError)
     }
 
     /// Set a Date for this entry
@@ -125,15 +121,17 @@ impl EntryDate for Entry {
     fn read_date_range(&self) -> Result<DateTimeRange> {
         let start = self
             .get_header()
-            .read(&DATE_RANGE_START_HEADER_LOCATION)
-            .chain_err(|| DEK::ReadDateTimeRangeError)
-            .and_then(|v| str_to_ndt(v.ok_or(DE::from_kind(DEK::ReadDateError))?))?;
+            .read_string(&DATE_RANGE_START_HEADER_LOCATION)
+            .chain_err(|| DEK::ReadDateTimeRangeError)?
+            .ok_or_else(|| DE::from_kind(DEK::ReadDateError))
+            .and_then(str_to_ndt)?;
 
         let end = self
             .get_header()
-            .read(&DATE_RANGE_START_HEADER_LOCATION)
-            .chain_err(|| DEK::ReadDateTimeRangeError)
-            .and_then(|v| str_to_ndt(v.ok_or(DE::from_kind(DEK::ReadDateError))?))?;
+            .read_string(&DATE_RANGE_START_HEADER_LOCATION)
+            .chain_err(|| DEK::ReadDateTimeRangeError)?
+            .ok_or_else(|| DE::from_kind(DEK::ReadDateError))
+            .and_then(str_to_ndt)?;
 
         DateTimeRange::new(start, end).chain_err(|| DEK::DateTimeRangeError)
     }
@@ -154,13 +152,13 @@ impl EntryDate for Entry {
         let opt_old_start = self
             .get_header_mut()
             .insert(&DATE_RANGE_START_HEADER_LOCATION, Value::String(start))
-            .map(|opt| opt.as_ref().map(str_to_ndt))
+            .map(|opt| opt.as_ref().map(val_to_ndt))
             .chain_err(|| DEK::SetDateTimeRangeError)?;
 
         let opt_old_end = self
             .get_header_mut()
             .insert(&DATE_RANGE_END_HEADER_LOCATION, Value::String(end))
-            .map(|opt| opt.as_ref().map(str_to_ndt))
+            .map(|opt| opt.as_ref().map(val_to_ndt))
             .chain_err(|| DEK::SetDateTimeRangeError)?;
 
         match (opt_old_start, opt_old_end) {
@@ -181,7 +179,13 @@ impl EntryDate for Entry {
 
 }
 
-fn str_to_ndt(v: &Value) -> Result<NaiveDateTime> {
+#[inline]
+fn str_to_ndt(v: String) -> Result<NaiveDateTime> {
+    v.parse::<NaiveDateTime>().chain_err(|| DEK::DateTimeParsingError)
+}
+
+#[inline]
+fn val_to_ndt(v: &Value) -> Result<NaiveDateTime> {
     v.as_str()
         .ok_or(DE::from_kind(DEK::DateHeaderFieldTypeError))?
         .parse::<NaiveDateTime>()
@@ -191,6 +195,7 @@ fn str_to_ndt(v: &Value) -> Result<NaiveDateTime> {
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
+    use toml_query::read::TomlValueReadExt;
 
     use super::*;
 
