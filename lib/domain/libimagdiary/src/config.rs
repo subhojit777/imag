@@ -22,19 +22,20 @@ use toml::Value;
 use libimagrt::runtime::Runtime;
 
 use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 
 pub fn get_default_diary_name(rt: &Runtime) -> Option<String> {
     get_diary_config_section(rt)
         .and_then(|config| {
-            match config.read(&String::from("default_diary")) {
-                Ok(Some(&Value::String(ref s))) => Some(s.clone()),
+            match config.read_string("default_diary") {
+                Ok(Some(ref s)) => Some(s.clone()),
                 _ => None,
             }
         })
 }
 
 pub fn get_diary_config_section<'a>(rt: &'a Runtime) -> Option<&'a Value> {
-    rt.config().and_then(|config| match config.read(&String::from("diary")) {
+    rt.config().and_then(|config| match config.read("diary") {
         Ok(x)  => x,
         Err(_) => None,
     })
