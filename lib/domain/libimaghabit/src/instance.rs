@@ -19,7 +19,6 @@
 
 use chrono::NaiveDate;
 use toml::Value;
-use toml_query::read::TomlValueReadExt;
 use toml_query::set::TomlValueSetExt;
 
 use error::*;
