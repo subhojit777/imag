@@ -38,12 +38,8 @@ impl RefFlags {
     /// It assumes that this is a Map with Key = <name of the setting> and Value = boolean.
     pub fn read(v: &Value) -> Result<RefFlags> {
         fn get_field(v: &Value, key: &str) -> Result<bool> {
-            use toml_query::read::TomlValueReadExt;
-
-            v.read(key)?
-                .ok_or(RE::from_kind(REK::HeaderFieldMissingError))?
-                .as_bool()
-                .ok_or(REK::HeaderTypeError.into())
+            use toml_query::read::TomlValueReadTypeExt;
+            v.read_bool(key)?.ok_or(RE::from_kind(REK::HeaderFieldMissingError))
         }
 
         Ok(RefFlags {
