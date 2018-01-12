@@ -17,8 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use toml::Value;
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
@@ -26,7 +25,6 @@ use libimagstore::storeid::StoreIdIterator;
 
 use error::Result;
 use error::AnnotationErrorKind as AEK;
-use error::AnnotationError as AE;
 use error::ResultExt;
 
 #[derive(Debug)]
@@ -47,11 +45,11 @@ impl<'a> Iterator for AnnotationIter<'a> {
         loop {
             match self.0.next().map(|id| self.1.get(id)) {
                 Some(Ok(Some(entry))) => {
-                    match entry.get_header().read("annotation.is_annotation") {
-                        Ok(None) => continue, // not an annotation
-                        Ok(Some(&Value::Boolean(true))) => return Some(Ok(entry)),
-                        Ok(Some(_)) => return Some(Err(AE::from_kind(AEK::HeaderTypeError))),
-                        Err(e) => return Some(Err(e).chain_err(|| AEK::HeaderReadError)),
+                    match entry.get_header().read_bool("annotation.is_annotation").chain_err(|| AEK::HeaderReadError) {
+                        Ok(None)        => continue, // not an annotation
+                        Ok(Some(false)) => continue,
+                        Ok(Some(true))  => return Some(Ok(entry)),
+                        Err(e)          => return Some(Err(e)),
                     }
                 },
                 Some(Ok(None)) => continue,

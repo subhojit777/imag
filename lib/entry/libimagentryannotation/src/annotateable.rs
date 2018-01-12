@@ -28,12 +28,11 @@ use libimagentrylink::internal::InternalLinker;
 use libimagentryutil::isa::Is;
 use libimagentryutil::isa::IsKindHeaderPathProvider;
 
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 use toml_query::insert::TomlValueInsertExt;
 
 use error::Result;
 use error::AnnotationErrorKind as AEK;
-use error::AnnotationError as AE;
 use error::ResultExt;
 
 use iter::*;
@@ -75,12 +74,9 @@ impl Annotateable for Entry {
     fn denotate<'a>(&mut self, store: &'a Store, ann_name: &str) -> Result<Option<FileLockEntry<'a>>> {
         for annotation in self.annotations(store)? {
             let mut anno = annotation?;
-            let name = match anno.get_header().read("annotation.name")? {
-                None      => continue,
-                Some(val) => match *val {
-                    Value::String(ref name) => name.clone(),
-                    _ => return Err(AE::from_kind(AEK::HeaderTypeError)),
-                },
+            let name = match anno.get_header().read_string("annotation.name")? {
+                Some(ref name) => name.clone(),
+                None           => continue,
             };
 
             if name == ann_name {
