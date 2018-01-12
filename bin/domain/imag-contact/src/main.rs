@@ -56,8 +56,7 @@ use std::path::PathBuf;
 use handlebars::Handlebars;
 use clap::ArgMatches;
 use vobject::vcard::Vcard;
-use toml_query::read::TomlValueReadExt;
-use toml::Value;
+use toml_query::read::TomlValueReadTypeExt;
 use walkdir::WalkDir;
 
 use libimagrt::runtime::Runtime;
@@ -219,18 +218,11 @@ fn get_contact_print_format(config_value_path: &'static str, rt: &Runtime, scmd:
         .unwrap_or_else(|| {
             rt.config()
                 .ok_or_else(|| CE::from("No configuration file".to_owned()))
-                .map_err_trace_exit(1)
-                .unwrap()
-                .read(config_value_path)
-                .map_err_trace_exit(1)
-                .unwrap()
+                .map_err_trace_exit_unwrap(1)
+                .read_string(config_value_path)
+                .map_err_trace_exit_unwrap(1)
                 .ok_or_else(|| CE::from("Configuration 'contact.list_format' does not exist".to_owned()))
-                .and_then(|value| match *value {
-                    Value::String(ref s) => Ok(s.clone()),
-                    _ => Err(CE::from("Type error: Expected String at 'contact.list_format'. Have non-String".to_owned()))
-                })
-                .map_err_trace_exit(1)
-                .unwrap()
+                .map_err_trace_exit_unwrap(1)
         });
 
     let mut hb = Handlebars::new();
