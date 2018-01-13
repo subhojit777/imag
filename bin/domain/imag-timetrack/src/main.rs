@@ -20,12 +20,11 @@
 #[macro_use]
 extern crate log;
 
-#[macro_use]
-
 extern crate clap;
 extern crate chrono;
 extern crate filters;
 extern crate itertools;
+extern crate prettytable;
 
 extern crate libimagerror;
 extern crate libimagstore;

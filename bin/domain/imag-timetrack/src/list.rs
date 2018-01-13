@@ -21,6 +21,9 @@ use std::str::FromStr;
 
 use chrono::NaiveDateTime;
 use filters::filter::Filter;
+use prettytable::Table;
+use prettytable::row::Row;
+use prettytable::cell::Cell;
 
 use libimagerror::trace::trace_error;
 use libimagerror::trace::MapErrTrace;
@@ -28,6 +31,7 @@ use libimagerror::iter::TraceIterator;
 use libimagstore::store::FileLockEntry;
 use libimagtimetrack::timetrackingstore::TimeTrackStore;
 use libimagtimetrack::timetracking::TimeTracking;
+use libimagtimetrack::error::Result;
 
 use libimagrt::runtime::Runtime;
 
@@ -93,13 +97,18 @@ pub fn list_impl(rt: &Runtime,
 
     let filter = start_time_filter.and(end_time_filter);
 
+    let mut table = Table::new();
+    table.set_titles(Row::new(["Tag", "Start", "End"].into_iter().map(|s| Cell::new(s)).collect()));
+
+    let mut stdout = ::std::io::stdout();
+
     rt.store()
         .get_timetrackings()
         .and_then(|iter| {
             iter.trace_unwrap()
                 .filter(|e| filter.filter(e))
-                .fold(Ok(()), |acc, e| {
-                    acc.and_then(|_| {
+                .fold(Ok(table), |acc: Result<_>, e| {
+                    acc.and_then(|mut tab: Table| {
                         debug!("Processing {:?}", e.get_location());
 
                         let tag   = e.get_timetrack_tag()?;
@@ -111,15 +120,35 @@ pub fn list_impl(rt: &Runtime,
                         let end   = e.get_end_datetime()?;
                         debug!(" -> end = {:?}", end);
 
-                        match (start, end) {
-                            (None, _)          => println!("{} has no start time.", tag),
-                            (Some(s), None)    => println!("{} | {} - ...", tag, s),
-                            (Some(s), Some(e)) => println!("{} | {} - {}", tag, s, e),
-                        }
+                        let v = match (start, end) {
+                            (None, _)          => vec![String::from(tag.as_str()), String::from(""), String::from("")],
+                            (Some(s), None)    => {
+                                vec![
+                                    String::from(tag.as_str()),
+                                    format!("{}", s),
+                                    String::from(""),
+                                ]
+                            },
+                            (Some(s), Some(e)) => {
+                                vec![
+                                    String::from(tag.as_str()),
+                                    format!("{}", s),
+                                    format!("{}", e),
+                                ]
+                            },
+                        };
 
-                        Ok(())
+                        let cells : Vec<Cell> = v
+                            .into_iter()
+                            .map(|s| Cell::new(&s))
+                            .collect();
+                        tab.add_row(Row::new(cells));
+
+                        Ok(tab)
                     })
-                })
+                })?
+                .print(&mut stdout)
+                .map_err(|_| String::from("Failed printing table").into())
         })
         .map(|_| 0)
         .map_err_trace()
