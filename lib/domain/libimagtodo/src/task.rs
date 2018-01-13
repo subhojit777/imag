@@ -25,7 +25,7 @@ use error::Result;
 use libimagstore::store::Entry;
 
 use uuid::Uuid;
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 
 pub trait Task {
     fn get_uuid(&self) -> Result<Uuid>;
@@ -34,12 +34,10 @@ pub trait Task {
 impl Task for Entry {
     fn get_uuid(&self) -> Result<Uuid> {
         self.get_header()
-            .read("todo.uuid")
+            .read_string("todo.uuid")
             .chain_err(|| TEK::StoreError)?
-            .ok_or(TE::from_kind(TEK::HeaderFieldMissing))?
-            .as_str()
-            .ok_or(TE::from_kind(TEK::HeaderTypeError))
-            .and_then(|u| Uuid::parse_str(u).chain_err(|| TEK::UuidParserError))
+            .ok_or(TE::from_kind(TEK::HeaderFieldMissing))
+            .and_then(|u| Uuid::parse_str(&u).chain_err(|| TEK::UuidParserError))
     }
 }
 

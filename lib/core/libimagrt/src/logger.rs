@@ -33,6 +33,7 @@ use clap::ArgMatches;
 use log::{Log, LogLevel, LogRecord, LogMetadata};
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 use handlebars::Handlebars;
 
 type ModuleName = String;
@@ -239,15 +240,9 @@ fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Value>)
 
     if let Some(cfg) = config {
         let cfg_loglevel = cfg
-            .read("imag.logging.level")?
-            .ok_or(RE::from_kind(EK::GlobalLogLevelConfigMissing))?
-            .as_str()
-            .ok_or_else(|| {
-                let path = "imag.logging.level".to_owned();
-                let ty   = "String";
-                RE::from_kind(EK::ConfigTypeError(path, ty))
-            })
-            .and_then(match_log_level_str)?;
+            .read_string("imag.logging.level")?
+            .ok_or(RE::from_kind(EK::GlobalLogLevelConfigMissing))
+            .and_then(|s| match_log_level_str(&s))?;
 
         if let Some(cli_loglevel) = get_arg_loglevel(matches)? {
             if cli_loglevel > cfg_loglevel {
@@ -334,11 +329,8 @@ fn aggregate_global_destinations(matches: &ArgMatches, config: Option<&Value>)
 macro_rules! aggregate_global_format {
     ($read_str:expr, $error_kind_if_missing:expr, $config:expr) => {
         try!($config.ok_or(RE::from_kind($error_kind_if_missing)))
-            .read($read_str)?
-            .ok_or_else(|| RE::from_kind($error_kind_if_missing))?
-            .as_str()
-            .map(String::from)
-            .ok_or_else(|| RE::from_kind(EK::ConfigTypeError($read_str.to_owned(), "String")))
+            .read_string($read_str)?
+            .ok_or_else(|| RE::from_kind($error_kind_if_missing))
     };
 }
 
@@ -418,16 +410,7 @@ fn aggregate_module_settings(_matches: &ArgMatches, config: Option<&Value>)
                     };
 
                     let level = inner_try! {
-                        v.read("level")?
-                            .map(|val| {
-                                val.as_str()
-                                    .ok_or_else(|| {
-                                        let path = "imag.logging.modules.<mod>.level".to_owned();
-                                        let ty = "String";
-                                        RE::from_kind(EK::ConfigTypeError(path, ty))
-                                    })
-                                    .and_then(match_log_level_str)
-                            })
+                        v.read_string("level")?.map(|s| match_log_level_str(&s))
                     };
 
                     let enabled = v.read("enabled")?

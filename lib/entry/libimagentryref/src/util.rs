@@ -25,7 +25,7 @@ use error::Result;
 
 use libimagstore::store::Entry;
 
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 
 /// Creates a Hash from a PathBuf by making the PathBuf absolute and then running a hash
 /// algorithm on it
@@ -45,10 +45,8 @@ pub fn hash_path(pb: &PathBuf) -> Result<String> {
 /// Read the reference from a file
 pub fn read_reference(refentry: &Entry) -> Result<PathBuf> {
     refentry.get_header()
-        .read("ref.path")?
-        .ok_or(RE::from_kind(REK::HeaderFieldMissingError))?
-        .as_str()
-        .ok_or(RE::from_kind(REK::HeaderTypeError))
+        .read_string("ref.path")?
+        .ok_or(RE::from_kind(REK::HeaderFieldMissingError))
         .map(PathBuf::from)
 }
 

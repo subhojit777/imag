@@ -93,11 +93,10 @@ impl IsHabitCheck for Entry {
 #[inline]
 pub fn get_string_header_from_entry(e: &Entry, path: &'static str) -> Result<String> {
     use error::HabitErrorKind as HEK;
-    use toml_query::read::TomlValueReadExt;
+    use toml_query::read::TomlValueReadTypeExt;
 
     e.get_header()
-        .read(path)?
+        .read_string(path)?
         .ok_or(HEK::HeaderFieldMissing(path).into())
-        .and_then(|o| o.as_str().map(String::from).ok_or(HEK::HeaderTypeError(path, "String").into()))
 }
 

@@ -18,7 +18,7 @@
 //
 
 use toml::Value;
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 use toml_query::insert::TomlValueInsertExt;
 use chrono::NaiveDateTime;
 use chrono::Local;
@@ -217,9 +217,9 @@ impl HabitTemplate for Entry {
 
     fn habit_until_date(&self) -> Result<Option<String>> {
         self.get_header()
-            .read("habit.template.until")?
-            .map(|v| v.as_str().map(String::from))
-            .ok_or(HEK::HeaderTypeError("habit.template.until", "String").into())
+            .read_string("habit.template.until")
+            .map_err(From::from)
+            .map(|os| os.map(String::from))
     }
 
     fn instance_id_for(habit_name: &String, habit_date: &NaiveDate) -> Result<StoreId> {

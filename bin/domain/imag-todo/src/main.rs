@@ -82,6 +82,7 @@ fn tw_hook(rt: &Runtime) {
 
 fn list(rt: &Runtime) {
     use toml_query::read::TomlValueReadExt;
+    use toml_query::read::TomlValueReadTypeExt;
 
     let subcmd  = rt.cli().subcommand_matches("list").unwrap();
     let verbose = subcmd.is_present("verbose");
@@ -99,13 +100,8 @@ fn list(rt: &Runtime) {
             let uuids : Vec<_> = iter.filter_map(|storeid| {
                 match rt.store().retrieve(storeid) {
                     Ok(fle) => {
-                        match fle.get_header().read(&String::from("todo.uuid")) {
-                            Ok(Some(&Value::String(ref u))) => Some(u.clone()),
-                            Ok(Some(_)) => {
-                                error!("Header type error, expected String at 'todo.uuid' in {}",
-                                       fle.get_location());
-                                None
-                            },
+                        match fle.get_header().read_string("todo.uuid") {
+                            Ok(Some(ref u)) => Some(u.clone()),
                             Ok(None) => {
                                 error!("Header missing field in {}", fle.get_location());
                                 None

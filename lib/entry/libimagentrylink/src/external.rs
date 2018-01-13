@@ -41,10 +41,10 @@ use libimagstore::storeid::IntoStoreId;
 use libimagutil::debug_result::*;
 
 use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 use toml_query::insert::TomlValueInsertExt;
 
 use error::LinkErrorKind as LEK;
-use error::LinkError as LE;
 use error::Result;
 use internal::InternalLinker;
 use module_path::ModuleEntryPath;
@@ -69,27 +69,23 @@ impl Link for Entry {
 
     fn get_link_uri_from_filelockentry(&self) -> Result<Option<Url>> {
         self.get_header()
-            .read("links.external.content.url")
+            .read_string("links.external.content.url")
             .chain_err(|| LEK::EntryHeaderReadError)
             .and_then(|opt| match opt {
-                Some(&Value::String(ref s)) => {
+                None        => Ok(None),
+                Some(ref s) => {
                     debug!("Found url, parsing: {:?}", s);
                     Url::parse(&s[..]).chain_err(|| LEK::InvalidUri).map(Some)
                 },
-                Some(_) => Err(LE::from_kind(LEK::LinkParserFieldTypeError)),
-                None    => Ok(None),
             })
     }
 
     fn get_url(&self) -> Result<Option<Url>> {
-        match self.get_header().read("links.external.url") {
-            Ok(Some(&Value::String(ref s))) => {
-                Url::parse(&s[..])
-                     .map(Some)
-                     .chain_err(|| LEK::EntryHeaderReadError)
-            },
-            Ok(None) => Ok(None),
-            _ => Err(LE::from_kind(LEK::EntryHeaderReadError))
+        match self.get_header().read_string("links.external.url")? {
+            None        => Ok(None),
+            Some(ref s) => Url::parse(&s[..])
+                .map(Some)
+                .chain_err(|| LEK::EntryHeaderReadError),
         }
     }
 

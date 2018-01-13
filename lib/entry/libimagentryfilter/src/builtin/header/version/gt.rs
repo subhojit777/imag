@@ -21,7 +21,7 @@ use semver::Version;
 
 use libimagstore::store::Entry;
 
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 use filters::filter::Filter;
 
 pub struct VersionGt {
@@ -40,13 +40,9 @@ impl Filter<Entry> for VersionGt {
 
     fn filter(&self, e: &Entry) -> bool {
         e.get_header()
-            .read("imag.version")
+            .read_string("imag.version")
             .map(|val| {
-                val.map_or(false, |v| {
-                    v.as_str()
-                        .map(|s| Version::parse(s).map(|v| v > self.version).unwrap_or(false))
-                        .unwrap_or(false)
-                })
+                val.map_or(false, |s| Version::parse(&s).map(|v| v > self.version).unwrap_or(false))
             })
             .unwrap_or(false)
     }

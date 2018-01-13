@@ -21,7 +21,7 @@ use toml::Value;
 
 use libimagstore::store::Entry;
 
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 use toml_query::set::TomlValueSetExt;
 
 use error::Result;
@@ -47,10 +47,8 @@ impl Note for Entry {
 
     fn get_name(&self) -> Result<String> {
         self.get_header()
-            .read("note.name")
+            .read_string("note.name")
             .chain_err(|| NEK::StoreReadError)?
-            .and_then(Value::as_str)
-            .map(String::from)
             .ok_or(NE::from_kind(NEK::HeaderTypeError))
     }
 

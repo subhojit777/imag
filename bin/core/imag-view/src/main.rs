@@ -51,8 +51,7 @@ use std::process::Command;
 use std::process::exit;
 
 use handlebars::Handlebars;
-use toml_query::read::TomlValueReadExt;
-use toml::Value;
+use toml_query::read::TomlValueReadTypeExt;
 
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::trace_error_exit;
@@ -98,72 +97,68 @@ fn main() {
             .map_err_trace_exit_unwrap(1);
 
         let query = format!("view.viewers.{}", viewer);
-        match config.read(&query) {
-            Err(e) => trace_error_exit(&e, 1),
-            Ok(None) => {
+
+        let viewer_template = config
+            .read_string(&query)
+            .map_err_trace_exit_unwrap(1)
+            .unwrap_or_else(|| {
                 error!("Cannot find '{}' in config", query);
                 exit(1)
-            },
+            });
 
-            Ok(Some(&Value::String(ref viewer_template))) => {
-                let mut handlebars = Handlebars::new();
-                handlebars.register_escape_fn(::handlebars::no_escape);
+        let mut handlebars = Handlebars::new();
+        handlebars.register_escape_fn(::handlebars::no_escape);
 
-                let _ = handlebars.register_template_string("template", viewer_template)
+        let _ = handlebars
+            .register_template_string("template", viewer_template)
+            .map_err_trace_exit_unwrap(1);
+
+        let file = {
+            let mut tmpfile = tempfile::NamedTempFile::new()
+                .map_err_trace_exit_unwrap(1);
+            if view_header {
+                let hdr = toml::ser::to_string_pretty(entry.get_header())
                     .map_err_trace_exit_unwrap(1);
-
-                let file = {
-                    let mut tmpfile = tempfile::NamedTempFile::new()
-                        .map_err_trace_exit_unwrap(1);
-                    if view_header {
-                        let hdr = toml::ser::to_string_pretty(entry.get_header())
-                            .map_err_trace_exit_unwrap(1);
-                        let _ = tmpfile.write(format!("---\n{}---\n", hdr).as_bytes())
-                            .map_err_trace_exit_unwrap(1);
-                    }
-
-                    if view_content {
-                        let _ = tmpfile.write(entry.get_content().as_bytes())
-                            .map_err_trace_exit_unwrap(1);
-                    }
-
-                    tmpfile
-                };
-
-                let file_path = file
-                    .path()
-                    .to_str()
-                    .map(String::from)
-                    .ok_or::<VE>("Cannot build path".to_owned().into())
+                let _ = tmpfile.write(format!("---\n{}---\n", hdr).as_bytes())
                     .map_err_trace_exit_unwrap(1);
+            }
 
-                let mut command = {
-                    let mut data = BTreeMap::new();
-                    data.insert("entry", file_path);
+            if view_content {
+                let _ = tmpfile.write(entry.get_content().as_bytes())
+                    .map_err_trace_exit_unwrap(1);
+            }
 
-                    let call = handlebars.render("template", &data).map_err_trace_exit_unwrap(1);
-                    let mut elems = call.split_whitespace();
-                    let command_string = elems
-                        .next()
-                        .ok_or::<VE>("No command".to_owned().into())
-                        .map_err_trace_exit_unwrap(1);
-                    let mut cmd = Command::new(command_string);
+            tmpfile
+        };
 
-                    for arg in elems {
-                        cmd.arg(arg);
-                    }
+        let file_path = file
+            .path()
+            .to_str()
+            .map(String::from)
+            .ok_or::<VE>("Cannot build path".to_owned().into())
+            .map_err_trace_exit_unwrap(1);
 
-                    cmd
-                };
+        let mut command = {
+            let mut data = BTreeMap::new();
+            data.insert("entry", file_path);
 
-                if !command.status().map_err_trace_exit_unwrap(1).success() {
-                    exit(1)
-                }
-            },
-            Ok(Some(_)) => {
-                error!("Type error: Expected String at {}, found non-string", query);
-                exit(1)
-            },
+            let call = handlebars.render("template", &data).map_err_trace_exit_unwrap(1);
+            let mut elems = call.split_whitespace();
+            let command_string = elems
+                .next()
+                .ok_or::<VE>("No command".to_owned().into())
+                .map_err_trace_exit_unwrap(1);
+            let mut cmd = Command::new(command_string);
+
+            for arg in elems {
+                cmd.arg(arg);
+            }
+
+            cmd
+        };
+
+        if !command.status().map_err_trace_exit_unwrap(1).success() {
+            exit(1)
         }
     } else {
         let _ = StdoutViewer::new(view_header, view_content)

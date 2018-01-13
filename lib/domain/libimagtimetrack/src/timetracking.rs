@@ -38,7 +38,7 @@ use constants::*;
 use toml::Value;
 use toml_query::delete::TomlValueDeleteExt;
 use toml_query::insert::TomlValueInsertExt;
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 
 pub trait TimeTracking {
 
@@ -64,15 +64,10 @@ impl TimeTracking for Entry {
 
     fn get_timetrack_tag(&self) -> Result<TTT> {
         self.get_header()
-            .read(DATE_TIME_TAG_HEADER_PATH)
+            .read_string(DATE_TIME_TAG_HEADER_PATH)
             .chain_err(|| TTEK::HeaderReadError)?
             .ok_or(TTE::from_kind(TTEK::HeaderReadError))
-            .and_then(|v| {
-                v.as_str()
-                    .map(String::from)
-                    .map(Into::into)
-                    .ok_or(TTE::from_kind(TTEK::HeaderFieldTypeError))
-            })
+            .map(Into::into)
     }
 
     fn set_start_datetime(&mut self, dt: NaiveDateTime) -> Result<()> {
@@ -86,7 +81,7 @@ impl TimeTracking for Entry {
 
     fn get_start_datetime(&self) -> Result<Option<NaiveDateTime>> {
         self.get_header()
-            .read(DATE_TIME_START_HEADER_PATH)
+            .read_string(DATE_TIME_START_HEADER_PATH)
             .chain_err(|| TTEK::HeaderReadError)
             .and_then(header_value_to_dt)
     }
@@ -109,7 +104,7 @@ impl TimeTracking for Entry {
 
     fn get_end_datetime(&self) -> Result<Option<NaiveDateTime>> {
         self.get_header()
-            .read(DATE_TIME_END_HEADER_PATH)
+            .read_string(DATE_TIME_END_HEADER_PATH)
             .chain_err(|| TTEK::HeaderReadError)
             .and_then(header_value_to_dt)
     }
@@ -139,15 +134,13 @@ impl TimeTracking for Entry {
 
 }
 
-fn header_value_to_dt(val: Option<&Value>) -> Result<Option<NaiveDateTime>> {
+fn header_value_to_dt(val: Option<String>) -> Result<Option<NaiveDateTime>> {
     match val {
-        Some(&Value::String(ref s)) => {
+        Some(ref s) => {
             NaiveDateTime::parse_from_str(s, DATE_TIME_FORMAT)
                 .chain_err(|| TTEK::DateTimeParserError)
                 .map(Some)
-
         },
-        Some(_) => Err(TTE::from_kind(TTEK::HeaderFieldTypeError)),
         None => Ok(None),
     }
 }

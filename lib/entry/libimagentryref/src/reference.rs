@@ -29,7 +29,7 @@ use libimagentryutil::isa::Is;
 use libimagentryutil::isa::IsKindHeaderPathProvider;
 
 use toml::Value;
-use toml_query::read::TomlValueReadExt;
+use toml_query::read::TomlValueReadTypeExt;
 use toml_query::set::TomlValueSetExt;
 
 use error::RefErrorKind as REK;
@@ -152,11 +152,8 @@ impl Ref for Entry {
     /// custom Hasher instance.
     fn get_stored_hash_with_hasher<H: Hasher>(&self, h: &H) -> Result<String> {
         self.get_header()
-            .read(&format!("ref.content_hash.{}", h.hash_name())[..])?
-            .ok_or(RE::from_kind(REK::HeaderFieldMissingError))?
-            .as_str()
-            .map(String::from)
-            .ok_or(RE::from_kind(REK::HeaderTypeError))
+            .read_string(&format!("ref.content_hash.{}", h.hash_name())[..])?
+            .ok_or(RE::from_kind(REK::HeaderFieldMissingError))
     }
 
     /// Get the hash of the link target by reading the link target and hashing the contents
@@ -210,13 +207,9 @@ impl Ref for Entry {
     fn fs_link_valid_permissions(&self) -> Result<bool> {
         self
             .get_header()
-            .read("ref.permissions.ro")
-            .chain_err(|| REK::HeaderFieldReadError)
-            .and_then(|ro| {
-                ro.ok_or(RE::from_kind(REK::HeaderFieldMissingError))?
-                    .as_bool()
-                    .ok_or(RE::from_kind(REK::HeaderTypeError))
-            })
+            .read_bool("ref.permissions.ro")
+            .chain_err(|| REK::HeaderFieldReadError)?
+            .ok_or(RE::from_kind(REK::HeaderFieldMissingError))
             .and_then(|ro| self.get_current_permissions().map(|perm| ro == perm.readonly()))
             .chain_err(|| REK::RefTargetCannotReadPermissions)
     }
@@ -256,11 +249,9 @@ impl Ref for Entry {
     /// Get the path of the file which is reffered to by this Ref
     fn fs_file(&self) -> Result<PathBuf> {
         self.get_header()
-            .read("ref.path")?
-            .ok_or(RE::from_kind(REK::HeaderFieldMissingError))?
-            .as_str()
+            .read_string("ref.path")?
+            .ok_or(RE::from_kind(REK::HeaderFieldMissingError))
             .map(PathBuf::from)
-            .ok_or(RE::from_kind(REK::HeaderTypeError))
     }
 
     /// Re-find a referenced file

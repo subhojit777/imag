@@ -136,6 +136,7 @@ fn show(rt: &Runtime) {
 
 fn get_diary_name(rt: &Runtime) -> String {
     use toml_query::read::TomlValueReadExt;
+    use toml_query::read::TomlValueReadTypeExt;
 
     let cfg = rt
         .config()
@@ -160,15 +161,13 @@ fn get_diary_name(rt: &Runtime) -> String {
         .into_iter()
         .map(Value::as_str)
         .map(Option::unwrap)
-        .collect::<Vec<_>>();
+        .map(String::from)
+        .collect::<Vec<String>>();
 
     let current_log = cfg
-        .read("log.default")
+        .read_string("log.default")
         .map_err_trace_exit_unwrap(1)
         .ok_or(LE::from("Configuration missing: 'log.default'"))
-        .map_err_trace_exit_unwrap(1)
-        .as_str()
-        .ok_or(LE::from("Configuration 'log.default' is not a String"))
         .map_err_trace_exit_unwrap(1);
 
     if !logs.contains(&current_log) {
