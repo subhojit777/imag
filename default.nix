@@ -16,7 +16,7 @@ let
     which
     zlib
     dbus
-    pkgconfig
+    libtool
   ];
 in
 
