@@ -45,7 +45,7 @@ mod year;
 
 use cont::cont;
 use day::day;
-use list::list;
+use list::{list, list_impl};
 use month::month;
 use start::start;
 use stop::stop;
@@ -81,8 +81,9 @@ fn main() {
             },
         }
     } else {
-        error!("No command");
-        1
+        let start = ::chrono::offset::Local::today().naive_local().and_hms(0, 0, 0);
+        let end   = ::chrono::offset::Local::today().naive_local().and_hms(23, 59, 59);
+        list_impl(&rt, Some(start), Some(end), false)
     };
 
     ::std::process::exit(retval);

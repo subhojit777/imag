@@ -19,6 +19,7 @@
 
 use std::str::FromStr;
 
+use chrono::NaiveDateTime;
 use filters::filter::Filter;
 
 use libimagerror::trace::trace_error;
@@ -52,6 +53,16 @@ pub fn list(rt: &Runtime) -> i32 {
     };
 
     let list_not_ended = cmd.is_present("list-not-ended");
+
+    list_impl(rt, start, end, list_not_ended)
+}
+
+pub fn list_impl(rt: &Runtime,
+                 start: Option<NaiveDateTime>,
+                 end: Option<NaiveDateTime>,
+                 list_not_ended: bool)
+    -> i32
+{
 
     let start_time_filter = |timetracking: &FileLockEntry| {
         start.map(|s| match timetracking.get_start_datetime() {
