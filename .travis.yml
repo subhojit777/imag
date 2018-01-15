@@ -29,8 +29,8 @@ addons:
     - pkg-config
 
 script:
-  - cargo build --all --all-features --verbose -j 1
-  - cargo test  --all --all-features --verbose -j 1
+  - cargo build --all --all-features -j 1
+  - cargo test  --all --all-features -j 1
 
 notifications:
   email:
