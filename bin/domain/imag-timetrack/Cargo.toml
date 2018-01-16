@@ -25,6 +25,7 @@ log = "0.3"
 chrono = "0.4"
 filters = "0.2"
 itertools = "0.7"
+prettytable-rs = "0.6"
 
 libimagstore     = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
 libimagrt        = { version = "0.6.0", path = "../../../lib/core/libimagrt" }
