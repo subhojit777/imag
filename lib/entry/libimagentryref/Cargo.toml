@@ -21,7 +21,7 @@ maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
 itertools = "0.7"
-log = "0.3"
+log = "0.4.0"
 rust-crypto = "0.2"
 toml = "0.4"
 toml-query = "0.6"

@@ -30,7 +30,7 @@ use error::ResultExt;
 use runtime::Runtime;
 
 use clap::ArgMatches;
-use log::{Log, LogLevel, LogRecord, LogMetadata};
+use log::{Log, Level, Record, Metadata};
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
 use toml_query::read::TomlValueReadTypeExt;
@@ -52,7 +52,7 @@ impl Default for LogDestination {
 
 struct ModuleSettings {
     enabled:        bool,
-    level:          Option<LogLevel>,
+    level:          Option<Level>,
 
     #[allow(unused)]
     destinations:   Option<Vec<LogDestination>>,
@@ -60,7 +60,7 @@ struct ModuleSettings {
 
 /// Logger implementation for `log` crate.
 pub struct ImagLogger {
-    global_loglevel     : LogLevel,
+    global_loglevel     : Level,
 
     #[allow(unused)]
     global_destinations : Vec<LogDestination>,
@@ -114,7 +114,7 @@ impl ImagLogger {
         })
     }
 
-    pub fn global_loglevel(&self) -> LogLevel {
+    pub fn global_loglevel(&self) -> Level {
         self.global_loglevel
     }
 
@@ -122,12 +122,16 @@ impl ImagLogger {
 
 impl Log for ImagLogger {
 
-    fn enabled(&self, metadata: &LogMetadata) -> bool {
+    fn enabled(&self, metadata: &Metadata) -> bool {
         metadata.level() <= self.global_loglevel
     }
 
-    fn log(&self, record: &LogRecord) {
-        if record.location().module_path().starts_with("handlebars") {
+    fn flush(&self) {
+        // nothing?
+    }
+
+    fn log(&self, record: &Record) {
+        if record.module_path().map(|m| m.starts_with("handlebars")).unwrap_or(false) {
             // This is a ugly, yet necessary hack. When logging, we use handlebars for templating.
             // But as the handlebars library itselfs logs via a normal logging macro ("debug!()"),
             // we have a recursion in our chain.
@@ -143,9 +147,9 @@ impl Log for ImagLogger {
 
         {
             data.insert("level",        format!("{}", record.level()));
-            data.insert("module_path",  String::from(record.location().module_path()));
-            data.insert("file",         String::from(record.location().file()));
-            data.insert("line",         format!("{}", record.location().line()));
+            data.insert("module_path",  String::from(record.module_path().unwrap_or("<modulepath unknown>")));
+            data.insert("file",         String::from(record.file().unwrap_or("<file unknown>")));
+            data.insert("line",         format!("{}", record.line().unwrap_or(0)));
             data.insert("target",       String::from(record.target()));
             data.insert("message",      format!("{}", record.args()));
         }
@@ -209,27 +213,26 @@ impl Log for ImagLogger {
     }
 }
 
-fn match_log_level_str(s: &str) -> Result<LogLevel> {
+fn match_log_level_str(s: &str) -> Result<Level> {
     match s {
-        "trace" => Ok(LogLevel::Trace),
-        "debug" => Ok(LogLevel::Debug),
-        "info"  => Ok(LogLevel::Info),
-        "warn"  => Ok(LogLevel::Warn),
-        "error" => Ok(LogLevel::Error),
+        "trace" => Ok(Level::Trace),
+        "debug" => Ok(Level::Debug),
+        "info"  => Ok(Level::Info),
+        "warn"  => Ok(Level::Warn),
+        "error" => Ok(Level::Error),
         _       => return Err(RE::from_kind(EK::InvalidLogLevelSpec)),
     }
 }
 
-fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Value>)
-    -> Result<LogLevel>
+fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Value>) -> Result<Level>
 {
-    fn get_arg_loglevel(matches: &ArgMatches) -> Result<Option<LogLevel>> {
+    fn get_arg_loglevel(matches: &ArgMatches) -> Result<Option<Level>> {
         if matches.is_present(Runtime::arg_debugging_name()) {
-            return Ok(Some(LogLevel::Debug))
+            return Ok(Some(Level::Debug))
         }
 
         if matches.is_present(Runtime::arg_verbosity_name()) {
-            return Ok(Some(LogLevel::Info))
+            return Ok(Some(Level::Info))
         }
 
         match matches.value_of(Runtime::arg_verbosity_name()) {
@@ -253,7 +256,7 @@ fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Value>)
         Ok(cfg_loglevel)
 
     } else {
-        get_arg_loglevel(matches).map(|o| o.unwrap_or(LogLevel::Info))
+        get_arg_loglevel(matches).map(|o| o.unwrap_or(Level::Info))
     }
 }
 

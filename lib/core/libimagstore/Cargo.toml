@@ -22,7 +22,7 @@ maintenance                       = { status     = "actively-developed" }
 [dependencies]
 glob = "0.2.11"
 lazy_static = "0.2"
-log = "0.3"
+log = "0.4.0"
 regex = "0.2"
 semver = "0.8"
 toml = "0.4"
@@ -39,7 +39,7 @@ libimagutil  = { version = "0.6.0", path = "../../../lib/etc/libimagutil" }
 
 [dev-dependencies]
 tempdir = "0.3"
-env_logger = "0.4"
+env_logger = "0.5"
 
 [features]
 default = []

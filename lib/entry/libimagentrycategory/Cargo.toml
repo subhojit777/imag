@@ -20,7 +20,7 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-log = "0.3"
+log = "0.4.0"
 toml = "0.4"
 toml-query = "0.6"
 is-match = "0.1"
@@ -30,5 +30,5 @@ libimagerror = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
 libimagstore = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
 
 [dev-dependencies]
-env_logger = "0.4"
+env_logger = "0.5"
 
