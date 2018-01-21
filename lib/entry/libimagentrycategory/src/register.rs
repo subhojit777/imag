@@ -266,7 +266,7 @@ impl<'a> Iterator for CategoryNameIter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         // TODO: Optimize me with lazy_static
-        let query = String::from(CATEGORY_REGISTER_NAME_FIELD_PATH);
+        let query = CATEGORY_REGISTER_NAME_FIELD_PATH;
 
         self.1
             .next()
@@ -275,7 +275,7 @@ impl<'a> Iterator for CategoryNameIter<'a> {
                     .get(sid)?
                     .ok_or_else(|| CE::from_kind(CEK::StoreReadError))?
                     .get_header()
-                    .read_string(&query)
+                    .read_string(query)
                     .chain_err(|| CEK::HeaderReadError)?
                     .map(Category::from)
                     .ok_or_else(|| CE::from_kind(CEK::StoreReadError))
