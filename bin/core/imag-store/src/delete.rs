@@ -36,7 +36,7 @@ pub fn delete(rt: &Runtime) {
     let _ = rt.store()
         .delete(path)
         .map_warn_err(|e| format!("Error: {:?}", e))
-        .map_err_trace_exit(1);
+        .map_err_trace_exit_unwrap(1);
 }
 
 #[cfg(test)]

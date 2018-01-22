@@ -82,22 +82,18 @@ fn add(rt: &Runtime) {
     let entry_name      = scmd
         .value_of("entry")
         .map(PathBuf::from)
-        .map(|pb| pb.into_storeid().map_err_trace_exit(1).unwrap())
+        .map(|pb| pb.into_storeid().map_err_trace_exit_unwrap(1))
         .unwrap(); // safed by clap
 
     let _ = rt.store()
         .get(entry_name)
-        .map_err_trace_exit(1)
-        .unwrap()
+        .map_err_trace_exit_unwrap(1)
         .ok_or(AE::from("Entry does not exist".to_owned()))
-        .map_err_trace_exit(1)
-        .unwrap()
+        .map_err_trace_exit_unwrap(1)
         .annotate(rt.store(), annotation_name)
-        .map_err_trace_exit(1)
-        .unwrap()
+        .map_err_trace_exit_unwrap(1)
         .edit_content(&rt)
-        .map_err_trace_exit(1)
-        .unwrap();
+        .map_err_trace_exit_unwrap(1);
 
     info!("Ok");
 }
@@ -109,17 +105,14 @@ fn remove(rt: &Runtime) {
     let delete          = scmd.is_present("delete-annotation");
 
     let mut entry = rt.store()
-        .get(PathBuf::from(entry_name).into_storeid().map_err_trace_exit(1).unwrap())
-        .map_err_trace_exit(1)
-        .unwrap()
+        .get(PathBuf::from(entry_name).into_storeid().map_err_trace_exit_unwrap(1))
+        .map_err_trace_exit_unwrap(1)
         .ok_or(AE::from("Entry does not exist".to_owned()))
-        .map_err_trace_exit(1)
-        .unwrap();
+        .map_err_trace_exit_unwrap(1);
 
     let annotation = entry
         .denotate(rt.store(), annotation_name)
-        .map_err_trace_exit(1)
-        .unwrap();
+        .map_err_trace_exit_unwrap(1);
 
     if delete {
         debug!("Deleting annotation object");
@@ -130,8 +123,7 @@ fn remove(rt: &Runtime) {
             let _ = rt
                 .store()
                 .delete(loc)
-                .map_err_trace_exit(1)
-                .unwrap();
+                .map_err_trace_exit_unwrap(1);
         } else {
             warn!("Not having annotation object, cannot delete!");
         }
@@ -149,17 +141,14 @@ fn list(rt: &Runtime) {
         Some(pb) => {
             let _ = rt
                 .store()
-                .get(pb.into_storeid().map_err_trace_exit(1).unwrap())
-                .map_err_trace_exit(1)
-                .unwrap()
+                .get(pb.into_storeid().map_err_trace_exit_unwrap(1))
+                .map_err_trace_exit_unwrap(1)
                 .ok_or(AE::from("Entry does not exist".to_owned()))
-                .map_err_trace_exit(1)
-                .unwrap()
+                .map_err_trace_exit_unwrap(1)
                 .annotations(rt.store())
-                .map_err_trace_exit(1)
-                .unwrap()
+                .map_err_trace_exit_unwrap(1)
                 .enumerate()
-                .map(|(i, a)| list_annotation(i, a.map_err_trace_exit(1).unwrap(), with_text))
+                .map(|(i, a)| list_annotation(i, a.map_err_trace_exit_unwrap(1), with_text))
                 .collect::<Vec<_>>();
         }
 
@@ -168,10 +157,9 @@ fn list(rt: &Runtime) {
             let _ = rt
                 .store()
                 .all_annotations()
-                .map_err_trace_exit(1)
-                .unwrap()
+                .map_err_trace_exit_unwrap(1)
                 .enumerate()
-                .map(|(i, a)| list_annotation(i, a.map_err_trace_exit(1).unwrap(), with_text))
+                .map(|(i, a)| list_annotation(i, a.map_err_trace_exit_unwrap(1), with_text))
                 .collect::<Vec<_>>();
         }
     }

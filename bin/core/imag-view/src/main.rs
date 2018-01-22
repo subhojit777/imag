@@ -163,7 +163,7 @@ fn main() {
     } else {
         let _ = StdoutViewer::new(view_header, view_content)
             .view_entry(&entry)
-            .map_err_trace_exit(1);
+            .map_err_trace_exit_unwrap(1);
     }
 }
 

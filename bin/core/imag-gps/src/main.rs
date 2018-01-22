@@ -103,8 +103,7 @@ fn add(rt: &Runtime) {
         .get(sid)
         .map_err_trace_exit_unwrap(1)
         .map(|mut entry| {
-            let _ = entry.set_coordinates(c)
-                .map_err_trace_exit(1);
+            let _ = entry.set_coordinates(c).map_err_trace_exit_unwrap(1);
         })
         .unwrap_or_else(|| {
             error!("No such entry: {}", entry_name);

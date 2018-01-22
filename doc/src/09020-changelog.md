@@ -40,6 +40,8 @@ This section contains the changelog from the last release to the next release.
     * `imag-timetrack list` lists with a table now
     * `imag-timetrack stop` now stops all runnings tags if none are specified
     * The `toml-query` dependency was updated to 0.6.0
+    * `ResultExt::map_err_trace_exit()` was removed in favour of
+      `ResultExt::map_err_trace_exit_unwrap()`.
 * Bugfixes
 
 ## 0.5.0

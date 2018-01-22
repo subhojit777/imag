@@ -106,7 +106,7 @@ fn main() {
             }
         })
         .ok_or(LE::from("No commandline call".to_owned()))
-        .map_err_trace_exit(1);
+        .map_err_trace_exit_unwrap(1);
 }
 
 fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<Option<FileLockEntry<'a>>, StoreError> {

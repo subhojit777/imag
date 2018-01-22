@@ -75,7 +75,7 @@ fn main() {
     let _ = rt
         .store()
         .move_by_id(sourcename, destname)
-        .map_err_trace_exit(1);
+        .map_err_trace_exit_unwrap(1);
 
     info!("Ok.");
 }

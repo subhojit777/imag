@@ -79,7 +79,7 @@ fn create(rt: &Runtime) {
         let _ = note
             .edit_content(rt)
             .map_warn_err_str("Editing failed")
-            .map_err_trace_exit(1);
+            .map_err_trace_exit_unwrap(1);
     }
 }
 
@@ -87,7 +87,7 @@ fn delete(rt: &Runtime) {
     let _ = rt.store()
         .delete_note(name_from_cli(rt, "delete"))
         .map_info_str("Ok")
-        .map_err_trace_exit(1);
+        .map_err_trace_exit_unwrap(1);
 }
 
 fn edit(rt: &Runtime) {
@@ -100,7 +100,7 @@ fn edit(rt: &Runtime) {
             let _ = note
                 .edit_content(rt)
                 .map_warn_err_str("Editing failed")
-                .map_err_trace_exit(1);
+                .map_err_trace_exit_unwrap(1);
         })
         .unwrap_or_else(|| {
             error!("Cannot find note with name '{}'", name);
@@ -110,27 +110,22 @@ fn edit(rt: &Runtime) {
 fn list(rt: &Runtime) {
     use std::cmp::Ordering;
 
-    rt.store()
+    let _ = rt
+        .store()
         .all_notes()
-        .map_err_trace_exit(1)
-        .map(|iter| {
-            let notes = iter
-                .filter_map(|noteid| rt.store().get(noteid).map_err_trace_exit_unwrap(1))
-                .sorted_by(|note_a, note_b| {
-                    if let (Ok(a), Ok(b)) = (note_a.get_name(), note_b.get_name()) {
-                        return a.cmp(&b)
-                    } else {
-                        return Ordering::Greater;
-                    }
-                });
-
-            for note in notes.iter() {
-                note.get_name()
-                    .map(|name| println!("{}", name))
-                    .map_err_trace()
-                    .ok();
-            }
+        .map_err_trace_exit_unwrap(1)
+        .filter_map(|noteid| rt.store().get(noteid).map_err_trace_exit_unwrap(1))
+        .sorted_by(|note_a, note_b| if let (Ok(a), Ok(b)) = (note_a.get_name(), note_b.get_name()) {
+            return a.cmp(&b)
+        } else {
+            return Ordering::Greater;
         })
-        .ok();
+        .iter()
+        .for_each(|note| {
+            note.get_name()
+                .map(|name| println!("{}", name))
+                .map_err_trace()
+                .ok();
+        });
 }
 
