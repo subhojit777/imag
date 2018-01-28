@@ -634,35 +634,34 @@ pub mod store_check {
             //
             // The lambda returns an error if something fails
             let aggregate_link_network = |store: &Store| -> Result<HashMap<StoreId, Linking>> {
-                let iter = store
+                store
                     .entries()?
-                    .into_get_iter(store);
+                    .into_get_iter(store)
+                    .fold(Ok(HashMap::new()), |map, element| {
+                        map.and_then(|mut map| {
+                            debug!("Checking element = {:?}", element);
+                            let entry = element?.ok_or_else(|| {
+                                LE::from(String::from("TODO: Not yet handled"))
+                            })?;
 
-                let mut map = HashMap::new();
-                for element in iter {
-                    debug!("Checking element = {:?}", element);
-                    let entry = element?.ok_or_else(|| {
-                        LE::from(String::from("TODO: Not yet handled"))
-                    })?;
+                            debug!("Checking entry = {:?}", entry.get_location());
 
-                    debug!("Checking entry = {:?}", entry.get_location());
+                            let internal_links = entry
+                                .get_internal_links()?
+                                .into_getter(store); // get the FLEs from the Store
 
-                    let internal_links = entry
-                        .get_internal_links()?
-                        .into_getter(store); // get the FLEs from the Store
+                            let mut linking = Linking::default();
+                            for internal_link in internal_links {
+                                debug!("internal link = {:?}", internal_link);
 
-                    let mut linking = Linking::default();
-                    for internal_link in internal_links {
-                        debug!("internal link = {:?}", internal_link);
+                                linking.outgoing.push(internal_link?.get_location().clone());
+                                linking.incoming.push(entry.get_location().clone());
+                            }
 
-                        linking.outgoing.push(internal_link?.get_location().clone());
-                        linking.incoming.push(entry.get_location().clone());
-                    }
-
-                    map.insert(entry.get_location().clone(), linking);
-                }
-
-                Ok(map)
+                            map.insert(entry.get_location().clone(), linking);
+                            Ok(map)
+                        })
+                    })
             };
 
             // Helper to check whethre all StoreIds in the network actually exists
