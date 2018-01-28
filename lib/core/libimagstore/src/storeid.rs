@@ -30,6 +30,7 @@ use error::StoreErrorKind as SEK;
 use error::StoreError as SE;
 use error::ResultExt;
 use store::Result;
+use store::Store;
 
 /// The Index into the Store
 #[derive(Debug, Clone, Hash, Eq, PartialOrd, Ord)]
@@ -258,6 +259,34 @@ impl Iterator for StoreIdIterator {
         self.iter.next()
     }
 
+}
+
+pub struct StoreIdIteratorWithStore<'a>(StoreIdIterator, &'a Store);
+
+impl<'a> Deref for StoreIdIteratorWithStore<'a> {
+    type Target = StoreIdIterator;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<'a> Iterator for StoreIdIteratorWithStore<'a> {
+    type Item = StoreId;
+
+    fn next(&mut self) -> Option<StoreId> {
+        self.0.next()
+    }
+}
+
+impl<'a> StoreIdIteratorWithStore<'a> {
+    pub fn new(iter: Box<Iterator<Item = StoreId>>, store: &'a Store) -> Self {
+        StoreIdIteratorWithStore(StoreIdIterator::new(iter), store)
+    }
+
+    pub fn get_store(&self) -> &Store {
+        &self.1
+    }
 }
 
 #[cfg(test)]

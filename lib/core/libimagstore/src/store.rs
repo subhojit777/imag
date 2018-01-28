@@ -40,7 +40,7 @@ use toml_query::read::TomlValueReadTypeExt;
 
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::ResultExt;
-use storeid::{IntoStoreId, StoreId, StoreIdIterator};
+use storeid::{IntoStoreId, StoreId, StoreIdIterator, StoreIdIteratorWithStore};
 use file_abstraction::FileAbstractionInstance;
 
 // We re-export the following things so tests can use them
@@ -721,7 +721,7 @@ impl Store {
     }
 
     /// Get _all_ entries in the store (by id as iterator)
-    pub fn entries(&self) -> Result<StoreIdIterator> {
+    pub fn entries<'a>(&'a self) -> Result<StoreIdIteratorWithStore<'a>> {
         self.backend
             .pathes_recursively(self.path().clone())
             .and_then(|iter| {
@@ -738,9 +738,8 @@ impl Store {
                         elems.push(sid);
                     }
                 }
-                Ok(StoreIdIterator::new(Box::new(elems.into_iter())))
+                Ok(StoreIdIteratorWithStore::new(Box::new(elems.into_iter()), self))
             })
-
     }
 
     /// Gets the path where this store is on the disk
