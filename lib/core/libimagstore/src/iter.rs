@@ -202,18 +202,14 @@ mod compile_test {
     }
 
     fn test_compile_get() {
-        use super::get::StoreIdGetIteratorExtension;
-
         let store = store();
         let _ = store
             .entries()
             .unwrap()
-            .into_get_iter(&store);
+            .into_get_iter();
     }
 
     fn test_compile_get_result() {
-        use super::get::StoreIdGetResultIteratorExtension;
-
         fn to_result(e: StoreId) -> Result<StoreId, ()> {
             Ok(e)
         }
@@ -222,8 +218,7 @@ mod compile_test {
         let _ = store
             .entries()
             .unwrap()
-            .map(to_result)
-            .into_get_iter(&store);
+            .into_get_iter();
     }
 }
 
