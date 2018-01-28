@@ -34,6 +34,12 @@ macro_rules! mk_iterator {
 
         pub struct $itername<'a>(Box<Iterator<Item = StoreId>>, &'a Store);
 
+        impl<'a> $itername<'a> {
+            pub fn new(inner: Box<Iterator<Item = StoreId>>, store: &'a Store) -> Self {
+                $itername(inner, store)
+            }
+        }
+
         impl<'a> Iterator for $itername<'a> {
             type Item = Result<$yield>;
 
