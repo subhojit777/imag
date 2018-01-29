@@ -290,6 +290,10 @@ impl<'a> StoreIdIteratorWithStore<'a> {
         StoreIdIteratorWithStore(StoreIdIterator::new(iter), store)
     }
 
+    pub fn without_store(self) -> StoreIdIterator {
+        self.0
+    }
+
     /// Transform the iterator into a StoreCreateIterator
     ///
     /// This immitates the API from `libimagstore::iter`.
