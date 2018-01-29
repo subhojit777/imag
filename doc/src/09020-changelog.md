@@ -38,6 +38,7 @@ This section contains the changelog from the last release to the next release.
     * `libimagbookmark` does not longer wrap types from the store.
     * The `toml-query` dependency was updated to 0.5.0
     * `imag-timetrack list` lists with a table now
+    * `imag-timetrack stop` now stops all runnings tags if none are specified
 * Bugfixes
 
 ## 0.5.0

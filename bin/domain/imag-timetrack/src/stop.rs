@@ -23,6 +23,7 @@ use filters::filter::Filter;
 
 use libimagerror::trace::trace_error;
 use libimagerror::iter::TraceIterator;
+use libimagerror::trace::MapErrTrace;
 use libimagrt::runtime::Runtime;
 
 use libimagtimetrack::timetracking::TimeTracking;
@@ -48,14 +49,30 @@ pub fn stop(rt: &Runtime) -> i32 {
         }
     };
 
-
-    // TODO: We do not yet support stopping all tags by simply calling the "stop" subcommand!
-
     let tags : Vec<TimeTrackingTag> = cmd.values_of("tags")
-        .unwrap() // enforced by clap
-        .map(String::from)
-        .map(TimeTrackingTag::from)
-        .collect();
+        .map(|tags| tags.map(String::from).map(TimeTrackingTag::from).collect())
+        .unwrap_or_else(|| {
+            // Get all timetrackings which do not have an end datetime.
+            rt.store()
+                .get_timetrackings()
+                .map_err_trace_exit_unwrap(1)
+                .filter_map(|tracking| {
+                    let tracking = tracking.map_err_trace_exit_unwrap(1);
+                    let is_none = tracking
+                        .get_end_datetime()
+                        .map_err_trace_exit_unwrap(1)
+                        .is_none();
+
+                    if is_none {
+                        Some(tracking)
+                    } else {
+                        None
+                    }
+                })
+                .map(|t| t.get_timetrack_tag())
+                .map(|r| r.map_err_trace_exit_unwrap(1))
+                .collect()
+        });
 
     let iter : GetTimeTrackIter = match rt.store().get_timetrackings() {
         Ok(i) => i,
