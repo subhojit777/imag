@@ -27,8 +27,10 @@ pub fn date_to_string(ndt: &NaiveDate) -> String {
     ndt.format(NAIVE_DATE_STRING_FORMAT).to_string()
 }
 
-pub fn date_from_string(s: String) -> Result<NaiveDate, ParseError> {
-    NaiveDate::parse_from_str(&s, NAIVE_DATE_STRING_FORMAT)
+pub fn date_from_string<S>(s: S) -> Result<NaiveDate, ParseError>
+    where S: AsRef<str>
+{
+    NaiveDate::parse_from_str(s.as_ref(), NAIVE_DATE_STRING_FORMAT)
 }
 
 pub const NAIVE_DATETIME_STRING_FORMAT : &'static str = "%Y-%m-%d %H:%M:%S";
@@ -37,7 +39,9 @@ pub fn datetime_to_string(ndt: &NaiveDateTime) -> String {
     ndt.format(NAIVE_DATETIME_STRING_FORMAT).to_string()
 }
 
-pub fn datetime_from_string(s: &str) -> Result<NaiveDateTime, ParseError> {
-    NaiveDateTime::parse_from_str(s, NAIVE_DATETIME_STRING_FORMAT)
+pub fn datetime_from_string<S>(s: S) -> Result<NaiveDateTime, ParseError>
+    where S: AsRef<str>
+{
+    NaiveDateTime::parse_from_str(s.as_ref(), NAIVE_DATETIME_STRING_FORMAT)
 }
 
