@@ -38,7 +38,7 @@ extern crate toml;
 extern crate toml_query;
 
 extern crate libimagbookmark;
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagerror;
 extern crate libimagutil;
 
@@ -59,8 +59,9 @@ mod ui;
 use ui::build_ui;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-bookmark",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Bookmark collection tool",
                                     build_ui);
 

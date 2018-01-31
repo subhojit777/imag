@@ -37,7 +37,7 @@ extern crate clap;
 
 extern crate libimagentryedit;
 extern crate libimagerror;
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagutil;
 
@@ -52,8 +52,9 @@ use libimagstore::storeid::IntoStoreId;
 mod ui;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-edit",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Edit store entries with $EDITOR",
                                     ui::build_ui);
 

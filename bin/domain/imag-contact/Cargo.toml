@@ -13,6 +13,8 @@ documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.h
 repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
+build = "../../../build.rs"
+
 [badges]
 travis-ci                         = { repository = "matthiasbeyer/imag" }
 is-it-maintained-issue-resolution = { repository = "matthiasbeyer/imag" }

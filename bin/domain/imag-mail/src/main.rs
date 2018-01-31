@@ -20,7 +20,7 @@
 extern crate clap;
 #[macro_use] extern crate log;
 
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagmail;
 extern crate libimagerror;
 extern crate libimagutil;
@@ -36,8 +36,9 @@ mod ui;
 use ui::build_ui;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-mail",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Mail collection tool",
                                     build_ui);
 

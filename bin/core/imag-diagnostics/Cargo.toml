@@ -13,6 +13,8 @@ documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.h
 repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
+build = "../../../build.rs"
+
 [dependencies]
 toml = "0.4"
 toml-query = "0.6"

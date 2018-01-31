@@ -39,7 +39,7 @@ extern crate log;
 extern crate libimagentryannotation;
 extern crate libimagentryedit;
 extern crate libimagerror;
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagutil;
 
@@ -59,8 +59,9 @@ use libimagutil::warn_exit::warn_exit;
 mod ui;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-annotation",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Add annotations to entries",
                                     ui::build_ui);
 

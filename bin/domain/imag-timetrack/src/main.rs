@@ -29,7 +29,7 @@ extern crate kairos;
 
 extern crate libimagerror;
 extern crate libimagstore;
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagtimetrack;
 extern crate libimagutil;
 
@@ -58,8 +58,9 @@ use year::year;
 use libimagrt::setup::generate_runtime_setup;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-timetrack",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Time tracking module",
                                     build_ui);
 

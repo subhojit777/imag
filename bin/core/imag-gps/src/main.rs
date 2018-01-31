@@ -37,7 +37,7 @@ extern crate clap;
 extern crate log;
 
 extern crate libimagentrygps;
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagutil;
 extern crate libimagerror;
 extern crate libimagstore;
@@ -57,8 +57,9 @@ use libimagstore::storeid::IntoStoreId;
 mod ui;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-gps",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Add GPS coordinates to entries",
                                     ui::build_ui);
 

@@ -39,7 +39,7 @@ extern crate toml;
 extern crate toml_query;
 
 extern crate libimaglog;
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagerror;
 extern crate libimagdiary;
 
@@ -56,8 +56,9 @@ use ui::build_ui;
 use toml::Value;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-log",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Overlay to imag-diary to 'log' single lines of text",
                                     build_ui);
 

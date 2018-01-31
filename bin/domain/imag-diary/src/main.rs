@@ -43,7 +43,7 @@ extern crate libimagentryedit;
 extern crate libimagentrylist;
 extern crate libimagerror;
 extern crate libimaginteraction;
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagtimeui;
 extern crate libimagutil;
@@ -68,10 +68,10 @@ use ui::build_ui;
 use view::view;
 
 fn main() {
+    let version = make_imag_version!();
     let name = "imag-diary";
-    let version = env!("CARGO_PKG_VERSION");
     let about = "Personal Diary/Diaries";
-    let ui = build_ui(Runtime::get_default_cli_builder(name, version, about));
+    let ui = build_ui(Runtime::get_default_cli_builder(name, &version, about));
     let rt = {
         let rt = Runtime::new(ui);
         if rt.is_ok() {

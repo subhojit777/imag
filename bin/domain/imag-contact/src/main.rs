@@ -43,7 +43,7 @@ extern crate uuid;
 
 extern crate libimagcontact;
 extern crate libimagstore;
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagerror;
 extern crate libimagutil;
 extern crate libimaginteraction;
@@ -78,8 +78,9 @@ use util::build_data_object_for_handlebars;
 use create::create;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-contact",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Contact management tool",
                                     build_ui);
 
