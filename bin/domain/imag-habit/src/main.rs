@@ -372,7 +372,7 @@ fn show(rt: &Runtime) {
     }
 
     fn instance_lister_fn(i: &FileLockEntry) -> Vec<String> {
-        use libimaghabit::util::date_to_string;
+        use libimagutil::date::date_to_string;
         use libimaghabit::instance::HabitInstance;
 
         let date = date_to_string(&i.get_date().map_err_trace_exit_unwrap(1));
@@ -456,7 +456,7 @@ fn done(rt: &Runtime) {
                 .map_err_trace_exit_unwrap(1);
 
             info!("Done on {date}: {name}",
-                  date = libimaghabit::util::date_to_string(&next),
+                  date = libimagutil::date::date_to_string(&next),
                   name = next_instance_name);
         } else {
             info!("Ignoring: {}, because there is no due date (the habit is finised)",
@@ -483,6 +483,6 @@ fn get_from_store<'a>(store: &'a Store, id: StoreId) -> Option<FileLockEntry<'a>
 }
 
 fn date_to_string_helper(d: chrono::NaiveDate) -> String {
-    libimaghabit::util::date_to_string(&d)
+    libimagutil::date::date_to_string(&d)
 }
 

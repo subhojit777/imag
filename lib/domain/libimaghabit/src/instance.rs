@@ -54,11 +54,13 @@ impl HabitInstance for Entry {
     }
 
     fn get_date(&self) -> Result<NaiveDate> {
-        use util::date_from_string;
+        use libimagutil::date::date_from_string as dts;
+        let date_from_string = |d| dts(d).map_err(From::from);
         get_string_header_from_entry(self, "habit.instance.date").and_then(date_from_string)
     }
 
     fn set_date(&mut self, n: &NaiveDate) -> Result<()> {
+        use libimagutil::date::date_to_string;
         // Using `set` here because when creating the entry, these headers should be made present.
         self.get_header_mut()
             .set("habit.instance.date", Value::String(date_to_string(n)))

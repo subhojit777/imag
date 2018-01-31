@@ -28,7 +28,6 @@ use error::HabitError as HE;
 use error::HabitErrorKind as HEK;
 use error::*;
 use iter::HabitInstanceStoreIdIterator;
-use util::date_to_string;
 use util::IsHabitCheck;
 use util::get_string_header_from_entry;
 use instance::IsHabitInstance;
@@ -42,6 +41,7 @@ use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreIdIterator;
 use libimagentryutil::isa::Is;
 use libimagentryutil::isa::IsKindHeaderPathProvider;
+use libimagutil::date::date_to_string;
 
 /// A HabitTemplate is a "template" of a habit. A user may define a habit "Eat vegetable".
 /// If the user ate a vegetable, she should create a HabitInstance from the Habit with the
@@ -250,7 +250,7 @@ pub mod builder {
     use error::HabitError as HE;
     use error::HabitErrorKind as HEK;
     use error::*;
-    use util::date_to_string;
+    use libimagutil::date::date_to_string;
     use habit::IsHabitTemplate;
 
     pub struct HabitBuilder {
