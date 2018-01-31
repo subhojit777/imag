@@ -18,6 +18,7 @@
 //
 
 use libimagstore::storeid::StoreIdIterator;
+use libimagstore::storeid::StoreIdIteratorWithStore;
 use libimagstore::storeid::StoreId;
 
 use util::IsHabitCheck;
@@ -40,6 +41,12 @@ impl Iterator for HabitTemplateStoreIdIterator {
 impl From<StoreIdIterator> for HabitTemplateStoreIdIterator {
     fn from(sii: StoreIdIterator) -> Self {
         HabitTemplateStoreIdIterator(sii)
+    }
+}
+
+impl<'a> From<StoreIdIteratorWithStore<'a>> for HabitTemplateStoreIdIterator {
+    fn from(sii: StoreIdIteratorWithStore<'a>) -> Self {
+        HabitTemplateStoreIdIterator(sii.without_store())
     }
 }
 
@@ -67,6 +74,12 @@ impl Iterator for HabitInstanceStoreIdIterator {
 impl From<StoreIdIterator> for HabitInstanceStoreIdIterator {
     fn from(sii: StoreIdIterator) -> Self {
         HabitInstanceStoreIdIterator(sii)
+    }
+}
+
+impl<'a> From<StoreIdIteratorWithStore<'a>> for HabitInstanceStoreIdIterator {
+    fn from(sii: StoreIdIteratorWithStore<'a>) -> Self {
+        HabitInstanceStoreIdIterator(sii.without_store())
     }
 }
 
