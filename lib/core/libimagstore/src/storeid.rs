@@ -30,6 +30,12 @@ use error::StoreErrorKind as SEK;
 use error::StoreError as SE;
 use error::ResultExt;
 use store::Result;
+use store::Store;
+
+use iter::create::StoreCreateIterator;
+use iter::delete::StoreDeleteIterator;
+use iter::get::StoreGetIterator;
+use iter::retrieve::StoreRetrieveIterator;
 
 /// The Index into the Store
 #[derive(Debug, Clone, Hash, Eq, PartialOrd, Ord)]
@@ -256,6 +262,67 @@ impl Iterator for StoreIdIterator {
 
     fn next(&mut self) -> Option<StoreId> {
         self.iter.next()
+    }
+
+}
+
+pub struct StoreIdIteratorWithStore<'a>(StoreIdIterator, &'a Store);
+
+impl<'a> Deref for StoreIdIteratorWithStore<'a> {
+    type Target = StoreIdIterator;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<'a> Iterator for StoreIdIteratorWithStore<'a> {
+    type Item = StoreId;
+
+    fn next(&mut self) -> Option<StoreId> {
+        self.0.next()
+    }
+}
+
+impl<'a> StoreIdIteratorWithStore<'a> {
+
+    pub fn new(iter: Box<Iterator<Item = StoreId>>, store: &'a Store) -> Self {
+        StoreIdIteratorWithStore(StoreIdIterator::new(iter), store)
+    }
+
+    pub fn without_store(self) -> StoreIdIterator {
+        self.0
+    }
+
+    /// Transform the iterator into a StoreCreateIterator
+    ///
+    /// This immitates the API from `libimagstore::iter`.
+    pub fn into_create_iter(self) -> StoreCreateIterator<'a> {
+        StoreCreateIterator::new(Box::new(self.0), self.1)
+    }
+
+    /// Transform the iterator into a StoreDeleteIterator
+    ///
+    ///
+    /// This immitates the API from `libimagstore::iter`.
+    pub fn into_delete_iter(self) -> StoreDeleteIterator<'a> {
+        StoreDeleteIterator::new(Box::new(self.0), self.1)
+    }
+
+    /// Transform the iterator into a StoreGetIterator
+    ///
+    ///
+    /// This immitates the API from `libimagstore::iter`.
+    pub fn into_get_iter(self) -> StoreGetIterator<'a> {
+        StoreGetIterator::new(Box::new(self.0), self.1)
+    }
+
+    /// Transform the iterator into a StoreRetrieveIterator
+    ///
+    ///
+    /// This immitates the API from `libimagstore::iter`.
+    pub fn into_retrieve_iter(self) -> StoreRetrieveIterator<'a> {
+        StoreRetrieveIterator::new(Box::new(self.0), self.1)
     }
 
 }

@@ -45,7 +45,6 @@ use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::MapErrTrace;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
-use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagstore::error::StoreError as Error;
 use libimagentrylink::internal::*;
 
@@ -101,7 +100,7 @@ fn main() {
     let diags = rt.store()
         .entries()
         .map_err_trace_exit_unwrap(1)
-        .into_get_iter(rt.store())
+        .into_get_iter()
         .map(|e| {
             e.map_err_trace_exit_unwrap(1)
                 .ok_or(Error::from("Unable to get entry".to_owned()))

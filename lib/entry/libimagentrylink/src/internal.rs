@@ -616,7 +616,6 @@ pub mod store_check {
             use internal::InternalLinker;
 
             use libimagstore::storeid::StoreId;
-            use libimagstore::iter::get::StoreIdGetIteratorExtension;
             use libimagutil::debug_result::DebugResult;
 
             // Helper data structure to collect incoming and outgoing links for each StoreId
@@ -636,7 +635,7 @@ pub mod store_check {
             let aggregate_link_network = |store: &Store| -> Result<HashMap<StoreId, Linking>> {
                 store
                     .entries()?
-                    .into_get_iter(store)
+                    .into_get_iter()
                     .fold(Ok(HashMap::new()), |map, element| {
                         map.and_then(|mut map| {
                             debug!("Checking element = {:?}", element);

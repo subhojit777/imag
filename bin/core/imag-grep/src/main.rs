@@ -42,7 +42,6 @@ extern crate libimagerror;
 use regex::Regex;
 
 use libimagrt::setup::generate_runtime_setup;
-use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagstore::store::Entry;
 use libimagerror::trace::MapErrTrace;
 
@@ -77,7 +76,7 @@ fn main() {
         .store()
         .entries()
         .map_err_trace_exit_unwrap(1)
-        .into_get_iter(rt.store())
+        .into_get_iter()
         .filter_map(|res| res.map_err_trace_exit_unwrap(1))
         .filter(|entry| pattern.is_match(entry.get_content()))
         .map(|entry| show(&entry, &pattern, &opts, &mut count))

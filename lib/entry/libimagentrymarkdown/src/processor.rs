@@ -381,7 +381,7 @@ mod tests {
 
         let entries = store.entries();
         assert!(entries.is_ok());
-        let entries : Vec<_> = entries.unwrap().collect();
+        let entries : Vec<_> = entries.unwrap().without_store().collect();
 
         assert_eq!(2, entries.len(), "Expected 2 links, got: {:?}", entries);
 
@@ -420,7 +420,7 @@ mod tests {
 
         let entries = store.entries();
         assert!(entries.is_ok());
-        let entries : Vec<_> = entries.unwrap().collect();
+        let entries : Vec<_> = entries.unwrap().without_store().collect();
 
         assert_eq!(2, entries.len(), "Expected 2 links, got: {:?}", entries);
         println!("{:?}", entries);
@@ -453,7 +453,7 @@ mod tests {
 
         let entries = store.entries();
         assert!(entries.is_ok());
-        let entries : Vec<_> = entries.unwrap().collect();
+        let entries : Vec<_> = entries.unwrap().without_store().collect();
 
         assert_eq!(3, entries.len(), "Expected 3 links, got: {:?}", entries);
         println!("{:?}", entries);
@@ -486,7 +486,7 @@ mod tests {
 
         let entries = store.entries();
         assert!(entries.is_ok());
-        let entries : Vec<_> = entries.unwrap().collect();
+        let entries : Vec<_> = entries.unwrap().without_store().collect();
 
         assert_eq!(1, entries.len(), "Expected 1 entries, got: {:?}", entries);
         println!("{:?}", entries);
@@ -514,7 +514,7 @@ mod tests {
 
         let entries = store.entries();
         assert!(entries.is_ok());
-        let entries : Vec<_> = entries.unwrap().collect();
+        let entries : Vec<_> = entries.unwrap().without_store().collect();
 
         assert_eq!(1, entries.len(), "Expected 1 entries, got: {:?}", entries);
     }
