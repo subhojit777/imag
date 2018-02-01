@@ -17,34 +17,23 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#![recursion_limit="256"]
+use filters::filter::Filter;
 
-#![deny(
-    dead_code,
-    non_camel_case_types,
-    non_snake_case,
-    path_statements,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_allocation,
-    unused_import_braces,
-    unused_imports,
-    unused_must_use,
-    unused_mut,
-    unused_qualifications,
-    while_true,
-)]
+use libimagstore::storeid::StoreId;
 
-extern crate filters;
-extern crate toml;
-extern crate toml_query;
-#[macro_use] extern crate error_chain;
+pub struct IsInCollection<A: AsRef<str>>(Vec<A>);
 
-extern crate libimagstore;
-extern crate libimagerror;
+impl<A: AsRef<str>> IsInCollection<A> {
+    pub fn new(v: Vec<A>) -> Self {
+        IsInCollection(v)
+    }
+}
 
-pub mod error;
-pub mod isa;
-pub mod isincollection;
-pub mod iter;
+impl<A: AsRef<str>> Filter<StoreId> for IsInCollection<A> {
+
+    fn filter(&self, sid: &StoreId) -> bool {
+        sid.is_in_collection(&self.0)
+    }
+
+}
 
