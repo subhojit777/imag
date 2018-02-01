@@ -71,7 +71,7 @@ fn main() {
 
     let entry_id     = rt.cli().value_of("id").unwrap(); // enforced by clap
     let view_header  = rt.cli().is_present("view-header");
-    let view_content = rt.cli().is_present("view-content");
+    let hide_content = rt.cli().is_present("not-view-content");
 
     let entry = match rt.store().get(PathBuf::from(entry_id)) {
         Ok(Some(fle)) => fle,
@@ -123,7 +123,7 @@ fn main() {
                     .map_err_trace_exit_unwrap(1);
             }
 
-            if view_content {
+            if !hide_content {
                 let _ = tmpfile.write(entry.get_content().as_bytes())
                     .map_err_trace_exit_unwrap(1);
             }
@@ -161,7 +161,7 @@ fn main() {
             exit(1)
         }
     } else {
-        let _ = StdoutViewer::new(view_header, view_content)
+        let _ = StdoutViewer::new(view_header, !hide_content)
             .view_entry(&entry)
             .map_err_trace_exit_unwrap(1);
     }

@@ -41,6 +41,7 @@ This section contains the changelog from the last release to the next release.
     * The `toml-query` dependency was updated to 0.6.0
     * `ResultExt::map_err_trace_exit()` was removed in favour of
       `ResultExt::map_err_trace_exit_unwrap()`.
+    * `imag-view` shows content by default now. Use `-C` to hide the content.
 * Bugfixes
     * `libimagbookmark` contained a type which wrapped a `FileLockEntry` from
       `libimagstore`. This was considered a bug and was fixed.
