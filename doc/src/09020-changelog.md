@@ -35,11 +35,17 @@ This section contains the changelog from the last release to the next release.
 * Minor changes
     * Internals were refactored from `match`ing all the things into function
       chaining
-    * `libimagbookmark` does not longer wrap types from the store.
     * The `toml-query` dependency was updated to 0.5.0
     * `imag-timetrack list` lists with a table now
-    * `imag-timetrack stop` now stops all runnings tags if none are specified
+    * `imag-timetrack stop` now stops all running tags if none are specified
+    * The `toml-query` dependency was updated to 0.6.0
+    * `ResultExt::map_err_trace_exit()` was removed in favour of
+      `ResultExt::map_err_trace_exit_unwrap()`.
 * Bugfixes
+    * `libimagbookmark` contained a type which wrapped a `FileLockEntry` from
+      `libimagstore`. This was considered a bug and was fixed.
+    * We depended on a crate which was licensed as GPLv2, which would yield imag
+      GPL as well. The dependency was removed.
 
 ## 0.5.0
 

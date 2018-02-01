@@ -1,0 +1,10 @@
+One line description of your change
+
+Motivation:
+
+Modifications:
+
+Result:
+
+# To use this template as commit template,
+# call `git config commit.template <path of this file>

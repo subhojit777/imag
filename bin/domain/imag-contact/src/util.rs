@@ -25,7 +25,7 @@ pub fn build_data_object_for_handlebars<'a>(i: usize, hash: String, vcard: &Vcar
     {
         data.insert("i"            , format!("{}", i));
 
-        /// The hash (as in libimagentryref) of the contact
+        // The hash (as in libimagentryref) of the contact
         data.insert("id"           , hash);
 
         data.insert("ADR"          , vcard.adr()

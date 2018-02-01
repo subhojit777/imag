@@ -455,9 +455,17 @@ impl Store {
         Walk::new(self.path().clone(), mod_name)
     }
 
-    /// Return the `FileLockEntry` and write to disk
+    /// Write (update) the `FileLockEntry` to disk
     ///
-    /// See `Store::_update()`.
+    /// # Return value
+    ///
+    /// On success: Entry
+    ///
+    /// On error:
+    ///  - UpdateCallError(LockPoisoned()) if the internal write lock cannot be aquierd.
+    ///  - IdNotFound() if the entry was not found in the stor
+    ///  - Errors Entry::verify() might return
+    ///  - Errors StoreEntry::write_entry() might return
     ///
     pub fn update<'a>(&'a self, entry: &mut FileLockEntry<'a>) -> Result<()> {
         debug!("Updating FileLockEntry at '{}'", entry.get_location());
@@ -470,16 +478,6 @@ impl Store {
     ///
     /// This method assumes that entry is dropped _right after_ the call, hence
     /// it is not public.
-    ///
-    /// # Return value
-    ///
-    /// On success: Entry
-    ///
-    /// On error:
-    ///  - UpdateCallError(LockPoisoned()) if the internal write lock cannot be aquierd.
-    ///  - IdNotFound() if the entry was not found in the stor
-    ///  - Errors Entry::verify() might return
-    ///  - Errors StoreEntry::write_entry() might return
     ///
     fn _update<'a>(&'a self, entry: &mut FileLockEntry<'a>, modify_presence: bool) -> Result<()> {
         let mut hsmap = self.entries.write().map_err(|_| SE::from_kind(SEK::LockPoisoned))?;

@@ -30,8 +30,6 @@ extern crate libimagtodo;
 use std::process::{Command, Stdio};
 use std::io::stdin;
 
-use toml::Value;
-
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagtodo::taskstore::TaskStore;
@@ -81,7 +79,6 @@ fn tw_hook(rt: &Runtime) {
 }
 
 fn list(rt: &Runtime) {
-    use toml_query::read::TomlValueReadExt;
     use toml_query::read::TomlValueReadTypeExt;
 
     let subcmd  = rt.cli().subcommand_matches("list").unwrap();

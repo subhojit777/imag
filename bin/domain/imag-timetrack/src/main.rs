@@ -30,6 +30,7 @@ extern crate libimagerror;
 extern crate libimagstore;
 extern crate libimagrt;
 extern crate libimagtimetrack;
+extern crate libimagutil;
 
 mod cont;
 mod day;

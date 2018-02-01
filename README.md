@@ -23,12 +23,10 @@ Our (long-term) goal is to
 
 Yes, imag is a rather ambitious project as it tries to reimplement functionality
 for several "personal information management aspects". It is a hobby project,
-keep that in mind. We try to use standards like vcard and icalendar wherever
-possible.
+keep that in mind. We try to use standards like vcard, icalendar and others
+wherever possible.
 
-imag consists of _modules_ (e.g. `imag-notes`, `imag-tag`, `imag-view`), where
-each module covers one PIM aspect. Have a look at
-[the documentation](./doc/) for some more words on this.
+Have a look at [the documentation](./doc/) for some more words on this.
 
 
 ## Building/Running
@@ -48,6 +46,18 @@ Make sure to use a recent `cargo`, at least one with workspace support.
 Building all crates works with `cargo build --all`, building individual crates
 by `cd`ing to their directory and calling `cargo build`.
 
+For building all commandline applications:
+
+```bash
+find bin -maxdepth 3 -name Cargo.toml -exec cargo build --manifest-path {} \;
+```
+
+For building only the core functionality
+
+```bash
+find bin/core -maxdepth 3 -name Cargo.toml -exec cargo build --manifest-path {} \;
+```
+
 ### Running
 
 After you build the module you want to play with, you can simply call the binary
@@ -57,48 +67,43 @@ If you installed the module, you can either call `imag-<modulename>` (if the
 install-directory is in your `$PATH`), or install the `imag` binary to call `imag
 <modulename>` (also if everything is in your `$PATH`).
 
+
 ## Staying up-to-date
 
 We have a [official website for imag](https://imag-pim.org), where I post
 [release notes](http://imag-pim.org/releases/) and monthly(ish) updates what's
 happening in the source tree ([RSS here](https://imag-pim.org/index.xml)).
 
-
 We also have a [mailinglist](https://imag-pim.org/mailinglist/) where I post
 updates and where discussion and questions are encouraged.
 
+
 ## Documentation
 
-This is a hobby project, so sometimes things are not optimal and might go
-unrecognized and slip through. Feel free to open issues about things you notice!
-
-Though, we have some documentation in [the ./doc subtree](./doc/)
+We have some documentation in [the ./doc subtree](./doc/)
 which can be compiled to PDF or a website.
-These docs are not published anywhere and are not even integrated into our CI,
-so it might be broken (though it's unlikely).
-Developer documentation is also available
-[online on github.io](https://matthiasbeyer.github.io/imag/imag_documentation/index.html)
-and [on docs.rs](https://docs.rs/releases/search?query=imag), though they might
-be a bit outdated.
+It might not be up to date, though.
+Developer documentation for the last release is available
+[on docs.rs](https://docs.rs/releases/search?query=imag).
+
 
 ## Please contribute!
 
 We are looking for contributors!
-
 Feel free to open issues for asking questions, suggesting features or other
 things!
 
 Also have a look at [the CONTRIBUTING.md file](./CONTRIBUTING.md)!
 
-## Contact
 
-Have a look at [our website](https://imag-pim.org) where you can find some
-information on how to get in touch and so on.
+## Contact
 
 Feel free to join our new IRC channel at freenode: #imag
 or our [mailinglist](https://imag-pim.org/mailinglist/).
 
+
 ## License
 
 We chose to distribute this software under terms of GNU LGPLv2.1.
+
 

@@ -107,28 +107,24 @@ fn list(rt: &Runtime) {
     let _ = rt
         .store()
         .all_contacts()
-        .map_err_trace_exit(1)
-        .unwrap() // safed by above call
+        .map_err_trace_exit_unwrap(1)
         .into_get_iter(rt.store())
         .map(|fle| {
              let fle = fle
-                .map_err_trace_exit(1)
-                .unwrap()
+                .map_err_trace_exit_unwrap(1)
                 .ok_or_else(|| CE::from("StoreId not found".to_owned()))
-                .map_err_trace_exit(1)
-                .unwrap();
+                .map_err_trace_exit_unwrap(1);
 
             fle
                 .get_contact_data()
                 .map(|cd| (fle, cd))
                 .map(|(fle, cd)| (fle, cd.into_inner()))
                 .map(|(fle, cd)| (fle, Vcard::from_component(cd)))
-                .map_err_trace_exit(1)
-                .unwrap()
+                .map_err_trace_exit_unwrap(1)
         })
         .enumerate()
         .map(|(i, (fle, vcard))| {
-            let hash = fle.get_path_hash().map_err_trace_exit(1).unwrap();
+            let hash = fle.get_path_hash().map_err_trace_exit_unwrap(1);
             let vcard = vcard.unwrap_or_else(|e| {
                 error!("Element is not a VCARD object: {:?}", e);
                 exit(1)
@@ -137,8 +133,7 @@ fn list(rt: &Runtime) {
             let data = build_data_object_for_handlebars(i, hash, &vcard);
 
             let s = list_format.render("format", &data)
-                .map_err_trace_exit(1)
-                .unwrap();
+                .map_err_trace_exit_unwrap(1);
             println!("{}", s);
         })
         .collect::<Vec<_>>();
@@ -157,18 +152,16 @@ fn import(rt: &Runtime) {
         let _ = rt
             .store()
             .create_from_path(&path)
-            .map_err_trace_exit(1)
-            .unwrap();
+            .map_err_trace_exit_unwrap(1);
     } else if path.is_dir() {
         for entry in WalkDir::new(path).min_depth(1).into_iter() {
-            let entry = entry.map_err_trace_exit(1).unwrap();
+            let entry = entry.map_err_trace_exit_unwrap(1);
             if entry.file_type().is_file() {
                 let pb = PathBuf::from(entry.path());
                 let _ = rt
                     .store()
                     .create_from_path(&pb)
-                    .map_err_trace_exit(1)
-                    .unwrap();
+                    .map_err_trace_exit_unwrap(1);
                 info!("Imported: {}", entry.path().to_str().unwrap_or("<non UTF-8 path>"));
             } else {
                 warn!("Ignoring non-file: {}", entry.path().to_str().unwrap_or("<non UTF-8 path>"));
@@ -186,14 +179,11 @@ fn show(rt: &Runtime) {
 
     let contact_data = rt.store()
         .get_by_hash(hash.clone())
-        .map_err_trace_exit(1)
-        .unwrap()
+        .map_err_trace_exit_unwrap(1)
         .ok_or(CE::from(format!("No entry for hash {}", hash)))
-        .map_err_trace_exit(1)
-        .unwrap()
+        .map_err_trace_exit_unwrap(1)
         .get_contact_data()
-        .map_err_trace_exit(1)
-        .unwrap()
+        .map_err_trace_exit_unwrap(1)
         .into_inner();
     let vcard = Vcard::from_component(contact_data)
         .unwrap_or_else(|e| {
@@ -204,9 +194,7 @@ fn show(rt: &Runtime) {
     let show_format = get_contact_print_format("contact.show_format", rt, &scmd);
     let data = build_data_object_for_handlebars(0, hash, &vcard);
 
-    let s = show_format.render("format", &data)
-        .map_err_trace_exit(1)
-        .unwrap();
+    let s = show_format.render("format", &data).map_err_trace_exit_unwrap(1);
     println!("{}", s);
     info!("Ok");
 }
@@ -226,10 +214,7 @@ fn get_contact_print_format(config_value_path: &'static str, rt: &Runtime, scmd:
         });
 
     let mut hb = Handlebars::new();
-    let _ = hb
-        .register_template_string("format", fmt)
-        .map_err_trace_exit(1)
-        .unwrap();
+    let _ = hb.register_template_string("format", fmt).map_err_trace_exit_unwrap(1);
 
     hb.register_escape_fn(::handlebars::no_escape);
     ::libimaginteraction::format::register_all_color_helpers(&mut hb);

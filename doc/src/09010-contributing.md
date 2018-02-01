@@ -6,30 +6,28 @@ All contributors agree to the
 [developer certificate of origin](#developer-certificate-of-origin)
 by contributing to imag.
 
-If you already have something in mind, go ahead with [the prerequisites
-section](#prerequisites). If you don't know what you could do, start here.
 
 ## Without Github
 
-Contributing without a github account is perfectly fine.
+Contributing without a github account is perfectly fine and actually encouraged
+as we try to move away from github step by step.
 Feel free to contact [us via our mailinglist](http://imag-pim.org/mailinglist/)
 and/or submit patches via mail (use `git format-patch` and
 `git send-email`, always add a cover letter to describe your submission).
 
-Also ensure that each commit has
+Also ensure that each commit submitted via email has
 [a "Signed-off-by: " line](https://stackoverflow.com/questions/1962094/what-is-the-sign-off-feature-in-git-for).
 By adding that line, you agree to our
 [developer certificate of origin](#developer-certificate-of-origin).
-If you do not add the "Signed-off-by: " line,
-I reserve the right to reject your patch.
+If you do not add the "Signed-off-by: " line, I reserve the right to kindly
+reject your patch.
 
 Once _I am_ okay with your patchset, I will
-submit it as PR in the github repository, so more people can review it and CI
-can test it (the mailinglist is not yet used as much as github). I might come
-back to you if something broke in CI or someone has a suggestion how to improve
-your PR. I will keep you as author of the commits.
+submit it as PR in the github repository (as long as we're using github),
+so CI can test it.
+I might come back to you if something broke in CI or someone has a suggestion
+how to improve your PR. I will keep you as author of the commits.
 
-The following sections describe the way how to contribute with github.
 
 ## Finding an issue
 
@@ -43,13 +41,17 @@ code... you'll always find things to improve!
 Also, if you've found bugs or outdated stuff in our documentation, feel free to
 file issues about them or even better: Write a pull request to fix them!
 
+
 ## Prerequisites
 
-* cargo and rust compiler in current version (stable)
+The prerequisites are simple: `cargo` and `rustc` in current version (stable)
+or newer (we do not use nighly features though).
 
-Dependencies are listed in the
+Build dependencies for building are listed in the
 [default.nix file](http://git.imag-pim.org/imag/tree/default.nix),
-though you do not have to have `nix` installed to build imag.
+though you do not have to have the `nix` package manager installed to build
+imag.
+Everything else will be done by `cargo`.
 
 Note that this software is targeted towards commandline linux users and we do
 not aim to be portable to Windows or Mac OSX (though I wouldn't mind merging
@@ -61,10 +63,11 @@ If you want to build the documentation (you don't have to) you'll need:
 * pandoc-citeproc
 * texlive
 * lmodern (font package)
-* make
+* (gnu) make
 
 All dependencies are installable with the nix package manager by using a
 `nix-shell`, if you have the nix package manager installed on your system.
+
 
 ## Commit guidelines
 
@@ -72,54 +75,28 @@ Please don't refer to issues or PRs from inside a commit message, if possible.
 Make sure your PR does not contain "Fixup" commits when publishing it, but feel
 free to push "Fixup" commits in the review process. We will ask you to clean
 your history before merging! If you're submitting via patch-mail, I will do the
-fixup squashing myself.
+fixup squashing myself. If it fails I will come back to you.
 
-Make sure to prefix your commits with `"doc: "` if you change the document. Do
-not change document and code in one commit, always separate them.
+Make sure to prefix your commits with `"doc: "` if you change the documentation.
+Do not change document and code in one commit, always separate them.
 
-If your changes are user-visible, make sure to add a note in the
-`CHANGELOG.md` file.
+If your changes are user-visible (new commandline flags, other semantics in the
+commandline, etc), make sure to add a note in the `CHANGELOG.md` file (in the
+same commit if it is a simple change).
 
 We do not follow some official Rust styleguide for our codebase, but we try to
 write minimal and readable code. 100 characters per line, as few lines as
 possible, avoid noise in the codebase, ... you get it.
 
-Not all of your commits have to be buildable. But your PR has to be.
+Not all of your commits have to be buildable. But your PR has to be before it
+will be merged to master.
 
-## PR guidelines
 
-We'd like to have one PR per module change. This means you _should_ only change
-one imag module in one commit or PR (library plus belonging binary is okay).
-As this is not always possible, we do not enforce this, though we might ask you
-to split your commits/PR into two smaller ones.
+## Feature branches
 
 Use feature branches. If you could name them "<module name>/<what you do>",
 for example "libimagstore/add-debugging-calls", that would be awesome.
 
-You are welcome to publish your PR as soon as there is one commit in your
-branch. This gives us the possibility to review whether your ideas go into a
-nice direction or whether there are issues with your approach so we can report
-them to you quickly. Rewriting a whole PR is not satisfactory and we'd
-like to make your contribution process enjoyable for you.
-
-# Merging tools which use the imag core functionality into this repo
-
-If you're writing an application or module for imag, feel free to propose
-integrating it into the imag core distribution, if it fulfills the following
-requirements:
-
-1. It is written in Rust
-1. It has a commandline interface which is the main interface to the module
-   OR it is a utility library for creating new kinds of functionality within the
-   imag core.
-   The commandline interface should be structured like the existing interfaces
-   (as in commands, options and arguments).
-1. It is licensed under the terms of GNU LGPLv2.1 OR all of your contributors
-   approve a commit which changes the license of your codebase to GNU LGPLv2.1
-   (The word "approve" in this sentence is to be defined).
-
-If your tool does not fulfill these requirements, I won't merge it into the
-imag core distribution.
 
 ## Code of Conduct
 
@@ -129,10 +106,6 @@ We use the same
 Basically: Be kind, encourage others to ask questions - you are encouraged to
 ask questions as well!
 
-## Contact
-
-Feel free to reach out via mail/[mailinglist](http://imag-pim.org/mailinglist/)
-or [IRC](irc://irc.freenode.net/#imag).
 
 ## Developer Certificate of Origin
 

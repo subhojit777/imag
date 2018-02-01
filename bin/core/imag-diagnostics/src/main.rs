@@ -100,8 +100,7 @@ fn main() {
 
     let diags = rt.store()
         .entries()
-        .map_err_trace_exit(1)
-        .unwrap()
+        .map_err_trace_exit_unwrap(1)
         .into_get_iter(rt.store())
         .map(|e| {
             e.map_err_trace_exit_unwrap(1)
