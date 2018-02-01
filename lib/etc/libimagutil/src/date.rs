@@ -17,27 +17,31 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-extern crate chrono;
-extern crate toml;
-extern crate toml_query;
-extern crate kairos;
-#[macro_use] extern crate log;
-#[macro_use] extern crate error_chain;
+use chrono::NaiveDate;
+use chrono::NaiveDateTime;
+use chrono::format::ParseError;
 
-#[macro_use] extern crate libimagstore;
-extern crate libimagerror;
-extern crate libimagentryedit;
-extern crate libimagentrylink;
-#[macro_use] extern crate libimagentryutil;
-extern crate libimagutil;
+pub const NAIVE_DATE_STRING_FORMAT : &'static str = "%Y-%m-%d";
 
-module_entry_path_mod!("habit");
+pub fn date_to_string(ndt: &NaiveDate) -> String {
+    ndt.format(NAIVE_DATE_STRING_FORMAT).to_string()
+}
 
-pub mod error;
-pub mod habit;
-pub mod instance;
-pub mod iter;
-pub mod result;
-pub mod store;
-pub mod util;
+pub fn date_from_string<S>(s: S) -> Result<NaiveDate, ParseError>
+    where S: AsRef<str>
+{
+    NaiveDate::parse_from_str(s.as_ref(), NAIVE_DATE_STRING_FORMAT)
+}
+
+pub const NAIVE_DATETIME_STRING_FORMAT : &'static str = "%Y-%m-%d %H:%M:%S";
+
+pub fn datetime_to_string(ndt: &NaiveDateTime) -> String {
+    ndt.format(NAIVE_DATETIME_STRING_FORMAT).to_string()
+}
+
+pub fn datetime_from_string<S>(s: S) -> Result<NaiveDateTime, ParseError>
+    where S: AsRef<str>
+{
+    NaiveDateTime::parse_from_str(s.as_ref(), NAIVE_DATETIME_STRING_FORMAT)
+}
 

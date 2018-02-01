@@ -39,9 +39,11 @@ extern crate regex;
 extern crate url;
 extern crate boolinator;
 extern crate tempfile;
+extern crate chrono;
 
 #[macro_use] mod log_result;
 pub mod cli_validators;
+pub mod date;
 pub mod debug_result;
 pub mod edit;
 pub mod info_result;
