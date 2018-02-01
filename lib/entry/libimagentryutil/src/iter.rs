@@ -17,34 +17,29 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#![recursion_limit="256"]
+use filters::filter::Filter;
 
-#![deny(
-    dead_code,
-    non_camel_case_types,
-    non_snake_case,
-    path_statements,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_allocation,
-    unused_import_braces,
-    unused_imports,
-    unused_must_use,
-    unused_mut,
-    unused_qualifications,
-    while_true,
-)]
+pub trait NextWhere<T> {
+    type Item;
 
-extern crate filters;
-extern crate toml;
-extern crate toml_query;
-#[macro_use] extern crate error_chain;
+    fn next_where<F>(&mut self, f: &F) -> Option<Self::Item>
+        where F: Filter<T>;
+}
 
-extern crate libimagstore;
-extern crate libimagerror;
+impl<T, I> NextWhere<T> for I
+    where I: Iterator<Item = T>
+{
+    type Item = T;
 
-pub mod error;
-pub mod isa;
-pub mod isincollection;
-pub mod iter;
+    fn next_where<F>(&mut self, f: &F) -> Option<Self::Item>
+        where F: Filter<T>
+    {
+        while let Some(next) = self.next() {
+            if f.filter(&next) {
+                return Some(next);
+            }
+        }
+        None
+    }
+}
 
