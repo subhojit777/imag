@@ -134,14 +134,17 @@ impl StoreId {
     /// The collection specification _has_ to start with the module name. Otherwise this function
     /// may return false negatives.
     ///
-    pub fn is_in_collection(&self, colls: &[&str]) -> bool {
+    pub fn is_in_collection<S: AsRef<str>, V: AsRef<[S]>>(&self, colls: &V) -> bool {
         use std::path::Component;
 
         self.id
             .components()
-            .zip(colls)
+            .zip(colls.as_ref().iter())
             .map(|(component, pred_coll)| match component {
-                Component::Normal(ref s) => s.to_str().map(|ref s| s == pred_coll).unwrap_or(false),
+                Component::Normal(ref s) => s
+                    .to_str()
+                    .map(|ref s| s == &pred_coll.as_ref())
+                    .unwrap_or(false),
                 _ => false
             })
             .all(|x| x)
