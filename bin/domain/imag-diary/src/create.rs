@@ -65,13 +65,14 @@ fn create_entry<'a>(diary: &'a Store, diaryname: &str, rt: &Runtime) -> FileLock
     let create_timed = create.value_of("timed")
         .map(|t| parse_timed_string(t, diaryname).map_err_trace_exit_unwrap(1))
         .map(Some)
-        .unwrap_or_else(|| match get_diary_timed_config(rt, diaryname) {
-            Err(e)      => trace_error_exit(&e, 1),
-            Ok(Some(t)) => Some(t),
-            Ok(None)    => {
-                warn!("Missing config: 'diary.diaries.{}.timed'", diaryname);
-                warn!("Assuming 'false'");
-                None
+        .unwrap_or_else(|| {
+            match get_diary_timed_config(rt, diaryname).map_err_trace_exit_unwrap(1) {
+                Some(t) => Some(t),
+                None    => {
+                    warn!("Missing config: 'diary.diaries.{}.timed'", diaryname);
+                    warn!("Assuming 'false'");
+                    None
+                }
             }
         });
 
@@ -134,6 +135,31 @@ fn create_id_from_clispec(create: &ArgMatches, diaryname: &str, timed_type: Time
                 .unwrap_or(time.minute());
 
             time.with_minute(min)
+        },
+
+        Timed::Secondly => {
+            let time = get_hourly_id(create);
+            let min = create
+                .value_of("minute")
+                .map(|m| { debug!("minute = {:?}", m); m })
+                .and_then(|s| {
+                    FromStr::from_str(s)
+                        .map_err(|_| warn!("Could not parse minute: '{}'", s))
+                        .ok()
+                })
+                .unwrap_or(time.minute());
+
+            let sec = create
+                .value_of("second")
+                .map(|s| { debug!("second = {:?}", s); s })
+                .and_then(|s| {
+                    FromStr::from_str(s)
+                        .map_err(|_| warn!("Could not parse second: '{}'", s))
+                        .ok()
+                })
+                .unwrap_or(time.second());
+
+            time.with_minute(min).with_second(sec)
         },
     }
 }

@@ -33,6 +33,7 @@ pub fn get_diary_name(rt: &Runtime) -> Option<String> {
 pub enum Timed {
     Hourly,
     Minutely,
+    Secondly,
 }
 
 /// Returns true if the diary should always create timed entries, which is whenever
@@ -76,6 +77,8 @@ pub fn parse_timed_string(s: &str, diary_name: &str) -> Result<Timed> {
         Ok(Timed::Hourly)
     } else if s == "m" || s == "minutely" {
         Ok(Timed::Minutely)
+    } else if s == "s" || s == "secondly" {
+        Ok(Timed::Secondly)
     } else {
         let s = format!("Cannot parse config: 'diary.diaries.{}.timed = {}'",
                         diary_name, s);
