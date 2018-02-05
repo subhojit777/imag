@@ -65,7 +65,8 @@ With the things from above, a module could have the following architecture:
 +-----------------------------------+---------+
 ```
 
-The foundation of all imag modules is the store, as one can see in the image.
+The foundation of all imag modules is the store, as one can see in the
+visualization from above.
 Above the store library there is the libimagrt, which provides the basic runtime
 and access to the `Store` object.
 Cross-cutting, there is the error library (and possibly
