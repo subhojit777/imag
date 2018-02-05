@@ -43,9 +43,7 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .short("t")
                         .takes_value(true)
                         .required(false)
-                        .help("By default, one entry is created per day. With --timed=h[ourly] or
-                        --timed=m[inutely] one can create per-hour and per-minute entries (more like
-                        a microblog then"))
+                        .help("By default, one entry is created per day. With --timed=h[ourly] or --timed=m[inutely] one can create per-hour and per-minute entries (more like a microblog then"))
 
                    .arg(Arg::with_name("hour")
                         .long("hour")
@@ -57,6 +55,11 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .takes_value(true)
                         .required(false)
                         .help("When using --timed, override the minute component"))
+                   .arg(Arg::with_name("second")
+                        .long("second")
+                        .takes_value(true)
+                        .required(false)
+                        .help("When using --timed, override the second component"))
 
                    // When using --hour or --minute, --timed must be present
                    .group(ArgGroup::with_name("timing-hourly")
@@ -64,6 +67,9 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                             .requires("timed"))
                    .group(ArgGroup::with_name("timing-minutely")
                             .args(&["minute"])
+                            .requires("timed"))
+                   .group(ArgGroup::with_name("timing-secondly")
+                            .args(&["second"])
                             .requires("timed"))
                    )
 
