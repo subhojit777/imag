@@ -19,51 +19,6 @@
 
 use error_chain::ChainedError;
 
-/// An iterator that maps `f` over the `ChainedError` elements of `iter`, similar to
-/// `std::iter::Map`.
-///
-/// This `struct` is created by the `on_err()` method on `TraceIterator`. See its
-/// documentation for more information.
-#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
-#[derive(Clone)]
-pub struct OnErr<I, F>{
-    iter: I,
-    f: F
-}
-
-impl<I, F, T, E> Iterator for OnErr<I, F> where
-    I: Iterator<Item = Result<T, E>>,
-    F: FnMut(&E)
-{
-    type Item = Result<T, E>;
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(|r| r.map_err(|e| { (self.f)(&e); e }))
-    }
-
-    #[inline]
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
-    }
-}
-
-impl<I, F> ExactSizeIterator for OnErr<I, F> where
-    I: ExactSizeIterator,
-    OnErr<I, F>: Iterator
-{
-}
-
-impl<I, F, T, E> DoubleEndedIterator for OnErr<I, F> where
-    I: DoubleEndedIterator<Item = Result<T, E>>,
-    F: FnMut(&E)
-{
-    #[inline]
-    fn next_back(&mut self) -> Option<Self::Item> {
-        self.iter.next_back().map(|r| r.map_err(|e| { (self.f)(&e); e }))
-    }
-}
-
 /// An iterator that unwraps the `Ok` items of `iter`, while passing the `Err` items to its
 /// closure `f`.
 ///
@@ -178,17 +133,6 @@ pub trait TraceIterator<T, E> : Iterator<Item = Result<T, E>> + Sized {
         UnwrapExit(self, exitcode)
     }
 
-    /// Takes a closure and creates an iterator that will call that closure for each `Err` element.
-    /// The resulting iterator will yield the exact same items as the original iterator. A close
-    /// analogue from the standard library would be `Iterator::inspect`.
-    ///
-    /// As with all iterators, the processing is lazy. The result of this method must be evaluated
-    /// for the closure to be called.
-    #[inline]
-    fn on_err<F>(self, f: F) -> OnErr<Self, F>  where F: FnMut(&E) {
-        OnErr { iter: self, f: f }
-    }
-
     /// Takes a closure and creates an iterator that will yield the items inside all `Ok` items
     /// yielded by the original iterator. All `Err` items will be filtered out, and the contents
     /// of each `Err` will be passed to the closure.
@@ -243,32 +187,4 @@ mod test {
         assert_eq!(&errs, &[TestError(4), TestError(2)]);
     }
 
-    #[test]
-    fn test_on_err() {
-        let original = vec![Ok(1), Err(TestError(2)), Ok(3), Err(TestError(4))];
-        let mut errs = vec![];
-
-        let result = original
-            .into_iter()
-            .on_err(|e|errs.push(e.clone()))
-            .collect::<Vec<_>>();
-
-        assert_eq!(&result, &[Ok(1), Err(TestError(2)), Ok(3), Err(TestError(4))]);
-        assert_eq!(&errs, &[TestError(2), TestError(4)]);
-     }
-
-    #[test]
-    fn test_on_err_backward() {
-        let original = vec![Ok(1), Err(TestError(2)), Ok(3), Err(TestError(4))];
-        let mut errs = vec![];
-
-        let result = original
-            .into_iter()
-            .rev()
-            .on_err(|e|errs.push(e.clone()))
-            .collect::<Vec<_>>();
-
-        assert_eq!(&result, &[Err(TestError(4)), Ok(3), Err(TestError(2)), Ok(1)]);
-        assert_eq!(&errs, &[TestError(4), TestError(2)]);
-     }
 }
