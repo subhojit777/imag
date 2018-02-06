@@ -26,4 +26,5 @@ log = "0.4.0"
 libimagrt    = { version = "0.6.0", path = "../../../lib/core/libimagrt" }
 libimagerror = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
 libimagstore = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
+libimagentrylink = { version = "0.6.0", path = "../../../lib/entry/libimagentrylink" }
 
