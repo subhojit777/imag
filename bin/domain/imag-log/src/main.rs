@@ -119,6 +119,11 @@ fn show(rt: &Runtime) {
     for iter in iters {
         for element in iter {
             let e  = element.map_err_trace_exit_unwrap(1);
+
+            if !e.is_log().map_err_trace_exit_unwrap(1) {
+                continue;
+            }
+
             let id = e.diary_id().map_err_trace_exit_unwrap(1);
             println!("{dname: >10} - {y: >4}-{m:0>2}-{d:0>2}T{H:0>2}:{M:0>2} - {text}",
                      dname = id.diary_name(),
