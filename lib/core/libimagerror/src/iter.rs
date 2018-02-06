@@ -118,6 +118,33 @@ impl<I, F, T, E> DoubleEndedIterator for UnwrapWith<I, F> where
     }
 }
 
+/// Iterator helper for Unwrap with exiting on error
+pub struct UnwrapExit<I, T, E>(I, i32)
+    where I: Iterator<Item = Result<T, E>>,
+          E: Error;
+
+impl<I, T, E> Iterator for UnwrapExit<I, T, E>
+    where I: Iterator<Item = Result<T, E>>,
+          E: Error
+{
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        use trace::MapErrTrace;
+        self.0.next().map(|e| e.map_err_trace_exit_unwrap(self.1))
+    }
+}
+
+impl<I, T, E> DoubleEndedIterator for UnwrapExit<I, T, E>
+    where I: DoubleEndedIterator<Item = Result<T, E>>,
+          E: Error
+{
+    fn next_back(&mut self) -> Option<Self::Item> {
+        use trace::MapErrTrace;
+        self.0.next_back().map(|e| e.map_err_trace_exit_unwrap(self.1))
+    }
+}
+
 /// This trait provides methods that make it easier to work with iterators that yield a `Result`.
 pub trait TraceIterator<T, E> : Iterator<Item = Result<T, E>> + Sized {
     /// Creates an iterator that yields the item in each `Ok` item, while filtering out the `Err`
@@ -134,6 +161,20 @@ pub trait TraceIterator<T, E> : Iterator<Item = Result<T, E>> + Sized {
         }
 
         self.unwrap_with(trace_error)
+    }
+
+    /// Creates an iterator that yields the item in each `Ok` item.
+    ///
+    /// The first `Err(_)` element is traced using `::trace::trace_error_exit`.
+    ///
+    /// As with all iterators, the processing is lazy. If you do not use the result of this method,
+    /// nothing will be passed to `::trace::trace_error_exit`, no matter how many `Err` items might
+    /// be present.
+    #[inline]
+    fn trace_unwrap_exit(self, exitcode: i32) -> UnwrapExit<Self, T, E>
+        where E: Error
+    {
+        UnwrapExit(self, exitcode)
     }
 
     /// Takes a closure and creates an iterator that will call that closure for each `Err` element.
