@@ -26,15 +26,21 @@ extern crate libimagrt;
 extern crate libimagentryedit;
 extern crate libimagerror;
 extern crate libimagutil;
+extern crate libimagstore;
+
+use std::process::exit;
 
 use itertools::Itertools;
 
 use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
+use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagnotes::note::Note;
 use libimagnotes::notestore::*;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::trace::trace_error_exit;
+use libimagerror::iter::TraceIterator;
 use libimagutil::info_result::*;
 use libimagutil::warn_result::WarnResult;
 
@@ -114,7 +120,12 @@ fn list(rt: &Runtime) {
         .store()
         .all_notes()
         .map_err_trace_exit_unwrap(1)
-        .filter_map(|noteid| rt.store().get(noteid).map_err_trace_exit_unwrap(1))
+        .into_get_iter(rt.store())
+        .unwrap_with(|e| trace_error_exit(&e, 1))
+        .map(|opt| opt.unwrap_or_else(|| {
+            error!("Fatal: Nonexistent entry where entry should exist");
+            exit(1)
+        }))
         .sorted_by(|note_a, note_b| if let (Ok(a), Ok(b)) = (note_a.get_name(), note_b.get_name()) {
             return a.cmp(&b)
         } else {

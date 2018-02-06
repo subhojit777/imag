@@ -22,6 +22,10 @@ error_chain! {
         NoteError, NoteErrorKind, ResultExt, Result;
     }
 
+    foreign_links {
+        TomlQueryError(::toml_query::error::Error);
+    }
+
     errors {
         StoreWriteError       {
             description("Error writing store")

@@ -29,3 +29,4 @@ libimagerror     = { version = "0.6.0", path = "../../../lib/core/libimagerror" 
 libimagnotes     = { version = "0.6.0", path = "../../../lib/domain/libimagnotes" }
 libimagentryedit = { version = "0.6.0", path = "../../../lib/entry/libimagentryedit" }
 libimagutil      = { version = "0.6.0", path = "../../../lib/etc/libimagutil" }
+libimagstore     = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
