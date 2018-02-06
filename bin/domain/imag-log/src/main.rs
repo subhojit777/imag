@@ -183,8 +183,11 @@ fn get_log_text(rt: &Runtime) -> String {
     rt.cli()
         .values_of("text")
         .unwrap() // safe by clap
-        .fold(String::with_capacity(500), |mut acc, e| {
-            acc.push_str(" ");
+        .enumerate()
+        .fold(String::with_capacity(500), |mut acc, (n, e)| {
+            if n != 0 {
+                acc.push_str(" ");
+            }
             acc.push_str(e);
             acc
         })
