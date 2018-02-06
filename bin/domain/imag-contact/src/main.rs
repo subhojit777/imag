@@ -196,7 +196,6 @@ fn show(rt: &Runtime) {
 
     let s = show_format.render("format", &data).map_err_trace_exit_unwrap(1);
     println!("{}", s);
-    info!("Ok");
 }
 
 fn get_contact_print_format(config_value_path: &'static str, rt: &Runtime, scmd: &ArgMatches) -> Handlebars {

@@ -138,8 +138,6 @@ fn remove(rt: &Runtime) {
     if scmd.is_present("print-removed") {
         println!("{}", removed_value);
     }
-
-    info!("Ok");
 }
 
 fn get(rt: &Runtime) {
@@ -166,6 +164,5 @@ fn get(rt: &Runtime) {
         });
 
     println!("{}", value);
-    info!("Ok");
 }
 
