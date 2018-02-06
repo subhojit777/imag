@@ -17,15 +17,13 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::collections::BTreeMap;
-
 use toml::Value;
 
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 
-use toml_query::set::TomlValueSetExt;
+use toml_query::insert::TomlValueInsertExt;
 
 use module_path::ModuleEntryPath;
 use error::Result;
@@ -56,18 +54,7 @@ impl<'a> NoteStore<'a> for Store {
 
             {
                 let entry  = lockentry.deref_mut();
-
-                {
-                    let header = entry.get_header_mut();
-                    let _ = header
-                        .set("note", Value::Table(BTreeMap::new()))
-                        .chain_err(|| NEK::StoreWriteError);
-
-                    let _ = header
-                        .set("note.name", Value::String(name))
-                        .chain_err(|| NEK::StoreWriteError);
-                }
-
+                entry.get_header_mut().insert("note.name", Value::String(name))?;
                 *entry.get_content_mut() = text;
             }
 
