@@ -43,11 +43,19 @@ This section contains the changelog from the last release to the next release.
     * `ResultExt::map_err_trace_exit()` was removed in favour of
       `ResultExt::map_err_trace_exit_unwrap()`.
     * `imag-view` shows content by default now. Use `-C` to hide the content.
+    * `kairos` dependency was updated to 0.1.0
 * Bugfixes
     * `libimagbookmark` contained a type which wrapped a `FileLockEntry` from
       `libimagstore`. This was considered a bug and was fixed.
     * We depended on a crate which was licensed as GPLv2, which would yield imag
       GPL as well. The dependency was removed.
+    * The `imag` crate prints the "command filed" error message to stderr now.
+      It also prefixes the subcommand with `imag-<command>` for better user
+      experience.
+    * `libimagnotes` did not set the note name in the header of the note.
+    * `imag-mv` automatically fixes links when moving an entry in the store.
+    * `imag-log` listed non-log entries (normal diary entries) before, was
+      changed to only list `log` entries.
 
 ## 0.5.0
 
