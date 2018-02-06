@@ -219,8 +219,8 @@ fn main() {
             {
                 Ok(exit_status) => {
                     if !exit_status.success() {
-                        debug!("{} exited with non-zero exit code: {:?}", subcommand, exit_status);
-                        println!("{} exited with non-zero exit code", subcommand);
+                        debug!("imag-{} exited with non-zero exit code: {:?}", subcommand, exit_status);
+                        println!("imag-{} exited with non-zero exit code", subcommand);
                         exit(exit_status.code().unwrap_or(1));
                     }
                     debug!("Successful exit!");
