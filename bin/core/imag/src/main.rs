@@ -121,7 +121,7 @@ fn main() {
     let about    = "imag - the PIM suite for the commandline";
     let commands = get_commands();
     let helptext = help_text(commands.clone());
-    let app      = Runtime::get_default_cli_builder(appname, version, about)
+    let mut app  = Runtime::get_default_cli_builder(appname, version, about)
         .settings(&[AppSettings::AllowExternalSubcommands, AppSettings::ArgRequiredElseHelp])
         .arg(Arg::with_name("version")
              .long("version")
@@ -137,6 +137,23 @@ fn main() {
              .help("Get the versions of the imag commands"))
         .subcommand(SubCommand::with_name("help").help("Show help"))
         .after_help(helptext.as_str());
+
+    let long_help = {
+        let mut v = vec![];
+        if let Err(e) = app.write_long_help(&mut v) {
+            eprintln!("Error: {:?}", e);
+            exit(1);
+        }
+        String::from_utf8(v).unwrap_or_else(|_| { eprintln!("UTF8 Error"); exit(1) })
+    };
+    {
+        let print_help = app.clone().get_matches().subcommand_name().map(|h| h == "help").unwrap_or(false);
+        if print_help {
+            println!("{}", long_help);
+            exit(0)
+        }
+    }
+
     let rt = Runtime::new(app)
         .unwrap_or_else(|e| {
             println!("Runtime couldn't be setup. Exiting");
