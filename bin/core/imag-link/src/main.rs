@@ -61,6 +61,7 @@ use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagstore::error::StoreError;
 use libimagstore::store::FileLockEntry;
+use libimagstore::storeid::StoreId;
 use libimagutil::warn_exit::warn_exit;
 use libimagutil::warn_result::*;
 
@@ -134,7 +135,16 @@ fn link_from_to<'a, I>(rt: &'a Runtime, from: &'a str, to: I)
                 .map_err_trace_exit_unwrap(1);
         } else {
             debug!("Linking internally: {:?} -> {:?}", from, entry);
-            let mut to_entry = match get_entry_by_name(rt, entry) {
+
+            let from_id = StoreId::new_baseless(PathBuf::from(from)).map_err_trace_exit_unwrap(1);
+            let entr_id = StoreId::new_baseless(PathBuf::from(entry)).map_err_trace_exit_unwrap(1);
+
+            if from_id == entr_id {
+                error!("Cannot link entry with itself. Exiting");
+                ::std::process::exit(1)
+            }
+
+            let mut to_entry = match rt.store().get(entr_id) {
                 Ok(Some(e)) => e,
                 Ok(None)    => {
                     warn!("No 'to' entry: {}", entry);
