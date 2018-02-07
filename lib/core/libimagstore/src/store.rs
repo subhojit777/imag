@@ -751,16 +751,11 @@ impl Store {
 
 impl Debug for Store {
 
-    /// TODO: Make pretty.
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FMTError> {
-        write!(fmt, " --- Store ---\n")?;
-        write!(fmt, "\n")?;
-        write!(fmt, " - location               : {:?}\n", self.location)?;
-        write!(fmt, "\n")?;
-        write!(fmt, "Entries:\n")?;
-        write!(fmt, "{:?}", self.entries)?;
-        write!(fmt, "\n")?;
-        Ok(())
+        write!(fmt,
+               r#"Store\n\tlocation = {:?}\n\tentries = {:?}\n"#,
+               self.location,
+               self.entries)
     }
 
 }
