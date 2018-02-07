@@ -1,6 +1,6 @@
 //
 // imag - the personal information management suite for the commandline
-// Copyright (C) 2015, 2016 Matthias Beyer <mail@beyermatthias.de> and contributors
+// Copyright (C) 2015-2018 Matthias Beyer <mail@beyermatthias.de> and contributors
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
