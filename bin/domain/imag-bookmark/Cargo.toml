@@ -30,7 +30,7 @@ libimagbookmark  = { version = "0.6.0", path = "../../../lib/domain/libimagbookm
 libimagutil      = { version = "0.6.0", path = "../../../lib/etc/libimagutil" }
 
 [dependencies.clap]
-version = ">=2.17"
+version = ">=2.29"
 default-features = false
 features = ["color", "suggestions"]
 

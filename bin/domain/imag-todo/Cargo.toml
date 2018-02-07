@@ -30,7 +30,7 @@ libimagerror = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
 libimagtodo  = { version = "0.6.0", path = "../../../lib/domain/libimagtodo" }
 
 [dependencies.clap]
-version = ">=2.17"
+version = ">=2.29"
 default-features = false
 features = ["color", "suggestions"]
 
