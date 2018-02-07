@@ -20,7 +20,6 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-clap = ">=2.17"
 log = "0.4.0"
 toml = "0.4"
 toml-query = "0.6"
@@ -37,4 +36,9 @@ libimagutil    = { version = "0.6.0", path = "../../../lib/etc/libimagutil" }
 libimagentryref = { version = "0.6.0", path = "../../../lib/entry/libimagentryref" }
 libimagentryedit = { version = "0.6.0", path = "../../../lib/entry/libimagentryedit" }
 libimaginteraction    = { version = "0.6.0", path = "../../../lib/etc/libimaginteraction" }
+
+[dependencies.clap]
+version = ">=2.17"
+default-features = false
+features = ["color", "suggestions"]
 
