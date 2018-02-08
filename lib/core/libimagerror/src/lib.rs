@@ -33,8 +33,7 @@
     while_true,
 )]
 
-#[macro_use] extern crate log;
-extern crate ansi_term;
+extern crate error_chain;
 
 pub mod trace;
 pub mod iter;

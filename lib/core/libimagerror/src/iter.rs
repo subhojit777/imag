@@ -17,9 +17,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::error::Error;
+use error_chain::ChainedError;
 
-/// An iterator that maps `f` over the `Error` elements of `iter`, similar to `std::iter::Map`.
+/// An iterator that maps `f` over the `ChainedError` elements of `iter`, similar to
+/// `std::iter::Map`.
 ///
 /// This `struct` is created by the `on_err()` method on `TraceIterator`. See its
 /// documentation for more information.
@@ -121,11 +122,11 @@ impl<I, F, T, E> DoubleEndedIterator for UnwrapWith<I, F> where
 /// Iterator helper for Unwrap with exiting on error
 pub struct UnwrapExit<I, T, E>(I, i32)
     where I: Iterator<Item = Result<T, E>>,
-          E: Error;
+          E: ChainedError;
 
 impl<I, T, E> Iterator for UnwrapExit<I, T, E>
     where I: Iterator<Item = Result<T, E>>,
-          E: Error
+          E: ChainedError
 {
     type Item = T;
 
@@ -137,7 +138,7 @@ impl<I, T, E> Iterator for UnwrapExit<I, T, E>
 
 impl<I, T, E> DoubleEndedIterator for UnwrapExit<I, T, E>
     where I: DoubleEndedIterator<Item = Result<T, E>>,
-          E: Error
+          E: ChainedError
 {
     fn next_back(&mut self) -> Option<Self::Item> {
         use trace::MapErrTrace;
@@ -154,10 +155,10 @@ pub trait TraceIterator<T, E> : Iterator<Item = Result<T, E>> + Sized {
     /// nothing will be passed to `::trace::trace_error`, no matter how many `Err` items might
     /// be present.
     #[inline]
-    fn trace_unwrap(self) -> UnwrapWith<Self, fn(E)> where E: Error {
+    fn trace_unwrap<K>(self) -> UnwrapWith<Self, fn(E)> where E: ChainedError<ErrorKind = K> {
         #[inline]
-        fn trace_error<E: Error>(err: E) {
-            ::trace::trace_error(&err);
+        fn trace_error<K, E: ChainedError<ErrorKind = K>>(err: E) {
+            eprintln!("{}", err.display_chain());
         }
 
         self.unwrap_with(trace_error)
@@ -172,7 +173,7 @@ pub trait TraceIterator<T, E> : Iterator<Item = Result<T, E>> + Sized {
     /// be present.
     #[inline]
     fn trace_unwrap_exit(self, exitcode: i32) -> UnwrapExit<Self, T, E>
-        where E: Error
+        where E: ChainedError
     {
         UnwrapExit(self, exitcode)
     }
