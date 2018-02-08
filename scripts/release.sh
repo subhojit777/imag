@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+
 CRATES=(
     ./lib/etc/libimagutil
     ./lib/etc/libimagtimeui
@@ -20,11 +21,13 @@ CRATES=(
     ./lib/entry/libimagentryview
     ./lib/entry/libimagentrymarkdown
     ./lib/entry/libimagentrydatetime
+    ./lib/entry/libimagentryutil
     ./lib/domain/libimagbookmark
     ./lib/domain/libimaghabit
     ./lib/domain/libimagnotes
     ./lib/domain/libimagcontact
     ./lib/domain/libimagdiary
+    ./lib/domain/libimaglog
     ./lib/domain/libimagtimetrack
     ./lib/domain/libimagtodo
     ./lib/domain/libimagmail
@@ -36,6 +39,7 @@ CRATES=(
     ./bin/domain/imag-timetrack
     ./bin/domain/imag-mail
     ./bin/domain/imag-todo
+    ./bin/domain/imag-log
     ./bin/core/imag-ref
     ./bin/core/imag-gps
     ./bin/core/imag-diagnostics
@@ -46,6 +50,8 @@ CRATES=(
     ./bin/core/imag-annotate
     ./bin/core/imag-link
     ./bin/core/imag-view
+    ./bin/core/imag-init
+    ./bin/core/imag-edit
     ./bin/core/imag
 )
 
