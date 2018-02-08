@@ -21,4 +21,5 @@ maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
 log         = "0.4"
+ansi_term   = "0.10"
 error-chain = "0.11"

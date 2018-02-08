@@ -18,10 +18,42 @@
 //
 
 use std::process::exit;
+use std::fmt::Display;
+use std::fmt::Formatter;
+use std::fmt::Result as FmtResult;
 use error_chain::ChainedError;
+use ansi_term::Colour::Red;
+
+struct ImagTrace<'a, T: 'a + ?Sized>(&'a T);
+
+impl<'a, T: 'a + ?Sized> ImagTrace<'a, T> {
+    fn new(d: &'a T) -> ImagTrace<'a, T> {
+        ImagTrace(d)
+    }
+}
+
+impl<'a, T> Display for ImagTrace<'a, T>
+    where T: ChainedError
+{
+    fn fmt(&self, fmt: &mut Formatter) -> FmtResult {
+        try!(write!(fmt, "{}: {}", Red.blink().paint("ERROR[    0]"), self.0));
+
+        for (i, e) in self.0.iter().enumerate().skip(1) {
+            try!(write!(fmt, "{}: {}", Red.blink().paint(format!("ERROR[{:>4}]", i)), e));
+        }
+
+        if let Some(backtrace) = self.0.backtrace() {
+            try!(writeln!(fmt, "{}", Red.paint("--- BACKTRACE ---")));
+            try!(writeln!(fmt, "{:?}", backtrace));
+        }
+
+        Ok(())
+    }
+}
+
 
 pub fn trace_error<K, C: ChainedError<ErrorKind = K>>(e: &C) {
-    eprintln!("{}", e.display_chain());
+    eprintln!("{}", ImagTrace::new(e));
 }
 
 pub fn trace_error_dbg<K, C: ChainedError<ErrorKind = K>>(e: &C) {
