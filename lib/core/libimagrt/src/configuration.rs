@@ -89,6 +89,7 @@ pub fn fetch_config(searchpath: &PathBuf) -> Result<Value> {
                         .unwrap_or_else(|| String::from("Line unknown, Column unknown"));
 
                     let _ = write!(stderr(), "Config file parser error at {}", line_col);
+                    let e : RE = RE::from(e);
                     trace_error(&e);
                     None
                 })
