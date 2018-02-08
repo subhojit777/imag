@@ -58,7 +58,7 @@ fn create_entry<'a>(diary: &'a Store, diaryname: &str, rt: &Runtime) -> FileLock
 
     let create = rt.cli().subcommand_matches("create").unwrap();
 
-    let create_timed = create.value_of("timed")
+    create.value_of("timed")
         .map(|t| parse_timed_string(t, diaryname).map_err_trace_exit_unwrap(1))
         .map(Some)
         .unwrap_or_else(|| {
@@ -70,24 +70,20 @@ fn create_entry<'a>(diary: &'a Store, diaryname: &str, rt: &Runtime) -> FileLock
                     None
                 }
             }
-        });
-
-    let entry = match create_timed {
-        Some(timed) => {
+        })
+        .map(|timed| {
             let id = create_id_from_clispec(&create, &diaryname, timed);
             diary.retrieve(id).chain_err(|| DEK::StoreReadError)
-        },
-
-        None => {
+        })
+        .unwrap_or_else(|| {
             debug!("Creating non-timed entry");
             diary.new_entry_today(diaryname)
-        }
-    };
-
-    let e = entry.map_err_trace_exit_unwrap(1);
-
-    debug!("Created: {}", e.get_location());
-    e
+        })
+        .map(|e| {
+            debug!("Created: {}", e.get_location());
+            e
+        })
+        .map_err_trace_exit_unwrap(1)
 }
 
 
