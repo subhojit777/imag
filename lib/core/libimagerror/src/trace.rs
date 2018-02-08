@@ -20,6 +20,14 @@
 use std::process::exit;
 use error_chain::ChainedError;
 
+pub fn trace_error<K, C: ChainedError<ErrorKind = K>>(e: &C) {
+    eprintln!("{}", e.display_chain());
+}
+
+pub fn trace_error_dbg<K, C: ChainedError<ErrorKind = K>>(e: &C) {
+    debug!("{}", e.display_chain());
+}
+
 /// Helper functions for `Result<T, E>` types to reduce overhead in the following situations:
 ///
 /// ```ignore
@@ -41,12 +49,12 @@ impl<U, K, E: ChainedError<ErrorKind = K>> MapErrTrace for Result<U, E> {
     ///
     /// This does nothing besides the side effect of printing the error trace
     fn map_err_trace(self) -> Self {
-        self.map_err(|e| { eprintln!("{}", e.display_chain()); e })
+        self.map_err(|e| { trace_error(&e); e })
     }
 
     /// Trace the error and exit or unwrap the Ok(_).
     fn map_err_trace_exit_unwrap(self, code: i32) -> Self::Output {
-        self.map_err(|e| { eprintln!("{}", e.display_chain()); exit(code) }).unwrap()
+        self.map_err(|e| { trace_error(&e); exit(code) }).unwrap()
     }
 
 }
