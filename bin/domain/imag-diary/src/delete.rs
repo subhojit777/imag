@@ -23,11 +23,11 @@ use chrono::naive::NaiveDateTime;
 
 use libimagdiary::diaryid::DiaryId;
 use libimagrt::runtime::Runtime;
-use libimagerror::trace::trace_error_exit;
 use libimagtimeui::datetime::DateTime;
 use libimagtimeui::parse::Parse;
 use libimagutil::warn_exit::warn_exit;
 use libimagstore::storeid::IntoStoreId;
+use libimagerror::trace::MapErrTrace;
 
 use util::get_diary_name;
 
@@ -53,9 +53,9 @@ pub fn delete(rt: &Runtime) {
             DiaryId::from_datetime(diaryname.clone(), dt)
                 .into_storeid()
                 .map(|id| rt.store().retrieve(id))
-                .unwrap_or_else(|e| trace_error_exit(&e, 1))
+                .map_err_trace_exit_unwrap(1)
         })
-        .unwrap_or_else(|e| trace_error_exit(&e, 1))
+        .map_err_trace_exit_unwrap(1)
         .get_location()
         .clone();
 
@@ -64,9 +64,10 @@ pub fn delete(rt: &Runtime) {
         return;
     }
 
-    if let Err(e) = rt.store().delete(to_del_location) {
-        trace_error_exit(&e, 1)
-    }
+    let _ = rt
+        .store()
+        .delete(to_del_location)
+        .map_err_trace_exit_unwrap(1);
 
     info!("Ok!");
 }
