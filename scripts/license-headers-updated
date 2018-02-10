@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+curr_year=$(date +%Y || exit 1)
+
+line() {
+    head -n "$1" | tail -n 1
+}
+
+check() {
+    local file="$1"
+    local line="$2"
+    local mtch="$3"
+    local desc="$4"
+
+    cat "$file" | line "$line" | grep "$mtch" 2>/dev/null >/dev/null || {
+        echo "[LICENSE ERROR]: '$desc' is missing or wrong in '$file'"
+        return 1
+    }
+}
+
+find -name "*.rs" -type f | while read filename; do
+    check "$filename" 2                                                        \
+        "imag - the personal information management suite for the commandline" \
+        "Description line"                                                     \
+        || exit 1
+
+    check "$filename" 3                     \
+        "Copyright (C) 2015-${curr_year}"   \
+        "Copyright name"                    \
+        || exit 1
+
+    check "$filename" 5                 \
+        "This library is free software" \
+        "License"                       \
+        || exit 1
+
+    echo "[LICENSE OK]: $filename"
+done
+
