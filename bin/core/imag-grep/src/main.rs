@@ -84,7 +84,7 @@ fn main() {
 
     if opts.count {
         println!("{}", count);
-    } else {
+    } else if !opts.files_with_matches {
         println!("Processed {} files, {} matches, {} nonmatches",
                  overall_count,
                  count,
