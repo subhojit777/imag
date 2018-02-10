@@ -39,6 +39,7 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
         .subcommand(SubCommand::with_name("show")
                    .about("View log(s)")
                    .version("0.1")
+                   .alias("list")
 
                    .arg(Arg::with_name("show-all")
                         .long("all")
