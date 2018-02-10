@@ -94,8 +94,6 @@ fn add(rt: &Runtime) {
         .map_err_trace_exit_unwrap(1)
         .edit_content(&rt)
         .map_err_trace_exit_unwrap(1);
-
-    info!("Ok");
 }
 
 fn remove(rt: &Runtime) {
@@ -130,8 +128,6 @@ fn remove(rt: &Runtime) {
     } else {
         debug!("Not deleting annotation object");
     }
-
-    info!("Ok");
 }
 
 fn list(rt: &Runtime) {
@@ -163,8 +159,6 @@ fn list(rt: &Runtime) {
                 .collect::<Vec<_>>();
         }
     }
-
-    info!("Ok");
 }
 
 fn list_annotation<'a>(i: usize, a: FileLockEntry<'a>, with_text: bool) {

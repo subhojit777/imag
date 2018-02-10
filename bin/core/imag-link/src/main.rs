@@ -149,8 +149,6 @@ fn link_from_to<'a, I>(rt: &'a Runtime, from: &'a str, to: I)
 
         info!("Ok: {} -> {}", from, entry);
     }
-
-    info!("Ok");
 }
 
 fn remove_linking(rt: &Runtime) {

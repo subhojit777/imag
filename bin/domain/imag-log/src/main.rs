@@ -87,7 +87,6 @@ fn main() {
                 *fle.get_content_mut() = text;
             })
             .map_err_trace_exit_unwrap(1);
-        info!("Ok");
     }
 }
 

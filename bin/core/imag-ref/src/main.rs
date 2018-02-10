@@ -86,7 +86,6 @@ fn add(rt: &Runtime) {
     match RefStore::create(rt.store(), path, flags) {
         Ok(r) => {
             debug!("Reference created: {:?}", r);
-            info!("Ok");
         },
         Err(e) => {
             trace_error(&e);

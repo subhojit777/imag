@@ -80,7 +80,5 @@ fn main() {
     let _ = entry
         .edit_content(&rt)
         .map_err_trace_exit_unwrap(1);
-
-    info!("Ok");
 }
 

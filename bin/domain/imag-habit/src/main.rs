@@ -136,7 +136,6 @@ fn create(rt: &Runtime) {
     };
 
     hb.build(rt.store()).map_err_trace_exit_unwrap(1);
-    info!("Ok");
 }
 
 fn delete(rt: &Runtime) {
