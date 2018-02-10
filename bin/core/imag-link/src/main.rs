@@ -265,7 +265,7 @@ mod tests {
     make_mock_app! {
         app "imag-link";
         modulename mock;
-        version "0.6.0";
+        version "0.7.0";
         with help "imag-link mocking app";
     }
     use self::mock::generate_test_runtime;
