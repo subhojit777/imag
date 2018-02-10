@@ -9,19 +9,19 @@ CRATES=(
     ./lib/etc/libimagnotification
     ./lib/etc/libimaginteraction
     ./lib/core/libimagrt
-    ./lib/entry/libimagentryfilter
     ./lib/entry/libimagentrycategory
-    ./lib/entry/libimagentryannotation
     ./lib/entry/libimagentrylink
     ./lib/entry/libimagentrytag
+    ./lib/entry/libimagentryfilter
     ./lib/entry/libimagentrygps
     ./lib/entry/libimagentrylist
     ./lib/entry/libimagentryedit
-    ./lib/entry/libimagentryref
     ./lib/entry/libimagentryview
-    ./lib/entry/libimagentrymarkdown
     ./lib/entry/libimagentrydatetime
     ./lib/entry/libimagentryutil
+    ./lib/entry/libimagentryref
+    ./lib/entry/libimagentrymarkdown
+    ./lib/entry/libimagentryannotation
     ./lib/domain/libimagbookmark
     ./lib/domain/libimaghabit
     ./lib/domain/libimagnotes
