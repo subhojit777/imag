@@ -9,6 +9,10 @@ keywords    = ["imag", "PIM", "personal", "information", "management"]
 readme      = "../../../README.md"
 license     = "LGPL-2.1"
 
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+homepage      = "http://imag-pim.org"
+
 [badges]
 travis-ci                         = { repository = "matthiasbeyer/imag" }
 is-it-maintained-issue-resolution = { repository = "matthiasbeyer/imag" }

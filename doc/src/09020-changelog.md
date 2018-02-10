@@ -19,6 +19,12 @@ Version 0.y.z and thus we can break the API like we want and need to.
 This section contains the changelog from the last release to the next release.
 
 * Major changes
+* Minor changes
+* Bugfixes
+
+## 0.6.0
+
+* Major changes
     * The config infrastructure of `libimagstore` was removed, as it was unused.
     * The iterators of `libimagstore` were improved and are now abstract over
       all iterator types. For example, all iterators over `StoreId` can now be

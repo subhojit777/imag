@@ -89,7 +89,7 @@ PANDOC_CC=$(PANDOC) $(PANDOC_PARAMS)
 
 export PANDOC_CC_PDF=$(PANDOC)        \
 			  $(PANDOC_PARAMS)        \
-			  --latex-engine=pdflatex \
+			  --pdf-engine=pdflatex \
 			  $(DOCUMENT_SETTINGS_PDF)
 
 export PANDOC_CC_HTML=$(PANDOC) $(PANDOC_PARAMS) $(DOCUMENT_SETTINGS_HTML)
