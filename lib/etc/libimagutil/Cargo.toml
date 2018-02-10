@@ -13,17 +13,17 @@ documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.h
 repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
-[features]
-default = []
-
-# Testing feature to compile testing utilities into the library.
-testing = []
-
 [badges]
 travis-ci                         = { repository = "matthiasbeyer/imag" }
 is-it-maintained-issue-resolution = { repository = "matthiasbeyer/imag" }
 is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
+
+[features]
+default = []
+
+# Testing feature to compile testing utilities into the library.
+testing = []
 
 [dependencies]
 url = "1.5"
