@@ -23,6 +23,16 @@ This section contains the changelog from the last release to the next release.
       that complex `--from/--to` arguments (like `yesterday` or `today-2weeks`)
       are now possible
 * Minor changes
+    * A license-checker was included into the CI setup, which checks whether all
+      ".rs"-files have the license header at the top of the file
+    * `imag-link` does not allow linking the entry to itself
+    * `imag` sorts available commands alphabetically now
+    * `imag` has a new subcommand `help` for consistency with other tools
+    * `imag-grep` does not print grep statistics when only files with matches
+      are listed
+    * The `"Ok"` output which was printed on success was removed from all
+      commands
+    * `imag-log show` was aliased to `imag-log list`
 * Bugfixes
 
 ## 0.6.0
