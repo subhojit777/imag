@@ -86,10 +86,10 @@ fn help_text(cmds: Vec<String>) -> String {
 
 /// Returns the list of imag-* executables found in $PATH
 fn get_commands() -> Vec<String> {
-    match env::var("PATH") {
+    let mut v = match env::var("PATH") {
         Err(e) => {
             println!("PATH error: {:?}", e);
-            exit(1);
+            exit(1)
         },
 
         Ok(path) => path
@@ -109,8 +109,11 @@ fn get_commands() -> Vec<String> {
                        .and_then(|s| s.splitn(2, "-").nth(1).map(String::from))
                     )
             })
-            .collect()
-    }
+            .collect::<Vec<String>>()
+    };
+
+    v.sort();
+    v
 }
 
 
