@@ -45,7 +45,7 @@ use std::path::PathBuf;
 use std::path::Path;
 use std::process::Command;
 
-const CONFIGURATION_STR : &'static str = include_str!("../../../../../../../imagrc.toml");
+const CONFIGURATION_STR : &'static str = include_str!("../../../../imagrc.toml");
 const GITIGNORE_STR : &'static str = r#"
 # We ignore the imagrc.toml file by default
 #
