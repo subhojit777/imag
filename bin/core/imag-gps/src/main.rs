@@ -46,6 +46,8 @@ use std::process::exit;
 use std::path::PathBuf;
 use std::str::FromStr;
 
+use libimagentrygps::error::GPSError as GE;
+use libimagentrygps::error::GPSErrorKind as GEK;
 use libimagentrygps::types::*;
 use libimagentrygps::entry::*;
 use libimagrt::setup::generate_runtime_setup;
@@ -86,7 +88,10 @@ fn add(rt: &Runtime) {
         let parse = |value: &str| -> Vec<i8> {
             value.split(".")
                 .map(FromStr::from_str)
-                .map(|elem| elem.map_err_trace_exit_unwrap(1))
+                .map(|elem| {
+                    elem.or_else(|_| Err(GE::from(GEK::NumberConversionError)))
+                        .map_err_trace_exit_unwrap(1)
+                })
                 .collect::<Vec<i8>>()
         };
 
