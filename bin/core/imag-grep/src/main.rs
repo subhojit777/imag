@@ -32,6 +32,7 @@
     while_true,
 )]
 
+#[macro_use] extern crate log;
 extern crate clap;
 extern crate regex;
 
@@ -70,7 +71,10 @@ fn main() {
         .value_of("pattern")
         .map(Regex::new)
         .unwrap() // ensured by clap
-        .map_err_trace_exit_unwrap(1);
+        .unwrap_or_else(|e| {
+            error!("Regex building error: {:?}", e);
+            ::std::process::exit(1)
+        });
 
     let overall_count = rt
         .store()
