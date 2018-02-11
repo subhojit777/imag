@@ -128,7 +128,7 @@ fn main() {
 
         let path_str = path.to_str().map(String::from).expect("Cannot convert path to string");
         let worktree = format!("--work-tree={}", path_str);
-        let gitdir   = format!("--git-dir={}", path_str);
+        let gitdir   = format!("--git-dir={}/.git", path_str);
 
         {
             let output = Command::new("git")
