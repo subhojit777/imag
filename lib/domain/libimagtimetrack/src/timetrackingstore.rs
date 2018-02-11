@@ -28,13 +28,12 @@ use toml_query::insert::TomlValueInsertExt;
 
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
+use libimagstore::iter::get::StoreGetIterator;
+use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagentrydatetime::datepath::compiler::DatePathCompiler;
 
 use error::Result;
 use constants::*;
-use error::TimeTrackErrorKind as TTEK;
-use error::ResultExt;
-use iter::get::GetTimeTrackIter;
 
 use tag::TimeTrackingTag as TTT;
 
@@ -44,7 +43,7 @@ pub trait TimeTrackStore<'a> {
     fn create_timetracking_at(&'a self, start: &NDT, ts: &TTT)         -> Result<FileLockEntry<'a>>;
     fn create_timetracking(&'a self, start: &NDT, end: &NDT, ts: &TTT) -> Result<FileLockEntry<'a>>;
 
-    fn get_timetrackings(&'a self) -> Result<GetTimeTrackIter<'a>>;
+    fn get_timetrackings(&'a self) -> Result<StoreGetIterator<'a>>;
 }
 
 fn now() -> NDT {
@@ -99,15 +98,15 @@ impl<'a> TimeTrackStore<'a> for Store {
                 let v = Value::String(end.format(DATE_TIME_FORMAT).to_string());
                 fle.get_header_mut()
                     .insert(DATE_TIME_END_HEADER_PATH, v)
-                    .chain_err(|| TTEK::HeaderWriteError)
+                    .map_err(From::from)
                     .map(|_| fle)
             })
     }
 
-    fn get_timetrackings(&'a self) -> Result<GetTimeTrackIter<'a>> {
+    fn get_timetrackings(&'a self) -> Result<StoreGetIterator<'a>> {
         self.retrieve_for_module(CRATE_NAME)
-            .chain_err(|| TTEK::StoreReadError)
-            .map(|iter| GetTimeTrackIter::new(iter, self))
+            .map_err(From::from)
+            .map(|iter| iter.into_get_iter(self))
     }
 
 }
