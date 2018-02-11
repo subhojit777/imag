@@ -23,28 +23,16 @@ use libimagrt::runtime::Runtime;
 use libimagerror::trace::*;
 
 pub fn dump(rt: &mut Runtime) {
-    let cachingres = rt
-        .store()
+    rt.store()
         .entries()
-        .map_err_trace()
-        .map(|iter| {
-            for elem in iter {
-                debug!("Working on {:?}", elem);
-                if let Ok(_) = rt.store().get(elem.clone()).map_err_dbg_trace() {
-                    info!("Loading entry at {:?} succeeded", elem);
-                } else {
-                    error!("Loading entry at {:?} failed", elem);
-                }
-            }
+        .map_err_trace_exit_unwrap(1)
+        .for_each(|elem| {
+            debug!("Working on {:?}", elem);
+            rt.store().get(elem).map_err_trace_exit_unwrap(1);
         });
 
-    if let Ok(_) = cachingres {
-        if let Err(_) = rt.store_backend_to_stdout().map_err_trace() {
-            error!("Loading Store IO backend failed");
-            exit(1);
-        }
-    } else {
-        error!("Loading entries failed");
+    if let Err(_) = rt.store_backend_to_stdout().map_err_trace() {
+        error!("Loading Store IO backend failed");
         exit(1);
     }
 }
