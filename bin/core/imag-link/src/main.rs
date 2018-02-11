@@ -56,7 +56,7 @@ use libimagentrylink::external::ExternalLinker;
 use libimagentrylink::internal::InternalLinker;
 use libimagentrylink::internal::store_check::StoreLinkConsistentExt;
 use libimagentrylink::error::LinkError as LE;
-use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
+use libimagerror::trace::{MapErrTrace, trace_error};
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagstore::error::StoreError;
@@ -120,16 +120,19 @@ fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<Option<FileLockE
 fn link_from_to<'a, I>(rt: &'a Runtime, from: &'a str, to: I)
     where I: Iterator<Item = &'a str>
 {
-    let mut from_entry = match get_entry_by_name(rt, from) {
-        Ok(Some(e)) => e,
-        Ok(None)    => warn_exit("No 'from' entry", 1),
-        Err(e)      => trace_error_exit(&e, 1),
+    let mut from_entry = match get_entry_by_name(rt, from).map_err_trace_exit_unwrap(1) {
+        Some(e) => e,
+        None    => warn_exit("No 'from' entry", 1),
     };
 
     for entry in to {
         if PathBuf::from(entry).exists() {
             debug!("Linking externally: {:?} -> {:?}", from, entry);
-            let url = Url::parse(entry).map_err_trace_exit_unwrap(1);
+            let url = Url::parse(entry).unwrap_or_else(|e| {
+                error!("Error parsing URL: {:?}", e);
+                ::std::process::exit(1);
+            });
+
             let _ = from_entry
                 .add_external_link(rt.store(), url)
                 .map_err_trace_exit_unwrap(1);
@@ -144,13 +147,12 @@ fn link_from_to<'a, I>(rt: &'a Runtime, from: &'a str, to: I)
                 ::std::process::exit(1)
             }
 
-            let mut to_entry = match rt.store().get(entr_id) {
-                Ok(Some(e)) => e,
-                Ok(None)    => {
+            let mut to_entry = match rt.store().get(entr_id).map_err_trace_exit_unwrap(1) {
+                Some(e) => e,
+                None    => {
                     warn!("No 'to' entry: {}", entry);
                     ::std::process::exit(1)
                 },
-                Err(e)      => trace_error_exit(&e, 1),
             };
             let _ = from_entry
                 .add_internal_link(&mut to_entry)
@@ -195,15 +197,18 @@ fn remove_linking(rt: &Runtime) {
                 match entry {
                     Err(e) => trace_error(&e),
                     Ok(Some(mut to_entry)) => {
-                        if let Err(e) = to_entry.remove_internal_link(&mut from) {
-                            trace_error_exit(&e, 1);
-                        }
+                        let _ = to_entry
+                            .remove_internal_link(&mut from)
+                            .map_err_trace_exit_unwrap(1);
                     },
                     Ok(None) => {
                         // looks like this is not an entry, but a filesystem URI and therefor an
                         // external link...?
                         if PathBuf::from(value).is_file() {
-                            let url = Url::parse(value).map_err_trace_exit_unwrap(1);
+                            let url = Url::parse(value).unwrap_or_else(|e| {
+                                error!("Error parsing URL: {:?}", e);
+                                ::std::process::exit(1);
+                            });
                             from.remove_external_link(rt.store(), url).map_err_trace_exit_unwrap(1);
                             info!("Ok: {}", value);
                         } else {

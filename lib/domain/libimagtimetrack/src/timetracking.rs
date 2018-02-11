@@ -1,4 +1,4 @@
-//
+
 // imag - the personal information management suite for the commandline
 // Copyright (C) 2015-2018 Matthias Beyer <mail@beyermatthias.de> and contributors
 //
