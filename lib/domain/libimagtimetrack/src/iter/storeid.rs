@@ -21,8 +21,6 @@ use chrono::naive::NaiveDateTime as NDT;
 
 use constants::*;
 use error::TimeTrackError;
-use error::TimeTrackErrorKind as TTEK;
-use error::ResultExt;
 use iter::tag::TagIter;
 use iter::create::CreateTimeTrackIter;
 
@@ -64,7 +62,7 @@ impl Iterator for TagStoreIdIter {
                     let id_str = format!("{}-{}", dt, tag.as_str());
                     ModuleEntryPath::new(id_str)
                         .into_storeid()
-                        .chain_err(|| TTEK::StoreIdError)
+                        .map_err(From::from)
                         .map(|id| (id, self.datetime.clone()))
                 })
             })

@@ -70,24 +70,24 @@ impl<'a> TimeTrackStore<'a> for Store {
         use std::path::PathBuf;
 
         COMPILER.compile(CRATE_NAME, start)
-            .chain_err(|| TTEK::StoreIdError)
+            .map_err(From::from)
             .map(|mut id| {
                 id.local_push(PathBuf::from(ts.as_str()));
                 id
             })
-            .and_then(|id| self.create(id).chain_err(|| TTEK::StoreWriteError))
+            .and_then(|id| self.create(id).map_err(From::from))
             .and_then(|mut fle| {
                 let v = Value::String(ts.as_str().to_owned());
                 fle.get_header_mut()
                     .insert(DATE_TIME_TAG_HEADER_PATH, v)
-                    .chain_err(|| TTEK::HeaderWriteError)
+                    .map_err(From::from)
                     .map(|_| fle)
             })
             .and_then(|mut fle| {
                 let v = Value::String(start.format(DATE_TIME_FORMAT).to_string());
                 fle.get_header_mut()
                     .insert(DATE_TIME_START_HEADER_PATH, v)
-                    .chain_err(|| TTEK::HeaderWriteError)
+                    .map_err(From::from)
                     .map(|_| fle)
             })
     }
