@@ -25,6 +25,7 @@ chrono = "0.4"
 filters = "0.2"
 itertools = "0.7"
 prettytable-rs = "0.6"
+kairos = "0.1"
 
 libimagstore     = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
 libimagrt        = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
