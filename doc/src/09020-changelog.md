@@ -35,6 +35,17 @@ This section contains the changelog from the last release to the next release.
     * `imag-log show` was aliased to `imag-log list`
 * Bugfixes
 
+
+## 0.6.1
+
+Bugfix release for fixing two severe bugs in `imag-init`:
+
+* `imag-init` created the git directory inside the imag directory. Fixed by
+  defaulting to `{imag directory}/.git`.
+* `imag-init` was buggy as it did not include the `imagrc.toml` file in the
+  release, thus building it from crates.io failed
+
+
 ## 0.6.0
 
 * Major changes
