@@ -26,6 +26,7 @@ use libimagerror::trace::trace_error;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::iter::TraceIterator;
 use libimagstore::store::FileLockEntry;
+use libimagtimetrack::error::TimeTrackError as TTE;
 use libimagtimetrack::timetrackingstore::TimeTrackStore;
 use libimagtimetrack::timetracking::TimeTracking;
 use libimagtimetrack::tag::TimeTrackingTag;
@@ -43,7 +44,12 @@ pub fn year(rt: &Runtime) -> i32 {
 
         let now = Local::now();
 
-        let start = match cmd.value_of("start").map(::chrono::naive::NaiveDateTime::from_str) {
+        let start = match cmd
+            .value_of("start")
+            .map(|s| {
+                ::chrono::naive::NaiveDateTime::from_str(s).map_err(TTE::from)
+            })
+        {
             None => NaiveDate::from_ymd(now.year(), 1, 1).and_hms(0, 0, 0),
             Some(Ok(dt)) => dt,
             Some(Err(e)) => {
@@ -52,7 +58,12 @@ pub fn year(rt: &Runtime) -> i32 {
             }
         };
 
-        let end = match cmd.value_of("end").map(::chrono::naive::NaiveDateTime::from_str) {
+        let end = match cmd
+            .value_of("end")
+            .map(|s| {
+                ::chrono::naive::NaiveDateTime::from_str(s).map_err(TTE::from)
+            })
+        {
             None => {
                 NaiveDate::from_ymd(now.year() + 1, 1, 1).and_hms(0, 0, 0)
             },

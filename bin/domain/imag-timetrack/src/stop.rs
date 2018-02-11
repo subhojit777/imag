@@ -20,12 +20,14 @@
 use std::str::FromStr;
 
 use filters::filter::Filter;
+use chrono::NaiveDateTime;
 
 use libimagerror::trace::trace_error;
 use libimagerror::iter::TraceIterator;
 use libimagerror::trace::MapErrTrace;
 use libimagrt::runtime::Runtime;
 
+use libimagtimetrack::error::TimeTrackError as TTE;
 use libimagtimetrack::timetracking::TimeTracking;
 use libimagtimetrack::tag::TimeTrackingTag;
 use libimagtimetrack::timetrackingstore::*;
@@ -40,7 +42,7 @@ pub fn stop(rt: &Runtime) -> i32 {
 
     let stop_time = match cmd.value_of("stop-time") {
         None | Some("now") => ::chrono::offset::Local::now().naive_local(),
-        Some(ndt)          => match ::chrono::naive::NaiveDateTime::from_str(ndt) {
+        Some(ndt)          => match NaiveDateTime::from_str(ndt).map_err(TTE::from) {
             Ok(ndt) => ndt,
             Err(e) =>  {
                 trace_error(&e);

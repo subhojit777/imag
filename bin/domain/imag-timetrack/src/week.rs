@@ -26,6 +26,7 @@ use libimagerror::trace::trace_error;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::iter::TraceIterator;
 use libimagstore::store::FileLockEntry;
+use libimagtimetrack::error::TimeTrackError as TTE;
 use libimagtimetrack::timetrackingstore::TimeTrackStore;
 use libimagtimetrack::timetracking::TimeTracking;
 use libimagtimetrack::tag::TimeTrackingTag;
@@ -44,7 +45,12 @@ pub fn week(rt: &Runtime) -> i32 {
 
         let this_week = Local::now().iso_week();
 
-        let start = match cmd.value_of("start").map(::chrono::naive::NaiveDateTime::from_str) {
+        let start = match cmd
+            .value_of("start")
+            .map(|s| {
+                ::chrono::naive::NaiveDateTime::from_str(s).map_err(TTE::from)
+            })
+        {
             None         => NaiveDate::from_isoywd(this_week.year(), this_week.week(), Weekday::Mon)
                 .and_hms(0, 0, 0),
             Some(Ok(dt)) => dt,
@@ -54,7 +60,12 @@ pub fn week(rt: &Runtime) -> i32 {
             }
         };
 
-        let end = match cmd.value_of("end").map(::chrono::naive::NaiveDateTime::from_str) {
+        let end = match cmd
+            .value_of("end")
+            .map(|s| {
+                ::chrono::naive::NaiveDateTime::from_str(s).map_err(TTE::from)
+            })
+        {
             None         => NaiveDate::from_isoywd(this_week.year(), this_week.week(), Weekday::Sun)
                 .and_hms(23, 59, 59),
             Some(Ok(dt)) => dt,
