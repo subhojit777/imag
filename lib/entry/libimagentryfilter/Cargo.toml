@@ -20,7 +20,6 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-clap = ">=2.17"
 filters = "0.2"
 itertools = "0.7"
 log = "0.4.0"
@@ -31,3 +30,9 @@ toml-query = "0.6"
 
 libimagstore    = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
 libimagentrytag = { version = "0.6.0", path = "../../../lib/entry/libimagentrytag" }
+
+[dependencies.clap]
+version = ">=2.29"
+default-features = false
+features = ["color", "suggestions"]
+

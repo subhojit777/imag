@@ -20,7 +20,6 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-clap = ">=2.17"
 log = "0.4.0"
 url = "1.5"
 toml = "0.4"
@@ -31,6 +30,11 @@ libimagrt        = { version = "0.6.0", path = "../../../lib/core/libimagrt" }
 libimagerror     = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
 libimagentrylink = { version = "0.6.0", path = "../../../lib/entry/libimagentrylink" }
 libimagutil      = { version = "0.6.0", path = "../../../lib/etc/libimagutil" }
+
+[dependencies.clap]
+version = ">=2.29"
+default-features = false
+features = ["color", "suggestions"]
 
 [dev-dependencies.libimagutil]
 version          = "0.6.0"
@@ -43,4 +47,5 @@ version          = "0.6.0"
 path             = "../../../lib/core/libimagrt"
 default-features = false
 features         = ["testing"]
+
 

@@ -21,7 +21,6 @@ maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
 chrono = "0.4"
-clap = ">=2.17"
 log = "0.4.0"
 toml = "0.4"
 toml-query = "0.6"
@@ -35,4 +34,9 @@ libimagentrylist   = { version = "0.6.0", path = "../../../lib/entry/libimagentr
 libimaginteraction = { version = "0.6.0", path = "../../../lib/etc/libimaginteraction" }
 libimagutil        = { version = "0.6.0", path = "../../../lib/etc/libimagutil" }
 libimagtimeui      = { version = "0.6.0", path = "../../../lib/etc/libimagtimeui" }
+
+[dependencies.clap]
+version = ">=2.29"
+default-features = false
+features = ["color", "suggestions"]
 

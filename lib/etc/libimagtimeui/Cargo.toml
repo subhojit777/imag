@@ -20,9 +20,13 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-clap = ">=2.17"
 lazy_static = "0.2"
 log = "0.4.0"
 chrono = "0.4"
 regex = "0.2"
+
+[dependencies.clap]
+version = ">=2.29"
+default-features = false
+features = ["color", "suggestions"]
 

@@ -20,7 +20,6 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-clap = ">=2.17"
 log = "0.4.0"
 prettytable-rs = "0.6.*"
 error-chain = "0.11"
@@ -28,3 +27,9 @@ error-chain = "0.11"
 libimagstore = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
 libimagerror = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
 libimagutil  = { version = "0.6.0", path = "../../../lib/etc/libimagutil" }
+
+[dependencies.clap]
+version = ">=2.29"
+default-features = false
+features = ["color", "suggestions"]
+
