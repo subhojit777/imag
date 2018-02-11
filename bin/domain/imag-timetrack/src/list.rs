@@ -17,13 +17,14 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::str::FromStr;
-
 use chrono::NaiveDateTime;
 use filters::filter::Filter;
 use prettytable::Table;
 use prettytable::row::Row;
 use prettytable::cell::Cell;
+use kairos::parser::Parsed;
+use kairos::parser::parse as kairos_parse;
+use clap::ArgMatches;
 
 use libimagerror::trace::trace_error;
 use libimagerror::trace::MapErrTrace;
@@ -39,22 +40,37 @@ pub fn list(rt: &Runtime) -> i32 {
     let (_, cmd) = rt.cli().subcommand();
     let cmd = cmd.unwrap(); // checked in main()
 
-    let start = match cmd.value_of("start-time").map(::chrono::naive::NaiveDateTime::from_str) {
-        None         => None,
-        Some(Ok(dt)) => Some(dt),
-        Some(Err(e)) => {
-            trace_error(&e);
-            None
+    let gettime = |cmd: &ArgMatches, name| {
+        match cmd.value_of(name).map(kairos_parse) {
+            Some(Ok(Parsed::TimeType(tt))) => match tt.calculate() {
+                Ok(tt) => {
+                    let dt = tt.get_moment().unwrap_or_else(|| {
+                        error!("Failed to get date from '{}'", cmd.value_of(name).unwrap());
+                        ::std::process::exit(1)
+                    });
+
+                    Some(dt.clone())
+                },
+                Err(e) => {
+                    error!("Failed to calculate date from '{}': {:?}",
+                           cmd.value_of(name).unwrap(), e);
+                    ::std::process::exit(1)
+                },
+            },
+            Some(Ok(Parsed::Iterator(_))) => {
+                error!("Expected single point in time, got '{}', which yields a list of dates", cmd.value_of(name).unwrap());
+                ::std::process::exit(1)
+            },
+            Some(Err(e)) => {
+                trace_error(&e);
+                ::std::process::exit(1)
+            }
+            None => None,
         }
     };
-    let end = match cmd.value_of("end-time").map(::chrono::naive::NaiveDateTime::from_str) {
-        None         => None,
-        Some(Ok(dt)) => Some(dt),
-        Some(Err(e)) => {
-            trace_error(&e);
-            None
-        }
-    };
+
+    let start = gettime(&cmd, "start-time");
+    let end   = gettime(&cmd, "end-time");
 
     let list_not_ended = cmd.is_present("list-not-ended");
 
