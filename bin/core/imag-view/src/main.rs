@@ -44,7 +44,6 @@ extern crate libimagerror;
 extern crate libimagrt;
 extern crate libimagstore;
 
-use std::error::Error;
 use std::collections::BTreeMap;
 use std::io::Write;
 use std::path::PathBuf;
@@ -55,6 +54,7 @@ use handlebars::Handlebars;
 use toml_query::read::TomlValueReadTypeExt;
 
 use libimagrt::setup::generate_runtime_setup;
+use libimagerror::str::ErrFromStr;
 use libimagerror::trace::MapErrTrace;
 use libimagentryview::builtin::stdout::StdoutViewer;
 use libimagentryview::viewer::Viewer;
@@ -108,29 +108,29 @@ fn main() {
 
         let _ = handlebars
             .register_template_string("template", viewer_template)
-            .map_err(|e| format!("{}", e.description()))
+            .err_from_str()
             .map_err(VE::from)
             .map_err_trace_exit_unwrap(1);
 
         let file = {
             let mut tmpfile = tempfile::NamedTempFile::new()
-            .map_err(|e| format!("{}", e.description()))
+            .err_from_str()
             .map_err(VE::from)
                 .map_err_trace_exit_unwrap(1);
             if view_header {
                 let hdr = toml::ser::to_string_pretty(entry.get_header())
-                    .map_err(|e| format!("{}", e.description()))
+                    .err_from_str()
                     .map_err(VE::from)
                     .map_err_trace_exit_unwrap(1);
                 let _ = tmpfile.write(format!("---\n{}---\n", hdr).as_bytes())
-                    .map_err(|e| format!("{}", e.description()))
+                    .err_from_str()
                     .map_err(VE::from)
                     .map_err_trace_exit_unwrap(1);
             }
 
             if !hide_content {
                 let _ = tmpfile.write(entry.get_content().as_bytes())
-                    .map_err(|e| format!("{}", e.description()))
+                    .err_from_str()
                     .map_err(VE::from)
                     .map_err_trace_exit_unwrap(1);
             }
@@ -151,7 +151,7 @@ fn main() {
 
             let call = handlebars
                 .render("template", &data)
-                .map_err(|e| format!("{}", e.description()))
+                .err_from_str()
                 .map_err(VE::from)
                 .map_err_trace_exit_unwrap(1);
             let mut elems = call.split_whitespace();
@@ -170,7 +170,7 @@ fn main() {
 
         if !command
             .status()
-            .map_err(|e| format!("{}", e.description()))
+            .err_from_str()
             .map_err(VE::from)
             .map_err_trace_exit_unwrap(1)
             .success()
