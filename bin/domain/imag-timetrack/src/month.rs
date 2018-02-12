@@ -96,31 +96,32 @@ pub fn month(rt: &Runtime) -> i32 {
 
     rt.store()
         .get_timetrackings()
-        .and_then(|iter| {
-            iter.trace_unwrap()
-                .filter(|e| filter.filter(e))
-                .fold(Ok(()), |acc, e| {
-                    acc.and_then(|_| {
-                        debug!("Processing {:?}", e.get_location());
+        .map_err_trace_exit_unwrap(1)
+        .trace_unwrap()
+        .filter(Option::is_some)
+        .map(Option::unwrap)
+        .filter(|e| filter.filter(e))
+        .fold(Ok(()), |acc: Result<(), ::libimagtimetrack::error::TimeTrackError>, e| {
+            acc.and_then(|_| {
+                debug!("Processing {:?}", e.get_location());
 
-                        let tag   = e.get_timetrack_tag()?;
-                        debug!(" -> tag = {:?}", tag);
+                let tag   = e.get_timetrack_tag()?;
+                debug!(" -> tag = {:?}", tag);
 
-                        let start = e.get_start_datetime()?;
-                        debug!(" -> start = {:?}", start);
+                let start = e.get_start_datetime()?;
+                debug!(" -> start = {:?}", start);
 
-                        let end   = e.get_end_datetime()?;
-                        debug!(" -> end = {:?}", end);
+                let end   = e.get_end_datetime()?;
+                debug!(" -> end = {:?}", end);
 
-                        match (start, end) {
-                            (None, _)          => println!("{} has no start time.", tag),
-                            (Some(s), None)    => println!("{} | {} - ...", tag, s),
-                            (Some(s), Some(e)) => println!("{} | {} - {}", tag, s, e),
-                        }
+                match (start, end) {
+                    (None, _)          => println!("{} has no start time.", tag),
+                    (Some(s), None)    => println!("{} | {} - ...", tag, s),
+                    (Some(s), Some(e)) => println!("{} | {} - {}", tag, s, e),
+                }
 
-                        Ok(())
-                    })
-                })
+                Ok(())
+            })
         })
         .map(|_| 0)
         .map_err_trace()

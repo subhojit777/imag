@@ -57,8 +57,10 @@ pub fn stop(rt: &Runtime) -> i32 {
             rt.store()
                 .get_timetrackings()
                 .map_err_trace_exit_unwrap(1)
+                .trace_unwrap()
+                .filter(Option::is_some)
+                .map(Option::unwrap)
                 .filter_map(|tracking| {
-                    let tracking = tracking.map_err_trace_exit_unwrap(1);
                     let is_none = tracking
                         .get_end_datetime()
                         .map_err_trace_exit_unwrap(1)
@@ -83,6 +85,8 @@ pub fn stop(rt: &Runtime) -> i32 {
         .map_warn_err_str("Getting timetrackings failed")
         .map_err_trace_exit_unwrap(1)
         .trace_unwrap()
+        .filter(Option::is_some)
+        .map(Option::unwrap)
 
         // Filter all timetrackings for the ones that are not yet ended.
         .filter(|e| filter.filter(e))

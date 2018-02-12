@@ -22,20 +22,21 @@ error_chain! {
         TimeTrackError, TimeTrackErrorKind, ResultExt, Result;
     }
 
+    links {
+        StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
+        DateTimeError(::libimagentrydatetime::error::DateError, ::libimagentrydatetime::error::DateErrorKind);
+        DatePathError(::libimagentrydatetime::datepath::error::DatePathCompilerError, ::libimagentrydatetime::datepath::error::DatePathCompilerErrorKind);
+        TomlError(::toml_query::error::Error, ::toml_query::error::ErrorKind);
+    }
+
+    foreign_links {
+        ChronoParseError(::chrono::format::ParseError);
+    }
+
     errors {
-        StoreReadError {
-            description("Error while writing Store")
-            display("Error while writing Store")
-        }
-
-        StoreWriteError {
-            description("Error while reading Store")
-            display("Error while reading Store")
-        }
-
-        StoreIdError {
-            description("Error while handling StoreId")
-            display("Error while handling StoreId")
+        HeaderReadError {
+            description("Error reading header")
+            display("Error reading header")
         }
 
         TagFormat {
@@ -43,21 +44,9 @@ error_chain! {
             display("Tag has invalid format")
         }
 
-        HeaderReadError {
-            description("Error writing header")
-            display("Error writing header")
-        }
-        HeaderWriteError {
-            description("Error writing header")
-            display("Error writing header")
-        }
         HeaderFieldTypeError {
             description("Type error in header")
             display("Type error in header")
-        }
-        DateTimeParserError {
-            description("Error while parsing DateTime")
-            display("Error while parsing DateTime")
         }
     }
 }

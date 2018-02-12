@@ -30,6 +30,7 @@ use libimagerror::trace::trace_error;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::iter::TraceIterator;
 use libimagstore::store::FileLockEntry;
+use libimagtimetrack::error::TimeTrackError;
 use libimagtimetrack::timetrackingstore::TimeTrackStore;
 use libimagtimetrack::timetracking::TimeTracking;
 use libimagtimetrack::error::Result;
@@ -120,52 +121,54 @@ pub fn list_impl(rt: &Runtime,
 
     rt.store()
         .get_timetrackings()
-        .and_then(|iter| {
-            iter.trace_unwrap()
-                .filter(|e| filter.filter(e))
-                .fold(Ok(table), |acc: Result<_>, e| {
-                    acc.and_then(|mut tab: Table| {
-                        debug!("Processing {:?}", e.get_location());
+        .map_err_trace_exit_unwrap(1)
+        .trace_unwrap()
+        .filter(Option::is_some)
+        .map(Option::unwrap)
+        .filter(|e| filter.filter(e))
+        .fold(Ok(table), |acc: Result<_>, e| {
+            acc.and_then(|mut tab: Table| {
+                debug!("Processing {:?}", e.get_location());
 
-                        let tag   = e.get_timetrack_tag()?;
-                        debug!(" -> tag = {:?}", tag);
+                let tag   = e.get_timetrack_tag()?;
+                debug!(" -> tag = {:?}", tag);
 
-                        let start = e.get_start_datetime()?;
-                        debug!(" -> start = {:?}", start);
+                let start = e.get_start_datetime()?;
+                debug!(" -> start = {:?}", start);
 
-                        let end   = e.get_end_datetime()?;
-                        debug!(" -> end = {:?}", end);
+                let end   = e.get_end_datetime()?;
+                debug!(" -> end = {:?}", end);
 
-                        let v = match (start, end) {
-                            (None, _)          => vec![String::from(tag.as_str()), String::from(""), String::from("")],
-                            (Some(s), None)    => {
-                                vec![
-                                    String::from(tag.as_str()),
-                                    format!("{}", s),
-                                    String::from(""),
-                                ]
-                            },
-                            (Some(s), Some(e)) => {
-                                vec![
-                                    String::from(tag.as_str()),
-                                    format!("{}", s),
-                                    format!("{}", e),
-                                ]
-                            },
-                        };
+                let v = match (start, end) {
+                    (None, _)          => vec![String::from(tag.as_str()), String::from(""), String::from("")],
+                    (Some(s), None)    => {
+                        vec![
+                            String::from(tag.as_str()),
+                            format!("{}", s),
+                            String::from(""),
+                        ]
+                    },
+                    (Some(s), Some(e)) => {
+                        vec![
+                            String::from(tag.as_str()),
+                            format!("{}", s),
+                            format!("{}", e),
+                        ]
+                    },
+                };
 
-                        let cells : Vec<Cell> = v
-                            .into_iter()
-                            .map(|s| Cell::new(&s))
-                            .collect();
-                        tab.add_row(Row::new(cells));
+                let cells : Vec<Cell> = v
+                    .into_iter()
+                    .map(|s| Cell::new(&s))
+                    .collect();
+                tab.add_row(Row::new(cells));
 
-                        Ok(tab)
-                    })
-                })?
-                .print(&mut stdout)
-                .map_err(|_| String::from("Failed printing table").into())
+                Ok(tab)
+            })
         })
+        .map_err_trace_exit_unwrap(1)
+        .print(&mut stdout)
+        .map_err(|_| TimeTrackError::from(String::from("Failed printing table")))
         .map(|_| 0)
         .map_err_trace()
         .unwrap_or(1)
