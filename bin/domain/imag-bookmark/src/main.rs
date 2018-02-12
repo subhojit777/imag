@@ -52,7 +52,7 @@ use libimagbookmark::collection::BookmarkCollection;
 use libimagbookmark::collection::BookmarkCollectionStore;
 use libimagbookmark::error::BookmarkError as BE;
 use libimagbookmark::link::Link as BookmarkLink;
-use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
+use libimagerror::trace::{MapErrTrace, trace_error};
 
 mod ui;
 
@@ -130,19 +130,15 @@ fn list(rt: &Runtime) {
         .ok_or(BE::from(format!("No BookmarkcollectionStore '{}' found", coll)))
         .map_err_trace_exit_unwrap(1);
 
-    match collection.links(rt.store()) {
-        Ok(links) => {
-            debug!("Listing...");
-            for (i, link) in links.enumerate() {
-                match link {
-                    Ok(link) => println!("{: >3}: {}", i, link),
-                    Err(e)   => trace_error(&e)
-                }
-            };
-            debug!("... ready with listing");
-        },
-        Err(e) => trace_error_exit(&e, 1),
-    }
+    let links = collection.links(rt.store()).map_err_trace_exit_unwrap(1);
+    debug!("Listing...");
+    for (i, link) in links.enumerate() {
+        match link {
+            Ok(link) => println!("{: >3}: {}", i, link),
+            Err(e)   => trace_error(&e)
+        }
+    };
+    debug!("... ready with listing");
 
     info!("Ready");
 }
