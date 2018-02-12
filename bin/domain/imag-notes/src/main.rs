@@ -39,7 +39,6 @@ use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagnotes::note::Note;
 use libimagnotes::notestore::*;
 use libimagerror::trace::MapErrTrace;
-use libimagerror::trace::trace_error_exit;
 use libimagerror::iter::TraceIterator;
 use libimagutil::info_result::*;
 use libimagutil::warn_result::WarnResult;
@@ -121,7 +120,7 @@ fn list(rt: &Runtime) {
         .all_notes()
         .map_err_trace_exit_unwrap(1)
         .into_get_iter(rt.store())
-        .unwrap_with(|e| trace_error_exit(&e, 1))
+        .trace_unwrap_exit(1)
         .map(|opt| opt.unwrap_or_else(|| {
             error!("Fatal: Nonexistent entry where entry should exist");
             exit(1)
