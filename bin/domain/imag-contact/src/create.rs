@@ -18,7 +18,6 @@
 //
 
 use std::collections::BTreeMap;
-use std::error::Error;
 use std::process::exit;
 use std::io::Write;
 use std::io::stdout;
@@ -33,6 +32,7 @@ use uuid::Uuid;
 
 use libimagcontact::error::ContactError as CE;
 use libimagrt::runtime::Runtime;
+use libimagerror::str::ErrFromStr;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::trace::trace_error;
 use libimagutil::warn_result::WarnResult;
@@ -90,7 +90,7 @@ pub fn create(rt: &Runtime) {
                 .create_new(true)
                 .open(fl.clone())
                 .map_warn_err_str("Cannot create/open destination File. Stopping.")
-                .map_err(|e| format!("{}", e.description()))
+                .err_from_str()
                 .map_err(CE::from)
                 .map_err_trace_exit_unwrap(1);
 
@@ -112,7 +112,7 @@ pub fn create(rt: &Runtime) {
 
         match ::toml::de::from_str(&template)
             .map(parse_toml_into_vcard)
-            .map_err(|e| format!("{}", e.description()))
+            .err_from_str()
             .map_err(CE::from)
         {
             Err(e) => {

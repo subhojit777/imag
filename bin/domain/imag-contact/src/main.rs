@@ -52,7 +52,6 @@ extern crate libimagentryedit;
 
 use std::process::exit;
 use std::path::PathBuf;
-use std::error::Error;
 
 use handlebars::Handlebars;
 use clap::ArgMatches;
@@ -62,6 +61,7 @@ use walkdir::WalkDir;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
+use libimagerror::str::ErrFromStr;
 use libimagerror::trace::MapErrTrace;
 use libimagcontact::store::ContactStore;
 use libimagcontact::error::ContactError as CE;
@@ -134,7 +134,7 @@ fn list(rt: &Runtime) {
             let data = build_data_object_for_handlebars(i, hash, &vcard);
 
             let s = list_format.render("format", &data)
-                .map_err(|e| format!("{}", e.description()))
+                .err_from_str()
                 .map_err(CE::from)
                 .map_err_trace_exit_unwrap(1);
             println!("{}", s);
@@ -159,7 +159,7 @@ fn import(rt: &Runtime) {
     } else if path.is_dir() {
         for entry in WalkDir::new(path).min_depth(1).into_iter() {
             let entry = entry
-                .map_err(|e| format!("{}", e.description()))
+                .err_from_str()
                 .map_err(CE::from)
                 .map_err_trace_exit_unwrap(1);
             if entry.file_type().is_file() {
@@ -202,7 +202,7 @@ fn show(rt: &Runtime) {
 
     let s = show_format
         .render("format", &data)
-        .map_err(|e| format!("{}", e.description()))
+        .err_from_str()
         .map_err(CE::from)
         .map_err_trace_exit_unwrap(1);
     println!("{}", s);
@@ -225,7 +225,7 @@ fn get_contact_print_format(config_value_path: &'static str, rt: &Runtime, scmd:
     let mut hb = Handlebars::new();
     let _ = hb
         .register_template_string("format", fmt)
-        .map_err(|e| format!("{}", e.description()))
+        .err_from_str()
         .map_err(CE::from)
         .map_err_trace_exit_unwrap(1);
 
