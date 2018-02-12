@@ -28,6 +28,7 @@ members = [
     "lib/core/libimagrt",
     "lib/core/libimagstore",
     "lib/domain/libimagbookmark",
+    "lib/domain/libimagcalendar",
     "lib/domain/libimagcontact",
     "lib/domain/libimagdiary",
     "lib/domain/libimaghabit",
