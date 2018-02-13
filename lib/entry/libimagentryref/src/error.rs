@@ -36,14 +36,14 @@ error_chain! {
     }
 
     errors {
-        HeaderTypeError {
+        HeaderTypeError(field: &'static str, expectedtype: &'static str) {
             description("Header type error")
-            display("Header type error")
+            display("Header type error: '{}' should be {}", field, expectedtype)
         }
 
-        HeaderFieldMissingError {
+        HeaderFieldMissingError(field: &'static str) {
             description("Header field missing error")
-            display("Header field missing error")
+            display("Header field missing: {}", field)
         }
 
         HeaderFieldWriteError {
