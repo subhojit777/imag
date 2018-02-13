@@ -25,7 +25,6 @@ use libimagdiary::error::DiaryErrorKind as DEK;
 use libimagdiary::error::ResultExt;
 use libimagentryedit::edit::Edit;
 use libimagrt::runtime::Runtime;
-use libimagerror::trace::trace_error_exit;
 use libimagerror::trace::MapErrTrace;
 use libimagutil::warn_exit::warn_exit;
 use libimagstore::store::FileLockEntry;
@@ -50,11 +49,8 @@ pub fn create(rt: &Runtime) {
             .chain_err(|| DEK::DiaryEditError)
     };
 
-    if let Err(e) = res {
-        trace_error_exit(&e, 1);
-    } else {
-        info!("Ok!");
-    }
+    let _ = res.map_err_trace_exit_unwrap(1);
+    info!("Ok!");
 }
 
 fn create_entry<'a>(diary: &'a Store, diaryname: &str, rt: &Runtime) -> FileLockEntry<'a> {
@@ -88,13 +84,10 @@ fn create_entry<'a>(diary: &'a Store, diaryname: &str, rt: &Runtime) -> FileLock
         }
     };
 
-    match entry {
-        Err(e) => trace_error_exit(&e, 1),
-        Ok(e) => {
-            debug!("Created: {}", e.get_location());
-            e
-        }
-    }
+    let e = entry.map_err_trace_exit_unwrap(1);
+
+    debug!("Created: {}", e.get_location());
+    e
 }
 
 

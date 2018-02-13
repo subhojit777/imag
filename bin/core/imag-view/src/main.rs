@@ -54,7 +54,7 @@ use handlebars::Handlebars;
 use toml_query::read::TomlValueReadTypeExt;
 
 use libimagrt::setup::generate_runtime_setup;
-use libimagerror::trace::trace_error_exit;
+use libimagerror::str::ErrFromStr;
 use libimagerror::trace::MapErrTrace;
 use libimagentryview::builtin::stdout::StdoutViewer;
 use libimagentryview::viewer::Viewer;
@@ -73,14 +73,11 @@ fn main() {
     let view_header  = rt.cli().is_present("view-header");
     let hide_content = rt.cli().is_present("not-view-content");
 
-    let entry = match rt.store().get(PathBuf::from(entry_id)) {
-        Ok(Some(fle)) => fle,
-        Ok(None) => {
+    let entry = match rt.store().get(PathBuf::from(entry_id)).map_err_trace_exit_unwrap(1) {
+        Some(fle) => fle,
+        None => {
             error!("Cannot get {}, there is no such id in the store", entry_id);
             exit(1);
-        }
-        Err(e) => {
-            trace_error_exit(&e, 1);
         }
     };
 
@@ -111,20 +108,30 @@ fn main() {
 
         let _ = handlebars
             .register_template_string("template", viewer_template)
+            .err_from_str()
+            .map_err(VE::from)
             .map_err_trace_exit_unwrap(1);
 
         let file = {
             let mut tmpfile = tempfile::NamedTempFile::new()
+            .err_from_str()
+            .map_err(VE::from)
                 .map_err_trace_exit_unwrap(1);
             if view_header {
                 let hdr = toml::ser::to_string_pretty(entry.get_header())
+                    .err_from_str()
+                    .map_err(VE::from)
                     .map_err_trace_exit_unwrap(1);
                 let _ = tmpfile.write(format!("---\n{}---\n", hdr).as_bytes())
+                    .err_from_str()
+                    .map_err(VE::from)
                     .map_err_trace_exit_unwrap(1);
             }
 
             if !hide_content {
                 let _ = tmpfile.write(entry.get_content().as_bytes())
+                    .err_from_str()
+                    .map_err(VE::from)
                     .map_err_trace_exit_unwrap(1);
             }
 
@@ -142,7 +149,11 @@ fn main() {
             let mut data = BTreeMap::new();
             data.insert("entry", file_path);
 
-            let call = handlebars.render("template", &data).map_err_trace_exit_unwrap(1);
+            let call = handlebars
+                .render("template", &data)
+                .err_from_str()
+                .map_err(VE::from)
+                .map_err_trace_exit_unwrap(1);
             let mut elems = call.split_whitespace();
             let command_string = elems
                 .next()
@@ -157,7 +168,13 @@ fn main() {
             cmd
         };
 
-        if !command.status().map_err_trace_exit_unwrap(1).success() {
+        if !command
+            .status()
+            .err_from_str()
+            .map_err(VE::from)
+            .map_err_trace_exit_unwrap(1)
+            .success()
+        {
             exit(1)
         }
     } else {

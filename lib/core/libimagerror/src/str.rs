@@ -1,6 +1,6 @@
 //
 // imag - the personal information management suite for the commandline
-// Copyright (C) 2015-2018 Matthias Beyer <mail@beyermatthias.de> and contributors
+// Copyright (C) 2015-2018 the imag contributors
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -17,23 +17,15 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::process::exit;
+use std::error::Error;
 
-use libimagrt::runtime::Runtime;
-use libimagerror::trace::*;
+pub trait ErrFromStr<T> {
+    fn err_from_str(self) -> Result<T, String>;
+}
 
-pub fn dump(rt: &mut Runtime) {
-    rt.store()
-        .entries()
-        .map_err_trace_exit_unwrap(1)
-        .for_each(|elem| {
-            debug!("Working on {:?}", elem);
-            rt.store().get(elem).map_err_trace_exit_unwrap(1);
-        });
-
-    if let Err(_) = rt.store_backend_to_stdout().map_err_trace() {
-        error!("Loading Store IO backend failed");
-        exit(1);
+impl<T, E: Error> ErrFromStr<T> for Result<T, E> {
+    fn err_from_str(self) -> Result<T, String> {
+        self.map_err(|e| format!("{}", e.description()))
     }
 }
 

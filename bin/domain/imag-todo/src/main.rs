@@ -33,7 +33,7 @@ use std::io::stdin;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagtodo::taskstore::TaskStore;
-use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
+use libimagerror::trace::{MapErrTrace, trace_error};
 
 mod ui;
 
@@ -62,10 +62,12 @@ fn tw_hook(rt: &Runtime) {
         // implements BufRead which is required for `Store::import_task_from_reader()`
         let stdin = stdin.lock();
 
-        match rt.store().import_task_from_reader(stdin) {
-            Ok((_, line, uuid)) => println!("{}\nTask {} stored in imag", line, uuid),
-            Err(e) => trace_error_exit(&e, 1),
-        }
+        let (_, line, uuid ) = rt
+            .store()
+            .import_task_from_reader(stdin)
+            .map_err_trace_exit_unwrap(1);
+
+        println!("{}\nTask {} stored in imag", line, uuid);
     } else if subcmd.is_present("delete") {
         // The used hook is "on-modify". This hook gives two json-objects
         // per usage und wants one (the second one) back.
@@ -126,8 +128,8 @@ fn list(rt: &Runtime) {
                     .args(&uuids)
                     .spawn()
                     .unwrap_or_else(|e| {
-                        trace_error(&e);
-                        panic!("Failed to execute `task` on the commandline. I'm dying now.");
+                        error!("Failed to execute `task` on the commandline: {:?}. I'm dying now.", e);
+                        ::std::process::exit(1)
                     })
                     .wait_with_output()
                     .unwrap_or_else(|e| panic!("failed to unwrap output: {}", e));

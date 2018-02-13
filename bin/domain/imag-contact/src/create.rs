@@ -30,10 +30,11 @@ use toml_query::read::TomlValueReadExt;
 use toml::Value;
 use uuid::Uuid;
 
+use libimagcontact::error::ContactError as CE;
 use libimagrt::runtime::Runtime;
+use libimagerror::str::ErrFromStr;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::trace::trace_error;
-use libimagerror::trace::trace_error_exit;
 use libimagutil::warn_result::WarnResult;
 use libimagentryref::refstore::RefStore;
 use libimagentryref::flags::RefFlags;
@@ -89,6 +90,8 @@ pub fn create(rt: &Runtime) {
                 .create_new(true)
                 .open(fl.clone())
                 .map_warn_err_str("Cannot create/open destination File. Stopping.")
+                .err_from_str()
+                .map_err(CE::from)
                 .map_err_trace_exit_unwrap(1);
 
             (Box::new(file), Some(fl))
@@ -107,7 +110,11 @@ pub fn create(rt: &Runtime) {
             exit(2);
         }
 
-        match ::toml::de::from_str(&template).map(parse_toml_into_vcard) {
+        match ::toml::de::from_str(&template)
+            .map(parse_toml_into_vcard)
+            .err_from_str()
+            .map_err(CE::from)
+        {
             Err(e) => {
                 error!("Error parsing template");
                 trace_error(&e);
@@ -125,10 +132,10 @@ pub fn create(rt: &Runtime) {
                 }
 
                 let vcard_string = write_component(&vcard);
-                if let Err(e) = dest.write_all(&vcard_string.as_bytes()) {
-                    warn!("Error while writing out vcard content");
-                    trace_error_exit(&e, 1);
-                }
+                let _ = dest
+                    .write_all(&vcard_string.as_bytes())
+                    .map_err(CE::from)
+                    .map_err_trace_exit_unwrap(1);
 
                 break;
             }

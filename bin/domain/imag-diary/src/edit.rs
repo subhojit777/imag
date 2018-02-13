@@ -32,7 +32,6 @@ use libimagerror::trace::MapErrTrace;
 use libimagtimeui::datetime::DateTime;
 use libimagtimeui::parse::Parse;
 use libimagutil::warn_exit::warn_exit;
-use libimagerror::trace::trace_error_exit;
 
 use util::get_diary_name;
 
@@ -49,10 +48,7 @@ pub fn edit(rt: &Runtime) {
         .or_else(|| {
             rt.store()
                 .get_youngest_entry_id(&diaryname)
-                .map(|optid| match optid {
-                    Ok(id) => id,
-                    Err(e) => trace_error_exit(&e, 1),
-                })
+                .map(|o| o.map_err_trace_exit_unwrap(1))
         })
         .ok_or_else(|| {
             error!("No entries in diary. Aborting");

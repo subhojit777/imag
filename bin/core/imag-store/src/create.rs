@@ -30,7 +30,7 @@ use toml::Value;
 use libimagrt::runtime::Runtime;
 use libimagstore::store::Entry;
 use libimagstore::storeid::StoreId;
-use libimagerror::trace::trace_error_exit;
+use libimagerror::trace::MapErrTrace;
 use libimagutil::debug_result::*;
 
 use error::StoreError;
@@ -48,7 +48,7 @@ pub fn create(rt: &Runtime) {
     let path  = scmd.value_of("path").unwrap();
     let path  = PathBuf::from(path);
     let store = Some(rt.store().path().clone());
-    let path  = StoreId::new(store, path).unwrap_or_else(|e| trace_error_exit(&e, 1));
+    let path  = StoreId::new(store, path).map_err_trace_exit_unwrap(1);
 
     debug!("path = {:?}", path);
 
@@ -65,10 +65,7 @@ pub fn create(rt: &Runtime) {
         create_with_content_and_header(rt, &path, String::new(),
             Entry::default_header())
     }
-    .unwrap_or_else(|e| {
-        error!("Error building Entry");
-        trace_error_exit(&e, 1);
-    })
+    .map_err_trace_exit_unwrap(1);
 }
 
 fn create_from_cli_spec(rt: &Runtime, matches: &ArgMatches, path: &StoreId) -> Result<()> {

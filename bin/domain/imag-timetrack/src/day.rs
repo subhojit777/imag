@@ -26,6 +26,7 @@ use libimagerror::trace::trace_error;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::iter::TraceIterator;
 use libimagstore::store::FileLockEntry;
+use libimagtimetrack::error::TimeTrackError as TTE;
 use libimagtimetrack::timetrackingstore::TimeTrackStore;
 use libimagtimetrack::timetracking::TimeTracking;
 use libimagtimetrack::tag::TimeTrackingTag;
@@ -39,21 +40,25 @@ pub fn day(rt: &Runtime) -> i32 {
     let cmd = cmd.unwrap(); // checked in main()
 
     let filter = {
-        let start = match cmd.value_of("start").map(::chrono::naive::NaiveDateTime::from_str) {
-            None         => ::chrono::offset::Local::today().and_hms(0, 0, 0).naive_local(),
-            Some(Ok(dt)) => dt,
-            Some(Err(e)) => {
-                trace_error(&e);
-                return 1
+        let start = match cmd.value_of("start").map(NaiveDateTime::from_str) {
+            None    => ::chrono::offset::Local::today().and_hms(0, 0, 0).naive_local(),
+            Some(s) => match s.map_err(TTE::from) {
+                Ok(dt) => dt,
+                Err(e) => {
+                    trace_error(&e);
+                    return 1
+                }
             }
         };
 
-        let end = match cmd.value_of("end").map(::chrono::naive::NaiveDateTime::from_str) {
-            None         => ::chrono::offset::Local::today().and_hms(23, 59, 59).naive_local(),
-            Some(Ok(dt)) => dt,
-            Some(Err(e)) => {
-                trace_error(&e);
-                return 1
+        let end = match cmd.value_of("end").map(NaiveDateTime::from_str) {
+            None    => ::chrono::offset::Local::today().and_hms(23, 59, 59).naive_local(),
+            Some(s) => match s.map_err(TTE::from) {
+                Ok(dt) => dt,
+                Err(e) => {
+                    trace_error(&e);
+                    return 1
+                }
             }
         };
 

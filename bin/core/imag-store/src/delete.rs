@@ -21,7 +21,6 @@ use std::path::PathBuf;
 
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::MapErrTrace;
-use libimagerror::trace::trace_error_exit;
 use libimagstore::storeid::StoreId;
 use libimagutil::warn_result::*;
 
@@ -30,7 +29,7 @@ pub fn delete(rt: &Runtime) {
     let id    = scmd.value_of("id").unwrap(); // safe by clap
     let path  = PathBuf::from(id);
     let store = Some(rt.store().path().clone());
-    let path  = StoreId::new(store, path).unwrap_or_else(|e| trace_error_exit(&e, 1));
+    let path  = StoreId::new(store, path).map_err_trace_exit_unwrap(1);
     debug!("Deleting file at {:?}", id);
 
     let _ = rt.store()

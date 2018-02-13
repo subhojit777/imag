@@ -26,6 +26,7 @@ use libimagerror::trace::trace_error;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::iter::TraceIterator;
 use libimagstore::store::FileLockEntry;
+use libimagtimetrack::error::TimeTrackError as TTE;
 use libimagtimetrack::timetrackingstore::TimeTrackStore;
 use libimagtimetrack::timetracking::TimeTracking;
 use libimagtimetrack::tag::TimeTrackingTag;
@@ -44,11 +45,13 @@ pub fn month(rt: &Runtime) -> i32 {
         let now = Local::now();
 
         let start = match cmd.value_of("start").map(::chrono::naive::NaiveDateTime::from_str) {
-            None => NaiveDate::from_ymd(now.year(), now.month(), 1).and_hms(0, 0, 0),
-            Some(Ok(dt)) => dt,
-            Some(Err(e)) => {
-                trace_error(&e);
-                return 1
+            None    => NaiveDate::from_ymd(now.year(), now.month(), 1).and_hms(0, 0, 0),
+            Some(s) => match s.map_err(TTE::from) {
+                Ok(dt) => dt,
+                Err(e) => {
+                    trace_error(&e);
+                    return 1
+                }
             }
         };
 
@@ -65,10 +68,12 @@ pub fn month(rt: &Runtime) -> i32 {
 
                 NaiveDate::from_ymd(year, month, 1).and_hms(0, 0, 0)
             },
-            Some(Ok(dt)) => dt,
-            Some(Err(e)) => {
-                trace_error(&e);
-                return 1
+            Some(s) => match s.map_err(TTE::from) {
+                Ok(dt) => dt,
+                Err(e) => {
+                    trace_error(&e);
+                    return 1
+                }
             }
         };
 

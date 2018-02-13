@@ -46,7 +46,8 @@ use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagentrytag::tagable::Tagable;
 use libimagentrytag::tag::Tag;
-use libimagerror::trace::{trace_error, trace_error_exit};
+use libimagerror::trace::trace_error;
+use libimagerror::trace::MapErrTrace;
 use libimagstore::storeid::StoreId;
 use libimagutil::warn_exit::warn_exit;
 
@@ -86,12 +87,7 @@ fn main() {
 }
 
 fn alter(rt: &Runtime, id: PathBuf, add: Option<Vec<Tag>>, rem: Option<Vec<Tag>>) {
-    let path = {
-        match StoreId::new(Some(rt.store().path().clone()), id) {
-            Err(e) => trace_error_exit(&e, 1),
-            Ok(s) => s,
-        }
-    };
+    let path = StoreId::new(Some(rt.store().path().clone()), id).map_err_trace_exit_unwrap(1);
     debug!("path = {:?}", path);
 
     match rt.store().get(path) {
@@ -138,20 +134,12 @@ fn alter(rt: &Runtime, id: PathBuf, add: Option<Vec<Tag>>, rem: Option<Vec<Tag>>
 }
 
 fn list(id: PathBuf, rt: &Runtime) {
-    let path = match StoreId::new(Some(rt.store().path().clone()), id) {
-        Err(e) => trace_error_exit(&e, 1),
-        Ok(s)  => s,
-    };
+    let path = StoreId::new(Some(rt.store().path().clone()), id).map_err_trace_exit_unwrap(1);
     debug!("path = {:?}", path);
 
-    let entry = match rt.store().get(path.clone()) {
-        Ok(Some(e)) => e,
-        Ok(None) => warn_exit("No entry found.", 1),
-
-        Err(e) => {
-            warn!("Could not get entry '{:?}'", path);
-            trace_error_exit(&e, 1);
-        },
+    let entry = match rt.store().get(path.clone()).map_err_trace_exit_unwrap(1) {
+        Some(e) => e,
+        None => warn_exit("No entry found.", 1),
     };
 
     let scmd = rt.cli().subcommand_matches("list").unwrap(); // safe, we checked in main()
@@ -166,11 +154,7 @@ fn list(id: PathBuf, rt: &Runtime) {
         comm_out = true;
     }
 
-    let tags = entry.get_tags();
-    if tags.is_err() {
-        trace_error_exit(&tags.unwrap_err(), 1);
-    }
-    let tags = tags.unwrap();
+    let tags = entry.get_tags().map_err_trace_exit_unwrap(1);
 
     if json_out {
         unimplemented!()

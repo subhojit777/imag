@@ -25,7 +25,7 @@ extern crate libimagmail;
 extern crate libimagerror;
 extern crate libimagutil;
 
-use libimagerror::trace::{MapErrTrace, trace_error, trace_error_exit};
+use libimagerror::trace::{MapErrTrace, trace_error};
 use libimagmail::mail::Mail;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
@@ -67,19 +67,7 @@ fn list(rt: &Runtime) {
     use libimagmail::error::MailErrorKind as MEK;
     use libimagmail::error::ResultExt;
 
-    let store = rt.store();
-
-    let iter = match store.retrieve_for_module("ref") {
-        Ok(iter) => iter.filter_map(|id| {
-            match store.get(id).chain_err(|| MEK::RefHandlingError).map_err_trace() {
-                Ok(Some(fle)) => Mail::from_fle(fle).map_err_trace().ok(),
-                Ok(None)      => None,
-                Err(e)        => trace_error_exit(&e, 1),
-            }
-        }),
-        Err(e)   => trace_error_exit(&e, 1),
-    };
-
+        // TODO: Implement lister type in libimagmail for this
     fn list_mail(m: Mail) {
         let id = match m.get_message_id() {
             Ok(Some(f)) => f,
@@ -125,10 +113,18 @@ fn list(rt: &Runtime) {
         );
     }
 
-    // TODO: Implement lister type in libimagmail for this
-    for mail in iter {
-        list_mail(mail)
-    }
+    let _ = rt.store()
+        .retrieve_for_module("ref")
+        .map_err_trace_exit_unwrap(1)
+        .filter_map(|id| {
+            rt.store()
+                .get(id)
+                .chain_err(|| MEK::RefHandlingError)
+                .map_err_trace_exit_unwrap(1)
+                .map(|fle| Mail::from_fle(fle).map_err_trace().ok())
+        })
+        .filter_map(|e| e)
+        .for_each(list_mail);
 }
 
 fn mail_store(rt: &Runtime) {

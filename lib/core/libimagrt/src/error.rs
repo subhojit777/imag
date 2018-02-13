@@ -23,7 +23,8 @@ error_chain! {
     }
 
     foreign_links {
-        TomlError(::toml_query::error::Error);
+        TomlDeError(::toml::de::Error);
+        TomlQueryError(::toml_query::error::Error);
         HandlebarsTemplateError(::handlebars::TemplateError);
     }
 

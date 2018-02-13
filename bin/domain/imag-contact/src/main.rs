@@ -61,6 +61,7 @@ use walkdir::WalkDir;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
+use libimagerror::str::ErrFromStr;
 use libimagerror::trace::MapErrTrace;
 use libimagcontact::store::ContactStore;
 use libimagcontact::error::ContactError as CE;
@@ -133,6 +134,8 @@ fn list(rt: &Runtime) {
             let data = build_data_object_for_handlebars(i, hash, &vcard);
 
             let s = list_format.render("format", &data)
+                .err_from_str()
+                .map_err(CE::from)
                 .map_err_trace_exit_unwrap(1);
             println!("{}", s);
         })
@@ -155,7 +158,10 @@ fn import(rt: &Runtime) {
             .map_err_trace_exit_unwrap(1);
     } else if path.is_dir() {
         for entry in WalkDir::new(path).min_depth(1).into_iter() {
-            let entry = entry.map_err_trace_exit_unwrap(1);
+            let entry = entry
+                .err_from_str()
+                .map_err(CE::from)
+                .map_err_trace_exit_unwrap(1);
             if entry.file_type().is_file() {
                 let pb = PathBuf::from(entry.path());
                 let _ = rt
@@ -194,7 +200,11 @@ fn show(rt: &Runtime) {
     let show_format = get_contact_print_format("contact.show_format", rt, &scmd);
     let data = build_data_object_for_handlebars(0, hash, &vcard);
 
-    let s = show_format.render("format", &data).map_err_trace_exit_unwrap(1);
+    let s = show_format
+        .render("format", &data)
+        .err_from_str()
+        .map_err(CE::from)
+        .map_err_trace_exit_unwrap(1);
     println!("{}", s);
 }
 
@@ -213,7 +223,11 @@ fn get_contact_print_format(config_value_path: &'static str, rt: &Runtime, scmd:
         });
 
     let mut hb = Handlebars::new();
-    let _ = hb.register_template_string("format", fmt).map_err_trace_exit_unwrap(1);
+    let _ = hb
+        .register_template_string("format", fmt)
+        .err_from_str()
+        .map_err(CE::from)
+        .map_err_trace_exit_unwrap(1);
 
     hb.register_escape_fn(::handlebars::no_escape);
     ::libimaginteraction::format::register_all_color_helpers(&mut hb);
