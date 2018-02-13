@@ -36,11 +36,9 @@
 )]
 
 #[macro_use] extern crate log;
-extern crate crypto;
 extern crate itertools;
 extern crate toml;
 extern crate toml_query;
-extern crate walkdir;
 
 #[macro_use] extern crate libimagstore;
 extern crate libimagerror;
@@ -53,4 +51,4 @@ module_entry_path_mod!("ref");
 pub mod error;
 pub mod reference;
 pub mod refstore;
-mod util;
+
