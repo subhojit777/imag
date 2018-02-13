@@ -20,9 +20,9 @@
 use std::process::Command;
 fn main() {
     let profile = String::from(std::env::var("PROFILE").unwrap());
-    let git_hash = if profile == "debug" {
+    let git_version = if profile == "debug" {
         let output = Command::new("git")
-            .args(&["rev-parse", "--short=10", "HEAD"])
+            .args(&["describe", "HEAD"])
             .output()
             .unwrap();
         String::from_utf8(output.stdout).unwrap()
@@ -30,5 +30,5 @@ fn main() {
         String::from("")
     };
 
-    println!("cargo:rustc-env=CARGO_BUILD_GIT_HASH={}", git_hash);
+    println!("cargo:rustc-env=CARGO_BUILD_VERSION={}", git_version);
 }
