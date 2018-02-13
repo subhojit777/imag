@@ -29,6 +29,11 @@ env_logger = "0.5"
 libimagstore     = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
 libimagerror     = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
 libimagentrylink = { version = "0.7.0", path = "../../../lib/entry/libimagentrylink/" }
-libimagentryref  = { version = "0.7.0", path = "../../../lib/entry/libimagentryref/" }
 libimagutil      = { version = "0.7.0", path = "../../../lib/etc/libimagutil/" }
+
+[dependencies.libimagentryref]
+version          = "0.7.0"
+path             = "../../../lib/entry/libimagentryref/"
+default-features = false
+features         = [ "generators", "generators-sha512" ]
 
