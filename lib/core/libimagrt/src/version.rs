@@ -21,12 +21,12 @@
 macro_rules! make_imag_version {
     () => {{
         let pkg_version = env!("CARGO_PKG_VERSION");
-        let git_version = env!("CARGO_BUILD_GIT_HASH");
+        let git_version = env!("CARGO_BUILD_VERSION");
 
         if git_version == "" {
             String::from(pkg_version)
         } else {
-            format!("{}-{}", pkg_version, git_version)
+            String::from(git_version)
         }
     }}
 }
