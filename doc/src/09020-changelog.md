@@ -22,6 +22,8 @@ This section contains the changelog from the last release to the next release.
     * `imag-timetrack list --from/--to` now have `kairos` support - that means
       that complex `--from/--to` arguments (like `yesterday` or `today-2weeks`)
       are now possible
+    * `libimagerror` got a major refactoring and uses `ChainedError` from
+      `error-chain` for logging errors now.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
