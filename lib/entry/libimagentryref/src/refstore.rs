@@ -85,7 +85,7 @@ pub trait UniqueRefPathGenerator {
 ///
 pub trait RefStore<'a> {
 
-    fn get_ref<RPG: UniqueRefPathGenerator>(&'a self, hash: &String) -> Result<Option<FileLockEntry<'a>>, RPG::Error>;
+    fn get_ref<RPG: UniqueRefPathGenerator, H: AsRef<str>>(&'a self, hash: H) -> Result<Option<FileLockEntry<'a>>, RPG::Error>;
     fn create_ref<RPG: UniqueRefPathGenerator, A: AsRef<Path>>(&'a self, path: A) -> Result<FileLockEntry<'a>, RPG::Error>;
     fn retrieve_ref<RPG: UniqueRefPathGenerator, A: AsRef<Path>>(&'a self, path: A) -> Result<FileLockEntry<'a>, RPG::Error>;
 
@@ -93,10 +93,10 @@ pub trait RefStore<'a> {
 
 impl<'a> RefStore<'a> for Store {
 
-    fn get_ref<RPG: UniqueRefPathGenerator>(&'a self, hash: &String)
+    fn get_ref<RPG: UniqueRefPathGenerator, H: AsRef<str>>(&'a self, hash: H)
         -> Result<Option<FileLockEntry<'a>>, RPG::Error>
     {
-        let sid = StoreId::new_baseless(PathBuf::from(format!("{}/{}", RPG::collection(), hash)))
+        let sid = StoreId::new_baseless(PathBuf::from(format!("{}/{}", RPG::collection(), hash.as_ref())))
             .map_err(RE::from)?;
 
         debug!("Getting: {:?}", sid);
@@ -131,7 +131,7 @@ impl<'a> RefStore<'a> for Store {
     fn retrieve_ref<RPG: UniqueRefPathGenerator, A: AsRef<Path>>(&'a self, path: A)
         -> Result<FileLockEntry<'a>, RPG::Error>
     {
-        match self.get_ref::<RPG>(&RPG::unique_hash(path.as_ref())?)? {
+        match self.get_ref::<RPG, String>(RPG::unique_hash(path.as_ref())?)? {
             Some(r) => Ok(r),
             None    => self.create_ref::<RPG, A>(path),
         }
