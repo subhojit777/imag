@@ -42,7 +42,7 @@ pub trait Ref {
     /// Get the stored hash.
     ///
     /// Does not need a `UniqueRefPathGenerator` as it reads the hash stored in the header
-    fn get_hash(&self) -> Result<String>;
+    fn get_hash(&self) -> Result<&str>;
 
     /// Get the referenced path.
     ///
@@ -50,12 +50,7 @@ pub trait Ref {
     fn get_path(&self) -> Result<PathBuf>;
 
     /// Check whether the referenced file still matches its hash
-    fn hash_valid<RPG: UniqueRefPathGenerator>(&self) -> Result<bool>;
-
-    /// Update the stored hash
-    ///
-    /// This updates the hash in the header and moves the entry to the appropriate location
-    fn update_hash<RPG: UniqueRefPathGenerator>(&mut self, store: &Store) -> Result<bool>;
+    fn hash_valid<RPG: UniqueRefPathGenerator>(&self) -> RResult<bool, RPG::Error>;
 
     /// Alias for `r.fs_link_exists() && r.deref().is_file()`
     fn is_ref_to_file(&self) -> Result<bool> {
@@ -83,20 +78,30 @@ impl Ref for Entry {
         self.is::<IsRef>().map_err(From::from)
     }
 
-    fn get_hash(&self) -> Result<String> {
-        unimplemented!()
+    fn get_hash(&self) -> Result<&str> {
+        self.get_header()
+            .read("ref.hash")
+            .map_err(RE::from)?
+            .ok_or_else(|| REK::HeaderFieldMissingError("ref.hash").into())
+            .and_then(|v| v.as_str().ok_or_else(|| REK::HeaderTypeError("ref.hash", "string").into()))
     }
 
     fn get_path(&self) -> Result<PathBuf> {
-        unimplemented!()
+        self.get_header()
+            .read("ref.path")
+            .map_err(RE::from)?
+            .ok_or_else(|| REK::HeaderFieldMissingError("ref.path").into())
+            .and_then(|v| v.as_str().ok_or_else(|| REK::HeaderTypeError("ref.path", "string").into()))
+            .map(PathBuf::from)
     }
 
-    fn hash_valid<RPG: UniqueRefPathGenerator>(&self) -> Result<bool> {
-        unimplemented!()
-    }
-
-    fn update_hash<RPG: UniqueRefPathGenerator>(&mut self, store: &Store) -> Result<bool> {
-        unimplemented!()
+    fn hash_valid<RPG: UniqueRefPathGenerator>(&self) -> RResult<bool, RPG::Error> {
+        self.get_path()
+            .map(PathBuf::from)
+            .map_err(RE::from)
+            .map_err(RPG::Error::from)
+            .and_then(|pb| RPG::unique_hash(pb))
+            .and_then(|h| Ok(h == self.get_hash()?))
     }
 
 }
