@@ -30,3 +30,18 @@ libimagstore     = { version = "0.7.0", path = "../../../lib/core/libimagstore" 
 libimagerror     = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
 libimagentrylist = { version = "0.7.0", path = "../../../lib/entry/libimagentrylist" }
 libimagentryutil = { version = "0.7.0", path = "../../../lib/entry/libimagentryutil" }
+
+[dependencies.rust-crypto]
+version = "0.2"
+optional = true
+
+[features]
+default             = []
+generators          = []
+generators-sha1     = ["rust-crypto"]
+generators-sha224   = ["rust-crypto"]
+generators-sha256   = ["rust-crypto"]
+generators-sha384   = ["rust-crypto"]
+generators-sha512   = ["rust-crypto"]
+generators-sha3     = ["rust-crypto"]
+

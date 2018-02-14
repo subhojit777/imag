@@ -52,3 +52,16 @@ pub mod error;
 pub mod reference;
 pub mod refstore;
 
+#[cfg(any(
+    feature = "generators-sha1",
+    feature = "generators-sha224",
+    feature = "generators-sha256",
+    feature = "generators-sha384",
+    feature = "generators-sha512",
+    feature = "generators-sha3",
+))]
+extern crate crypto;
+
+#[cfg(feature = "generators")]
+pub mod generators;
+
