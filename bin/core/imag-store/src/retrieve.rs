@@ -18,6 +18,7 @@
 //
 
 use std::path::PathBuf;
+use std::io::Write;
 
 use clap::ArgMatches;
 
@@ -25,6 +26,8 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::io::ToExitCode;
+use libimagerror::exit::ExitUnwrap;
 use libimagutil::debug_result::*;
 
 pub fn retrieve(rt: &Runtime) {
@@ -48,9 +51,13 @@ pub fn retrieve(rt: &Runtime) {
 }
 
 pub fn print_entry(rt: &Runtime, scmd: &ArgMatches, e: FileLockEntry) {
+    let mut out = ::std::io::stdout();
+
     if do_print_raw(scmd) {
         debug!("Printing raw content...");
-        println!("{}", e.to_str());
+        let _ = writeln!(out, "{}", e.to_str())
+            .to_exit_code()
+            .unwrap_or_exit();
     } else if do_filter(scmd) {
         debug!("Filtering...");
         warn!("Filtering via header specs is currently now supported.");
@@ -67,13 +74,17 @@ pub fn print_entry(rt: &Runtime, scmd: &ArgMatches, e: FileLockEntry) {
                 unimplemented!()
             } else {
                 debug!("Printing header as TOML...");
-                println!("{}", e.get_header())
+                let _ = writeln!(out, "{}", e.get_header())
+                    .to_exit_code()
+                    .unwrap_or_exit();
             }
         }
 
         if do_print_content(scmd) {
             debug!("Printing content...");
-            println!("{}", e.get_content());
+            let _ = writeln!(out, "{}", e.get_content())
+                    .to_exit_code()
+                    .unwrap_or_exit();
         }
 
     }
