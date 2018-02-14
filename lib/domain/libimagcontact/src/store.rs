@@ -38,7 +38,7 @@ use error::ContactError as CE;
 use error::Result;
 use util;
 
-struct UniqueContactPathGenerator;
+pub struct UniqueContactPathGenerator;
 impl UniqueRefPathGenerator for UniqueContactPathGenerator {
     type Error = CE;
 
