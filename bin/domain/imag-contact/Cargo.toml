@@ -28,7 +28,7 @@ toml-query = "0.6"
 handlebars = "0.29"
 vobject     = "0.4"
 walkdir = "1"
-uuid = { version = "0.5", features = ["v4"] }
+uuid = { version = "0.6", features = ["v4"] }
 
 libimagrt          = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
 libimagstore       = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
