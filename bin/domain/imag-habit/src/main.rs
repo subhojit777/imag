@@ -47,11 +47,14 @@ extern crate libimagutil;
 extern crate libimagentrylist;
 extern crate libimaginteraction;
 
+use std::io::Write;
 use std::process::exit;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagerror::exit::ExitUnwrap;
+use libimagerror::io::ToExitCode;
 use libimaghabit::store::HabitStore;
 use libimaghabit::habit::builder::HabitBuilder;
 use libimaghabit::habit::HabitTemplate;
@@ -389,6 +392,7 @@ fn show(rt: &Runtime) {
         vec![date, comm]
     }
 
+    let mut out = ::std::io::stdout();
 
     let _ = rt
         .store()
@@ -403,12 +407,15 @@ fn show(rt: &Runtime) {
             let recur    = habit.habit_recur_spec().map_err_trace_exit_unwrap(1);
             let comm     = habit.habit_comment().map_err_trace_exit_unwrap(1);
 
-            println!("{i} - {name}\nBase      : {b},\nRecurrence: {r}\nComment   : {c}\n",
+            let _ = writeln!(out,
+                     "{i} - {name}\nBase      : {b},\nRecurrence: {r}\nComment   : {c}\n",
                      i    = i,
                      name = name,
                      b    = basedate,
                      r    = recur,
-                     c    = comm);
+                     c    = comm)
+                .to_exit_code()
+                .unwrap_or_exit();
 
             let instances_iter = habit
                 .linked_instances()
