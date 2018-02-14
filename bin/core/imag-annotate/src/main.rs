@@ -43,6 +43,7 @@ extern crate libimagerror;
 extern crate libimagstore;
 extern crate libimagutil;
 
+use std::io::Write;
 use std::path::PathBuf;
 
 use libimagentryannotation::annotateable::*;
@@ -50,6 +51,8 @@ use libimagentryannotation::annotation_fetcher::*;
 use libimagentryannotation::error::AnnotationError as AE;
 use libimagentryedit::edit::*;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::exit::ExitUnwrap;
+use libimagerror::io::ToExitCode;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagstore::store::FileLockEntry;
@@ -132,6 +135,7 @@ fn remove(rt: &Runtime) {
 }
 
 fn list(rt: &Runtime) {
+    let mut out     = ::std::io::stdout();
     let scmd        = rt.cli().subcommand_matches("list").unwrap(); // safed by clap
     let with_text   = scmd.is_present("list-with-text");
     match scmd.value_of("entry").map(PathBuf::from) {
@@ -145,7 +149,9 @@ fn list(rt: &Runtime) {
                 .annotations(rt.store())
                 .map_err_trace_exit_unwrap(1)
                 .enumerate()
-                .map(|(i, a)| list_annotation(i, a.map_err_trace_exit_unwrap(1), with_text))
+                .map(|(i, a)| {
+                    list_annotation(&mut out, i, a.map_err_trace_exit_unwrap(1), with_text)
+                })
                 .collect::<Vec<_>>();
         }
 
@@ -156,20 +162,25 @@ fn list(rt: &Runtime) {
                 .all_annotations()
                 .map_err_trace_exit_unwrap(1)
                 .enumerate()
-                .map(|(i, a)| list_annotation(i, a.map_err_trace_exit_unwrap(1), with_text))
+                .map(|(i, a)| {
+                    list_annotation(&mut out, i, a.map_err_trace_exit_unwrap(1), with_text)
+                })
                 .collect::<Vec<_>>();
         }
     }
 }
 
-fn list_annotation<'a>(i: usize, a: FileLockEntry<'a>, with_text: bool) {
-    if with_text {
-        println!("--- {i: >5} | {id}\n{text}\n\n",
+fn list_annotation<'a>(out: &mut Write, i: usize, a: FileLockEntry<'a>, with_text: bool) {
+    let _ = if with_text {
+        writeln!(out,
+                 "--- {i: >5} | {id}\n{text}\n\n",
                  i = i,
                  id = a.get_location(),
-                 text = a.get_content());
+                 text = a.get_content())
     } else {
-        println!("{: >5} | {}", i, a.get_location());
+        writeln!(out, "{: >5} | {}", i, a.get_location())
     }
+    .to_exit_code()
+    .unwrap_or_exit();
 }
 
