@@ -48,6 +48,7 @@ extern crate libimagstore;
 extern crate libimagtimeui;
 extern crate libimagutil;
 
+use std::io::Write;
 use std::process::exit;
 
 use libimagerror::exit::ExitUnwrap;
