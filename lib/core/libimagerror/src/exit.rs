@@ -1,6 +1,6 @@
 //
 // imag - the personal information management suite for the commandline
-// Copyright (C) 2015-2018 Matthias Beyer <mail@beyermatthias.de> and contributors
+// Copyright (C) 2015-2018 the imag contributors
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -17,29 +17,13 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#![deny(
-    dead_code,
-    non_camel_case_types,
-    non_snake_case,
-    path_statements,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_allocation,
-    unused_import_braces,
-    unused_imports,
-    unused_must_use,
-    unused_mut,
-    unused_qualifications,
-    while_true,
-)]
+pub trait ExitUnwrap<T> {
+    fn unwrap_or_exit(self) -> T;
+}
 
-#[macro_use] extern crate log;
-extern crate ansi_term;
-extern crate error_chain;
-
-pub mod io;
-pub mod exit;
-pub mod trace;
-pub mod iter;
-pub mod str;
+impl<T> ExitUnwrap<T> for Result<T, i32> {
+    fn unwrap_or_exit(self) -> T {
+        self.unwrap_or_else(|e| ::std::process::exit(e))
+    }
+}
 

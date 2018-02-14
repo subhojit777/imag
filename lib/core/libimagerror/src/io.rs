@@ -19,23 +19,21 @@
 
 use std::io::ErrorKind;
 
-use trace::MapErrTrace;
-
 pub enum Settings {
     Ignore(ErrorKind),
     IgnoreAny(Vec<ErrorKind>),
 }
 
-pub trait ToExitCode : MapErrTrace {
-    fn to_exit_code(self) -> i32;
-    fn to_exit_code_with(self, Settings) -> i32;
+pub trait ToExitCode<T> {
+    fn to_exit_code(self) -> Result<T, i32>;
+    fn to_exit_code_with(self, Settings) -> Result<T, i32>;
 }
 
-impl<T> ToExitCode for Result<T, ::std::io::Error> {
+impl<T> ToExitCode<T> for Result<T, ::std::io::Error> {
 
     /// Returns an exit code of 0 if the error was a broken pipe, else 1
-    fn to_exit_code(self) -> {
-        self.to_exit_code_with(Settings::ErrorOn(ErrorKind::BrokenPipe))
+    fn to_exit_code(self) -> Result<T, i32> {
+        self.to_exit_code_with(Settings::Ignore(ErrorKind::BrokenPipe))
     }
 
     /// Returns an exit code depending on the settings
@@ -43,23 +41,19 @@ impl<T> ToExitCode for Result<T, ::std::io::Error> {
     /// Via the settings, errors can be ignores (translates to exit code zero). All other errors
     /// are translated into exit code 1
     ///
-    fn to_exit_code_with(self, settings: Settings) -> i32 {
-        if let Err(e) = self {
-            match settings {
-                Ignore(kind) => if e.kind() == kind {
-                    0
-                } else {
-                    1
-                },
-                IgnoreAny(v) => if v.iter().any(|e| e == e.kind()) {
-                    0
-                } else {
-                    1
-                },
-            }
-        } else {
-            0
-        }
+    fn to_exit_code_with(self, settings: Settings) -> Result<T, i32> {
+        self.map_err(move |e| match settings {
+            Settings::Ignore(kind) => if e.kind() == kind {
+                0
+            } else {
+                1
+            },
+            Settings::IgnoreAny(v) => if v.iter().any(|el| e.kind() == *el) {
+                0
+            } else {
+                1
+            },
+        })
     }
 
 }
