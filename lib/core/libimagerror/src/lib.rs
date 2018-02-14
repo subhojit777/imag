@@ -37,6 +37,7 @@
 extern crate ansi_term;
 extern crate error_chain;
 
+pub mod io;
 pub mod trace;
 pub mod iter;
 pub mod str;
