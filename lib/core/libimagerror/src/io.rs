@@ -19,20 +19,22 @@
 
 use std::io::ErrorKind;
 
+use exit::ExitCode;
+
 pub enum Settings {
     Ignore(ErrorKind),
     IgnoreAny(Vec<ErrorKind>),
 }
 
 pub trait ToExitCode<T> {
-    fn to_exit_code(self) -> Result<T, i32>;
-    fn to_exit_code_with(self, Settings) -> Result<T, i32>;
+    fn to_exit_code(self) -> Result<T, ExitCode>;
+    fn to_exit_code_with(self, Settings) -> Result<T, ExitCode>;
 }
 
 impl<T> ToExitCode<T> for Result<T, ::std::io::Error> {
 
     /// Returns an exit code of 0 if the error was a broken pipe, else 1
-    fn to_exit_code(self) -> Result<T, i32> {
+    fn to_exit_code(self) -> Result<T, ExitCode> {
         self.to_exit_code_with(Settings::Ignore(ErrorKind::BrokenPipe))
     }
 
@@ -41,7 +43,7 @@ impl<T> ToExitCode<T> for Result<T, ::std::io::Error> {
     /// Via the settings, errors can be ignores (translates to exit code zero). All other errors
     /// are translated into exit code 1
     ///
-    fn to_exit_code_with(self, settings: Settings) -> Result<T, i32> {
+    fn to_exit_code_with(self, settings: Settings) -> Result<T, ExitCode> {
         self.map_err(move |e| match settings {
             Settings::Ignore(kind) => if e.kind() == kind {
                 0
@@ -54,6 +56,7 @@ impl<T> ToExitCode<T> for Result<T, ::std::io::Error> {
                 1
             },
         })
+        .map_err(ExitCode::from)
     }
 
 }

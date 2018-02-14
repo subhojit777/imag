@@ -17,13 +17,21 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+pub struct ExitCode(i32);
+
+impl From<i32> for ExitCode {
+    fn from(i: i32) -> ExitCode {
+        ExitCode(i)
+    }
+}
+
 pub trait ExitUnwrap<T> {
     fn unwrap_or_exit(self) -> T;
 }
 
-impl<T> ExitUnwrap<T> for Result<T, i32> {
+impl<T, E: Into<ExitCode>> ExitUnwrap<T> for Result<T, E> {
     fn unwrap_or_exit(self) -> T {
-        self.unwrap_or_else(|e| ::std::process::exit(e))
+        self.map_err(Into::into).unwrap_or_else(|e| ::std::process::exit(e.0))
     }
 }
 
