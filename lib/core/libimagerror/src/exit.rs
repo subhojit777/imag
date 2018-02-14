@@ -25,6 +25,12 @@ impl From<i32> for ExitCode {
     }
 }
 
+impl ExitCode {
+    pub fn code(self) -> i32 {
+        self.0
+    }
+}
+
 pub trait ExitUnwrap<T> {
     fn unwrap_or_exit(self) -> T;
 }
