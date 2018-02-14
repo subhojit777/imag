@@ -29,11 +29,14 @@ extern crate libimagtodo;
 
 use std::process::{Command, Stdio};
 use std::io::stdin;
+use std::io::Write;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagtodo::taskstore::TaskStore;
 use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagerror::exit::ExitUnwrap;
+use libimagerror::io::ToExitCode;
 
 mod ui;
 
@@ -68,7 +71,10 @@ fn tw_hook(rt: &Runtime) {
             .import_task_from_reader(stdin)
             .map_err_trace_exit_unwrap(1);
 
-        println!("{}\nTask {} stored in imag", line, uuid);
+        let _ = writeln!(::std::io::stdout(), "{}\nTask {} stored in imag", line, uuid)
+            .to_exit_code()
+            .unwrap_or_exit();
+
     } else if subcmd.is_present("delete") {
         // The used hook is "on-modify". This hook gives two json-objects
         // per usage und wants one (the second one) back.
@@ -142,7 +148,7 @@ fn list(rt: &Runtime) {
             };
 
             // and then print that
-            println!("{}", outstring);
+            let _ = writeln!(::std::io::stdout(), "{}", outstring).to_exit_code().unwrap_or_exit();
         });
 
     res.map_err_trace().ok();
