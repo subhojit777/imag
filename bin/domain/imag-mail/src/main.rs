@@ -25,7 +25,11 @@ extern crate libimagmail;
 extern crate libimagerror;
 extern crate libimagutil;
 
+use std::io::Write;
+
 use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagerror::exit::ExitUnwrap;
+use libimagerror::io::ToExitCode;
 use libimagmail::mail::Mail;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
@@ -106,12 +110,13 @@ fn list(rt: &Runtime) {
             },
         };
 
-        println!("Mail: {id}\n\tFrom: {from}\n\tTo: {to}\n\t{subj}\n",
+        writeln!(::std::io::stdout(),
+                 "Mail: {id}\n\tFrom: {from}\n\tTo: {to}\n\t{subj}\n",
                  from = from,
                  id   = id,
                  subj = subject,
                  to   = to
-        );
+        ).to_exit_code().unwrap_or_exit()
     }
 
     let _ = rt.store()

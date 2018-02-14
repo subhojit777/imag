@@ -50,6 +50,8 @@ extern crate libimagutil;
 
 use std::process::exit;
 
+use libimagerror::exit::ExitUnwrap;
+use libimagerror::io::ToExitCode;
 use libimagrt::runtime::Runtime;
 
 mod create;
@@ -77,8 +79,9 @@ fn main() {
         if rt.is_ok() {
             rt.unwrap()
         } else {
-            println!("Could not set up Runtime");
-            println!("{:?}", rt.err().unwrap());
+            let mut out = ::std::io::stdout();
+            let _ = writeln!(out, "Could not set up Runtime").to_exit_code().unwrap_or_exit();
+            let _ = writeln!(out, "{:?}", rt.err().unwrap()).to_exit_code().unwrap_or_exit();
             exit(1);
         }
     };
