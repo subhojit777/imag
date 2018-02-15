@@ -41,6 +41,11 @@ This section contains the changelog from the last release to the next release.
       commands
     * `imag-log show` was aliased to `imag-log list`
 * Bugfixes
+    * imag does not panic anymore when piping and breaking that pipe, for
+      example like with `imag store ids | head -n 1`.
+      For that, `libimagerror` got a `Result` extension which can translate
+      errors into exit codes and one for unwrapping or exiting with the
+      `Err(i32)` from the result.
 
 
 ## 0.6.1
