@@ -24,6 +24,11 @@ This section contains the changelog from the last release to the next release.
       are now possible
     * `libimagerror` got a major refactoring and uses `ChainedError` from
       `error-chain` for logging errors now.
+    * `libimagentryref` and all libraries using it were rewritten.
+      `libimagentryref` was rewritten to make its API simpler and yet more powerful.
+      Also because it used to put entries under a "ref" collection in the store,
+      but users of the library really should be be able to put entries under
+      custom collections.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
