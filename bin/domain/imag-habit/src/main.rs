@@ -41,7 +41,7 @@ extern crate chrono;
 
 extern crate libimaghabit;
 extern crate libimagstore;
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagerror;
 extern crate libimagutil;
 extern crate libimagentrylist;
@@ -65,8 +65,9 @@ use libimaginteraction::ask::ask_bool;
 mod ui;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-habit",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Habit tracking tool",
                                     ui::build_ui);
 

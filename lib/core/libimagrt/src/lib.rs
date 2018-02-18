@@ -59,4 +59,5 @@ pub mod logger;
 pub mod runtime;
 pub mod setup;
 pub mod spec;
+pub mod version;
 

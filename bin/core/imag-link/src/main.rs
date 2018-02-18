@@ -39,7 +39,7 @@ extern crate url;
 #[cfg(test)] extern crate toml_query;
 
 extern crate libimagentrylink;
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagerror;
 
@@ -72,8 +72,9 @@ mod ui;
 use ui::build_ui;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-link",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Link entries",
                                     build_ui);
     if rt.cli().is_present("check-consistency") {

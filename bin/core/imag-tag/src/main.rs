@@ -23,7 +23,7 @@ extern crate clap;
 #[cfg(test)] extern crate toml;
 
 extern crate libimagstore;
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagentrytag;
 extern crate libimagerror;
 
@@ -58,8 +58,9 @@ mod ui;
 use ui::build_ui;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-store",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Direct interface to the store. Use with great care!",
                                     build_ui);
 

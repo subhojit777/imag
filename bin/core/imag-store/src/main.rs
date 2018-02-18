@@ -38,7 +38,7 @@ extern crate toml;
 #[cfg(test)] extern crate toml_query;
 #[macro_use] extern crate error_chain;
 
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagerror;
 
@@ -76,8 +76,9 @@ use verify::verify;
 use ids::ids;
 
 fn main() {
+    let version = make_imag_version!();
     let mut rt = generate_runtime_setup("imag-store",
-                                        env!("CARGO_PKG_VERSION"),
+                                        &version,
                                         "Direct interface to the store. Use with great care!",
                                         build_ui);
 

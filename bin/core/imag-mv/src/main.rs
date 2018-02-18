@@ -35,7 +35,7 @@
 #[macro_use] extern crate log;
 extern crate clap;
 
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagstore;
 extern crate libimagerror;
 extern crate libimagentrylink;
@@ -56,8 +56,9 @@ use libimagentrylink::internal::InternalLinker;
 use libimagstore::iter::get::StoreIdGetIteratorExtension;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-mv",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Move things around in the store",
                                     build_ui);
 

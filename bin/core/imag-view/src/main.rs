@@ -41,7 +41,7 @@ extern crate toml_query;
 
 extern crate libimagentryview;
 extern crate libimagerror;
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagstore;
 
 use std::collections::BTreeMap;
@@ -64,8 +64,9 @@ mod ui;
 use ui::build_ui;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup( "imag-view",
-                                     env!("CARGO_PKG_VERSION"),
+                                     &version,
                                      "View entries (readonly)",
                                      build_ui);
 

@@ -23,7 +23,7 @@ extern crate walkdir;
 extern crate toml;
 extern crate toml_query;
 
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagerror;
 
 use std::env;
@@ -120,11 +120,11 @@ fn get_commands() -> Vec<String> {
 fn main() {
     // Initialize the Runtime and build the CLI
     let appname  = "imag";
-    let version  = env!("CARGO_PKG_VERSION");
+    let version  = make_imag_version!();
     let about    = "imag - the PIM suite for the commandline";
     let commands = get_commands();
     let helptext = help_text(commands.clone());
-    let mut app  = Runtime::get_default_cli_builder(appname, version, about)
+    let mut app  = Runtime::get_default_cli_builder(appname, &version, about)
         .settings(&[AppSettings::AllowExternalSubcommands, AppSettings::ArgRequiredElseHelp])
         .arg(Arg::with_name("version")
              .long("version")

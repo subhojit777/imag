@@ -35,7 +35,7 @@
 #[macro_use] extern crate log;
 extern crate clap;
 
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagentryref;
 extern crate libimagerror;
 extern crate libimagentrylist;
@@ -56,8 +56,9 @@ use libimagrt::setup::generate_runtime_setup;
 use libimagrt::runtime::Runtime;
 
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-ref",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Reference files outside of the store",
                                     build_ui);
     rt.cli()

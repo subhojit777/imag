@@ -23,7 +23,7 @@ extern crate toml;
 extern crate toml_query;
 #[macro_use] extern crate is_match;
 
-extern crate libimagrt;
+#[macro_use] extern crate libimagrt;
 extern crate libimagerror;
 extern crate libimagtodo;
 
@@ -39,8 +39,9 @@ mod ui;
 
 use ui::build_ui;
 fn main() {
+    let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-todo",
-                                    env!("CARGO_PKG_VERSION"),
+                                    &version,
                                     "Interface with taskwarrior",
                                     build_ui);
 
