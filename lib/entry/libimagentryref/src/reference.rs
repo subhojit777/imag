@@ -28,8 +28,9 @@ use libimagentryutil::isa::IsKindHeaderPathProvider;
 use libimagstore::store::Entry;
 
 use toml_query::read::TomlValueReadExt;
-use refstore::UniqueRefPathGenerator;
+use toml_query::delete::TomlValueDeleteExt;
 
+use refstore::UniqueRefPathGenerator;
 use error::Result;
 use error::RefError as RE;
 use error::RefErrorKind as REK;
@@ -51,6 +52,8 @@ pub trait Ref {
 
     /// Check whether the referenced file still matches its hash
     fn hash_valid<RPG: UniqueRefPathGenerator>(&self) -> RResult<bool, RPG::Error>;
+
+    fn remove_ref(&mut self) -> Result<()>;
 
     /// Alias for `r.fs_link_exists() && r.deref().is_file()`
     fn is_ref_to_file(&self) -> Result<bool> {
@@ -102,6 +105,14 @@ impl Ref for Entry {
             .map_err(RPG::Error::from)
             .and_then(|pb| RPG::unique_hash(pb))
             .and_then(|h| Ok(h == self.get_hash()?))
+    }
+
+    fn remove_ref(&mut self) -> Result<()> {
+        let hdr = self.get_header_mut();
+        let _   = hdr.delete("ref.hash")?;
+        let _   = hdr.delete("ref.path")?;
+        let _   = hdr.delete("ref")?;
+        Ok(())
     }
 
 }
