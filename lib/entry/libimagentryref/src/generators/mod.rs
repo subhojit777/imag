@@ -54,13 +54,24 @@ macro_rules! make_unique_ref_path_generator {
         => with collection name $collectionname:expr
     ) => {
         struct $name;
-        impl_unique_ref_path_generator_trait!(
-            $name
-            over $underlying
-            => with error $errtype
-            => with collection name  $collectionname
-            => |p| { $underlying::unique_hash(p) } => |s| { Ok(s) }
-            );
+
+        impl $crate::refstore::UniqueRefPathGenerator for $name {
+            type Error = $errtype;
+
+            fn collection() -> &'static str {
+                $collectionname
+            }
+
+            fn unique_hash<A: AsRef<Path>>(path: A) -> Result<String, Self::Error> {
+                $underlying::unique_hash(path)
+            }
+
+            fn postprocess_storeid(sid: ::libimagstore::storeid::StoreId)
+                -> Result<::libimagstore::storeid::StoreId, Self::Error>
+            {
+                Ok(sid)
+            }
+        }
     };
 
     (
@@ -71,13 +82,24 @@ macro_rules! make_unique_ref_path_generator {
         => $impl:expr
     ) => {
         struct $name;
-        impl_unique_ref_path_generator_trait!(
-            $name
-            over $underlying
-            => with error $errtype
-            => with collection name $collectionname
-            => $impl => |sid| { Ok(sid) }
-            );
+
+        impl $crate::refstore::UniqueRefPathGenerator for $name {
+            type Error = $errtype;
+
+            fn collection() -> &'static str {
+                $collectionname
+            }
+
+            fn unique_hash<A: AsRef<Path>>(path: A) -> Result<String, Self::Error> {
+                $impl(path)
+            }
+
+            fn postprocess_storeid(sid: ::libimagstore::storeid::StoreId)
+                -> Result<::libimagstore::storeid::StoreId, Self::Error>
+            {
+                Ok(sid)
+            }
+        }
     };
 
     (
@@ -105,14 +127,7 @@ macro_rules! make_unique_ref_path_generator {
         => $postproc:expr
     ) => {
         pub struct $name;
-        impl_unique_ref_path_generator_trait!(
-            $name, $underlying, $errtype, $collectionname => $impl => $postproc
-            );
-    };
-}
 
-macro_rules! impl_unique_ref_path_generator_trait {
-    ($name:ident, $underlying:ty, $errtype:ty, $collectionname:expr => $impl:expr => $postproc:expr) => {
         impl $crate::refstore::UniqueRefPathGenerator for $name {
             type Error = $errtype;
 
@@ -130,7 +145,7 @@ macro_rules! impl_unique_ref_path_generator_trait {
                 $postproc(sid)
             }
         }
-    }
+    };
 }
 
 
