@@ -1,7 +1,7 @@
 ## libimagcontacts
 
-The contact library basically only creates references to the actual icalendar
-and vcard files, though it also can parse (via the `vobject` crate) the
+The contact library basically only creates references to the actual
+vcard files, though it also can parse (via the `vobject` crate) the
 information and return it from an entry directly.
 
 The architecture of indirections is as follows:

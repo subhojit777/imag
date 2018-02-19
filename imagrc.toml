@@ -89,6 +89,11 @@ error = "[imag][{{red level}}]: {{red message}}"
 # not be wanted behaviour.
 #
 
+[imag.logging.modules.libimagnotification]
+destinations = []
+level = "debug"
+enabled = true
+
 [imag.logging.modules.libimagutil]
 destinations = []
 level = "debug"
@@ -124,7 +129,17 @@ destinations = []
 level = "debug"
 enabled = true
 
+[imag.logging.modules.libimaghabit]
+destinations = []
+level = "debug"
+enabled = true
+
 [imag.logging.modules.libimagnotes]
+destinations = []
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimagcontact]
 destinations = []
 level = "debug"
 enabled = true
@@ -135,6 +150,11 @@ level = "debug"
 enabled = true
 
 [imag.logging.modules.libimagtimetrack]
+destinations = []
+level = "debug"
+enabled = true
+
+[imag.logging.modules.libimaglog]
 destinations = []
 level = "debug"
 enabled = true
@@ -204,7 +224,7 @@ destinations = []
 level = "debug"
 enabled = true
 
-[imag.logging.modules.libimagentrydatetime]
+[imag.logging.modules.libimagentryutil]
 destinations = []
 level = "debug"
 enabled = true

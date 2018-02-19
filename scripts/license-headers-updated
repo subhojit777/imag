@@ -18,7 +18,7 @@ check() {
     }
 }
 
-find -name "*.rs" -type f | while read filename; do
+find lib bin -name "*.rs" -type f | grep -v target | while read filename; do
     check "$filename" 2                                                        \
         "imag - the personal information management suite for the commandline" \
         "Description line"                                                     \

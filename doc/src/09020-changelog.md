@@ -22,8 +22,43 @@ This section contains the changelog from the last release to the next release.
     * `imag-timetrack list --from/--to` now have `kairos` support - that means
       that complex `--from/--to` arguments (like `yesterday` or `today-2weeks`)
       are now possible
+    * `libimagerror` got a major refactoring and uses `ChainedError` from
+      `error-chain` for logging errors now.
+    * `libimagentryref` and all libraries using it were rewritten.
+      `libimagentryref` was rewritten to make its API simpler and yet more powerful.
+      Also because it used to put entries under a "ref" collection in the store,
+      but users of the library really should be be able to put entries under
+      custom collections.
 * Minor changes
+    * A license-checker was included into the CI setup, which checks whether all
+      ".rs"-files have the license header at the top of the file
+    * `imag-link` does not allow linking the entry to itself
+    * `imag` sorts available commands alphabetically now
+    * `imag` has a new subcommand `help` for consistency with other tools
+    * `imag-grep` does not print grep statistics when only files with matches
+      are listed
+    * The `"Ok"` output which was printed on success was removed from all
+      commands
+    * `imag-log show` was aliased to `imag-log list`
+    * `imag-* --version` shows `git describe` output if binary was compiled in
+      "debug" mode.
 * Bugfixes
+    * imag does not panic anymore when piping and breaking that pipe, for
+      example like with `imag store ids | head -n 1`.
+      For that, `libimagerror` got a `Result` extension which can translate
+      errors into exit codes and one for unwrapping or exiting with the
+      `Err(i32)` from the result.
+
+
+## 0.6.1
+
+Bugfix release for fixing two severe bugs in `imag-init`:
+
+* `imag-init` created the git directory inside the imag directory. Fixed by
+  defaulting to `{imag directory}/.git`.
+* `imag-init` was buggy as it did not include the `imagrc.toml` file in the
+  release, thus building it from crates.io failed
+
 
 ## 0.6.0
 

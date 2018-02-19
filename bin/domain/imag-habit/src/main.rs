@@ -124,6 +124,12 @@ fn create(rt: &Runtime) {
         },
     };
 
+    debug!("Building habit: name = {name}, basedate = {date}, recurr = {recu}, comment = {comm}",
+           name = name,
+           date = date,
+           recu = recu,
+           comm = comm);
+
     let hb = HabitBuilder::default()
         .with_name(name)
         .with_basedate(parsedate(date, "date"))
@@ -135,6 +141,8 @@ fn create(rt: &Runtime) {
     } else {
         hb
     };
+
+    debug!("Builder = {:?}", hb);
 
     hb.build(rt.store()).map_err_trace_exit_unwrap(1);
 }

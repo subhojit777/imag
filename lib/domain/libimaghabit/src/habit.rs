@@ -253,6 +253,7 @@ pub mod builder {
     use libimagutil::date::date_to_string;
     use habit::IsHabitTemplate;
 
+    #[derive(Debug)]
     pub struct HabitBuilder {
         name: Option<String>,
         comment: Option<String>,
