@@ -54,7 +54,7 @@ impl Contact for Entry {
 
     fn get_contact_data(&self) -> Result<ContactData> {
         let component = self
-            .fs_file()
+            .get_path()
             .map_err(From::from)
             .and_then(util::read_to_string)
             .and_then(util::parse)?;

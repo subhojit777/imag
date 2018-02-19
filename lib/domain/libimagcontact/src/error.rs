@@ -34,6 +34,7 @@ error_chain! {
     foreign_links {
         Io(::std::io::Error);
         TomlQueryError(::toml_query::error::Error);
+        UuidError(::uuid::ParseError);
     }
 
     errors {
