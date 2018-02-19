@@ -17,36 +17,32 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::path::PathBuf;
+use std::path::Path;
 
-use error::RefErrorKind as REK;
-use error::RefError as RE;
-use error::Result;
+use libimagstore::storeid::StoreId;
 
-use libimagstore::store::Entry;
+use error::RefError;
+use refstore::UniqueRefPathGenerator;
 
-use toml_query::read::TomlValueReadTypeExt;
+/// A base UniqueRefPathGenerator which must be overridden by the actual UniqueRefPathGenerator
+/// which is provided by this crate
+#[allow(dead_code)]
+pub struct Base;
 
-/// Creates a Hash from a PathBuf by making the PathBuf absolute and then running a hash
-/// algorithm on it
-pub fn hash_path(pb: &PathBuf) -> Result<String> {
-    use crypto::sha1::Sha1;
-    use crypto::digest::Digest;
+impl UniqueRefPathGenerator for Base {
+    type Error = RefError;
 
-    pb.to_str()
-        .ok_or(RE::from_kind(REK::PathUTF8Error))
-        .map(|s| {
-            let mut hasher = Sha1::new();
-            hasher.input_str(s);
-            hasher.result_str()
-         })
-}
+    fn collection() -> &'static str {
+        "ref"
+    }
 
-/// Read the reference from a file
-pub fn read_reference(refentry: &Entry) -> Result<PathBuf> {
-    refentry.get_header()
-        .read_string("ref.path")?
-        .ok_or(RE::from_kind(REK::HeaderFieldMissingError))
-        .map(PathBuf::from)
+    fn unique_hash<A: AsRef<Path>>(_path: A) -> Result<String, Self::Error> {
+        // This has to be overridden
+        panic!("Not overridden base functionality. This is a BUG!")
+    }
+
+    fn postprocess_storeid(sid: StoreId) -> Result<StoreId, Self::Error> {
+        Ok(sid) // default implementation
+    }
 }
 

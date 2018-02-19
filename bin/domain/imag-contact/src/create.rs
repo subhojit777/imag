@@ -31,13 +31,13 @@ use toml::Value;
 use uuid::Uuid;
 
 use libimagcontact::error::ContactError as CE;
+use libimagcontact::store::UniqueContactPathGenerator;
 use libimagrt::runtime::Runtime;
 use libimagerror::str::ErrFromStr;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::trace::trace_error;
 use libimagutil::warn_result::WarnResult;
 use libimagentryref::refstore::RefStore;
-use libimagentryref::flags::RefFlags;
 
 const TEMPLATE : &'static str = include_str!("../static/new-contact-template.toml");
 
@@ -144,11 +144,7 @@ pub fn create(rt: &Runtime) {
 
     if let Some(location) = location {
         if !scmd.is_present("dont-track") {
-            let flags = RefFlags::default()
-                .with_content_hashing(true)
-                .with_permission_tracking(false);
-
-            RefStore::create(rt.store(), location, flags)
+            RefStore::create_ref::<UniqueContactPathGenerator, _>(rt.store(), location)
                 .map_err_trace_exit_unwrap(1);
 
             info!("Created entry in store");

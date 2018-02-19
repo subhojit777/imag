@@ -35,6 +35,7 @@
 #[macro_use] extern crate log;
 extern crate clap;
 
+extern crate libimagstore;
 #[macro_use] extern crate libimagrt;
 extern crate libimagentryref;
 extern crate libimagerror;
@@ -48,12 +49,11 @@ use ui::build_ui;
 use std::path::PathBuf;
 use std::process::exit;
 
-use libimagentryref::refstore::RefStore;
-use libimagentryref::flags::RefFlags;
-use libimagerror::trace::trace_error;
 use libimagerror::trace::MapErrTrace;
 use libimagrt::setup::generate_runtime_setup;
 use libimagrt::runtime::Runtime;
+use libimagstore::storeid::IntoStoreId;
+use libimagentryref::reference::Ref;
 
 fn main() {
     let version = make_imag_version!();
@@ -66,9 +66,8 @@ fn main() {
         .map(|name| {
             debug!("Call: {}", name);
             match name {
-                "add"    => add(&rt),
+                "deref"  => deref(&rt),
                 "remove" => remove(&rt),
-                "list"   => list(&rt),
                 _        => {
                     debug!("Unknown command"); // More error handling
                 },
@@ -76,83 +75,57 @@ fn main() {
         });
 }
 
-fn add(rt: &Runtime) {
-    let cmd  = rt.cli().subcommand_matches("add").unwrap();
-    let path = cmd.value_of("path").map(PathBuf::from).unwrap(); // saved by clap
+fn deref(rt: &Runtime) {
+    let cmd  = rt.cli().subcommand_matches("deref").unwrap();
+    let id   = cmd.value_of("ID")
+        .map(String::from)
+        .map(PathBuf::from)
+        .unwrap() // saved by clap
+        .into_storeid()
+        .map_err_trace_exit_unwrap(1);
 
-    let flags = RefFlags::default()
-        .with_content_hashing(cmd.is_present("track-content"))
-        .with_permission_tracking(cmd.is_present("track-permissions"));
-
-    match RefStore::create(rt.store(), path, flags) {
-        Ok(r) => {
-            debug!("Reference created: {:?}", r);
+    match rt.store().get(id.clone()).map_err_trace_exit_unwrap(1) {
+        Some(entry) => entry
+            .get_path()
+            .map_err_trace_exit_unwrap(1)
+            .to_str()
+            .ok_or_else(|| {
+                error!("Could not transform path into string!");
+                exit(1)
+            })
+            .map(|s| info!("{}", s))
+            .ok(), // safe here because we exited already in the error case
+        None => {
+            error!("No entry for id '{}' found", id);
+            exit(1)
         },
-        Err(e) => {
-            trace_error(&e);
-            warn!("Failed to create reference");
-        },
-    }
+    };
 }
 
 fn remove(rt: &Runtime) {
     use libimaginteraction::ask::ask_bool;
 
     let cmd  = rt.cli().subcommand_matches("remove").unwrap();
-    let hash = cmd.value_of("hash").map(String::from).unwrap(); // saved by clap
     let yes  = cmd.is_present("yes");
+    let id   = cmd.value_of("ID")
+        .map(String::from)
+        .map(PathBuf::from)
+        .unwrap() // saved by clap
+        .into_storeid()
+        .map_err_trace_exit_unwrap(1);
 
-    match rt.store().find_storeid_by_partial_hash(&hash).map_err_trace_exit_unwrap(1) {
-        Some(sid) => {
-            if yes || ask_bool(&format!("Delete Ref with hash '{}'", hash)[..], None) {
-                debug!("Found for hash '{}' -> {:?}", hash, sid);
-                rt.store().delete(sid).map_err_trace_exit_unwrap(1)
+    match rt.store().get(id.clone()).map_err_trace_exit_unwrap(1) {
+        Some(mut entry) => {
+            if yes || ask_bool(&format!("Delete ref from entry '{}'", id), None) {
+                let _ = entry.remove_ref().map_err_trace_exit_unwrap(1);
             } else {
                 info!("Aborted");
             }
         },
         None => {
-            error!("Not id for hash '{}' found", hash);
+            error!("No entry for id '{}' found", id);
             exit(1)
         },
     };
-
-}
-
-fn list(rt: &Runtime) {
-    use std::process::exit;
-
-    use libimagentrylist::lister::Lister;
-    use libimagentryref::lister::RefLister;
-
-    let cmd                      = rt.cli().subcommand_matches("list").unwrap();
-    let do_check_dead            = cmd.is_present("check-dead");
-    let do_check_changed         = cmd.is_present("check-changed");
-    let do_check_changed_content = cmd.is_present("check-changed-content");
-    let do_check_changed_permiss = cmd.is_present("check-changed-permissions");
-
-    let iter = match rt.store().retrieve_for_module("ref") {
-        Ok(iter) => iter.filter_map(|id| {
-            match rt.store().get(id) {
-                Ok(r) => Some(r),
-                Err(e) => {
-                    trace_error(&e);
-                    None
-                },
-            }
-        }),
-        Err(e) => {
-            trace_error(&e);
-            exit(1);
-        }
-    };
-
-    RefLister::new()
-        .check_dead(do_check_dead)
-        .check_changed(do_check_changed)
-        .check_changed_content(do_check_changed_content)
-        .check_changed_permiss(do_check_changed_permiss)
-        .list(iter.filter_map(Into::into))
-        .ok();
 }
 

@@ -36,11 +36,9 @@
 )]
 
 #[macro_use] extern crate log;
-extern crate crypto;
 extern crate itertools;
 extern crate toml;
 extern crate toml_query;
-extern crate walkdir;
 
 #[macro_use] extern crate libimagstore;
 extern crate libimagerror;
@@ -51,10 +49,19 @@ extern crate libimagentrylist;
 module_entry_path_mod!("ref");
 
 pub mod error;
-pub mod flags;
-pub mod hasher;
-pub mod hashers;
-pub mod lister;
 pub mod reference;
 pub mod refstore;
-mod util;
+
+#[cfg(any(
+    feature = "generators-sha1",
+    feature = "generators-sha224",
+    feature = "generators-sha256",
+    feature = "generators-sha384",
+    feature = "generators-sha512",
+    feature = "generators-sha3",
+))]
+extern crate crypto;
+
+#[cfg(feature = "generators")]
+pub mod generators;
+

@@ -18,22 +18,75 @@
 //
 
 use std::path::Path;
-use std::path::PathBuf;
 use std::fs::File;
 use std::io::Read;
+use std::fs::OpenOptions;
+use std::result::Result as RResult;
 
 use libimagstore::store::Store;
+use libimagstore::storeid::StoreId;
 use libimagstore::store::FileLockEntry;
 use libimagentryref::reference::Ref;
-use libimagentryref::flags::RefFlags;
 use libimagentryref::refstore::RefStore;
+use libimagentryref::refstore::UniqueRefPathGenerator;
 
 use email::MimeMessage;
 use email::results::ParsingResult as EmailParsingResult;
 
-use hasher::MailHasher;
 use error::Result;
-use error::{ResultExt, MailErrorKind as MEK};
+use error::{ResultExt, MailError as ME, MailErrorKind as MEK};
+
+struct UniqueMailRefGenerator;
+impl UniqueRefPathGenerator for UniqueMailRefGenerator {
+    type Error = ME;
+
+    /// The collection the `StoreId` should be created for
+    fn collection() -> &'static str {
+        "mail"
+    }
+
+    /// A function which should generate a unique string for a Path
+    fn unique_hash<A: AsRef<Path>>(path: A) -> RResult<String, Self::Error> {
+        use filters::filter::Filter;
+        use email::Header;
+
+        let mut s = String::new();
+        let _     = OpenOptions::new()
+            .read(true)
+            .write(false)
+            .create(false)
+            .open(path)?
+            .read_to_string(&mut s)?;
+
+        MimeMessage::parse(&s)
+            .chain_err(|| MEK::RefCreationError)
+            .and_then(|mail| {
+                let has_key = |hdr: &Header, exp: &str| hdr.name == exp;
+
+                let subject_filter = |hdr: &Header| has_key(hdr, "Subject");
+                let from_filter    = |hdr: &Header| has_key(hdr, "From");
+                let to_filter      = |hdr: &Header| has_key(hdr, "To");
+
+                let filter = subject_filter.or(from_filter).or(to_filter);
+
+                let mut v : Vec<String> = vec![];
+                for hdr in mail.headers.iter().filter(|item| filter.filter(item)) {
+                    let s = hdr
+                        .get_value()
+                        .chain_err(|| MEK::RefCreationError)?;
+
+                    v.push(s);
+                }
+                let s : String = v.join("");
+                Ok(s)
+            })
+    }
+
+    /// Postprocess the generated `StoreId` object
+    fn postprocess_storeid(sid: StoreId) -> RResult<StoreId, Self::Error> {
+        Ok(sid)
+    }
+}
 
 struct Buffer(String);
 
@@ -56,15 +109,10 @@ impl<'a> Mail<'a> {
     /// Imports a mail from the Path passed
     pub fn import_from_path<P: AsRef<Path>>(store: &Store, p: P) -> Result<Mail> {
         debug!("Importing Mail from path");
-        let h = MailHasher::new();
-        let f = RefFlags::default().with_content_hashing(true).with_permission_tracking(false);
-        let p = PathBuf::from(p.as_ref());
-
-        store.create_with_hasher(p, f, h)
-            .chain_err(|| MEK::RefCreationError)
+        store.retrieve_ref::<UniqueMailRefGenerator, P>(p)
             .and_then(|reference| {
                 debug!("Build reference file: {:?}", reference);
-                reference.fs_file()
+                reference.get_path()
                     .chain_err(|| MEK::RefHandlingError)
                     .and_then(|path| File::open(path).chain_err(|| MEK::IOError))
                     .and_then(|mut file| {
@@ -81,19 +129,18 @@ impl<'a> Mail<'a> {
     /// Opens a mail by the passed hash
     pub fn open<S: AsRef<str>>(store: &Store, hash: S) -> Result<Option<Mail>> {
         debug!("Opening Mail by Hash");
-        store.get_by_hash(String::from(hash.as_ref()))
+        store.get_ref::<UniqueMailRefGenerator, S>(hash)
             .chain_err(|| MEK::FetchByHashError)
             .chain_err(|| MEK::FetchError)
             .and_then(|o| match o {
                 Some(r) => Mail::from_fle(r).map(Some),
                 None => Ok(None),
             })
-
     }
 
     /// Implement me as TryFrom as soon as it is stable
     pub fn from_fle(fle: FileLockEntry<'a>) -> Result<Mail<'a>> {
-        fle.fs_file()
+        fle.get_path()
             .chain_err(|| MEK::RefHandlingError)
             .and_then(|path| File::open(path).chain_err(|| MEK::IOError))
             .and_then(|mut file| {
