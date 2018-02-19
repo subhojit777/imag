@@ -37,6 +37,8 @@ extern crate clap;
 #[cfg(test)]
 extern crate toml;
 
+extern crate libimagerror;
+
 mod ui;
 
 use std::fs::OpenOptions;
@@ -44,6 +46,9 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::path::Path;
 use std::process::Command;
+
+use libimagerror::exit::ExitUnwrap;
+use libimagerror::io::ToExitCode;
 
 const CONFIGURATION_STR : &'static str = include_str!("../imagrc.toml");
 
@@ -63,6 +68,7 @@ imagrc.toml
 fn main() {
     let app = ui::build_ui();
     let matches = app.get_matches();
+    let mut out = ::std::io::stdout();
 
     let path = matches
         .value_of("path")
@@ -73,8 +79,12 @@ fn main() {
                 .map(PathBuf::from)
                 .map(|mut p| { p.push(".imag"); p })
                 .map(|path| if path.exists() {
-                    println!("Path '{:?}' already exists!", path);
-                    println!("Cannot continue.");
+                    let _ = writeln!(out, "Path '{:?}' already exists!", path)
+                        .to_exit_code()
+                        .unwrap_or_exit();
+                    let _ = writeln!(out, "Cannot continue.")
+                        .to_exit_code()
+                        .unwrap_or_exit();
                     ::std::process::exit(1)
                 } else {
                     path
@@ -109,7 +119,9 @@ fn main() {
 
     if find_command("git").is_some() && !matches.is_present("nogit") {
         // we initialize a git repository
-        println!("Going to initialize a git repository in the imag directory...");
+        let _ = writeln!(out, "Going to initialize a git repository in the imag directory...")
+            .to_exit_code()
+            .unwrap_or_exit();
 
         let gitignore_path = {
             let mut gitignore_path = path.clone();
@@ -138,10 +150,16 @@ fn main() {
                 .expect("Calling 'git init' failed");
 
             if output.status.success() {
-                println!("{}", String::from_utf8(output.stdout).expect("No UTF-8 output"));
-                println!("'git {} {} --no-pager init' succeeded", worktree, gitdir);
+                let _ = writeln!(out, "{}", String::from_utf8(output.stdout).expect("No UTF-8 output"))
+                    .to_exit_code()
+                    .unwrap_or_exit();
+                let _ = writeln!(out, "'git {} {} --no-pager init' succeeded", worktree, gitdir)
+                    .to_exit_code()
+                    .unwrap_or_exit();
             } else {
-                println!("{}", String::from_utf8(output.stderr).expect("No UTF-8 output"));
+                let _ = writeln!(out, "{}", String::from_utf8(output.stderr).expect("No UTF-8 output"))
+                    .to_exit_code()
+                    .unwrap_or_exit();
                 ::std::process::exit(output.status.code().unwrap_or(1));
             }
         }
@@ -152,10 +170,16 @@ fn main() {
                 .output()
                 .expect("Calling 'git add' failed");
             if output.status.success() {
-                println!("{}", String::from_utf8(output.stdout).expect("No UTF-8 output"));
-                println!("'git {} {} --no-pager add {}' succeeded", worktree, gitdir, gitignore_path);
+                let _ = writeln!(out, "{}", String::from_utf8(output.stdout).expect("No UTF-8 output"))
+                    .to_exit_code()
+                    .unwrap_or_exit();
+                let _ = writeln!(out, "'git {} {} --no-pager add {}' succeeded", worktree, gitdir, gitignore_path)
+                    .to_exit_code()
+                    .unwrap_or_exit();
             } else {
-                println!("{}", String::from_utf8(output.stderr).expect("No UTF-8 output"));
+                let _ = writeln!(out, "{}", String::from_utf8(output.stderr).expect("No UTF-8 output"))
+                    .to_exit_code()
+                    .unwrap_or_exit();
                 ::std::process::exit(output.status.code().unwrap_or(1));
             }
         }
@@ -166,20 +190,32 @@ fn main() {
                 .output()
                 .expect("Calling 'git commit' failed");
             if output.status.success() {
-                println!("{}", String::from_utf8(output.stdout).expect("No UTF-8 output"));
-                println!("'git {} {} --no-pager commit {} -m 'Initial import'' succeeded", worktree, gitdir, gitignore_path);
+                let _ = writeln!(out, "{}", String::from_utf8(output.stdout).expect("No UTF-8 output"))
+                    .to_exit_code()
+                    .unwrap_or_exit();
+                let _ = writeln!(out, "'git {} {} --no-pager commit {} -m 'Initial import'' succeeded", worktree, gitdir, gitignore_path)
+                    .to_exit_code()
+                    .unwrap_or_exit();
             } else {
-                println!("{}", String::from_utf8(output.stderr).expect("No UTF-8 output"));
+                let _ = writeln!(out, "{}", String::from_utf8(output.stderr).expect("No UTF-8 output"))
+                    .to_exit_code()
+                    .unwrap_or_exit();
                 ::std::process::exit(output.status.code().unwrap_or(1));
             }
         }
 
-        println!("git stuff finished!");
+        let _ = writeln!(out, "git stuff finished!")
+            .to_exit_code()
+            .unwrap_or_exit();
     } else {
-        println!("No git repository will be initialized");
+        let _ = writeln!(out, "No git repository will be initialized")
+            .to_exit_code()
+            .unwrap_or_exit();
     }
 
-    println!("Ready. Have fun with imag!");
+    let _ = writeln!(out, "Ready. Have fun with imag!")
+        .to_exit_code()
+        .unwrap_or_exit();
 }
 
 fn get_config() -> String {

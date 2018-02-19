@@ -43,9 +43,13 @@ extern crate libimaglog;
 extern crate libimagerror;
 extern crate libimagdiary;
 
+use std::io::Write;
+
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::io::ToExitCode;
+use libimagerror::exit::ExitUnwrap;
 use libimagdiary::diary::Diary;
 use libimaglog::log::Log;
 use libimaglog::error::LogError as LE;
@@ -117,26 +121,28 @@ fn show(rt: &Runtime) {
     };
 
     for iter in iters {
-        for element in iter {
+        let _ = iter.map(|element| {
             let e  = element.map_err_trace_exit_unwrap(1);
 
             if !e.is_log().map_err_trace_exit_unwrap(1) {
-                continue;
+                return Ok(());
             }
 
             let id = e.diary_id().map_err_trace_exit_unwrap(1);
-            println!("{dname: >10} - {y: >4}-{m:0>2}-{d:0>2}T{H:0>2}:{M:0>2} - {text}",
+            writeln!(::std::io::stdout(),
+                    "{dname: >10} - {y: >4}-{m:0>2}-{d:0>2}T{H:0>2}:{M:0>2} - {text}",
                      dname = id.diary_name(),
                      y = id.year(),
                      m = id.month(),
                      d = id.day(),
                      H = id.hour(),
                      M = id.minute(),
-                     text = e.get_content());
-        }
+                     text = e.get_content())
+                .to_exit_code()
+        })
+        .collect::<Result<Vec<()>, _>>()
+        .unwrap_or_exit();
     }
-
-    info!("Ready.");
 }
 
 fn get_diary_name(rt: &Runtime) -> String {

@@ -41,8 +41,12 @@ extern crate libimagerror;
 extern crate libimagentrylink;
 extern crate libimagstore;
 
+use std::io::Write;
+
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::io::ToExitCode;
+use libimagerror::exit::ExitUnwrap;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
 use libimagstore::error::StoreError as Error;
@@ -151,39 +155,66 @@ fn main() {
 
     let n = diags.len();
 
-    println!("imag version {}", env!("CARGO_PKG_VERSION"));
-    println!("");
-    println!("{} entries", n);
+    let mut out = ::std::io::stdout();
+
+    let _ = writeln!(out, "imag version {}", env!("CARGO_PKG_VERSION"))
+        .to_exit_code()
+        .unwrap_or_exit();
+    let _ = writeln!(out, "")
+        .to_exit_code()
+        .unwrap_or_exit();
+    let _ = writeln!(out, "{} entries", n)
+        .to_exit_code()
+        .unwrap_or_exit();
     for (k, v) in version_counts {
-        println!("{} entries with store version '{}'", v, k);
+        let _ = writeln!(out, "{} entries with store version '{}'", v, k)
+            .to_exit_code()
+            .unwrap_or_exit();
     }
     if n != 0 {
-        println!("{} header sections in the average entry", sum_header_sections / n);
-        println!("{} average content bytecount", sum_bytecount_content / n);
-        println!("{} average overall bytecount", sum_overall_byte_size / n);
+        let _ = writeln!(out, "{} header sections in the average entry", sum_header_sections / n)
+            .to_exit_code()
+            .unwrap_or_exit();
+        let _ = writeln!(out, "{} average content bytecount", sum_bytecount_content / n)
+            .to_exit_code()
+            .unwrap_or_exit();
+        let _ = writeln!(out, "{} average overall bytecount", sum_overall_byte_size / n)
+            .to_exit_code()
+            .unwrap_or_exit();
         if let Some((num, path)) = max_overall_byte_size {
-            println!("Largest Entry ({bytes} bytes): {path}",
-                bytes = num,
-                path = path
-                    .into_pathbuf()
-                    .map_err_trace_exit_unwrap(1)
-                    .to_str()
-                    .unwrap_or("Failed converting path to string")
-            );
+            let _ = writeln!(out,
+                             "Largest Entry ({bytes} bytes): {path}",
+                             bytes = num,
+                             path = path
+                                 .into_pathbuf()
+                                 .map_err_trace_exit_unwrap(1)
+                                 .to_str()
+                                 .unwrap_or("Failed converting path to string")
+                )
+                .to_exit_code()
+                .unwrap_or_exit();
         }
-        println!("{} average internal link count per entry", num_internal_links / n);
+        let _ = writeln!(out, "{} average internal link count per entry", num_internal_links / n)
+            .to_exit_code()
+            .unwrap_or_exit();
         if let Some((num, path)) = max_internal_links {
-            println!("Entry with most internal links ({count}): {path}",
+            let _ = writeln!(out, "Entry with most internal links ({count}): {path}",
                      count = num,
                      path = path
                         .into_pathbuf()
                         .map_err_trace_exit_unwrap(1)
                         .to_str()
                         .unwrap_or("Failed converting path to string")
-            );
+            )
+            .to_exit_code()
+            .unwrap_or_exit();
         }
-        println!("{} verified entries", verified_count);
-        println!("{} unverified entries", unverified_count);
+        let _ = writeln!(out, "{} verified entries", verified_count)
+            .to_exit_code()
+            .unwrap_or_exit();
+        let _ = writeln!(out, "{} unverified entries", unverified_count)
+            .to_exit_code()
+            .unwrap_or_exit();
     }
 }
 

@@ -28,6 +28,7 @@ extern crate libimagerror;
 extern crate libimagutil;
 extern crate libimagstore;
 
+use std::io::Write;
 use std::process::exit;
 
 use itertools::Itertools;
@@ -39,6 +40,8 @@ use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagnotes::note::Note;
 use libimagnotes::notestore::*;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::exit::ExitUnwrap;
+use libimagerror::io::ToExitCode;
 use libimagerror::iter::TraceIterator;
 use libimagutil::info_result::*;
 use libimagutil::warn_result::WarnResult;
@@ -116,6 +119,8 @@ fn edit(rt: &Runtime) {
 fn list(rt: &Runtime) {
     use std::cmp::Ordering;
 
+    let mut out = ::std::io::stdout();
+
     let _ = rt
         .store()
         .all_notes()
@@ -133,10 +138,10 @@ fn list(rt: &Runtime) {
         })
         .iter()
         .for_each(|note| {
-            note.get_name()
-                .map(|name| println!("{}", name))
-                .map_err_trace()
-                .ok();
+            let name = note.get_name().map_err_trace_exit_unwrap(1);
+            writeln!(out, "{}", name)
+                .to_exit_code()
+                .unwrap_or_exit()
         });
 }
 

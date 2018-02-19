@@ -40,11 +40,15 @@ extern crate libimagstore;
 #[macro_use] extern crate libimagrt;
 extern crate libimagerror;
 
+use std::io::Write;
+
 use regex::Regex;
 
 use libimagrt::setup::generate_runtime_setup;
 use libimagstore::store::Entry;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::exit::ExitUnwrap;
+use libimagerror::io::ToExitCode;
 
 mod ui;
 
@@ -87,32 +91,38 @@ fn main() {
         .map(|entry| show(&entry, &pattern, &opts, &mut count))
         .count();
 
+    let mut out = ::std::io::stdout();
+
     if opts.count {
-        println!("{}", count);
+        let _ = writeln!(out, "{}", count).to_exit_code().unwrap_or_exit();
     } else if !opts.files_with_matches {
-        println!("Processed {} files, {} matches, {} nonmatches",
+        let _ = writeln!(out, "Processed {} files, {} matches, {} nonmatches",
                  overall_count,
                  count,
-                 overall_count - count);
+                 overall_count - count)
+            .to_exit_code()
+            .unwrap_or_exit();
     }
 }
 
 fn show(e: &Entry, re: &Regex, opts: &Options, count: &mut usize) {
+    let mut out = ::std::io::stdout();
+
     if opts.files_with_matches {
-        println!("{}", e.get_location());
+        let _ = writeln!(out, "{}", e.get_location()).to_exit_code().unwrap_or_exit();
     } else if opts.count {
         *count += 1;
     } else {
-        println!("{}:", e.get_location());
+        let _ = writeln!(out, "{}:", e.get_location()).to_exit_code().unwrap_or_exit();
         for capture in re.captures_iter(e.get_content()) {
             for mtch in capture.iter() {
                 if let Some(m) = mtch {
-                    println!(" '{}'", m.as_str());
+                    let _ = writeln!(out, " '{}'", m.as_str()).to_exit_code().unwrap_or_exit();
                 }
             }
         }
 
-        println!("");
+        let _ = writeln!(out, "").to_exit_code().unwrap_or_exit();
     }
 }
 

@@ -31,6 +31,7 @@ use std::process::exit;
 use std::process::Command;
 use std::process::Stdio;
 use std::io::ErrorKind;
+use std::io::{stdout, Stdout, Write};
 use std::collections::BTreeMap;
 
 use walkdir::WalkDir;
@@ -40,6 +41,8 @@ use toml_query::read::TomlValueReadExt;
 
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::trace_error;
+use libimagerror::io::ToExitCode;
+use libimagerror::exit::ExitUnwrap;
 
 /// Returns the helptext, putting the Strings in cmds as possible
 /// subcommands into it
@@ -85,10 +88,12 @@ fn help_text(cmds: Vec<String>) -> String {
 }
 
 /// Returns the list of imag-* executables found in $PATH
-fn get_commands() -> Vec<String> {
+fn get_commands(out: &mut Stdout) -> Vec<String> {
     let mut v = match env::var("PATH") {
         Err(e) => {
-            println!("PATH error: {:?}", e);
+            let _ = writeln!(out, "PATH error: {:?}", e)
+                .to_exit_code()
+                .unwrap_or_exit();
             exit(1)
         },
 
@@ -122,7 +127,8 @@ fn main() {
     let appname  = "imag";
     let version  = make_imag_version!();
     let about    = "imag - the PIM suite for the commandline";
-    let commands = get_commands();
+    let mut out  = stdout();
+    let commands = get_commands(&mut out);
     let helptext = help_text(commands.clone());
     let mut app  = Runtime::get_default_cli_builder(appname, &version, about)
         .settings(&[AppSettings::AllowExternalSubcommands, AppSettings::ArgRequiredElseHelp])
@@ -152,14 +158,18 @@ fn main() {
     {
         let print_help = app.clone().get_matches().subcommand_name().map(|h| h == "help").unwrap_or(false);
         if print_help {
-            println!("{}", long_help);
+            let _ = writeln!(out, "{}", long_help)
+                .to_exit_code()
+                .unwrap_or_exit();
             exit(0)
         }
     }
 
     let rt = Runtime::new(app)
         .unwrap_or_else(|e| {
-            println!("Runtime couldn't be setup. Exiting");
+            let _ = writeln!(out, "Runtime couldn't be setup. Exiting")
+                .to_exit_code()
+                .unwrap_or_exit();
             trace_error(&e);
             exit(1);
         });
@@ -171,7 +181,9 @@ fn main() {
 
     if matches.is_present("version") {
         debug!("Showing version");
-        println!("imag {}", env!("CARGO_PKG_VERSION"));
+        let _ = writeln!(out, "imag {}", env!("CARGO_PKG_VERSION"))
+            .to_exit_code()
+            .unwrap_or_exit();
         exit(0);
     }
 
@@ -194,7 +206,9 @@ fn main() {
             })
             .fold((), |_, line| {
                 // The amount of newlines may differ depending on the subprocess
-                println!("{}", line.trim());
+                let _ = writeln!(out, "{}", line.trim())
+                    .to_exit_code()
+                    .unwrap_or_exit();
             });
 
         exit(0);
@@ -203,9 +217,13 @@ fn main() {
     let aliases = match fetch_aliases(&rt) {
         Ok(aliases) => aliases,
         Err(e)      => {
-            println!("Error while fetching aliases from configuration file");
+            let _ = writeln!(out, "Error while fetching aliases from configuration file")
+                .to_exit_code()
+                .unwrap_or_exit();
             debug!("Error = {:?}", e);
-            println!("Aborting");
+            let _ = writeln!(out, "Aborting")
+                .to_exit_code()
+                .unwrap_or_exit();
             exit(1);
         }
     };
@@ -250,16 +268,24 @@ fn main() {
                     debug!("Error calling the subcommand");
                     match e.kind() {
                         ErrorKind::NotFound => {
-                            println!("No such command: 'imag-{}'", subcommand);
-                            println!("See 'imag --help' for available subcommands");
+                            let _ = writeln!(out, "No such command: 'imag-{}'", subcommand)
+                                .to_exit_code()
+                                .unwrap_or_exit();
+                            let _ = writeln!(out, "See 'imag --help' for available subcommands")
+                                .to_exit_code()
+                                .unwrap_or_exit();
                             exit(1);
                         },
                         ErrorKind::PermissionDenied => {
-                            println!("No permission to execute: 'imag-{}'", subcommand);
+                            let _ = writeln!(out, "No permission to execute: 'imag-{}'", subcommand)
+                                .to_exit_code()
+                                .unwrap_or_exit();
                             exit(1);
                         },
                         _ => {
-                            println!("Error spawning: {:?}", e);
+                            let _ = writeln!(out, "Error spawning: {:?}", e)
+                                .to_exit_code()
+                                .unwrap_or_exit();
                             exit(1);
                         }
                     }

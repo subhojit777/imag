@@ -41,6 +41,7 @@ extern crate toml_query;
 extern crate env_logger;
 
 use std::path::PathBuf;
+use std::io::Write;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
@@ -48,6 +49,8 @@ use libimagentrytag::tagable::Tagable;
 use libimagentrytag::tag::Tag;
 use libimagerror::trace::trace_error;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::io::ToExitCode;
+use libimagerror::exit::ExitUnwrap;
 use libimagstore::storeid::StoreId;
 use libimagutil::warn_exit::warn_exit;
 
@@ -161,19 +164,27 @@ fn list(id: PathBuf, rt: &Runtime) {
         unimplemented!()
     }
 
+    let mut out = ::std::io::stdout();
+
     if line_out {
         for tag in &tags {
-            println!("{}", tag);
+            let _ = writeln!(out, "{}", tag)
+                .to_exit_code()
+                .unwrap_or_exit();
         }
     }
 
     if sepp_out {
         let sepp = scmd.value_of("sep").unwrap(); // we checked before
-        println!("{}", tags.join(sepp));
+        let _ = writeln!(out, "{}", tags.join(sepp))
+            .to_exit_code()
+            .unwrap_or_exit();
     }
 
     if comm_out {
-        println!("{}", tags.join(", "));
+        let _ = writeln!(out, "{}", tags.join(", "))
+            .to_exit_code()
+            .unwrap_or_exit();
     }
 }
 

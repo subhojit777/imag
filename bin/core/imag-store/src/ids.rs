@@ -17,14 +17,18 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::io::Write;
+
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::*;
+use libimagerror::io::ToExitCode;
+use libimagerror::exit::ExitUnwrap;
 
 pub fn ids(rt: &Runtime) {
     let full = rt.cli().subcommand_matches("ids").unwrap() //secured by main
         .is_present("full");
     let base = rt.store().path();
-    let _ :Vec<_> = rt
+    let _ = rt
         .store()
         .entries()
         .map_err_trace_exit_unwrap(1)
@@ -35,7 +39,9 @@ pub fn ids(rt: &Runtime) {
         })
         .map(|i| i.to_str())
         .map(|elem| elem.map_err_trace_exit_unwrap(1))
-        .map(|i| println!("{}", i))
-        .collect();
+        .map(|i| writeln!(::std::io::stdout(), "{}", i))
+        .collect::<Result<Vec<()>, ::std::io::Error>>()
+        .to_exit_code()
+        .unwrap_or_exit();
 }
 

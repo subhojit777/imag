@@ -42,6 +42,7 @@ extern crate libimagbookmark;
 extern crate libimagerror;
 extern crate libimagutil;
 
+use std::io::Write;
 use std::process::exit;
 
 use toml_query::read::TomlValueReadTypeExt;
@@ -53,6 +54,8 @@ use libimagbookmark::collection::BookmarkCollectionStore;
 use libimagbookmark::error::BookmarkError as BE;
 use libimagbookmark::link::Link as BookmarkLink;
 use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagerror::io::ToExitCode;
+use libimagerror::exit::ExitUnwrap;
 
 mod ui;
 
@@ -131,11 +134,12 @@ fn list(rt: &Runtime) {
         .ok_or(BE::from(format!("No BookmarkcollectionStore '{}' found", coll)))
         .map_err_trace_exit_unwrap(1);
 
-    let links = collection.links(rt.store()).map_err_trace_exit_unwrap(1);
+    let links   = collection.links(rt.store()).map_err_trace_exit_unwrap(1);
+    let mut out = ::std::io::stdout();
     debug!("Listing...");
     for (i, link) in links.enumerate() {
         match link {
-            Ok(link) => println!("{: >3}: {}", i, link),
+            Ok(link) => writeln!(out, "{: >3}: {}", i, link).to_exit_code().unwrap_or_exit(),
             Err(e)   => trace_error(&e)
         }
     };

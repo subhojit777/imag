@@ -42,6 +42,7 @@ extern crate libimagutil;
 extern crate libimagerror;
 extern crate libimagstore;
 
+use std::io::Write;
 use std::process::exit;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -54,6 +55,8 @@ use libimagrt::setup::generate_runtime_setup;
 use libimagrt::runtime::Runtime;
 use libimagutil::warn_exit::warn_exit;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::exit::ExitUnwrap;
+use libimagerror::io::ToExitCode;
 use libimagstore::storeid::IntoStoreId;
 
 mod ui;
@@ -141,8 +144,10 @@ fn remove(rt: &Runtime) {
         })
         .map_err_trace_exit_unwrap(1); // The parsing of the deleted values failed
 
+    let mut out = ::std::io::stdout();
+
     if scmd.is_present("print-removed") {
-        println!("{}", removed_value);
+        let _ = writeln!(out, "{}", removed_value).to_exit_code().unwrap_or_exit();
     }
 }
 
@@ -169,6 +174,7 @@ fn get(rt: &Runtime) {
             exit(1)
         });
 
-    println!("{}", value);
+    let mut out = ::std::io::stdout();
+    let _       = writeln!(out, "{}", value).to_exit_code().unwrap_or_exit();
 }
 

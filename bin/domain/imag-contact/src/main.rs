@@ -52,6 +52,7 @@ extern crate libimagentryedit;
 
 use std::process::exit;
 use std::path::PathBuf;
+use std::io::Write;
 
 use handlebars::Handlebars;
 use clap::ArgMatches;
@@ -63,6 +64,8 @@ use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::str::ErrFromStr;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::io::ToExitCode;
+use libimagerror::exit::ExitUnwrap;
 use libimagcontact::store::ContactStore;
 use libimagcontact::error::ContactError as CE;
 use libimagcontact::contact::Contact;
@@ -105,6 +108,7 @@ fn main() {
 fn list(rt: &Runtime) {
     let scmd        = rt.cli().subcommand_matches("list").unwrap();
     let list_format = get_contact_print_format("contact.list_format", rt, &scmd);
+    let mut out     = ::std::io::stdout();
 
     let _ = rt
         .store()
@@ -138,7 +142,8 @@ fn list(rt: &Runtime) {
                 .err_from_str()
                 .map_err(CE::from)
                 .map_err_trace_exit_unwrap(1);
-            println!("{}", s);
+
+            writeln!(out, "{}", s).to_exit_code().unwrap_or_exit()
         })
         .collect::<Vec<_>>();
 }
@@ -206,7 +211,7 @@ fn show(rt: &Runtime) {
         .err_from_str()
         .map_err(CE::from)
         .map_err_trace_exit_unwrap(1);
-    println!("{}", s);
+    let _ = writeln!(::std::io::stdout(), "{}", s).to_exit_code().unwrap_or_exit();
 }
 
 fn get_contact_print_format(config_value_path: &'static str, rt: &Runtime, scmd: &ArgMatches) -> Handlebars {

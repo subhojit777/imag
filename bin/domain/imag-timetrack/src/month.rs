@@ -17,6 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::io::Write;
 use std::str::FromStr;
 
 use filters::filter::Filter;
@@ -24,6 +25,7 @@ use chrono::NaiveDateTime;
 
 use libimagerror::trace::trace_error;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::io::ToExitCode;
 use libimagerror::iter::TraceIterator;
 use libimagstore::store::FileLockEntry;
 use libimagtimetrack::error::TimeTrackError as TTE;
@@ -99,6 +101,8 @@ pub fn month(rt: &Runtime) -> i32 {
         tags_filter.and(start_time_filter).and(end_time_filter)
     };
 
+    let mut out = ::std::io::stdout();
+
     rt.store()
         .get_timetrackings()
         .map_err_trace_exit_unwrap(1)
@@ -106,30 +110,31 @@ pub fn month(rt: &Runtime) -> i32 {
         .filter(Option::is_some)
         .map(Option::unwrap)
         .filter(|e| filter.filter(e))
-        .fold(Ok(()), |acc: Result<(), ::libimagtimetrack::error::TimeTrackError>, e| {
-            acc.and_then(|_| {
-                debug!("Processing {:?}", e.get_location());
+        .map(|e| -> Result<_, TTE> {
+            debug!("Processing {:?}", e.get_location());
 
-                let tag   = e.get_timetrack_tag()?;
-                debug!(" -> tag = {:?}", tag);
+            let tag   = e.get_timetrack_tag()?;
+            debug!(" -> tag = {:?}", tag);
 
-                let start = e.get_start_datetime()?;
-                debug!(" -> start = {:?}", start);
+            let start = e.get_start_datetime()?;
+            debug!(" -> start = {:?}", start);
 
-                let end   = e.get_end_datetime()?;
-                debug!(" -> end = {:?}", end);
+            let end   = e.get_end_datetime()?;
+            debug!(" -> end = {:?}", end);
 
-                match (start, end) {
-                    (None, _)          => println!("{} has no start time.", tag),
-                    (Some(s), None)    => println!("{} | {} - ...", tag, s),
-                    (Some(s), Some(e)) => println!("{} | {} - {}", tag, s, e),
-                }
-
-                Ok(())
-            })
+            Ok((tag, start, end))
         })
+        .trace_unwrap_exit(1)
+        .map(|(tag, start, end)| {
+            match (start, end) {
+                (None, _)          => writeln!(out, "{} has no start time.", tag),
+                (Some(s), None)    => writeln!(out, "{} | {} - ...", tag, s),
+                (Some(s), Some(e)) => writeln!(out, "{} | {} - {}", tag, s, e),
+            }
+            .to_exit_code()
+        })
+        .collect::<Result<Vec<()>, _>>()
         .map(|_| 0)
-        .map_err_trace()
-        .unwrap_or(1)
+        .unwrap_or_else(|e| e.code())
 }
 

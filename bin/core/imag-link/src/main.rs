@@ -50,6 +50,7 @@ extern crate libimagutil;
 #[cfg(not(test))]
 extern crate libimagutil;
 
+use std::io::Write;
 use std::path::PathBuf;
 
 use libimagentrylink::external::ExternalLinker;
@@ -57,6 +58,8 @@ use libimagentrylink::internal::InternalLinker;
 use libimagentrylink::internal::store_check::StoreLinkConsistentExt;
 use libimagentrylink::error::LinkError as LE;
 use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagerror::exit::ExitUnwrap;
+use libimagerror::io::ToExitCode;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagstore::error::StoreError;
@@ -226,7 +229,8 @@ fn list_linkings(rt: &Runtime) {
         .subcommand_matches("list")
         .unwrap(); // safed by clap
 
-    let list_externals = cmd.is_present("list-externals-too");
+    let list_externals  = cmd.is_present("list-externals-too");
+    let mut out         = ::std::io::stdout();
 
     for entry in cmd.values_of("entries").unwrap() { // safed by clap
         match rt.store().get(PathBuf::from(entry)) {
@@ -240,20 +244,27 @@ fn list_linkings(rt: &Runtime) {
                         .ok();
 
                     if let Some(link) = link {
-                        println!("{: <3}: {}", i, link);
+                        let _ = writeln!(out, "{: <3}: {}", i, link)
+                            .to_exit_code()
+                            .unwrap_or_exit();
                         i += 1;
                     }
                 }
 
                 if list_externals {
-                    for link in entry.get_external_links(rt.store()).map_err_trace_exit_unwrap(1) {
-                        let link = link
-                            .map_err_trace_exit_unwrap(1)
-                            .into_string();
+                    entry.get_external_links(rt.store())
+                        .map_err_trace_exit_unwrap(1)
+                        .enumerate()
+                        .for_each(|(i, link)| {
+                            let link = link
+                                .map_err_trace_exit_unwrap(1)
+                                .into_string();
 
-                        println!("{: <3}: {}", i, link);
-                        i += 1;
-                    }
+                            let _ = writeln!(out, "{: <3}: {}", i, link)
+                                .to_exit_code()
+                                .unwrap_or_exit();
+
+                        })
                 }
             },
             Ok(None)        => warn!("Not found: {}", entry),
