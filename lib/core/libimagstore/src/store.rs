@@ -752,10 +752,7 @@ impl Store {
 impl Debug for Store {
 
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FMTError> {
-        write!(fmt,
-               r#"Store\n\tlocation = {:?}\n\tentries = {:?}\n"#,
-               self.location,
-               self.entries)
+        writeln!(fmt, "Store location = {:?}, entries = {:?}", self.location, self.entries)
     }
 
 }
