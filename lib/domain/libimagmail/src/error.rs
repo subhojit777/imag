@@ -26,6 +26,10 @@ error_chain! {
         RefError(::libimagentryref::error::RefError, ::libimagentryref::error::RefErrorKind);
     }
 
+    foreign_links {
+        IoError(::std::io::Error);
+    }
+
 
     errors {
         RefCreationError {
