@@ -494,7 +494,7 @@ impl Store {
         debug!("Writing Entry");
         se.write_entry(&entry.entry)?;
         if modify_presence {
-            debug!("Modifying ppresence of {} -> Present", entry.get_location());
+            debug!("Modifying presence of {} -> Present", entry.get_location());
             se.status = StoreEntryStatus::Present;
         }
 
