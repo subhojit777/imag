@@ -28,6 +28,7 @@ error_chain! {
 
     foreign_links {
         Io(::std::io::Error);
+        Fmt(::std::fmt::Error);
         TomlDeserError(::toml::de::Error);
         GlobPatternError(::glob::PatternError);
         TomlQueryError(::toml_query::error::Error);

@@ -17,13 +17,12 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use regex::Regex;
+use std::fmt::Write;
+
 use toml::Value;
 
 use store::Result;
 use store::Header;
-use error::StoreErrorKind as SEK;
-use error::StoreError as SE;
 
 #[cfg(feature = "early-panic")]
 #[macro_export]
@@ -43,27 +42,23 @@ macro_rules! if_cfg_panic {
 
 pub fn entry_buffer_to_header_content(buf: &str) -> Result<(Value, String)> {
     debug!("Building entry from string");
-    lazy_static! {
-        static ref RE: Regex = Regex::new(r"(?smx)
-            ^---$
-            (?P<header>.*) # Header
-            ^---$\n
-            (?P<content>.*) # Content
-        ").unwrap();
+    let mut header          = String::new();
+    let mut content         = String::new();
+    let mut header_consumed = false;
+
+    for line in buf.lines().skip(1) { // the first line is "---"
+        if line == "---" {
+            header_consumed = true;
+            // do not further process the line
+        } else {
+            if !header_consumed {
+                let _ = writeln!(header, "{}", line)?;
+            } else {
+                let _ = write!(content, "{}", line)?;
+            }
+        }
     }
 
-    let matches = match RE.captures(buf) {
-        None    => return Err(SE::from_kind(SEK::MalformedEntry)),
-        Some(s) => s,
-    };
-
-    let header = match matches.name("header") {
-        None    => return Err(SE::from_kind(SEK::MalformedEntry)),
-        Some(s) => s
-    };
-
-    let content = matches.name("content").map(|r| r.as_str()).unwrap_or("");
-
-    Ok((Value::parse(header.as_str())?, String::from(content)))
+    Ok((Value::parse(&header)?, String::from(content)))
 }
 
