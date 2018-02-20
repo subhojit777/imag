@@ -29,6 +29,7 @@ This section contains the changelog from the last release to the next release.
       Also because it used to put entries under a "ref" collection in the store,
       but users of the library really should be be able to put entries under
       custom collections.
+    * `imag store ids` was replaced by `imag ids`.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
