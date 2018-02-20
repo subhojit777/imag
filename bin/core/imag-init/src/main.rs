@@ -37,6 +37,7 @@ extern crate clap;
 #[cfg(test)]
 extern crate toml;
 
+#[macro_use] extern crate libimagrt;
 extern crate libimagerror;
 
 mod ui;
@@ -66,7 +67,8 @@ imagrc.toml
 "#;
 
 fn main() {
-    let app = ui::build_ui();
+    let version = make_imag_version!();
+    let app = ui::build_ui(&version);
     let matches = app.get_matches();
     let mut out = ::std::io::stdout();
 
