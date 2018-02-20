@@ -82,6 +82,7 @@ impl Diary for Store {
 
     // Get an iterator for iterating over all entries
     fn entries(&self, diary_name: &str) -> Result<DiaryEntryIterator> {
+        debug!("Building iterator for module 'diary' with diary name = '{}'", diary_name);
         self.retrieve_for_module("diary")
             .map(|iter| DiaryEntryIterator::new(self, String::from(diary_name), iter))
             .chain_err(|| DEK::StoreReadError)
