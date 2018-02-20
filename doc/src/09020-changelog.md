@@ -50,6 +50,9 @@ This section contains the changelog from the last release to the next release.
       errors into exit codes and one for unwrapping or exiting with the
       `Err(i32)` from the result.
     * `libimagdiary` did not add the header markers on diary entries.
+    * `imag-diary` used the default diary rather than the CLI setting. Now it
+      rather uses the CLI setting and only if that is not present, it uses the
+      default.
 
 
 ## 0.6.1
