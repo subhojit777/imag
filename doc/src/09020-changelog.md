@@ -49,6 +49,7 @@ This section contains the changelog from the last release to the next release.
       For that, `libimagerror` got a `Result` extension which can translate
       errors into exit codes and one for unwrapping or exiting with the
       `Err(i32)` from the result.
+    * `libimagdiary` did not add the header markers on diary entries.
 
 
 ## 0.6.1
