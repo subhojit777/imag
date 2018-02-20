@@ -32,3 +32,5 @@ libimagerror     = { version = "0.7.0", path = "../../../lib/core/libimagerror" 
 libimagrt        = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
 libimagentryedit = { version = "0.7.0", path = "../../../lib/entry/libimagentryedit" }
 libimagentryview = { version = "0.7.0", path = "../../../lib/entry/libimagentryview" }
+libimagentryutil = { version = "0.7.0", path = "../../../lib/entry/libimagentryutil" }
+

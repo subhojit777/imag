@@ -22,6 +22,10 @@ error_chain! {
         DiaryError, DiaryErrorKind, ResultExt, Result;
     }
 
+    links {
+        EntryUtilError(::libimagentryutil::error::EntryUtilError, ::libimagentryutil::error::EntryUtilErrorKind);
+    }
+
     errors {
         StoreWriteError     {
             description("Error writing store")

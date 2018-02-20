@@ -22,6 +22,7 @@ use std::cmp::Ordering;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagerror::trace::trace_error;
+use libimagentryutil::isa::Is;
 
 use chrono::offset::Local;
 use chrono::Datelike;
@@ -29,6 +30,7 @@ use itertools::Itertools;
 use chrono::naive::NaiveDateTime;
 use chrono::Timelike;
 
+use entry::IsDiaryEntry;
 use entry::DiaryEntry;
 use diaryid::DiaryId;
 use error::DiaryErrorKind as DEK;
@@ -63,7 +65,9 @@ impl Diary for Store {
         let ndt = dt.naive_local();
         let id  = DiaryId::new(String::from(diary_name), ndt.year(), ndt.month(), ndt.day(), 0, 0, 0);
 
-        self.retrieve(id).chain_err(|| DEK::StoreReadError)
+        let mut entry = self.retrieve(id).chain_err(|| DEK::StoreReadError)?;
+        let _         = entry.set_isflag::<IsDiaryEntry>()?;
+        Ok(entry)
     }
 
     fn new_entry_now(&self, diary_name: &str) -> Result<FileLockEntry> {
@@ -77,7 +81,9 @@ impl Diary for Store {
                                ndt.minute(),
                                ndt.second());
 
-        self.retrieve(id).chain_err(|| DEK::StoreReadError)
+        let mut entry = self.retrieve(id).chain_err(|| DEK::StoreReadError)?;
+        let _         = entry.set_isflag::<IsDiaryEntry>()?;
+        Ok(entry)
     }
 
     // Get an iterator for iterating over all entries

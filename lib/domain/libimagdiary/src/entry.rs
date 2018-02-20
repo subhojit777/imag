@@ -18,16 +18,26 @@
 //
 
 use libimagstore::store::Entry;
+use libimagentryutil::isa::Is;
+use libimagentryutil::isa::IsKindHeaderPathProvider;
 
 use diaryid::DiaryId;
 use diaryid::FromStoreId;
 use error::Result;
 
+provide_kindflag_path!(pub IsDiaryEntry, "diary.is_diary_entry");
+
 pub trait DiaryEntry {
+    fn is_diary_entry(&self) -> Result<bool>;
     fn diary_id(&self) -> Result<DiaryId>;
 }
 
 impl DiaryEntry for Entry {
+
+    /// Check whether the entry is a diary entry by checking its headers
+    fn is_diary_entry(&self) -> Result<bool> {
+        self.is::<IsDiaryEntry>().map_err(From::from)
+    }
 
     /// Get the diary id for this entry.
     ///
