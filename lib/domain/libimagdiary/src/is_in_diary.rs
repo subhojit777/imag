@@ -43,6 +43,7 @@ impl IsInDiary for Entry {
 impl IsInDiary for StoreId {
 
     fn is_in_diary(&self, name: &str) -> bool {
+        debug!("Check: is in diary '{}'", name);
         self.is_in_collection(&["diary", name])
     }
 
