@@ -6,6 +6,7 @@ members = [
     "bin/core/imag-edit",
     "bin/core/imag-gps",
     "bin/core/imag-grep",
+    "bin/core/imag-ids",
     "bin/core/imag-init",
     "bin/core/imag-link",
     "bin/core/imag-mv",

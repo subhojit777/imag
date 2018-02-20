@@ -1,0 +1,33 @@
+[package]
+name = "imag-ids"
+version = "0.7.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+description = "Part of the imag core distribution: imag-ids command"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../../../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+repository    = "https://github.com/matthiasbeyer/imag"
+homepage      = "http://imag-pim.org"
+
+build = "../../../build.rs"
+
+[badges]
+travis-ci                         = { repository = "matthiasbeyer/imag" }
+is-it-maintained-issue-resolution = { repository = "matthiasbeyer/imag" }
+is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
+maintenance                       = { status     = "actively-developed" }
+
+[dependencies]
+libimagstore     = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
+libimagrt        = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
+libimagerror     = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
+
+[dependencies.clap]
+version          = ">=2.29"
+default-features = false
+features         = ["color", "suggestions"]
+
