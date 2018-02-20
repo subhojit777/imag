@@ -36,10 +36,10 @@ impl<'a, T> Display for ImagTrace<'a, T>
     where T: ChainedError
 {
     fn fmt(&self, fmt: &mut Formatter) -> FmtResult {
-        try!(write!(fmt, "{}: {}", Red.blink().paint("ERROR[    0]"), self.0));
+        try!(writeln!(fmt, "{}: {}", Red.blink().paint("ERROR[    0]"), self.0));
 
         for (i, e) in self.0.iter().enumerate().skip(1) {
-            try!(write!(fmt, "{}: {}", Red.blink().paint(format!("ERROR[{:>4}]", i)), e));
+            try!(writeln!(fmt, "{}: {}", Red.blink().paint(format!("ERROR[{:>4}]", i)), e));
         }
 
         if let Some(backtrace) = self.0.backtrace() {
