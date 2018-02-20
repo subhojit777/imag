@@ -19,9 +19,9 @@
 
 use clap::{Arg, App};
 
-pub fn build_ui<'a>() -> App<'a, 'a> {
+pub fn build_ui<'a>(version: &'a str) -> App<'a, 'a> {
     App::new("imag-init")
-        .version(env!("CARGO_PKG_VERSION"))
+        .version(version)
         .author("Matthias Beyer <mail@beyermatthias.de>")
         .about("Initialize a ~/.imag repository. Optionally with git")
 
