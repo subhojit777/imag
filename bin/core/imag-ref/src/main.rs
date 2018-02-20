@@ -39,7 +39,6 @@ extern crate libimagstore;
 #[macro_use] extern crate libimagrt;
 extern crate libimagentryref;
 extern crate libimagerror;
-extern crate libimagentrylist;
 extern crate libimaginteraction;
 extern crate libimagutil;
 

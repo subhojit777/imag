@@ -38,17 +38,21 @@ extern crate toml;
 extern crate toml_query;
 extern crate kairos;
 extern crate chrono;
+extern crate prettytable;
 
 extern crate libimaghabit;
 extern crate libimagstore;
 #[macro_use] extern crate libimagrt;
 extern crate libimagerror;
 extern crate libimagutil;
-extern crate libimagentrylist;
 extern crate libimaginteraction;
 
 use std::io::Write;
 use std::process::exit;
+
+use prettytable::Table;
+use prettytable::cell::Cell;
+use prettytable::row::Row;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
@@ -61,8 +65,6 @@ use libimaghabit::habit::HabitTemplate;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagstore::storeid::StoreId;
-use libimagentrylist::listers::table::TableLister;
-use libimagentrylist::lister::Lister;
 use libimaginteraction::ask::ask_bool;
 
 mod ui;
@@ -312,17 +314,27 @@ fn today(rt: &Runtime, future: bool) {
             v
         }
 
-        fn lister_header() -> Vec<String> {
-            ["Name", "Basedate", "Recurr", "Next Due", "Comment"]
-                .iter().map(|x| String::from(*x)).collect()
+        let header = ["#", "Name", "Basedate", "Recurr", "Next Due", "Comment"]
+            .iter()
+            .map(|s| Cell::new(s))
+            .collect::<Vec<Cell>>();
+
+        let mut table = Table::new();
+        table.set_titles(Row::new(header));
+
+        let mut empty = true;
+        for (i, e) in relevant.into_iter().enumerate() {
+            let mut v = vec![format!("{}", i)];
+            let mut list = lister_fn(&e);
+            v.append(&mut list);
+            table.add_row(v.iter().map(|s| Cell::new(s)).collect());
+            empty = false;
         }
 
-        TableLister::new(lister_fn)
-            .with_header(lister_header())
-            .with_idx(true)
-            .print_empty(false)
-            .list(relevant.into_iter())
-            .map_err_trace_exit_unwrap(1);
+        if !empty {
+            let mut out = ::std::io::stdout();
+            let _ = table.print(&mut out).to_exit_code().unwrap_or_exit();
+        }
     }
 }
 
@@ -342,11 +354,16 @@ fn list(rt: &Runtime) {
         v
     }
 
-    fn lister_header() -> Vec<String> {
-        ["Name", "Basedate", "Recurr", "Comment", "Next Due"].iter().map(|x| String::from(*x)).collect()
-    }
+    let header = ["#", "Name", "Basedate", "Recurr", "Comment", "Next Due"]
+        .iter()
+        .map(|s| Cell::new(s))
+        .collect::<Vec<Cell>>();
 
-    let iter = rt
+    let mut empty = true;
+    let mut table = Table::new();
+    table.set_titles(Row::new(header));
+
+    let _ = rt
         .store()
         .all_habit_templates()
         .map_err_trace_exit_unwrap(1)
@@ -360,15 +377,20 @@ fn list(rt: &Runtime) {
                 trace_error(&e);
                 None
             },
+        })
+        .enumerate()
+        .for_each(|(i, e)| {
+            let mut v = vec![format!("{}", i)];
+            let mut list = lister_fn(&e);
+            v.append(&mut list);
+            table.add_row(v.iter().map(|s| Cell::new(s)).collect());
+            empty = false;
         });
 
-
-    TableLister::new(lister_fn)
-        .with_header(lister_header())
-        .with_idx(true)
-        .print_empty(false)
-        .list(iter)
-        .map_err_trace_exit_unwrap(1);
+    if !empty {
+        let mut out = ::std::io::stdout();
+        let _ = table.print(&mut out).to_exit_code().unwrap_or_exit();
+    }
 }
 
 fn show(rt: &Runtime) {
@@ -378,9 +400,6 @@ fn show(rt: &Runtime) {
         .map(String::from)
         .unwrap(); // safe by clap
 
-    fn instance_lister_header() -> Vec<String> {
-        ["Date", "Comment"].iter().map(|x| String::from(*x)).collect()
-    }
 
     fn instance_lister_fn(i: &FileLockEntry) -> Vec<String> {
         use libimagutil::date::date_to_string;
@@ -393,6 +412,13 @@ fn show(rt: &Runtime) {
     }
 
     let mut out = ::std::io::stdout();
+    let header = ["#", "Date", "Comment"]
+        .iter()
+        .map(|s| Cell::new(s))
+        .collect::<Vec<Cell>>();
+
+    let mut table = Table::new();
+    table.set_titles(Row::new(header));
 
     let _ = rt
         .store()
@@ -417,20 +443,27 @@ fn show(rt: &Runtime) {
                 .to_exit_code()
                 .unwrap_or_exit();
 
-            let instances_iter = habit
+            let mut empty = true;
+            let _ = habit
                 .linked_instances()
                 .map_err_trace_exit_unwrap(1)
                 .filter_map(|instance_id| {
                     debug!("Getting: {:?}", instance_id);
                     rt.store().get(instance_id).map_err_trace_exit_unwrap(1)
+                })
+                .enumerate()
+                .for_each(|(i, e)| {
+                    let mut v = vec![format!("{}", i)];
+                    let mut instances = instance_lister_fn(&e);
+                    v.append(&mut instances);
+                    table.add_row(v.iter().map(|s| Cell::new(s)).collect());
+                    empty = false;
                 });
 
-            TableLister::new(instance_lister_fn)
-                .with_header(instance_lister_header())
-                .with_idx(true)
-                .print_empty(false)
-                .list(instances_iter)
-                .map_err_trace_exit_unwrap(1);
+            if !empty {
+                let mut out = ::std::io::stdout();
+                let _ = table.print(&mut out).to_exit_code().unwrap_or_exit();
+            }
         })
         .collect::<Vec<_>>();
 }
