@@ -43,6 +43,7 @@ extern crate itertools;
 #[macro_use] extern crate error_chain;
 
 #[macro_use] extern crate libimagstore;
+#[macro_use] extern crate libimagentryutil;
 extern crate libimagerror;
 extern crate libimagentryedit;
 extern crate libimagentryview;
