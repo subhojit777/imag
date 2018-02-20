@@ -199,11 +199,6 @@ destinations = []
 level = "debug"
 enabled = true
 
-[imag.logging.modules.libimagentrylist]
-destinations = []
-level = "debug"
-enabled = true
-
 [imag.logging.modules.libimagentryedit]
 destinations = []
 level = "debug"

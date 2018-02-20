@@ -42,7 +42,6 @@ members = [
     "lib/entry/libimagentryfilter",
     "lib/entry/libimagentrygps",
     "lib/entry/libimagentrylink",
-    "lib/entry/libimagentrylist",
     "lib/entry/libimagentrymarkdown",
     "lib/entry/libimagentryref",
     "lib/entry/libimagentrytag",

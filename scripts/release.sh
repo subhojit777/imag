@@ -14,7 +14,6 @@ CRATES=(
     ./lib/entry/libimagentrytag
     ./lib/entry/libimagentryfilter
     ./lib/entry/libimagentrygps
-    ./lib/entry/libimagentrylist
     ./lib/entry/libimagentryedit
     ./lib/entry/libimagentryview
     ./lib/entry/libimagentrydatetime
