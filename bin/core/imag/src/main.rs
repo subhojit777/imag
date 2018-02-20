@@ -198,7 +198,7 @@ fn main() {
                     .map(|v| v.stdout)
                 {
                     Ok(s) => match String::from_utf8(s) {
-                        Ok(s) => format!("{:10} -> {}", command, s),
+                        Ok(s) => format!("{:15} -> {}", command, s),
                         Err(e) => format!("UTF8 Error while working with output of imag{}: {:?}", command, e),
                     },
                     Err(e) => format!("Failed calling imag-{} -> {:?}", command, e),
