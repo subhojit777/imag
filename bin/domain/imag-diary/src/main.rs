@@ -40,7 +40,6 @@ extern crate toml_query;
 
 extern crate libimagdiary;
 extern crate libimagentryedit;
-extern crate libimagentrylist;
 extern crate libimagerror;
 extern crate libimaginteraction;
 #[macro_use] extern crate libimagrt;

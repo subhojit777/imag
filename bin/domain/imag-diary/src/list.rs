@@ -17,15 +17,14 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::io::Write;
+
 use libimagdiary::diary::Diary;
-use libimagdiary::error::DiaryErrorKind as DEK;
-use libimagdiary::error::ResultExt;
-use libimagentrylist::listers::core::CoreLister;
-use libimagentrylist::lister::Lister;
 use libimagrt::runtime::Runtime;
-use libimagstore::store::Entry;
 use libimagutil::warn_exit::warn_exit;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::io::ToExitCode;
+use libimagerror::exit::ExitUnwrap;
 use libimagutil::debug_result::*;
 
 use util::get_diary_name;
@@ -34,33 +33,27 @@ pub fn list(rt: &Runtime) {
     let diaryname = get_diary_name(rt)
         .unwrap_or_else(|| warn_exit("No diary selected. Use either the configuration file or the commandline option", 1));
 
-    fn entry_to_location_listing_string(e: &Entry) -> String {
-        e.get_location().clone()
-            .without_base()
-            .to_str()
-            .map_err_trace()
-            .unwrap_or(String::from("<<Path Parsing Error>>"))
-    }
+    let mut out = ::std::io::stdout();
 
     Diary::entries(rt.store(), &diaryname)
-        .and_then(|es| {
-            debug!("Iterator for listing: {:?}", es);
-
-            let es = es
-                .filter_map(|entry| {
-                    entry
-                        .map_dbg(|e| format!("Filtering: {:?}", e))
-                        .map_err_trace() // error tracing here
-                        .ok() // so we can ignore errors here
-                })
-                .map(|e| e.into());
-
-            CoreLister::new(&entry_to_location_listing_string)
-                .list(es)
-                .chain_err(|| DEK::IOError)
-        })
         .map_dbg_str("Ok")
-        .map_err_trace()
-        .ok();
+        .map_err_trace_exit_unwrap(1)
+        .filter_map(|entry| {
+            entry
+                .map_dbg(|e| format!("Filtering: {:?}", e))
+                .map_err_trace() // error tracing here
+                .ok() // so we can ignore errors here
+        })
+        .for_each(|e| {
+            writeln!(out, "{}", e
+                    .get_location()
+                    .clone()
+                    .without_base()
+                    .to_str()
+                    .map_err_trace()
+                    .unwrap_or(String::from("<<Path Parsing Error>>")))
+                .to_exit_code()
+                .unwrap_or_exit();
+        })
 }
 

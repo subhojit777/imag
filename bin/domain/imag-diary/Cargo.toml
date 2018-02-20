@@ -32,7 +32,6 @@ libimagstore       = { version = "0.7.0", path = "../../../lib/core/libimagstore
 libimagrt          = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
 libimagdiary       = { version = "0.7.0", path = "../../../lib/domain/libimagdiary" }
 libimagentryedit   = { version = "0.7.0", path = "../../../lib/entry/libimagentryedit" }
-libimagentrylist   = { version = "0.7.0", path = "../../../lib/entry/libimagentrylist" }
 libimaginteraction = { version = "0.7.0", path = "../../../lib/etc/libimaginteraction" }
 libimagutil        = { version = "0.7.0", path = "../../../lib/etc/libimagutil" }
 libimagtimeui      = { version = "0.7.0", path = "../../../lib/etc/libimagtimeui" }

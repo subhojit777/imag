@@ -27,12 +27,12 @@ log = "0.3"
 toml = "0.4"
 toml-query = "0.6"
 kairos = "0.1.0"
+prettytable-rs = "0.6"
 
 libimagerror       = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
 libimagstore       = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
 libimagrt          = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
 libimagentryedit   = { version = "0.7.0", path = "../../../lib/entry/libimagentryedit" }
-libimagentrylist   = { version = "0.7.0", path = "../../../lib/entry/libimagentrylist" }
 libimaginteraction = { version = "0.7.0", path = "../../../lib/etc/libimaginteraction" }
 libimagutil        = { version = "0.7.0", path = "../../../lib/etc/libimagutil" }
 libimagtimeui      = { version = "0.7.0", path = "../../../lib/etc/libimagtimeui" }
