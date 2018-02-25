@@ -174,6 +174,7 @@ macro_rules! make_sha_mod {
             use std::io::Read;
 
             use error::RefError as RE;
+            use error::RefErrorKind as REK;
 
             use crypto::digest::Digest;
             make_unique_ref_path_generator! (
@@ -224,6 +225,15 @@ macro_rules! make_sha_mod {
                             let buffer = String::from_utf8(buffer)?;
                             $hashingimpl(buffer)
                         })
+                }
+
+                /// Hash the path, not the content behind the path
+                pub fn hash_path<A: AsRef<Path>>(path: A) -> Result<String, RE> {
+                    path.as_ref()
+                        .to_str()
+                        .map(String::from)
+                        .ok_or_else(|| RE::from(REK::PathUTF8Error))
+                        .and_then(|buffer| $hashingimpl(buffer))
                 }
 
             }
