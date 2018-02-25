@@ -21,25 +21,38 @@ use std::path::Path;
 
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
+use libimagentryref::generators::sha1::Sha1;
+use libimagentryref::refstore::RefStore;
 
 use error::Result;
+use error::CalendarError as CE;
 use store::CalendarCRUD;
 
 /// A interface to the store which offers CRUD functionality for calendar collections
 pub struct CalendarCollectionStore<'a>(&'a Store);
 
+make_unique_ref_path_generator! (
+    pub CalendarCollectionPathHasher
+    over Sha1
+    => with error CE
+    => with collection name "calendar/collection"
+    => |path| {
+        Sha1::hash_path(path).map_err(CE::from)
+    }
+);
+
 impl<'a> CalendarCRUD<'a> for CalendarCollectionStore<'a> {
 
     fn get<H: AsRef<str>>(&self, hash: H) -> Result<Option<FileLockEntry<'a>>> {
-        unimplemented!()
+        self.0.get_ref::<CalendarCollectionPathHasher, H>(hash).map_err(CE::from)
     }
 
     fn create<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
-        unimplemented!()
+        self.0.create_ref::<CalendarCollectionPathHasher, P>(p).map_err(CE::from)
     }
 
     fn retrieve<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
-        unimplemented!()
+        self.0.retrieve_ref::<CalendarCollectionPathHasher, P>(p).map_err(CE::from)
     }
 
     fn delete_by_hash(&self, hash: String) -> Result<()> {
