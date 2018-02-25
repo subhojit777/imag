@@ -52,6 +52,7 @@ extern crate libimagutil;
 
 use std::io::Write;
 use std::path::PathBuf;
+use std::process::exit;
 
 use libimagentrylink::external::ExternalLinker;
 use libimagentrylink::internal::InternalLinker;
@@ -99,6 +100,7 @@ fn main() {
         .map(|name| {
             match name {
                 "remove" => remove_linking(&rt),
+                "unlink" => unlink(&rt),
                 "list"   => list_linkings(&rt),
                 _ => panic!("BUG"),
             }
@@ -222,6 +224,28 @@ fn remove_linking(rt: &Runtime) {
                 }
             }
         });
+}
+
+fn unlink(rt: &Runtime) {
+    use libimagerror::iter::TraceIterator;
+    use libimagstore::iter::get::StoreIdGetIteratorExtension;
+
+    let _ = rt
+        .cli()
+        .subcommand_matches("unlink")
+        .unwrap() // checked in main()
+        .values_of("from")
+        .unwrap() // checked by clap
+        .map(PathBuf::from)
+        .collect::<Vec<PathBuf>>().into_iter() // for lifetime inference
+        .map(StoreId::new_baseless)
+        .unwrap_with(|e| { trace_error(&e); exit(1) })
+        .into_get_iter(rt.store())
+        .unwrap_with(|e| { trace_error(&e); exit(1) })
+        .filter_map(|e| e)
+        .map(|mut entry| entry.unlink(rt.store()))
+        .unwrap_with(|e| { trace_error(&e); exit(1) })
+        .collect::<Vec<_>>();
 }
 
 fn list_linkings(rt: &Runtime) {
