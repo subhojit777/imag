@@ -142,7 +142,7 @@ macro_rules! make_unique_ref_path_generator {
             }
 
             fn postprocess_storeid(sid: ::libimagstore::storeid::StoreId)
-                -> Result<::libimagstore::storeid::StoreId, Self::Error>
+                -> ::std::result::Result<::libimagstore::storeid::StoreId, Self::Error>
             {
                 $postproc(sid)
             }
