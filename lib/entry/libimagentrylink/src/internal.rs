@@ -24,6 +24,7 @@ use std::path::PathBuf;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::Entry;
+use libimagstore::store::Store;
 use libimagstore::store::Result as StoreResult;
 
 use toml_query::read::TomlValueReadExt;
@@ -177,6 +178,9 @@ pub trait InternalLinker {
 
     /// Remove an internal link from the implementor object
     fn remove_internal_link(&mut self, link: &mut Entry) -> Result<()>;
+
+    /// Remove _all_ internal links
+    fn unlink(&mut self, store: &Store) -> Result<()>;
 
     /// Add internal annotated link
     fn add_internal_annotated_link(&mut self, link: &mut Entry, annotation: String) -> Result<()>;
@@ -450,6 +454,17 @@ impl InternalLinker for Entry {
                         rewrite_links(self.get_header_mut(), links)
                     })
             })
+    }
+
+    fn unlink(&mut self, store: &Store) -> Result<()> {
+        for id in self.get_internal_links()?.map(|l| l.get_store_id().clone()) {
+            match store.get(id).map_err(LE::from)? {
+                Some(mut entry) => self.remove_internal_link(&mut entry)?,
+                None            => return Err(LEK::LinkTargetDoesNotExist.into()),
+            }
+        }
+
+        Ok(())
     }
 
     fn add_internal_annotated_link(&mut self, link: &mut Entry, annotation: String) -> Result<()> {
