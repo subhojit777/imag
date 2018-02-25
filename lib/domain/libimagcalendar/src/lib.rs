@@ -24,7 +24,7 @@ extern crate toml_query;
 extern crate vobject;
 
 extern crate libimagentrylink;
-extern crate libimagentryref;
+#[macro_use] extern crate libimagentryref;
 extern crate libimagentryutil;
 extern crate libimagerror;
 extern crate libimagstore;
