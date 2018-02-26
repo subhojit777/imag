@@ -23,7 +23,6 @@
 //!
 //! * Collections of Calendars
 //! * Calendars
-//! * CalendarEntries
 //!
 //! But the store extension itself only provides getters for interfaces, because of the complexity
 //! of this API.
@@ -31,13 +30,11 @@
 
 pub mod calendars;
 pub mod collections;
-pub mod entries;
 
 use std::path::Path;
 
 use self::calendars::CalendarStore;
 use self::collections::CalendarCollectionStore;
-use self::entries::CalendarEntryStore;
 use error::Result;
 
 use libimagstore::store::Store;
@@ -53,9 +50,6 @@ pub trait CalendarDataStore<'a> {
     /// Get an object which can be used to access calendars
     fn calendars(&self) -> CalendarStore<'a>;
 
-    /// Get an object which can be used to access calendar entries
-    fn calendar_entries(&self) -> CalendarEntryStore<'a>;
-
 }
 
 impl<'a> CalendarDataStore<'a> for Store {
@@ -65,10 +59,6 @@ impl<'a> CalendarDataStore<'a> for Store {
     }
 
     fn calendars(&self) -> CalendarStore<'a> {
-        unimplemented!()
-    }
-
-    fn calendar_entries(&self) -> CalendarEntryStore<'a> {
         unimplemented!()
     }
 

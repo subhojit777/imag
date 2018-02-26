@@ -31,7 +31,6 @@ extern crate libimagstore;
 
 pub mod calendar;
 pub mod collection;
-pub mod entry;
 pub mod error;
 pub mod store;
 
