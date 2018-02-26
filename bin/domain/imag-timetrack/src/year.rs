@@ -98,7 +98,7 @@ pub fn year(rt: &Runtime) -> i32 {
         tags_filter.and(start_time_filter).and(end_time_filter)
     };
 
-    let mut out = ::std::io::stdout();
+    let mut out = rt.stdout();
     rt.store()
         .get_timetrackings()
         .map_err_trace_exit_unwrap(1)

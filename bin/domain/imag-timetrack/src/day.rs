@@ -86,7 +86,6 @@ pub fn day(rt: &Runtime) -> i32 {
         tags_filter.and(start_time_filter).and(end_time_filter)
     };
 
-    let mut out = ::std::io::stdout();
     rt.store()
         .get_timetrackings()
         .map_err_trace_exit_unwrap(1)
@@ -111,9 +110,9 @@ pub fn day(rt: &Runtime) -> i32 {
         .trace_unwrap_exit(1)
         .map(|(tag, start, end)| {
             match (start, end) {
-                (None, _)          => writeln!(out, "{} has no start time.", tag),
-                (Some(s), None)    => writeln!(out, "{} | {} - ...", tag, s),
-                (Some(s), Some(e)) => writeln!(out, "{} | {} - {}", tag, s, e),
+                (None, _)          => writeln!(rt.stdout(), "{} has no start time.", tag),
+                (Some(s), None)    => writeln!(rt.stdout(), "{} | {} - ...", tag, s),
+                (Some(s), Some(e)) => writeln!(rt.stdout(), "{} | {} - {}", tag, s, e),
             }
             .to_exit_code()
         })

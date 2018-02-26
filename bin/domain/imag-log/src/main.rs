@@ -137,7 +137,7 @@ fn show(rt: &Runtime) {
             }
 
             let id = e.diary_id().map_err_trace_exit_unwrap(1);
-            writeln!(::std::io::stdout(),
+            writeln!(rt.stdout(),
                     "{dname: >10} - {y: >4}-{m:0>2}-{d:0>2}T{H:0>2}:{M:0>2} - {text}",
                      dname = id.diary_name(),
                      y = id.year(),

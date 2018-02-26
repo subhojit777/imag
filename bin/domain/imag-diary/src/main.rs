@@ -79,9 +79,8 @@ fn main() {
         if rt.is_ok() {
             rt.unwrap()
         } else {
-            let mut out = ::std::io::stdout();
-            let _ = writeln!(out, "Could not set up Runtime").to_exit_code().unwrap_or_exit();
-            let _ = writeln!(out, "{:?}", rt.err().unwrap()).to_exit_code().unwrap_or_exit();
+            let _ = writeln!(rt.stdout(), "Could not set up Runtime").to_exit_code().unwrap_or_exit();
+            let _ = writeln!(rt.stdout(), "{:?}", rt.err().unwrap()).to_exit_code().unwrap_or_exit();
             exit(1);
         }
     };

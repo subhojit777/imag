@@ -332,8 +332,7 @@ fn today(rt: &Runtime, future: bool) {
         }
 
         if !empty {
-            let mut out = ::std::io::stdout();
-            let _ = table.print(&mut out).to_exit_code().unwrap_or_exit();
+            let _ = table.print(&mut rt.stdout()).to_exit_code().unwrap_or_exit();
         }
     }
 }
@@ -388,8 +387,7 @@ fn list(rt: &Runtime) {
         });
 
     if !empty {
-        let mut out = ::std::io::stdout();
-        let _ = table.print(&mut out).to_exit_code().unwrap_or_exit();
+        let _ = table.print(&mut rt.stdout()).to_exit_code().unwrap_or_exit();
     }
 }
 
@@ -411,7 +409,6 @@ fn show(rt: &Runtime) {
         vec![date, comm]
     }
 
-    let mut out = ::std::io::stdout();
     let header = ["#", "Date", "Comment"]
         .iter()
         .map(|s| Cell::new(s))
@@ -433,7 +430,7 @@ fn show(rt: &Runtime) {
             let recur    = habit.habit_recur_spec().map_err_trace_exit_unwrap(1);
             let comm     = habit.habit_comment().map_err_trace_exit_unwrap(1);
 
-            let _ = writeln!(out,
+            let _ = writeln!(rt.stdout(),
                      "{i} - {name}\nBase      : {b},\nRecurrence: {r}\nComment   : {c}\n",
                      i    = i,
                      name = name,
@@ -461,8 +458,7 @@ fn show(rt: &Runtime) {
                 });
 
             if !empty {
-                let mut out = ::std::io::stdout();
-                let _ = table.print(&mut out).to_exit_code().unwrap_or_exit();
+                let _ = table.print(&mut rt.stdout()).to_exit_code().unwrap_or_exit();
             }
         })
         .collect::<Vec<_>>();

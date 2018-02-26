@@ -51,11 +51,9 @@ pub fn retrieve(rt: &Runtime) {
 }
 
 pub fn print_entry(rt: &Runtime, scmd: &ArgMatches, e: FileLockEntry) {
-    let mut out = ::std::io::stdout();
-
     if do_print_raw(scmd) {
         debug!("Printing raw content...");
-        let _ = writeln!(out, "{}", e.to_str())
+        let _ = writeln!(rt.stdout(), "{}", e.to_str())
             .to_exit_code()
             .unwrap_or_exit();
     } else if do_filter(scmd) {
@@ -74,7 +72,7 @@ pub fn print_entry(rt: &Runtime, scmd: &ArgMatches, e: FileLockEntry) {
                 unimplemented!()
             } else {
                 debug!("Printing header as TOML...");
-                let _ = writeln!(out, "{}", e.get_header())
+                let _ = writeln!(rt.stdout(), "{}", e.get_header())
                     .to_exit_code()
                     .unwrap_or_exit();
             }
@@ -82,7 +80,7 @@ pub fn print_entry(rt: &Runtime, scmd: &ArgMatches, e: FileLockEntry) {
 
         if do_print_content(scmd) {
             debug!("Printing content...");
-            let _ = writeln!(out, "{}", e.get_content())
+            let _ = writeln!(rt.stdout(), "{}", e.get_content())
                     .to_exit_code()
                     .unwrap_or_exit();
         }

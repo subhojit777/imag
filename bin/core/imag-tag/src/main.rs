@@ -164,11 +164,9 @@ fn list(id: PathBuf, rt: &Runtime) {
         unimplemented!()
     }
 
-    let mut out = ::std::io::stdout();
-
     if line_out {
         for tag in &tags {
-            let _ = writeln!(out, "{}", tag)
+            let _ = writeln!(rt.stdout(), "{}", tag)
                 .to_exit_code()
                 .unwrap_or_exit();
         }
@@ -176,13 +174,13 @@ fn list(id: PathBuf, rt: &Runtime) {
 
     if sepp_out {
         let sepp = scmd.value_of("sep").unwrap(); // we checked before
-        let _ = writeln!(out, "{}", tags.join(sepp))
+        let _ = writeln!(rt.stdout(), "{}", tags.join(sepp))
             .to_exit_code()
             .unwrap_or_exit();
     }
 
     if comm_out {
-        let _ = writeln!(out, "{}", tags.join(", "))
+        let _ = writeln!(rt.stdout(), "{}", tags.join(", "))
             .to_exit_code()
             .unwrap_or_exit();
     }
