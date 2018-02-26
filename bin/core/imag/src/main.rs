@@ -22,6 +22,7 @@ extern crate clap;
 extern crate walkdir;
 extern crate toml;
 extern crate toml_query;
+#[macro_use] extern crate is_match;
 
 #[macro_use] extern crate libimagrt;
 extern crate libimagerror;
@@ -33,16 +34,19 @@ use std::process::Stdio;
 use std::io::ErrorKind;
 use std::io::{stdout, Stdout, Write};
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
 use walkdir::WalkDir;
 use clap::{Arg, ArgMatches, AppSettings, SubCommand};
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
 
+use libimagrt::error::RuntimeErrorKind;
 use libimagrt::runtime::Runtime;
-use libimagerror::trace::trace_error;
+use libimagrt::spec::CliSpec;
 use libimagerror::io::ToExitCode;
 use libimagerror::exit::ExitUnwrap;
+use libimagerror::trace::trace_error;
 
 /// Returns the helptext, putting the Strings in cmds as possible
 /// subcommands into it
@@ -165,15 +169,23 @@ fn main() {
         }
     }
 
-    let rt = Runtime::new(app)
-        .unwrap_or_else(|e| {
-            let _ = writeln!(out, "Runtime couldn't be setup. Exiting")
-                .to_exit_code()
-                .unwrap_or_exit();
-            trace_error(&e);
-            exit(1);
-        });
-    let matches = rt.cli();
+    let matches = app.matches();
+    let rtp = ::libimagrt::runtime::get_rtp_match(&matches);
+    let configpath = matches
+        .value_of(Runtime::arg_config_name())
+        .map_or_else(|| rtp.clone(), PathBuf::from);
+    debug!("Config path = {:?}", configpath);
+    let config = match ::libimagrt::configuration::fetch_config(&configpath) {
+            Ok(c) => Some(c),
+            Err(e) => if !is_match!(e.kind(), &RuntimeErrorKind::ConfigNoConfigFileFound) {
+                trace_error(&e);
+                ::std::process::exit(1)
+            } else {
+                println!("No config file found.");
+                println!("Continuing without configuration file");
+                None
+            },
+    };
 
     debug!("matches: {:?}", matches);
 
@@ -214,7 +226,7 @@ fn main() {
         exit(0);
     }
 
-    let aliases = match fetch_aliases(&rt) {
+    let aliases = match fetch_aliases(config.as_ref()) {
         Ok(aliases) => aliases,
         Err(e)      => {
             let _ = writeln!(out, "Error while fetching aliases from configuration file")
@@ -298,8 +310,8 @@ fn main() {
     }
 }
 
-fn fetch_aliases(rt: &Runtime) -> Result<BTreeMap<String, String>, String> {
-    let cfg   = rt.config().ok_or_else(|| String::from("No configuration found"))?;
+fn fetch_aliases(config: Option<&Value>) -> Result<BTreeMap<String, String>, String> {
+    let cfg   = config.ok_or_else(|| String::from("No configuration found"))?;
     let value = cfg
         .read("imag.aliases")
         .map_err(|_| String::from("Reading from config failed"));
