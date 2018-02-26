@@ -21,6 +21,9 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::env;
 use std::process::exit;
+use std::io::Stdin;
+use std::io::Write;
+use std::fmt::Debug;
 
 pub use clap::App;
 use toml::Value;
@@ -47,6 +50,43 @@ pub struct Runtime<'a> {
     configuration: Option<Value>,
     cli_matches: ArgMatches<'a>,
     store: Store,
+    resources: Resources,
+}
+
+/// Resources for standard output, error output and input stream
+///
+/// These resources are set depending whether stdin/stdout are TTYs or not, but they are always
+/// provided.
+struct Resources {
+    stdout : Box<Write>,
+    stderr : Box<Write>,
+    stdin  : Option<Stdin>,
+}
+
+impl Debug for Resources {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+        write!(f, "Resources(...)")
+    }
+}
+
+/// Builds a Resource object
+///
+/// If stdout is not a TTY, the Resources::stdout will actually point to stderr
+/// If stdin is not a TTY, it will be None
+fn aquire_resources() -> Resources {
+    Resources {
+        stdout: if ::atty::is(::atty::Stream::Stdout) {
+            Box::new(::std::io::stdout())
+        } else {
+            Box::new(::std::io::stderr())
+        },
+        stderr: Box::new(::std::io::stderr()),
+        stdin: if ::atty::is(::atty::Stream::Stdin) {
+            Some(::std::io::stdin())
+        } else {
+            None
+        },
+    }
 }
 
 impl<'a> Runtime<'a> {
@@ -150,6 +190,7 @@ impl<'a> Runtime<'a> {
                 configuration: config,
                 rtp: rtp,
                 store: store,
+                resources: aquire_resources(),
             }
         })
         .chain_err(|| RuntimeErrorKind::Instantiate)
@@ -437,6 +478,18 @@ impl<'a> Runtime<'a> {
             .map(String::from)
             .or(env::var("EDITOR").ok())
             .map(Command::new)
+    }
+
+    pub fn stdout(&self) -> &Box<Write> {
+        &self.resources.stdout
+    }
+
+    pub fn stderr(&self) -> &Box<Write> {
+        &self.resources.stderr
+    }
+
+    pub fn stdin(&self) -> Option<&Stdin> {
+        self.resources.stdin.as_ref()
     }
 }
 
