@@ -30,36 +30,40 @@
 
 pub mod calendars;
 pub mod collections;
+pub mod iter;
 
 use std::path::Path;
 
 use self::calendars::CalendarStore;
 use self::collections::CalendarCollectionStore;
+use self::iter::*;
 use error::Result;
+use error::CalendarError as CE;
 
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
+use libimagstore::storeid::StoreIdIteratorWithStore;
 
 
 /// A CalendarDataStore provides getters for actual interfaces to calendar data
 pub trait CalendarDataStore<'a> {
 
     /// Get an object which can be used to access collections of calendars
-    fn calendar_collections(&self) -> CalendarCollectionStore<'a>;
+    fn calendar_collections(&self) -> Result<CalendarCollectionIter<StoreIdIteratorWithStore>>;
 
     /// Get an object which can be used to access calendars
-    fn calendars(&self) -> CalendarStore<'a>;
+    fn calendars(&self) -> Result<CalendarIter<StoreIdIteratorWithStore>>;
 
 }
 
 impl<'a> CalendarDataStore<'a> for Store {
 
-    fn calendar_collections(&self) -> CalendarCollectionStore<'a> {
-        unimplemented!()
+    fn calendar_collections(&self) -> Result<CalendarCollectionIter<StoreIdIteratorWithStore>> {
+        self.entries().map(CalendarCollectionIter::new).map_err(CE::from)
     }
 
-    fn calendars(&self) -> CalendarStore<'a> {
-        unimplemented!()
+    fn calendars(&self) -> Result<CalendarIter<StoreIdIteratorWithStore>> {
+        self.entries().map(CalendarIter::new).map_err(CE::from)
     }
 
 }
@@ -73,4 +77,6 @@ pub trait CalendarCRUD<'a> {
     fn delete_by_hash(&self, hash: String)      -> Result<()>;
 
 }
+
+
 
