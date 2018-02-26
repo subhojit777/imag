@@ -28,6 +28,11 @@ error_chain! {
         RefError(::libimagentryref::error::RefError, ::libimagentryref::error::RefErrorKind);
     }
 
+    foreign_links {
+        Io(::std::io::Error);
+        Utf8Error(::std::string::FromUtf8Error);
+    }
+
     errors {
     }
 }
