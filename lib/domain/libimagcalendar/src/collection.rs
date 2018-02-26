@@ -17,9 +17,26 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use libimagstore::storeid::StoreIdIterator;
+use libimagstore::store::Entry;
+use libimagentrylink::internal::InternalLinker;
+
+use store::iter::CalendarIter;
+use error::Result;
+
 /// A Collection is a set of calendars
 ///
 /// A Collection represents a directory on the filesystem where ical files are located
 pub trait Collection {
+
+    fn calendars(&self) -> Result<CalendarIter<StoreIdIterator>>;
+}
+
+impl Collection for Entry {
+
+    fn calendars(&self) -> Result<CalendarIter<StoreIdIterator>> {
+        let i = self.get_internal_links()?.map(|l| l.get_store_id().clone());
+        Ok(CalendarIter::new(StoreIdIterator::new(Box::new(i))))
+    }
 }
 
