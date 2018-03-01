@@ -57,6 +57,7 @@ extern crate libimaginteraction;
 pub mod error;
 pub mod configuration;
 pub mod logger;
+pub mod io;
 pub mod runtime;
 pub mod setup;
 pub mod spec;
