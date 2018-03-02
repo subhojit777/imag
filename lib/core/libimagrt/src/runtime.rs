@@ -440,7 +440,8 @@ impl<'a> Runtime<'a> {
     }
 }
 
-fn get_rtp_match<'a>(matches: &ArgMatches<'a>) -> PathBuf {
+/// Exported for the `imag` command, you probably do not want to use that.
+pub fn get_rtp_match<'a>(matches: &ArgMatches<'a>) -> PathBuf {
     use std::env;
 
     matches.value_of(Runtime::arg_runtimepath_name())
