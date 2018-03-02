@@ -67,6 +67,19 @@ This section contains the changelog from the last release to the next release.
     * `libimagstore` got another fix with the file parsing, as the
       `std::str::Lines` iterator takes empty lines as no lines.
 
+## 0.6.2
+
+Bugfix release for fixing:
+
+* `imag-diary` did not recognize the "-d DIARY" setting.
+* A parsing error in `libimagstore`, which caused the parsing of entries
+  with a line "---" in the content part to fail, was fixed.
+* The bugfix above introduced another bug which caused entries to be rewritten
+  in one line when accessing them. This was fixed.
+* `imag-diary` did not properly set "minute" and "second" when creating "hourly"
+  or "minutely" entries.
+* Version numbers for all crates as well as in the docs were updated to "0.6.2".
+
 
 ## 0.6.1
 
