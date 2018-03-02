@@ -60,6 +60,8 @@ This section contains the changelog from the last release to the next release.
       when tracing.
     * A parsing error in `libimagstore`, which caused the parsing of entries
       with a line "---" in the content part to fail, was fixed.
+    * The patch explained by the point above introduced a bug which caused
+      entries to be read as a single line, which was fixed as well.
 
 
 ## 0.6.1
