@@ -83,6 +83,11 @@ Do not change document and code in one commit, always separate them.
 If your changes are user-visible (new commandline flags, other semantics in the
 commandline, etc), make sure to add a note in the `CHANGELOG.md` file (in the
 same commit if it is a simple change).
+**If it is a bugfix**, do add the changelog entry in a new commit (best would
+be: one commit for a testcase which shows the bug, one commit for the fix, more
+if the fix is complicated, and one commit for the changelog entry).
+Changelog entries for bug fixes should be extra commits, because backporting
+bugfixes gets simpler this way.
 
 We do not follow some official Rust styleguide for our codebase, but we try to
 write minimal and readable code. 100 characters per line, as few lines as
