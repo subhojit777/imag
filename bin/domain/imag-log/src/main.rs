@@ -40,6 +40,7 @@ extern crate toml_query;
 
 extern crate libimaglog;
 #[macro_use] extern crate libimagrt;
+extern crate libimagstore;
 extern crate libimagerror;
 extern crate libimagdiary;
 
@@ -53,6 +54,7 @@ use libimagerror::exit::ExitUnwrap;
 use libimagdiary::diary::Diary;
 use libimaglog::log::Log;
 use libimaglog::error::LogError as LE;
+use libimagstore::iter::get::StoreIdGetIteratorExtension;
 
 mod ui;
 use ui::build_ui;
@@ -121,8 +123,14 @@ fn show(rt: &Runtime) {
     };
 
     for iter in iters {
-        let _ = iter.map(|element| {
+        let _ = iter.into_get_iter(rt.store()).map(|element| {
             let e  = element.map_err_trace_exit_unwrap(1);
+
+            if e.is_none() {
+                warn!("Failed to retrieve an entry from an existing store id");
+                return Ok(())
+            }
+            let e = e.unwrap(); // safe with above check
 
             if !e.is_log().map_err_trace_exit_unwrap(1) {
                 return Ok(());

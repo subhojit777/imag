@@ -27,6 +27,7 @@ toml = "0.4"
 toml-query = "0.6"
 is-match = "0.1"
 
+libimagstore = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
 libimagrt    = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
 libimagerror = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
 libimagdiary = { version = "0.7.0", path = "../../../lib/domain/libimagdiary" }
