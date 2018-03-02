@@ -1,6 +1,6 @@
 [package]
 name = "libimagtodo"
-version = "0.6.0"
+version = "0.6.2"
 authors = ["mario <mario-krehl@gmx.de>"]
 
 description = "Library for the imag core distribution"

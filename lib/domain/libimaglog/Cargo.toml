@@ -1,6 +1,6 @@
 [package]
 name = "libimaglog"
-version = "0.6.0"
+version = "0.6.2"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
