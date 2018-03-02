@@ -27,6 +27,8 @@ This section contains the changelog from the last release to the next release.
 Bugfix release for fixing:
 
 * `imag-diary` did not recognize the "-d DIARY" setting.
+* A parsing error in `libimagstore`, which caused the parsing of entries
+  with a line "---" in the content part to fail, was fixed.
 
 
 ## 0.6.1
