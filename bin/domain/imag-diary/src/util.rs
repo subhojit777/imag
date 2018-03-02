@@ -33,6 +33,7 @@ pub fn get_diary_name(rt: &Runtime) -> Option<String> {
 }
 
 pub enum Timed {
+    Daily,
     Hourly,
     Minutely,
     Secondly,
@@ -63,7 +64,7 @@ pub fn get_diary_timed_config(rt: &Runtime, diary_name: &str) -> Result<Option<T
                 Ok(Some(&Value::String(ref s))) => parse_timed_string(s, diary_name).map(Some),
 
                 Ok(Some(_)) => {
-                    let s = format!("Type error at 'diary.diaryies.{}.timed': should be either 'h'/'hourly' or 'm'/'minutely'", diary_name);
+                    let s = format!("Type error at 'diary.diaryies.{}.timed': should be either 'd'/'daily', 'h'/'hourly', 'm'/'minutely' or 's'/'secondly'", diary_name);
                     Err(s).map_err(From::from)
                 },
 
@@ -75,7 +76,9 @@ pub fn get_diary_timed_config(rt: &Runtime, diary_name: &str) -> Result<Option<T
 }
 
 pub fn parse_timed_string(s: &str, diary_name: &str) -> Result<Timed> {
-    if s == "h" || s == "hourly" {
+    if s == "d" || s == "daily" {
+        Ok(Timed::Daily)
+    } else if s == "h" || s == "hourly" {
         Ok(Timed::Hourly)
     } else if s == "m" || s == "minutely" {
         Ok(Timed::Minutely)
