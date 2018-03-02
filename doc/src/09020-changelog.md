@@ -22,6 +22,12 @@ This section contains the changelog from the last release to the next release.
 * Minor changes
 * Bugfixes
 
+## 0.6.2
+
+Bugfix release for fixing:
+
+* `imag-diary` did not recognize the "-d DIARY" setting.
+
 
 ## 0.6.1
 
