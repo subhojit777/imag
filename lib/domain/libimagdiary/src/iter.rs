@@ -20,13 +20,11 @@
 use std::fmt::{Debug, Formatter, Error as FmtError};
 use std::result::Result as RResult;
 
-use libimagstore::store::Store;
-use libimagstore::store::FileLockEntry;
-use libimagstore::storeid::StoreIdIterator;
-use libimagerror::trace::trace_error;
+use filters::filter::Filter;
 
-use diaryid::DiaryId;
-use diaryid::FromStoreId;
+use libimagstore::storeid::StoreIdIterator;
+use libimagstore::storeid::StoreId;
+
 use is_in_diary::IsInDiary;
 use error::DiaryErrorKind as DEK;
 use error::DiaryError as DE;
@@ -34,8 +32,7 @@ use error::ResultExt;
 use error::Result;
 
 /// A iterator for iterating over diary entries
-pub struct DiaryEntryIterator<'a> {
-    store: &'a Store,
+pub struct DiaryEntryIterator {
     name: String,
     iter: StoreIdIterator,
 
@@ -44,7 +41,7 @@ pub struct DiaryEntryIterator<'a> {
     day: Option<u32>,
 }
 
-impl<'a> Debug for DiaryEntryIterator<'a> {
+impl Debug for DiaryEntryIterator {
 
     fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
         write!(fmt, "DiaryEntryIterator<name = {}, year = {:?}, month = {:?}, day = {:?}>",
@@ -53,11 +50,10 @@ impl<'a> Debug for DiaryEntryIterator<'a> {
 
 }
 
-impl<'a> DiaryEntryIterator<'a> {
+impl DiaryEntryIterator {
 
-    pub fn new(store: &'a Store, diaryname: String, iter: StoreIdIterator) -> DiaryEntryIterator<'a> {
+    pub fn new(diaryname: String, iter: StoreIdIterator) -> DiaryEntryIterator {
         DiaryEntryIterator {
-            store: store,
             name: diaryname,
             iter: iter,
 
@@ -68,65 +64,62 @@ impl<'a> DiaryEntryIterator<'a> {
     }
 
     // Filter by year, get all diary entries for this year
-    pub fn year(mut self, year: i32) -> DiaryEntryIterator<'a> {
+    pub fn year(mut self, year: i32) -> DiaryEntryIterator {
         self.year = Some(year);
         self
     }
 
     // Filter by month, get all diary entries for this month (every year)
-    pub fn month(mut self, month: u32) -> DiaryEntryIterator<'a> {
+    pub fn month(mut self, month: u32) -> DiaryEntryIterator {
         self.month = Some(month);
         self
     }
 
     // Filter by day, get all diary entries for this day (every year, every year)
-    pub fn day(mut self, day: u32) -> DiaryEntryIterator<'a> {
+    pub fn day(mut self, day: u32) -> DiaryEntryIterator {
         self.day = Some(day);
         self
     }
 
 }
 
-impl<'a> Iterator for DiaryEntryIterator<'a> {
-    type Item = Result<FileLockEntry<'a>>;
+impl Filter<StoreId> for DiaryEntryIterator {
+    fn filter(&self, id: &StoreId) -> bool {
+        if id.is_in_diary(&self.name) {
+            match (self.year, self.month, self.day) {
+                (None    , None    , None)    => true,
+                (Some(y) , None    , None)    => id.is_in_collection(&[&self.name, &y.to_string()]),
+                (Some(y) , Some(m) , None)    => id.is_in_collection(&[&self.name, &y.to_string(), &m.to_string()]),
+                (Some(y) , Some(m) , Some(d)) => id.is_in_collection(&[&self.name, &y.to_string(), &m.to_string(), &d.to_string()]),
+                (None    , Some(_) , Some(_)) => false /* invalid case */,
+                (None    , None    , Some(_)) => false /* invalid case */,
+                (None    , Some(_) , None)    => false /* invalid case */,
+                (Some(_) , None    , Some(_)) => false /* invalid case */,
+            }
+        } else {
+            false
+        }
+    }
+}
+
+impl Iterator for DiaryEntryIterator {
+    type Item = StoreId;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            let next = match self.iter.next() {
-                Some(s) => s,
-                None => return None,
-            };
-            debug!("Next element: {:?}", next);
-
-            if next.is_in_diary(&self.name) {
-                debug!("Seems to be in diary: {:?}", next);
-                let id = match DiaryId::from_storeid(&next) {
-                    Ok(i) => i,
-                    Err(e) => {
-                        trace_error(&e);
-                        debug!("Couldn't parse {:?} into DiaryId: {:?}", next, e);
-                        continue;
+            match self.iter.next() {
+                None    => return None,
+                Some(s) => {
+                    debug!("Next element: {:?}", s);
+                    if Filter::filter(self, &s) {
+                        return Some(s)
+                    } else {
+                        continue
                     }
-                };
-                debug!("Success parsing id = {:?}", id);
-
-                let y = match self.year  { None => true, Some(y) => y == id.year() };
-                let m = match self.month { None => true, Some(m) => m == id.month() };
-                let d = match self.day   { None => true, Some(d) => d == id.day() };
-
-                if y && m && d {
-                    debug!("Return = {:?}", id);
-                    return Some(self
-                                .store
-                                .retrieve(next)
-                                .chain_err(|| DEK::StoreReadError));
-                }
-            } else {
-                debug!("Not in the requested diary ({}): {:?}", self.name, next);
+                },
             }
         }
     }
-
 }
 
 
