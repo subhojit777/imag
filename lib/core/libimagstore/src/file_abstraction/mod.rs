@@ -123,5 +123,26 @@ Hello World"#).unwrap();
         assert_eq!(bah.get_content(), "Hello World");
     }
 
+    #[test]
+    fn lazy_file_multiline() {
+        let fs = InMemoryFileAbstraction::new();
+
+        let mut path = PathBuf::from("tests");
+        path.set_file_name("test1");
+        let mut lf = InMemoryFileAbstractionInstance::new(fs.backend().clone(), path.clone());
+
+        let loca = StoreId::new_baseless(path).unwrap();
+        let file = Entry::from_str(loca.clone(), r#"---
+[imag]
+version = "0.7.0"
+---
+Hello World
+baz"#).unwrap();
+
+        lf.write_file_content(&file).unwrap();
+        let bah = lf.get_file_content(loca).unwrap();
+        assert_eq!(bah.get_content(), "Hello World\nbaz");
+    }
+
 }
 
