@@ -31,6 +31,8 @@ Bugfix release for fixing:
   with a line "---" in the content part to fail, was fixed.
 * The bugfix above introduced another bug which caused entries to be rewritten
   in one line when accessing them. This was fixed.
+* `imag-diary` did not properly set "minute" and "second" when creating "hourly"
+  or "minutely" entries.
 
 
 ## 0.6.1
