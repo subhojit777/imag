@@ -47,12 +47,7 @@ extern crate libimagstore;
 extern crate libimagtimeui;
 extern crate libimagutil;
 
-use std::io::Write;
-use std::process::exit;
-
-use libimagerror::exit::ExitUnwrap;
-use libimagerror::io::ToExitCode;
-use libimagrt::runtime::Runtime;
+use libimagrt::setup::generate_runtime_setup;
 
 mod create;
 mod delete;
@@ -66,24 +61,14 @@ use create::create;
 use delete::delete;
 use edit::edit;
 use list::list;
-use ui::build_ui;
 use view::view;
 
 fn main() {
     let version = make_imag_version!();
-    let name = "imag-diary";
-    let about = "Personal Diary/Diaries";
-    let ui = build_ui(Runtime::get_default_cli_builder(name, &version, about));
-    let rt = {
-        let rt = Runtime::new(ui);
-        if rt.is_ok() {
-            rt.unwrap()
-        } else {
-            let _ = writeln!(rt.stdout(), "Could not set up Runtime").to_exit_code().unwrap_or_exit();
-            let _ = writeln!(rt.stdout(), "{:?}", rt.err().unwrap()).to_exit_code().unwrap_or_exit();
-            exit(1);
-        }
-    };
+    let rt = generate_runtime_setup("imag-diary",
+                                    &version,
+                                    "Personal Diary/Diaries",
+                                    ui::build_ui);
 
     rt.cli()
         .subcommand_name()
