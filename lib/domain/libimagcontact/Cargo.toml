@@ -26,8 +26,8 @@ toml        = "0.4"
 toml-query  = "0.4"
 vobject     = "0.4"
 
-libimagstore     = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
-libimagerror     = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
-libimagentryref  = { version = "0.6.0", path = "../../../lib/entry/libimagentryref/" }
-libimagentryutil  = { version = "0.6.0", path = "../../../lib/entry/libimagentryutil/" }
+libimagstore     = { version = "0.6.2", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.6.2", path = "../../../lib/core/libimagerror" }
+libimagentryref  = { version = "0.6.2", path = "../../../lib/entry/libimagentryref/" }
+libimagentryutil  = { version = "0.6.2", path = "../../../lib/entry/libimagentryutil/" }
 

@@ -25,5 +25,5 @@ toml-query = "0.6"
 error-chain = "0.11"
 filters = "0.2"
 
-libimagstore = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
-libimagerror = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
+libimagstore = { version = "0.6.2", path = "../../../lib/core/libimagstore" }
+libimagerror = { version = "0.6.2", path = "../../../lib/core/libimagerror" }

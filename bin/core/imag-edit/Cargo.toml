@@ -26,20 +26,20 @@ version      =  "2.0.1"
 toml         =  "0.4"
 toml-query   =  "0.4"
 
-libimagstore     = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
-libimagrt        = { version = "0.6.0", path = "../../../lib/core/libimagrt" }
-libimagerror     = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
-libimagutil      = { version = "0.6.0", path = "../../../lib/etc/libimagutil" }
-libimagentryedit = { version = "0.6.0", path = "../../../lib/entry/libimagentryedit" }
+libimagstore     = { version = "0.6.2", path = "../../../lib/core/libimagstore" }
+libimagrt        = { version = "0.6.2", path = "../../../lib/core/libimagrt" }
+libimagerror     = { version = "0.6.2", path = "../../../lib/core/libimagerror" }
+libimagutil      = { version = "0.6.2", path = "../../../lib/etc/libimagutil" }
+libimagentryedit = { version = "0.6.2", path = "../../../lib/entry/libimagentryedit" }
 
 [dev-dependencies.libimagutil]
-version          = "0.6.0"
+version          = "0.6.2"
 path = "../../../lib/etc/libimagutil"
 default-features = false
 features         = ["testing"]
 
 [dev-dependencies.libimagrt]
-version          = "0.6.0"
+version          = "0.6.2"
 path             = "../../../lib/core/libimagrt"
 default-features = false
 features         = ["testing"]

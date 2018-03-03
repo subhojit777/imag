@@ -23,5 +23,5 @@ maintenance                       = { status     = "actively-developed" }
 notify-rust = "3.4.2"
 error-chain = "0.11"
 
-libimagerror       = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
+libimagerror       = { version = "0.6.2", path = "../../../lib/core/libimagerror" }
 

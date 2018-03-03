@@ -27,8 +27,8 @@ toml-query = "0.6"
 handlebars = "0.29.0"
 tempfile = "2.1"
 
-libimagstore     = { version = "0.6.0", path = "../../../lib/core/libimagstore" }
-libimagrt        = { version = "0.6.0", path = "../../../lib/core/libimagrt" }
-libimagerror     = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
-libimagentryview = { version = "0.6.0", path = "../../../lib/entry/libimagentryview" }
+libimagstore     = { version = "0.6.2", path = "../../../lib/core/libimagstore" }
+libimagrt        = { version = "0.6.2", path = "../../../lib/core/libimagrt" }
+libimagerror     = { version = "0.6.2", path = "../../../lib/core/libimagerror" }
+libimagentryview = { version = "0.6.2", path = "../../../lib/entry/libimagentryview" }
 

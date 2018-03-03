@@ -26,6 +26,6 @@ toml = "0.4"
 toml-query = "0.6"
 is-match = "0.1"
 
-libimagrt    = { version = "0.6.0", path = "../../../lib/core/libimagrt" }
-libimagerror = { version = "0.6.0", path = "../../../lib/core/libimagerror" }
-libimagtodo  = { version = "0.6.0", path = "../../../lib/domain/libimagtodo" }
+libimagrt    = { version = "0.6.2", path = "../../../lib/core/libimagrt" }
+libimagerror = { version = "0.6.2", path = "../../../lib/core/libimagerror" }
+libimagtodo  = { version = "0.6.2", path = "../../../lib/domain/libimagtodo" }
