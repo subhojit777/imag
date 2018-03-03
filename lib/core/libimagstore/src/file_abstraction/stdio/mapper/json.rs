@@ -164,7 +164,8 @@ mod test {
 
     #[test]
     fn test_empty_json_to_fs() {
-        let json = r#"{"version":"0.7.0","store":{}}"#;
+        let json = format!(r#"{{"version":"{version}","store":{{}}}}"#,
+                           version = env!("CARGO_PKG_VERSION"));
         let mut json = Cursor::new(String::from(json).into_bytes());
         let mapper   = JsonMapper::new();
         let mut hm   = HashMap::new();
@@ -176,20 +177,20 @@ mod test {
 
     #[test]
     fn test_json_to_fs() {
-        let json = r#"
-        { "version": "0.7.0",
-          "store": {
-            "example": {
-                "header": {
-                    "imag": {
-                        "version": "0.7.0"
-                    }
-                },
+        let json = format!(r#"
+        {{ "version": "{version}",
+          "store": {{
+            "example": {{
+                "header": {{
+                    "imag": {{
+                        "version": "{version}"
+                    }}
+                }},
                 "content": "test"
-            }
-          }
-        }
-        "#;
+            }}
+          }}
+        }}
+        "#, version = env!("CARGO_PKG_VERSION"));
         let mut json = Cursor::new(String::from(json).into_bytes());
         let mapper   = JsonMapper::new();
         let mut hm   = HashMap::new();
@@ -207,14 +208,14 @@ mod test {
 
         let mut hm = {
             let mut hm = HashMap::new();
-            let content = r#"---
+            let content = format!(r#"---
 [imag]
-version = "0.7.0"
+version = "{}"
 ---
-hi there!"#;
+hi there!"#, env!("CARGO_PKG_VERSION"));
 
             let id = PathBuf::from("example");
-            let entry = Entry::from_str(id.clone(), content).unwrap();
+            let entry = Entry::from_str(id.clone(), &content).unwrap();
             hm.insert(id, entry);
             hm
         };
@@ -222,23 +223,23 @@ hi there!"#;
         let io_res = mapper.fs_to_write(&mut hm, &mut out);
         assert!(io_res.is_ok());
 
-        let example = r#"
-        {
-            "version": "0.7.0",
-            "store": {
-                "example": {
-                    "header": {
-                        "imag": {
-                            "version": "0.7.0"
-                        }
-                    },
+        let example = format!(r#"
+        {{
+            "version": "{version}",
+            "store": {{
+                "example": {{
+                    "header": {{
+                        "imag": {{
+                            "version": "{version}"
+                        }}
+                    }},
                     "content": "hi there!"
-                }
-            }
-        }
-        "#;
+                }}
+            }}
+        }}
+        "#, version = env!("CARGO_PKG_VERSION"));
 
-        let example_json : ::serde_json::Value = ::serde_json::from_str(example).unwrap();
+        let example_json : ::serde_json::Value = ::serde_json::from_str(&example).unwrap();
 
         let output_json = String::from_utf8(out.into_inner()).unwrap();
         let output_json : ::serde_json::Value = ::serde_json::from_str(&output_json).unwrap();

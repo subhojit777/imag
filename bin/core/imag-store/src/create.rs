@@ -174,7 +174,7 @@ mod tests {
     make_mock_app! {
         app "imag-store";
         modulename mock;
-        version "0.7.0";
+        version env!("CARGO_PKG_VERSION");
         with help "imag-store mocking app";
     }
     use self::mock::generate_test_runtime;
@@ -193,7 +193,7 @@ mod tests {
         let e = e.unwrap();
 
         let version = e.get_header().read("imag.version").map(Option::unwrap).unwrap();
-        assert_eq!(Value::String(String::from("0.7.0")), *version);
+        assert_eq!(Value::String(String::from(env!("CARGO_PKG_VERSION"))), *version);
     }
 
 }

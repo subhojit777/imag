@@ -112,11 +112,11 @@ mod test {
         let mut lf = InMemoryFileAbstractionInstance::new(fs.backend().clone(), path.clone());
 
         let loca = StoreId::new_baseless(path).unwrap();
-        let file = Entry::from_str(loca.clone(), r#"---
+        let file = Entry::from_str(loca.clone(), &format!(r#"---
 [imag]
-version = "0.7.0"
+version = "{}"
 ---
-Hello World"#).unwrap();
+Hello World"#, env!("CARGO_PKG_VERSION"))).unwrap();
 
         lf.write_file_content(&file).unwrap();
         let bah = lf.get_file_content(loca).unwrap();
@@ -132,12 +132,12 @@ Hello World"#).unwrap();
         let mut lf = InMemoryFileAbstractionInstance::new(fs.backend().clone(), path.clone());
 
         let loca = StoreId::new_baseless(path).unwrap();
-        let file = Entry::from_str(loca.clone(), r#"---
+        let file = Entry::from_str(loca.clone(), &format!(r#"---
 [imag]
-version = "0.7.0"
+version = "{}"
 ---
 Hello World
-baz"#).unwrap();
+baz"#, env!("CARGO_PKG_VERSION"))).unwrap();
 
         lf.write_file_content(&file).unwrap();
         let bah = lf.get_file_content(loca).unwrap();
