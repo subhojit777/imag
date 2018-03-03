@@ -106,9 +106,18 @@ fn create_id_from_clispec(create: &ArgMatches, diaryname: &str, timed_type: Time
     };
 
     match timed_type {
+        Timed::Daily => {
+            debug!("Creating daily-timed entry");
+            get_hourly_id(create)
+                .with_hour(0)
+                .with_minute(0)
+                .with_second(0)
+        },
         Timed::Hourly => {
             debug!("Creating hourly-timed entry");
             get_hourly_id(create)
+                .with_minute(0)
+                .with_second(0)
         },
 
         Timed::Minutely => {
@@ -124,6 +133,7 @@ fn create_id_from_clispec(create: &ArgMatches, diaryname: &str, timed_type: Time
                 .unwrap_or(time.minute());
 
             time.with_minute(min)
+                .with_second(0)
         },
 
         Timed::Secondly => {

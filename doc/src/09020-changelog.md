@@ -46,6 +46,7 @@ This section contains the changelog from the last release to the next release.
     * `imag-log show` was aliased to `imag-log list`
     * `imag-* --version` shows `git describe` output if binary was compiled in
       "debug" mode.
+    * `imag-diary` supports "daily" diaries now.
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
@@ -62,6 +63,7 @@ This section contains the changelog from the last release to the next release.
       with a line "---" in the content part to fail, was fixed.
     * The patch explained by the point above introduced a bug which caused
       entries to be read as a single line, which was fixed as well.
+    * `imag-diary create --timed` did not work as expected
 
 
 ## 0.6.1
