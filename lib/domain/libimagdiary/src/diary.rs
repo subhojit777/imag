@@ -31,8 +31,8 @@ use chrono::naive::NaiveDateTime;
 use chrono::Timelike;
 
 use entry::IsDiaryEntry;
-use entry::DiaryEntry;
 use diaryid::DiaryId;
+use diaryid::FromStoreId;
 use error::DiaryErrorKind as DEK;
 use error::ResultExt;
 use error::Result;
@@ -89,8 +89,8 @@ impl Diary for Store {
     // Get an iterator for iterating over all entries
     fn entries(&self, diary_name: &str) -> Result<DiaryEntryIterator> {
         debug!("Building iterator for module 'diary' with diary name = '{}'", diary_name);
-        self.retrieve_for_module("diary")
-            .map(|iter| DiaryEntryIterator::new(self, String::from(diary_name), iter))
+        Store::entries(self)
+            .map(|iter| DiaryEntryIterator::new(String::from(diary_name), iter.without_store()))
             .chain_err(|| DEK::StoreReadError)
     }
 
@@ -99,7 +99,7 @@ impl Diary for Store {
             Err(e) => Some(Err(e)),
             Ok(entries) => {
                 entries
-                    .map(|e| e.and_then(|e| e.diary_id()))
+                    .map(|e| DiaryId::from_storeid(&e))
                     .sorted_by(|a, b| {
                         match (a, b) {
                             (&Ok(ref a), &Ok(ref b)) => {

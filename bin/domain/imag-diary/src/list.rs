@@ -38,16 +38,8 @@ pub fn list(rt: &Runtime) {
     Diary::entries(rt.store(), &diaryname)
         .map_dbg_str("Ok")
         .map_err_trace_exit_unwrap(1)
-        .filter_map(|entry| {
-            entry
-                .map_dbg(|e| format!("Filtering: {:?}", e))
-                .map_err_trace() // error tracing here
-                .ok() // so we can ignore errors here
-        })
-        .for_each(|e| {
-            writeln!(out, "{}", e
-                    .get_location()
-                    .clone()
+        .for_each(|id| {
+            writeln!(out, "{}", id
                     .without_base()
                     .to_str()
                     .map_err_trace()
