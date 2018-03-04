@@ -60,13 +60,11 @@ fn main() {
                                     "print all ids",
                                     build_ui);
 
-    let mut out = ::std::io::stdout();
-
     rt.store()
         .entries()
         .map_err_trace_exit_unwrap(1)
         .for_each(|id| {
-            let _ = writeln!(out, "{}", id.to_str().map_err_trace_exit_unwrap(1))
+            let _ = writeln!(rt.stdout(), "{}", id.to_str().map_err_trace_exit_unwrap(1))
                 .to_exit_code()
                 .unwrap_or_exit();
         })

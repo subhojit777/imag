@@ -73,7 +73,7 @@ fn list(rt: &Runtime) {
     use libimagmail::error::ResultExt;
 
         // TODO: Implement lister type in libimagmail for this
-    fn list_mail(m: Mail) {
+    fn list_mail(rt: &Runtime, m: Mail) {
         let id = match m.get_message_id() {
             Ok(Some(f)) => f,
             Ok(None) => "<no id>".to_owned(),
@@ -110,7 +110,7 @@ fn list(rt: &Runtime) {
             },
         };
 
-        writeln!(::std::io::stdout(),
+        writeln!(rt.stdout(),
                  "Mail: {id}\n\tFrom: {from}\n\tTo: {to}\n\t{subj}\n",
                  from = from,
                  id   = id,
@@ -130,7 +130,7 @@ fn list(rt: &Runtime) {
                 .map(|fle| Mail::from_fle(fle).map_err_trace().ok())
         })
         .filter_map(|e| e)
-        .for_each(list_mail);
+        .for_each(|m| list_mail(&rt, m));
 }
 
 fn mail_store(rt: &Runtime) {

@@ -33,13 +33,11 @@ pub fn list(rt: &Runtime) {
     let diaryname = get_diary_name(rt)
         .unwrap_or_else(|| warn_exit("No diary selected. Use either the configuration file or the commandline option", 1));
 
-    let mut out = ::std::io::stdout();
-
     Diary::entries(rt.store(), &diaryname)
         .map_dbg_str("Ok")
         .map_err_trace_exit_unwrap(1)
         .for_each(|id| {
-            writeln!(out, "{}", id
+            writeln!(rt.stdout(), "{}", id
                     .without_base()
                     .to_str()
                     .map_err_trace()

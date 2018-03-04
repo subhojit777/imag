@@ -68,7 +68,7 @@ imagrc.toml
 
 fn main() {
     let version = make_imag_version!();
-    let app = ui::build_ui(&version);
+    let app     = ui::build_ui(&version);
     let matches = app.get_matches();
     let mut out = ::std::io::stdout();
 

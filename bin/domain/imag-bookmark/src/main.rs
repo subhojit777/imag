@@ -135,11 +135,10 @@ fn list(rt: &Runtime) {
         .map_err_trace_exit_unwrap(1);
 
     let links   = collection.links(rt.store()).map_err_trace_exit_unwrap(1);
-    let mut out = ::std::io::stdout();
     debug!("Listing...");
     for (i, link) in links.enumerate() {
         match link {
-            Ok(link) => writeln!(out, "{: >3}: {}", i, link).to_exit_code().unwrap_or_exit(),
+            Ok(link) => writeln!(rt.stdout(), "{: >3}: {}", i, link).to_exit_code().unwrap_or_exit(),
             Err(e)   => trace_error(&e)
         }
     };

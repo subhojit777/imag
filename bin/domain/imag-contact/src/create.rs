@@ -20,7 +20,6 @@
 use std::collections::BTreeMap;
 use std::process::exit;
 use std::io::Write;
-use std::io::stdout;
 use std::path::PathBuf;
 use std::fs::OpenOptions;
 
@@ -96,7 +95,7 @@ pub fn create(rt: &Runtime) {
 
             (Box::new(file), Some(fl))
         } else {
-            (Box::new(stdout()), None)
+            (Box::new(rt.stdout()), None)
         }
     };
 

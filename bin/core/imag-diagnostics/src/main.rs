@@ -155,7 +155,7 @@ fn main() {
 
     let n = diags.len();
 
-    let mut out = ::std::io::stdout();
+    let mut out = rt.stdout();
 
     let _ = writeln!(out, "imag version {}", env!("CARGO_PKG_VERSION"))
         .to_exit_code()

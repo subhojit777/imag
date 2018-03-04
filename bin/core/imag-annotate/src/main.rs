@@ -135,7 +135,6 @@ fn remove(rt: &Runtime) {
 }
 
 fn list(rt: &Runtime) {
-    let mut out     = ::std::io::stdout();
     let scmd        = rt.cli().subcommand_matches("list").unwrap(); // safed by clap
     let with_text   = scmd.is_present("list-with-text");
     match scmd.value_of("entry").map(PathBuf::from) {
@@ -150,7 +149,7 @@ fn list(rt: &Runtime) {
                 .map_err_trace_exit_unwrap(1)
                 .enumerate()
                 .map(|(i, a)| {
-                    list_annotation(&mut out, i, a.map_err_trace_exit_unwrap(1), with_text)
+                    list_annotation(&rt, i, a.map_err_trace_exit_unwrap(1), with_text)
                 })
                 .collect::<Vec<_>>();
         }
@@ -163,22 +162,22 @@ fn list(rt: &Runtime) {
                 .map_err_trace_exit_unwrap(1)
                 .enumerate()
                 .map(|(i, a)| {
-                    list_annotation(&mut out, i, a.map_err_trace_exit_unwrap(1), with_text)
+                    list_annotation(&rt, i, a.map_err_trace_exit_unwrap(1), with_text)
                 })
                 .collect::<Vec<_>>();
         }
     }
 }
 
-fn list_annotation<'a>(out: &mut Write, i: usize, a: FileLockEntry<'a>, with_text: bool) {
+fn list_annotation<'a>(rt: &Runtime, i: usize, a: FileLockEntry<'a>, with_text: bool) {
     let _ = if with_text {
-        writeln!(out,
+        writeln!(rt.stdout(),
                  "--- {i: >5} | {id}\n{text}\n\n",
                  i = i,
                  id = a.get_location(),
                  text = a.get_content())
     } else {
-        writeln!(out, "{: >5} | {}", i, a.get_location())
+        writeln!(rt.stdout(), "{: >5} | {}", i, a.get_location())
     }
     .to_exit_code()
     .unwrap_or_exit();

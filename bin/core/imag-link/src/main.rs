@@ -254,7 +254,6 @@ fn list_linkings(rt: &Runtime) {
         .unwrap(); // safed by clap
 
     let list_externals  = cmd.is_present("list-externals-too");
-    let mut out         = ::std::io::stdout();
 
     for entry in cmd.values_of("entries").unwrap() { // safed by clap
         match rt.store().get(PathBuf::from(entry)) {
@@ -268,7 +267,7 @@ fn list_linkings(rt: &Runtime) {
                         .ok();
 
                     if let Some(link) = link {
-                        let _ = writeln!(out, "{: <3}: {}", i, link)
+                        let _ = writeln!(rt.stdout(), "{: <3}: {}", i, link)
                             .to_exit_code()
                             .unwrap_or_exit();
                         i += 1;
@@ -284,7 +283,7 @@ fn list_linkings(rt: &Runtime) {
                                 .map_err_trace_exit_unwrap(1)
                                 .into_string();
 
-                            let _ = writeln!(out, "{: <3}: {}", i, link)
+                            let _ = writeln!(rt.stdout(), "{: <3}: {}", i, link)
                                 .to_exit_code()
                                 .unwrap_or_exit();
 

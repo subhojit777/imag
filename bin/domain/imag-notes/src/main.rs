@@ -119,8 +119,6 @@ fn edit(rt: &Runtime) {
 fn list(rt: &Runtime) {
     use std::cmp::Ordering;
 
-    let mut out = ::std::io::stdout();
-
     let _ = rt
         .store()
         .all_notes()
@@ -139,7 +137,7 @@ fn list(rt: &Runtime) {
         .iter()
         .for_each(|note| {
             let name = note.get_name().map_err_trace_exit_unwrap(1);
-            writeln!(out, "{}", name)
+            writeln!(rt.stdout(), "{}", name)
                 .to_exit_code()
                 .unwrap_or_exit()
         });

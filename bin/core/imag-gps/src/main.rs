@@ -144,10 +144,8 @@ fn remove(rt: &Runtime) {
         })
         .map_err_trace_exit_unwrap(1); // The parsing of the deleted values failed
 
-    let mut out = ::std::io::stdout();
-
     if scmd.is_present("print-removed") {
-        let _ = writeln!(out, "{}", removed_value).to_exit_code().unwrap_or_exit();
+        let _ = writeln!(rt.stdout(), "{}", removed_value).to_exit_code().unwrap_or_exit();
     }
 }
 
@@ -174,7 +172,6 @@ fn get(rt: &Runtime) {
             exit(1)
         });
 
-    let mut out = ::std::io::stdout();
-    let _       = writeln!(out, "{}", value).to_exit_code().unwrap_or_exit();
+    let _       = writeln!(rt.stdout(), "{}", value).to_exit_code().unwrap_or_exit();
 }
 

@@ -47,6 +47,7 @@ extern crate clap;
 extern crate toml;
 extern crate toml_query;
 #[macro_use] extern crate is_match;
+extern crate atty;
 
 extern crate libimagstore;
 extern crate libimagutil;
@@ -56,6 +57,7 @@ extern crate libimaginteraction;
 pub mod error;
 pub mod configuration;
 pub mod logger;
+pub mod io;
 pub mod runtime;
 pub mod setup;
 pub mod spec;

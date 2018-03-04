@@ -117,8 +117,6 @@ pub fn list_impl(rt: &Runtime,
     let mut table = Table::new();
     table.set_titles(Row::new(["Tag", "Start", "End"].into_iter().map(|s| Cell::new(s)).collect()));
 
-    let mut stdout = ::std::io::stdout();
-
     rt.store()
         .get_timetrackings()
         .map_err_trace_exit_unwrap(1)
@@ -167,7 +165,7 @@ pub fn list_impl(rt: &Runtime,
             })
         })
         .map_err_trace_exit_unwrap(1)
-        .print(&mut stdout)
+        .print(&mut rt.stdout())
         .map_err(|_| TimeTrackError::from(String::from("Failed printing table")))
         .map(|_| 0)
         .map_err_trace()

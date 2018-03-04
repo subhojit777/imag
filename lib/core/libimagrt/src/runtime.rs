@@ -21,6 +21,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::env;
 use std::process::exit;
+use std::io::Stdin;
 
 pub use clap::App;
 use toml::Value;
@@ -32,6 +33,7 @@ use error::RuntimeError;
 use error::RuntimeErrorKind;
 use error::ResultExt;
 use logger::ImagLogger;
+use io::OutputProxy;
 
 use libimagerror::trace::*;
 use libimagstore::store::Store;
@@ -47,6 +49,8 @@ pub struct Runtime<'a> {
     configuration: Option<Value>,
     cli_matches: ArgMatches<'a>,
     store: Store,
+    stdin_is_tty: bool,
+    stdout_is_tty: bool,
 }
 
 impl<'a> Runtime<'a> {
@@ -150,6 +154,8 @@ impl<'a> Runtime<'a> {
                 configuration: config,
                 rtp: rtp,
                 store: store,
+                stdout_is_tty: ::atty::is(::atty::Stream::Stdout),
+                stdin_is_tty: ::atty::is(::atty::Stream::Stdin),
             }
         })
         .chain_err(|| RuntimeErrorKind::Instantiate)
@@ -437,6 +443,26 @@ impl<'a> Runtime<'a> {
             .map(String::from)
             .or(env::var("EDITOR").ok())
             .map(Command::new)
+    }
+
+    pub fn stdout(&self) -> OutputProxy {
+        if self.stdout_is_tty {
+            OutputProxy::Out
+        } else {
+            OutputProxy::Err
+        }
+    }
+
+    pub fn stderr(&self) -> OutputProxy {
+        OutputProxy::Err
+    }
+
+    pub fn stdin(&self) -> Option<Stdin> {
+        if self.stdin_is_tty {
+            Some(::std::io::stdin())
+        } else {
+            None
+        }
     }
 }
 

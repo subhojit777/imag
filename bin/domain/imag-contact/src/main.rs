@@ -109,7 +109,6 @@ fn main() {
 fn list(rt: &Runtime) {
     let scmd        = rt.cli().subcommand_matches("list").unwrap();
     let list_format = get_contact_print_format("contact.list_format", rt, &scmd);
-    let mut out     = ::std::io::stdout();
 
     let _ = rt
         .store()
@@ -144,7 +143,7 @@ fn list(rt: &Runtime) {
                 .map_err(CE::from)
                 .map_err_trace_exit_unwrap(1);
 
-            writeln!(out, "{}", s).to_exit_code().unwrap_or_exit()
+            writeln!(rt.stdout(), "{}", s).to_exit_code().unwrap_or_exit()
         })
         .collect::<Vec<_>>();
 }
