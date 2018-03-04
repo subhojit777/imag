@@ -64,3 +64,53 @@ impl Debug for OutputProxy {
         }
     }
 }
+
+impl OutputProxy {
+    pub fn lock(&self) -> LockedOutputProxy {
+        match *self {
+            OutputProxy::Out(ref r) => {
+                LockedOutputProxy::Out(r.lock())
+            },
+            OutputProxy::Err(ref r) => {
+                LockedOutputProxy::Err(r.lock())
+            },
+            OutputProxy::Sink => LockedOutputProxy::Sink,
+        }
+    }
+}
+
+pub enum LockedOutputProxy<'a> {
+    Out(::std::io::StdoutLock<'a>),
+    Err(::std::io::StderrLock<'a>),
+    Sink,
+}
+
+impl<'a> Write for LockedOutputProxy<'a> {
+    fn write(&mut self, buf: &[u8]) -> ::std::io::Result<usize> {
+        match *self {
+            LockedOutputProxy::Out(ref mut r) => r.write(buf),
+            LockedOutputProxy::Err(ref mut r) => r.write(buf),
+            LockedOutputProxy::Sink   => Ok(0),
+        }
+    }
+
+    fn flush(&mut self) -> ::std::io::Result<()> {
+        match *self {
+            LockedOutputProxy::Out(ref mut r) => r.flush(),
+            LockedOutputProxy::Err(ref mut r) => r.flush(),
+            LockedOutputProxy::Sink   => Ok(()),
+        }
+    }
+
+}
+
+impl<'a> Debug for LockedOutputProxy<'a> {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+        match *self {
+            LockedOutputProxy::Out(..) => write!(f, "LockedOutputProxy(Stdout)"),
+            LockedOutputProxy::Err(..) => write!(f, "LockedOutputProxy(Stderr)"),
+            LockedOutputProxy::Sink    => write!(f, "LockedOutputProxy(Sink)"),
+        }
+    }
+}
+
