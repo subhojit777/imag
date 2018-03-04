@@ -447,14 +447,14 @@ impl<'a> Runtime<'a> {
 
     pub fn stdout(&self) -> OutputProxy {
         if self.stdout_is_tty {
-            OutputProxy::Out
+            OutputProxy::Out(::std::io::stdout())
         } else {
-            OutputProxy::Err
+            OutputProxy::Err(::std::io::stderr())
         }
     }
 
     pub fn stderr(&self) -> OutputProxy {
-        OutputProxy::Err
+        OutputProxy::Err(::std::io::stderr())
     }
 
     pub fn stdin(&self) -> Option<Stdin> {

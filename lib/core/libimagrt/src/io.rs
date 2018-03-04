@@ -31,24 +31,24 @@ use std::io::Write;
 /// a "sink" which does not write to either.
 ///
 pub enum OutputProxy {
-    Out,
-    Err,
+    Out(::std::io::Stdout),
+    Err(::std::io::Stderr),
     Sink,
 }
 
 impl Write for OutputProxy {
     fn write(&mut self, buf: &[u8]) -> ::std::io::Result<usize> {
         match *self {
-            OutputProxy::Out  => ::std::io::stdout().write(buf),
-            OutputProxy::Err  => ::std::io::stderr().write(buf),
+            OutputProxy::Out(ref mut r) => r.write(buf),
+            OutputProxy::Err(ref mut r) => r.write(buf),
             OutputProxy::Sink => Ok(0),
         }
     }
 
     fn flush(&mut self) -> ::std::io::Result<()> {
         match *self {
-            OutputProxy::Out  => ::std::io::stdout().flush(),
-            OutputProxy::Err  => ::std::io::stderr().flush(),
+            OutputProxy::Out(ref mut r) => r.flush(),
+            OutputProxy::Err(ref mut r) => r.flush(),
             OutputProxy::Sink => Ok(()),
         }
     }
@@ -58,9 +58,9 @@ impl Write for OutputProxy {
 impl Debug for OutputProxy {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
         match *self {
-            OutputProxy::Out  => write!(f, "OutputProxy(Stdout)"),
-            OutputProxy::Err  => write!(f, "OutputProxy(Stderr)"),
-            OutputProxy::Sink => write!(f, "OutputProxy(Sink)"),
+            OutputProxy::Out(..) => write!(f, "OutputProxy(Stdout)"),
+            OutputProxy::Err(..) => write!(f, "OutputProxy(Stderr)"),
+            OutputProxy::Sink    => write!(f, "OutputProxy(Sink)"),
         }
     }
 }
