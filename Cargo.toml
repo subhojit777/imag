@@ -15,6 +15,7 @@ members = [
     "bin/core/imag-tag",
     "bin/core/imag-view",
     "bin/domain/imag-bookmark",
+    "bin/domain/imag-calendar",
     "bin/domain/imag-contact",
     "bin/domain/imag-diary",
     "bin/domain/imag-habit",
