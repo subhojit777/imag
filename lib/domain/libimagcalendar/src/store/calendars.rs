@@ -26,7 +26,6 @@ use libimagentryref::generators::sha1::Sha1;
 
 use error::Result;
 use error::CalendarError as CE;
-use store::CalendarCRUD;
 
 /// A interface to the store which offers CRUD functionality for calendars
 pub struct CalendarStore<'a>(&'a Store);
@@ -41,21 +40,21 @@ make_unique_ref_path_generator! (
     }
 );
 
-impl<'a> CalendarCRUD<'a> for CalendarStore<'a> {
+impl<'a> CalendarStore<'a> {
 
-    fn get<H: AsRef<str>>(&self, hash: H) -> Result<Option<FileLockEntry<'a>>> {
+    fn get_calendar<H: AsRef<str>>(&self, hash: H) -> Result<Option<FileLockEntry<'a>>> {
         self.0.get_ref::<CalendarHasher, H>(hash).map_err(CE::from)
     }
 
-    fn create<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
+    fn create_calendar<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
         self.0.create_ref::<CalendarHasher, P>(p).map_err(CE::from)
     }
 
-    fn retrieve<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
+    fn retrieve_calendar<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
         self.0.retrieve_ref::<CalendarHasher, P>(p).map_err(CE::from)
     }
 
-    fn delete_by_hash(&self, hash: String) -> Result<()> {
+    fn delete_calendar_by_hash(&self, hash: String) -> Result<()> {
         unimplemented!()
     }
 

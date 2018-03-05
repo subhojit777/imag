@@ -26,7 +26,6 @@ use libimagentryref::refstore::RefStore;
 
 use error::Result;
 use error::CalendarError as CE;
-use store::CalendarCRUD;
 
 /// A interface to the store which offers CRUD functionality for calendar collections
 pub struct CalendarCollectionStore<'a>(&'a Store);
@@ -41,21 +40,21 @@ make_unique_ref_path_generator! (
     }
 );
 
-impl<'a> CalendarCRUD<'a> for CalendarCollectionStore<'a> {
+impl<'a> CalendarCollectionStore<'a> {
 
-    fn get<H: AsRef<str>>(&self, hash: H) -> Result<Option<FileLockEntry<'a>>> {
+    fn get_calendar_collection<H: AsRef<str>>(&self, hash: H) -> Result<Option<FileLockEntry<'a>>> {
         self.0.get_ref::<CalendarCollectionPathHasher, H>(hash).map_err(CE::from)
     }
 
-    fn create<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
+    fn create_calendar_collection<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
         self.0.create_ref::<CalendarCollectionPathHasher, P>(p).map_err(CE::from)
     }
 
-    fn retrieve<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
+    fn retrieve_calendar_collection<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
         self.0.retrieve_ref::<CalendarCollectionPathHasher, P>(p).map_err(CE::from)
     }
 
-    fn delete_by_hash(&self, hash: String) -> Result<()> {
+    fn delete_calendar_collection_by_hash(&self, hash: String) -> Result<()> {
         unimplemented!()
     }
 

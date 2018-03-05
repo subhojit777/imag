@@ -68,15 +68,4 @@ impl<'a> CalendarDataStore<'a> for Store {
 
 }
 
-/// A abstract CRUD interface for retrieving calendar data from the Store
-pub trait CalendarCRUD<'a> {
-
-    fn get<H: AsRef<str>>(&self, hash: H)       -> Result<Option<FileLockEntry<'a>>>;
-    fn create<P: AsRef<Path>>(&self, p: P)      -> Result<FileLockEntry<'a>>;
-    fn retrieve<P: AsRef<Path>>(&self, p: P)    -> Result<FileLockEntry<'a>>;
-    fn delete_by_hash(&self, hash: String)      -> Result<()>;
-
-}
-
-
 
