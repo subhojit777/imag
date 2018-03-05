@@ -26,6 +26,7 @@ error_chain! {
         StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
         LinkError(::libimagentrylink::error::LinkError, ::libimagentrylink::error::LinkErrorKind);
         RefError(::libimagentryref::error::RefError, ::libimagentryref::error::RefErrorKind);
+        IcalendarError(::vobject::error::VObjectError, ::vobject::error::VObjectErrorKind);
     }
 
     foreign_links {
