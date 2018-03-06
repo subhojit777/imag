@@ -43,6 +43,9 @@ pub trait Ref {
     /// Check whether the underlying object is actually a ref
     fn is_ref(&self) -> Result<bool>;
 
+    /// Check whether the underlying object is a content ref
+    fn is_content_ref(&self) -> Result<bool>;
+
     /// Get the stored hash.
     ///
     /// Does not need a `UniqueRefPathGenerator` as it reads the hash stored in the header
@@ -51,6 +54,12 @@ pub trait Ref {
     /// Make this object a ref
     fn make_ref<P: AsRef<Path>>(&mut self, hash: String, path: P) -> Result<()>;
 
+    /// Get the content hash, if it exists
+    ///
+    /// Does not need a `UniqueRefPathGenerator` or a `ContentHashGenerator` as it reads the hash
+    /// stored in the header.
+    fn get_content_hash(&self) -> Result<Option<&str>>;
+
     /// Get the referenced path.
     ///
     /// Does not need a `UniqueRefPathGenerator` as it reads the path stored in the header.
@@ -58,6 +67,11 @@ pub trait Ref {
 
     /// Check whether the referenced file still matches its hash
     fn hash_valid<RPG: UniqueRefPathGenerator>(&self) -> RResult<bool, RPG::Error>;
+
+    /// Check whether the referenced file still matches its content hash
+    ///
+    /// Returns Ok(None) if there is no content hash stored in the ref.
+    fn content_hash_valid<C: ContentHashGenerator>(&self, &C) -> RResult<Option<bool>, C::Error>;
 
     fn remove_ref(&mut self) -> Result<()>;
 
