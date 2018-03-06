@@ -103,14 +103,31 @@ pub trait RefStore<'a> {
         where RPG: UniqueRefPathGenerator,
               H: AsRef<str>;
 
+    fn get_content_ref<RPG, H, CHG>(&'a self, hash: H, chg: &CHG)
+        -> Result<Option<FileLockEntry<'a>>, Either<RPG::Error, CHG::Error>>
+        where RPG: UniqueRefPathGenerator,
+              CHG: ContentHashGenerator,
+              H: AsRef<str>;
+
     fn create_ref<RPG, H>(&'a self, path: A) -> Result<FileLockEntry<'a>, RPG::Error>
         where RPG: UniqueRefPathGenerator,
               H: AsRef<Path>;
+
+    fn create_content_ref<RPG, CHG, A>(&'a self, path: A)
+        -> Result<FileLockEntry<'a>, Either<RPG::Error, CHG::Error>>
+        where RPG: UniqueRefPathGenerator,
+              CHG: ContentHashGenerator,
+              A: AsRef<Path>;
 
     fn retrieve_ref<RPG, A>(&'a self, path: A) -> Result<FileLockEntry<'a>, RPG::Error>
         where RPG: UniqueRefPathGenerator,
               H: AsRef<Path>;
 
+    fn retrieve_content_ref<RPG, CHG, H>(&'a self, path: A)
+        -> Result<FileLockEntry<'a>, Either<RPG::Error, CHG::Error>>
+        where RPG: UniqueRefPathGenerator,
+              CHG: ContentHashGenerator,
+              H: AsRef<Path>;
 
 }
 
