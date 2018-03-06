@@ -99,16 +99,26 @@ pub trait ContentHashGenerator {
 ///
 pub trait RefStore<'a> {
 
-    fn get_ref<RPG: UniqueRefPathGenerator, H: AsRef<str>>(&'a self, hash: H) -> Result<Option<FileLockEntry<'a>>, RPG::Error>;
-    fn create_ref<RPG: UniqueRefPathGenerator, A: AsRef<Path>>(&'a self, path: A) -> Result<FileLockEntry<'a>, RPG::Error>;
-    fn retrieve_ref<RPG: UniqueRefPathGenerator, A: AsRef<Path>>(&'a self, path: A) -> Result<FileLockEntry<'a>, RPG::Error>;
+    fn get_ref<RPG, H>(&'a self, hash: H) -> Result<Option<FileLockEntry<'a>>, RPG::Error>
+        where RPG: UniqueRefPathGenerator,
+              H: AsRef<str>;
+
+    fn create_ref<RPG, H>(&'a self, path: A) -> Result<FileLockEntry<'a>, RPG::Error>
+        where RPG: UniqueRefPathGenerator,
+              H: AsRef<Path>;
+
+    fn retrieve_ref<RPG, A>(&'a self, path: A) -> Result<FileLockEntry<'a>, RPG::Error>
+        where RPG: UniqueRefPathGenerator,
+              H: AsRef<Path>;
+
 
 }
 
 impl<'a> RefStore<'a> for Store {
 
-    fn get_ref<RPG: UniqueRefPathGenerator, H: AsRef<str>>(&'a self, hash: H)
-        -> Result<Option<FileLockEntry<'a>>, RPG::Error>
+    fn get_ref<RPG, H>(&'a self, hash: H) -> Result<Option<FileLockEntry<'a>>, RPG::Error>
+        where RPG: UniqueRefPathGenerator,
+              H: AsRef<str>
     {
         let sid = StoreId::new_baseless(PathBuf::from(format!("{}/{}", RPG::collection(), hash.as_ref())))
             .map_err(RE::from)?;
@@ -119,8 +129,9 @@ impl<'a> RefStore<'a> for Store {
             .map_err(RPG::Error::from)
     }
 
-    fn create_ref<RPG: UniqueRefPathGenerator, A: AsRef<Path>>(&'a self, path: A)
-        -> Result<FileLockEntry<'a>, RPG::Error>
+    fn create_ref<RPG, H>(&'a self, path: A) -> Result<FileLockEntry<'a>, RPG::Error>
+        where RPG: UniqueRefPathGenerator,
+              H: AsRef<Path>
     {
         let hash     = RPG::unique_hash(&path)?;
         let pathbuf  = PathBuf::from(format!("{}/{}", RPG::collection(), hash));
@@ -136,8 +147,9 @@ impl<'a> RefStore<'a> for Store {
             .map_err(RPG::Error::from)
     }
 
-    fn retrieve_ref<RPG: UniqueRefPathGenerator, A: AsRef<Path>>(&'a self, path: A)
-        -> Result<FileLockEntry<'a>, RPG::Error>
+    fn retrieve_ref<RPG, A>(&'a self, path: A) -> Result<FileLockEntry<'a>, RPG::Error>
+        where RPG: UniqueRefPathGenerator,
+              H: AsRef<Path>
     {
         match self.get_ref::<RPG, String>(RPG::unique_hash(path.as_ref())?)? {
             Some(r) => Ok(r),
