@@ -1284,11 +1284,11 @@ mod store_tests {
                 use file_abstraction::stdio::mapper::json::JsonMapper;
 
                 // Lets have an empty store as input
-                let mut input = Cursor::new(r#"
-                { "version": "0.7.0",
-                    "store": { }
-                }
-                "#);
+                let mut input = Cursor::new(format!(r#"
+                {{ "version": "{}",
+                    "store": {{}}
+                }}
+                "#, env!("CARGO_PKG_VERSION")));
 
                 let mapper  = JsonMapper::new();
                 let backend = StdIoFileAbstraction::new(&mut input, output.clone(), mapper).unwrap();
@@ -1322,7 +1322,7 @@ mod store_tests {
             Value::Object(ref map) => {
                 assert!(map.get("version").is_some(), format!("No 'version' in JSON"));
                 match map.get("version").unwrap() {
-                    &Value::String(ref s) => assert_eq!("0.7.0", s),
+                    &Value::String(ref s) => assert_eq!(env!("CARGO_PKG_VERSION"), s),
                     _ => panic!("Wrong type in JSON at 'version'"),
                 }
 
@@ -1622,20 +1622,20 @@ mod store_tests {
                 use file_abstraction::stdio::mapper::json::JsonMapper;
 
                 // Lets have an empty store as input
-                let mut input = Cursor::new(r#"
-                { "version": "0.7.0",
-                    "store": {
-                        "example": {
-                            "header": {
-                                "imag": {
-                                    "version": "0.7.0"
-                                }
-                            },
+                let mut input = Cursor::new(format!(r#"
+                {{ "version": "{version}",
+                    "store": {{
+                        "example": {{
+                            "header": {{
+                                "imag": {{
+                                    "version": "{version}"
+                                }}
+                            }},
                             "content": "foobar"
-                        }
-                    }
-                }
-                "#);
+                        }}
+                    }}
+                }}
+                "#, version = env!("CARGO_PKG_VERSION")));
 
                 let output  = Rc::new(RefCell::new(::std::io::sink()));
                 let mapper  = JsonMapper::new();
@@ -1672,7 +1672,7 @@ mod store_tests {
             Value::Object(ref map) => {
                 assert!(map.get("version").is_some(), format!("No 'version' in JSON"));
                 match map.get("version").unwrap() {
-                    &Value::String(ref s) => assert_eq!("0.7.0", s),
+                    &Value::String(ref s) => assert_eq!(env!("CARGO_PKG_VERSION"), s),
                     _ => panic!("Wrong type in JSON at 'version'"),
                 }
 

@@ -315,7 +315,7 @@ mod tests {
     make_mock_app! {
         app "imag-link";
         modulename mock;
-        version "0.7.0";
+        version env!("CARGO_PKG_VERSION");
         with help "imag-link mocking app";
     }
     use self::mock::generate_test_runtime;

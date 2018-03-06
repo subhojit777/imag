@@ -240,7 +240,7 @@ mod tests {
     make_mock_app! {
         app "imag-tag";
         modulename mock;
-        version "0.7.0";
+        version env!("CARGO_PKG_VERSION");
         with help "imag-tag mocking app";
     }
     use self::mock::generate_test_runtime;
