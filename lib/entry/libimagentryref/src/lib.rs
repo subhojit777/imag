@@ -39,6 +39,7 @@
 extern crate itertools;
 extern crate toml;
 extern crate toml_query;
+extern crate either;
 
 #[macro_use] extern crate libimagstore;
 extern crate libimagerror;
