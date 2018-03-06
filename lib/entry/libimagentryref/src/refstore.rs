@@ -48,6 +48,25 @@ pub trait UniqueRefPathGenerator {
     }
 }
 
+/// A generator for hashes which contains context information
+///
+/// This trait can be used to reference to data within a referenced file.
+/// This is useful for references where you need to refer to parts of files. For example if you
+/// have a CSV file and you want to ref to a certain entry in that CSV.
+///
+/// In general: If you want to refer to data in a file which contains structured data, you can
+/// create a reference to that file with `libimagentryref::reference` and a reference to the data
+/// entry with `libimagentryref::dataref`.
+///
+pub trait ContentHashGenerator {
+    type Error: From<RE>;
+
+    /// Create a content hash for the file behind the `path`
+    ///
+    /// The context information of `self` can be used to parse the file and produce the hash
+    fn create_hash<P: AsRef<Path>>(&self, path: P) -> Result<String, Self::Error>;
+}
+
 /// A extensions for the `Store` to handle `Ref` objects
 ///
 /// The RefStore handles refs using a `UniqueRefPathGenerator`. The `UniqueRefPathGenerator`, as it
