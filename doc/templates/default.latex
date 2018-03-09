@@ -45,6 +45,8 @@ $endfor$
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
 
+\newcommand{\passthrough}[1]{#1}
+
 \begin{document}
 
     \thispagestyle{empty}
