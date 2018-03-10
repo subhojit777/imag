@@ -144,5 +144,28 @@ baz"#).unwrap();
         assert_eq!(bah.get_content(), "Hello World\nbaz");
     }
 
+    #[test]
+    fn lazy_file_multiline_trailing_newlines() {
+        let fs = InMemoryFileAbstraction::new();
+
+        let mut path = PathBuf::from("tests");
+        path.set_file_name("test1");
+        let mut lf = InMemoryFileAbstractionInstance::new(fs.backend().clone(), path.clone());
+
+        let loca = StoreId::new_baseless(path).unwrap();
+        let file = Entry::from_str(loca.clone(), &format!(r#"---
+[imag]
+version = "{}"
+---
+Hello World
+baz
+
+"#, env!("CARGO_PKG_VERSION"))).unwrap();
+
+        lf.write_file_content(&file).unwrap();
+        let bah = lf.get_file_content(loca).unwrap();
+        assert_eq!(bah.get_content(), "Hello World\nbaz\n\n");
+    }
+
 }
 

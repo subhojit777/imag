@@ -1215,6 +1215,14 @@ version = '0.0.3'
 ---
 Hai";
 
+    static TEST_ENTRY_TNL : &'static str = "---
+[imag]
+version = '0.0.3'
+---
+Hai
+
+";
+
     #[test]
     fn test_entry_from_str() {
         use super::Entry;
@@ -1238,6 +1246,17 @@ Hai";
         assert_eq!(TEST_ENTRY, string);
     }
 
+    #[test]
+    fn test_entry_to_str_trailing_newline() {
+        use super::Entry;
+        use std::path::PathBuf;
+        println!("{}", TEST_ENTRY_TNL);
+        let entry = Entry::from_str(StoreId::new_baseless(PathBuf::from("test/foo~1.3")).unwrap(),
+                                    TEST_ENTRY_TNL).unwrap();
+        let string = entry.to_str();
+
+        assert_eq!(TEST_ENTRY_TNL, string);
+    }
 }
 
 #[cfg(test)]
