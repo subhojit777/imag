@@ -64,6 +64,8 @@ This section contains the changelog from the last release to the next release.
     * The patch explained by the point above introduced a bug which caused
       entries to be read as a single line, which was fixed as well.
     * `imag-diary create --timed` did not work as expected
+    * `libimagstore` got another fix with the file parsing, as the
+      `std::str::Lines` iterator takes empty lines as no lines.
 
 
 ## 0.6.1
