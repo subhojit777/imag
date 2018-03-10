@@ -1,7 +1,7 @@
 [package]
 authors = ["mario <mario-krehl@gmx.de>"]
 name = "imag-todo"
-version = "0.6.2"
+version = "0.6.3"
 
 description = "Part of the imag core distribution: imag-todo command"
 
@@ -26,6 +26,6 @@ toml = "0.4"
 toml-query = "0.6"
 is-match = "0.1"
 
-libimagrt    = { version = "0.6.2", path = "../../../lib/core/libimagrt" }
-libimagerror = { version = "0.6.2", path = "../../../lib/core/libimagerror" }
-libimagtodo  = { version = "0.6.2", path = "../../../lib/domain/libimagtodo" }
+libimagrt    = { version = "0.6.3", path = "../../../lib/core/libimagrt" }
+libimagerror = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
+libimagtodo  = { version = "0.6.3", path = "../../../lib/domain/libimagtodo" }

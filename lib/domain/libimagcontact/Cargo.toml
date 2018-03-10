@@ -1,6 +1,6 @@
 [package]
 name = "libimagcontact"
-version = "0.6.2"
+version = "0.6.3"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -26,8 +26,8 @@ toml        = "0.4"
 toml-query  = "0.4"
 vobject     = "0.4"
 
-libimagstore     = { version = "0.6.2", path = "../../../lib/core/libimagstore" }
-libimagerror     = { version = "0.6.2", path = "../../../lib/core/libimagerror" }
-libimagentryref  = { version = "0.6.2", path = "../../../lib/entry/libimagentryref/" }
-libimagentryutil  = { version = "0.6.2", path = "../../../lib/entry/libimagentryutil/" }
+libimagstore     = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
+libimagentryref  = { version = "0.6.3", path = "../../../lib/entry/libimagentryref/" }
+libimagentryutil  = { version = "0.6.3", path = "../../../lib/entry/libimagentryutil/" }
 

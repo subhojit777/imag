@@ -1312,7 +1312,7 @@ mod store_tests {
 
                 // Lets have an empty store as input
                 let mut input = Cursor::new(r#"
-                { "version": "0.6.2",
+                { "version": "0.6.3",
                     "store": { }
                 }
                 "#);
@@ -1349,7 +1349,7 @@ mod store_tests {
             Value::Object(ref map) => {
                 assert!(map.get("version").is_some(), format!("No 'version' in JSON"));
                 match map.get("version").unwrap() {
-                    &Value::String(ref s) => assert_eq!("0.6.2", s),
+                    &Value::String(ref s) => assert_eq!("0.6.3", s),
                     _ => panic!("Wrong type in JSON at 'version'"),
                 }
 
@@ -1650,12 +1650,12 @@ mod store_tests {
 
                 // Lets have an empty store as input
                 let mut input = Cursor::new(r#"
-                { "version": "0.6.2",
+                { "version": "0.6.3",
                     "store": {
                         "example": {
                             "header": {
                                 "imag": {
-                                    "version": "0.6.2"
+                                    "version": "0.6.3"
                                 }
                             },
                             "content": "foobar"
@@ -1699,7 +1699,7 @@ mod store_tests {
             Value::Object(ref map) => {
                 assert!(map.get("version").is_some(), format!("No 'version' in JSON"));
                 match map.get("version").unwrap() {
-                    &Value::String(ref s) => assert_eq!("0.6.2", s),
+                    &Value::String(ref s) => assert_eq!("0.6.3", s),
                     _ => panic!("Wrong type in JSON at 'version'"),
                 }
 

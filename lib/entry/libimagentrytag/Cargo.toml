@@ -1,6 +1,6 @@
 [package]
 name = "libimagentrytag"
-version = "0.6.2"
+version = "0.6.3"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -30,5 +30,5 @@ filters = "0.2"
 toml-query = "0.6"
 error-chain = "0.11"
 
-libimagstore = { version = "0.6.2", path = "../../../lib/core/libimagstore" }
-libimagerror = { version = "0.6.2", path = "../../../lib/core/libimagerror" }
+libimagstore = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
+libimagerror = { version = "0.6.3", path = "../../../lib/core/libimagerror" }

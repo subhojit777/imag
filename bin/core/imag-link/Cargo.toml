@@ -1,6 +1,6 @@
 [package]
 name = "imag-link"
-version = "0.6.2"
+version = "0.6.3"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-link command"
@@ -26,20 +26,20 @@ url = "1.5"
 toml = "0.4"
 toml-query = "0.6"
 
-libimagstore     = { version = "0.6.2", path = "../../../lib/core/libimagstore" }
-libimagrt        = { version = "0.6.2", path = "../../../lib/core/libimagrt" }
-libimagerror     = { version = "0.6.2", path = "../../../lib/core/libimagerror" }
-libimagentrylink = { version = "0.6.2", path = "../../../lib/entry/libimagentrylink" }
-libimagutil      = { version = "0.6.2", path = "../../../lib/etc/libimagutil" }
+libimagstore     = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
+libimagrt        = { version = "0.6.3", path = "../../../lib/core/libimagrt" }
+libimagerror     = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
+libimagentrylink = { version = "0.6.3", path = "../../../lib/entry/libimagentrylink" }
+libimagutil      = { version = "0.6.3", path = "../../../lib/etc/libimagutil" }
 
 [dev-dependencies.libimagutil]
-version          = "0.6.2"
+version          = "0.6.3"
 path = "../../../lib/etc/libimagutil"
 default-features = false
 features         = ["testing"]
 
 [dev-dependencies.libimagrt]
-version          = "0.6.2"
+version          = "0.6.3"
 path             = "../../../lib/core/libimagrt"
 default-features = false
 features         = ["testing"]

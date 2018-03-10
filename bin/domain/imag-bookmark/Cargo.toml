@@ -1,6 +1,6 @@
 [package]
 name = "imag-bookmark"
-version = "0.6.2"
+version = "0.6.3"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-bookmark command"
@@ -25,7 +25,7 @@ log = "0.4.0"
 toml = "0.4"
 toml-query = "0.6"
 
-libimagrt        = { version = "0.6.2", path = "../../../lib/core/libimagrt" }
-libimagerror     = { version = "0.6.2", path = "../../../lib/core/libimagerror" }
-libimagbookmark  = { version = "0.6.2", path = "../../../lib/domain/libimagbookmark" }
-libimagutil      = { version = "0.6.2", path = "../../../lib/etc/libimagutil" }
+libimagrt        = { version = "0.6.3", path = "../../../lib/core/libimagrt" }
+libimagerror     = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
+libimagbookmark  = { version = "0.6.3", path = "../../../lib/domain/libimagbookmark" }
+libimagutil      = { version = "0.6.3", path = "../../../lib/etc/libimagutil" }

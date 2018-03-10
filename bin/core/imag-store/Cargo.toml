@@ -1,6 +1,6 @@
 [package]
 name = "imag-store"
-version = "0.6.2"
+version = "0.6.3"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-store command"
@@ -25,22 +25,22 @@ log = "0.4.0"
 toml = "0.4"
 error-chain = "0.11"
 
-libimagstore = { version = "0.6.2", path = "../../../lib/core/libimagstore", features = ["verify"] }
-libimagrt    = { version = "0.6.2", path = "../../../lib/core/libimagrt" }
-libimagerror = { version = "0.6.2", path = "../../../lib/core/libimagerror" }
-libimagutil  = { version = "0.6.2", path = "../../../lib/etc/libimagutil" }
+libimagstore = { version = "0.6.3", path = "../../../lib/core/libimagstore", features = ["verify"] }
+libimagrt    = { version = "0.6.3", path = "../../../lib/core/libimagrt" }
+libimagerror = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
+libimagutil  = { version = "0.6.3", path = "../../../lib/etc/libimagutil" }
 
 [features]
 early-panic = [ "libimagstore/early-panic" ]
 
 [dev-dependencies.libimagutil]
-version          = "0.6.2"
+version          = "0.6.3"
 path = "../../../lib/etc/libimagutil"
 default-features = false
 features         = ["testing"]
 
 [dev-dependencies.libimagrt]
-version          = "0.6.2"
+version          = "0.6.3"
 path             = "../../../lib/core/libimagrt"
 default-features = false
 features         = ["testing"]
