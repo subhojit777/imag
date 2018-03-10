@@ -67,6 +67,15 @@ This section contains the changelog from the last release to the next release.
     * `libimagstore` got another fix with the file parsing, as the
       `std::str::Lines` iterator takes empty lines as no lines.
 
+
+## 0.6.3
+
+Bugfix release for fixing:
+
+* `libimagstore` got another fix with the file parsing, as the
+  `std::str::Lines` iterator takes empty lines as no lines.
+
+
 ## 0.6.2
 
 Bugfix release for fixing:
