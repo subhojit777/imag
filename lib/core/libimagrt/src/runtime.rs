@@ -49,6 +49,7 @@ pub struct Runtime<'a> {
     configuration: Option<Value>,
     cli_matches: ArgMatches<'a>,
     store: Store,
+    use_pipe_magic: bool,
     stdin_is_tty: bool,
     stdout_is_tty: bool,
 }
@@ -148,12 +149,15 @@ impl<'a> Runtime<'a> {
             Store::new(storepath, &config)
         };
 
+        let pipe_magic = matches.is_present(Runtime::pipe_magic_name());
+
         store_result.map(|store| {
             Runtime {
                 cli_matches: matches,
                 configuration: config,
                 rtp: rtp,
                 store: store,
+                use_pipe_magic: pipe_magic,
                 stdout_is_tty: ::atty::is(::atty::Stream::Stdout),
                 stdin_is_tty: ::atty::is(::atty::Stream::Stdin),
             }
@@ -249,6 +253,13 @@ impl<'a> Runtime<'a> {
                 .takes_value(true)
                 .value_name("LOGDESTS"))
 
+            .arg(Arg::with_name(Runtime::pipe_magic_name())
+                .long(Runtime::pipe_magic_name())
+                .short("P")
+                .help("Use pipe-detection. With this flag, imag expects a JSON store on STDIN if stdin is not a TTY and prints the store to STDOUT if it is not a TTY.")
+                .required(false)
+                .takes_value(false))
+
     }
 
     /// Get the argument names of the Runtime which are available
@@ -336,6 +347,11 @@ impl<'a> Runtime<'a> {
     /// Get the argument name for the logging destination
     pub fn arg_logdest_name() -> &'static str {
         "logging-destinations"
+    }
+
+    /// Get the argument name for pipe magic
+    pub fn pipe_magic_name() -> &'static str {
+        "pipe-magic"
     }
 
     /// Initialize the internal logger
@@ -446,10 +462,10 @@ impl<'a> Runtime<'a> {
     }
 
     pub fn stdout(&self) -> OutputProxy {
-        if self.stdout_is_tty {
-            OutputProxy::Out(::std::io::stdout())
-        } else {
+        if self.use_pipe_magic && !self.stdout_is_tty {
             OutputProxy::Err(::std::io::stderr())
+        } else {
+            OutputProxy::Out(::std::io::stdout())
         }
     }
 
@@ -458,10 +474,10 @@ impl<'a> Runtime<'a> {
     }
 
     pub fn stdin(&self) -> Option<Stdin> {
-        if self.stdin_is_tty {
-            Some(::std::io::stdin())
-        } else {
+        if self.use_pipe_magic && !self.stdin_is_tty {
             None
+        } else {
+            Some(::std::io::stdin())
         }
     }
 }
