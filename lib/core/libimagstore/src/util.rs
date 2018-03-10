@@ -46,10 +46,10 @@ pub fn entry_buffer_to_header_content(buf: &str) -> Result<(Value, String)> {
     let mut content         = String::new();
     let mut header_consumed = false;
 
-    let mut iter = buf.lines().skip(1).peekable(); // the first line is "---"
+    let mut iter = buf.split("\n").skip(1).peekable(); // the first line is "---"
 
     while let Some(line) = iter.next() {
-        if line == "---" {
+        if line == "---" && !header_consumed {
             header_consumed = true;
             // do not further process the line
         } else {
@@ -66,5 +66,103 @@ pub fn entry_buffer_to_header_content(buf: &str) -> Result<(Value, String)> {
     }
 
     Ok((Value::parse(&header)?, String::from(content)))
+}
+
+#[cfg(test)]
+mod test {
+    use super::entry_buffer_to_header_content;
+
+    fn mkfile(content: &str) -> String {
+        format!(r#"---
+[imag]
+version = '{version}'
+---
+{content}"#, version = env!("CARGO_PKG_VERSION"), content = content)
+    }
+
+    #[test]
+    fn test_entry_buffer_to_header_content_1() {
+        let content = "Hai";
+        let file = format!(r#"---
+[imag]
+version = '{version}'
+---
+{content}"#, version = env!("CARGO_PKG_VERSION"), content = content);
+
+        let res = entry_buffer_to_header_content(&file);
+
+        assert!(res.is_ok());
+        let (_, res_content) = res.unwrap();
+        assert_eq!(res_content, content)
+    }
+
+    #[test]
+    fn test_entry_buffer_to_header_content_2() {
+        let content = r#"Hai
+"#;
+
+        let file = mkfile(&content);
+        eprintln!("FILE: <<<{}>>>", file);
+        let res  = entry_buffer_to_header_content(&file);
+
+        assert!(res.is_ok());
+        let (_, res_content) = res.unwrap();
+        eprintln!("CONTENT: <<<{}>>>", res_content);
+        assert_eq!(res_content, content)
+    }
+
+    #[test]
+    fn test_entry_buffer_to_header_content_3() {
+        let content = r#"Hai
+
+barbar
+
+"#;
+
+        let file = mkfile(&content);
+        let res  = entry_buffer_to_header_content(&file);
+
+        assert!(res.is_ok());
+        let (_, res_content) = res.unwrap();
+        assert_eq!(res_content, content)
+    }
+
+    #[test]
+    fn test_entry_buffer_to_header_content_4() {
+        let content = r#"Hai
+
+            ---
+barbar
+            ---
+
+"#;
+
+        let file = mkfile(&content);
+        let res  = entry_buffer_to_header_content(&file);
+
+        assert!(res.is_ok());
+        let (_, res_content) = res.unwrap();
+        assert_eq!(res_content, content)
+    }
+
+    #[test]
+    fn test_entry_buffer_to_header_content_5() {
+        let content = r#"Hai
+
+---
+barbar
+---
+
+
+"#;
+
+        let file = mkfile(&content);
+        let res  = entry_buffer_to_header_content(&file);
+
+        assert!(res.is_ok());
+        let (_, res_content) = res.unwrap();
+        assert_eq!(res_content, content)
+    }
+
 }
 
