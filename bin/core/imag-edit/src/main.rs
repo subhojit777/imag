@@ -42,12 +42,15 @@ extern crate libimagstore;
 extern crate libimagutil;
 
 use std::path::PathBuf;
+use std::io::Read;
 
-use libimagentryedit::edit::*;
-use libimagentryedit::error::EditError as EE;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::iter::TraceIterator;
+use libimagentryedit::edit::Edit;
 use libimagrt::setup::generate_runtime_setup;
 use libimagstore::storeid::IntoStoreId;
+use libimagstore::storeid::StoreIdIterator;
+use libimagstore::iter::get::StoreIdGetIteratorExtension;
 
 mod ui;
 
@@ -58,18 +61,28 @@ fn main() {
                                     "Edit store entries with $EDITOR",
                                     ui::build_ui);
 
-    let mut entry = {
-        let path = rt.cli()
-            .value_of("entry")
-            .unwrap(); // safe by clap
+    let sids = match rt.cli().value_of("entry") {
+        Some(path) => vec![PathBuf::from(path).into_storeid().map_err_trace_exit_unwrap(1)],
+        None => if rt.cli().is_present("entries-from-stdin") {
+            let stdin = rt.stdin().unwrap_or_else(|| {
+                error!("Cannot get handle to stdin");
+                ::std::process::exit(1)
+            });
 
-        let sid = PathBuf::from(path).into_storeid().map_err_trace_exit_unwrap(1);
+            let mut buf = String::new();
+            let _ = stdin.lock().read_to_string(&mut buf).unwrap_or_else(|_| {
+                error!("Failed to read from stdin");
+                ::std::process::exit(1)
+            });
 
-        rt.store()
-            .get(sid)
-            .map_err_trace_exit_unwrap(1)
-            .ok_or(EE::from(format!("Entry {} does not exist", path)))
-            .map_err_trace_exit_unwrap(1)
+            buf.lines()
+                .map(PathBuf::from)
+                .map(|p| p.into_storeid().map_err_trace_exit_unwrap(1))
+                .collect()
+        } else {
+            error!("Something weird happened. I was not able to find the path of the entries to edit");
+            ::std::process::exit(1)
+        }
     };
 
     if rt.cli().is_present("edit-header") {
@@ -78,8 +91,17 @@ fn main() {
         ::std::process::exit(1);
     }
 
-    let _ = entry
-        .edit_content(&rt)
-        .map_err_trace_exit_unwrap(1);
+    StoreIdIterator::new(Box::new(sids.into_iter()))
+        .into_get_iter(rt.store())
+        .trace_unwrap_exit(1)
+        .map(|o| o.unwrap_or_else(|| {
+            error!("Did not find one entry");
+            ::std::process::exit(1)
+        }))
+        .for_each(|mut entry| {
+            let _ = entry
+                .edit_content(&rt)
+                .map_err_trace_exit_unwrap(1);
+        });
 }
 

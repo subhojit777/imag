@@ -39,6 +39,8 @@ This section contains the changelog from the last release to the next release.
       address and either shows or lists the found contacts
     * `imag-contact list` and `imag-contact find` is now able to print the
       output as JSON.
+    * `imag-edit` can now read store ids from stdin, sorts
+      `imag ids | fzf | imag edit -I` is not a thing.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
