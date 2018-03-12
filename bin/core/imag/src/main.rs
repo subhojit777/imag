@@ -205,6 +205,9 @@ fn main() {
             .iter()
             .map(|command| {
                 match Command::new(format!("imag-{}", command))
+                    .stdin(::std::process::Stdio::inherit())
+                    .stdout(::std::process::Stdio::inherit())
+                    .stderr(::std::process::Stdio::inherit())
                     .arg("--version")
                     .output()
                     .map(|v| v.stdout)
