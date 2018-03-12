@@ -98,6 +98,7 @@ fn main() {
                 "list"   => list(&rt),
                 "import" => import(&rt),
                 "show"   => show(&rt),
+                "find"   => find(&rt),
                 "create" => create(&rt),
                 _        => {
                     error!("Unknown command"); // More error handling
@@ -212,6 +213,82 @@ fn show(rt: &Runtime) {
         .map_err(CE::from)
         .map_err_trace_exit_unwrap(1);
     let _ = writeln!(::std::io::stdout(), "{}", s).to_exit_code().unwrap_or_exit();
+}
+
+fn find(rt: &Runtime) {
+    let scmd       = rt.cli().subcommand_matches("find").unwrap();
+    let grepstring = scmd
+        .values_of("string")
+        .unwrap() // safed by clap
+        .map(String::from)
+        .collect::<Vec<String>>();
+
+    // We don't know yet which we need, but we pay that price for simplicity of the codebase
+    let show_format = get_contact_print_format("contact.show_format", rt, &scmd);
+    let list_format = get_contact_print_format("contact.list_format", rt, &scmd);
+
+    rt.store()
+        .all_contacts()
+        .map_err_trace_exit_unwrap(1)
+        .into_get_iter(rt.store())
+        .map(|el| {
+            el.map_err_trace_exit_unwrap(1)
+                .ok_or_else(|| {
+                    error!("Could not get StoreId from Store::all_contacts(). This is a BUG!");
+                    ::std::process::exit(1)
+                })
+                .unwrap() // safed above
+        })
+        .filter_map(|cont| {
+            let comp = cont
+                .get_contact_data()
+                .map_err_trace_exit_unwrap(1)
+                .into_inner();
+
+            let card = Vcard::from_component(comp)
+                .map_err(|_| {
+                    error!("Could not build Vcard from {:?}", cont.get_location());
+                    ::std::process::exit(1)
+                })
+                .unwrap(); // safed above
+
+            let str_contains_any = |s: &String, v: &Vec<String>| {
+                v.iter().any(|i| s.contains(i))
+            };
+
+            let take = card.adr().iter().any(|a| str_contains_any(a.raw(), &grepstring))
+                || card.email().iter().any(|a| str_contains_any(a.raw(), &grepstring))
+                || card.fullname().iter().any(|a| str_contains_any(a.raw(), &grepstring));
+
+            if take {
+                // optimization so we don't have to parse again in the next step
+                Some((cont, card))
+            } else {
+                None
+            }
+        })
+        .enumerate()
+        .for_each(|(i, (fle, card))| {
+            let fmt = if scmd.is_present("find-show") {
+                &show_format
+            } else if scmd.is_present("find-list") {
+                &list_format
+            } else { // default: find-list
+                &list_format
+            };
+
+            let hash = fle.get_hash().map(String::from).map_err_trace_exit_unwrap(1);
+            let data = build_data_object_for_handlebars(i, hash, &card);
+            let s = fmt
+                .render("format", &data)
+                .err_from_str()
+                .map_err(CE::from)
+                .map_err_trace_exit_unwrap(1);
+
+            let _ = writeln!(rt.stdout(), "{}", s)
+                .to_exit_code()
+                .unwrap_or_exit();
+        });
 }
 
 fn get_contact_print_format(config_value_path: &'static str, rt: &Runtime, scmd: &ArgMatches) -> Handlebars {
