@@ -1,6 +1,9 @@
 # This is a example configuration file for the imag suite.
 # It is written in TOML
 
+[rt]
+editor = "vim"
+
 #
 # imag supports templates when specifying formats. The templates support several
 # functionalities, from colorizing to underlining and such things.
