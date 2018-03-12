@@ -33,6 +33,7 @@ This section contains the changelog from the last release to the next release.
     * `libimagentrylist` was removed. Its functionality was inconvenient to use
       and ugly to implement. Its API was cumbersome.
       Listing of entries shall be implemented without it.
+    * `libimagcontact` is now able to fetch all contacts from the store.
     * `libimagcontact` takes the hash from the vcard object (UID) now.
     * `imag-contact` got a `find` command, which matches in fullname, email and
       address and either shows or lists the found contacts
