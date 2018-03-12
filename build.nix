@@ -373,7 +373,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_annotate_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -381,7 +381,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-annotate;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_bookmark_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -389,7 +389,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/domain/imag-bookmark;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_contact_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -397,7 +397,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/domain/imag-contact;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_diagnostics_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -405,7 +405,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-diagnostics;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_diary_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -413,7 +413,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/domain/imag-diary;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_edit_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -421,7 +421,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-edit;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_gps_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -429,7 +429,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-gps;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_grep_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -437,7 +437,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-grep;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_habit_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -445,7 +445,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/domain/imag-habit;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_ids_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -453,7 +453,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-ids;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_init_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -461,7 +461,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-init;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_link_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -469,7 +469,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-link;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_log_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -477,7 +477,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/domain/imag-log;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_mail_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -485,7 +485,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/domain/imag-mail;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_mv_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -493,7 +493,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-mv;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_notes_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -501,7 +501,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/domain/imag-notes;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_ref_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -509,7 +509,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-ref;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_store_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -517,7 +517,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-store;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_tag_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -525,7 +525,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-tag;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_timetrack_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -533,7 +533,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/domain/imag-timetrack;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_todo_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -541,7 +541,7 @@ rec {
     version = "0.7.0";
     authors = [ "mario <mario-krehl@gmx.de>" ];
     src = bin/domain/imag-todo;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   imag_view_0_7_0_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
@@ -549,7 +549,7 @@ rec {
     version = "0.7.0";
     authors = [ "Matthias Beyer <mail@beyermatthias.de>" ];
     src = bin/core/imag-view;
-    build = "../../../build.rs";
+    build = ./build.rs;
     inherit dependencies buildDependencies features;
   };
   interactor_0_1_1_ = { dependencies?[], buildDependencies?[], features?[] }: buildRustCrate {
