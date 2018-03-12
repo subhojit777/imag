@@ -17,17 +17,28 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use clap::{Arg, App};
+use clap::{Arg, ArgGroup, App};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
         .arg(Arg::with_name("entry")
              .index(1)
              .takes_value(true)
-             .required(true)
+             .required(false)
              .multiple(true)
              .help("The entry/entries to edit")
              .value_name("ENTRY"))
+        .arg(Arg::with_name("entries-from-stdin")
+             .long("ids-from-stdin")
+             .short("I")
+             .takes_value(false)
+             .required(false)
+             .multiple(false)
+             .help("The entry/entries are piped in via stdin"))
+        .group(ArgGroup::with_name("input-method")
+               .args(&["entry", "entries-from-stdin"])
+               .required(true))
+
         .arg(Arg::with_name("edit-header")
              .long("header")
              .short("H")
