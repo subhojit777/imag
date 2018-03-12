@@ -51,7 +51,7 @@ impl UniqueRefPathGenerator for UniqueContactPathGenerator {
     fn unique_hash<A: AsRef<Path>>(path: A) -> RResult<String, Self::Error> {
         debug!("Generating unique hash for path: {:?}", path.as_ref());
 
-        if let Some(p) = path.as_ref().file_name().and_then(OsStr::to_str).map(String::from) {
+        if let Some(p) = path.as_ref().file_stem().and_then(OsStr::to_str).map(String::from) {
             debug!("Found UUID string: '{}'", p);
             Uuid::parse_str(&p)
                 .map_err(CE::from)
