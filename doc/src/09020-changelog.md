@@ -56,6 +56,7 @@ This section contains the changelog from the last release to the next release.
       "debug" mode.
     * `imag-diary` supports "daily" diaries now.
     * `imag-contact` joins multiple emails with "," now
+    * `imag-tag` commandline was rewritten for positional arguments.
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.

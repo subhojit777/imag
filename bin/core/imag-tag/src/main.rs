@@ -67,27 +67,30 @@ fn main() {
                                     "Direct interface to the store. Use with great care!",
                                     build_ui);
 
-    let id = rt.cli().value_of("id").unwrap(); // enforced by clap
+    let id = rt.cli().value_of("id").map(PathBuf::from).unwrap(); // enforced by clap
     rt.cli()
         .subcommand_name()
-        .map_or_else(
-            || {
+        .map(|name| match name {
+            "list" => list(id, &rt),
+            "remove" => {
                 let id = PathBuf::from(id);
-                let add = get_add_tags(rt.cli());
+                let add = None;
                 let rem = get_remove_tags(rt.cli());
+                debug!("id = {:?}, add = {:?}, rem = {:?}", id, add, rem);
                 alter(&rt, id, add, rem);
             },
-            |name| {
+            "add" => {
                 let id = PathBuf::from(id);
-                debug!("Call: {}", name);
-                match name {
-                    "list" => list(id, &rt),
-                    _ => {
-                        warn!("Unknown command");
-                        // More error handling
-                    },
-                };
-            });
+                let add = get_add_tags(rt.cli());
+                let rem = None;
+                debug!("id = {:?}, add = {:?}, rem = {:?}", id, add, rem);
+                alter(&rt, id, add, rem);
+            },
+            _ => {
+                error!("Unknown command");
+                ::std::process::exit(1)
+            },
+        });
 }
 
 fn alter(rt: &Runtime, id: PathBuf, add: Option<Vec<Tag>>, rem: Option<Vec<Tag>>) {
@@ -190,36 +193,28 @@ fn list(id: PathBuf, rt: &Runtime) {
 ///
 /// Returns none if the argument was not specified
 fn get_add_tags(matches: &ArgMatches) -> Option<Vec<Tag>> {
-    let a = "add-tags";
-    extract_tags(matches, a, '+')
-        .or_else(|| matches.values_of(a).map(|values| values.map(String::from).collect()))
+    retrieve_tags(matches, "add", "add-tags")
 }
 
 /// Get the tags which should be removed from the commandline
 ///
 /// Returns none if the argument was not specified
 fn get_remove_tags(matches: &ArgMatches) -> Option<Vec<Tag>> {
-    let r = "remove-tags";
-    extract_tags(matches, r, '+')
-        .or_else(|| matches.values_of(r).map(|values| values.map(String::from).collect()))
+    retrieve_tags(matches, "remove", "remove-tags")
 }
 
-fn extract_tags(matches: &ArgMatches, specifier: &str, specchar: char) -> Option<Vec<Tag>> {
-    if let Some(submatch) = matches.subcommand_matches("tags") {
-        submatch.values_of(specifier)
-            .map(|values| values.map(String::from).collect())
-    } else {
-        matches.values_of("specify-tags")
-            .map(|argmatches| {
-                argmatches
-                    .map(String::from)
-                    .filter(|s| s.starts_with(specchar))
-                    .map(|s| {
-                        String::from(s.split_at(1).1)
-                    })
-                    .collect()
-            })
-    }
+fn retrieve_tags(m: &ArgMatches, s: &'static str, v: &'static str) -> Option<Vec<Tag>> {
+    Some(m
+         .subcommand_matches(s)
+         .unwrap_or_else(|| {
+             error!("Expected subcommand '{}', but was not specified", s);
+             ::std::process::exit(1)
+         })
+         .values_of(v)
+         .unwrap() // enforced by clap
+         .into_iter()
+         .map(String::from)
+         .collect())
 }
 
 #[cfg(test)]
@@ -275,7 +270,7 @@ mod tests {
         setup_logging();
         debug!("Generating runtime");
         let name = "test-tag-add-adds-tags";
-        let rt = generate_test_runtime(vec![name, "--add", "foo"]).unwrap();
+        let rt = generate_test_runtime(vec![name, "add", "foo"]).unwrap();
 
         debug!("Creating default entry");
         create_test_default_entry(&rt, name).unwrap();
@@ -285,12 +280,8 @@ mod tests {
         let add = get_add_tags(rt.cli());
         debug!("Add-tags: {:?}", add);
 
-        debug!("Getting 'remove' tags");
-        let rem = get_remove_tags(rt.cli());
-        debug!("Rem-tags: {:?}", rem);
-
         debug!("Altering things");
-        alter(&rt, id.clone(), add, rem);
+        alter(&rt, id.clone(), add, None);
         debug!("Altered");
 
         let test_entry = rt.store().get(id).unwrap().unwrap();
@@ -307,47 +298,11 @@ mod tests {
     }
 
     #[test]
-    fn test_tag_add_more_than_remove_adds_tags() {
-        setup_logging();
-        debug!("Generating runtime");
-        let name = "test-tag-add-more-than-remove-adds-tags";
-        let rt = generate_test_runtime(vec![name,
-                                       "--add", "foo",
-                                       "--add", "bar",
-                                       "--add", "baz",
-                                       "--add", "bub",
-                                       "--remove", "foo",
-                                       "--remove", "bar",
-                                       "--remove", "baz",
-        ]).unwrap();
-
-        debug!("Creating default entry");
-        create_test_default_entry(&rt, name).unwrap();
-        let id = PathBuf::from(String::from(name));
-
-        // Manually add tags
-        let add = get_add_tags(rt.cli());
-
-        debug!("Getting 'remove' tags");
-        let rem = get_remove_tags(rt.cli());
-        debug!("Rem-tags: {:?}", rem);
-
-        debug!("Altering things");
-        alter(&rt, id.clone(), add, rem);
-        debug!("Altered");
-
-        let test_entry = rt.store().get(id).unwrap().unwrap();
-        let test_tags  = get_entry_tags(&test_entry).unwrap().unwrap();
-
-        assert_eq!(*test_tags, tags_toml_value(vec!["bub"]));
-    }
-
-    #[test]
     fn test_tag_remove_removes_tag() {
         setup_logging();
         debug!("Generating runtime");
         let name = "test-tag-remove-removes-tag";
-        let rt = generate_test_runtime(vec![name, "--remove", "foo"]).unwrap();
+        let rt = generate_test_runtime(vec![name, "remove", "foo"]).unwrap();
 
         debug!("Creating default entry");
         create_test_default_entry(&rt, name).unwrap();
@@ -375,7 +330,7 @@ mod tests {
         setup_logging();
         debug!("Generating runtime");
         let name = "test-tag-remove-removes-only-to-remove-tag-doesnt-crash-on-nonexistent-tag";
-        let rt = generate_test_runtime(vec![name, "--remove", "foo"]).unwrap();
+        let rt = generate_test_runtime(vec![name, "remove", "foo"]).unwrap();
 
         debug!("Creating default entry");
         create_test_default_entry(&rt, name).unwrap();
@@ -403,7 +358,7 @@ mod tests {
         setup_logging();
         debug!("Generating runtime");
         let name = "test-tag-remove-removes-but-doesnt-crash-on-nonexistent-tag";
-        let rt = generate_test_runtime(vec![name, "--remove", "foo", "--remove", "bar"]).unwrap();
+        let rt = generate_test_runtime(vec![name, "remove", "foo", "bar"]).unwrap();
 
         debug!("Creating default entry");
         create_test_default_entry(&rt, name).unwrap();
