@@ -49,6 +49,11 @@ error_chain! {
             display("Entry {:?} not found", sid)
         }
 
+        UidMissing(path: String) {
+            description("Vcard object has no UID")
+            display("Vcard at {:?} has no UID", path)
+        }
+
     }
 }
 

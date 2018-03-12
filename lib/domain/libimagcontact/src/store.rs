@@ -20,21 +20,19 @@
 use std::path::Path;
 use std::path::PathBuf;
 use std::result::Result as RResult;
-use std::ffi::OsStr;
 
 use vobject::parse_component;
-use uuid::Uuid;
 
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreIdIterator;
 use libimagentryref::refstore::RefStore;
 use libimagentryref::refstore::UniqueRefPathGenerator;
-use libimagentryref::generators::sha1::Sha1;
 use libimagentryutil::isa::Is;
 
 use contact::IsContact;
 use error::ContactError as CE;
+use error::ContactErrorKind as CEK;
 use error::Result;
 use util;
 
@@ -49,17 +47,19 @@ impl UniqueRefPathGenerator for UniqueContactPathGenerator {
 
     /// A function which should generate a unique string for a Path
     fn unique_hash<A: AsRef<Path>>(path: A) -> RResult<String, Self::Error> {
-        debug!("Generating unique hash for path: {:?}", path.as_ref());
+        use vobject::vcard::Vcard;
 
-        if let Some(p) = path.as_ref().file_stem().and_then(OsStr::to_str).map(String::from) {
-            debug!("Found UUID string: '{}'", p);
-            Uuid::parse_str(&p)
-                .map_err(CE::from)
-                .map(|u| format!("{}", u.hyphenated())) // FIXME I don't know how to do in not-ugly
-        } else { // else, we sha1 the (complete) content
-            debug!("Couldn't find UUID string, using SHA1 of contents");
-            Sha1::unique_hash(path).map_err(CE::from)
-        }
+        debug!("Generating unique hash for path: {:?}", path.as_ref());
+        util::read_to_string(path.as_ref())
+            .and_then(|s| Vcard::build(&s).map_err(CE::from))
+            .and_then(|card| {
+                card.uid()
+                    .map(|u| u.raw().clone())
+                    .ok_or_else(|| {
+                        let s = path.as_ref().to_str().unwrap_or("Unknown path");
+                        CEK::UidMissing(String::from(s)).into()
+                    })
+            })
     }
 
 }
