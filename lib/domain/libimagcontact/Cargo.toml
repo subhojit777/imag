@@ -20,12 +20,14 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-error-chain = "0.11"
-log         = "0.3"
-toml        = "0.4"
-toml-query  = "0.4"
-vobject     = "0.4"
-uuid        = { version = "0.6", features = ["v4"] }
+error-chain  = "0.11"
+log          = "0.3"
+toml         = "0.4"
+toml-query   = "0.4"
+vobject      = "0.4"
+uuid         = { version = "0.6", features = ["v4"] }
+serde        = { version = "1", optional   = true }
+serde_derive = { version = "1", optional   = true }
 
 libimagstore     = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
 libimagerror     = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
@@ -36,4 +38,8 @@ version          = "0.7.0"
 path             = "../../../lib/entry/libimagentryref/"
 default-features = false
 features         = ["generators", "generators-sha1"]
+
+[features]
+default = []
+deser   = ["serde", "serde_derive"]
 
