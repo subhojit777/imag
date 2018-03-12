@@ -40,6 +40,7 @@ extern crate toml_query;
 extern crate handlebars;
 extern crate walkdir;
 extern crate uuid;
+extern crate serde_json;
 
 extern crate libimagcontact;
 extern crate libimagstore;
@@ -70,6 +71,7 @@ use libimagcontact::store::ContactStore;
 use libimagcontact::store::UniqueContactPathGenerator;
 use libimagcontact::error::ContactError as CE;
 use libimagcontact::contact::Contact;
+use libimagcontact::deser::DeserVcard;
 use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagentryref::reference::Ref;
 use libimagentryref::refstore::RefStore;
@@ -111,7 +113,7 @@ fn list(rt: &Runtime) {
     let scmd        = rt.cli().subcommand_matches("list").unwrap();
     let list_format = get_contact_print_format("contact.list_format", rt, &scmd);
 
-    let _ = rt
+    let iterator = rt
         .store()
         .all_contacts()
         .map_err_trace_exit_unwrap(1)
@@ -126,27 +128,46 @@ fn list(rt: &Runtime) {
                 .get_contact_data()
                 .map(|cd| (fle, cd))
                 .map(|(fle, cd)| (fle, cd.into_inner()))
-                .map(|(fle, cd)| (fle, Vcard::from_component(cd)))
+                .map(|(fle, cd)| {
+                    let card = Vcard::from_component(cd).unwrap_or_else(|e| {
+                        error!("Element is not a VCARD object: {:?}", e);
+                        exit(1)
+                    });
+                    (fle, card)
+                })
                 .map_err_trace_exit_unwrap(1)
         })
-        .enumerate()
-        .map(|(i, (fle, vcard))| {
-            let hash = String::from(fle.get_hash().map_err_trace_exit_unwrap(1));
-            let vcard = vcard.unwrap_or_else(|e| {
-                error!("Element is not a VCARD object: {:?}", e);
-                exit(1)
+        .enumerate();
+
+    if scmd.is_present("json") {
+        let v : Vec<DeserVcard> = iterator
+            .map(|(_, (_, vcard))| DeserVcard::from(vcard)).collect();
+        match ::serde_json::to_string(&v) {
+            Ok(s) => writeln!(rt.stdout(), "{}", s).to_exit_code().unwrap_or_exit(),
+            Err(e) => {
+                error!("Error generating JSON: {:?}", e);
+                ::std::process::exit(1)
+            }
+        }
+    } else {
+        iterator
+            .map(|(i, (fle, vcard))| {
+                let hash = String::from(fle.get_hash().map_err_trace_exit_unwrap(1));
+                let data = build_data_object_for_handlebars(i, hash, &vcard);
+
+                list_format.render("format", &data)
+                    .err_from_str()
+                    .map_err(CE::from)
+                    .map_err_trace_exit_unwrap(1)
+            })
+
+            // collect, so that we can have rendered all the things and printing is faster.
+            .collect::<Vec<String>>()
+            .into_iter()
+            .for_each(|s| {
+                writeln!(rt.stdout(), "{}", s).to_exit_code().unwrap_or_exit()
             });
-
-            let data = build_data_object_for_handlebars(i, hash, &vcard);
-
-            let s = list_format.render("format", &data)
-                .err_from_str()
-                .map_err(CE::from)
-                .map_err_trace_exit_unwrap(1);
-
-            writeln!(rt.stdout(), "{}", s).to_exit_code().unwrap_or_exit()
-        })
-        .collect::<Vec<_>>();
+    }
 }
 
 fn import(rt: &Runtime) {
@@ -227,7 +248,8 @@ fn find(rt: &Runtime) {
     let show_format = get_contact_print_format("contact.show_format", rt, &scmd);
     let list_format = get_contact_print_format("contact.list_format", rt, &scmd);
 
-    rt.store()
+    let iterator = rt
+        .store()
         .all_contacts()
         .map_err_trace_exit_unwrap(1)
         .into_get_iter(rt.store())
@@ -267,7 +289,20 @@ fn find(rt: &Runtime) {
                 None
             }
         })
-        .enumerate()
+        .enumerate();
+
+    if scmd.is_present("json") {
+        let v : Vec<DeserVcard> = iterator
+            .map(|(_, (_, vcard))| DeserVcard::from(vcard)).collect();
+        match ::serde_json::to_string(&v) {
+            Ok(s) => writeln!(rt.stdout(), "{}", s).to_exit_code().unwrap_or_exit(),
+            Err(e) => {
+                error!("Error generating JSON: {:?}", e);
+                ::std::process::exit(1)
+            }
+        }
+    } else {
+        iterator
         .for_each(|(i, (fle, card))| {
             let fmt = if scmd.is_present("find-show") {
                 &show_format
@@ -289,6 +324,7 @@ fn find(rt: &Runtime) {
                 .to_exit_code()
                 .unwrap_or_exit();
         });
+    }
 }
 
 fn get_contact_print_format(config_value_path: &'static str, rt: &Runtime, scmd: &ArgMatches) -> Handlebars {

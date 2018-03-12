@@ -38,6 +38,12 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .multiple(false)
                         .value_name("FORMAT")
                         .help("Format to format the listing"))
+                   .arg(Arg::with_name("json")
+                        .long("json")
+                        .takes_value(false)
+                        .required(false)
+                        .multiple(false)
+                        .help("Print output as JSON"))
                    )
 
         .subcommand(SubCommand::with_name("import")
@@ -101,6 +107,15 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .help("List the result")
                         .conflicts_with("find-show")
                         )
+
+                   .arg(Arg::with_name("json")
+                        .long("json")
+                        .takes_value(false)
+                        .required(false)
+                        .multiple(false)
+                        .help("Print output as JSON")
+                        .conflicts_with("find-show")
+                        .conflicts_with("find-list"))
 
                    )
 
