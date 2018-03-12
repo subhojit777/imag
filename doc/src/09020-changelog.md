@@ -33,6 +33,12 @@ This section contains the changelog from the last release to the next release.
     * `libimagentrylist` was removed. Its functionality was inconvenient to use
       and ugly to implement. Its API was cumbersome.
       Listing of entries shall be implemented without it.
+    * `libimagcontact` is now able to fetch all contacts from the store.
+    * `libimagcontact` takes the hash from the vcard object (UID) now.
+    * `imag-contact` got a `find` command, which matches in fullname, email and
+      address and either shows or lists the found contacts
+    * `imag-contact list` and `imag-contact find` is now able to print the
+      output as JSON.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
@@ -47,6 +53,7 @@ This section contains the changelog from the last release to the next release.
     * `imag-* --version` shows `git describe` output if binary was compiled in
       "debug" mode.
     * `imag-diary` supports "daily" diaries now.
+    * `imag-contact` joins multiple emails with "," now
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
