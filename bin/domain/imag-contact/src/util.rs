@@ -44,7 +44,7 @@ pub fn build_data_object_for_handlebars<'a>(i: usize, hash: String, vcard: &Vcar
                     .map(|c| c.raw().clone()).unwrap_or(String::new()));
 
         data.insert("EMAIL"        , vcard.email()
-                    .into_iter().map(|c| c.raw().clone()).collect());
+                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
 
         data.insert("FN"           , vcard.fullname()
                     .into_iter().map(|c| c.raw().clone()).collect());
