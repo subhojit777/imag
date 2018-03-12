@@ -48,6 +48,7 @@ This section contains the changelog from the last release to the next release.
     * `imag-* --version` shows `git describe` output if binary was compiled in
       "debug" mode.
     * `imag-diary` supports "daily" diaries now.
+    * `imag-contact` joins multiple emails with "," now
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
