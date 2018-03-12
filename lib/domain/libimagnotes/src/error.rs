@@ -22,21 +22,15 @@ error_chain! {
         NoteError, NoteErrorKind, ResultExt, Result;
     }
 
+    links {
+        StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
+    }
+
     foreign_links {
         TomlQueryError(::toml_query::error::Error);
     }
 
     errors {
-        StoreWriteError       {
-            description("Error writing store")
-            display("Error writing store")
-        }
-
-        StoreReadError        {
-            description("Error reading store")
-            display("Error reading store")
-        }
-
         HeaderTypeError       {
             description("Header type error")
             display("Header type error")

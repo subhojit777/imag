@@ -25,9 +25,8 @@ use toml_query::read::TomlValueReadTypeExt;
 use toml_query::set::TomlValueSetExt;
 
 use error::Result;
-use error::NoteErrorKind as NEK;
 use error::NoteError as NE;
-use error::ResultExt;
+use error::NoteErrorKind as NEK;
 
 pub trait Note {
     fn set_name(&mut self, n: String) -> Result<()>;
@@ -41,14 +40,13 @@ impl Note for Entry {
     fn set_name(&mut self, n: String) -> Result<()> {
         self.get_header_mut()
             .set("note.name", Value::String(n))
-            .chain_err(|| NEK::StoreWriteError)
+            .map_err(NE::from)
             .map(|_| ())
     }
 
     fn get_name(&self) -> Result<String> {
         self.get_header()
-            .read_string("note.name")
-            .chain_err(|| NEK::StoreReadError)?
+            .read_string("note.name")?
             .ok_or(NE::from_kind(NEK::HeaderTypeError))
     }
 
