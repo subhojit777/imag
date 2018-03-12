@@ -34,6 +34,8 @@ This section contains the changelog from the last release to the next release.
       and ugly to implement. Its API was cumbersome.
       Listing of entries shall be implemented without it.
     * `libimagcontact` takes the hash from the vcard object (UID) now.
+    * `imag-contact` got a `find` command, which matches in fullname, email and
+      address and either shows or lists the found contacts
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
