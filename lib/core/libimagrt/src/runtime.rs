@@ -458,7 +458,12 @@ impl<'a> Runtime<'a> {
             .value_of("editor")
             .map(String::from)
             .or(env::var("EDITOR").ok())
-            .map(Command::new)
+            .map(|s| {
+                let mut c = Command::new(s);
+                c.stdin(::std::process::Stdio::inherit());
+                c.stderr(::std::process::Stdio::inherit());
+                c
+            })
     }
 
     pub fn stdout(&self) -> OutputProxy {
