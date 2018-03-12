@@ -80,6 +80,8 @@ This section contains the changelog from the last release to the next release.
       `std::str::Lines` iterator takes empty lines as no lines.
     * `libimagentryedit` fixed to inherit stdin and stderr to child process for
       editor command.
+    * `libimagrt` produced the editor command without taking arguments into
+      account.
 
 
 ## 0.6.3
