@@ -109,7 +109,12 @@ impl<'a> ContactStore<'a> for Store {
     }
 
     fn all_contacts(&'a self) -> Result<StoreIdIterator> {
-        unimplemented!()
+        let iter = self
+            .entries()?
+            .without_store()
+            .filter(|id| id.is_in_collection(&["contact"]));
+
+        Ok(StoreIdIterator::new(Box::new(iter)))
     }
 
 }
