@@ -73,6 +73,8 @@ This section contains the changelog from the last release to the next release.
     * `imag-diary create --timed` did not work as expected
     * `libimagstore` got another fix with the file parsing, as the
       `std::str::Lines` iterator takes empty lines as no lines.
+    * `libimagentryedit` fixed to inherit stdin and stderr to child process for
+      editor command.
 
 
 ## 0.6.3
