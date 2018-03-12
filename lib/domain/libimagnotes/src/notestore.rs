@@ -27,8 +27,7 @@ use toml_query::insert::TomlValueInsertExt;
 
 use module_path::ModuleEntryPath;
 use error::Result;
-use error::NoteErrorKind as NEK;
-use error::ResultExt;
+use error::NoteError as NE;
 use iter::*;
 
 pub trait NoteStore<'a> {
@@ -49,8 +48,7 @@ impl<'a> NoteStore<'a> for Store {
         let fle = {
             let mut lockentry = ModuleEntryPath::new(name.clone())
                 .into_storeid()
-                .and_then(|id| self.create(id))
-                .chain_err(|| NEK::StoreWriteError)?;
+                .and_then(|id| self.create(id))?;
 
             {
                 let entry  = lockentry.deref_mut();
@@ -68,27 +66,27 @@ impl<'a> NoteStore<'a> for Store {
         ModuleEntryPath::new(name)
             .into_storeid()
             .and_then(|id| self.delete(id))
-            .chain_err(|| NEK::StoreWriteError)
+            .map_err(NE::from)
     }
 
     fn retrieve_note(&'a self, name: String) -> Result<FileLockEntry<'a>> {
         ModuleEntryPath::new(name)
             .into_storeid()
             .and_then(|id| self.retrieve(id))
-            .chain_err(|| NEK::StoreWriteError)
+            .map_err(NE::from)
     }
 
     fn get_note(&'a self, name: String) -> Result<Option<FileLockEntry<'a>>> {
         ModuleEntryPath::new(name)
             .into_storeid()
             .and_then(|id| self.get(id))
-            .chain_err(|| NEK::StoreWriteError)
+            .map_err(NE::from)
     }
 
     fn all_notes(&'a self) -> Result<NoteIterator> {
         self.retrieve_for_module("notes")
             .map(NoteIterator::new)
-            .chain_err(|| NEK::StoreReadError)
+            .map_err(NE::from)
     }
 
 }
