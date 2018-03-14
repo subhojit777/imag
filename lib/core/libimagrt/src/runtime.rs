@@ -25,6 +25,7 @@ use std::io::Stdin;
 
 pub use clap::App;
 use toml::Value;
+use toml_query::read::TomlValueReadExt;
 
 use clap::{Arg, ArgMatches};
 
@@ -457,12 +458,26 @@ impl<'a> Runtime<'a> {
         self.cli()
             .value_of("editor")
             .map(String::from)
+            .or_else(|| {
+                self.config()
+                    .and_then(|v| match v.read("rt.editor") {
+                        Ok(Some(&Value::String(ref s))) => Some(s.clone()),
+                        _ => None, // FIXME silently ignore errors in config is bad
+                    })
+            })
             .or(env::var("EDITOR").ok())
-            .map(|s| {
-                let mut c = Command::new(s);
-                c.stdin(::std::process::Stdio::inherit());
+            .map(|s| {debug!("Editing with '{}'", s); s})
+            .and_then(|s| {
+                let mut split = s.split(" ");
+                let command   = split.next();
+                if command.is_none() {
+                    return None
+                }
+                let mut c = Command::new(command.unwrap()); // secured above
+                c.args(split);
+                c.stdin(::std::process::Stdio::null());
                 c.stderr(::std::process::Stdio::inherit());
-                c
+                Some(c)
             })
     }
 

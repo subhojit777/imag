@@ -57,6 +57,8 @@ This section contains the changelog from the last release to the next release.
     * `imag-diary` supports "daily" diaries now.
     * `imag-contact` joins multiple emails with "," now
     * `imag-tag` commandline was rewritten for positional arguments.
+    * `libimagrt` automatically takes "rt.editor" into account when building
+      editor object
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
@@ -78,6 +80,8 @@ This section contains the changelog from the last release to the next release.
       `std::str::Lines` iterator takes empty lines as no lines.
     * `libimagentryedit` fixed to inherit stdin and stderr to child process for
       editor command.
+    * `libimagrt` produced the editor command without taking arguments into
+      account.
 
 
 ## 0.6.3
