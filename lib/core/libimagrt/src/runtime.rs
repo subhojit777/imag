@@ -436,7 +436,19 @@ impl<'a> Runtime<'a> {
             .value_of("editor")
             .map(String::from)
             .or(env::var("EDITOR").ok())
-            .map(Command::new)
+            .map(|s| {debug!("Editing with '{}'", s); s})
+            .and_then(|s| {
+                let mut split = s.split(" ");
+                let command   = split.next();
+                if command.is_none() {
+                    return None
+                }
+                let mut c = Command::new(command.unwrap()); // secured above
+                c.args(split);
+                c.stdin(::std::process::Stdio::null());
+                c.stderr(::std::process::Stdio::inherit());
+                Some(c)
+            })
     }
 }
 

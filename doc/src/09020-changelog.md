@@ -22,6 +22,13 @@ This section contains the changelog from the last release to the next release.
 * Minor changes
 * Bugfixes
 
+## 0.6.4
+
+Bugfix release for fixing:
+
+* `libimagrt` produced the editor command without taking arguments into
+  account.
+
 
 ## 0.6.3
 
