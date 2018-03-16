@@ -39,8 +39,8 @@ This section contains the changelog from the last release to the next release.
       address and either shows or lists the found contacts
     * `imag-contact list` and `imag-contact find` is now able to print the
       output as JSON.
-    * `imag-edit` can now read store ids from stdin, sorts
-      `imag ids | fzf | imag edit -I` is not a thing.
+    * `imag-edit` can now read store ids from stdin, so
+      `imag ids | fzf | imag edit -I` is now a thing.
     * `imag ids` does not print the path of the store. Can be turned on using
       commandline flag.
 * Minor changes
