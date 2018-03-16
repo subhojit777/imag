@@ -40,7 +40,7 @@ extern crate libimagstore;
 
 use std::io::Write;
 
-use clap::App;
+use clap::{Arg, App};
 
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::MapErrTrace;
@@ -51,6 +51,12 @@ use libimagerror::io::ToExitCode;
 /// No special CLI
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
+        .arg(Arg::with_name("print-storepath")
+             .long("with-storepath")
+             .takes_value(false)
+             .required(false)
+             .multiple(false)
+             .help("Print the storepath for each id"))
 }
 
 fn main() {
@@ -60,9 +66,16 @@ fn main() {
                                     "print all ids",
                                     build_ui);
 
+    let print_storepath = rt.cli().is_present("print-storepath");
+
     rt.store()
         .entries()
         .map_err_trace_exit_unwrap(1)
+        .map(|id| if print_storepath {
+            id
+        } else {
+            id.without_base()
+        })
         .for_each(|id| {
             let _ = writeln!(rt.stdout(), "{}", id.to_str().map_err_trace_exit_unwrap(1))
                 .to_exit_code()

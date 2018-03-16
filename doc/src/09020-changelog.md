@@ -41,6 +41,8 @@ This section contains the changelog from the last release to the next release.
       output as JSON.
     * `imag-edit` can now read store ids from stdin, sorts
       `imag ids | fzf | imag edit -I` is not a thing.
+    * `imag ids` does not print the path of the store. Can be turned on using
+      commandline flag.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
