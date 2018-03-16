@@ -198,7 +198,7 @@ mod compile_test {
     use storeid::StoreId;
 
     fn store() -> Store {
-        unimplemented!()
+        unimplemented!("Not implemented because in compile-test")
     }
 
     fn test_compile_get() {
