@@ -22,15 +22,19 @@
 extern crate toml;
 extern crate toml_query;
 extern crate vobject;
+extern crate chrono;
 
 extern crate libimagentrylink;
 #[macro_use] extern crate libimagentryref;
-extern crate libimagentryutil;
+#[macro_use] extern crate libimagentryutil;
 extern crate libimagerror;
-extern crate libimagstore;
+#[macro_use] extern crate libimagstore;
+
+module_entry_path_mod!("calendar");
 
 pub mod calendar;
 pub mod collection;
 pub mod error;
+pub mod event;
 pub mod store;
 

@@ -25,6 +25,7 @@ log         = "0.3"
 toml        = "0.4"
 toml-query  = "0.4"
 vobject     = "0.4"
+chrono      = "0.4"
 
 libimagentrylink = { version = "0.7.0", path = "../../../lib/entry/libimagentrylink" }
 libimagentryref  = { version = "0.7.0", path = "../../../lib/entry/libimagentryref", features = ["generators", "generators-sha1"] }

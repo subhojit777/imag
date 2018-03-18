@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::path::PathBuf;
+
 error_chain! {
     types {
         CalendarError, CalendarErrorKind, ResultExt, Result;
@@ -27,6 +29,8 @@ error_chain! {
         LinkError(::libimagentrylink::error::LinkError, ::libimagentrylink::error::LinkErrorKind);
         RefError(::libimagentryref::error::RefError, ::libimagentryref::error::RefErrorKind);
         IcalendarError(::vobject::error::VObjectError, ::vobject::error::VObjectErrorKind);
+        EntryUtilError(::libimagentryutil::error::EntryUtilError, ::libimagentryutil::error::EntryUtilErrorKind);
+        TomlQueryError(::toml_query::error::Error, ::toml_query::error::ErrorKind);
     }
 
     foreign_links {
@@ -35,6 +39,15 @@ error_chain! {
     }
 
     errors {
+        NotAnEvent(filepath: PathBuf) {
+            description("Object is not an event")
+                display("Object in {:?} is not an event", filepath)
+        }
+
+        EventWithoutUid(filepath: PathBuf) {
+            description("Event has no UID field")
+                display("Event in {:?} has no UID field", filepath)
+        }
     }
 }
 
