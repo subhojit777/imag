@@ -37,6 +37,7 @@ extern crate clap;
 extern crate url;
 #[cfg(test)] extern crate toml;
 #[cfg(test)] extern crate toml_query;
+#[cfg(test)] extern crate env_logger;
 
 extern crate libimagentrylink;
 #[macro_use] extern crate libimagrt;
@@ -119,8 +120,12 @@ fn main() {
 fn get_entry_by_name<'a>(rt: &'a Runtime, name: &str) -> Result<Option<FileLockEntry<'a>>, StoreError> {
     use libimagstore::storeid::StoreId;
 
-    StoreId::new(Some(rt.store().path().clone()), PathBuf::from(name))
-        .and_then(|id| rt.store().get(id))
+    debug!("Getting: {:?}", name);
+    let result = StoreId::new(Some(rt.store().path().clone()), PathBuf::from(name))
+        .and_then(|id| rt.store().get(id));
+
+    debug!(" => : {:?}", result);
+    result
 }
 
 fn link_from_to<'a, I>(rt: &'a Runtime, from: &'a str, to: I)
@@ -128,10 +133,14 @@ fn link_from_to<'a, I>(rt: &'a Runtime, from: &'a str, to: I)
 {
     let mut from_entry = match get_entry_by_name(rt, from).map_err_trace_exit_unwrap(1) {
         Some(e) => e,
-        None    => warn_exit("No 'from' entry", 1),
+        None    => {
+            debug!("No 'from' entry");
+            warn_exit("No 'from' entry", 1)
+        },
     };
 
     for entry in to {
+        debug!("Handling 'to' entry: {:?}", entry);
         if PathBuf::from(entry).exists() {
             debug!("Linking externally: {:?} -> {:?}", from, entry);
             let url = Url::parse(entry).unwrap_or_else(|e| {
@@ -312,6 +321,10 @@ mod tests {
     use libimagstore::storeid::StoreId;
     use libimagstore::store::{Result as StoreResult, FileLockEntry, Entry};
 
+    fn setup_logging() {
+        let _ = ::env_logger::try_init();
+    }
+
     make_mock_app! {
         app "imag-link";
         modulename mock;
@@ -327,8 +340,14 @@ mod tests {
 
         let default_entry = Entry::new(StoreId::new_baseless(PathBuf::from("")).unwrap()).to_str();
 
+        debug!("Default entry constructed");
+
         let id = StoreId::new_baseless(path)?;
+        debug!("StoreId constructed: {:?}", id);
+
         let mut entry = rt.store().create(id.clone())?;
+
+        debug!("Entry constructed: {:?}", id);
         entry.get_content_mut().push_str(&default_entry);
 
         Ok(id)
@@ -351,19 +370,28 @@ mod tests {
 
     #[test]
     fn test_link_modificates() {
-        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2"])
+        setup_logging();
+        let rt = generate_test_runtime(vec!["internal", "test1", "test2"])
             .unwrap();
+
+        debug!("Runtime created");
 
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
         let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
 
+        debug!("Entries created");
+
         link_from_to(&rt, "test1", vec!["test2"].into_iter());
+
+        debug!("Linking done");
 
         let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
         let test_links1 = get_entry_links(&test_entry1).unwrap();
 
         let test_entry2 = rt.store().get(test_id2).unwrap().unwrap();
         let test_links2 = get_entry_links(&test_entry2).unwrap();
+
+        debug!("Asserting");
 
         assert_ne!(*test_links1, links_toml_value(vec![]));
         assert_ne!(*test_links2, links_toml_value(vec![]));
@@ -371,19 +399,28 @@ mod tests {
 
     #[test]
     fn test_linking_links() {
-        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2"])
+        setup_logging();
+        let rt = generate_test_runtime(vec!["internal", "test1", "test2"])
             .unwrap();
+
+        debug!("Runtime created");
 
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
         let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
 
+        debug!("Test entries created");
+
         link_from_to(&rt, "test1", vec!["test2"].into_iter());
+
+        debug!("Linking done");
 
         let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
         let test_links1 = get_entry_links(&test_entry1).unwrap();
 
         let test_entry2 = rt.store().get(test_id2).unwrap().unwrap();
         let test_links2 = get_entry_links(&test_entry2).unwrap();
+
+        debug!("Asserting");
 
         assert_eq!(*test_links1, links_toml_value(vec!["test2"]));
         assert_eq!(*test_links2, links_toml_value(vec!["test1"]));
@@ -391,14 +428,21 @@ mod tests {
 
     #[test]
     fn test_multilinking() {
-        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2"])
+        setup_logging();
+        let rt = generate_test_runtime(vec!["internal", "test1", "test2"])
             .unwrap();
+
+        debug!("Runtime created");
 
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
         let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
 
+        debug!("Test entries created");
+
         link_from_to(&rt, "test1", vec!["test2"].into_iter());
         link_from_to(&rt, "test1", vec!["test2"].into_iter());
+
+        debug!("Linking done");
 
         let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
         let test_links1 = get_entry_links(&test_entry1).unwrap();
@@ -406,21 +450,30 @@ mod tests {
         let test_entry2 = rt.store().get(test_id2).unwrap().unwrap();
         let test_links2 = get_entry_links(&test_entry2).unwrap();
 
+        debug!("Asserting");
+
         assert_eq!(*test_links1, links_toml_value(vec!["test2"]));
         assert_eq!(*test_links2, links_toml_value(vec!["test1"]));
     }
 
     #[test]
     fn test_linking_more_than_two() {
-        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2", "test3"])
+        setup_logging();
+        let rt = generate_test_runtime(vec!["internal", "test1", "test2", "test3"])
             .unwrap();
+
+        debug!("Runtime created");
 
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
         let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
         let test_id3 = create_test_default_entry(&rt, "test3").unwrap();
 
+        debug!("Test entries created");
+
         link_from_to(&rt, "test1", vec!["test2", "test3"].into_iter());
         link_from_to(&rt, "test1", vec!["test2", "test3"].into_iter());
+
+        debug!("Linking done");
 
         let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
         let test_links1 = get_entry_links(&test_entry1).unwrap();
@@ -430,6 +483,8 @@ mod tests {
 
         let test_entry3 = rt.store().get(test_id3).unwrap().unwrap();
         let test_links3 = get_entry_links(&test_entry3).unwrap();
+
+        debug!("Asserting");
 
         assert_eq!(*test_links1, links_toml_value(vec!["test2", "test3"]));
         assert_eq!(*test_links2, links_toml_value(vec!["test1"]));
@@ -440,18 +495,27 @@ mod tests {
 
     #[test]
     fn test_linking_links_unlinking_removes_links() {
-        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2"])
+        setup_logging();
+        let rt = generate_test_runtime(vec!["internal", "test1", "test2"])
             .unwrap();
+
+        debug!("Runtime created");
 
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
         let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
 
+        debug!("Test entries created");
+
         link_from_to(&rt, "test1", vec!["test2"].into_iter());
+
+        debug!("Linking done");
 
         let rt = reset_test_runtime(vec!["remove", "test1", "test2"], rt)
             .unwrap();
 
         remove_linking(&rt);
+
+        debug!("Linking removed");
 
         let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
         let test_links1 = get_entry_links(&test_entry1).unwrap();
@@ -459,25 +523,36 @@ mod tests {
         let test_entry2 = rt.store().get(test_id2).unwrap().unwrap();
         let test_links2 = get_entry_links(&test_entry2).unwrap();
 
+        debug!("Asserting");
+
         assert_eq!(*test_links1, links_toml_value(vec![]));
         assert_eq!(*test_links2, links_toml_value(vec![]));
     }
 
     #[test]
     fn test_linking_and_unlinking_more_than_two() {
-        let rt = generate_test_runtime(vec!["internal", "add", "test1", "test2", "test3"])
+        setup_logging();
+        let rt = generate_test_runtime(vec!["internal", "test1", "test2", "test3"])
             .unwrap();
+
+        debug!("Runtime created");
 
         let test_id1 = create_test_default_entry(&rt, "test1").unwrap();
         let test_id2 = create_test_default_entry(&rt, "test2").unwrap();
         let test_id3 = create_test_default_entry(&rt, "test3").unwrap();
 
+        debug!("Test entries created");
+
         link_from_to(&rt, "test1", vec!["test2", "test3"].into_iter());
+
+        debug!("linking done");
 
         let rt = reset_test_runtime(vec!["remove", "test1", "test2", "test3"], rt)
             .unwrap();
 
         remove_linking(&rt);
+
+        debug!("linking removed");
 
         let test_entry1 = rt.store().get(test_id1).unwrap().unwrap();
         let test_links1 = get_entry_links(&test_entry1).unwrap();
@@ -487,6 +562,8 @@ mod tests {
 
         let test_entry3 = rt.store().get(test_id3).unwrap().unwrap();
         let test_links3 = get_entry_links(&test_entry3).unwrap();
+
+        debug!("Asserting");
 
         assert_eq!(*test_links1, links_toml_value(vec![]));
         assert_eq!(*test_links2, links_toml_value(vec![]));
