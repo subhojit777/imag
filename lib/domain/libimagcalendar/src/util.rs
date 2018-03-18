@@ -17,25 +17,22 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#[macro_use] extern crate error_chain;
-#[macro_use] extern crate log;
-extern crate toml;
-extern crate toml_query;
-extern crate vobject;
-extern crate chrono;
+use std::fs::OpenOptions;
+use std::io::Read;
+use std::path::Path;
 
-extern crate libimagentrylink;
-#[macro_use] extern crate libimagentryref;
-#[macro_use] extern crate libimagentryutil;
-extern crate libimagerror;
-#[macro_use] extern crate libimagstore;
+use error::CalendarError as CE;
+use error::Result;
 
-module_entry_path_mod!("calendar");
-
-pub mod calendar;
-pub mod collection;
-pub mod error;
-pub mod event;
-pub mod store;
-mod util;
+pub fn readfile<A: AsRef<Path>>(p: A) -> Result<String> {
+    let mut s = String::new();
+    OpenOptions::new()
+        .read(true)
+        .write(false)
+        .create(false)
+        .open(p)?
+        .read_to_string(&mut s)
+        .map_err(CE::from)
+        .map(|_| s)
+}
 

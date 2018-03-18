@@ -18,8 +18,6 @@
 //
 
 use std::path::Path;
-use std::io::Read;
-use std::fs::OpenOptions;
 
 use error::Result;
 use error::CalendarError as CE;
@@ -51,7 +49,7 @@ impl Calendar for Entry {
     fn calendar(&self) -> Result<ICalendar> {
         self.get_path()
             .map_err(CE::from)
-            .and_then(readfile)
+            .and_then(::util::readfile)
             .and_then(|s| ICalendar::build(&s).map_err(CE::from))
     }
 
@@ -104,17 +102,5 @@ impl Calendar for Entry {
             })
     }
 
-}
-
-fn readfile<A: AsRef<Path>>(p: A) -> Result<String> {
-    let mut s = String::new();
-    OpenOptions::new()
-        .read(true)
-        .write(false)
-        .create(false)
-        .open(p)?
-        .read_to_string(&mut s)
-        .map_err(CE::from)
-        .map(|_| s)
 }
 
