@@ -110,19 +110,37 @@ impl Event for Entry {
     }
 
     fn get_end(&self) -> Result<NaiveDateTime> {
-        unimplemented!()
+        return_for_id!(self, |ev: VObjectEvent, uid: String| {
+            let dtend = ev.get_dtend()
+                .ok_or_else(|| CE::from(CEK::EventMetadataMissing("end", uid.clone())))?;
+            NaiveDateTime::parse_from_str(dtend.raw(), "%Y%m%dT%H%M%S").map_err(CE::from)
+        })
     }
 
     fn get_location(&self) -> Result<String> {
-        unimplemented!()
+        return_for_id!(self, |ev: VObjectEvent, uid: String| {
+            ev.get_location()
+                .map(|l| l.raw().clone())
+                .ok_or_else(|| CE::from(CEK::EventMetadataMissing("location", uid.clone())))
+        })
     }
 
     fn get_categories(&self) -> Result<Vec<String>> {
-        unimplemented!()
+        return_for_id!(self, |ev: VObjectEvent, uid: String| {
+            ev.get_categories()
+                .ok_or_else(|| CE::from(CEK::EventMetadataMissing("categories", uid.clone())))
+                .map(|c| vec![c.raw().clone()])
+                // TODO: vobject::icalendar::Event::get_categories() -> Option<Categories>
+                // The API of vobject does not yet return categories split up.
+        })
     }
 
     fn get_description(&self) -> Result<String> {
-        unimplemented!()
+        return_for_id!(self, |ev: VObjectEvent, uid: String| {
+            ev.get_description()
+                .map(|c| c.raw().clone())
+                .ok_or_else(|| CE::from(CEK::EventMetadataMissing("description", uid.clone())))
+        })
     }
 
 }
