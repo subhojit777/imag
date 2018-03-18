@@ -68,7 +68,36 @@ impl Event for Entry {
     // Accessing the actual icalendar file
 
     fn get_start(&self) -> Result<NaiveDateTime> {
-        unimplemented!()
+        let path = self.get_path()?;
+        let uid  = self.get_uid()?.ok_or_else(|| CEK::EventWithoutUid(path.clone()))?;
+
+        self.get_path()
+            .map_err(CE::from)
+            .and_then(::util::readfile)
+            .and_then(|s| ICalendar::build(&s).map_err(CE::from))?
+            .events()
+            .map(|ev| ev.map_err(|_| CEK::NotAnEvent(path.clone()).into()))
+            .collect::<Result<Vec<_>>>()?
+            .into_iter()
+            .map(|ev| {
+                ev.get_uid()
+                    .ok_or_else(|| CEK::EventWithoutUid(path.clone()).into())
+                    .map(|id| (ev, *id.raw() == uid))
+            })
+            .filter(|res| match res {
+                &Ok((_, boo)) => boo,
+                _ => true,
+            }) // uid match or error
+            .map(|res| res.map(|tpl| tpl.0))
+            .collect::<Result<Vec<_>>>()?
+            .into_iter()
+            .next()
+            .ok_or_else(|| CE::from(CEK::CannotFindEventForId(uid.clone())))?
+            .get_dtstart()
+            .ok_or_else(|| CE::from(CEK::EventMetadataMissing("start", uid.clone())))
+            .and_then(|dtstart| {
+                NaiveDateTime::parse_from_str(dtstart.raw(), "%Y%m%dT%H%M%S").map_err(CE::from)
+            })
     }
 
     fn get_end(&self) -> Result<NaiveDateTime> {
