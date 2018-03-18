@@ -19,11 +19,17 @@
 
 use chrono::NaiveDateTime;
 
+use toml::Value;
+use toml_query::read::TomlValueReadExt;
+use vobject::icalendar::ICalendar;
+
 use libimagentryref::reference::Ref;
 use libimagentryutil::isa::Is;
 use libimagentryutil::isa::IsKindHeaderPathProvider;
 use libimagstore::store::Entry;
 
+use error::CalendarError as CE;
+use error::CalendarErrorKind as CEK;
 use error::*;
 
 provide_kindflag_path!(pub IsEvent, "calendar.is_event");
@@ -31,6 +37,11 @@ provide_kindflag_path!(pub IsEvent, "calendar.is_event");
 /// A Event is a Entry in the store which refers to a calendar file that contains said Event.
 pub trait Event : Ref {
     fn is_event(&self) -> Result<bool>;
+
+    /// get the UID for this event.
+    ///
+    /// This information is stored in the Header
+    fn get_uid(&self) -> Result<Option<String>>;
 
     // Accessing the actual icalendar file
 
@@ -44,6 +55,14 @@ pub trait Event : Ref {
 impl Event for Entry {
     fn is_event(&self) -> Result<bool> {
         self.is::<IsEvent>().map_err(From::from)
+    }
+
+    fn get_uid(&self) -> Result<Option<String>> {
+        match self.get_header().read("calendar.event.uid").map_err(CE::from)? {
+            None                        => Ok(None),
+            Some(&Value::String(ref s)) => Ok(Some(s.clone())),
+            Some(_) => Err(CEK::HeaderTypeError("calendar.event.uid", "String").into()),
+        }
     }
 
     // Accessing the actual icalendar file
