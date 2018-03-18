@@ -36,6 +36,7 @@ error_chain! {
     foreign_links {
         Io(::std::io::Error);
         Utf8Error(::std::string::FromUtf8Error);
+        ChronoParserError(::chrono::format::ParseError);
     }
 
     errors {
@@ -47,6 +48,21 @@ error_chain! {
         EventWithoutUid(filepath: PathBuf) {
             description("Event has no UID field")
                 display("Event in {:?} has no UID field", filepath)
+        }
+
+        HeaderTypeError(header_path: &'static str, expected: &'static str) {
+            description("Header path type error")
+                display("Header path type error at '{}', expected '{}'", header_path, expected)
+        }
+
+        CannotFindEventForId(id: String) {
+            description("Cannot find event for id")
+                display("Cannot find event for id {}", id)
+        }
+
+        EventMetadataMissing(dataname: &'static str, id: String) {
+            description("Event metadata missing")
+                display("Event metadata '{}' missing in {}", dataname, id)
         }
     }
 }
