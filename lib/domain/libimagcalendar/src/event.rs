@@ -57,6 +57,28 @@ pub trait Event : Ref {
     fn get_description(&self) -> Result<String>;
 }
 
+/// Helper macro for finding an ID and executing something for it
+///
+/// Not possible as a function because of lifetimes
+macro_rules! return_for_id {
+    ($this:ident, $doblock:expr) => {{
+        let path = $this.get_path()?;
+        let uid  = $this.get_uid()?.ok_or_else(|| CEK::EventWithoutUid(path.clone()))?;
+
+        for event in $this.get_calendar()?.events() {
+            let event    = event.map_err(|_| CE::from_kind(CEK::NotAnEvent(path.clone())))?;
+            let event_id = event.get_uid()
+                .ok_or_else(|| CE::from_kind(CEK::EventWithoutUid(path.clone())))?;
+
+            if *event_id.raw() == uid {
+                return $doblock(event, uid)
+            }
+        }
+
+        Err(CE::from(CEK::CannotFindEventForId(uid)))
+    }};
+}
+
 impl Event for Entry {
     fn is_event(&self) -> Result<bool> {
         self.is::<IsEvent>().map_err(From::from)
@@ -80,22 +102,11 @@ impl Event for Entry {
     }
 
     fn get_start(&self) -> Result<NaiveDateTime> {
-        let path = self.get_path()?;
-        let uid  = self.get_uid()?.ok_or_else(|| CEK::EventWithoutUid(path.clone()))?;
-
-        for event in self.get_calendar()?.events() {
-            let event    = event.map_err(|_| CE::from_kind(CEK::NotAnEvent(path.clone())))?;
-            let event_id = event.get_uid()
-                .ok_or_else(|| CE::from_kind(CEK::EventWithoutUid(path.clone())))?;
-
-            if *event_id.raw() == uid {
-                let dtstart = event.get_dtstart()
-                    .ok_or_else(|| CE::from(CEK::EventMetadataMissing("start", uid.clone())))?;
-                return NaiveDateTime::parse_from_str(dtstart.raw(), "%Y%m%dT%H%M%S")
-                    .map_err(CE::from);
-            }
-        }
-        Err(CE::from(CEK::CannotFindEventForId(uid.clone())))
+        return_for_id!(self, |ev: VObjectEvent, uid: String| {
+            let dtstart = ev.get_dtstart()
+                .ok_or_else(|| CE::from(CEK::EventMetadataMissing("start", uid.clone())))?;
+            NaiveDateTime::parse_from_str(dtstart.raw(), "%Y%m%dT%H%M%S").map_err(CE::from)
+        })
     }
 
     fn get_end(&self) -> Result<NaiveDateTime> {
