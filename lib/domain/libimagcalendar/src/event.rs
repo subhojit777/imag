@@ -17,11 +17,14 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::path::PathBuf;
+
 use chrono::NaiveDateTime;
 
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
 use vobject::icalendar::ICalendar;
+use vobject::icalendar::Event as VObjectEvent;
 
 use libimagentryref::reference::Ref;
 use libimagentryutil::isa::Is;
@@ -45,6 +48,8 @@ pub trait Event : Ref {
 
     // Accessing the actual icalendar file
 
+    fn get_calendar(&self)    -> Result<ICalendar>;
+
     fn get_start(&self)       -> Result<NaiveDateTime>;
     fn get_end(&self)         -> Result<NaiveDateTime>;
     fn get_location(&self)    -> Result<String>;
@@ -67,37 +72,30 @@ impl Event for Entry {
 
     // Accessing the actual icalendar file
 
+    fn get_calendar<'a>(&self) -> Result<ICalendar> {
+        self.get_path()
+            .map_err(CE::from)
+            .and_then(::util::readfile)
+            .and_then(|s| ICalendar::build(&s).map_err(CE::from))
+    }
+
     fn get_start(&self) -> Result<NaiveDateTime> {
         let path = self.get_path()?;
         let uid  = self.get_uid()?.ok_or_else(|| CEK::EventWithoutUid(path.clone()))?;
 
-        self.get_path()
-            .map_err(CE::from)
-            .and_then(::util::readfile)
-            .and_then(|s| ICalendar::build(&s).map_err(CE::from))?
-            .events()
-            .map(|ev| ev.map_err(|_| CEK::NotAnEvent(path.clone()).into()))
-            .collect::<Result<Vec<_>>>()?
-            .into_iter()
-            .map(|ev| {
-                ev.get_uid()
-                    .ok_or_else(|| CEK::EventWithoutUid(path.clone()).into())
-                    .map(|id| (ev, *id.raw() == uid))
-            })
-            .filter(|res| match res {
-                &Ok((_, boo)) => boo,
-                _ => true,
-            }) // uid match or error
-            .map(|res| res.map(|tpl| tpl.0))
-            .collect::<Result<Vec<_>>>()?
-            .into_iter()
-            .next()
-            .ok_or_else(|| CE::from(CEK::CannotFindEventForId(uid.clone())))?
-            .get_dtstart()
-            .ok_or_else(|| CE::from(CEK::EventMetadataMissing("start", uid.clone())))
-            .and_then(|dtstart| {
-                NaiveDateTime::parse_from_str(dtstart.raw(), "%Y%m%dT%H%M%S").map_err(CE::from)
-            })
+        for event in self.get_calendar()?.events() {
+            let event    = event.map_err(|_| CE::from_kind(CEK::NotAnEvent(path.clone())))?;
+            let event_id = event.get_uid()
+                .ok_or_else(|| CE::from_kind(CEK::EventWithoutUid(path.clone())))?;
+
+            if *event_id.raw() == uid {
+                let dtstart = event.get_dtstart()
+                    .ok_or_else(|| CE::from(CEK::EventMetadataMissing("start", uid.clone())))?;
+                return NaiveDateTime::parse_from_str(dtstart.raw(), "%Y%m%dT%H%M%S")
+                    .map_err(CE::from);
+            }
+        }
+        Err(CE::from(CEK::CannotFindEventForId(uid.clone())))
     }
 
     fn get_end(&self) -> Result<NaiveDateTime> {
@@ -117,3 +115,4 @@ impl Event for Entry {
     }
 
 }
+
