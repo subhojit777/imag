@@ -27,9 +27,6 @@ use libimagentryref::generators::sha1::Sha1;
 use error::Result;
 use error::CalendarError as CE;
 
-/// A interface to the store which offers CRUD functionality for calendars
-pub struct CalendarStore<'a>(&'a Store);
-
 make_unique_ref_path_generator! (
     pub CalendarHasher
     over Sha1
@@ -40,22 +37,43 @@ make_unique_ref_path_generator! (
     }
 );
 
-impl<'a> CalendarStore<'a> {
+/// A interface to the store which offers CRUD functionality for calendars
+pub trait CalendarStore<'a> {
+    fn get_calendar<H: AsRef<str>>(&'a self, hash: H)    -> Result<Option<FileLockEntry<'a>>>;
+    fn create_calendar<P: AsRef<Path>>(&'a self, p: P)   -> Result<FileLockEntry<'a>>;
+    fn retrieve_calendar<P: AsRef<Path>>(&'a self, p: P) -> Result<FileLockEntry<'a>>;
+    fn delete_calendar_by_hash(&'a self, hash: String)   -> Result<()>;
+}
 
-    fn get_calendar<H: AsRef<str>>(&self, hash: H) -> Result<Option<FileLockEntry<'a>>> {
-        self.0.get_ref::<CalendarHasher, H>(hash).map_err(CE::from)
+impl<'a> CalendarStore<'a> for Store {
+
+    /// Get a calendar
+    fn get_calendar<H: AsRef<str>>(&'a self, hash: H) -> Result<Option<FileLockEntry<'a>>> {
+        self.get_ref::<CalendarHasher, H>(hash).map_err(CE::from)
     }
 
-    fn create_calendar<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
-        self.0.create_ref::<CalendarHasher, P>(p).map_err(CE::from)
+    /// Create a calendar
+    ///
+    /// # TODO
+    ///
+    /// Check whether the path `p` is a file, return error if not
+    fn create_calendar<P: AsRef<Path>>(&'a self, p: P) -> Result<FileLockEntry<'a>> {
+        self.create_ref::<CalendarHasher, P>(p).map_err(CE::from)
     }
 
-    fn retrieve_calendar<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
-        self.0.retrieve_ref::<CalendarHasher, P>(p).map_err(CE::from)
+    /// Get or create a calendar
+    ///
+    /// # TODO
+    ///
+    /// Check whether the path `p` is a file, return error if not
+    fn retrieve_calendar<P: AsRef<Path>>(&'a self, p: P) -> Result<FileLockEntry<'a>> {
+        self.retrieve_ref::<CalendarHasher, P>(p).map_err(CE::from)
     }
 
-    fn delete_calendar_by_hash(&self, hash: String) -> Result<()> {
+    /// Delete a calendar
+    fn delete_calendar_by_hash(&'a self, hash: String) -> Result<()> {
         unimplemented!()
     }
 
 }
+

@@ -27,9 +27,6 @@ use libimagentryref::refstore::RefStore;
 use error::Result;
 use error::CalendarError as CE;
 
-/// A interface to the store which offers CRUD functionality for calendar collections
-pub struct CalendarCollectionStore<'a>(&'a Store);
-
 make_unique_ref_path_generator! (
     pub CalendarCollectionPathHasher
     over Sha1
@@ -40,21 +37,40 @@ make_unique_ref_path_generator! (
     }
 );
 
-impl<'a> CalendarCollectionStore<'a> {
+pub trait CalendarCollectionStore<'a> {
+    fn get_calendar_collection<H: AsRef<str>>(&'a self, hash: H)    -> Result<Option<FileLockEntry<'a>>>;
+    fn create_calendar_collection<P: AsRef<Path>>(&'a self, p: P)   -> Result<FileLockEntry<'a>>;
+    fn retrieve_calendar_collection<P: AsRef<Path>>(&'a self, p: P) -> Result<FileLockEntry<'a>>;
+    fn delete_calendar_collection_by_hash(&'a self, hash: String)   -> Result<()>;
+}
 
-    fn get_calendar_collection<H: AsRef<str>>(&self, hash: H) -> Result<Option<FileLockEntry<'a>>> {
-        self.0.get_ref::<CalendarCollectionPathHasher, H>(hash).map_err(CE::from)
+impl<'a> CalendarCollectionStore<'a> for Store {
+
+    /// Get a calendar collection
+    fn get_calendar_collection<H: AsRef<str>>(&'a self, hash: H) -> Result<Option<FileLockEntry<'a>>> {
+        self.get_ref::<CalendarCollectionPathHasher, H>(hash).map_err(CE::from)
     }
 
-    fn create_calendar_collection<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
-        self.0.create_ref::<CalendarCollectionPathHasher, P>(p).map_err(CE::from)
+    /// Create a calendar collection
+    ///
+    /// # TODO
+    ///
+    /// Verify that the path `p` is a directory
+    fn create_calendar_collection<P: AsRef<Path>>(&'a self, p: P) -> Result<FileLockEntry<'a>> {
+        self.create_ref::<CalendarCollectionPathHasher, P>(p).map_err(CE::from)
     }
 
-    fn retrieve_calendar_collection<P: AsRef<Path>>(&self, p: P) -> Result<FileLockEntry<'a>> {
-        self.0.retrieve_ref::<CalendarCollectionPathHasher, P>(p).map_err(CE::from)
+    /// Get or create a calendar collection
+    ///
+    /// # TODO
+    ///
+    /// Verify that the path `p` is a directory
+    fn retrieve_calendar_collection<P: AsRef<Path>>(&'a self, p: P) -> Result<FileLockEntry<'a>> {
+        self.retrieve_ref::<CalendarCollectionPathHasher, P>(p).map_err(CE::from)
     }
 
-    fn delete_calendar_collection_by_hash(&self, hash: String) -> Result<()> {
+    /// Delete a calendar collection
+    fn delete_calendar_collection_by_hash(&'a self, hash: String) -> Result<()> {
         unimplemented!()
     }
 
