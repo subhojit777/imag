@@ -25,9 +25,14 @@ use walkdir::DirEntry;
 use clap::ArgMatches;
 
 use libimagrt::runtime::Runtime;
+use libimagerror::iter::TraceIterator;
 use libimagerror::trace::MapErrTrace;
 use libimagcalendar::store::calendars::CalendarStore;
 use libimagcalendar::store::collections::CalendarCollectionStore;
+use libimagentryref::reference::Ref;
+use libimagcalendar::collection::Collection;
+use libimagstore::iter::get::StoreIdGetIteratorExtension;
+use libimagutil::warn_result::*;
 
 pub fn collection(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("collection").unwrap(); // safed by main()
@@ -91,7 +96,50 @@ fn add<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
 }
 
 fn remove<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
-    unimplemented!()
+    let name = scmd.value_of("collection-remove-name").map(String::from).unwrap(); // safe by clap
+
+    let collection_hash = {
+        let collection = rt
+            .store()
+            .get_calendar_collection(&name)
+            .map_err_trace_exit_unwrap(1)
+            .unwrap_or_else(|| {
+                error!("No callendar collection named {}", name);
+                exit(1)
+            });
+
+        let hash = collection
+            .get_hash()
+            .map(String::from)
+            .map_err_trace_exit_unwrap(1);
+
+        let errstr = format!("Failed to get entry from store for collection {}", hash);
+
+        collection
+            .calendars()
+            .map_err_trace_exit_unwrap(1)
+            .into_get_iter(rt.store())
+            .map(|e| e.map_warn_err_str(&errstr))
+            .trace_unwrap_exit(1)
+            .filter_map(|o| o)
+            .map(|e| {
+                let hash = e.get_hash().map(String::from).map_err_trace_exit_unwrap(1);
+                debug!("Entry: {} -> Hash: {}", e.get_location(), hash);
+                hash
+            })
+            .for_each(|hash| {
+                debug!("Deleting {}", hash);
+                rt.store()
+                    .delete_calendar_by_hash(hash)
+                    .map_err_trace_exit_unwrap(1);
+            });
+
+        hash
+    };
+
+    rt.store()
+        .delete_calendar_collection_by_hash(collection_hash)
+        .map_err_trace_exit_unwrap(1);
 }
 
 fn show<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {

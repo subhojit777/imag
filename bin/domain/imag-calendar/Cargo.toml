@@ -25,13 +25,13 @@ maintenance                       = { status     = "actively-developed" }
 log     = "0.4.0"
 walkdir = "2"
 
+libimagcalendar  = { version = "0.8.0", path = "../../../lib/domain/libimagcalendar" }
+libimagentryref  = { version = "0.8.0", path = "../../../lib/entry/libimagentryref" }
 libimagerror     = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
 libimagrt        = { version = "0.8.0", path = "../../../lib/core/libimagrt" }
 libimagstore     = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
-libimagcalendar  = { version = "0.8.0", path = "../../../lib/domain/libimagcalendar" }
-libimagentryref  = { version = "0.8.0", path = "../../../lib/entry/libimagentryref" }
-libimagutil      = { version = "0.8.0", path = "../../../lib/etc/libimagutil" }
 libimagtimeui    = { version = "0.8.0", path = "../../../lib/etc/libimagtimeui" }
+libimagutil      = { version = "0.8.0", path = "../../../lib/etc/libimagutil" }
 
 [dependencies.clap]
 version = ">=2.29"
