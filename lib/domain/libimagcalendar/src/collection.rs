@@ -17,11 +17,17 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::path::Path;
+
 use libimagstore::storeid::StoreIdIterator;
+use libimagstore::store::Store;
 use libimagstore::store::Entry;
+use libimagstore::store::FileLockEntry;
 use libimagentrylink::internal::InternalLinker;
 
+use store::calendars::CalendarStore;
 use store::iter::CalendarIter;
+use error::CalendarError as CE;
 use error::Result;
 
 /// A Collection is a set of calendars
@@ -30,6 +36,10 @@ use error::Result;
 pub trait Collection {
 
     fn calendars(&self) -> Result<CalendarIter<StoreIdIterator>>;
+
+    fn add_retrieve_calendar_from_path<'a, P: AsRef<Path>>(&mut self, p: P, store: &'a Store)
+        -> Result<FileLockEntry<'a>>;
+
 }
 
 impl Collection for Entry {
@@ -37,6 +47,24 @@ impl Collection for Entry {
     fn calendars(&self) -> Result<CalendarIter<StoreIdIterator>> {
         let i = self.get_internal_links()?.map(|l| l.get_store_id().clone());
         Ok(CalendarIter::new(StoreIdIterator::new(Box::new(i))))
+    }
+
+    /// Add a calendar to the collection
+    ///
+    /// # Internals
+    ///
+    /// Uses `Store::retrieve()` so if the calendar was already added to the store, this function
+    /// loads that entry and ensures that the calendar is linked to the collection.
+    ///
+    fn add_retrieve_calendar_from_path<'a, P: AsRef<Path>>(&mut self, p: P, store: &'a Store)
+        -> Result<FileLockEntry<'a>>
+    {
+        store.retrieve_calendar(p)
+            .and_then(|mut fle| {
+                self.add_internal_link(&mut fle)
+                    .map_err(CE::from)
+                    .map(|_| fle)
+            })
     }
 }
 
