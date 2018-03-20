@@ -19,6 +19,7 @@
 
 use std::path::Path;
 
+use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagentryref::generators::sha1::Sha1;
@@ -28,6 +29,7 @@ use libimagentryutil::isa::Is;
 use error::Result;
 use error::CalendarError as CE;
 use collection::IsCalendarCollection;
+use store::iter::CalendarCollectionIter;
 
 make_unique_ref_path_generator! (
     pub CalendarCollectionPathHasher
@@ -44,6 +46,7 @@ pub trait CalendarCollectionStore<'a> {
     fn create_calendar_collection<P: AsRef<Path>>(&'a self, p: P)   -> Result<FileLockEntry<'a>>;
     fn retrieve_calendar_collection<P: AsRef<Path>>(&'a self, p: P) -> Result<FileLockEntry<'a>>;
     fn delete_calendar_collection_by_hash(&'a self, hash: String)   -> Result<()>;
+    fn calendar_collections(&self) -> Result<CalendarCollectionIter<StoreIdIterator>>;
 }
 
 impl<'a> CalendarCollectionStore<'a> for Store {
@@ -80,4 +83,7 @@ impl<'a> CalendarCollectionStore<'a> for Store {
         unimplemented!()
     }
 
+    fn calendar_collections(&self) -> Result<CalendarCollectionIter<StoreIdIterator>> {
+        Ok(CalendarCollectionIter::new(self.entries()?.without_store()))
+    }
 }
