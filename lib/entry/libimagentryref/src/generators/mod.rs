@@ -205,8 +205,19 @@ macro_rules! make_sha_mod {
                         .open(path)
                         .map_err(RE::from)
                         .and_then(|mut file| {
-                            let mut buffer = Vec::with_capacity(n);
-                            let _ = file.read_exact(&mut buffer)?;
+                            let mut buffer = vec![0; n];
+                            debug!("Allocated {} bytes", buffer.capacity());
+
+                            match file.read_exact(&mut buffer) {
+                                Ok(_)  => { /* yay */ Ok(()) },
+                                Err(e) => if e.kind() == ::std::io::ErrorKind::UnexpectedEof {
+                                    debug!("Ignoring unexpected EOF before {} bytes were read", n);
+                                    Ok(())
+                                } else {
+                                    Err(e)
+                                }
+                            }?;
+
                             let buffer = String::from_utf8(buffer)?;
                             $hashingimpl(buffer)
                         })
