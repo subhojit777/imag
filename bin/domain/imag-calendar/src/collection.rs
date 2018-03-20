@@ -59,7 +59,6 @@ pub fn collection(rt: &Runtime) {
 }
 
 fn add<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
-    let name = scmd.value_of("collection-add-name").map(String::from).unwrap(); // safe by clap
     let path = scmd.value_of("collection-add-path").map(PathBuf::from).unwrap(); // safe by clap
 
     if !path.is_dir() { // TODO: Move this check to libimagcalendar
