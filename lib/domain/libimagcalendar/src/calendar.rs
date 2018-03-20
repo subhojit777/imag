@@ -36,15 +36,22 @@ use toml::Value;
 use toml_query::insert::TomlValueInsertExt;
 use vobject::icalendar::ICalendar;
 
+provide_kindflag_path!(pub IsCalendar, "calendar.is_calendar");
+
 /// A Calendar is a set of calendar entries
 ///
 /// A Calendar represents a ical file on the filesystem
 pub trait Calendar : Ref {
+    fn is_calendar(&self) -> Result<bool>;
+
     fn calendar(&self) -> Result<ICalendar>;
     fn events<'a>(&mut self, store: &'a Store) -> Result<Vec<FileLockEntry<'a>>>;
 }
 
 impl Calendar for Entry {
+    fn is_calendar(&self) -> Result<bool> {
+        self.is::<IsCalendar>().map_err(CE::from)
+    }
 
     fn calendar(&self) -> Result<ICalendar> {
         self.get_path()

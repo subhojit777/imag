@@ -23,9 +23,11 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagentryref::refstore::RefStore;
 use libimagentryref::generators::sha1::Sha1;
+use libimagentryutil::isa::Is;
 
 use error::Result;
 use error::CalendarError as CE;
+use calendar::IsCalendar;
 
 make_unique_ref_path_generator! (
     pub CalendarHasher
@@ -58,7 +60,9 @@ impl<'a> CalendarStore<'a> for Store {
     ///
     /// Check whether the path `p` is a file, return error if not
     fn create_calendar<P: AsRef<Path>>(&'a self, p: P) -> Result<FileLockEntry<'a>> {
-        self.create_ref::<CalendarHasher, P>(p).map_err(CE::from)
+        let mut r = self.create_ref::<CalendarHasher, P>(p)?;
+        r.set_isflag::<IsCalendar>()?;
+        Ok(r)
     }
 
     /// Get or create a calendar
@@ -67,7 +71,9 @@ impl<'a> CalendarStore<'a> for Store {
     ///
     /// Check whether the path `p` is a file, return error if not
     fn retrieve_calendar<P: AsRef<Path>>(&'a self, p: P) -> Result<FileLockEntry<'a>> {
-        self.retrieve_ref::<CalendarHasher, P>(p).map_err(CE::from)
+        let mut r = self.retrieve_ref::<CalendarHasher, P>(p)?;
+        r.set_isflag::<IsCalendar>()?;
+        Ok(r)
     }
 
     /// Delete a calendar
