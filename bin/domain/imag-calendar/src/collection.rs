@@ -168,10 +168,7 @@ fn list<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
         true
     };
 
-    let mut tab = Table::new();
-    tab.add_row(row!["Start", "End", "Description"]);
-
-    let collection = rt
+    let iterator = rt
         .store()
         .get_calendar_collection(&name)
         .map_err_trace_exit_unwrap(1)
@@ -187,8 +184,33 @@ fn list<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
         .filter_map(|o| o)
         .map(|mut cal| cal.events(rt.store()).map_err_trace_exit_unwrap(1))
         .flatten()
-        .filter(past_filter)
-        .for_each(|event| {
+        .filter(past_filter);
+
+    list_events(rt, iterator);
+}
+
+fn find<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
+    unimplemented!()
+}
+
+
+//
+// Helpers
+//
+
+fn show_events<'a, I>(rt: &Runtime, iter: I)
+    where I: Iterator<Item = FileLockEntry<'a>>
+{
+    unimplemented!()
+}
+
+fn list_events<'a, I>(rt: &Runtime, iter: I)
+    where I: Iterator<Item = FileLockEntry<'a>>
+{
+    let mut tab = Table::new();
+    tab.add_row(row!["Start", "End", "Description"]);
+
+    iter.for_each(|event| {
             let start = event
                 .get_start()
                 .map_err_trace_exit_unwrap(1)
@@ -204,7 +226,7 @@ fn list<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
                 .map_err_trace_exit_unwrap(1);
 
             tab.add_row(row![start, end, desc]);
-        });
+    });
 
     let out = rt.stdout();
     let _ = tab.print(&mut out.lock())
@@ -212,9 +234,5 @@ fn list<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
             error!("IO error: {:?}", e);
             exit(1)
         });
-}
-
-fn find<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
-    unimplemented!()
 }
 
