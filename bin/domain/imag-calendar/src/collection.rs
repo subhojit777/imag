@@ -17,6 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::ops::Deref;
 use std::path::PathBuf;
 use std::process::exit;
 use std::io::Write;
@@ -238,7 +239,7 @@ fn find<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
         .filter(grep_filter);
 
     if do_show {
-        unimplemented!()
+        show_events(rt, iterator);
     } else {
         list_events(rt, scmd.is_present("collection-find-table"), iterator);
     }
@@ -252,7 +253,55 @@ fn find<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
 fn show_events<'a, I>(rt: &Runtime, iter: I)
     where I: Iterator<Item = FileLockEntry<'a>>
 {
-    unimplemented!()
+    let out           = rt.stdout();
+    let mut outlock   = out.lock();
+    let get_show_data = |event: &FileLockEntry| {
+            let start = event
+                .get_start()
+                .map_err_trace_exit_unwrap(1)
+                .format(::libimagtimeui::ui::time_ui_fmtstr());
+
+            let end = event
+                .get_end()
+                .map_err_trace_exit_unwrap(1)
+                .format(::libimagtimeui::ui::time_ui_fmtstr());
+
+            let desc = event
+                .get_description()
+                .map_err_trace_exit_unwrap(1);
+
+            let cats = event
+                .get_categories()
+                .map_err_trace_exit_unwrap(1);
+
+            let loca = Event::get_location(event.deref())
+                .map_err_trace_exit_unwrap(1);
+
+            (start, end, desc, cats, loca)
+    };
+
+    iter.for_each(|event| {
+        let (s, e, d, c, l) = get_show_data(&event);
+        let c               = c.join(", "); // join categories by ", "
+        let hash            = event.get_hash().map_err_trace_exit_unwrap(1);
+
+        let _ = writeln!(outlock,
+                         r#"Event Id   : {hash}
+                            Start      : {start}
+                            End        : {end}
+                            Description: {description}
+                            Categories : {categories}
+                            Location   : {location}
+                            "#,
+                            hash        = hash,
+                            start       = s,
+                            end         = e,
+                            description = d,
+                            categories  = c,
+                            location    = l)
+            .to_exit_code()
+            .unwrap_or_exit();
+    });
 }
 
 fn list_events<'a, I>(rt: &Runtime, table: bool, iter: I)
