@@ -22,8 +22,11 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-log     = "0.4.0"
-walkdir = "2"
+log            = "0.4.0"
+walkdir        = "2"
+itertools      = "0.7"
+prettytable-rs = "0.6"
+chrono         = "0.4"
 
 libimagcalendar  = { version = "0.8.0", path = "../../../lib/domain/libimagcalendar" }
 libimagentryref  = { version = "0.8.0", path = "../../../lib/entry/libimagentryref" }

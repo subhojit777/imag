@@ -35,6 +35,9 @@
 extern crate clap;
 #[macro_use] extern crate log;
 extern crate walkdir;
+extern crate chrono;
+extern crate itertools;
+#[macro_use] extern crate prettytable;
 
 #[macro_use] extern crate libimagrt;
 extern crate libimagcalendar;
@@ -42,6 +45,7 @@ extern crate libimagentryref;
 extern crate libimagerror;
 extern crate libimagstore;
 extern crate libimagutil;
+extern crate libimagtimeui;
 
 use libimagrt::setup::generate_runtime_setup;
 

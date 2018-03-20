@@ -23,6 +23,8 @@ use std::process::exit;
 use walkdir::WalkDir;
 use walkdir::DirEntry;
 use clap::ArgMatches;
+use prettytable::Table;
+use itertools::Itertools;
 
 use libimagrt::runtime::Runtime;
 use libimagerror::iter::TraceIterator;
@@ -32,7 +34,10 @@ use libimagcalendar::store::collections::CalendarCollectionStore;
 use libimagentryref::reference::Ref;
 use libimagcalendar::collection::Collection;
 use libimagstore::iter::get::StoreIdGetIteratorExtension;
+use libimagstore::store::FileLockEntry;
 use libimagutil::warn_result::*;
+use libimagcalendar::calendar::Calendar;
+use libimagcalendar::event::Event;
 
 pub fn collection(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("collection").unwrap(); // safed by main()
@@ -147,9 +152,69 @@ fn show<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
 }
 
 fn list<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
-    unimplemented!()
+    let name = scmd.value_of("collection-list-name").map(String::from).unwrap(); // safe by clap
+
+    let today = ::chrono::offset::Local::today()
+        .and_hms_opt(0, 0, 0)
+        .unwrap_or_else(|| {
+            error!("BUG, please report");
+            exit(1)
+        })
+        .naive_local();
+
+    let past_filter = |ev: &FileLockEntry| if scmd.is_present("collection-list-past") {
+        ev.get_end().map_err_trace_exit_unwrap(1) >= today
+    } else {
+        true
+    };
+
+    let mut tab = Table::new();
+    tab.add_row(row!["Start", "End", "Description"]);
+
+    let collection = rt
+        .store()
+        .get_calendar_collection(&name)
+        .map_err_trace_exit_unwrap(1)
+        .unwrap_or_else(|| {
+            error!("No callendar collection named {}", name);
+            exit(1)
+        })
+        .calendars()
+        .map_err_trace_exit_unwrap(1)
+        .into_get_iter(rt.store())
+        .map(|e| e.map_warn_err_str("Failed to get entry from store"))
+        .trace_unwrap_exit(1)
+        .filter_map(|o| o)
+        .map(|mut cal| cal.events(rt.store()).map_err_trace_exit_unwrap(1))
+        .flatten()
+        .filter(past_filter)
+        .for_each(|event| {
+            let start = event
+                .get_start()
+                .map_err_trace_exit_unwrap(1)
+                .format(::libimagtimeui::ui::time_ui_fmtstr());
+
+            let end = event
+                .get_end()
+                .map_err_trace_exit_unwrap(1)
+                .format(::libimagtimeui::ui::time_ui_fmtstr());
+
+            let desc = event
+                .get_description()
+                .map_err_trace_exit_unwrap(1);
+
+            tab.add_row(row![start, end, desc]);
+        });
+
+    let out = rt.stdout();
+    let _ = tab.print(&mut out.lock())
+        .unwrap_or_else(|e| {
+            error!("IO error: {:?}", e);
+            exit(1)
+        });
 }
 
 fn find<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
     unimplemented!()
 }
+

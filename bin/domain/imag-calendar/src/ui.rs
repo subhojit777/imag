@@ -77,6 +77,13 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                                    .multiple(false)
                                    .value_name("name")
                                    .help("The name of the collection to list"))
+                              .arg(Arg::with_name("collection-list-past")
+                                   .long("past")
+                                   .short("p")
+                                   .takes_value(false)
+                                   .required(false)
+                                   .multiple(false)
+                                   .help("List not only from today and future, but also from past"))
                               )
 
                    .subcommand(SubCommand::with_name("find")
