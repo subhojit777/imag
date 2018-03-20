@@ -190,7 +190,55 @@ fn list<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
 }
 
 fn find<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
-    unimplemented!()
+    let name    = scmd.value_of("collection-find-name").map(String::from).unwrap(); // safe by clap
+    let grep    = scmd.value_of("collection-find-grep").map(String::from).unwrap(); // safe by clap
+    let do_show = scmd.is_present("collection-find-show");
+
+    let today = ::chrono::offset::Local::today()
+        .and_hms_opt(0, 0, 0)
+        .unwrap_or_else(|| {
+            error!("BUG, please report");
+            exit(1)
+        })
+        .naive_local();
+
+    let past_filter = |ev: &FileLockEntry| if scmd.is_present("collection-find-past") {
+        ev.get_end().map_err_trace_exit_unwrap(1) >= today
+    } else {
+        true
+    };
+
+    let grep_filter = |ev: &FileLockEntry| {
+        let desc = ev.get_description().map_err_trace_exit_unwrap(1);
+        let cats = ev.get_categories().map_err_trace_exit_unwrap(1);
+
+        desc.contains(&grep) || cats.iter().any(|cat| cat.contains(&grep))
+    };
+
+    let iterator = rt
+        .store()
+        .get_calendar_collection(&name)
+        .map_err_trace_exit_unwrap(1)
+        .unwrap_or_else(|| {
+            error!("No callendar collection named {}", name);
+            exit(1)
+        })
+        .calendars()
+        .map_err_trace_exit_unwrap(1)
+        .into_get_iter(rt.store())
+        .map(|e| e.map_warn_err_str("Failed to get entry from store"))
+        .trace_unwrap_exit(1)
+        .filter_map(|o| o)
+        .map(|mut cal| cal.events(rt.store()).map_err_trace_exit_unwrap(1))
+        .flatten()
+        .filter(past_filter)
+        .filter(grep_filter);
+
+    if do_show {
+        unimplemented!()
+    } else {
+        list_events(rt, iterator);
+    }
 }
 
 

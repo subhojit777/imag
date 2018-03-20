@@ -114,7 +114,7 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                                    .help("The name of the collection to search for entries in."))
 
                               .arg(Arg::with_name("collection-find-grep")
-                                   .index(1)
+                                   .index(2)
                                    .takes_value(true)
                                    .required(false)
                                    .multiple(false)
