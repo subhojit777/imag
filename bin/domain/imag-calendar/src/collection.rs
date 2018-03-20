@@ -152,7 +152,41 @@ fn remove<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
 }
 
 fn show<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
-    unimplemented!()
+    let name = scmd.value_of("collection-show-name").map(String::from).unwrap(); // safe by clap
+
+    let today = ::chrono::offset::Local::today()
+        .and_hms_opt(0, 0, 0)
+        .unwrap_or_else(|| {
+            error!("BUG, please report");
+            exit(1)
+        })
+        .naive_local();
+
+    let past_filter = |ev: &FileLockEntry| if scmd.is_present("collection-show-past") {
+        ev.get_end().map_err_trace_exit_unwrap(1) >= today
+    } else {
+        true
+    };
+
+    let iterator = rt
+        .store()
+        .get_calendar_collection(&name)
+        .map_err_trace_exit_unwrap(1)
+        .unwrap_or_else(|| {
+            error!("No callendar collection named {}", name);
+            exit(1)
+        })
+        .calendars()
+        .map_err_trace_exit_unwrap(1)
+        .into_get_iter(rt.store())
+        .map(|e| e.map_warn_err_str("Failed to get entry from store"))
+        .trace_unwrap_exit(1)
+        .filter_map(|o| o)
+        .map(|mut cal| cal.events(rt.store()).map_err_trace_exit_unwrap(1))
+        .flatten()
+        .filter(past_filter);
+
+    show_events(rt, iterator);
 }
 
 fn list<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
