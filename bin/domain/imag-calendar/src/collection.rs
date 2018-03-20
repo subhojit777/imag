@@ -46,16 +46,43 @@ use libimagcalendar::event::Event;
 pub fn collection(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("collection").unwrap(); // safed by main()
 
-    match scmd.subcommand() {
-        ("add", scmd)    => add(rt, scmd.unwrap()),
-        ("remove", scmd) => remove(rt, scmd.unwrap()),
-        ("show", scmd)   => show(rt, scmd.unwrap()),
-        ("list", scmd)   => list(rt, scmd.unwrap()),
-        ("find", scmd)   => find(rt, scmd.unwrap()),
-        _ => {
-            unimplemented!()
+    if scmd.is_present("collections-list") {
+        list_existing_collections(rt);
+    } else {
+        match scmd.subcommand() {
+            ("add", scmd)    => add(rt, scmd.unwrap()),
+            ("remove", scmd) => remove(rt, scmd.unwrap()),
+            ("show", scmd)   => show(rt, scmd.unwrap()),
+            ("list", scmd)   => list(rt, scmd.unwrap()),
+            ("find", scmd)   => find(rt, scmd.unwrap()),
+            _ => {
+                unimplemented!()
+            }
         }
     }
+}
+
+pub fn collections(rt: &Runtime) {
+    list_existing_collections(rt);
+}
+
+fn list_existing_collections(rt: &Runtime) {
+    let out = rt.stdout();
+    let mut outlock = out.lock();
+    rt.store()
+        .calendar_collections()
+        .map_err_trace_exit_unwrap(1)
+        .into_get_iter(rt.store())
+        .trace_unwrap_exit(1)
+        .filter_map(|o| o)
+        .for_each(|coll| {
+            let hash = coll.get_hash().map_err_trace_exit_unwrap(1);
+            let path = coll.get_path().map_err_trace_exit_unwrap(1);
+
+            let _ = writeln!(outlock, "{}: {}", hash, path.display())
+                .to_exit_code()
+                .unwrap_or_exit();
+        });
 }
 
 fn add<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {

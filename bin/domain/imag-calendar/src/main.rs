@@ -71,12 +71,13 @@ fn main() {
         .map(|name| {
             debug!("Call {}", name);
             match name {
-                "collection" => collection::collection(&rt),
-                "entry"      => entry::entry(&rt),
-                "find"       => find::find(&rt),
-                "list"       => list::list(&rt),
-                "show"       => show::show(&rt),
-                _            => {
+                "collection"  => collection::collection(&rt),
+                "collections" => collection::collections(&rt),
+                "entry"       => entry::entry(&rt),
+                "find"        => find::find(&rt),
+                "list"        => list::list(&rt),
+                "show"        => show::show(&rt),
+                _             => {
                     debug!("Unknown command"); // More error handling
                 },
             }

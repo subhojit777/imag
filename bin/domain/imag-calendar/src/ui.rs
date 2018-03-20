@@ -139,7 +139,18 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                                    .help("Grep for this pattern in entry meta data."))
 
                               )
+
+                  .arg(Arg::with_name("collections-list")
+                       .takes_value(false)
+                       .required(false)
+                       .multiple(false)
+                       .help("List all existing collections"))
+
                    )
+
+        .subcommand(SubCommand::with_name("collections")
+                   .about("Alias for 'collection --list'")
+                   .version("0.1"))
 
         .subcommand(SubCommand::with_name("entry")
                    .about("Manage calendar entries")
