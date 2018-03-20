@@ -103,7 +103,8 @@ impl<'a> RefStore<'a> for Store {
     fn create_ref<RPG: UniqueRefPathGenerator, A: AsRef<Path>>(&'a self, path: A)
         -> Result<FileLockEntry<'a>, RPG::Error>
     {
-        let hash     = RPG::unique_hash(&path)?;
+        let filepath = path.as_ref().to_path_buf();
+        let hash     = RPG::unique_hash(path)?;
         let pathbuf  = PathBuf::from(format!("{}/{}", RPG::collection(), hash));
         let sid      = StoreId::new_baseless(pathbuf.clone()).map_err(RE::from)?;
 
@@ -111,7 +112,7 @@ impl<'a> RefStore<'a> for Store {
         self.create(sid)
             .map_err(RE::from)
             .and_then(|mut fle| {
-                fle.make_ref(hash, path)?;
+                fle.make_ref(hash, filepath)?;
                 Ok(fle)
             })
             .map_err(RPG::Error::from)
