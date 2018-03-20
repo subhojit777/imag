@@ -20,6 +20,7 @@
 //! The Ref object is a helper over the link functionality, so one is able to create references to
 //! files outside of the imag store.
 
+use std::path::Path;
 use std::path::PathBuf;
 use std::result::Result as RResult;
 
@@ -27,8 +28,10 @@ use libimagentryutil::isa::Is;
 use libimagentryutil::isa::IsKindHeaderPathProvider;
 use libimagstore::store::Entry;
 
+use toml::Value;
 use toml_query::read::TomlValueReadExt;
 use toml_query::delete::TomlValueDeleteExt;
+use toml_query::insert::TomlValueInsertExt;
 
 use refstore::UniqueRefPathGenerator;
 use error::Result;
@@ -44,6 +47,9 @@ pub trait Ref {
     ///
     /// Does not need a `UniqueRefPathGenerator` as it reads the hash stored in the header
     fn get_hash(&self) -> Result<&str>;
+
+    /// Make this object a ref
+    fn make_ref<P: AsRef<Path>>(&mut self, hash: String, path: P) -> Result<()>;
 
     /// Get the referenced path.
     ///
@@ -87,6 +93,21 @@ impl Ref for Entry {
             .map_err(RE::from)?
             .ok_or_else(|| REK::HeaderFieldMissingError("ref.hash").into())
             .and_then(|v| v.as_str().ok_or_else(|| REK::HeaderTypeError("ref.hash", "string").into()))
+    }
+
+    fn make_ref<P: AsRef<Path>>(&mut self, hash: String, path: P) -> Result<()> {
+        let path_str : String = path
+            .as_ref()
+            .to_str()
+            .map(String::from)
+            .ok_or_else(|| RE::from(REK::PathUTF8Error))?;
+
+        let _   = self.set_isflag::<IsRef>()?;
+        let hdr = self.get_header_mut();
+        hdr.insert("ref.path", Value::String(String::from(path_str)))?;
+        hdr.insert("ref.hash", Value::String(hash))?;
+
+        Ok(())
     }
 
     fn get_path(&self) -> Result<PathBuf> {
