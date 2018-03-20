@@ -31,6 +31,7 @@ use libimagstore::store::FileLockEntry;
 use libimagentryutil::isa::Is;
 use libimagentryutil::isa::IsKindHeaderPathProvider;
 use libimagentryref::reference::Ref;
+use libimagentrylink::internal::InternalLinker;
 
 use toml::Value;
 use toml_query::insert::TomlValueInsertExt;
@@ -94,6 +95,7 @@ impl Calendar for Entry {
             let _ = fle.set_isflag::<IsEvent>()?;
             let _ = fle.get_header_mut().insert("calendar.event.uid", Value::String(uid.raw().clone()))?;
 
+            let _ = fle.add_internal_link(self)?;
             vec.push(fle);
         }
 
