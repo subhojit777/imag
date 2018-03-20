@@ -61,6 +61,7 @@ This section contains the changelog from the last release to the next release.
     * `imag-tag` commandline was rewritten for positional arguments.
     * `libimagrt` automatically takes "rt.editor" into account when building
       editor object
+    * `libimagentryref` got a utility function for making an entry a ref.
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
