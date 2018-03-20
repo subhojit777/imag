@@ -35,7 +35,9 @@ make_unique_ref_path_generator! (
     => with error CE
     => with collection name "calendar"
     => |path| {
-        Sha1::hash_n_bytes(path, 4096).map_err(CE::from)
+        let hash = Sha1::hash_n_bytes(path, 4096).map_err(CE::from);
+        debug!("Hash = {:?}", hash);
+        hash
     }
 );
 
@@ -71,6 +73,7 @@ impl<'a> CalendarStore<'a> for Store {
     ///
     /// Check whether the path `p` is a file, return error if not
     fn retrieve_calendar<P: AsRef<Path>>(&'a self, p: P) -> Result<FileLockEntry<'a>> {
+        debug!("Retrieving ref for {:?}", p.as_ref());
         let mut r = self.retrieve_ref::<CalendarHasher, P>(p)?;
         r.set_isflag::<IsCalendar>()?;
         Ok(r)
