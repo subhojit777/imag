@@ -37,6 +37,7 @@ extern crate clap;
 extern crate walkdir;
 extern crate chrono;
 extern crate itertools;
+extern crate indicatif;
 #[macro_use] extern crate prettytable;
 
 #[macro_use] extern crate libimagrt;

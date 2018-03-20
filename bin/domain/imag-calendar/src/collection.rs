@@ -71,13 +71,16 @@ fn add<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
             .retrieve_calendar_collection(path.clone())
             .map_err_trace_exit_unwrap(1);
 
-        info!("Collection added");
+        debug!("Collection added");
 
         let is_not_hidden = |entry: &DirEntry| !entry
             .file_name()
             .to_str()
             .map(|s| s.starts_with("."))
             .unwrap_or(false);
+
+        let mut entries     = vec![];
+        let mut entry_count = 0;
 
         for entry in WalkDir::new(path).follow_links(false).into_iter().filter_entry(is_not_hidden) {
             match entry {
@@ -87,7 +90,9 @@ fn add<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
                             .add_retrieve_calendar_from_path(de.path(), rt.store())
                             .map_err_trace_exit_unwrap(1);
 
-                        info!("Created entry: {} -> {}", entry.get_location(), de.path().display());
+                        debug!("Created entry: {} -> {}", entry.get_location(), de.path().display());
+                        entries.push(entry);
+                        entry_count += 1;
                     } else {
                         debug!("Ignored: {}", de.path().display());
                         /* ignored */
@@ -100,7 +105,23 @@ fn add<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
             }
         }
 
-        debug!("Ready");
+        info!("Adding events...");
+        let bar = ::indicatif::ProgressBar::new(entry_count);
+        bar.set_style(::indicatif::ProgressStyle::default_bar()
+                      .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
+                      .progress_chars("##-"));
+        for mut entry in entries {
+            let entry_path = entry.get_path().map_err_trace_exit_unwrap(1);
+            let len = entry
+                .events(rt.store())
+                .map_err_trace_exit_unwrap(1)
+                .len();
+
+            debug!("Fetched {} events from {}", len, entry_path.display());
+            bar.inc(1);
+        }
+        bar.finish();
+        info!("Finished. Added {} events to store", entry_count);
     }
 }
 
