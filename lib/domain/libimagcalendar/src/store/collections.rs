@@ -23,9 +23,11 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
 use libimagentryref::generators::sha1::Sha1;
 use libimagentryref::refstore::RefStore;
+use libimagentryutil::isa::Is;
 
 use error::Result;
 use error::CalendarError as CE;
+use collection::IsCalendarCollection;
 
 make_unique_ref_path_generator! (
     pub CalendarCollectionPathHasher
@@ -57,7 +59,9 @@ impl<'a> CalendarCollectionStore<'a> for Store {
     ///
     /// Verify that the path `p` is a directory
     fn create_calendar_collection<P: AsRef<Path>>(&'a self, p: P) -> Result<FileLockEntry<'a>> {
-        self.create_ref::<CalendarCollectionPathHasher, P>(p).map_err(CE::from)
+        let mut r = self.create_ref::<CalendarCollectionPathHasher, P>(p)?;
+        r.set_isflag::<IsCalendarCollection>()?;
+        Ok(r)
     }
 
     /// Get or create a calendar collection
@@ -66,7 +70,9 @@ impl<'a> CalendarCollectionStore<'a> for Store {
     ///
     /// Verify that the path `p` is a directory
     fn retrieve_calendar_collection<P: AsRef<Path>>(&'a self, p: P) -> Result<FileLockEntry<'a>> {
-        self.retrieve_ref::<CalendarCollectionPathHasher, P>(p).map_err(CE::from)
+        let mut r = self.retrieve_ref::<CalendarCollectionPathHasher, P>(p)?;
+        r.set_isflag::<IsCalendarCollection>()?;
+        Ok(r)
     }
 
     /// Delete a calendar collection

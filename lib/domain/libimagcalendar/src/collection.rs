@@ -24,16 +24,22 @@ use libimagstore::store::Store;
 use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
 use libimagentrylink::internal::InternalLinker;
+use libimagentryutil::isa::IsKindHeaderPathProvider;
+use libimagentryutil::isa::Is;
 
 use store::calendars::CalendarStore;
 use store::iter::CalendarIter;
 use error::CalendarError as CE;
 use error::Result;
 
+provide_kindflag_path!(pub IsCalendarCollection, "calendar.is_calendar_collection");
+
 /// A Collection is a set of calendars
 ///
 /// A Collection represents a directory on the filesystem where ical files are located
 pub trait Collection {
+    fn is_calendar_collection(&self) -> Result<bool>;
+
 
     fn calendars(&self) -> Result<CalendarIter<StoreIdIterator>>;
 
@@ -43,6 +49,9 @@ pub trait Collection {
 }
 
 impl Collection for Entry {
+    fn is_calendar_collection(&self) -> Result<bool> {
+        self.is::<IsCalendarCollection>().map_err(From::from)
+    }
 
     fn calendars(&self) -> Result<CalendarIter<StoreIdIterator>> {
         let i = self.get_internal_links()?.map(|l| l.get_store_id().clone());
