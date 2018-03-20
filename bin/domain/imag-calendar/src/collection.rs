@@ -19,6 +19,7 @@
 
 use std::path::PathBuf;
 use std::process::exit;
+use std::io::Write;
 
 use walkdir::WalkDir;
 use walkdir::DirEntry;
@@ -26,6 +27,8 @@ use clap::ArgMatches;
 use prettytable::Table;
 use itertools::Itertools;
 
+use libimagerror::exit::ExitUnwrap;
+use libimagerror::io::ToExitCode;
 use libimagrt::runtime::Runtime;
 use libimagerror::iter::TraceIterator;
 use libimagerror::trace::MapErrTrace;
@@ -186,7 +189,7 @@ fn list<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
         .flatten()
         .filter(past_filter);
 
-    list_events(rt, iterator);
+    list_events(rt, scmd.is_present("collection-list-table"), iterator);
 }
 
 fn find<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
@@ -237,7 +240,7 @@ fn find<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
     if do_show {
         unimplemented!()
     } else {
-        list_events(rt, iterator);
+        list_events(rt, scmd.is_present("collection-find-table"), iterator);
     }
 }
 
@@ -252,13 +255,12 @@ fn show_events<'a, I>(rt: &Runtime, iter: I)
     unimplemented!()
 }
 
-fn list_events<'a, I>(rt: &Runtime, iter: I)
+fn list_events<'a, I>(rt: &Runtime, table: bool, iter: I)
     where I: Iterator<Item = FileLockEntry<'a>>
 {
-    let mut tab = Table::new();
-    tab.add_row(row!["Start", "End", "Description"]);
-
-    iter.for_each(|event| {
+    let out           = rt.stdout();
+    let mut outlock   = out.lock();
+    let get_list_data = |event: &FileLockEntry| {
             let start = event
                 .get_start()
                 .map_err_trace_exit_unwrap(1)
@@ -273,14 +275,32 @@ fn list_events<'a, I>(rt: &Runtime, iter: I)
                 .get_description()
                 .map_err_trace_exit_unwrap(1);
 
-            tab.add_row(row![start, end, desc]);
-    });
+            (start, end, desc)
+    };
 
-    let out = rt.stdout();
-    let _ = tab.print(&mut out.lock())
-        .unwrap_or_else(|e| {
-            error!("IO error: {:?}", e);
-            exit(1)
+    if table {
+        let mut tab = Table::new();
+        tab.add_row(row!["Start", "End", "Description"]);
+
+        iter.for_each(|event| {
+            let (start, end, desc) = get_list_data(&event);
+            tab.add_row(row![start, end, desc]);
         });
+
+        let _ = tab.print(&mut out.lock())
+            .unwrap_or_else(|e| {
+                error!("IO error: {:?}", e);
+                exit(1)
+            });
+    } else {
+        iter.for_each(|event| {
+            let (start, end, desc) = get_list_data(&event);
+            let hash               = event.get_hash().map_err_trace_exit_unwrap(1);
+
+            let _ = writeln!(outlock, "{}: {} - {} - {}", hash, start, end, desc)
+                .to_exit_code()
+                .unwrap_or_exit();
+        });
+    }
 }
 
