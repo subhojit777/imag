@@ -77,36 +77,27 @@ impl Calendar for Entry {
     fn events<'a>(&mut self, store: &'a Store) -> Result<Vec<FileLockEntry<'a>>> {
         use module_path::ModuleEntryPath;
 
-        self.calendar()
-            .and_then(|c| {
-                c.events()
-                    .map(|event_r| {
-                        let path = self.get_path()?;
+        let cal     = self.calendar()?;
+        let path    = self.get_path()?;
+        let mut vec = vec![];
 
-                        event_r
-                            .map_err(|_| CEK::NotAnEvent(path.clone()).into())
-                            .and_then(|e| {
-                                e.get_uid()
-                                    .ok_or_else(|| CEK::EventWithoutUid(path.clone()).into())
-                            })
-                            .and_then(|event_id| {
-                                let s = format!("event/{}", event_id.raw());
-                                ModuleEntryPath::new(s)
-                                    .into_storeid()
-                                    .map_err(CE::from)
-                                    .map(|sid| (event_id, sid))
-                            })
-                            .and_then(|(eid, sid)| Ok((eid, store.retrieve(sid)?)))
-                            .and_then(move |(eid, mut fle)| {
-                                let _ = fle.make_ref(eid.raw().clone(), path)?;
-                                let _ = fle.set_isflag::<IsEvent>()?;
-                                let _ = fle.get_header_mut()
-                                    .insert("calendar.event.uid", Value::String(eid.raw().clone()))?;
-                                Ok(fle)
-                            })
-                    })
-                    .collect::<Result<Vec<FileLockEntry>>>()
-            })
+        for event_r in cal.events() {
+            let ev  = event_r.map_err(|_| CE::from(CEK::NotAnEvent(path.clone())))?;
+            let uid = ev.get_uid().ok_or_else(|| CE::from(CEK::EventWithoutUid(path.clone())))?;
+
+            let sid = ModuleEntryPath::new(format!("event/{}", uid.raw()))
+                .into_storeid()
+                .map_err(CE::from)?;
+
+            let mut fle = store.retrieve(sid)?;
+            let _ = fle.make_ref(uid.raw().clone(), &path)?;
+            let _ = fle.set_isflag::<IsEvent>()?;
+            let _ = fle.get_header_mut().insert("calendar.event.uid", Value::String(uid.raw().clone()))?;
+
+            vec.push(fle);
+        }
+
+        Ok(vec)
     }
 
 }
