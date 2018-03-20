@@ -13,7 +13,10 @@ commandline parameters).
 
 What imag does internally is described in this section.
 
-imag creates one entry in the store for one `icalendar` file. These entries are
-basically references to the real data. If an  `icalendar` file is removed from
-the filesystem, imag does not delete it from the sfore if not told explicitely.
+imag creates three different kind of entries in the store:
+
+1. A "collection" for each directory containing .ical filesystem
+1. A "calendar" for each .ical file
+1. A "event" for each event in an .ical file
+
 
