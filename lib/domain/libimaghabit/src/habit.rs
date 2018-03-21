@@ -348,6 +348,7 @@ pub mod builder {
             }
 
             if let Err(e) = ::kairos::parser::parse(&recur) {
+                debug!("Kairos failed: {:?}", e);
                 return Err(e).map_err(From::from);
             }
             let date      = date_to_string(&dateobj);
