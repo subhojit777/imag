@@ -91,6 +91,7 @@ This section contains the changelog from the last release to the next release.
     * `libimagentryref` got a fix where the buffer for the hash calculation was
       not allocated properly.
     * `libimagstore::store::Store::create` overwrote existing entries.
+    * `libimaghabit::habit::HabitTemplate` did not link new instances.
 
 
 ## 0.6.3
