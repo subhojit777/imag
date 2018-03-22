@@ -258,6 +258,7 @@ pub mod builder {
     use libimagstore::storeid::IntoStoreId;
     use libimagstore::store::FileLockEntry;
     use libimagentryutil::isa::Is;
+    use libimagutil::debug_result::DebugResult;
 
     use error::HabitError as HE;
     use error::HabitErrorKind as HEK;
@@ -307,14 +308,17 @@ pub mod builder {
                 HE::from_kind(HEK::HabitBuilderMissing(s))
             }
 
-            let name      = try!(self.name.ok_or_else(|| mkerr("name")));
-            debug!("Success: Name present");
+            let name = self.name
+                .ok_or_else(|| mkerr("name"))
+                .map_dbg_str("Success: Name present")?;
 
-            let dateobj   = try!(self.basedate.ok_or_else(|| mkerr("date")));
-            debug!("Success: Date present");
+            let dateobj = self.basedate
+                .ok_or_else(|| mkerr("date"))
+                .map_dbg_str("Success: Date present")?;
 
-            let recur     = try!(self.recurspec.ok_or_else(|| mkerr("recurspec")));
-            debug!("Success: Recurr spec present");
+            let recur = self.recurspec
+                .ok_or_else(|| mkerr("recurspec"))
+                .map_dbg_str("Success: Recurr spec present")?;
 
             if let Some(until) = self.untildate {
                 debug!("Success: Until-Date present");
