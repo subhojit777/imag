@@ -317,6 +317,7 @@ impl Store {
     ///
     /// On error:
     ///  - Errors StoreId::into_storeid() might return
+    ///  - EntryAlreadyExists(id) if the entry exists
     ///  - CreateCallError(LockPoisoned()) if the internal lock is poisened.
     ///  - CreateCallError(EntryAlreadyExists()) if the entry exists already.
     ///
@@ -324,6 +325,17 @@ impl Store {
         let id = id.into_storeid()?.with_base(self.path().clone());
 
         debug!("Creating id: '{}'", id);
+
+        let exists = id.exists()? || self.entries
+            .read()
+            .map(|map| map.contains_key(&id))
+            .map_err(|_| SE::from_kind(SEK::LockPoisoned))
+            .chain_err(|| SEK::CreateCallError)?;
+
+        if exists {
+            debug!("Entry exists: {:?}", id);
+            return Err(SEK::EntryAlreadyExists(id).into());
+        }
 
         {
             let mut hsmap = self
@@ -1420,7 +1432,7 @@ mod store_tests {
         for n in 1..100 {
             let s = format!("test-{}", n % 50);
             store.create(PathBuf::from(s.clone()))
-                .map_err(|e| assert!(is_match!(e.kind(), &SEK::CreateCallError) && n >= 50))
+                .map_err(|e| assert!(is_match!(e.kind(), &SEK::EntryAlreadyExists(_)) && n >= 50))
                 .ok()
                 .map(|entry| {
                     assert!(entry.verify().is_ok());
