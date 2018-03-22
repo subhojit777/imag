@@ -80,6 +80,8 @@ pub trait HabitTemplate : Sized {
     fn habit_comment(&self) -> Result<String>;
     fn habit_until_date(&self) -> Result<Option<String>>;
 
+    fn instance_exists_for_date(&self, date: &NaiveDate) -> Result<bool>;
+
     /// Create a StoreId for a habit name and a date the habit should be instantiated for
     fn instance_id_for(habit_name: &String, habit_date: &NaiveDate) -> Result<StoreId>;
 }
@@ -220,6 +222,22 @@ impl HabitTemplate for Entry {
             .read_string("habit.template.until")
             .map_err(From::from)
             .map(|os| os.map(String::from))
+    }
+
+    fn instance_exists_for_date(&self, date: &NaiveDate) -> Result<bool> {
+        let name = self.habit_name()?;
+        let date = date_to_string(date);
+
+        for link in self.get_internal_links()? {
+            let sid         = link.get_store_id();
+            let instance_id = instance_id_for_name_and_datestr(&name, &date)?;
+
+            if sid.is_habit_instance() && instance_id == *sid {
+                return Ok(true);
+            }
+        }
+
+        return Ok(false);
     }
 
     fn instance_id_for(habit_name: &String, habit_date: &NaiveDate) -> Result<StoreId> {
