@@ -102,16 +102,7 @@ impl HabitTemplate for Entry {
 
         store.create(id)
             .map_err(From::from)
-            .and_then(|mut entry| {
-                {
-                    let _   = entry.set_isflag::<IsHabitInstance>()?;
-                    let hdr = entry.get_header_mut();
-                    let _   = hdr.insert("habit.instance.name",    Value::String(name))?;
-                    let _   = hdr.insert("habit.instance.date",    Value::String(date))?;
-                    let _   = hdr.insert("habit.instance.comment", Value::String(comment))?;
-                }
-                Ok(entry)
-            })
+            .and_then(|entry| postprocess_instance(entry, name, date, comment))
     }
 
     fn create_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
@@ -126,16 +117,7 @@ impl HabitTemplate for Entry {
 
         store.create(id)
             .map_err(From::from)
-            .and_then(|mut entry| {
-                {
-                    let _   = entry.set_isflag::<IsHabitInstance>()?;
-                    let hdr = entry.get_header_mut();
-                    let _   = hdr.insert("habit.instance.name",    Value::String(name))?;
-                    let _   = hdr.insert("habit.instance.date",    Value::String(date))?;
-                    let _   = hdr.insert("habit.instance.comment", Value::String(comment))?;
-                }
-                Ok(entry)
-            })
+            .and_then(|entry| postprocess_instance(entry, name, date, comment))
     }
 
     fn retrieve_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
@@ -392,5 +374,21 @@ pub mod builder {
         ModuleEntryPath::new(format!("template/{}", name)).into_storeid().map_err(From::from)
     }
 
+}
+
+fn postprocess_instance<'a>(mut entry: FileLockEntry<'a>,
+                            name: String,
+                            date: String,
+                            comment: String)
+    -> Result<FileLockEntry<'a>>
+{
+    {
+        let _   = entry.set_isflag::<IsHabitInstance>()?;
+        let hdr = entry.get_header_mut();
+        let _   = hdr.insert("habit.instance.name",    Value::String(name))?;
+        let _   = hdr.insert("habit.instance.date",    Value::String(date))?;
+        let _   = hdr.insert("habit.instance.comment", Value::String(comment))?;
+    }
+    Ok(entry)
 }
 
