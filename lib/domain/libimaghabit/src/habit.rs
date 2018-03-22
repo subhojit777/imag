@@ -55,18 +55,19 @@ pub trait HabitTemplate : Sized {
     ///
     /// It uses `Store::retrieve()` underneath. So if there is already an instance for the day
     /// passed, this will simply return the instance.
-    fn create_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate)
+    fn create_instance_with_date<'a>(&mut self, store: &'a Store, date: &NaiveDate)
         -> Result<FileLockEntry<'a>>;
 
     /// Shortcut for calling `Self::create_instance_with_date()` with an instance of
     /// `::chrono::Local::today().naive_local()`.
-    fn create_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
+    fn create_instance_today<'a>(&mut self, store: &'a Store) -> Result<FileLockEntry<'a>>;
 
     /// Same as `HabitTemplate::create_instance_with_date()` but uses `Store::retrieve` internally.
-    fn retrieve_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate) -> Result<FileLockEntry<'a>>;
+    fn retrieve_instance_with_date<'a>(&mut self, store: &'a Store, date: &NaiveDate)
+        -> Result<FileLockEntry<'a>>;
 
     /// Same as `HabitTemplate::create_instance_today()` but uses `Store::retrieve` internally.
-    fn retrieve_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
+    fn retrieve_instance_today<'a>(&mut self, store: &'a Store) -> Result<FileLockEntry<'a>>;
 
     /// Get instances for this template
     fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator>;
@@ -96,7 +97,7 @@ provide_kindflag_path!(pub IsHabitTemplate, "habit.template.is_habit_template");
 
 impl HabitTemplate for Entry {
 
-    fn create_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate) -> Result<FileLockEntry<'a>> {
+    fn create_instance_with_date<'a>(&mut self, store: &'a Store, date: &NaiveDate) -> Result<FileLockEntry<'a>> {
         let name    = self.habit_name()?;
         let comment = self.habit_comment()?;
         let date    = date_to_string(date);
@@ -104,14 +105,14 @@ impl HabitTemplate for Entry {
 
         store.create(id)
             .map_err(From::from)
-            .and_then(|entry| postprocess_instance(entry, name, date, comment))
+            .and_then(|entry| postprocess_instance(entry, name, date, comment, self))
     }
 
-    fn create_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
+    fn create_instance_today<'a>(&mut self, store: &'a Store) -> Result<FileLockEntry<'a>> {
         self.create_instance_with_date(store, &Local::today().naive_local())
     }
 
-    fn retrieve_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate) -> Result<FileLockEntry<'a>> {
+    fn retrieve_instance_with_date<'a>(&mut self, store: &'a Store, date: &NaiveDate) -> Result<FileLockEntry<'a>> {
         let name    = self.habit_name()?;
         let comment = self.habit_comment()?;
         let date    = date_to_string(date);
@@ -119,10 +120,10 @@ impl HabitTemplate for Entry {
 
         store.create(id)
             .map_err(From::from)
-            .and_then(|entry| postprocess_instance(entry, name, date, comment))
+            .and_then(|entry| postprocess_instance(entry, name, date, comment, self))
     }
 
-    fn retrieve_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
+    fn retrieve_instance_today<'a>(&mut self, store: &'a Store) -> Result<FileLockEntry<'a>> {
         self.retrieve_instance_with_date(store, &Local::today().naive_local())
     }
 
@@ -401,7 +402,8 @@ pub mod builder {
 fn postprocess_instance<'a>(mut entry: FileLockEntry<'a>,
                             name: String,
                             date: String,
-                            comment: String)
+                            comment: String,
+                            template: &mut Entry)
     -> Result<FileLockEntry<'a>>
 {
     {
@@ -411,6 +413,9 @@ fn postprocess_instance<'a>(mut entry: FileLockEntry<'a>,
         let _   = hdr.insert("habit.instance.date",    Value::String(date))?;
         let _   = hdr.insert("habit.instance.comment", Value::String(comment))?;
     }
+
+    entry.add_internal_link(template)?;
+
     Ok(entry)
 }
 
