@@ -43,6 +43,8 @@ This section contains the changelog from the last release to the next release.
       `imag ids | fzf | imag edit -I` is now a thing.
     * `imag ids` does not print the path of the store. Can be turned on using
       commandline flag.
+    * `imag-habit today --done` and `imag-habit status --done` was added for
+      showing habits which are already done.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
