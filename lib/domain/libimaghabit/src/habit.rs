@@ -62,6 +62,12 @@ pub trait HabitTemplate : Sized {
     /// `::chrono::Local::today().naive_local()`.
     fn create_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
 
+    /// Same as `HabitTemplate::create_instance_with_date()` but uses `Store::retrieve` internally.
+    fn retrieve_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate) -> Result<FileLockEntry<'a>>;
+
+    /// Same as `HabitTemplate::create_instance_today()` but uses `Store::retrieve` internally.
+    fn retrieve_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
+
     /// Get instances for this template
     fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator>;
 
@@ -94,7 +100,7 @@ impl HabitTemplate for Entry {
         let date    = date_to_string(date);
         let id      = instance_id_for_name_and_datestr(&name, &date)?;
 
-        store.retrieve(id)
+        store.create(id)
             .map_err(From::from)
             .and_then(|mut entry| {
                 {
@@ -110,6 +116,30 @@ impl HabitTemplate for Entry {
 
     fn create_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
         self.create_instance_with_date(store, &Local::today().naive_local())
+    }
+
+    fn retrieve_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate) -> Result<FileLockEntry<'a>> {
+        let name    = self.habit_name()?;
+        let comment = self.habit_comment()?;
+        let date    = date_to_string(date);
+        let id      = instance_id_for_name_and_datestr(&name, &date)?;
+
+        store.create(id)
+            .map_err(From::from)
+            .and_then(|mut entry| {
+                {
+                    let _   = entry.set_isflag::<IsHabitInstance>()?;
+                    let hdr = entry.get_header_mut();
+                    let _   = hdr.insert("habit.instance.name",    Value::String(name))?;
+                    let _   = hdr.insert("habit.instance.date",    Value::String(date))?;
+                    let _   = hdr.insert("habit.instance.comment", Value::String(comment))?;
+                }
+                Ok(entry)
+            })
+    }
+
+    fn retrieve_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
+        self.retrieve_instance_with_date(store, &Local::today().naive_local())
     }
 
     fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator> {
