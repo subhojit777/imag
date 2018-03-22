@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+[[ 0 == "$(find . -xtype l | wc -l)" ]] || {
+    echo >2 "DEAD SYMLINKS FOUND"
+    exit 1
+}
+
