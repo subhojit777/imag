@@ -1,6 +1,6 @@
 # Conventions, best practices
 
-This section goes about best practices in the imag codebase. It is mainly
+This section explains conventions used in the imag codebase. It is mainly
 focused on developers, but a user may read it for getting to know how imag
 works.
 
@@ -54,24 +54,25 @@ will not write such a library but rather a "libimagentrything" library.
 
 A library should never introduce utility functionality which could be useful for
 other libraries as well. If there is no such functionality available, the
-"libimagutil" might be a place where such a function would be put, or, if not
-yet available, a "libimagentryutil" could be created.
+"libimagutil" or "libimagentryutil" might be a place where such a function
+would be put.
 
 If a library has to introduce free functions in its public interface, one should
 think hard whether this is really necessary.
 
 ### Library error types/kinds
 
-Libraries must use the "libimagerror" tools to create error types and kinds.
+Libraries must use "error-chain" to create error types and kinds.
 Most likely, a library needs some kinds for wrapping the errors from underlying
 libraries, such as the store itself.
 
 A library must _never_ introduce multiple error types, but is free to introduce
-as many error kinds as required. Indeed, more kinds is better than fewer.
+as many error kinds as required.
 
 ### Libraries with commandline frontends
 
-Libraries with commandline frontends provide end-user functionality. Normally,
+Libraries with commandline frontends provide end-user functionality.
+Normally,
 they depend on one or more "libimagentrything" libraries. They should be named
 "libimagthing", though. For example: "libimagdiary", "libimagtimetrack" or
 "libimagwiki", whereas the commandline frontends would be "imag-diary",
@@ -80,7 +81,7 @@ they depend on one or more "libimagentrything" libraries. They should be named
 If such a library needs to depend on another "libimagthing", for example if
 "libimagdiary" needs to depend on "libimagnote", one should think about this and
 whether the functionality could be outsourced to a more general
-"libimagentrything". It is not forbidden, though.
+"libimagentrything".
 
 A library which implements a functionality for imag may contain helper functions
 for commandline stuff, but that is discouraged.
@@ -92,15 +93,9 @@ possible without a lot of effort, but still: more tests = better!
 
 ## Commandline tools
 
-The next few sections describe how the commandline frontends are implemented.
-Each imag functionality (or module) has its own library and a commandline
-frontend for it.
+The commandline tools are the CLI-frontends for their respective libraries.
+So `libimagdiary` has a CLI frontend `imag-diary`.
 
-The commandline frontends do contain little to no functionality. They simply
-translate the commandline parameters and options to calls to the appropriate
-library functions.
-
-## Commandline tool testing
-
-## Commandline interface
+Those CLI frontends use functionality from `libimagrt` to build a consistent
+commandline interface.
 
