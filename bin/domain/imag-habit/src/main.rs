@@ -229,11 +229,14 @@ fn today(rt: &Runtime, future: bool) {
     use libimaghabit::error::ResultExt;
     use libimaghabit::error::HabitErrorKind as HEK;
 
-    let future = {
+    let (future, show_done) = {
         if !future {
-            rt.cli().subcommand_matches("today").unwrap().is_present("today-show-future")
+            let scmd = rt.cli().subcommand_matches("today").unwrap();
+            let futu = scmd.is_present("today-show-future");
+            let done = scmd.is_present("today-done");
+            (futu, done)
         } else {
-            true
+            (true, rt.cli().subcommand_matches("status").unwrap().is_present("status-done"))
         }
     };
     let today = ::chrono::offset::Local::today().naive_local();
@@ -257,6 +260,8 @@ fn today(rt: &Runtime, future: bool) {
             .filter(|h| {
                 let due = h.next_instance_date().map_err_trace_exit_unwrap(1);
                 // today or in future
+                debug!("Checking {due:?} == {today:?} or (future = {fut} && {due:?} > {today:?}",
+                       due = due, today = today, fut = future);
                 due.map(|d| d == today || (future && d > today)).unwrap_or(false)
             })
             .collect();
@@ -266,15 +271,17 @@ fn today(rt: &Runtime, future: bool) {
         relevant
     };
 
-    let any_today_relevant = relevant
+    let any_today_relevant = show_done || relevant
         .iter()
         .filter(|h| {
             let due = h.next_instance_date().map_err_trace_exit_unwrap(1);
+            debug!("Checking: {:?} == {:?}", due, today);
             due.map(|d| d == today).unwrap_or(false) // relevant today
         })
-        .count() == 0;
+        .count() != 0;
 
-    if any_today_relevant {
+    debug!("Any today relevant = {}", any_today_relevant);
+    if !any_today_relevant {
         let n = rt
             .cli()
             .subcommand_matches("today")
@@ -294,8 +301,14 @@ fn today(rt: &Runtime, future: bool) {
             let date = element.next_instance_date().map_err_trace_exit_unwrap(1);
             let name = element.habit_name().map_err_trace_exit_unwrap(1);
 
-            if let Some(date) = date { // if there is a date
-                info!(" * {date}: {name}", date = date, name = name);
+            if let Some(date) = date {
+                let is_done = element
+                    .instance_exists_for_date(&date)
+                    .map_err_trace_exit_unwrap(1);
+
+                if show_done || !is_done {
+                    info!(" * {date}: {name}", date = date, name = name);
+                }
             }
         }
     } else {
@@ -323,7 +336,21 @@ fn today(rt: &Runtime, future: bool) {
         table.set_titles(Row::new(header));
 
         let mut empty = true;
-        for (i, e) in relevant.into_iter().enumerate() {
+        for (i, e) in relevant.into_iter()
+            .filter(|habit| {
+                show_done || {
+                    habit
+                        .next_instance_date()
+                        .map_err_trace_exit_unwrap(1)
+                        .map(|date|  {
+                            habit.instance_exists_for_date(&date)
+                                .map_err_trace_exit_unwrap(1)
+                        })
+                        .unwrap_or(false)
+                }
+            })
+            .enumerate()
+        {
             let mut v = vec![format!("{}", i)];
             let mut list = lister_fn(&e);
             v.append(&mut list);
