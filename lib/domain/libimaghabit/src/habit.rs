@@ -62,6 +62,12 @@ pub trait HabitTemplate : Sized {
     /// `::chrono::Local::today().naive_local()`.
     fn create_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
 
+    /// Same as `HabitTemplate::create_instance_with_date()` but uses `Store::retrieve` internally.
+    fn retrieve_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate) -> Result<FileLockEntry<'a>>;
+
+    /// Same as `HabitTemplate::create_instance_today()` but uses `Store::retrieve` internally.
+    fn retrieve_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
+
     /// Get instances for this template
     fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator>;
 
@@ -96,22 +102,28 @@ impl HabitTemplate for Entry {
         let date    = date_to_string(date);
         let id      = instance_id_for_name_and_datestr(&name, &date)?;
 
-        store.retrieve(id)
+        store.create(id)
             .map_err(From::from)
-            .and_then(|mut entry| {
-                {
-                    let _   = entry.set_isflag::<IsHabitInstance>()?;
-                    let hdr = entry.get_header_mut();
-                    let _   = hdr.insert("habit.instance.name",    Value::String(name))?;
-                    let _   = hdr.insert("habit.instance.date",    Value::String(date))?;
-                    let _   = hdr.insert("habit.instance.comment", Value::String(comment))?;
-                }
-                Ok(entry)
-            })
+            .and_then(|entry| postprocess_instance(entry, name, date, comment))
     }
 
     fn create_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
         self.create_instance_with_date(store, &Local::today().naive_local())
+    }
+
+    fn retrieve_instance_with_date<'a>(&self, store: &'a Store, date: &NaiveDate) -> Result<FileLockEntry<'a>> {
+        let name    = self.habit_name()?;
+        let comment = self.habit_comment()?;
+        let date    = date_to_string(date);
+        let id      = instance_id_for_name_and_datestr(&name, &date)?;
+
+        store.create(id)
+            .map_err(From::from)
+            .and_then(|entry| postprocess_instance(entry, name, date, comment))
+    }
+
+    fn retrieve_instance_today<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
+        self.retrieve_instance_with_date(store, &Local::today().naive_local())
     }
 
     fn linked_instances(&self) -> Result<HabitInstanceStoreIdIterator> {
@@ -264,6 +276,7 @@ pub mod builder {
     use libimagstore::storeid::IntoStoreId;
     use libimagstore::store::FileLockEntry;
     use libimagentryutil::isa::Is;
+    use libimagutil::debug_result::DebugResult;
 
     use error::HabitError as HE;
     use error::HabitErrorKind as HEK;
@@ -313,14 +326,17 @@ pub mod builder {
                 HE::from_kind(HEK::HabitBuilderMissing(s))
             }
 
-            let name      = try!(self.name.ok_or_else(|| mkerr("name")));
-            debug!("Success: Name present");
+            let name = self.name
+                .ok_or_else(|| mkerr("name"))
+                .map_dbg_str("Success: Name present")?;
 
-            let dateobj   = try!(self.basedate.ok_or_else(|| mkerr("date")));
-            debug!("Success: Date present");
+            let dateobj = self.basedate
+                .ok_or_else(|| mkerr("date"))
+                .map_dbg_str("Success: Date present")?;
 
-            let recur     = try!(self.recurspec.ok_or_else(|| mkerr("recurspec")));
-            debug!("Success: Recurr spec present");
+            let recur = self.recurspec
+                .ok_or_else(|| mkerr("recurspec"))
+                .map_dbg_str("Success: Recurr spec present")?;
 
             if let Some(until) = self.untildate {
                 debug!("Success: Until-Date present");
@@ -380,5 +396,21 @@ pub mod builder {
         ModuleEntryPath::new(format!("template/{}", name)).into_storeid().map_err(From::from)
     }
 
+}
+
+fn postprocess_instance<'a>(mut entry: FileLockEntry<'a>,
+                            name: String,
+                            date: String,
+                            comment: String)
+    -> Result<FileLockEntry<'a>>
+{
+    {
+        let _   = entry.set_isflag::<IsHabitInstance>()?;
+        let hdr = entry.get_header_mut();
+        let _   = hdr.insert("habit.instance.name",    Value::String(name))?;
+        let _   = hdr.insert("habit.instance.date",    Value::String(date))?;
+        let _   = hdr.insert("habit.instance.comment", Value::String(comment))?;
+    }
+    Ok(entry)
 }
 
