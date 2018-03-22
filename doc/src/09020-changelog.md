@@ -90,6 +90,7 @@ This section contains the changelog from the last release to the next release.
       account.
     * `libimagentryref` got a fix where the buffer for the hash calculation was
       not allocated properly.
+    * `libimagstore::store::Store::create` overwrote existing entries.
 
 
 ## 0.6.3
