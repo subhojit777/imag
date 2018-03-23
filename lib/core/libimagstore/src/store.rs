@@ -959,6 +959,16 @@ impl Entry {
         &mut self.content
     }
 
+    /// Replace both header and content of the entry by reading from buffer
+    ///
+    /// If an error is returned, the contents of neither the header nor the content are modified.
+    pub fn replace_from_buffer(&mut self, buf: &str) -> Result<()> {
+        let (header, content) = ::util::entry_buffer_to_header_content(buf)?;
+        self.content          = content;
+        self.header           = header;
+        Ok(())
+    }
+
     /// Verify the entry.
     ///
     /// Currently, this only verifies the header. This might change in the future.
