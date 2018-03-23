@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+since="$1"
+
+if [[ -z "$since" ]]; then
+    echo "Usage: $0 [since]"
+    exit 1
+fi
+
+for rev in $(git rev-list "$since"..HEAD | tac); do
+    if git notes --ref=changelog list $rev &> /dev/null; then
+        output=$(git notes --ref=changelog show $rev | sed '2,$s/^/  /')
+        echo "* $output"
+    fi
+done
+
