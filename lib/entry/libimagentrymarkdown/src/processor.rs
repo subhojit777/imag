@@ -126,7 +126,7 @@ impl LinkProcessor {
     /// function returns all errors returned by the Store.
     ///
     pub fn process<'a>(&self, entry: &mut Entry, store: &'a Store) -> Result<()> {
-        let text = entry.to_str();
+        let text = entry.to_str()?;
         trace!("Processing: {:?}", entry.get_location());
         for link in extract_links(&text).into_iter() {
             trace!("Processing {:?}", link);

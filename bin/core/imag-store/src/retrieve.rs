@@ -53,7 +53,7 @@ pub fn retrieve(rt: &Runtime) {
 pub fn print_entry(rt: &Runtime, scmd: &ArgMatches, e: FileLockEntry) {
     if do_print_raw(scmd) {
         debug!("Printing raw content...");
-        let _ = writeln!(rt.stdout(), "{}", e.to_str())
+        let _ = writeln!(rt.stdout(), "{}", e.to_str().map_err_trace_exit_unwrap(1))
             .to_exit_code()
             .unwrap_or_exit();
     } else if do_filter(scmd) {

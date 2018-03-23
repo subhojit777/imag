@@ -355,7 +355,9 @@ mod tests {
         let mut path = PathBuf::new();
         path.set_file_name(name);
 
-        let default_entry = Entry::new(StoreId::new_baseless(PathBuf::from("")).unwrap()).to_str();
+        let default_entry = Entry::new(StoreId::new_baseless(PathBuf::from("")).unwrap())
+            .to_str()
+            .unwrap();
 
         debug!("Default entry constructed");
 

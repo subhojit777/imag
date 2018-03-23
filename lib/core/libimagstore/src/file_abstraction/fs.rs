@@ -78,7 +78,7 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
     fn write_file_content(&mut self, buf: &Entry) -> Result<(), SE> {
         use std::io::Write;
 
-        let buf = buf.to_str().into_bytes();
+        let buf = buf.to_str()?.into_bytes();
 
         let (file, path) = match *self {
             FSFileAbstractionInstance::File(ref mut f, _) => return {
