@@ -91,6 +91,7 @@ macro_rules! make_unique_ref_path_generator {
             }
 
             fn unique_hash<A: AsRef<Path>>(path: A) -> Result<String, Self::Error> {
+                debug!("Making unique hash for path: {:?}", path.as_ref());
                 $impl(path)
             }
 
@@ -135,7 +136,8 @@ macro_rules! make_unique_ref_path_generator {
                 $collectionname
             }
 
-            fn unique_hash<A: AsRef<Path>>(path: A) -> Result<String, Self::Error> {
+            fn unique_hash<A: AsRef<Path>>(path: A) -> ::std::result::Result<String, Self::Error> {
+                debug!("Making unique hash for path: {:?}", path.as_ref());
                 $impl(path)
             }
 
@@ -198,6 +200,7 @@ macro_rules! make_sha_mod {
 
                 /// Function which can be used by a wrapping UniqueRefPathGenerator to hash only N bytes.
                 pub fn hash_n_bytes<A: AsRef<Path>>(path: A, n: usize) -> Result<String, RE> {
+                    debug!("Opening '{}' for hashing", path.as_ref().display());
                     OpenOptions::new()
                         .read(true)
                         .write(false)
@@ -233,8 +236,13 @@ macro_rules! make_sha_mod {
 make_sha_mod! {
     sha1, Sha1, |buffer: String| {
         let mut hasher = ::crypto::sha1::Sha1::new();
+
+        trace!("Hashing: '{:?}'", buffer);
         hasher.input_str(&buffer);
-        Ok(String::from(hasher.result_str()))
+        let res = hasher.result_str();
+        trace!("Hash => '{:?}'", res);
+
+        Ok(String::from(res))
     }
 }
 

@@ -39,10 +39,12 @@ This section contains the changelog from the last release to the next release.
       address and either shows or lists the found contacts
     * `imag-contact list` and `imag-contact find` is now able to print the
       output as JSON.
-    * `imag-edit` can now read store ids from stdin, sorts
-      `imag ids | fzf | imag edit -I` is not a thing.
+    * `imag-edit` can now read store ids from stdin, so
+      `imag ids | fzf | imag edit -I` is now a thing.
     * `imag ids` does not print the path of the store. Can be turned on using
       commandline flag.
+    * `imag-habit today --done` and `imag-habit status --done` was added for
+      showing habits which are already done.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
@@ -61,6 +63,8 @@ This section contains the changelog from the last release to the next release.
     * `imag-tag` commandline was rewritten for positional arguments.
     * `libimagrt` automatically takes "rt.editor" into account when building
       editor object
+    * `libimagentryref` got a utility function for making an entry a ref.
+    * `libimaghabit` got `Habit::instance_exists_for_date()`
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
@@ -84,6 +88,10 @@ This section contains the changelog from the last release to the next release.
       editor command.
     * `libimagrt` produced the editor command without taking arguments into
       account.
+    * `libimagentryref` got a fix where the buffer for the hash calculation was
+      not allocated properly.
+    * `libimagstore::store::Store::create` overwrote existing entries.
+    * `libimaghabit::habit::HabitTemplate` did not link new instances.
 
 
 ## 0.6.3
