@@ -82,8 +82,14 @@ fn main() {
                 .expect("Failed to retrieve/build path for imag directory.")
         });
 
-    let _ = ::std::fs::create_dir_all(path.clone())
-        .expect("Failed to create directory");
+    {
+        let mut store_path = path.clone();
+        store_path.push("store");
+        println!("Creating {}", store_path.display());
+
+        let _ = ::std::fs::create_dir_all(store_path)
+            .expect("Failed to create directory");
+    }
 
     let config_path = {
         let mut config_path = path.clone();

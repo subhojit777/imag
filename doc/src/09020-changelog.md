@@ -28,6 +28,7 @@ Bugfix release for fixing:
 
 * `libimagrt` produced the editor command without taking arguments into
   account.
+* `imag-init` creates `~/.imag` but not `~/.imag/store`.
 
 
 ## 0.6.3
