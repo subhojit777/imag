@@ -25,6 +25,7 @@ script:
   - |
     bash ./scripts/find-dead-symlinks || exit 1
     bash ./scripts/license-headers-updated || exit 1
+    cargo build --all --all-features -j 1 || exit 1
     cargo test  --all --all-features -j 1 || exit 1
 
 notifications:
