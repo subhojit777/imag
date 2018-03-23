@@ -95,6 +95,7 @@ This section contains the changelog from the last release to the next release.
       not allocated properly.
     * `libimagstore::store::Store::create` overwrote existing entries.
     * `libimaghabit::habit::HabitTemplate` did not link new instances.
+    * `imag-init` creates `~/.imag` but not `~/.imag/store`.
 
 
 ## 0.6.3
