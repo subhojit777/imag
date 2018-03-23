@@ -118,7 +118,7 @@ impl HabitTemplate for Entry {
         let date    = date_to_string(date);
         let id      = instance_id_for_name_and_datestr(&name, &date)?;
 
-        store.create(id)
+        store.retrieve(id)
             .map_err(From::from)
             .and_then(|entry| postprocess_instance(entry, name, date, comment, self))
     }
