@@ -23,6 +23,7 @@ error_chain! {
     }
 
     foreign_links {
+        IO(::std::io::Error);
         TomlDeError(::toml::de::Error);
         TomlQueryError(::toml_query::error::Error);
         HandlebarsTemplateError(::handlebars::TemplateError);

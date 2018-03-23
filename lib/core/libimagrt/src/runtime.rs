@@ -39,6 +39,7 @@ use io::OutputProxy;
 use libimagerror::trace::*;
 use libimagstore::store::Store;
 use libimagstore::file_abstraction::InMemoryFileAbstraction;
+use libimagutil::debug_result::DebugResult;
 use spec::CliSpec;
 
 /// The Runtime object
@@ -454,7 +455,7 @@ impl<'a> Runtime<'a> {
     }
 
     /// Get a editor command object which can be called to open the $EDITOR
-    pub fn editor(&self) -> Option<Command> {
+    pub fn editor(&self) -> Result<Option<Command>, RuntimeError> {
         self.cli()
             .value_of("editor")
             .map(String::from)
@@ -466,18 +467,19 @@ impl<'a> Runtime<'a> {
                     })
             })
             .or(env::var("EDITOR").ok())
-            .map(|s| {debug!("Editing with '{}'", s); s})
+            .ok_or_else(|| RuntimeErrorKind::IOError.into())
+            .map_dbg(|s| format!("Editing with '{}'", s))
             .and_then(|s| {
                 let mut split = s.split(" ");
                 let command   = split.next();
                 if command.is_none() {
-                    return None
+                    return Ok(None)
                 }
                 let mut c = Command::new(command.unwrap()); // secured above
                 c.args(split);
-                c.stdin(::std::process::Stdio::null());
+                c.stdin(::std::fs::File::open("/dev/tty")?);
                 c.stderr(::std::process::Stdio::inherit());
-                Some(c)
+                Ok(Some(c))
             })
     }
 
