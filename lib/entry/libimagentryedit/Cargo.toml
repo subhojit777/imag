@@ -21,6 +21,7 @@ maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
 error-chain = "0.11"
+toml        = "0.4"
 
 libimagerror = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
 libimagrt    = { version = "0.7.0", path = "../../../lib/core/libimagrt" }

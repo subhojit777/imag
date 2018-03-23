@@ -47,6 +47,7 @@ use std::io::Read;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::iter::TraceIterator;
 use libimagentryedit::edit::Edit;
+use libimagentryedit::edit::EditHeader;
 use libimagrt::setup::generate_runtime_setup;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreIdIterator;
@@ -85,11 +86,8 @@ fn main() {
         }
     };
 
-    if rt.cli().is_present("edit-header") {
-        // TODO: support editing of header
-        warn!("Editing header is not yet supported by imag-edit");
-        ::std::process::exit(1);
-    }
+    let edit_header = rt.cli().is_present("edit-header");
+    let edit_header_only = rt.cli().is_present("edit-header-only");
 
     StoreIdIterator::new(Box::new(sids.into_iter()))
         .into_get_iter(rt.store())
@@ -99,9 +97,19 @@ fn main() {
             ::std::process::exit(1)
         }))
         .for_each(|mut entry| {
-            let _ = entry
-                .edit_content(&rt)
-                .map_err_trace_exit_unwrap(1);
+            if edit_header {
+                let _ = entry
+                    .edit_header_and_content(&rt)
+                    .map_err_trace_exit_unwrap(1);
+            } else if edit_header_only {
+                let _ = entry
+                    .edit_header(&rt)
+                    .map_err_trace_exit_unwrap(1);
+            } else {
+                let _ = entry
+                    .edit_content(&rt)
+                    .map_err_trace_exit_unwrap(1);
+            }
         });
 }
 

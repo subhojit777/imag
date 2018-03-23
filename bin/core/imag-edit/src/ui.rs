@@ -47,5 +47,11 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
              .multiple(false)
              .help("Also edit the header"))
 
+        .arg(Arg::with_name("edit-header-only")
+             .long("header-only")
+             .takes_value(false)
+             .required(false)
+             .multiple(false)
+             .help("Only edit the header"))
 }
 
