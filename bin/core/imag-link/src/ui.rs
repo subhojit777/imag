@@ -67,6 +67,13 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                      .takes_value(false)
                      .required(false)
                      .help("Also list external links (debugging helper that might be removed at some point"))
+
+                .arg(Arg::with_name("list-plain")
+                     .long("plain")
+                     .multiple(false)
+                     .takes_value(false)
+                     .required(false)
+                     .help("List plain rather than in ASCII table"))
                 )
 
         .arg(Arg::with_name("check-consistency")
