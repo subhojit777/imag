@@ -40,6 +40,7 @@ extern crate libimagstore;
 extern crate libimagrt;
 extern crate libimagutil;
 #[macro_use] extern crate error_chain;
+extern crate toml;
 
 pub mod edit;
 pub mod error;

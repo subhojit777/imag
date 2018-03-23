@@ -22,6 +22,16 @@ error_chain! {
         EditError, EditErrorKind, ResultExt, Result;
     }
 
+    links {
+        StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
+    }
+
+    foreign_links {
+        TomlSerError(::toml::ser::Error);
+        TomlDeserError(::toml::de::Error);
+    }
+
+
     errors {
         IOError             {
             description("IO Error")

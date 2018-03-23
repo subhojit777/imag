@@ -29,6 +29,11 @@ pub trait Edit {
     fn edit_content(&mut self, rt: &Runtime) -> Result<()>;
 }
 
+pub trait EditHeader : Edit {
+    fn edit_header(&mut self, rt: &Runtime)             -> Result<()>;
+    fn edit_header_and_content(&mut self, rt: &Runtime) -> Result<()>;
+}
+
 impl Edit for String {
 
     fn edit_content(&mut self, rt: &Runtime) -> Result<()> {
@@ -42,6 +47,24 @@ impl Edit for Entry {
     fn edit_content(&mut self, rt: &Runtime) -> Result<()> {
         edit_in_tmpfile(rt, self.get_content_mut())
             .map(|_| ())
+    }
+
+}
+
+impl EditHeader for Entry {
+
+    fn edit_header(&mut self, rt: &Runtime) -> Result<()> {
+        let mut header = ::toml::ser::to_string_pretty(self.get_header())?;
+        let _          = edit_in_tmpfile(rt, &mut header)?;
+        let header     = ::toml::de::from_str(&header)?;
+        *self.get_header_mut() = header;
+        Ok(())
+    }
+
+    fn edit_header_and_content(&mut self, rt: &Runtime) -> Result<()> {
+        let mut header_and_content = self.to_str();
+        let _                      = edit_in_tmpfile(rt, &mut header_and_content)?;
+        self.replace_from_buffer(&header_and_content).map_err(EE::from)
     }
 
 }
