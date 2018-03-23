@@ -518,7 +518,7 @@ fn done(rt: &Runtime) {
         relevant
     };
 
-    for r in relevant.iter() {
+    for mut r in relevant {
         let next_instance_name = r.habit_name().map_err_trace_exit_unwrap(1);
         let next_instance_date = r.next_instance_date().map_err_trace_exit_unwrap(1);
         if let Some(next) = next_instance_date {
