@@ -35,6 +35,7 @@
 #[macro_use] extern crate log;
 extern crate clap;
 extern crate url;
+#[macro_use] extern crate prettytable;
 #[cfg(test)] extern crate toml;
 #[cfg(test)] extern crate toml_query;
 #[cfg(test)] extern crate env_logger;
@@ -263,23 +264,28 @@ fn list_linkings(rt: &Runtime) {
         .unwrap(); // safed by clap
 
     let list_externals  = cmd.is_present("list-externals-too");
+    let list_plain      = cmd.is_present("list-plain");
+
+    let mut tab = ::prettytable::Table::new();
+    tab.set_titles(row!["#", "Link"]);
 
     for entry in cmd.values_of("entries").unwrap() { // safed by clap
         match rt.store().get(PathBuf::from(entry)) {
             Ok(Some(entry)) => {
-                let mut i = 0;
-
-                for link in entry.get_internal_links().map_err_trace_exit_unwrap(1) {
+                for (i, link) in entry.get_internal_links().map_err_trace_exit_unwrap(1).enumerate() {
                     let link = link
                         .to_str()
                         .map_warn_err(|e| format!("Failed to convert StoreId to string: {:?}", e))
                         .ok();
 
                     if let Some(link) = link {
-                        let _ = writeln!(rt.stdout(), "{: <3}: {}", i, link)
-                            .to_exit_code()
-                            .unwrap_or_exit();
-                        i += 1;
+                        if list_plain {
+                            let _ = writeln!(rt.stdout(), "{: <3}: {}", i, link)
+                                .to_exit_code()
+                                .unwrap_or_exit();
+                        } else {
+                            tab.add_row(row![i, link]);
+                        }
                     }
                 }
 
@@ -292,16 +298,27 @@ fn list_linkings(rt: &Runtime) {
                                 .map_err_trace_exit_unwrap(1)
                                 .into_string();
 
-                            let _ = writeln!(rt.stdout(), "{: <3}: {}", i, link)
-                                .to_exit_code()
-                                .unwrap_or_exit();
-
+                            if list_plain {
+                                let _ = writeln!(rt.stdout(), "{: <3}: {}", i, link)
+                                    .to_exit_code()
+                                    .unwrap_or_exit();
+                            } else {
+                                tab.add_row(row![i, link]);
+                            }
                         })
                 }
             },
             Ok(None)        => warn!("Not found: {}", entry),
             Err(e)          => trace_error(&e),
         }
+    }
+
+    if !list_plain {
+        let out      = rt.stdout();
+        let mut lock = out.lock();
+        tab.print(&mut lock)
+            .to_exit_code()
+            .unwrap_or_exit();
     }
 }
 
