@@ -49,18 +49,19 @@ impl Edit for Entry {
 pub fn edit_in_tmpfile(rt: &Runtime, s: &mut String) -> Result<()> {
     use libimagutil::edit::edit_in_tmpfile_with_command;
 
-    rt.editor()
-        .ok_or(EE::from_kind(EditErrorKind::NoEditor))
-        .and_then(|editor| {
-            edit_in_tmpfile_with_command(editor, s)
-                .chain_err(|| EditErrorKind::IOError)
-                .and_then(|worked| {
-                    if !worked {
-                        Err(EditErrorKind::ProcessExitFailure.into())
-                    } else {
-                        Ok(())
-                    }
-                })
+    let editor = rt
+        .editor()
+        .chain_err(|| EditErrorKind::NoEditor)?
+        .ok_or_else(|| EE::from_kind(EditErrorKind::NoEditor))?;
+
+    edit_in_tmpfile_with_command(editor, s)
+        .chain_err(|| EditErrorKind::IOError)
+        .and_then(|worked| {
+            if !worked {
+                Err(EditErrorKind::ProcessExitFailure.into())
+            } else {
+                Ok(())
+            }
         })
 }
 

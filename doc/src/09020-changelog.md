@@ -29,6 +29,8 @@ Bugfix release for fixing:
 * `libimagrt` produced the editor command without taking arguments into
   account.
 * `imag-init` creates `~/.imag` but not `~/.imag/store`.
+* Fix editor setup in `libimagrt` to use /dev/tty as stdin for editor, so
+  terminal-editors do not trash the terminal
 
 
 ## 0.6.3
