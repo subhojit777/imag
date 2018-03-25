@@ -1,6 +1,6 @@
 [package]
 name = "imag-tag"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-tag command"
@@ -24,24 +24,24 @@ clap = ">=2.17"
 log = "0.4.0"
 toml = "0.4"
 
-libimagstore    = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
-libimagrt       = { version = "0.6.3", path = "../../../lib/core/libimagrt" }
-libimagerror    = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
-libimagentrytag = { version = "0.6.3", path = "../../../lib/entry/libimagentrytag" }
-libimagutil     = { version = "0.6.3", path = "../../../lib/etc/libimagutil" }
+libimagstore    = { version = "0.6.4", path = "../../../lib/core/libimagstore" }
+libimagrt       = { version = "0.6.4", path = "../../../lib/core/libimagrt" }
+libimagerror    = { version = "0.6.4", path = "../../../lib/core/libimagerror" }
+libimagentrytag = { version = "0.6.4", path = "../../../lib/entry/libimagentrytag" }
+libimagutil     = { version = "0.6.4", path = "../../../lib/etc/libimagutil" }
 
 [dev-dependencies]
 toml-query = "0.6"
 env_logger = "0.5"
 
 [dev-dependencies.libimagutil]
-version          = "0.6.3"
+version          = "0.6.4"
 path             = "../../../lib/etc/libimagutil"
 default-features = false
 features         = ["testing"]
 
 [dev-dependencies.libimagrt]
-version          = "0.6.3"
+version          = "0.6.4"
 path             = "../../../lib/core/libimagrt"
 default-features = false
 features         = ["testing"]

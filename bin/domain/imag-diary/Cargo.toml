@@ -1,6 +1,6 @@
 [package]
 name = "imag-diary"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-diary command"
@@ -26,13 +26,13 @@ log = "0.4.0"
 toml = "0.4"
 toml-query = "0.6"
 
-libimagerror       = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
-libimagstore       = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
-libimagrt          = { version = "0.6.3", path = "../../../lib/core/libimagrt" }
-libimagdiary       = { version = "0.6.3", path = "../../../lib/domain/libimagdiary" }
-libimagentryedit   = { version = "0.6.3", path = "../../../lib/entry/libimagentryedit" }
-libimagentrylist   = { version = "0.6.3", path = "../../../lib/entry/libimagentrylist" }
-libimaginteraction = { version = "0.6.3", path = "../../../lib/etc/libimaginteraction" }
-libimagutil        = { version = "0.6.3", path = "../../../lib/etc/libimagutil" }
-libimagtimeui      = { version = "0.6.3", path = "../../../lib/etc/libimagtimeui" }
+libimagerror       = { version = "0.6.4", path = "../../../lib/core/libimagerror" }
+libimagstore       = { version = "0.6.4", path = "../../../lib/core/libimagstore" }
+libimagrt          = { version = "0.6.4", path = "../../../lib/core/libimagrt" }
+libimagdiary       = { version = "0.6.4", path = "../../../lib/domain/libimagdiary" }
+libimagentryedit   = { version = "0.6.4", path = "../../../lib/entry/libimagentryedit" }
+libimagentrylist   = { version = "0.6.4", path = "../../../lib/entry/libimagentrylist" }
+libimaginteraction = { version = "0.6.4", path = "../../../lib/etc/libimaginteraction" }
+libimagutil        = { version = "0.6.4", path = "../../../lib/etc/libimagutil" }
+libimagtimeui      = { version = "0.6.4", path = "../../../lib/etc/libimagtimeui" }
 

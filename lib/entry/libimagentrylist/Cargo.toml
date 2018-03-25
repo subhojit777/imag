@@ -1,6 +1,6 @@
 [package]
 name = "libimagentrylist"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -25,6 +25,6 @@ log = "0.4.0"
 prettytable-rs = "0.6.*"
 error-chain = "0.11"
 
-libimagstore = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
-libimagerror = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
-libimagutil  = { version = "0.6.3", path = "../../../lib/etc/libimagutil" }
+libimagstore = { version = "0.6.4", path = "../../../lib/core/libimagstore" }
+libimagerror = { version = "0.6.4", path = "../../../lib/core/libimagerror" }
+libimagutil  = { version = "0.6.4", path = "../../../lib/etc/libimagutil" }

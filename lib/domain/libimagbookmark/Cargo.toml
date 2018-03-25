@@ -1,6 +1,6 @@
 [package]
 name = "libimagbookmark"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -24,7 +24,7 @@ url = "1.5"
 regex = "0.2"
 error-chain = "0.11"
 
-libimagstore     = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
-libimagerror     = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
-libimagentrylink = { version = "0.6.3", path = "../../../lib/entry/libimagentrylink" }
+libimagstore     = { version = "0.6.4", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.6.4", path = "../../../lib/core/libimagerror" }
+libimagentrylink = { version = "0.6.4", path = "../../../lib/entry/libimagentrylink" }
 

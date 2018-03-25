@@ -1,6 +1,6 @@
 [package]
 name = "libimagerror"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"

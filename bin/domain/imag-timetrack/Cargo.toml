@@ -1,6 +1,6 @@
 [package]
 name = "imag-timetrack"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-tag command"
@@ -27,8 +27,8 @@ filters = "0.2"
 itertools = "0.7"
 prettytable-rs = "0.6"
 
-libimagstore     = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
-libimagrt        = { version = "0.6.3", path = "../../../lib/core/libimagrt" }
-libimagerror     = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
-libimagtimetrack = { version = "0.6.3", path = "../../../lib/domain/libimagtimetrack" }
-libimagutil      = { version = "0.6.3", path = "../../../lib/etc/libimagutil" }
+libimagstore     = { version = "0.6.4", path = "../../../lib/core/libimagstore" }
+libimagrt        = { version = "0.6.4", path = "../../../lib/core/libimagrt" }
+libimagerror     = { version = "0.6.4", path = "../../../lib/core/libimagerror" }
+libimagtimetrack = { version = "0.6.4", path = "../../../lib/domain/libimagtimetrack" }
+libimagutil      = { version = "0.6.4", path = "../../../lib/etc/libimagutil" }

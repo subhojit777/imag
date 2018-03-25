@@ -1,6 +1,6 @@
 [package]
 name = "libimagstore"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -33,8 +33,8 @@ serde_derive = "1"
 error-chain = "0.11"
 toml-query = "0.6"
 
-libimagerror = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
-libimagutil  = { version = "0.6.3", path = "../../../lib/etc/libimagutil" }
+libimagerror = { version = "0.6.4", path = "../../../lib/core/libimagerror" }
+libimagutil  = { version = "0.6.4", path = "../../../lib/etc/libimagutil" }
 
 [dev-dependencies]
 tempdir = "0.3"

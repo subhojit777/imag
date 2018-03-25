@@ -1,6 +1,6 @@
 [package]
 name = "imag-contact"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-contact command"
@@ -29,12 +29,12 @@ vobject     = "0.4"
 walkdir = "1"
 uuid = { version = "0.5", features = ["v4"] }
 
-libimagrt      = { version = "0.6.3", path = "../../../lib/core/libimagrt" }
-libimagstore   = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
-libimagerror   = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
-libimagcontact = { version = "0.6.3", path = "../../../lib/domain/libimagcontact" }
-libimagutil    = { version = "0.6.3", path = "../../../lib/etc/libimagutil" }
-libimagentryref = { version = "0.6.3", path = "../../../lib/entry/libimagentryref" }
-libimagentryedit = { version = "0.6.3", path = "../../../lib/entry/libimagentryedit" }
-libimaginteraction    = { version = "0.6.3", path = "../../../lib/etc/libimaginteraction" }
+libimagrt      = { version = "0.6.4", path = "../../../lib/core/libimagrt" }
+libimagstore   = { version = "0.6.4", path = "../../../lib/core/libimagstore" }
+libimagerror   = { version = "0.6.4", path = "../../../lib/core/libimagerror" }
+libimagcontact = { version = "0.6.4", path = "../../../lib/domain/libimagcontact" }
+libimagutil    = { version = "0.6.4", path = "../../../lib/etc/libimagutil" }
+libimagentryref = { version = "0.6.4", path = "../../../lib/entry/libimagentryref" }
+libimagentryedit = { version = "0.6.4", path = "../../../lib/entry/libimagentryedit" }
+libimaginteraction    = { version = "0.6.4", path = "../../../lib/etc/libimaginteraction" }
 

@@ -1,6 +1,6 @@
 [package]
 name = "libimaghabit"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -27,9 +27,9 @@ toml-query = "0.6"
 error-chain = "0.11"
 kairos = "0.1.0"
 
-libimagstore     = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
-libimagerror     = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
-libimagentryedit = { version = "0.6.3", path = "../../../lib/entry/libimagentryedit" }
-libimagentrylink = { version = "0.6.3", path = "../../../lib/entry/libimagentrylink" }
-libimagentryutil = { version = "0.6.3", path = "../../../lib/entry/libimagentryutil" }
-libimagutil      = { version = "0.6.3", path = "../../../lib/etc/libimagutil" }
+libimagstore     = { version = "0.6.4", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.6.4", path = "../../../lib/core/libimagerror" }
+libimagentryedit = { version = "0.6.4", path = "../../../lib/entry/libimagentryedit" }
+libimagentrylink = { version = "0.6.4", path = "../../../lib/entry/libimagentrylink" }
+libimagentryutil = { version = "0.6.4", path = "../../../lib/entry/libimagentryutil" }
+libimagutil      = { version = "0.6.4", path = "../../../lib/etc/libimagutil" }

@@ -246,7 +246,7 @@ mod tests {
     make_mock_app! {
         app "imag-tag";
         modulename mock;
-        version "0.6.3";
+        version "0.6.4";
         with help "imag-tag mocking app";
     }
     use self::mock::generate_test_runtime;

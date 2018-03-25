@@ -1,6 +1,6 @@
 [package]
 name = "imag-gps"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-gps command"
@@ -26,14 +26,14 @@ url = "1.2"
 toml = "0.4"
 toml-query = "0.6"
 
-libimagstore     = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
-libimagrt        = { version = "0.6.3", path = "../../../lib/core/libimagrt" }
-libimagerror     = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
-libimagentrygps  = { version = "0.6.3", path = "../../../lib/entry/libimagentrygps" }
-libimagutil      = { version = "0.6.3", path = "../../../lib/etc/libimagutil" }
+libimagstore     = { version = "0.6.4", path = "../../../lib/core/libimagstore" }
+libimagrt        = { version = "0.6.4", path = "../../../lib/core/libimagrt" }
+libimagerror     = { version = "0.6.4", path = "../../../lib/core/libimagerror" }
+libimagentrygps  = { version = "0.6.4", path = "../../../lib/entry/libimagentrygps" }
+libimagutil      = { version = "0.6.4", path = "../../../lib/etc/libimagutil" }
 
 [dev-dependencies.libimagutil]
-version          = "0.6.3"
+version          = "0.6.4"
 path = "../../../lib/etc/libimagutil"
 default-features = false
 features         = ["testing"]

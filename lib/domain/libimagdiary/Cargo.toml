@@ -1,6 +1,6 @@
 [package]
 name = "libimagdiary"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -27,8 +27,8 @@ toml-query = "0.6"
 itertools = "0.7"
 error-chain = "0.11"
 
-libimagstore     = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
-libimagerror     = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
-libimagrt        = { version = "0.6.3", path = "../../../lib/core/libimagrt" }
-libimagentryedit = { version = "0.6.3", path = "../../../lib/entry/libimagentryedit" }
-libimagentryview = { version = "0.6.3", path = "../../../lib/entry/libimagentryview" }
+libimagstore     = { version = "0.6.4", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.6.4", path = "../../../lib/core/libimagerror" }
+libimagrt        = { version = "0.6.4", path = "../../../lib/core/libimagrt" }
+libimagentryedit = { version = "0.6.4", path = "../../../lib/entry/libimagentryedit" }
+libimagentryview = { version = "0.6.4", path = "../../../lib/entry/libimagentryview" }

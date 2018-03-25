@@ -1,6 +1,6 @@
 [package]
 name = "imag-habit"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-habit command"
@@ -27,13 +27,13 @@ toml = "0.4"
 toml-query = "0.6"
 kairos = "0.1.0"
 
-libimagerror       = { version = "0.6.3", path = "../../../lib/core/libimagerror" }
-libimagstore       = { version = "0.6.3", path = "../../../lib/core/libimagstore" }
-libimagrt          = { version = "0.6.3", path = "../../../lib/core/libimagrt" }
-libimagentryedit   = { version = "0.6.3", path = "../../../lib/entry/libimagentryedit" }
-libimagentrylist   = { version = "0.6.3", path = "../../../lib/entry/libimagentrylist" }
-libimaginteraction = { version = "0.6.3", path = "../../../lib/etc/libimaginteraction" }
-libimagutil        = { version = "0.6.3", path = "../../../lib/etc/libimagutil" }
-libimagtimeui      = { version = "0.6.3", path = "../../../lib/etc/libimagtimeui" }
-libimaghabit       = { version = "0.6.3", path = "../../../lib/domain/libimaghabit" }
+libimagerror       = { version = "0.6.4", path = "../../../lib/core/libimagerror" }
+libimagstore       = { version = "0.6.4", path = "../../../lib/core/libimagstore" }
+libimagrt          = { version = "0.6.4", path = "../../../lib/core/libimagrt" }
+libimagentryedit   = { version = "0.6.4", path = "../../../lib/entry/libimagentryedit" }
+libimagentrylist   = { version = "0.6.4", path = "../../../lib/entry/libimagentrylist" }
+libimaginteraction = { version = "0.6.4", path = "../../../lib/etc/libimaginteraction" }
+libimagutil        = { version = "0.6.4", path = "../../../lib/etc/libimagutil" }
+libimagtimeui      = { version = "0.6.4", path = "../../../lib/etc/libimagtimeui" }
+libimaghabit       = { version = "0.6.4", path = "../../../lib/domain/libimaghabit" }
 
