@@ -30,6 +30,7 @@ error_chain! {
         Io(::std::io::Error);
         Fmt(::std::fmt::Error);
         TomlDeserError(::toml::de::Error);
+        TomlSerError(::toml::ser::Error);
         GlobPatternError(::glob::PatternError);
         TomlQueryError(::toml_query::error::Error);
     }

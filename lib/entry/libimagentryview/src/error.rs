@@ -22,6 +22,10 @@ error_chain! {
         ViewError, ViewErrorKind, ResultExt, Result;
     }
 
+    links {
+        StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
+    }
+
     errors {
         Unknown              {
             description("Unknown view error")

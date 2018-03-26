@@ -36,7 +36,7 @@ impl<'a> EditorView<'a> {
 
 impl<'a> Viewer for EditorView<'a> {
     fn view_entry(&self, e: &Entry) -> Result<()> {
-        let mut entry = e.to_str().clone().to_string();
+        let mut entry = e.to_str()?.clone().to_string();
         edit_in_tmpfile(self.0, &mut entry).chain_err(|| VEK::ViewError)
     }
 }

@@ -69,10 +69,10 @@ struct Diagnostic {
     pub num_internal_links: usize,
 }
 
-impl<'a> From<FileLockEntry<'a>> for Diagnostic {
+impl Diagnostic {
 
-    fn from(entry: FileLockEntry<'a>) -> Diagnostic {
-        Diagnostic {
+    fn for_entry<'a>(entry: FileLockEntry<'a>) -> Result<Diagnostic, ::libimagstore::error::StoreError> {
+        Ok(Diagnostic {
             id: entry.get_location().clone(),
             entry_store_version: entry
                 .get_header()
@@ -88,10 +88,10 @@ impl<'a> From<FileLockEntry<'a>> for Diagnostic {
                 _ => 0
             },
             bytecount_content: entry.get_content().as_str().len(),
-            overall_byte_size: entry.to_str().as_str().len(),
+            overall_byte_size: entry.to_str()?.as_str().len(),
             verified: entry.verify().is_ok(),
             num_internal_links: entry.get_internal_links().map(Iterator::count).unwrap_or(0),
-        }
+        })
     }
 }
 
@@ -111,8 +111,9 @@ fn main() {
                 .ok_or(Error::from("Unable to get entry".to_owned()))
                 .map_err_trace_exit_unwrap(1)
         })
-        .map(Diagnostic::from)
-        .collect::<Vec<_>>();
+        .map(Diagnostic::for_entry)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err_trace_exit_unwrap(1);
 
     let mut version_counts        : BTreeMap<String, usize> = BTreeMap::new();
     let mut sum_header_sections   = 0;

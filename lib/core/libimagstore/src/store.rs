@@ -928,10 +928,10 @@ impl Entry {
     ///
     /// This means not only the content of the entry, but the complete entry (from memory, not from
     /// disk).
-    pub fn to_str(&self) -> String {
-        format!("---\n{header}---\n{content}",
-                header  = ::toml::ser::to_string_pretty(&self.header).unwrap(),
-                content = self.content)
+    pub fn to_str(&self) -> Result<String> {
+        Ok(format!("---\n{header}---\n{content}",
+                   header  = ::toml::ser::to_string_pretty(&self.header)?,
+                   content = self.content))
     }
 
     /// Get the location of the Entry
@@ -1255,7 +1255,7 @@ Hai
         println!("{}", TEST_ENTRY);
         let entry = Entry::from_str(StoreId::new_baseless(PathBuf::from("test/foo~1.3")).unwrap(),
                                     TEST_ENTRY).unwrap();
-        let string = entry.to_str();
+        let string = entry.to_str().unwrap();
 
         assert_eq!(TEST_ENTRY, string);
     }
@@ -1267,7 +1267,7 @@ Hai
         println!("{}", TEST_ENTRY_TNL);
         let entry = Entry::from_str(StoreId::new_baseless(PathBuf::from("test/foo~1.3")).unwrap(),
                                     TEST_ENTRY_TNL).unwrap();
-        let string = entry.to_str();
+        let string = entry.to_str().unwrap();
 
         assert_eq!(TEST_ENTRY_TNL, string);
     }
