@@ -196,7 +196,7 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                    )
 
         .subcommand(SubCommand::with_name("find")
-                   .about("Find entries in from past as well")
+                   .about("Find entries and list them")
                    .version("0.1")
                    .arg(Arg::with_name("find-past")
                         .long("past")
