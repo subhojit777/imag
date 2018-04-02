@@ -141,6 +141,7 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                               )
 
                   .arg(Arg::with_name("collections-list")
+                       .long("list")
                        .takes_value(false)
                        .required(false)
                        .multiple(false)
