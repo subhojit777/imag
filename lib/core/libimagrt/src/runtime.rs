@@ -24,6 +24,7 @@ use std::process::exit;
 use std::io::Stdin;
 
 pub use clap::App;
+use clap::AppSettings;
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
 
@@ -189,6 +190,7 @@ impl<'a> Runtime<'a> {
             .version(version)
             .author("Matthias Beyer <mail@beyermatthias.de>")
             .about(about)
+            .settings(&[AppSettings::AllowExternalSubcommands])
             .arg(Arg::with_name(Runtime::arg_verbosity_name())
                 .short("v")
                 .long("verbose")
