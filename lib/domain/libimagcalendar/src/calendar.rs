@@ -18,6 +18,8 @@
 //
 
 use std::path::Path;
+use std::path::PathBuf;
+use std::fs::OpenOptions;
 
 use error::Result;
 use error::CalendarError as CE;
@@ -25,6 +27,7 @@ use error::CalendarErrorKind as CEK;
 use event::IsEvent;
 
 use libimagstore::storeid::IntoStoreId;
+use libimagstore::storeid::StoreId;
 use libimagstore::store::Store;
 use libimagstore::store::Entry;
 use libimagstore::store::FileLockEntry;
@@ -103,4 +106,82 @@ impl Calendar for Entry {
     }
 
 }
+
+
+pub struct CalendarBuilder<'a> {
+    events:     Vec<FileLockEntry<'a>>,
+    collection: Option<FileLockEntry<'a>>,
+    path:       Option<PathBuf>,
+}
+
+impl<'a> CalendarBuilder<'a> {
+
+    pub fn new() -> Self {
+        CalendarBuilder {
+            events: vec![],
+            collection: None,
+            path: None,
+        }
+    }
+
+    pub fn in_collection(mut self, co: FileLockEntry<'a>) -> Self {
+        self.collection = Some(co);
+        self
+    }
+
+    pub fn at_path<P: AsRef<Path>>(mut self, p: P) -> Self {
+        self.path = Some(p.as_ref().to_path_buf());
+        self
+    }
+
+    pub fn with_event(mut self, ev: FileLockEntry<'a>) -> Self {
+        self.events.push(ev);
+        self
+    }
+
+    pub fn build(self, collection: &mut FileLockEntry<'a>, store: &Store)
+        -> Result<FileLockEntry<'a>>
+    {
+        use collection::Collection;
+        use event::Event;
+
+        let coll = match self.collection {
+            None       => Err(CEK::CalendarCollectionMissing),
+            Some(coll) => if coll.is_calendar_collection()? {
+                Ok(coll)
+            } else {
+                Err(CEK::EntryNotACalendarCollection(coll.get_location().clone()))
+            },
+        }.map_err(CE::from_kind)?;
+
+        let events = self.events
+            .into_iter()
+            .map(|fle| if !fle.is_event()? {
+                Err(CE::from_kind(CEK::EntryNotAnEvent(fle.get_location().clone())))
+            } else {
+                Ok(fle)
+            })
+            .collect::<Result<Vec<_>>>()?;
+
+        let mut file = match self.path {
+            None    => Err(CE::from_kind(CEK::PathMissing)),
+            Some(p) => OpenOptions::new()
+                .create(false)
+                .create_new(true)
+                .truncate(true)
+                .write(true)
+                .open(p)
+                .map_err(CE::from),
+        }?;
+
+        // Build vobject::Icalendar objects
+        // Serialize events into the calendar
+        // Write to disk
+        // Create Calendar object in store
+        // link to collection
+        unimplemented!()
+    }
+
+}
+
 

@@ -19,6 +19,8 @@
 
 use std::path::PathBuf;
 
+use libimagstore::storeid::StoreId;
+
 error_chain! {
     types {
         CalendarError, CalendarErrorKind, ResultExt, Result;
@@ -63,6 +65,26 @@ error_chain! {
         EventMetadataMissing(dataname: &'static str, id: String) {
             description("Event metadata missing")
                 display("Event metadata '{}' missing in {}", dataname, id)
+        }
+
+        CalendarCollectionMissing {
+            description("Calendar Collection missing")
+                display("Calendar Collection missing")
+        }
+
+        EntryNotACalendarCollection(sid: StoreId) {
+            description("Entry is not a Calendar Collection")
+                display("Entry is not a Calendar Collection: {}", sid)
+        }
+
+        EntryNotAnEvent(sid: StoreId) {
+            description("Entry is not an Event")
+                display("Entry is not an Event: {}", sid)
+        }
+
+        PathMissing {
+            description("Path is missing")
+                display("Path is missing")
         }
     }
 }
