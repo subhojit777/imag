@@ -502,6 +502,81 @@ impl<'a> Runtime<'a> {
             Some(::std::io::stdin())
         }
     }
+
+    /// Helper for handling subcommands which are not available.
+    ///
+    /// # Example
+    ///
+    /// For example someone calls `imag foo bar`. If `imag-foo` is in the $PATH, but it has no
+    /// subcommand `bar`, the `imag-foo` binary is able to automatically forward the invokation to a
+    /// `imag-foo-bar` binary which might be in $PATH.
+    ///
+    /// It needs to call `Runtime::handle_unknown_subcommand` with the following parameters:
+    ///
+    /// 1. The "command" which was issued. In the example this would be `"imag-foo"`
+    /// 2. The "subcommand" which is missing: `"bar"` in the example
+    /// 3. The `ArgMatches` object from the call, so that this routine can forward all flags passed
+    ///    to the `bar` subcommand.
+    ///
+    /// # Return value
+    ///
+    /// On success, the exit status object of the `Command` invocation is returned.
+    /// On Error, a RuntimeError object is returned.
+    ///
+    /// # Details
+    ///
+    /// The `IMAG_RTP` variable is set for the child process. It is set to the current runtime path.
+    ///
+    /// Stdin, stdout and stderr are inherited to the child process.
+    ///
+    /// This function **blocks** until the child returns.
+    ///
+    pub fn handle_unknown_subcommand<S: AsRef<str>>(&self,
+                                                    command: S,
+                                                    subcommand: S,
+                                                    args: &ArgMatches)
+        -> Result<::std::process::ExitStatus, RuntimeError>
+    {
+        use std::io::Write;
+        use std::io::ErrorKind;
+
+        let rtp_str = self.rtp()
+            .to_str()
+            .map(String::from)
+            .ok_or(RuntimeErrorKind::IOError)
+            .map_err(RuntimeError::from_kind)?;
+
+        let command = format!("{}-{}", command.as_ref(), subcommand.as_ref());
+
+        let subcommand_args = args.values_of("")
+            .map(|sx| sx.map(String::from).collect())
+            .unwrap_or_else(|| vec![]);
+
+        Command::new(&command)
+            .stdin(::std::process::Stdio::inherit())
+            .stdout(::std::process::Stdio::inherit())
+            .stderr(::std::process::Stdio::inherit())
+            .args(&subcommand_args[..])
+            .env("IMAG_RTP", rtp_str)
+            .spawn()
+            .and_then(|mut c| c.wait())
+            .map_err(|e| match e.kind() {
+                ErrorKind::NotFound => {
+                    let mut out = self.stdout();
+
+                    if let Err(e) = writeln!(out, "No such command: '{}'", command) {
+                        return e;
+                    }
+                    if let Err(e) = writeln!(out, "See 'imag --help' for available subcommands") {
+                        return e;
+                    }
+
+                    e
+                },
+                _ => e,
+            })
+            .map_err(RuntimeError::from)
+    }
 }
 
 /// Exported for the `imag` command, you probably do not want to use that.
