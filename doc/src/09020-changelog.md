@@ -45,6 +45,9 @@ This section contains the changelog from the last release to the next release.
       commandline flag.
     * `imag-habit today --done` and `imag-habit status --done` was added for
       showing habits which are already done.
+    * `libimagrt` allows external subcommands now in the default clap app
+      builder helper. It also provides a helper for handling unknown
+      subcommands: `Runtime::handle_unknown_subcommand()`. See docs for details.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
