@@ -48,6 +48,7 @@ extern crate libimagtimeui;
 extern crate libimagutil;
 
 use libimagrt::setup::generate_runtime_setup;
+use libimagerror::trace::MapErrTrace;
 
 mod create;
 mod delete;
@@ -80,8 +81,12 @@ fn main() {
                 "edit" => edit(&rt),
                 "list" => list(&rt),
                 "view" => view(&rt),
-                _        => {
-                    debug!("Unknown command"); // More error handling
+                other    => {
+                    debug!("Unknown command");
+                    let _ = rt.handle_unknown_subcommand("imag-diary", other, rt.cli())
+                        .map_err_trace_exit_unwrap(1)
+                        .code()
+                        .map(std::process::exit);
                 },
             }
         });

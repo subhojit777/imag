@@ -50,6 +50,7 @@ extern crate libimagutil;
 extern crate libimagutil;
 
 use libimagrt::setup::generate_runtime_setup;
+use libimagerror::trace::MapErrTrace;
 
 mod create;
 mod delete;
@@ -92,9 +93,12 @@ fn main() {
             "update"   => update(&rt),
             "verify"   => verify(&rt),
             "dump"     => dump(&mut rt),
-            _ => {
+            other      => {
                 debug!("Unknown command");
-                // More error handling
+                let _ = rt.handle_unknown_subcommand("imag-store", other, rt.cli())
+                    .map_err_trace_exit_unwrap(1)
+                    .code()
+                    .map(std::process::exit);
             },
         };
     } else {

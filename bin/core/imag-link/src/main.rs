@@ -104,7 +104,13 @@ fn main() {
                 "remove" => remove_linking(&rt),
                 "unlink" => unlink(&rt),
                 "list"   => list_linkings(&rt),
-                _ => panic!("BUG"),
+                other    => {
+                    debug!("Unknown command");
+                    let _ = rt.handle_unknown_subcommand("imag-link", other, rt.cli())
+                        .map_err_trace_exit_unwrap(1)
+                        .code()
+                        .map(::std::process::exit);
+                },
             }
         })
         .or_else(|| {

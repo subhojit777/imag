@@ -66,8 +66,12 @@ fn main() {
                 "delete" => delete(&rt),
                 "edit"   => edit(&rt),
                 "list"   => list(&rt),
-                _        => {
-                    debug!("Unknown command"); // More error handling
+                other    => {
+                    debug!("Unknown command");
+                    let _ = rt.handle_unknown_subcommand("imag-notes", other, rt.cli())
+                        .map_err_trace_exit_unwrap(1)
+                        .code()
+                        .map(std::process::exit);
                 },
             };
         });

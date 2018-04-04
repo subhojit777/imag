@@ -51,10 +51,16 @@ fn main() {
     match rt.cli().subcommand_name() {
         Some("tw-hook") => tw_hook(&rt),
         Some("list") => list(&rt),
+        Some(other) => {
+            debug!("Unknown command");
+            let _ = rt.handle_unknown_subcommand("imag-todo", other, rt.cli())
+                .map_err_trace_exit_unwrap(1)
+                .code()
+                .map(std::process::exit);
+        }
         None => {
             warn!("No command");
         },
-        _ => unreachable!(),
     } // end match scmd
 } // end main
 

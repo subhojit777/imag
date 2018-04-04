@@ -57,7 +57,6 @@ use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::IntoStoreId;
-use libimagutil::warn_exit::warn_exit;
 
 mod ui;
 
@@ -75,7 +74,13 @@ fn main() {
                 "add"    => add(&rt),
                 "remove" => remove(&rt),
                 "list"   => list(&rt),
-                _        => warn_exit("No commandline call", 1)
+                other    => {
+                    debug!("Unknown command");
+                    let _ = rt.handle_unknown_subcommand("imag-annotation", other, rt.cli())
+                        .map_err_trace_exit_unwrap(1)
+                        .code()
+                        .map(std::process::exit);
+                },
             }
         });
 }

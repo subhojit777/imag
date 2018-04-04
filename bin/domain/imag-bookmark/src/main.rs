@@ -77,8 +77,12 @@ fn main() {
                 "collection" => collection(&rt),
                 "list"       => list(&rt),
                 "remove"     => remove(&rt),
-                _            => {
-                    debug!("Unknown command"); // More error handling
+                other        => {
+                    debug!("Unknown command");
+                    let _ = rt.handle_unknown_subcommand("imag-bookmark", other, rt.cli())
+                        .map_err_trace_exit_unwrap(1)
+                        .code()
+                        .map(::std::process::exit);
                 },
             }
         });

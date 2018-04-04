@@ -54,7 +54,13 @@ fn main() {
                 "import-mail" => import_mail(&rt),
                 "list"        => list(&rt),
                 "mail-store"  => mail_store(&rt),
-                _             => debug!("Unknown command") // More error handling
+                other         => {
+                    debug!("Unknown command");
+                    let _ = rt.handle_unknown_subcommand("imag-mail", other, rt.cli())
+                        .map_err_trace_exit_unwrap(1)
+                        .code()
+                        .map(std::process::exit);
+                }
             }
         });
 }

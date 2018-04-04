@@ -90,9 +90,12 @@ fn main() {
                 "status" => today(&rt, true),
                 "show"   => show(&rt),
                 "done"   => done(&rt),
-                _        => {
-                    debug!("Unknown command"); // More error handling
-                    exit(1)
+                other    => {
+                    debug!("Unknown command");
+                    let _ = rt.handle_unknown_subcommand("imag-habit", other, rt.cli())
+                        .map_err_trace_exit_unwrap(1)
+                        .code()
+                        .map(::std::process::exit);
                 },
             }
         })
