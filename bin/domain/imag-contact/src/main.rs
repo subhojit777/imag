@@ -102,8 +102,12 @@ fn main() {
                 "show"   => show(&rt),
                 "find"   => find(&rt),
                 "create" => create(&rt),
-                _        => {
-                    error!("Unknown command"); // More error handling
+                other    => {
+                    debug!("Unknown command");
+                    let _ = rt.handle_unknown_subcommand("imag-contact", other, rt.cli())
+                        .map_err_trace_exit_unwrap(1)
+                        .code()
+                        .map(::std::process::exit);
                 },
             }
         });

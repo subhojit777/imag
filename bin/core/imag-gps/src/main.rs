@@ -53,7 +53,6 @@ use libimagentrygps::types::*;
 use libimagentrygps::entry::*;
 use libimagrt::setup::generate_runtime_setup;
 use libimagrt::runtime::Runtime;
-use libimagutil::warn_exit::warn_exit;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
@@ -75,7 +74,13 @@ fn main() {
                 "add"    => add(&rt),
                 "remove" => remove(&rt),
                 "get"    => get(&rt),
-                _        => warn_exit("No commandline call", 1)
+                other    => {
+                    debug!("Unknown command");
+                    let _ = rt.handle_unknown_subcommand("imag-gps", other, rt.cli())
+                        .map_err_trace_exit_unwrap(1)
+                        .code()
+                        .map(::std::process::exit);
+                }
             }
         });
 }

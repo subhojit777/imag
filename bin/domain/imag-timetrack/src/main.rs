@@ -56,6 +56,7 @@ use week::week;
 use year::year;
 
 use libimagrt::setup::generate_runtime_setup;
+use libimagerror::trace::MapErrTrace;
 
 fn main() {
     let version = make_imag_version!();
@@ -77,9 +78,12 @@ fn main() {
             "track"    => track(&rt),
             "week"     => week(&rt),
             "year"     => year(&rt),
-            _ => {
-                error!("Unknown command");
-                1
+            other      => {
+                debug!("Unknown command");
+                rt.handle_unknown_subcommand("imag-timetrack", other, rt.cli())
+                    .map_err_trace_exit_unwrap(1)
+                    .code()
+                    .unwrap_or(0)
             },
         }
     } else {

@@ -86,9 +86,12 @@ fn main() {
                 debug!("id = {:?}, add = {:?}, rem = {:?}", id, add, rem);
                 alter(&rt, id, add, rem);
             },
-            _ => {
-                error!("Unknown command");
-                ::std::process::exit(1)
+            other => {
+                debug!("Unknown command");
+                let _ = rt.handle_unknown_subcommand("imag-tag", other, rt.cli())
+                    .map_err_trace_exit_unwrap(1)
+                    .code()
+                    .map(std::process::exit);
             },
         });
 }

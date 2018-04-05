@@ -72,9 +72,12 @@ fn main() {
     if let Some(scmd) = rt.cli() .subcommand_name() {
         match scmd {
             "show" => show(&rt),
-            _        => {
-                error!("Unknown command");
-                ::std::process::exit(1)
+            other    => {
+                debug!("Unknown command");
+                let _ = rt.handle_unknown_subcommand("imag-log", other, rt.cli())
+                    .map_err_trace_exit_unwrap(1)
+                    .code()
+                    .map(std::process::exit);
             },
         }
     } else {
