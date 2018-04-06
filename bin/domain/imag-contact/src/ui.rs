@@ -114,6 +114,18 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .required(false)
                         .multiple(false)
                         .help("Print output as JSON")
+                        .conflicts_with("format")
+                        .conflicts_with("find-show")
+                        .conflicts_with("find-list"))
+
+                   .arg(Arg::with_name("format")
+                        .long("format")
+                        .takes_value(true)
+                        .required(false)
+                        .multiple(false)
+                        .value_name("FORMAT")
+                        .help("Format to format the contact when printing it")
+                        .conflicts_with("json")
                         .conflicts_with("find-show")
                         .conflicts_with("find-list"))
 
