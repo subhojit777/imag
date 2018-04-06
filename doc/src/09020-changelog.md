@@ -71,6 +71,7 @@ This section contains the changelog from the last release to the next release.
     * `libimagentryref` got a utility function for making an entry a ref.
     * `libimaghabit` got `Habit::instance_exists_for_date()`
     * `imag contact find` understands `--format` now.
+    * `imag contact` uses ", " as seperator for output of lists of values.
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
