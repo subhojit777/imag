@@ -17,17 +17,28 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use clap::{Arg, App, SubCommand};
+use clap::{Arg, ArgGroup, App, SubCommand};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
+        .arg(Arg::with_name("entries-from-stdin")
+             .long("ids-from-stdin")
+             .short("I")
+             .required(false)
+             .multiple(true)
+             .help("The entry/entries are piped in via stdin"))
+
         .arg(Arg::with_name("id")
-            .index(1)
-            .takes_value(true)
-            .required(true)
-            .multiple(true)
-            .help("View this entry at this store path")
-            .value_name("ID"))
+             .index(1)
+             .takes_value(true)
+             .required(false)
+             .multiple(true)
+             .help("View these entries at this store path")
+             .value_name("IDs"))
+
+        .group(ArgGroup::with_name("input-method")
+               .args(&["id", "entries-from-stdin"])
+               .required(true))
 
         .arg(Arg::with_name("view-header")
             .long("header")

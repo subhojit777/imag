@@ -46,6 +46,7 @@ extern crate libimagstore;
 
 use std::collections::BTreeMap;
 use std::io::Write;
+use std::io::Read;
 use std::path::PathBuf;
 use std::process::Command;
 use std::process::exit;
@@ -187,13 +188,35 @@ fn main() {
 }
 
 fn entry_ids(rt: &Runtime) -> Vec<StoreId> {
-    rt.cli()
-        .values_of("id")
-        .unwrap() // enforced by clap
-        .map(PathBuf::from)
-        .map(PathBuf::into_storeid)
-        .trace_unwrap_exit(1)
-        .collect()
+    match rt.cli().values_of("id") {
+        Some(pathes) => pathes
+            .map(PathBuf::from)
+            .map(PathBuf::into_storeid)
+            .trace_unwrap_exit(1)
+            .collect(),
+
+        None => if rt.cli().is_present("entries-from-stdin") {
+            let stdin = rt.stdin().unwrap_or_else(|| {
+                error!("Cannot get handle to stdin");
+                ::std::process::exit(1)
+            });
+
+            let mut buf = String::new();
+            let _ = stdin.lock().read_to_string(&mut buf).unwrap_or_else(|_| {
+                error!("Failed to read from stdin");
+                ::std::process::exit(1)
+            });
+
+            buf.lines()
+                .map(PathBuf::from)
+                .map(PathBuf::into_storeid)
+                .trace_unwrap_exit(1)
+                .collect()
+        } else {
+            error!("Something weird happened. I was not able to find the path of the entries to edit");
+            ::std::process::exit(1)
+        }
+    }
 }
 
 fn create_tempfile_for<'a>(entry: &FileLockEntry<'a>, view_header: bool, hide_content: bool)
