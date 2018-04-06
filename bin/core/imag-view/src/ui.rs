@@ -25,6 +25,7 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .index(1)
             .takes_value(true)
             .required(true)
+            .multiple(true)
             .help("View this entry at this store path")
             .value_name("ID"))
 

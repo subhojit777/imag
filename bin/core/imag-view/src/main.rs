@@ -54,11 +54,18 @@ use handlebars::Handlebars;
 use toml_query::read::TomlValueReadTypeExt;
 
 use libimagrt::setup::generate_runtime_setup;
+use libimagrt::runtime::Runtime;
 use libimagerror::str::ErrFromStr;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::iter::TraceIterator;
 use libimagentryview::builtin::stdout::StdoutViewer;
 use libimagentryview::viewer::Viewer;
 use libimagentryview::error::ViewError as VE;
+use libimagstore::storeid::IntoStoreId;
+use libimagstore::error::StoreError;
+use libimagstore::iter::get::StoreIdGetIteratorExtension;
+use libimagstore::store::FileLockEntry;
+use libimagstore::storeid::StoreId;
 
 mod ui;
 use ui::build_ui;
@@ -70,85 +77,64 @@ fn main() {
                                      "View entries (readonly)",
                                      build_ui);
 
-    let entry_id     = rt.cli().value_of("id").unwrap(); // enforced by clap
+    let entry_ids    = entry_ids(&rt);
     let view_header  = rt.cli().is_present("view-header");
     let hide_content = rt.cli().is_present("not-view-content");
 
-    let entry = match rt.store().get(PathBuf::from(entry_id)).map_err_trace_exit_unwrap(1) {
-        Some(fle) => fle,
-        None => {
-            error!("Cannot get {}, there is no such id in the store", entry_id);
-            exit(1);
-        }
-    };
 
     if rt.cli().is_present("in") {
-        let viewer = rt
-            .cli()
-            .value_of("in")
-            .ok_or_else::<VE, _>(|| "No viewer given".to_owned().into())
-            .map_err_trace_exit_unwrap(1);
-
-        let config = rt
-            .config()
-            .ok_or_else::<VE, _>(|| "No configuration, cannot continue".to_owned().into())
-            .map_err_trace_exit_unwrap(1);
-
-        let query = format!("view.viewers.{}", viewer);
-
-        let viewer_template = config
-            .read_string(&query)
-            .map_err_trace_exit_unwrap(1)
-            .unwrap_or_else(|| {
-                error!("Cannot find '{}' in config", query);
-                exit(1)
-            });
-
-        let mut handlebars = Handlebars::new();
-        handlebars.register_escape_fn(::handlebars::no_escape);
-
-        let _ = handlebars
-            .register_template_string("template", viewer_template)
-            .err_from_str()
-            .map_err(VE::from)
-            .map_err_trace_exit_unwrap(1);
-
-        let file = {
-            let mut tmpfile = tempfile::NamedTempFile::new()
-            .err_from_str()
-            .map_err(VE::from)
-                .map_err_trace_exit_unwrap(1);
-            if view_header {
-                let hdr = toml::ser::to_string_pretty(entry.get_header())
-                    .err_from_str()
-                    .map_err(VE::from)
-                    .map_err_trace_exit_unwrap(1);
-                let _ = tmpfile.write(format!("---\n{}---\n", hdr).as_bytes())
-                    .err_from_str()
-                    .map_err(VE::from)
-                    .map_err_trace_exit_unwrap(1);
-            }
-
-            if !hide_content {
-                let _ = tmpfile.write(entry.get_content().as_bytes())
-                    .err_from_str()
-                    .map_err(VE::from)
-                    .map_err_trace_exit_unwrap(1);
-            }
-
-            tmpfile
-        };
-
-        let file_path = file
-            .path()
-            .to_str()
-            .map(String::from)
-            .ok_or::<VE>("Cannot build path".to_owned().into())
-            .map_err_trace_exit_unwrap(1);
+        let files = entry_ids
+            .into_iter()
+            .into_get_iter(rt.store())
+            .map(|e| {
+                 e.map_err_trace_exit_unwrap(1)
+                     .ok_or_else(|| String::from("BUG"))
+                     .map_err(StoreError::from)
+                     .map_err_trace_exit_unwrap(1)
+            })
+            .map(|entry| create_tempfile_for(&entry, view_header, hide_content))
+            .collect::<Vec<_>>();
 
         let mut command = {
+            let viewer = rt
+                .cli()
+                .value_of("in")
+                .ok_or_else::<VE, _>(|| "No viewer given".to_owned().into())
+                .map_err_trace_exit_unwrap(1);
+
+            let config = rt
+                .config()
+                .ok_or_else::<VE, _>(|| "No configuration, cannot continue".to_owned().into())
+                .map_err_trace_exit_unwrap(1);
+
+            let query = format!("view.viewers.{}", viewer);
+
+            let viewer_template = config
+                .read_string(&query)
+                .map_err_trace_exit_unwrap(1)
+                .unwrap_or_else(|| {
+                    error!("Cannot find '{}' in config", query);
+                    exit(1)
+                });
+
+            let mut handlebars = Handlebars::new();
+            handlebars.register_escape_fn(::handlebars::no_escape);
+
+            let _ = handlebars
+                .register_template_string("template", viewer_template)
+                .err_from_str()
+                .map_err(VE::from)
+                .map_err_trace_exit_unwrap(1);
+
             let mut data = BTreeMap::new();
-            data.insert("entry", file_path);
+
+            let file_paths = files
+                .iter()
+                .map(|&(_, ref path)| path.clone())
+                .collect::<Vec<String>>()
+                .join(" ");
+
+            data.insert("entries", file_paths);
 
             let call = handlebars
                 .render("template", &data)
@@ -169,6 +155,8 @@ fn main() {
             cmd
         };
 
+        debug!("Calling: {:?}", command);
+
         if !command
             .status()
             .err_from_str()
@@ -178,10 +166,69 @@ fn main() {
         {
             exit(1)
         }
+
+        drop(files);
     } else {
-        let _ = StdoutViewer::new(view_header, !hide_content)
-            .view_entry(&entry)
+        let viewer = StdoutViewer::new(view_header, !hide_content);
+
+        entry_ids
+            .into_iter()
+            .into_get_iter(rt.store())
+            .map(|e| {
+                 e.map_err_trace_exit_unwrap(1)
+                     .ok_or_else(|| String::from("BUG"))
+                     .map_err(StoreError::from)
+                     .map_err_trace_exit_unwrap(1)
+            })
+            .for_each(|e| {
+                viewer.view_entry(&e).map_err_trace_exit_unwrap(1);
+            });
+    }
+}
+
+fn entry_ids(rt: &Runtime) -> Vec<StoreId> {
+    rt.cli()
+        .values_of("id")
+        .unwrap() // enforced by clap
+        .map(PathBuf::from)
+        .map(PathBuf::into_storeid)
+        .trace_unwrap_exit(1)
+        .collect()
+}
+
+fn create_tempfile_for<'a>(entry: &FileLockEntry<'a>, view_header: bool, hide_content: bool)
+    -> (tempfile::NamedTempFile, String)
+{
+    let mut tmpfile = tempfile::NamedTempFile::new()
+        .err_from_str()
+        .map_err(VE::from)
+        .map_err_trace_exit_unwrap(1);
+
+    if view_header {
+        let hdr = toml::ser::to_string_pretty(entry.get_header())
+            .err_from_str()
+            .map_err(VE::from)
+            .map_err_trace_exit_unwrap(1);
+        let _ = tmpfile.write(format!("---\n{}---\n", hdr).as_bytes())
+            .err_from_str()
+            .map_err(VE::from)
             .map_err_trace_exit_unwrap(1);
     }
+
+    if !hide_content {
+        let _ = tmpfile.write(entry.get_content().as_bytes())
+            .err_from_str()
+            .map_err(VE::from)
+            .map_err_trace_exit_unwrap(1);
+    }
+
+    let file_path = tmpfile
+        .path()
+        .to_str()
+        .map(String::from)
+        .ok_or::<VE>("Cannot build path".to_owned().into())
+        .map_err_trace_exit_unwrap(1);
+
+    (tmpfile, file_path)
 }
 
