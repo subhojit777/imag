@@ -74,6 +74,7 @@ This section contains the changelog from the last release to the next release.
     * `imag contact` uses ", " as seperator for output of lists of values.
     * `imag contact find --id / --full-id` was added for printing Store Id /
       Filepath of found contacts.
+    * `imag view` can now view multiple entries at once
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
