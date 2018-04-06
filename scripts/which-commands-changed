@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# Find all imag commands which changed since last install
+
+imag versions   |\
+grep "imag-"    |\
+sed 's,v.*-g,,' |\
+while read binary hash; do
+    git diff "$hash..master" --name-only | \
+    grep "$binary" >/dev/null 2>/dev/null && \
+    echo "$binary changed since last install (was $hash)"
+done
