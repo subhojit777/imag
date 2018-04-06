@@ -129,6 +129,29 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .conflicts_with("find-show")
                         .conflicts_with("find-list"))
 
+                   .arg(Arg::with_name("find-id")
+                        .long("id")
+                        .takes_value(false)
+                        .required(false)
+                        .multiple(false)
+                        .help("Print the store ids of the found entries")
+                        .conflicts_with("find-full-id")
+                        .conflicts_with("json")
+                        .conflicts_with("find-show")
+                        .conflicts_with("find-list"))
+
+                   .arg(Arg::with_name("find-full-id")
+                        .long("full-id")
+                        .takes_value(false)
+                        .required(false)
+                        .multiple(false)
+                        .help("Print the path to the file in the store of the found entries")
+                        .conflicts_with("find-id")
+                        .conflicts_with("json")
+                        .conflicts_with("find-show")
+                        .conflicts_with("find-list"))
+
+
                    )
 
         .subcommand(SubCommand::with_name("create")
