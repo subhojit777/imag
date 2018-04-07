@@ -305,6 +305,21 @@ fn find(rt: &Runtime) {
                 ::std::process::exit(1)
             }
         }
+    } else if scmd.is_present("find-id") {
+        iterator
+        .for_each(|(_i, (fle, _card))| {
+            writeln!(rt.stdout(), "{}", fle.get_location())
+                .to_exit_code()
+                .unwrap_or_exit();
+        })
+    } else if scmd.is_present("find-full-id") {
+        let storepath = rt.store().path().display();
+        iterator
+        .for_each(|(_i, (fle, _card))| {
+            writeln!(rt.stdout(), "{}/{}", storepath, fle.get_location())
+                .to_exit_code()
+                .unwrap_or_exit();
+        })
     } else {
         iterator
         .for_each(|(i, (fle, card))| {
