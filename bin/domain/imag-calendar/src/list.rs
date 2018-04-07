@@ -27,15 +27,7 @@ pub fn list(rt: &Runtime) {
     let list_past = scmd.is_present("list-past");
     let list_tabl = scmd.is_present("list-table");
 
-    let today = ::chrono::offset::Local::today()
-        .and_hms_opt(0, 0, 0)
-        .unwrap_or_else(|| {
-            error!("BUG, please report");
-            ::std::process::exit(1)
-        })
-        .naive_local();
-
-    let past_filter = PastFilter::new(list_past, today);
+    let past_filter = PastFilter::new(list_past, ::util::today());
     let events      = ::util::all_events(rt.store()).filter(|e| past_filter.filter(e));
     ::util::list_events(rt, list_tabl, events);
 }

@@ -220,3 +220,13 @@ pub fn all_events<'a>(store: &'a Store) -> Box<Iterator<Item = FileLockEntry<'a>
     Box::new(i)
 }
 
+pub fn today() -> NaiveDateTime {
+    ::chrono::offset::Local::today()
+    .and_hms_opt(0, 0, 0)
+    .unwrap_or_else(|| {
+        error!("BUG, please report");
+        ::std::process::exit(1)
+    })
+    .naive_local()
+}
+

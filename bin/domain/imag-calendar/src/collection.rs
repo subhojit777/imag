@@ -201,15 +201,7 @@ fn remove<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
 fn show<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
     let name = scmd.value_of("collection-show-name").map(String::from).unwrap(); // safe by clap
 
-    let today = ::chrono::offset::Local::today()
-        .and_hms_opt(0, 0, 0)
-        .unwrap_or_else(|| {
-            error!("BUG, please report");
-            exit(1)
-        })
-        .naive_local();
-
-    let past_filter = PastFilter::new(true, today);
+    let past_filter = PastFilter::new(true, ::util::today());
 
     let iterator = rt
         .store()
@@ -235,15 +227,7 @@ fn show<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
 fn list<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
     let name = scmd.value_of("collection-list-name").map(String::from).unwrap(); // safe by clap
 
-    let today = ::chrono::offset::Local::today()
-        .and_hms_opt(0, 0, 0)
-        .unwrap_or_else(|| {
-            error!("BUG, please report");
-            exit(1)
-        })
-        .naive_local();
-
-    let past_filter = PastFilter::new(true, today);
+    let past_filter = PastFilter::new(true, ::util::today());
 
     let iterator = rt
         .store()
@@ -276,16 +260,7 @@ fn find<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
         ::std::process::exit(1)
     });
     let do_show = scmd.is_present("collection-find-show");
-
-    let today = ::chrono::offset::Local::today()
-        .and_hms_opt(0, 0, 0)
-        .unwrap_or_else(|| {
-            error!("BUG, please report");
-            exit(1)
-        })
-        .naive_local();
-
-    let filter = PastFilter::new(past, today).and(GrepFilter::new(grep));
+    let filter  = PastFilter::new(past, ::util::today()).and(GrepFilter::new(grep));
 
     let iterator = rt
         .store()

@@ -36,15 +36,7 @@ pub fn find(rt: &Runtime) {
         ::std::process::exit(1)
     });
 
-    let today = ::chrono::offset::Local::today()
-        .and_hms_opt(0, 0, 0)
-        .unwrap_or_else(|| {
-            error!("BUG, please report");
-            ::std::process::exit(1)
-        })
-        .naive_local();
-
-    let filter = PastFilter::new(past, today).and(GrepFilter::new(grep));
+    let filter = PastFilter::new(past, ::util::today()).and(GrepFilter::new(grep));
 
     let events = ::util::all_events(rt.store()).filter(|e| filter.filter(e));
 
