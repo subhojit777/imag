@@ -52,9 +52,9 @@ pub trait Event : Ref {
 
     fn get_start(&self)       -> Result<NaiveDateTime>;
     fn get_end(&self)         -> Result<NaiveDateTime>;
-    fn get_location(&self)    -> Result<String>;
+    fn get_location(&self)    -> Result<Option<String>>;
     fn get_categories(&self)  -> Result<Vec<String>>;
-    fn get_description(&self) -> Result<String>;
+    fn get_description(&self) -> Result<Option<String>>;
 }
 
 /// Helper macro for finding an ID and executing something for it
@@ -117,29 +117,25 @@ impl Event for Entry {
         })
     }
 
-    fn get_location(&self) -> Result<String> {
+    fn get_location(&self) -> Result<Option<String>> {
         return_for_id!(self, |ev: VObjectEvent, uid: String| {
-            ev.get_location()
-                .map(|l| l.raw().clone())
-                .ok_or_else(|| CE::from(CEK::EventMetadataMissing("location", uid.clone())))
+            Ok(ev.get_location().map(|l| l.raw().clone()))
         })
     }
 
     fn get_categories(&self) -> Result<Vec<String>> {
         return_for_id!(self, |ev: VObjectEvent, uid: String| {
-            ev.get_categories()
-                .ok_or_else(|| CE::from(CEK::EventMetadataMissing("categories", uid.clone())))
+            Ok(ev.get_categories()
                 .map(|c| vec![c.raw().clone()])
+                .unwrap_or_else(|| vec![]))
                 // TODO: vobject::icalendar::Event::get_categories() -> Option<Categories>
                 // The API of vobject does not yet return categories split up.
         })
     }
 
-    fn get_description(&self) -> Result<String> {
+    fn get_description(&self) -> Result<Option<String>> {
         return_for_id!(self, |ev: VObjectEvent, uid: String| {
-            ev.get_description()
-                .map(|c| c.raw().clone())
-                .ok_or_else(|| CE::from(CEK::EventMetadataMissing("description", uid.clone())))
+            Ok(ev.get_description().map(|c| c.raw().clone()))
         })
     }
 
