@@ -38,6 +38,8 @@ extern crate walkdir;
 extern crate chrono;
 extern crate itertools;
 extern crate indicatif;
+extern crate regex;
+extern crate filters;
 #[macro_use] extern crate prettytable;
 
 #[macro_use] extern crate libimagrt;
