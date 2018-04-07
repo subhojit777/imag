@@ -19,15 +19,8 @@
 
 use regex::Regex;
 use filters::filter::Filter;
-use itertools::Itertools;
 
 use libimagrt::runtime::Runtime;
-use libimagerror::iter::TraceIterator;
-use libimagerror::trace::MapErrTrace;
-use libimagcalendar::collection::Collection;
-use libimagcalendar::store::CalendarDataStore;
-use libimagcalendar::calendar::Calendar;
-use libimagstore::iter::get::StoreIdGetIteratorExtension;
 
 use util::{GrepFilter, PastFilter};
 
@@ -53,22 +46,7 @@ pub fn find(rt: &Runtime) {
 
     let filter = PastFilter::new(past, today).and(GrepFilter::new(grep));
 
-    let events = rt
-        .store()
-        .calendar_collections()
-        .map_err_trace_exit_unwrap(1)
-        .into_get_iter(rt.store())
-        .trace_unwrap_exit(1)
-        .filter_map(|x| x)
-        .map(|c| c.calendars().map_err_trace_exit_unwrap(1))
-        .flatten()
-        .into_get_iter(rt.store())
-        .trace_unwrap_exit(1)
-        .filter_map(|x| x)
-        .map(|mut c| c.events(rt.store()))
-        .trace_unwrap_exit(1)
-        .flatten()
-        .filter(|e| filter.filter(e));
+    let events = ::util::all_events(rt.store()).filter(|e| filter.filter(e));
 
     if show {
         ::util::show_events(rt, events);

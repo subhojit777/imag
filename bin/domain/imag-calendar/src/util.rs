@@ -28,6 +28,7 @@ use libimagerror::io::ToExitCode;
 use libimagerror::trace::MapErrTrace;
 use libimagrt::runtime::Runtime;
 use libimagstore::store::FileLockEntry;
+use libimagstore::store::Store;
 
 use prettytable::Table;
 use regex::Regex;
@@ -191,5 +192,31 @@ pub fn show_events<'a, I>(rt: &Runtime, iter: I)
             .to_exit_code()
             .unwrap_or_exit();
     });
+}
+
+pub fn all_events<'a>(store: &'a Store) -> Box<Iterator<Item = FileLockEntry<'a>> + 'a> {
+    use libimagcalendar::calendar::Calendar;
+    use libimagcalendar::collection::Collection;
+    use libimagcalendar::store::CalendarDataStore;
+    use libimagerror::iter::TraceIterator;
+    use libimagstore::iter::get::StoreIdGetIteratorExtension;
+    use itertools::Itertools;
+
+    let i = store
+        .calendar_collections()
+        .map_err_trace_exit_unwrap(1)
+        .into_get_iter(store)
+        .trace_unwrap_exit(1)
+        .filter_map(|x| x)
+        .map(|c| c.calendars().map_err_trace_exit_unwrap(1))
+        .flatten()
+        .into_get_iter(store)
+        .trace_unwrap_exit(1)
+        .filter_map(|x| x)
+        .map(move |mut c| c.events(store))
+        .trace_unwrap_exit(1)
+        .flatten();
+
+    Box::new(i)
 }
 
