@@ -183,13 +183,13 @@ pub fn show_events<'a, I>(rt: &Runtime, iter: I)
         let hash            = event.get_hash().map_err_trace_exit_unwrap(1);
 
         let _ = writeln!(outlock,
-                         r#"Event Id   : {hash}
-                            Start      : {start}
-                            End        : {end}
-                            Description: {description}
-                            Categories : {categories}
-                            Location   : {location}
-                            "#,
+r#"Event Id   : {hash}
+Start      : {start}
+End        : {end}
+Description: {description}
+Categories : {categories}
+Location   : {location}
+"#,
                             hash        = hash,
                             start       = s,
                             end         = e,
