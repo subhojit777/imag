@@ -48,6 +48,8 @@ This section contains the changelog from the last release to the next release.
     * `libimagrt` allows external subcommands now in the default clap app
       builder helper. It also provides a helper for handling unknown
       subcommands: `Runtime::handle_unknown_subcommand()`. See docs for details.
+    * `imag-link list` prints output in ascii-table now, use `--plain` to print
+      as plain text.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
@@ -68,6 +70,12 @@ This section contains the changelog from the last release to the next release.
       editor object
     * `libimagentryref` got a utility function for making an entry a ref.
     * `libimaghabit` got `Habit::instance_exists_for_date()`
+    * `imag contact find` understands `--format` now.
+    * `imag contact` uses ", " as seperator for output of lists of values.
+    * `imag contact find --id / --full-id` was added for printing Store Id /
+      Filepath of found contacts.
+    * `imag view` can now view multiple entries at once
+    * `imag view -I` reads store ids from stdin now.
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
@@ -95,6 +103,7 @@ This section contains the changelog from the last release to the next release.
       not allocated properly.
     * `libimagstore::store::Store::create` overwrote existing entries.
     * `libimaghabit::habit::HabitTemplate` did not link new instances.
+    * `imag-init` creates `~/.imag` but not `~/.imag/store`.
 
 
 ## 0.6.3
