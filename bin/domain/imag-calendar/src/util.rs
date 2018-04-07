@@ -103,13 +103,13 @@ pub fn list_events<'a, I>(rt: &Runtime, table: bool, iter: I)
     let get_list_data = |event: &FileLockEntry| {
             let start = event
                 .get_start()
-                .map_err_trace_exit_unwrap(1)
-                .format(::libimagtimeui::ui::time_ui_fmtstr());
+                .map(|dt| ::libimagutil::date::datetime_to_string(&dt))
+                .map_err_trace_exit_unwrap(1);
 
             let end = event
                 .get_end()
-                .map_err_trace_exit_unwrap(1)
-                .format(::libimagtimeui::ui::time_ui_fmtstr());
+                .map(|dt| ::libimagutil::date::datetime_to_string(&dt))
+                .map_err_trace_exit_unwrap(1);
 
             let desc = event
                 .get_description()
@@ -153,13 +153,13 @@ pub fn show_events<'a, I>(rt: &Runtime, iter: I)
     let get_show_data = |event: &FileLockEntry| {
             let start = event
                 .get_start()
-                .map_err_trace_exit_unwrap(1)
-                .format(::libimagtimeui::ui::time_ui_fmtstr());
+                .map(|dt| ::libimagutil::date::datetime_to_string(&dt))
+                .map_err_trace_exit_unwrap(1);
 
             let end = event
                 .get_end()
-                .map_err_trace_exit_unwrap(1)
-                .format(::libimagtimeui::ui::time_ui_fmtstr());
+                .map(|dt| ::libimagutil::date::datetime_to_string(&dt))
+                .map_err_trace_exit_unwrap(1);
 
             let desc = event
                 .get_description()
