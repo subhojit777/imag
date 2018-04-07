@@ -76,6 +76,7 @@ This section contains the changelog from the last release to the next release.
       Filepath of found contacts.
     * `imag view` can now view multiple entries at once
     * `imag view -I` reads store ids from stdin now.
+    * `libimagstore` iterators have less restricting lifetimes now
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
