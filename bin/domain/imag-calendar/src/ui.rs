@@ -262,6 +262,13 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .required(false)
                         .multiple(false)
                         .help("Show not only from today and future, but also from past"))
+                   .arg(Arg::with_name("list-table")
+                        .long("table")
+                        .short("t")
+                        .takes_value(false)
+                        .required(false)
+                        .multiple(false)
+                        .help("List in nice ASCII table instead of 'plain text'"))
                    )
 }
 

@@ -17,9 +17,26 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use filters::filter::Filter;
+
 use libimagrt::runtime::Runtime;
+use util::PastFilter;
 
 pub fn list(rt: &Runtime) {
-    unimplemented!()
+    let scmd      = rt.cli().subcommand_matches("list").unwrap();
+    let list_past = scmd.is_present("list-past");
+    let list_tabl = scmd.is_present("list-table");
+
+    let today = ::chrono::offset::Local::today()
+        .and_hms_opt(0, 0, 0)
+        .unwrap_or_else(|| {
+            error!("BUG, please report");
+            ::std::process::exit(1)
+        })
+        .naive_local();
+
+    let past_filter = PastFilter::new(list_past, today);
+    let events      = ::util::all_events(rt.store()).filter(|e| past_filter.filter(e));
+    ::util::list_events(rt, list_tabl, events);
 }
 

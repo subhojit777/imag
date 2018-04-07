@@ -20,6 +20,7 @@
 use libimagrt::runtime::Runtime;
 
 pub fn show(rt: &Runtime) {
-    unimplemented!()
+    let events = ::util::all_events(rt.store());
+    ::util::show_events(rt, events);
 }
 
