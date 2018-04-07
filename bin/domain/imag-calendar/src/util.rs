@@ -71,7 +71,11 @@ impl<'a> Filter<FileLockEntry<'a>> for GrepFilter {
             return true
         }
 
-        if self.0.is_match(&Event::get_location(f.deref()).map_err_trace_exit_unwrap(1)) {
+        if Event::get_location(f.deref())
+            .map_err_trace_exit_unwrap(1)
+            .map(|s| self.0.is_match(&s))
+            .unwrap_or(false)
+        {
             return true
         }
 
@@ -79,7 +83,7 @@ impl<'a> Filter<FileLockEntry<'a>> for GrepFilter {
             return true
         }
 
-        if self.0.is_match(&f.get_description().map_err_trace_exit_unwrap(1)) {
+        if f.get_description().map_err_trace_exit_unwrap(1).map(|s| self.0.is_match(&s)).unwrap_or(false) {
             return true
         }
 
@@ -109,7 +113,8 @@ pub fn list_events<'a, I>(rt: &Runtime, table: bool, iter: I)
 
             let desc = event
                 .get_description()
-                .map_err_trace_exit_unwrap(1);
+                .map_err_trace_exit_unwrap(1)
+                .unwrap_or_else(|| String::from("<no description>"));
 
             (start, end, desc)
     };
@@ -158,14 +163,16 @@ pub fn show_events<'a, I>(rt: &Runtime, iter: I)
 
             let desc = event
                 .get_description()
-                .map_err_trace_exit_unwrap(1);
+                .map_err_trace_exit_unwrap(1)
+                .unwrap_or_else(|| String::from("<no description>"));
 
             let cats = event
                 .get_categories()
                 .map_err_trace_exit_unwrap(1);
 
             let loca = Event::get_location(event.deref())
-                .map_err_trace_exit_unwrap(1);
+                .map_err_trace_exit_unwrap(1)
+                .unwrap_or_else(|| String::from("<no location>"));
 
             (start, end, desc, cats, loca)
     };

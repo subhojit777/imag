@@ -116,7 +116,7 @@ fn get_event_data(ev: &FileLockEntry) -> Result<(String, NaiveDateTime, NaiveDat
     let id    = ev.get_uid()?.unwrap_or_else(|| String::from("<no id>"));
     let start = ev.get_start()?;
     let end   = ev.get_end()?;
-    let desc  = ev.get_description()?;
+    let desc  = ev.get_description()?.unwrap_or_else(|| String::from("<no description>"));
 
     Ok((id, start, end, desc))
 }
