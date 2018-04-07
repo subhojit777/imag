@@ -17,8 +17,6 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::ops::Deref;
-
 use regex::Regex;
 use filters::filter::Filter;
 use itertools::Itertools;
@@ -28,11 +26,10 @@ use libimagerror::iter::TraceIterator;
 use libimagerror::trace::MapErrTrace;
 use libimagcalendar::collection::Collection;
 use libimagcalendar::store::CalendarDataStore;
-use libimagcalendar::event::Event;
-use libimagcalendar::error::Result;
 use libimagcalendar::calendar::Calendar;
 use libimagstore::iter::get::StoreIdGetIteratorExtension;
-use libimagstore::store::FileLockEntry;
+
+use util::{GrepFilter, PastFilter};
 
 pub fn find(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("find").unwrap(); // safed by main()
@@ -54,15 +51,7 @@ pub fn find(rt: &Runtime) {
         })
         .naive_local();
 
-    let past_filter = |ev: &FileLockEntry| if past {
-        ev.get_end().map_err_trace_exit_unwrap(1) >= today
-    } else {
-        true
-    };
-
-    let grep_filter = |ev: &FileLockEntry| grepfor(ev, &grep).map_err_trace_exit_unwrap(1);
-
-    let filter = past_filter.and(grep_filter);
+    let filter = PastFilter::new(past, today).and(GrepFilter::new(grep));
 
     let events = rt
         .store()
@@ -86,35 +75,5 @@ pub fn find(rt: &Runtime) {
     } else {
         ::util::list_events(rt, tabl, events);
     }
-}
-
-fn grepfor<'a>(ev: &FileLockEntry<'a>, grep: &Regex) -> Result<bool> {
-    use libimagutil::date::datetime_to_string;
-
-    if grep.is_match(&ev.get_start().map(|dt| datetime_to_string(&dt))?) {
-        return Ok(true)
-    }
-
-    if grep.is_match(&ev.get_end().map(|dt| datetime_to_string(&dt))?) {
-        return Ok(true)
-    }
-
-    if grep.is_match(&Event::get_location(ev.deref())?) {
-        return Ok(true)
-    }
-
-    if ev.get_categories()?.iter().any(|c| grep.is_match(&c)) {
-        return Ok(true)
-    }
-
-    if grep.is_match(&ev.get_description()?) {
-        return Ok(true)
-    }
-
-    if ev.get_uid()?.map(|s| grep.is_match(&s)).unwrap_or(false) {
-        return Ok(true)
-    }
-
-    Ok(false)
 }
 

@@ -22,6 +22,8 @@ use std::path::PathBuf;
 use std::process::exit;
 use std::io::Write;
 
+use regex::Regex;
+use filters::filter::Filter;
 use walkdir::WalkDir;
 use walkdir::DirEntry;
 use clap::ArgMatches;
@@ -42,6 +44,8 @@ use libimagstore::store::FileLockEntry;
 use libimagutil::warn_result::*;
 use libimagcalendar::calendar::Calendar;
 use libimagcalendar::event::Event;
+
+use util::{GrepFilter, PastFilter};
 
 pub fn collection(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("collection").unwrap(); // safed by main()
@@ -209,11 +213,7 @@ fn show<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
         })
         .naive_local();
 
-    let past_filter = |ev: &FileLockEntry| if scmd.is_present("collection-show-past") {
-        ev.get_end().map_err_trace_exit_unwrap(1) >= today
-    } else {
-        true
-    };
+    let past_filter = PastFilter::new(true, today);
 
     let iterator = rt
         .store()
@@ -231,7 +231,7 @@ fn show<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
         .filter_map(|o| o)
         .map(|mut cal| cal.events(rt.store()).map_err_trace_exit_unwrap(1))
         .flatten()
-        .filter(past_filter);
+        .filter(|e| past_filter.filter(e));
 
     show_events(rt, iterator);
 }
@@ -247,11 +247,7 @@ fn list<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
         })
         .naive_local();
 
-    let past_filter = |ev: &FileLockEntry| if scmd.is_present("collection-list-past") {
-        ev.get_end().map_err_trace_exit_unwrap(1) >= today
-    } else {
-        true
-    };
+    let past_filter = PastFilter::new(true, today);
 
     let iterator = rt
         .store()
@@ -269,14 +265,20 @@ fn list<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
         .filter_map(|o| o)
         .map(|mut cal| cal.events(rt.store()).map_err_trace_exit_unwrap(1))
         .flatten()
-        .filter(past_filter);
+        .filter(|f| past_filter.filter(f));
 
     list_events(rt, scmd.is_present("collection-list-table"), iterator);
 }
 
 fn find<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
-    let name    = scmd.value_of("collection-find-name").map(String::from).unwrap(); // safe by clap
-    let grep    = scmd.value_of("collection-find-grep").map(String::from).unwrap(); // safe by clap
+    let past = scmd.is_present("collection-find-past");
+    let name = scmd.value_of("collection-find-name").map(String::from).unwrap(); // safe by clap
+    let grep = scmd.value_of("collection-find-grep").map(String::from).unwrap(); // safe by clap
+    let grep = Regex::new(&grep).unwrap_or_else(|e| {
+        error!("Invalid regex: '{}'", grep);
+        error!("{}", e);
+        ::std::process::exit(1)
+    });
     let do_show = scmd.is_present("collection-find-show");
 
     let today = ::chrono::offset::Local::today()
@@ -287,18 +289,7 @@ fn find<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
         })
         .naive_local();
 
-    let past_filter = |ev: &FileLockEntry| if scmd.is_present("collection-find-past") {
-        ev.get_end().map_err_trace_exit_unwrap(1) >= today
-    } else {
-        true
-    };
-
-    let grep_filter = |ev: &FileLockEntry| {
-        let desc = ev.get_description().map_err_trace_exit_unwrap(1);
-        let cats = ev.get_categories().map_err_trace_exit_unwrap(1);
-
-        desc.contains(&grep) || cats.iter().any(|cat| cat.contains(&grep))
-    };
+    let filter = PastFilter::new(past, today).and(GrepFilter::new(grep));
 
     let iterator = rt
         .store()
@@ -316,8 +307,7 @@ fn find<'a>(rt: &Runtime, scmd: &ArgMatches<'a>) {
         .filter_map(|o| o)
         .map(|mut cal| cal.events(rt.store()).map_err_trace_exit_unwrap(1))
         .flatten()
-        .filter(past_filter)
-        .filter(grep_filter);
+        .filter(|e| filter.filter(e));
 
     if do_show {
         show_events(rt, iterator);

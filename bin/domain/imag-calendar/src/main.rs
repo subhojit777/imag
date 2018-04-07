@@ -58,6 +58,7 @@ mod find;
 mod list;
 mod show;
 mod ui;
+mod util;
 
 use ui::build_ui;
 
