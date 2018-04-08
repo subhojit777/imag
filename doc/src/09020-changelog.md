@@ -107,6 +107,9 @@ This section contains the changelog from the last release to the next release.
     * `libimagstore::store::Store::create` overwrote existing entries.
     * `libimaghabit::habit::HabitTemplate` did not link new instances.
     * `imag-init` creates `~/.imag` but not `~/.imag/store`.
+    * `libimagrt` got a bugfix in the editor command setup where command
+      arguments were not processed correctly which could result in calling the
+      editor with an empty argument (`vim " "`).
 
 
 ## 0.6.3
