@@ -472,7 +472,7 @@ impl<'a> Runtime<'a> {
             .ok_or_else(|| RuntimeErrorKind::IOError.into())
             .map_dbg(|s| format!("Editing with '{}'", s))
             .and_then(|s| {
-                let mut split = s.split(" ");
+                let mut split = s.split_whitespace();
                 let command   = split.next();
                 if command.is_none() {
                     return Ok(None)
