@@ -520,10 +520,16 @@ impl<'a> Runtime<'a> {
     /// 3. The `ArgMatches` object from the call, so that this routine can forward all flags passed
     ///    to the `bar` subcommand.
     ///
+    /// # Warning
+    ///
+    /// If, and only if, the subcommand does not exist (as in `::std::io::ErrorKind::NotFound`),
+    /// this function exits with 1 as exit status.
+    ///
     /// # Return value
     ///
     /// On success, the exit status object of the `Command` invocation is returned.
-    /// On Error, a RuntimeError object is returned.
+    /// On Error, a RuntimeError object is returned. This is also the case if writing the error
+    /// message does not work.
     ///
     /// # Details
     ///
@@ -573,7 +579,7 @@ impl<'a> Runtime<'a> {
                         return e;
                     }
 
-                    e
+                    ::std::process::exit(1)
                 },
                 _ => e,
             })
