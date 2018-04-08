@@ -77,6 +77,8 @@ This section contains the changelog from the last release to the next release.
     * `imag view` can now view multiple entries at once
     * `imag view -I` reads store ids from stdin now.
     * `libimagstore` iterators have less restricting lifetimes now
+    * `libimagentrygrep` was introduced, a crate for seaching in the
+      header/content parts of an entry.
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
