@@ -39,6 +39,12 @@ impl<'a, 'b> Wiki<'a, 'b> {
         Wiki(store, name)
     }
 
+    pub fn get_entry<EN: AsRef<str>>(&self, entry_name: EN) -> Result<Option<FileLockEntry<'a>>> {
+        let path  = PathBuf::from(format!("{}/{}", self.1, entry_name.as_ref()));
+        let sid   = ::module_path::ModuleEntryPath::new(path).into_storeid()?;
+        self.0.get(sid).map_err(WE::from)
+    }
+
     pub fn create_entry<EN: AsRef<str>>(&self, entry_name: EN) -> Result<FileLockEntry<'a>> {
         let path  = PathBuf::from(format!("{}/{}", self.1, entry_name.as_ref()));
         let sid   = ::module_path::ModuleEntryPath::new(path).into_storeid()?;
