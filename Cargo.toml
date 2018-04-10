@@ -35,6 +35,7 @@ members = [
     "lib/domain/libimagnotes",
     "lib/domain/libimagtimetrack",
     "lib/domain/libimagtodo",
+    "lib/domain/libimagwiki",
     "lib/entry/libimagentryannotation",
     "lib/entry/libimagentrycategory",
     "lib/entry/libimagentrydatetime",
