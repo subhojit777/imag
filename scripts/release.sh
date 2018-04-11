@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+echo "Are you sure that the files"
+echo " * 'lib/core/libimagrt/src/version.rs'"
+echo " * 'scripts/version-updated'"
+echo "contain the right version setting?"
+echo "If yes, pass '--I-AM-SURE-VERSION-IS-UPDATED' as parameter"
+
+[[ "--I-AM-SURE-VERSION-IS-UPDATED" == $1 ]] || exit 1
 
 CRATES=(
     ./lib/etc/libimagutil
