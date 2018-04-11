@@ -81,7 +81,7 @@ fn help_text(cmds: Vec<String>) -> String {
 
     imag is free software. It is released under the terms of LGPLv2.1
 
-    (c) 2016 Matthias Beyer and contributors"#,
+    (c) 2015-2018 Matthias Beyer and contributors"#,
         imagbins = cmds
             .into_iter()
             .map(|cmd| format!("\t{}\n", cmd))
