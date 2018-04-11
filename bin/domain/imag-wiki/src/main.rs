@@ -24,6 +24,7 @@ extern crate clap;
 extern crate libimagerror;
 extern crate libimagstore;
 extern crate libimagwiki;
+extern crate libimagentryedit;
 
 use std::io::Write;
 
@@ -34,6 +35,7 @@ use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
 use libimagstore::storeid::IntoStoreId;
 use libimagwiki::store::WikiStore;
+use libimagentryedit::edit::{Edit, EditHeader};
 
 mod ui;
 use ui::build_ui;
@@ -131,7 +133,39 @@ fn idof(rt: &Runtime, wiki_name: &str) {
 }
 
 fn create(rt: &Runtime, wiki_name: &str) {
-    unimplemented!()
+    let scmd = rt.cli().subcommand_matches("create").unwrap(); // safed by clap
+    let name = String::from(scmd.value_of("create-name").unwrap()); // safe by clap
+    let main = String::from(scmd.value_of("create-mainpagename").unwrap_or("main"));
+    let edit        = !scmd.is_present("create-noedit");
+    let edit_header = scmd.is_present("create-editheader");
+    let prid        = !scmd.is_present("create-printid");
+
+    let mut mainpage = rt
+        .store()
+        .create_wiki(&name, Some(&main))
+        .map_err_trace_exit_unwrap(1)
+        .get_entry(&main)
+        .map_err_trace_exit_unwrap(1)
+        .unwrap_or_else(|| {
+            error!("Main page '{}' was not created. This seems to be a bug!", main);
+            ::std::process::exit(1);
+        });
+
+    if edit {
+        if edit_header {
+            let _ = mainpage.edit_header_and_content(rt).map_err_trace_exit_unwrap(1);
+        } else {
+            let _ = mainpage.edit_content(rt).map_err_trace_exit_unwrap(1);
+        }
+    }
+
+    if scmd.is_present(printid_flag) {
+        let out      = rt.stdout();
+        let mut lock = out.lock();
+        let id       = mainpage.get_location();
+
+        writeln!(lock, "{}", id).to_exit_code().unwrap_or_exit()
+    }
 }
 
 fn delete(rt: &Runtime, wiki_name: &str) {
