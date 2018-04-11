@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# Script has to be executed from the repository root directory.
+
+version=$(grep version bin/core/imag/Cargo.toml | head -n 1 | sed 's,.*=\ ",,; s,"$,,')
+
+grep "String::from(\"${version}\")" lib/core/libimagrt/src/version.rs 2>/dev/null >/dev/null || \
+{
+    >&2 echo "No/incorrect version in lib/core/libimagrt/src/version.rs"
+    exit 1
+}
+
