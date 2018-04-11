@@ -20,13 +20,18 @@
 #[macro_export]
 macro_rules! make_imag_version {
     () => {{
-        let pkg_version = env!("CARGO_PKG_VERSION");
-        let git_version = env!("CARGO_BUILD_VERSION");
+        let pkg_version = option_env!("CARGO_PKG_VERSION");
+        let git_version = option_env!("CARGO_BUILD_VERSION");
 
-        if git_version == "" {
-            String::from(pkg_version)
-        } else {
-            String::from(git_version)
+        match (git_version, pkg_version) {
+            (Some(git_version), Some(pkg_version)) => if git_version == "" {
+                String::from(pkg_version)
+            } else {
+                String::from(git_version)
+            },
+
+            // imag is not beeing build with cargo... we have to set it by hand here.
+            _ => String::from("0.8.0"),
         }
     }}
 }
