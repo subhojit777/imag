@@ -7,26 +7,36 @@ dist:
 
 language: rust
 
-rust:
-  - 1.23.0
-  - 1.24.0
-  - stable
+matrix:
+    include:
+        - language: rust
+          rust: 1.23.0
+          cache:
+            cargo: true
+          script:
+            - cargo build --all --all-features -j 1  || exit 1
+            - cargo test  --all --all-features -j 1  || exit 1
+        - language: rust
+          rust: 1.24.0
+          cache:
+            cargo: true
+          script:
+            - cargo build --all --all-features -j 1  || exit 1
+            - cargo test  --all --all-features -j 1  || exit 1
+        - language: rust
+          rust: stable
+          cache:
+            cargo: true
+          script:
+            - cargo build --all --all-features -j 1  || exit 1
+            - cargo test  --all --all-features -j 1  || exit 1
 
-cache:
-  cargo: true
 
 addons:
   apt:
     packages:
     - libdbus-1-dev
     - pkg-config
-
-script:
-  - |
-    bash ./scripts/find-dead-symlinks || exit 1
-    bash ./scripts/license-headers-updated || exit 1
-    cargo build --all --all-features -j 1 || exit 1
-    cargo test  --all --all-features -j 1 || exit 1
 
 notifications:
   email:
