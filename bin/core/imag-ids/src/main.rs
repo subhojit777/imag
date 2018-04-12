@@ -33,6 +33,7 @@
 )]
 
 extern crate clap;
+extern crate filters;
 
 extern crate libimagerror;
 extern crate libimagstore;
@@ -40,12 +41,14 @@ extern crate libimagstore;
 
 use std::io::Write;
 
+use filters::filter::Filter;
 use clap::{Arg, App};
 
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
+use libimagstore::storeid::StoreId;
 
 
 /// No special CLI
@@ -57,6 +60,29 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
              .required(false)
              .multiple(false)
              .help("Print the storepath for each id"))
+
+        .arg(Arg::with_name("in-collection-filter")
+             .long("in-collection")
+             .short("c")
+             .required(false)
+             .takes_value(true)
+             .multiple(true)
+             .value_names(&["COLLECTION"])
+             .help("Filter for ids which are only in these collections"))
+}
+
+pub struct IsInCollectionsFilter<'a, A>(Option<A>, ::std::marker::PhantomData<&'a str>)
+    where A: AsRef<[&'a str]>;
+
+impl<'a, A> Filter<StoreId> for IsInCollectionsFilter<'a, A>
+    where A: AsRef<[&'a str]> + 'a
+{
+    fn filter(&self, sid: &StoreId) -> bool {
+        match self.0 {
+            Some(ref colls) => sid.is_in_collection(colls),
+            None => true,
+        }
+    }
 }
 
 fn main() {
@@ -68,9 +94,17 @@ fn main() {
 
     let print_storepath = rt.cli().is_present("print-storepath");
 
+    let values = rt
+        .cli()
+        .values_of("in-collection-filter")
+        .map(|v| v.collect::<Vec<&str>>());
+
+    let collection_filter = IsInCollectionsFilter(values, ::std::marker::PhantomData);
+
     rt.store()
         .entries()
         .map_err_trace_exit_unwrap(1)
+        .filter(|id| collection_filter.filter(id))
         .map(|id| if print_storepath {
             id
         } else {

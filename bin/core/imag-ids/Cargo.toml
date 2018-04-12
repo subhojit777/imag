@@ -22,6 +22,8 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
+filters = "0.2"
+
 libimagstore     = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
 libimagrt        = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
 libimagerror     = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
