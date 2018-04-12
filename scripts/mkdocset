@@ -6,7 +6,7 @@ CARGO=$(which cargo || exit 1)
 RSDOCSDASHING=$(which rsdocs-dashing || exit 1)
 DASHING=$(which dashing || exit 1)
 
-$CARGO doc --all || exit 1
+find lib -name "Cargo.toml" -exec $CARGO doc --manifest-path {} \; || exit 1
 
 ls target/doc | grep imag | while read pkg; do
     $RSDOCSDASHING target/doc/$pkg docset-$pkg
