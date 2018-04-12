@@ -79,6 +79,7 @@ This section contains the changelog from the last release to the next release.
     * `libimagstore` iterators have less restricting lifetimes now
     * `libimagentrygrep` was introduced, a crate for seaching in the
       header/content parts of an entry.
+    * `imag-ids` can now filter by collection
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
