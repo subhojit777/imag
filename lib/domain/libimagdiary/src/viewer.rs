@@ -27,7 +27,6 @@ use error::Result;
 use libimagstore::store::FileLockEntry;
 use libimagentryview::viewer::Viewer;
 use libimagentryview::builtin::plain::PlainViewer;
-use libimagerror::trace::trace_error;
 
 /// This viewer does _not_ implement libimagentryview::viewer::Viewer because we need to be able to
 /// call some diary-type specific functions on the entries passed to this.
@@ -49,11 +48,16 @@ impl DiaryViewer {
     /// View all entries from the iterator, or stop immediately if an error occurs, returning that
     /// error.
     pub fn view_entries<'a, I: Iterator<Item = FileLockEntry<'a>>>(&self, entries: I) -> Result<()> {
-        for entry in entries {
-            match entry.diary_id() {
-                Ok(id) => println!("{} :\n", id),
-                Err(e) => trace_error(&e),
-            }
+        let mut entries = entries
+            .map(|e| e.diary_id().map(|id| (id, e)))
+            .collect::<Result<Vec<_>>>()?;
+
+        entries.sort_by_key(|&(ref id, _)| {
+            [id.year() as u32, id.month(), id.day(), id.hour(), id.minute(), id.second()]
+        });
+
+        for (id, entry) in entries.into_iter() {
+            println!("{} :\n", id);
             let _ = self.0
                          .view_entry(&entry)
                          .chain_err(|| DEK::ViewError)
