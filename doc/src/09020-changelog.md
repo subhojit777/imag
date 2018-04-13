@@ -112,6 +112,7 @@ This section contains the changelog from the last release to the next release.
       arguments were not processed correctly which could result in calling the
       editor with an empty argument (`vim " "`).
     * `imag-grep` did not count in all cases.
+    * `libimagdiary` sorts entries by date when viewing/listing them.
 
 
 ## 0.6.3
