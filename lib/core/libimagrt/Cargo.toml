@@ -39,7 +39,7 @@ libimaginteraction = { version = "0.7.0", path = "../../../lib/etc/libimagintera
 [dependencies.clap]
 version = "^2.29"
 default-features = false
-features = ["suggestions", "color"]
+features = ["suggestions", "color", "wrap_help"]
 
 [dependencies.log]
 version = "0.4.0-rc.1"

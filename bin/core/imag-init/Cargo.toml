@@ -28,7 +28,7 @@ libimagrt    = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
 [dependencies.clap]
 version = "^2.29"
 default-features = false
-features = ["color", "suggestions"]
+features = ["color", "suggestions", "wrap_help"]
 
 [dev-dependencies]
 toml = "0.4"

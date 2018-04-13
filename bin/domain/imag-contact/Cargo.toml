@@ -48,5 +48,5 @@ features         = ["deser"]
 [dependencies.clap]
 version = "^2.29"
 default-features = false
-features = ["color", "suggestions"]
+features = ["color", "suggestions", "wrap_help"]
 
