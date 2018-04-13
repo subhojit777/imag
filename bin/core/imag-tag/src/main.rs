@@ -106,7 +106,7 @@ fn main() {
                 let _ = rt.handle_unknown_subcommand("imag-tag", other, rt.cli())
                     .map_err_trace_exit_unwrap(1)
                     .code()
-                    .map(std::process::exit);
+                    .map(::std::process::exit);
             },
         });
 }
