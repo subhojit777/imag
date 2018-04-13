@@ -120,6 +120,7 @@ fn show(rt: &Runtime, e: &Entry, re: &Regex, opts: &Options, count: &mut usize) 
         }
 
         let _ = writeln!(rt.stdout(), "").to_exit_code().unwrap_or_exit();
+        *count += 1;
     }
 }
 
