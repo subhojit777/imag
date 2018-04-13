@@ -700,7 +700,6 @@ pub mod store_check {
             };
 
             // Helper function to create a SLCECD::OneDirectionalLink error object
-            #[inline]
             let mk_one_directional_link_err = |src: StoreId, target: StoreId| -> LE {
                 LE::from_kind(LEK::DeadLink(src, target))
             };
