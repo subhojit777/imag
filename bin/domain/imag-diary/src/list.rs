@@ -26,6 +26,10 @@ use libimagerror::trace::MapErrTrace;
 use libimagerror::io::ToExitCode;
 use libimagerror::exit::ExitUnwrap;
 use libimagutil::debug_result::*;
+use libimagdiary::diaryid::DiaryId;
+use libimagdiary::diaryid::FromStoreId;
+use libimagdiary::error::Result;
+
 
 use util::get_diary_name;
 
@@ -33,17 +37,21 @@ pub fn list(rt: &Runtime) {
     let diaryname = get_diary_name(rt)
         .unwrap_or_else(|| warn_exit("No diary selected. Use either the configuration file or the commandline option", 1));
 
-    Diary::entries(rt.store(), &diaryname)
+    let mut ids = Diary::entries(rt.store(), &diaryname)
         .map_dbg_str("Ok")
         .map_err_trace_exit_unwrap(1)
-        .for_each(|id| {
-            writeln!(rt.stdout(), "{}", id
-                    .without_base()
-                    .to_str()
-                    .map_err_trace()
-                    .unwrap_or(String::from("<<Path Parsing Error>>")))
-                .to_exit_code()
-                .unwrap_or_exit();
-        })
+        .map(|id| DiaryId::from_storeid(&id))
+        .collect::<Result<Vec<_>>>()
+        .map_err_trace_exit_unwrap(1);
+
+    ids.sort_by_key(|id| {
+        [id.year() as u32, id.month(), id.day(), id.hour(), id.minute(), id.second()]
+    });
+
+    for id in ids {
+        writeln!(rt.stdout(), "{}", id)
+            .to_exit_code()
+            .unwrap_or_exit();
+    }
 }
 
