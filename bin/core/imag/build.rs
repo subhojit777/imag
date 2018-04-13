@@ -7,6 +7,13 @@ extern crate libimagutil;
 use clap::Shell;
 use libimagrt::runtime::Runtime;
 
+mod toplevelbuildscript {
+    include!("../../../build.rs");
+    pub fn build() {
+        self::main();
+    }
+}
+
 /// This macro generates mods with the given '$modulename',
 /// whose content is the file given with `$path`.
 /// In this case, It is used specifically to include the
@@ -48,16 +55,15 @@ macro_rules! build_subcommand {
 
 // Actually generates the module.
 gen_mods_buildui!(
-    ("../imag-bookmark/src/ui.rs",  imagbookmark),
-    ("../imag-counter/src/ui.rs",   imagcounter),
-    ("../imag-diary/src/ui.rs",     imagdiary),
-    ("../imag-link/src/ui.rs",      imaglink),
-    ("../imag-notes/src/ui.rs",     imagnotes),
-    ("../imag-ref/src/ui.rs",       imagref),
-    ("../imag-store/src/ui.rs",     imagstore),
-    ("../imag-tag/src/ui.rs",       imagtag),
-    ("../imag-todo/src/ui.rs",      imagtodo),
-    ("../imag-view/src/ui.rs",      imagview)
+    ("../../../bin/domain/imag-bookmark/src/ui.rs",  imagbookmark),
+    ("../../../bin/domain/imag-diary/src/ui.rs",     imagdiary),
+    ("../../../bin/core/imag-link/src/ui.rs",        imaglink),
+    ("../../../bin/domain/imag-notes/src/ui.rs",     imagnotes),
+    ("../../../bin/core/imag-ref/src/ui.rs",         imagref),
+    ("../../../bin/core/imag-store/src/ui.rs",       imagstore),
+    ("../../../bin/core/imag-tag/src/ui.rs",         imagtag),
+    ("../../../bin/domain/imag-todo/src/ui.rs",      imagtodo),
+    ("../../../bin/core/imag-view/src/ui.rs",        imagview)
 );
 
 fn main() {
@@ -68,7 +74,6 @@ fn main() {
         "imag")
         // and add all the subapps as subcommands.
         .subcommand(build_subcommand!("bookmark",   imagbookmark))
-        .subcommand(build_subcommand!("counter",    imagcounter))
         .subcommand(build_subcommand!("diary",      imagdiary))
         .subcommand(build_subcommand!("link",       imaglink))
         .subcommand(build_subcommand!("notes",      imagnotes))
@@ -79,9 +84,10 @@ fn main() {
         .subcommand(build_subcommand!("view",       imagview));
 
     // Actually generates the completion files
-    app.gen_completions("imag", Shell::Bash, env!("OUT_DIR"));
-    app.gen_completions("imag", Shell::Fish, env!("OUT_DIR"));
-    app.gen_completions("imag", Shell::Zsh, env!("OUT_DIR"));
+    app.gen_completions("imag", Shell::Bash, "./");
+    app.gen_completions("imag", Shell::Fish, "./");
+    app.gen_completions("imag", Shell::Zsh, "./");
 
+    toplevelbuildscript::build();
 }
 
