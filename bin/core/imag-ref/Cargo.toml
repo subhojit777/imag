@@ -32,7 +32,7 @@ libimaginteraction = { version = "0.7.0", path = "../../../lib/etc/libimagintera
 libimagutil        = { version = "0.7.0", path = "../../../lib/etc/libimagutil" }
 
 [dependencies.clap]
-version = ">=2.29"
+version = "^2.29"
 default-features = false
-features = ["color", "suggestions"]
+features = ["color", "suggestions", "wrap_help"]
 

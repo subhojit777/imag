@@ -32,9 +32,9 @@ libimagentrytag = { version = "0.7.0", path = "../../../lib/entry/libimagentryta
 libimagutil     = { version = "0.7.0", path = "../../../lib/etc/libimagutil" }
 
 [dependencies.clap]
-version = ">=2.29"
+version = "^2.29"
 default-features = false
-features = ["color", "suggestions"]
+features = ["color", "suggestions", "wrap_help"]
 
 [dev-dependencies]
 toml-query = "0.6"

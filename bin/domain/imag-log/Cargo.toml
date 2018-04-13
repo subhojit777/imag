@@ -34,7 +34,7 @@ libimagdiary = { version = "0.7.0", path = "../../../lib/domain/libimagdiary" }
 libimaglog   = { version = "0.7.0", path = "../../../lib/domain/libimaglog" }
 
 [dependencies.clap]
-version = ">=2.29"
+version = "^2.29"
 default-features = false
-features = ["color", "suggestions"]
+features = ["color", "suggestions", "wrap_help"]
 
