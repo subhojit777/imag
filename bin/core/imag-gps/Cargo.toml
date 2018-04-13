@@ -34,7 +34,7 @@ libimagentrygps  = { version = "0.7.0", path = "../../../lib/entry/libimagentryg
 libimagutil      = { version = "0.7.0", path = "../../../lib/etc/libimagutil" }
 
 [dependencies.clap]
-version = ">=2.29"
+version = "^2.29"
 default-features = false
 features = ["color", "suggestions"]
 

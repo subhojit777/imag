@@ -39,7 +39,7 @@ libimagtimeui      = { version = "0.7.0", path = "../../../lib/etc/libimagtimeui
 libimaghabit       = { version = "0.7.0", path = "../../../lib/domain/libimaghabit" }
 
 [dependencies.clap]
-version = ">=2.29"
+version = "^2.29"
 default-features = false
 features = ["color", "suggestions"]
 
