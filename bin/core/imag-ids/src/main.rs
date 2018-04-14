@@ -42,13 +42,15 @@ extern crate libimagstore;
 use std::io::Write;
 
 use filters::filter::Filter;
-use clap::{Arg, App};
 
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
 use libimagstore::storeid::StoreId;
+
+mod ui;
+use ui::build_ui;
 
 
 pub struct IsInCollectionsFilter<'a, A>(Option<A>, ::std::marker::PhantomData<&'a str>)
