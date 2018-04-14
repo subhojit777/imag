@@ -162,17 +162,4 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .help("Do not remote links. WARNING: This leaves the store in an inconsistent state."))
                    )
 
-        .subcommand(SubCommand::with_name("grep")
-                   .about("Grep though wiki entries.")
-                   .version("0.1")
-                   .arg(Arg::with_name("grep-pattern")
-                        .index(1)
-                        .takes_value(true)
-                        .required(false)
-                        .multiple(true)
-                        .value_name("PATTERN")
-                        .value_names(&["PATTERNS"])
-                        .help("List only entries where the content matches the pattern. Regex allowed."))
-                   )
-
 }

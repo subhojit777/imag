@@ -63,7 +63,6 @@ fn main() {
         Some("create")      => create(&rt, wiki_name),
         Some("create-wiki") => create_wiki(&rt, wiki_name),
         Some("delete")      => delete(&rt, wiki_name),
-        Some("grep")        => grep(&rt, wiki_name),
         Some(other)         => {
             debug!("Unknown command");
             let _ = rt.handle_unknown_subcommand("imag-wiki", other, rt.cli())
@@ -226,51 +225,5 @@ fn delete(rt: &Runtime, wiki_name: &str) {
     let _ = wiki
         .delete_entry(&name)
         .map_err_trace_exit_unwrap(1);
-}
-
-fn grep(rt: &Runtime, wiki_name: &str) {
-    use libimagstore::iter::get::StoreIdGetIteratorExtension;
-    use filters::filter::Filter;
-
-    let scmd = rt.cli().subcommand_matches("grep").unwrap(); // safed by clap
-    let grep = scmd
-        .value_of("grep-pattern")
-        .map(Regex::new)
-        .unwrap() // safed by clap
-        .unwrap_or_else(|e| {
-            error!("Regex building error: {:?}", e);
-            ::std::process::exit(1)
-        });
-
-    let filter = |e: &FileLockEntry| -> bool {
-        grep.is_match(e.get_content())
-    };
-
-    let wiki = rt
-            .store()
-            .get_wiki(&wiki_name)
-            .map_err_trace_exit_unwrap(1)
-            .unwrap_or_else(|| {
-                error!("No wiki '{}' found", wiki_name);
-                ::std::process::exit(1)
-            });
-
-    let out         = rt.stdout();
-    let mut outlock = out.lock();
-
-    wiki.all_ids()
-        .map_err_trace_exit_unwrap(1)
-        .into_get_iter(rt.store())
-        .filter_map(Result::ok)
-        .map(|e| e.unwrap_or_else(|| {
-            error!("Failed to fetch entry");
-            ::std::process::exit(1)
-        }))
-        .filter(|e| filter.filter(e))
-        .for_each(|entry| {
-            let _ = writeln!(outlock, "{}", entry.get_location())
-                .to_exit_code()
-                .unwrap_or_exit();
-        });
 }
 
