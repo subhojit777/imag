@@ -407,9 +407,6 @@ fn forward_commandline_arguments(m: &ArgMatches, scmd: &mut Vec<String>) {
     push(Some("editor"),
          Runtime::arg_editor_name(), m , scmd);
 
-    push(Some("generate-commandline-completion"),
-         Runtime::arg_generate_compl(), m , scmd);
-
     push(None , Runtime::arg_logdest_name()                         , m , scmd);
 
 }
