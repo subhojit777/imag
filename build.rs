@@ -19,7 +19,7 @@
 
 use std::process::Command;
 fn main() {
-    let profile = String::from(std::env::var("PROFILE").unwrap());
+    let profile = String::from(::std::env::var("PROFILE").unwrap());
     let git_version = if profile == "debug" {
         let output = Command::new("git")
             .args(&["describe", "HEAD"])
