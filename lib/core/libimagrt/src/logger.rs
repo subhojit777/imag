@@ -231,13 +231,13 @@ fn aggregate_global_loglevel(matches: &ArgMatches, config: Option<&Value>) -> Re
             return Ok(Some(Level::Debug))
         }
 
-        if matches.is_present(Runtime::arg_verbosity_name()) {
-            return Ok(Some(Level::Info))
-        }
-
         match matches.value_of(Runtime::arg_verbosity_name()) {
             Some(v) => match_log_level_str(v).map(Some),
-            None    => Ok(None),
+            None    => if matches.is_present(Runtime::arg_verbosity_name()) {
+                Ok(Some(Level::Info))
+            } else {
+                Ok(None)
+            },
         }
     }
 
