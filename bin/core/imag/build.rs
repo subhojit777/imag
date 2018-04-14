@@ -55,15 +55,28 @@ macro_rules! build_subcommand {
 
 // Actually generates the module.
 gen_mods_buildui!(
-    ("../../../bin/domain/imag-bookmark/src/ui.rs",  imagbookmark),
-    ("../../../bin/domain/imag-diary/src/ui.rs",     imagdiary),
+    ("../../../bin/core/imag-annotate/src/ui.rs",    imagannotate),
+    ("../../../bin/core/imag-diagnostics/src/ui.rs", imagdiagnostics),
+    ("../../../bin/core/imag-edit/src/ui.rs",        imagedit),
+    ("../../../bin/core/imag-gps/src/ui.rs",         imaggps),
+    ("../../../bin/core/imag-grep/src/ui.rs",        imaggrep),
+    ("../../../bin/core/imag-ids/src/ui.rs",         imagids),
+    ("../../../bin/core/imag-init/src/ui.rs",        imaginit),
     ("../../../bin/core/imag-link/src/ui.rs",        imaglink),
-    ("../../../bin/domain/imag-notes/src/ui.rs",     imagnotes),
+    ("../../../bin/core/imag-mv/src/ui.rs",          imagmv),
     ("../../../bin/core/imag-ref/src/ui.rs",         imagref),
     ("../../../bin/core/imag-store/src/ui.rs",       imagstore),
     ("../../../bin/core/imag-tag/src/ui.rs",         imagtag),
-    ("../../../bin/domain/imag-todo/src/ui.rs",      imagtodo),
     ("../../../bin/core/imag-view/src/ui.rs",        imagview)
+    ("../../../bin/domain/imag-bookmark/src/ui.rs",  imagbookmark),
+    ("../../../bin/domain/imag-contact/src/ui.rs",   imagcontact),
+    ("../../../bin/domain/imag-diary/src/ui.rs",     imagdiary),
+    ("../../../bin/domain/imag-habit/src/ui.rs",     imaghabit),
+    ("../../../bin/domain/imag-log/src/ui.rs",       imaglog),
+    ("../../../bin/domain/imag-mail/src/ui.rs",      imagmail),
+    ("../../../bin/domain/imag-notes/src/ui.rs",     imagnotes),
+    ("../../../bin/domain/imag-timetrack/src/ui.rs", imagtimetrack),
+    ("../../../bin/domain/imag-todo/src/ui.rs",      imagtodo),
 );
 
 fn main() {
@@ -73,15 +86,28 @@ fn main() {
         &version!()[..],
         "imag")
         // and add all the subapps as subcommands.
-        .subcommand(build_subcommand!("bookmark",   imagbookmark))
-        .subcommand(build_subcommand!("diary",      imagdiary))
-        .subcommand(build_subcommand!("link",       imaglink))
-        .subcommand(build_subcommand!("notes",      imagnotes))
-        .subcommand(build_subcommand!("ref",        imagref))
-        .subcommand(build_subcommand!("store",      imagstore))
-        .subcommand(build_subcommand!("tag",        imagtag))
-        .subcommand(build_subcommand!("todo",       imagtodo))
-        .subcommand(build_subcommand!("view",       imagview));
+        .subcommand(build_ui!("annotate",    imagannotate),
+        .subcommand(build_ui!("diagnostics", imagdiagnostics),
+        .subcommand(build_ui!("edit",        imagedit),
+        .subcommand(build_ui!("gps",         imaggps),
+        .subcommand(build_ui!("grep",        imaggrep),
+        .subcommand(build_ui!("ids",         imagids),
+        .subcommand(build_ui!("init",        imaginit),
+        .subcommand(build_ui!("link",        imaglink),
+        .subcommand(build_ui!("mv",          imagmv),
+        .subcommand(build_ui!("ref",         imagref),
+        .subcommand(build_ui!("store",       imagstore),
+        .subcommand(build_ui!("tag",         imagtag),
+        .subcommand(build_ui!("view",        imagview)
+        .subcommand(build_ui!("bookmark",    imagbookmark),
+        .subcommand(build_ui!("contact",     imagcontact),
+        .subcommand(build_ui!("diary",       imagdiary),
+        .subcommand(build_ui!("habit",       imaghabit),
+        .subcommand(build_ui!("log",         imaglog),
+        .subcommand(build_ui!("mail",        imagmail),
+        .subcommand(build_ui!("notes",       imagnotes),
+        .subcommand(build_ui!("timetrack",   imagtimetrack),
+        .subcommand(build_ui!("todo",        imagtodo),
 
     // Actually generates the completion files
     app.gen_completions("imag", Shell::Bash, "./");
