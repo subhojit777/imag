@@ -50,6 +50,8 @@ This section contains the changelog from the last release to the next release.
       subcommands: `Runtime::handle_unknown_subcommand()`. See docs for details.
     * `imag-link list` prints output in ascii-table now, use `--plain` to print
       as plain text.
+    * The build script automatically generates autocomplete scripts for bash,
+      fish and zsh now when compiling the `imag` command.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
