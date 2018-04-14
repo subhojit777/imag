@@ -107,15 +107,15 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                    )
 
         .subcommand(SubCommand::with_name("delete")
-                   .about("Add wiki entry")
+                   .about("Delete wiki entry")
                    .version("0.1")
-                   .arg(Arg::with_name("name")
+                   .arg(Arg::with_name("delete-name")
                         .index(1)
                         .takes_value(true)
                         .required(true)
                         .multiple(false)
                         .value_name("NAME")
-                        .help("Add the entry under this name. The name must be unique, namespaces ('foo/bar') are allowed."))
+                        .help("Delete the entry under this name. The name must be unique, namespaces ('foo/bar') are allowed."))
 
                    .arg(Arg::with_name("delete-no-remove-linkings")
                         .long("no-remove-links")

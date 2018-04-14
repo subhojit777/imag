@@ -25,6 +25,7 @@ extern crate libimagerror;
 extern crate libimagstore;
 extern crate libimagwiki;
 extern crate libimagentryedit;
+extern crate libimagentrylink;
 
 use std::io::Write;
 
@@ -169,7 +170,35 @@ fn create(rt: &Runtime, wiki_name: &str) {
 }
 
 fn delete(rt: &Runtime, wiki_name: &str) {
-    unimplemented!()
+    use libimagentrylink::internal::InternalLinker;
+
+    let scmd   = rt.cli().subcommand_matches("delete").unwrap(); // safed by clap
+    let name   = String::from(scmd.value_of("delete-name").unwrap()); // safe by clap
+    let unlink = !scmd.is_present("delete-no-remove-linkings");
+
+    let wiki = rt
+            .store()
+            .get_wiki(&wiki_name)
+            .map_err_trace_exit_unwrap(1)
+            .unwrap_or_else(|| {
+                error!("No wiki '{}' found", wiki_name);
+                ::std::process::exit(1)
+            });
+
+    if unlink {
+        wiki.get_entry(&name)
+            .map_err_trace_exit_unwrap(1)
+            .unwrap_or_else(|| {
+                error!("No wiki entry '{}' in '{}' found", name, wiki_name);
+                ::std::process::exit(1)
+            })
+            .unlink(rt.store())
+            .map_err_trace_exit_unwrap(1);
+    }
+
+    let _ = wiki
+        .delete_entry(&name)
+        .map_err_trace_exit_unwrap(1);
 }
 
 fn grep(rt: &Runtime, wiki_name: &str) {
