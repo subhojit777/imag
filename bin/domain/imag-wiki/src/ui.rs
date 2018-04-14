@@ -143,6 +143,19 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .help("Print the store id after creating"))
                    )
 
+        .subcommand(SubCommand::with_name("show")
+                   .about("Show wiki entry/entries")
+                   .version("0.1")
+
+                   .arg(Arg::with_name("create-name")
+                        .index(1)
+                        .takes_value(true)
+                        .required(true)
+                        .multiple(true)
+                        .help("Name of the entry/entries to show."))
+                   )
+
+
         .subcommand(SubCommand::with_name("delete")
                    .about("Delete wiki entry")
                    .version("0.1")

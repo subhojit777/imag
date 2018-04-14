@@ -62,6 +62,7 @@ fn main() {
         Some("idof")        => idof(&rt, wiki_name),
         Some("create")      => create(&rt, wiki_name),
         Some("create-wiki") => create_wiki(&rt, wiki_name),
+        Some("show")        => show(&rt, wiki_name),
         Some("delete")      => delete(&rt, wiki_name),
         Some(other)         => {
             debug!("Unknown command");
@@ -192,6 +193,45 @@ fn create_in_wiki(rt: &Runtime,
         let id       = entry.get_location();
 
         writeln!(lock, "{}", id).to_exit_code().unwrap_or_exit()
+    }
+}
+
+fn show(rt: &Runtime, wiki_name: &str) {
+    let scmd  = rt.cli().subcommand_matches("show").unwrap(); // safed by clap
+    let names = scmd
+        .values_of("show-name")
+        .unwrap() // safe by clap
+        .map(String::from)
+        .collect::<Vec<_>>();
+
+    let wiki = rt
+        .store()
+        .get_wiki(&wiki_name)
+        .map_err_trace_exit_unwrap(1)
+        .unwrap_or_else(|| {
+            error!("No wiki '{}' found", wiki_name);
+            ::std::process::exit(1)
+        });
+
+    let out         = rt.stdout();
+    let mut outlock = out.lock();
+
+    for name in names {
+        let entry = wiki
+            .get_entry(&name)
+            .map_err_trace_exit_unwrap(1)
+            .unwrap_or_else(|| {
+                error!("No wiki entry '{}' found in wiki '{}'", name, wiki_name);
+                ::std::process::exit(1)
+            });
+
+        writeln!(outlock, "{}", entry.get_location())
+                .to_exit_code()
+                .unwrap_or_exit();
+
+        writeln!(outlock, "{}", entry.get_content())
+                .to_exit_code()
+                .unwrap_or_exit();
     }
 }
 
