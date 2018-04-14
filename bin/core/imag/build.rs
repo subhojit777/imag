@@ -110,9 +110,9 @@ fn main() {
         .subcommand(build_ui!("todo",        imagtodo));
 
     // Actually generates the completion files
-    app.gen_completions("imag", Shell::Bash, "./");
-    app.gen_completions("imag", Shell::Fish, "./");
-    app.gen_completions("imag", Shell::Zsh, "./");
+    app.gen_completions("imag", Shell::Bash, "../../../target/shell-completions.d/");
+    app.gen_completions("imag", Shell::Fish, "../../../target/shell-completions.d/");
+    app.gen_completions("imag", Shell::Zsh,  "../../../target/shell-completions.d/");
 
     toplevelbuildscript::build();
 }
