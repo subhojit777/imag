@@ -18,6 +18,8 @@
 //
 
 extern crate clap;
+extern crate regex;
+extern crate filters;
 #[macro_use] extern crate log;
 
 #[macro_use] extern crate libimagrt;
@@ -29,12 +31,15 @@ extern crate libimagentrylink;
 
 use std::io::Write;
 
+use regex::Regex;
+
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::{MapErrTrace, trace_error};
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
 use libimagstore::storeid::IntoStoreId;
+use libimagstore::store::FileLockEntry;
 use libimagwiki::store::WikiStore;
 use libimagentryedit::edit::{Edit, EditHeader};
 
@@ -202,6 +207,48 @@ fn delete(rt: &Runtime, wiki_name: &str) {
 }
 
 fn grep(rt: &Runtime, wiki_name: &str) {
-    unimplemented!()
+    use libimagstore::iter::get::StoreIdGetIteratorExtension;
+    use filters::filter::Filter;
+
+    let scmd = rt.cli().subcommand_matches("grep").unwrap(); // safed by clap
+    let grep = scmd
+        .value_of("grep-pattern")
+        .map(Regex::new)
+        .unwrap() // safed by clap
+        .unwrap_or_else(|e| {
+            error!("Regex building error: {:?}", e);
+            ::std::process::exit(1)
+        });
+
+    let filter = |e: &FileLockEntry| -> bool {
+        grep.is_match(e.get_content())
+    };
+
+    let wiki = rt
+            .store()
+            .get_wiki(&wiki_name)
+            .map_err_trace_exit_unwrap(1)
+            .unwrap_or_else(|| {
+                error!("No wiki '{}' found", wiki_name);
+                ::std::process::exit(1)
+            });
+
+    let out         = rt.stdout();
+    let mut outlock = out.lock();
+
+    wiki.all_ids()
+        .map_err_trace_exit_unwrap(1)
+        .into_get_iter(rt.store())
+        .filter_map(Result::ok)
+        .map(|e| e.unwrap_or_else(|| {
+            error!("Failed to fetch entry");
+            ::std::process::exit(1)
+        }))
+        .filter(|e| filter.filter(e))
+        .for_each(|entry| {
+            let _ = writeln!(outlock, "{}", entry.get_location())
+                .to_exit_code()
+                .unwrap_or_exit();
+        });
 }
 

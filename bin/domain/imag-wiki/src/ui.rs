@@ -126,7 +126,7 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                    )
 
         .subcommand(SubCommand::with_name("grep")
-                   .about("List wiki entries.")
+                   .about("Grep though wiki entries.")
                    .version("0.1")
                    .arg(Arg::with_name("grep-pattern")
                         .index(1)
