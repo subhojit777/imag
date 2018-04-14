@@ -118,6 +118,8 @@ This section contains the changelog from the last release to the next release.
     * `libimagdiary` sorts entries by date when viewing/listing them.
     * A `libimagentryref` bug was fixed where the wrong variable was passed as
       path to the referenced file, causing all tools based on this lib to break.
+    * `libimagrt` had a bug where the logging level was set to "Info" as soon as
+      "--verbose" was passed, but the value of "--verbose" was not even checked.
 
 
 ## 0.6.3
