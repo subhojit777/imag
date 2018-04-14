@@ -86,28 +86,28 @@ fn main() {
         &version!()[..],
         "imag")
         // and add all the subapps as subcommands.
-        .subcommand(build_ui!("annotate",    imagannotate),
-        .subcommand(build_ui!("diagnostics", imagdiagnostics),
-        .subcommand(build_ui!("edit",        imagedit),
-        .subcommand(build_ui!("gps",         imaggps),
-        .subcommand(build_ui!("grep",        imaggrep),
-        .subcommand(build_ui!("ids",         imagids),
-        .subcommand(build_ui!("init",        imaginit),
-        .subcommand(build_ui!("link",        imaglink),
-        .subcommand(build_ui!("mv",          imagmv),
-        .subcommand(build_ui!("ref",         imagref),
-        .subcommand(build_ui!("store",       imagstore),
-        .subcommand(build_ui!("tag",         imagtag),
-        .subcommand(build_ui!("view",        imagview)
-        .subcommand(build_ui!("bookmark",    imagbookmark),
-        .subcommand(build_ui!("contact",     imagcontact),
-        .subcommand(build_ui!("diary",       imagdiary),
-        .subcommand(build_ui!("habit",       imaghabit),
-        .subcommand(build_ui!("log",         imaglog),
-        .subcommand(build_ui!("mail",        imagmail),
-        .subcommand(build_ui!("notes",       imagnotes),
-        .subcommand(build_ui!("timetrack",   imagtimetrack),
-        .subcommand(build_ui!("todo",        imagtodo),
+        .subcommand(build_ui!("annotate",    imagannotate))
+        .subcommand(build_ui!("diagnostics", imagdiagnostics))
+        .subcommand(build_ui!("edit",        imagedit))
+        .subcommand(build_ui!("gps",         imaggps))
+        .subcommand(build_ui!("grep",        imaggrep))
+        .subcommand(build_ui!("ids",         imagids))
+        .subcommand(build_ui!("init",        imaginit))
+        .subcommand(build_ui!("link",        imaglink))
+        .subcommand(build_ui!("mv",          imagmv))
+        .subcommand(build_ui!("ref",         imagref))
+        .subcommand(build_ui!("store",       imagstore))
+        .subcommand(build_ui!("tag",         imagtag))
+        .subcommand(build_ui!("view",        imagview))
+        .subcommand(build_ui!("bookmark",    imagbookmark))
+        .subcommand(build_ui!("contact",     imagcontact))
+        .subcommand(build_ui!("diary",       imagdiary))
+        .subcommand(build_ui!("habit",       imaghabit))
+        .subcommand(build_ui!("log",         imaglog))
+        .subcommand(build_ui!("mail",        imagmail))
+        .subcommand(build_ui!("notes",       imagnotes))
+        .subcommand(build_ui!("timetrack",   imagtimetrack))
+        .subcommand(build_ui!("todo",        imagtodo));
 
     // Actually generates the completion files
     app.gen_completions("imag", Shell::Bash, "./");
