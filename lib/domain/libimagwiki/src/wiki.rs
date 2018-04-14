@@ -62,6 +62,11 @@ impl<'a, 'b> Wiki<'a, 'b> {
         Ok(WikiIdIterator(self.0.entries()?, filter))
     }
 
+    pub fn delete_entry<EN: AsRef<str>>(&self, entry_name: EN) -> Result<()> {
+        let path  = PathBuf::from(format!("{}/{}", self.1, entry_name.as_ref()));
+        let sid   = ::module_path::ModuleEntryPath::new(path).into_storeid()?;
+        self.0.delete(sid).map_err(WE::from)
+    }
 }
 
 pub struct WikiIdIterator<'a>(StoreIdIteratorWithStore<'a>, IdIsInWikiFilter<'a>);
