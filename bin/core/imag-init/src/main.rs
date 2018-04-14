@@ -50,6 +50,7 @@ use std::process::Command;
 
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
+use libimagrt::runtime::Runtime;
 
 const CONFIGURATION_STR : &'static str = include_str!("../imagrc.toml");
 
@@ -68,7 +69,10 @@ imagrc.toml
 
 fn main() {
     let version = make_imag_version!();
-    let app     = ui::build_ui(&version);
+    let app     = ui::build_ui(Runtime::get_default_cli_builder(
+        "imag-init",
+        version.as_str(),
+        "Intializes the imag store, optionally with git"));
     let matches = app.get_matches();
     let mut out = ::std::io::stdout();
 

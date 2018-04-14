@@ -1,6 +1,6 @@
 //
 // imag - the personal information management suite for the commandline
-// Copyright (C) 2015-2018 the imag contributors
+// Copyright (C) 2015-2018 Matthias Beyer <mail@beyermatthias.de> and contributors
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -17,18 +17,24 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::process::Command;
-fn main() {
-    let profile = String::from(::std::env::var("PROFILE").unwrap());
-    let git_version = if profile == "debug" {
-        let output = Command::new("git")
-            .args(&["describe", "HEAD"])
-            .output()
-            .unwrap();
-        String::from_utf8(output.stdout).unwrap()
-    } else {
-        String::from("")
-    };
+use clap::{Arg, App};
 
-    println!("cargo:rustc-env=CARGO_BUILD_VERSION={}", git_version);
+pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
+    app
+        .arg(Arg::with_name("print-storepath")
+             .long("with-storepath")
+             .takes_value(false)
+             .required(false)
+             .multiple(false)
+             .help("Print the storepath for each id"))
+
+        .arg(Arg::with_name("in-collection-filter")
+             .long("in-collection")
+             .short("c")
+             .required(false)
+             .takes_value(true)
+             .multiple(true)
+             .value_names(&["COLLECTION"])
+             .help("Filter for ids which are only in these collections"))
 }
+

@@ -111,25 +111,12 @@ impl<'a> Runtime<'a> {
         Runtime::_new(cli_app, matches, config)
     }
 
-    fn _new<C>(mut cli_app: C, matches: ArgMatches<'a>, config: Option<Value>)
+    fn _new<C>(cli_app: C, matches: ArgMatches<'a>, config: Option<Value>)
                -> Result<Runtime<'a>, RuntimeError>
     where C: Clone + CliSpec<'a> + InternalConfiguration
     {
-        use std::io::stdout;
-        use clap::Shell;
-
         if cli_app.enable_logging() {
             Runtime::init_logger(&matches, config.as_ref())
-        }
-
-        match matches.value_of(Runtime::arg_generate_compl()) {
-            Some(shell) => {
-                debug!("Generating shell completion script, writing to stdout");
-                let shell   = shell.parse::<Shell>().unwrap(); // clap has our back here.
-                let appname = String::from(cli_app.name());
-                cli_app.completions(appname, shell, &mut stdout());
-            },
-            _ => debug!("Not generating shell completion script"),
         }
 
         let rtp = get_rtp_match(&matches);
@@ -242,14 +229,6 @@ impl<'a> Runtime<'a> {
                 .required(false)
                 .takes_value(true))
 
-            .arg(Arg::with_name(Runtime::arg_generate_compl())
-                .long("generate-commandline-completion")
-                .help("Generate the commandline completion for bash or zsh or fish")
-                .required(false)
-                .takes_value(true)
-                .value_name("SHELL")
-                .possible_values(&["bash", "fish", "zsh"]))
-
             .arg(Arg::with_name(Runtime::arg_logdest_name())
                 .long(Runtime::arg_logdest_name())
                 .help("Override the logging destinations from the configuration: values can be seperated by ',', a value of '-' marks the stderr output, everything else is expected to be a path")
@@ -318,11 +297,6 @@ impl<'a> Runtime<'a> {
     /// Get the editor argument name for the Runtime
     pub fn arg_editor_name() -> &'static str {
         "editor"
-    }
-
-    /// Get the argument name for generating the completion
-    pub fn arg_generate_compl() -> &'static str {
-        "generate-completion"
     }
 
     /// Extract the Store object from the Runtime object, destroying the Runtime object
