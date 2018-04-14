@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+COMMIT_RANGE=""
+
+if [[ $TRAVIS ]]; then
+    if [[ -z "$TRAVIS_COMMIT_RANGE" ]]; then
+        COMMIT_RANGE=HEAD^..HEAD
+    else
+        COMMIT_RANGE=$TRAVIS_COMMIT_RANGE
+    fi
+else
+    COMMIT_RANGE=$(git merge-base master  HEAD)..HEAD
+fi
+
+logfreeof() {
+    git log --format="%s" $COMMIT_RANGE |\
+        awk '{print $1}' |\
+        grep -i "$1" && echo "LOG CONTAINS '$1'" && exit 1
+
+    return 0
+}
+
+logfreeof "fixup"
+logfreeof "squash"
+logfreeof "wip"
+logfreeof "tmp"
+logfreeof "ci skip"
+
