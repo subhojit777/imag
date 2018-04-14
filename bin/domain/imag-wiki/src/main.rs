@@ -31,6 +31,7 @@ extern crate libimagentrylink;
 
 use std::io::Write;
 
+use clap::ArgMatches;
 use regex::Regex;
 
 use libimagrt::runtime::Runtime;
@@ -41,6 +42,7 @@ use libimagerror::io::ToExitCode;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::store::FileLockEntry;
 use libimagwiki::store::WikiStore;
+use libimagwiki::wiki::Wiki;
 use libimagentryedit::edit::{Edit, EditHeader};
 
 mod ui;
@@ -56,12 +58,13 @@ fn main() {
     let wiki_name = rt.cli().value_of("wikiname").unwrap_or("default");
 
     match rt.cli().subcommand_name() {
-        Some("ids")    => ids(&rt, wiki_name),
-        Some("idof")   => idof(&rt, wiki_name),
-        Some("create") => create(&rt, wiki_name),
-        Some("delete") => delete(&rt, wiki_name),
-        Some("grep")   => grep(&rt, wiki_name),
-        Some(other)    => {
+        Some("ids")         => ids(&rt, wiki_name),
+        Some("idof")        => idof(&rt, wiki_name),
+        Some("create")      => create(&rt, wiki_name),
+        Some("create-wiki") => create_wiki(&rt, wiki_name),
+        Some("delete")      => delete(&rt, wiki_name),
+        Some("grep")        => grep(&rt, wiki_name),
+        Some(other)         => {
             debug!("Unknown command");
             let _ = rt.handle_unknown_subcommand("imag-wiki", other, rt.cli())
                 .map_err_trace_exit_unwrap(1)
@@ -139,36 +142,55 @@ fn idof(rt: &Runtime, wiki_name: &str) {
 }
 
 fn create(rt: &Runtime, wiki_name: &str) {
-    let scmd = rt.cli().subcommand_matches("create").unwrap(); // safed by clap
-    let name = String::from(scmd.value_of("create-name").unwrap()); // safe by clap
-    let main = String::from(scmd.value_of("create-mainpagename").unwrap_or("main"));
-    let edit        = !scmd.is_present("create-noedit");
-    let edit_header = scmd.is_present("create-editheader");
-    let prid        = !scmd.is_present("create-printid");
+    let scmd        = rt.cli().subcommand_matches("create").unwrap(); // safed by clap
+    let name        = String::from(scmd.value_of("create-name").unwrap()); // safe by clap
 
-    let mut mainpage = rt
+    let wiki = rt
         .store()
-        .create_wiki(&name, Some(&main))
-        .map_err_trace_exit_unwrap(1)
-        .get_entry(&main)
+        .get_wiki(&wiki_name)
         .map_err_trace_exit_unwrap(1)
         .unwrap_or_else(|| {
-            error!("Main page '{}' was not created. This seems to be a bug!", main);
-            ::std::process::exit(1);
+            error!("No wiki '{}' found", wiki_name);
+            ::std::process::exit(1)
         });
 
-    if edit {
-        if edit_header {
-            let _ = mainpage.edit_header_and_content(rt).map_err_trace_exit_unwrap(1);
+    create_in_wiki(rt, &name, &wiki, scmd,
+                   "create-noedit", "create-editheader", "create-printid");
+}
+
+fn create_wiki(rt: &Runtime, wiki_name: &str) {
+    let scmd      = rt.cli().subcommand_matches("create-wiki").unwrap(); // safed by clap
+    let wiki_name = String::from(scmd.value_of("create-wiki-name").unwrap()); // safe by clap
+    let main      = String::from(scmd.value_of("create-wiki-mainpagename").unwrap_or("main"));
+
+    let wiki = rt.store().create_wiki(&wiki_name, Some(&main)).map_err_trace_exit_unwrap(1);
+
+    create_in_wiki(rt, &main, &wiki, scmd,
+                   "create-wiki-noedit", "create-wiki-editheader", "create-wiki-printid");
+}
+
+fn create_in_wiki(rt: &Runtime,
+                  entry_name: &str,
+                  wiki: &Wiki,
+                  scmd: &ArgMatches,
+                  noedit_flag: &'static str,
+                  editheader_flag: &'static str,
+                  printid_flag: &'static str)
+{
+    let mut entry = wiki.create_entry(entry_name).map_err_trace_exit_unwrap(1);
+
+    if !scmd.is_present(noedit_flag) {
+        if scmd.is_present(editheader_flag) {
+            let _ = entry.edit_header_and_content(rt).map_err_trace_exit_unwrap(1);
         } else {
-            let _ = mainpage.edit_content(rt).map_err_trace_exit_unwrap(1);
+            let _ = entry.edit_content(rt).map_err_trace_exit_unwrap(1);
         }
     }
 
     if scmd.is_present(printid_flag) {
         let out      = rt.stdout();
         let mut lock = out.lock();
-        let id       = mainpage.get_location();
+        let id       = entry.get_location();
 
         writeln!(lock, "{}", id).to_exit_code().unwrap_or_exit()
     }
