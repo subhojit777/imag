@@ -28,6 +28,7 @@ extern crate libimagstore;
 extern crate libimagwiki;
 extern crate libimagentryedit;
 extern crate libimagentrylink;
+extern crate libimagutil;
 
 use std::io::Write;
 
@@ -177,6 +178,9 @@ fn create_in_wiki(rt: &Runtime,
                   editheader_flag: &'static str,
                   printid_flag: &'static str)
 {
+    use libimagwiki::entry::WikiEntry;
+    use libimagutil::warn_result::WarnResult;
+
     let mut entry = wiki.create_entry(entry_name).map_err_trace_exit_unwrap(1);
 
     if !scmd.is_present(noedit_flag) {
@@ -186,6 +190,15 @@ fn create_in_wiki(rt: &Runtime,
             let _ = entry.edit_content(rt).map_err_trace_exit_unwrap(1);
         }
     }
+
+    let _ = entry.autolink(rt.store())
+        .map_warn_err_str("Linking has failed. Trying to safe the entry now. Please investigate by hand if this succeeds.")
+        .map_err(|e| {
+            let _ = rt.store().update(&mut entry).map_err_trace_exit_unwrap(1);
+            e
+        })
+        .map_warn_err_str("Safed entry")
+        .map_err_trace_exit_unwrap(1);
 
     if scmd.is_present(printid_flag) {
         let out      = rt.stdout();

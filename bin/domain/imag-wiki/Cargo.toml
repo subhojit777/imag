@@ -32,4 +32,5 @@ libimagerror         = { version = "0.7.0", path = "../../../lib/core/libimagerr
 libimagrt            = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
 libimagstore         = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
 libimagwiki          = { version = "0.7.0", path = "../../../lib/domain/libimagwiki" }
+libimagutil          = { version = "0.7.0", path = "../../../lib/etc/libimagutil" }
 
