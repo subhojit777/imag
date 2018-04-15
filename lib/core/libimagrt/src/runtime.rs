@@ -185,6 +185,7 @@ impl<'a> Runtime<'a> {
                 .required(false)
                 .takes_value(true)
                 .possible_values(&["trace", "debug", "info", "warn", "error"])
+                .default_value("info")
                 .value_name("LOGLEVEL"))
 
             .arg(Arg::with_name(Runtime::arg_debugging_name())
