@@ -197,11 +197,29 @@ fn create_in_wiki(rt: &Runtime,
 }
 
 fn show(rt: &Runtime, wiki_name: &str) {
+    use filters::filter::Filter;
+
     let scmd  = rt.cli().subcommand_matches("show").unwrap(); // safed by clap
+
+    struct NameFilter(Option<Vec<String>>);
+    impl Filter<String> for NameFilter {
+        fn filter(&self, e: &String) -> bool {
+            match self.0 {
+                Some(ref v) => v.contains(e),
+                None        => false,
+            }
+        }
+    }
+
+    let namefilter = NameFilter(scmd
+                                .values_of("show-name")
+                                .map(|v| v.map(String::from).collect::<Vec<String>>()));
+
     let names = scmd
         .values_of("show-name")
         .unwrap() // safe by clap
         .map(String::from)
+        .filter(|e| namefilter.filter(e))
         .collect::<Vec<_>>();
 
     let wiki = rt

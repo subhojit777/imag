@@ -147,12 +147,12 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                    .about("Show wiki entry/entries")
                    .version("0.1")
 
-                   .arg(Arg::with_name("create-name")
+                   .arg(Arg::with_name("show-name")
                         .index(1)
                         .takes_value(true)
                         .required(true)
                         .multiple(true)
-                        .help("Name of the entry/entries to show."))
+                        .help("Name of the entry/entries to show (if not passed, all are shown)."))
                    )
 
 
