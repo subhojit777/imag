@@ -35,6 +35,15 @@ use error::Result;
 
 pub struct Wiki<'a, 'b>(&'a Store, &'b str);
 
+/// An interface for accessing, creating and deleting "wiki pages"
+///
+/// Wiki pages are normal entries with some details added.
+///
+///
+/// # Details
+///
+/// Entries are automatically linked to the "index" page when created and retrieved.
+///
 impl<'a, 'b> Wiki<'a, 'b> {
 
     pub(crate) fn new(store: &'a Store, name: &'b str) -> Wiki<'a, 'b> {
