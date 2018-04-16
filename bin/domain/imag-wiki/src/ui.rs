@@ -72,14 +72,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                         .value_name("NAME")
                         .help("Name of the wiki"))
 
-                   .arg(Arg::with_name("create-wiki-mainpagename")
-                        .long("mainpage")
-                        .short("M")
-                        .takes_value(true)
-                        .required(false)
-                        .multiple(false)
-                        .help("Name of the main page. Currently only for the first page to be created. Defaults to 'main'."))
-
                    .arg(Arg::with_name("create-wiki-noedit")
                         .long("no-edit")
                         .short("E")

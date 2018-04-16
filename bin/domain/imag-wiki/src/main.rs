@@ -143,6 +143,9 @@ fn idof(rt: &Runtime, wiki_name: &str) {
 }
 
 fn create(rt: &Runtime, wiki_name: &str) {
+    use libimagwiki::entry::WikiEntry;
+    use libimagutil::warn_result::WarnResult;
+
     let scmd        = rt.cli().subcommand_matches("create").unwrap(); // safed by clap
     let name        = String::from(scmd.value_of("create-name").unwrap()); // safe by clap
 
@@ -155,36 +158,10 @@ fn create(rt: &Runtime, wiki_name: &str) {
             ::std::process::exit(1)
         });
 
-    create_in_wiki(rt, &name, &wiki, scmd,
-                   "create-noedit", "create-editheader", "create-printid");
-}
+    let mut entry = wiki.create_entry(name).map_err_trace_exit_unwrap(1);
 
-fn create_wiki(rt: &Runtime, wiki_name: &str) {
-    let scmd      = rt.cli().subcommand_matches("create-wiki").unwrap(); // safed by clap
-    let wiki_name = String::from(scmd.value_of("create-wiki-name").unwrap()); // safe by clap
-    let main      = String::from(scmd.value_of("create-wiki-mainpagename").unwrap_or("main"));
-
-    let wiki = rt.store().create_wiki(&wiki_name, Some(&main)).map_err_trace_exit_unwrap(1);
-
-    create_in_wiki(rt, &main, &wiki, scmd,
-                   "create-wiki-noedit", "create-wiki-editheader", "create-wiki-printid");
-}
-
-fn create_in_wiki(rt: &Runtime,
-                  entry_name: &str,
-                  wiki: &Wiki,
-                  scmd: &ArgMatches,
-                  noedit_flag: &'static str,
-                  editheader_flag: &'static str,
-                  printid_flag: &'static str)
-{
-    use libimagwiki::entry::WikiEntry;
-    use libimagutil::warn_result::WarnResult;
-
-    let mut entry = wiki.create_entry(entry_name).map_err_trace_exit_unwrap(1);
-
-    if !scmd.is_present(noedit_flag) {
-        if scmd.is_present(editheader_flag) {
+    if !scmd.is_present("create-noedit") {
+        if scmd.is_present("create-editheader") {
             let _ = entry.edit_header_and_content(rt).map_err_trace_exit_unwrap(1);
         } else {
             let _ = entry.edit_content(rt).map_err_trace_exit_unwrap(1);
@@ -200,13 +177,20 @@ fn create_in_wiki(rt: &Runtime,
         .map_warn_err_str("Safed entry")
         .map_err_trace_exit_unwrap(1);
 
-    if scmd.is_present(printid_flag) {
+    if scmd.is_present("create-printid") {
         let out      = rt.stdout();
         let mut lock = out.lock();
         let id       = entry.get_location();
 
         writeln!(lock, "{}", id).to_exit_code().unwrap_or_exit()
     }
+}
+
+fn create_wiki(rt: &Runtime, wiki_name: &str) {
+    let scmd      = rt.cli().subcommand_matches("create-wiki").unwrap(); // safed by clap
+    let wiki_name = String::from(scmd.value_of("create-wiki-name").unwrap()); // safe by clap
+
+    let wiki = rt.store().create_wiki(&wiki_name).map_err_trace_exit_unwrap(1);
 }
 
 fn show(rt: &Runtime, wiki_name: &str) {
