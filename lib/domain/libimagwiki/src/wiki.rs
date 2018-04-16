@@ -27,8 +27,10 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::IntoStoreId;
 use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIteratorWithStore;
+use libimagentrylink::internal::InternalLinker;
 
 use error::WikiError as WE;
+use error::WikiErrorKind as WEK;
 use error::Result;
 
 pub struct Wiki<'a, 'b>(&'a Store, &'b str);
@@ -39,6 +41,15 @@ impl<'a, 'b> Wiki<'a, 'b> {
         Wiki(store, name)
     }
 
+    pub(crate) fn create_index_page(&self) -> Result<FileLockEntry<'a>> {
+        let path = PathBuf::from(format!("{}/index", self.1));
+        let sid  = ::module_path::ModuleEntryPath::new(path).into_storeid()?;
+
+        self.0
+            .create(sid)
+            .map_err(WE::from)
+    }
+
     pub fn get_entry<EN: AsRef<str>>(&self, entry_name: EN) -> Result<Option<FileLockEntry<'a>>> {
         let path  = PathBuf::from(format!("{}/{}", self.1, entry_name.as_ref()));
         let sid   = ::module_path::ModuleEntryPath::new(path).into_storeid()?;
@@ -46,15 +57,31 @@ impl<'a, 'b> Wiki<'a, 'b> {
     }
 
     pub fn create_entry<EN: AsRef<str>>(&self, entry_name: EN) -> Result<FileLockEntry<'a>> {
-        let path  = PathBuf::from(format!("{}/{}", self.1, entry_name.as_ref()));
-        let sid   = ::module_path::ModuleEntryPath::new(path).into_storeid()?;
-        self.0.create(sid).map_err(WE::from)
+        let path      = PathBuf::from(format!("{}/{}", self.1, entry_name.as_ref()));
+        let sid       = ::module_path::ModuleEntryPath::new(path).into_storeid()?;
+        let mut index = self
+            .get_entry("index")?
+            .ok_or_else(|| WEK::MissingIndex.into())
+            .map_err(WE::from_kind)?;
+        let mut entry = self.0.create(sid)?;
+
+        entry.add_internal_link(&mut index)
+            .map_err(WE::from)
+            .map(|_| entry)
     }
 
     pub fn retrieve_entry<EN: AsRef<str>>(&self, entry_name: EN) -> Result<FileLockEntry<'a>> {
-        let path  = PathBuf::from(format!("{}/{}", self.1, entry_name.as_ref()));
-        let sid   = ::module_path::ModuleEntryPath::new(path).into_storeid()?;
-        self.0.retrieve(sid).map_err(WE::from)
+        let path      = PathBuf::from(format!("{}/{}", self.1, entry_name.as_ref()));
+        let sid       = ::module_path::ModuleEntryPath::new(path).into_storeid()?;
+        let mut index = self
+            .get_entry("index")?
+            .ok_or_else(|| WEK::MissingIndex.into())
+            .map_err(WE::from_kind)?;
+        let mut entry = self.0.retrieve(sid)?;
+
+        entry.add_internal_link(&mut index)
+            .map_err(WE::from)
+            .map(|_| entry)
     }
 
     pub fn all_ids(&self) -> Result<WikiIdIterator> {

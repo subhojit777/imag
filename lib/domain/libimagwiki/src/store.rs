@@ -68,7 +68,10 @@ impl WikiStore for Store {
         debug!("Trying to create wiki '{}' with mainpage: '{:?}'", name, mainpagename);
 
         let wiki = Wiki::new(self, name);
-        wiki.create_entry(mainpagename.unwrap_or("main")).map(|_| wiki)
+        let _    = wiki.create_index_page()?;
+
+        wiki.create_entry(mainpagename.unwrap_or("main"))
+            .map(|_| wiki)
     }
 
     fn retrieve_wiki<'a, 'b>(&'a self, name: &'b str, mainpagename: Option<&str>)

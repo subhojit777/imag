@@ -44,6 +44,11 @@ error_chain! {
             description("Error while autolinking entry")
                 display("Error while autolinking entry: {}", sid)
         }
+
+        MissingIndex {
+            description("Index page for wiki is missing")
+                display("Index page for wiki is missing")
+        }
     }
 
 }
