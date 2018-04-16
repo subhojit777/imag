@@ -29,10 +29,10 @@ pub trait WikiStore {
 
     fn get_wiki<'a, 'b>(&'a self, name: &'b str) -> Result<Option<Wiki<'a, 'b>>>;
 
-    fn create_wiki<'a, 'b>(&'a self, name: &'b str, mainpagename: Option<&str>)
+    fn create_wiki<'a, 'b>(&'a self, name: &'b str)
         -> Result<Wiki<'a, 'b>>;
 
-    fn retrieve_wiki<'a, 'b>(&'a self, name: &'b str, mainpagename: Option<&str>)
+    fn retrieve_wiki<'a, 'b>(&'a self, name: &'b str)
         -> Result<Wiki<'a, 'b>>;
 
 }
@@ -56,31 +56,23 @@ impl WikiStore for Store {
     ///
     /// Returns the Wiki object.
     ///
-    /// Ob success, an empty Wiki entry with the name `mainpagename` (or "main" if none is passed)
-    /// is created inside the wiki.
+    /// Ob success, an empty Wiki entry with the name `index` is created inside the wiki. Later, new
+    /// entries are automatically linked to this entry.
     ///
-    fn create_wiki<'a, 'b>(&'a self, name: &'b str, mainpagename: Option<&str>)
-        -> Result<Wiki<'a, 'b>>
-    {
+    fn create_wiki<'a, 'b>(&'a self, name: &'b str) -> Result<Wiki<'a, 'b>> {
         debug!("Trying to get wiki '{}'", name);
-        debug!("Trying to create wiki '{}' with mainpage: '{:?}'", name, mainpagename);
 
         let wiki = Wiki::new(self, name);
         let _    = wiki.create_index_page()?;
-
-        wiki.create_entry(mainpagename.unwrap_or("main"))
-            .map(|_| wiki)
+        Ok(wiki)
     }
 
-    fn retrieve_wiki<'a, 'b>(&'a self, name: &'b str, mainpagename: Option<&str>)
+    fn retrieve_wiki<'a, 'b>(&'a self, name: &'b str)
         -> Result<Wiki<'a, 'b>>
     {
         match self.get_wiki(name)? {
-            None       => self.create_wiki(name, mainpagename),
-            Some(wiki) => {
-                let _ = wiki.retrieve_entry(mainpagename.unwrap_or("main"))?; // to make sure the page exists
-                Ok(wiki)
-            }
+            None       => self.create_wiki(name),
+            Some(wiki) => Ok(wiki),
         }
     }
 
