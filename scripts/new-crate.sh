@@ -89,7 +89,7 @@ keywords    = ["imag", "PIM", "personal", "information", "management"]
 readme      = "../../../README.md"
 license     = "LGPL-2.1"
 
-documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+documentation = "https://imag-pim.org/doc/"
 repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
