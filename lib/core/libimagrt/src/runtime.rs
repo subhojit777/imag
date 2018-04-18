@@ -79,8 +79,9 @@ impl<'a> Runtime<'a> {
             Err(e) => if !is_match!(e.kind(), &RuntimeErrorKind::ConfigNoConfigFileFound) {
                 return Err(e).chain_err(|| RuntimeErrorKind::Instantiate);
             } else {
-                println!("No config file found.");
-                println!("Continuing without configuration file");
+                eprintln!("No config file found.");
+                eprintln!("Maybe try to use 'imag-init' to initialize imag?");
+                eprintln!("Continuing without configuration file");
                 None
             },
 
