@@ -123,6 +123,17 @@ This section contains the changelog from the last release to the next release.
       "--verbose" was passed, but the value of "--verbose" was not even checked.
 
 
+## 0.6.4
+
+Bugfix release for fixing:
+
+* `libimagrt` produced the editor command without taking arguments into
+  account.
+* `imag-init` creates `~/.imag` but not `~/.imag/store`.
+* Fix editor setup in `libimagrt` to use /dev/tty as stdin for editor, so
+  terminal-editors do not trash the terminal
+
+
 ## 0.6.3
 
 Bugfix release for fixing:
