@@ -457,11 +457,7 @@ impl<'a> Runtime<'a> {
     }
 
     pub fn stdin(&self) -> Option<Stdin> {
-        if self.stdin_is_tty {
-            Some(::std::io::stdin())
-        } else {
-            None
-        }
+        Some(::std::io::stdin())
     }
 
     /// Helper for handling subcommands which are not available.
