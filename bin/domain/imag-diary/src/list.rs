@@ -29,7 +29,7 @@ use libimagutil::debug_result::*;
 use libimagdiary::diaryid::DiaryId;
 use libimagdiary::diaryid::FromStoreId;
 use libimagdiary::error::Result;
-
+use libimagstore::storeid::IntoStoreId;
 
 use util::get_diary_name;
 
@@ -48,7 +48,7 @@ pub fn list(rt: &Runtime) {
         [id.year() as u32, id.month(), id.day(), id.hour(), id.minute(), id.second()]
     });
 
-    for id in ids {
+    for id in ids.into_iter().map(|id| id.into_storeid().map_err_trace_exit_unwrap(1)) {
         writeln!(rt.stdout(), "{}", id)
             .to_exit_code()
             .unwrap_or_exit();
