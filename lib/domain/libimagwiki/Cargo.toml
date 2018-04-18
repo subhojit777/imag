@@ -1,6 +1,6 @@
 [package]
 name = "libimagwiki"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -26,8 +26,8 @@ toml        = "0.4"
 toml-query  = "0.6"
 filters     = "0.2"
 
-libimagstore         = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
-libimagerror         = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
-libimagentrylink     = { version = "0.7.0", path = "../../../lib/entry/libimagentrylink" }
-libimagentrymarkdown = { version = "0.7.0", path = "../../../lib/entry/libimagentrymarkdown" }
+libimagstore         = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
+libimagerror         = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
+libimagentrylink     = { version = "0.8.0", path = "../../../lib/entry/libimagentrylink" }
+libimagentrymarkdown = { version = "0.8.0", path = "../../../lib/entry/libimagentrymarkdown" }
 

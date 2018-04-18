@@ -48,7 +48,7 @@ first dependency here.
 3. Put `libimagstore` as a dependency in the
    `/lib/domain/libimagnumberstorage/Cargo.toml` file.
    By using
-   `libimagstore = { version = "0.7.0", path = "../../../lib/core/libimagstore" }`
+   `libimagstore = { version = "0.8.0", path = "../../../lib/core/libimagstore" }`
    we automatically get all the goodness of Cargo, so that releases
    automagically work as expected, but when developing locally, the local
    version of `libimagstore` is used.

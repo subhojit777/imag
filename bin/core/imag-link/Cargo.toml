@@ -1,6 +1,6 @@
 [package]
 name = "imag-link"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-link command"
@@ -28,11 +28,11 @@ toml = "0.4"
 toml-query = "0.6"
 prettytable-rs = "0.6"
 
-libimagstore     = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
-libimagrt        = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
-libimagerror     = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
-libimagentrylink = { version = "0.7.0", path = "../../../lib/entry/libimagentrylink" }
-libimagutil      = { version = "0.7.0", path = "../../../lib/etc/libimagutil" }
+libimagstore     = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
+libimagrt        = { version = "0.8.0", path = "../../../lib/core/libimagrt" }
+libimagerror     = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
+libimagentrylink = { version = "0.8.0", path = "../../../lib/entry/libimagentrylink" }
+libimagutil      = { version = "0.8.0", path = "../../../lib/etc/libimagutil" }
 
 [dependencies.clap]
 version = "^2.29"
@@ -43,13 +43,13 @@ features = ["color", "suggestions", "wrap_help"]
 env_logger = "0.5"
 
 [dev-dependencies.libimagutil]
-version          = "0.7.0"
+version          = "0.8.0"
 path = "../../../lib/etc/libimagutil"
 default-features = false
 features         = ["testing"]
 
 [dev-dependencies.libimagrt]
-version          = "0.7.0"
+version          = "0.8.0"
 path             = "../../../lib/core/libimagrt"
 default-features = false
 features         = ["testing"]
