@@ -30,6 +30,7 @@ CRATES=(
     ./lib/domain/libimagtimetrack
     ./lib/domain/libimagtodo
     ./lib/domain/libimagmail
+    ./lib/domain/libimagwiki
     ./bin/domain/imag-habit
     ./bin/domain/imag-diary
     ./bin/domain/imag-contact
