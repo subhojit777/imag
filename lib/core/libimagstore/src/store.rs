@@ -32,7 +32,6 @@ use std::fmt::Debug;
 use std::fmt::Error as FMTError;
 
 use toml::Value;
-use glob::glob;
 use walkdir::WalkDir;
 use walkdir::Iter as WalkDirIter;
 use toml_query::read::TomlValueReadExt;
@@ -40,7 +39,7 @@ use toml_query::read::TomlValueReadTypeExt;
 
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::ResultExt;
-use storeid::{IntoStoreId, StoreId, StoreIdIterator, StoreIdIteratorWithStore};
+use storeid::{IntoStoreId, StoreId, StoreIdIteratorWithStore};
 use file_abstraction::FileAbstractionInstance;
 
 // We re-export the following things so tests can use them
@@ -50,8 +49,6 @@ pub use file_abstraction::InMemoryFileAbstraction;
 
 use libimagerror::trace::trace_error;
 use libimagutil::debug_result::*;
-
-use self::glob_store_iter::*;
 
 /// The Result Type returned by any interaction with the store that could fail
 pub type Result<T> = RResult<T, SE>;
@@ -423,39 +420,6 @@ impl Store {
         }
 
         self.retrieve(id).map(Some).chain_err(|| SEK::GetCallError)
-    }
-
-    /// Iterate over all StoreIds for one module name
-    ///
-    /// # Returns
-    ///
-    /// On success: An iterator over all entries in the module
-    ///
-    /// On failure:
-    ///  - (if the glob or one of the intermediate fail)
-    ///  - RetrieveForModuleCallError(GlobError(EncodingError())) if the path string cannot be
-    ///    encoded
-    ///  - GRetrieveForModuleCallError(GlobError(lobError())) if the glob() failed.
-    ///
-    pub fn retrieve_for_module(&self, mod_name: &str) -> Result<StoreIdIterator> {
-        let mut path = self.path().clone();
-        path.push(mod_name);
-
-        debug!("Retrieving for module: '{}'", mod_name);
-
-        path.to_str()
-            .ok_or(SE::from_kind(SEK::EncodingError))
-            .and_then(|path| {
-                let path = [ path, "/**/*" ].join("");
-                debug!("glob()ing with '{}'", path);
-                glob(&path[..]).map_err(From::from)
-            })
-            .and_then(|paths| {
-                GlobStoreIdIterator::new(paths, self.path().clone())
-                    .collect::<Result<Vec<_>>>()
-            })
-            .map(|v| StoreIdIterator::new(Box::new(v.into_iter())))
-            .chain_err(|| SEK::RetrieveForModuleCallError)
     }
 
     /// Walk the store tree for the module
@@ -1510,55 +1474,6 @@ mod store_tests {
             }
         }
     }
-
-    // Disabled because we cannot test this by now, as we rely on glob() in
-    // Store::retieve_for_module(), which accesses the filesystem and tests run in-memory, so there
-    // are no files on the filesystem in this test after Store::create().
-    //
-    // #[test]
-    // fn test_retrieve_for_module() {
-    //     let pathes = vec![
-    //         "foo/1", "foo/2", "foo/3", "foo/4", "foo/5",
-    //         "bar/1", "bar/2", "bar/3", "bar/4", "bar/5",
-    //         "bla/1", "bla/2", "bla/3", "bla/4", "bla/5",
-    //         "boo/1", "boo/2", "boo/3", "boo/4", "boo/5",
-    //         "glu/1", "glu/2", "glu/3", "glu/4", "glu/5",
-    //     ];
-
-    //     fn test(store: &Store, modulename: &str) {
-    //         use std::path::Component;
-    //         use storeid::StoreId;
-
-    //         let retrieved = store.retrieve_for_module(modulename);
-    //         assert!(retrieved.is_ok());
-    //         let v : Vec<StoreId> = retrieved.unwrap().collect();
-    //         println!("v = {:?}", v);
-    //         assert!(v.len() == 5);
-
-    //         let retrieved = store.retrieve_for_module(modulename);
-    //         assert!(retrieved.is_ok());
-
-    //         assert!(retrieved.unwrap().all(|e| {
-    //             let first = e.components().next();
-    //             assert!(first.is_some());
-    //             match first.unwrap() {
-    //                 Component::Normal(s) => s == modulename,
-    //                 _                    => false,
-    //             }
-    //         }))
-    //     }
-
-    //     let store = get_store();
-    //     for path in pathes {
-    //         assert!(store.create(PathBuf::from(path)).is_ok());
-    //     }
-
-    //     test(&store, "foo");
-    //     test(&store, "bar");
-    //     test(&store, "bla");
-    //     test(&store, "boo");
-    //     test(&store, "glu");
-    // }
 
     #[test]
     fn test_store_move_moves_in_hm() {
