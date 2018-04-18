@@ -19,6 +19,12 @@ Version 0.y.z and thus we can break the API like we want and need to.
 This section contains the changelog from the last release to the next release.
 
 * Major changes
+* Minor changes
+* Bugfixes
+
+## 0.7.0
+
+* Major changes
     * `imag-timetrack list --from/--to` now have `kairos` support - that means
       that complex `--from/--to` arguments (like `yesterday` or `today-2weeks`)
       are now possible
