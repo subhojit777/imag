@@ -35,8 +35,6 @@ pub trait WikiStore {
     fn retrieve_wiki<'a, 'b>(&'a self, name: &'b str, mainpagename: Option<&str>)
         -> Result<Wiki<'a, 'b>>;
 
-    fn delete_wiki<N: AsRef<str>>(&self, name: N) -> Result<()>;
-
 }
 
 impl WikiStore for Store {
@@ -84,11 +82,6 @@ impl WikiStore for Store {
                 Ok(wiki)
             }
         }
-    }
-
-    /// Delete a wiki and all entries inside
-    fn delete_wiki<N: AsRef<str>>(&self, name: N) -> Result<()> {
-        unimplemented!()
     }
 
 }
