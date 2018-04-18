@@ -52,6 +52,7 @@ This section contains the changelog from the last release to the next release.
       as plain text.
     * The build script automatically generates autocomplete scripts for bash,
       fish and zsh now when compiling the `imag` command.
+    * `libimagwiki` and `imag-wiki` were introduced.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
