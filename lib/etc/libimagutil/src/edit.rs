@@ -33,6 +33,8 @@ pub fn edit_in_tmpfile_with_command(mut cmd: Command, s: &mut String) -> Result<
     file.write_all(&s.clone().into_bytes()[..])?;
     file.sync_data()?;
 
+    debug!("Calling {:?} for {}", cmd, file_path.display());
+
     cmd.arg(file_path)
         .status()
         .and_then(|status| {

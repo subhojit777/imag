@@ -50,6 +50,9 @@ This section contains the changelog from the last release to the next release.
       subcommands: `Runtime::handle_unknown_subcommand()`. See docs for details.
     * `imag-link list` prints output in ascii-table now, use `--plain` to print
       as plain text.
+    * The build script automatically generates autocomplete scripts for bash,
+      fish and zsh now when compiling the `imag` command.
+    * `libimagwiki` and `imag-wiki` were introduced.
 * Minor changes
     * A license-checker was included into the CI setup, which checks whether all
       ".rs"-files have the license header at the top of the file
@@ -76,6 +79,11 @@ This section contains the changelog from the last release to the next release.
       Filepath of found contacts.
     * `imag view` can now view multiple entries at once
     * `imag view -I` reads store ids from stdin now.
+    * `libimagstore` iterators have less restricting lifetimes now
+    * `libimagentrygrep` was introduced, a crate for seaching in the
+      header/content parts of an entry.
+    * `imag-ids` can now filter by collection
+    * All crates use "clap" with the "wrap_help" feature now.
 * Bugfixes
     * imag does not panic anymore when piping and breaking that pipe, for
       example like with `imag store ids | head -n 1`.
@@ -104,6 +112,15 @@ This section contains the changelog from the last release to the next release.
     * `libimagstore::store::Store::create` overwrote existing entries.
     * `libimaghabit::habit::HabitTemplate` did not link new instances.
     * `imag-init` creates `~/.imag` but not `~/.imag/store`.
+    * `libimagrt` got a bugfix in the editor command setup where command
+      arguments were not processed correctly which could result in calling the
+      editor with an empty argument (`vim " "`).
+    * `imag-grep` did not count in all cases.
+    * `libimagdiary` sorts entries by date when viewing/listing them.
+    * A `libimagentryref` bug was fixed where the wrong variable was passed as
+      path to the referenced file, causing all tools based on this lib to break.
+    * `libimagrt` had a bug where the logging level was set to "Info" as soon as
+      "--verbose" was passed, but the value of "--verbose" was not even checked.
 
 
 ## 0.6.3

@@ -74,8 +74,10 @@ impl StoreId {
     pub fn new_baseless(id: PathBuf) -> Result<StoreId> {
         debug!("Trying to get a new baseless id from: {:?}", id);
         if id.is_absolute() {
+            debug!("Error: Id is absolute!");
             Err(SE::from_kind(SEK::StoreIdLocalPartAbsoluteError(id)))
         } else {
+            debug!("Building Storeid object baseless");
             Ok(StoreId {
                 base: None,
                 id: id

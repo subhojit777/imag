@@ -9,7 +9,7 @@ keywords    = ["imag", "PIM", "personal", "information", "management"]
 readme      = "../../../README.md"
 license     = "LGPL-2.1"
 
-documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+documentation = "https://imag-pim.org/doc/"
 repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
@@ -20,7 +20,7 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-task-hookrs = { git="https://github.com/matthiasbeyer/task-hookrs.git", branch="master" }
+task-hookrs = "0.5"
 uuid = "0.6"
 toml = "0.4"
 toml-query = "0.6"

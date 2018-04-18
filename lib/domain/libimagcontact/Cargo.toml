@@ -9,7 +9,7 @@ keywords    = ["imag", "PIM", "personal", "information", "management"]
 readme      = "../../../README.md"
 license     = "LGPL-2.1"
 
-documentation = "https://matthiasbeyer.github.io/imag/imag_documentation/index.html"
+documentation = "https://imag-pim.org/doc/"
 repository    = "https://github.com/matthiasbeyer/imag"
 homepage      = "http://imag-pim.org"
 
@@ -23,7 +23,7 @@ maintenance                       = { status     = "actively-developed" }
 error-chain  = "0.11"
 log          = "0.3"
 toml         = "0.4"
-toml-query   = "0.4"
+toml-query   = "0.6"
 vobject      = "0.4"
 uuid         = { version = "0.6", features = ["v4"] }
 serde        = { version = "1", optional   = true }
