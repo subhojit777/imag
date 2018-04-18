@@ -89,7 +89,7 @@ fn main() {
             .into_get_iter(rt.store())
             .map(|e| {
                  e.map_err_trace_exit_unwrap(1)
-                     .ok_or_else(|| String::from("BUG"))
+                     .ok_or_else(|| String::from("Entry not found"))
                      .map_err(StoreError::from)
                      .map_err_trace_exit_unwrap(1)
             })
@@ -177,7 +177,7 @@ fn main() {
             .into_get_iter(rt.store())
             .map(|e| {
                  e.map_err_trace_exit_unwrap(1)
-                     .ok_or_else(|| String::from("BUG"))
+                     .ok_or_else(|| String::from("Entry not found"))
                      .map_err(StoreError::from)
                      .map_err_trace_exit_unwrap(1)
             })
