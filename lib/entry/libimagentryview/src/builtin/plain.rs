@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::io::Write;
+
 use libimagstore::store::Entry;
 
 use viewer::Viewer;
@@ -38,11 +40,13 @@ impl PlainViewer {
 
 impl Viewer for PlainViewer {
 
-    fn view_entry(&self, e: &Entry) -> Result<()> {
+    fn view_entry<W>(&self, e: &Entry, sink: &mut W) -> Result<()>
+        where W: Write
+    {
         if self.show_header {
-            println!("{}", e.get_header());
+            let _ = writeln!(sink, "{}", e.get_header())?;
         }
-        println!("{}", e.get_content());
+        let _ = writeln!(sink, "{}", e.get_content())?;
         Ok(())
     }
 

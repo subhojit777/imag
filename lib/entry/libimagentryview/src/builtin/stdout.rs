@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::io::Write;
+
 use libimagstore::store::Entry;
 
 use toml::ser::to_string;
@@ -48,17 +50,20 @@ impl StdoutViewer {
 
 impl Viewer for StdoutViewer {
 
-    fn view_entry(&self, e: &Entry) -> Result<()> {
+    fn view_entry<W>(&self, e: &Entry, sink: &mut W) -> Result<()>
+        where W: Write
+    {
         if self.view_header {
-            println!("{}", to_string(e.get_header()).unwrap_or(String::from("TOML Parser error")));
+            let header = to_string(e.get_header()).unwrap_or(String::from("TOML Parser error"));
+            let _ = writeln!(sink, "{}", header)?;
         }
 
         if self.view_content {
             match self.wrap_content {
-                Some(limit) => ::textwrap::wrap(e.get_content(), limit).iter().for_each(|line| {
-                    println!("{}", line)
-                }),
-                None => println!("{}", e.get_content()),
+                Some(limit) => for line in ::textwrap::wrap(e.get_content(), limit).iter() {
+                    let _ = writeln!(sink, "{}", line)?;
+                },
+                None => writeln!(sink, "{}", e.get_content())?,
             }
         }
 
