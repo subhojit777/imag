@@ -32,18 +32,12 @@ extern crate libimagutil;
 
 use std::io::Write;
 
-use clap::ArgMatches;
-use regex::Regex;
-
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
-use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagerror::trace::MapErrTrace;
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
-use libimagstore::storeid::IntoStoreId;
-use libimagstore::store::FileLockEntry;
 use libimagwiki::store::WikiStore;
-use libimagwiki::wiki::Wiki;
 use libimagentryedit::edit::{Edit, EditHeader};
 
 mod ui;
@@ -62,7 +56,7 @@ fn main() {
         Some("ids")         => ids(&rt, wiki_name),
         Some("idof")        => idof(&rt, wiki_name),
         Some("create")      => create(&rt, wiki_name),
-        Some("create-wiki") => create_wiki(&rt, wiki_name),
+        Some("create-wiki") => create_wiki(&rt),
         Some("show")        => show(&rt, wiki_name),
         Some("delete")      => delete(&rt, wiki_name),
         Some(other)         => {
@@ -104,9 +98,6 @@ fn ids(rt: &Runtime, wiki_name: &str) {
 }
 
 fn idof(rt: &Runtime, wiki_name: &str) {
-    use std::path::PathBuf;
-    use libimagstore::storeid::IntoStoreId;
-
     let scmd = rt.cli().subcommand_matches("idof").unwrap(); // safed by clap
 
     let entryname = scmd
@@ -186,11 +177,10 @@ fn create(rt: &Runtime, wiki_name: &str) {
     }
 }
 
-fn create_wiki(rt: &Runtime, wiki_name: &str) {
+fn create_wiki(rt: &Runtime) {
     let scmd      = rt.cli().subcommand_matches("create-wiki").unwrap(); // safed by clap
     let wiki_name = String::from(scmd.value_of("create-wiki-name").unwrap()); // safe by clap
-
-    let wiki = rt.store().create_wiki(&wiki_name).map_err_trace_exit_unwrap(1);
+    let _         = rt.store().create_wiki(&wiki_name).map_err_trace_exit_unwrap(1);
 }
 
 fn show(rt: &Runtime, wiki_name: &str) {
