@@ -19,6 +19,12 @@ Version 0.y.z and thus we can break the API like we want and need to.
 This section contains the changelog from the last release to the next release.
 
 * Major changes
+* Minor changes
+* Bugfixes
+
+## 0.7.0
+
+* Major changes
     * `imag-timetrack list --from/--to` now have `kairos` support - that means
       that complex `--from/--to` arguments (like `yesterday` or `today-2weeks`)
       are now possible
@@ -121,6 +127,17 @@ This section contains the changelog from the last release to the next release.
       path to the referenced file, causing all tools based on this lib to break.
     * `libimagrt` had a bug where the logging level was set to "Info" as soon as
       "--verbose" was passed, but the value of "--verbose" was not even checked.
+
+
+## 0.6.4
+
+Bugfix release for fixing:
+
+* `libimagrt` produced the editor command without taking arguments into
+  account.
+* `imag-init` creates `~/.imag` but not `~/.imag/store`.
+* Fix editor setup in `libimagrt` to use /dev/tty as stdin for editor, so
+  terminal-editors do not trash the terminal
 
 
 ## 0.6.3
