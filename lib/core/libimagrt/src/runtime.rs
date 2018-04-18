@@ -52,8 +52,6 @@ pub struct Runtime<'a> {
     configuration: Option<Value>,
     cli_matches: ArgMatches<'a>,
     store: Store,
-    stdin_is_tty: bool,
-    stdout_is_tty: bool,
 }
 
 impl<'a> Runtime<'a> {
@@ -144,8 +142,6 @@ impl<'a> Runtime<'a> {
                 configuration: config,
                 rtp: rtp,
                 store: store,
-                stdout_is_tty: ::atty::is(::atty::Stream::Stdout),
-                stdin_is_tty: ::atty::is(::atty::Stream::Stdin),
             }
         })
         .chain_err(|| RuntimeErrorKind::Instantiate)
@@ -445,11 +441,7 @@ impl<'a> Runtime<'a> {
     }
 
     pub fn stdout(&self) -> OutputProxy {
-        if self.stdout_is_tty {
-            OutputProxy::Out(::std::io::stdout())
-        } else {
-            OutputProxy::Err(::std::io::stderr())
-        }
+        OutputProxy::Out(::std::io::stdout())
     }
 
     pub fn stderr(&self) -> OutputProxy {
