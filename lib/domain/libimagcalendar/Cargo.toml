@@ -1,6 +1,6 @@
 [package]
 name = "libimagcalendar"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -27,9 +27,9 @@ toml-query  = "0.4"
 vobject     = "0.4"
 chrono      = "0.4"
 
-libimagentrylink = { version = "0.7.0", path = "../../../lib/entry/libimagentrylink" }
-libimagentryref  = { version = "0.7.0", path = "../../../lib/entry/libimagentryref", features = ["generators", "generators-sha1"] }
-libimagentryutil = { version = "0.7.0", path = "../../../lib/entry/libimagentryutil" }
-libimagerror     = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
-libimagstore     = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
+libimagentrylink = { version = "0.8.0", path = "../../../lib/entry/libimagentrylink" }
+libimagentryref  = { version = "0.8.0", path = "../../../lib/entry/libimagentryref", features = ["generators", "generators-sha1"] }
+libimagentryutil = { version = "0.8.0", path = "../../../lib/entry/libimagentryutil" }
+libimagerror     = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
+libimagstore     = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
 
