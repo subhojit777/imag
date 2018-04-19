@@ -82,19 +82,22 @@ fn main() {
                                     "Direct interface to the store. Use with great care!",
                                     build_ui);
 
-    let id = rt.cli().value_of("id").map(PathBuf::from).unwrap(); // enforced by clap
+    let ids = rt.cli().values_of("id").unwrap().map(PathBuf::from); // enforced by clap
+
     rt.cli()
         .subcommand_name()
         .map(|name| match name {
-            "list" => list(id, &rt),
-            "remove" => {
+            "list" => for id in ids {
+                list(id, &rt)
+            },
+            "remove" => for id in ids {
                 let id = PathBuf::from(id);
                 let add = None;
                 let rem = get_remove_tags(rt.cli());
                 debug!("id = {:?}, add = {:?}, rem = {:?}", id, add, rem);
                 alter(&rt, id, add, rem);
             },
-            "add" => {
+            "add" => for id in ids {
                 let id = PathBuf::from(id);
                 let add = get_add_tags(rt.cli());
                 let rem = None;

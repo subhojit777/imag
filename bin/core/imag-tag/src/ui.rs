@@ -25,8 +25,8 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app.arg(Arg::with_name("id")
                 .index(1)
                 .takes_value(true)
-                .required(true)
-                .multiple(false)
+                .required(false)
+                .multiple(true)
                 .value_name("ID")
                 .help("Entry to use"))
 
