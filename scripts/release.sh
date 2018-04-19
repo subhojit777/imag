@@ -61,6 +61,7 @@ CRATES=(
     ./bin/core/imag-init
     ./bin/core/imag-edit
     ./bin/core/imag-ids
+    ./bin/core/imag-git
     ./bin/core/imag
 )
 
