@@ -40,6 +40,7 @@ CRATES=(
     ./bin/domain/imag-mail
     ./bin/domain/imag-todo
     ./bin/domain/imag-log
+    ./bin/domain/imag-wiki
     ./bin/core/imag-ref
     ./bin/core/imag-gps
     ./bin/core/imag-diagnostics
@@ -53,7 +54,6 @@ CRATES=(
     ./bin/core/imag-init
     ./bin/core/imag-edit
     ./bin/core/imag-ids
-    ./bin/core/imag-wiki
     ./bin/core/imag
 )
 
