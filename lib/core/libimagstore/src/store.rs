@@ -952,69 +952,6 @@ impl PartialEq for Entry {
 
 }
 
-mod glob_store_iter {
-    use std::fmt::{Debug, Formatter};
-    use std::fmt::Error as FmtError;
-    use std::path::PathBuf;
-    use std::result::Result as RResult;
-    use glob::Paths;
-    use storeid::StoreId;
-    use error::Result;
-
-    use error::StoreErrorKind as SEK;
-    use error::ResultExt;
-
-    /// An iterator which is constructed from a `glob()` and returns valid `StoreId` objects or
-    /// errors
-    pub struct GlobStoreIdIterator {
-        store_path: PathBuf,
-        paths: Paths,
-    }
-
-    impl Debug for GlobStoreIdIterator {
-
-        fn fmt(&self, fmt: &mut Formatter) -> RResult<(), FmtError> {
-            write!(fmt, "GlobStoreIdIterator")
-        }
-
-    }
-
-    impl GlobStoreIdIterator {
-
-        pub fn new(paths: Paths, store_path: PathBuf) -> GlobStoreIdIterator {
-            debug!("Create a GlobStoreIdIterator(store_path = {:?}, /* ... */)", store_path);
-
-            GlobStoreIdIterator {
-                store_path: store_path,
-                paths: paths,
-            }
-        }
-
-    }
-
-    impl Iterator for GlobStoreIdIterator {
-        type Item = Result<StoreId>;
-
-        fn next(&mut self) -> Option<Self::Item> {
-            while let Some(o) = self.paths.next() {
-                debug!("GlobStoreIdIterator::next() => {:?}", o);
-                match o.chain_err(|| SEK::StoreIdHandlingError) {
-                    Err(e)   => return Some(Err(e)),
-                    Ok(path) => if path.exists() && path.is_file() {
-                        return Some(StoreId::from_full_path(&self.store_path, path));
-                    /* } else { */
-                        /* continue */
-                    }
-                }
-            }
-
-            None
-        }
-
-    }
-
-}
-
 /// Extension trait for top-level toml::Value::Table, will only yield correct results on the
 /// top-level Value::Table, but not on intermediate tables.
 pub trait Header {
