@@ -57,6 +57,7 @@ extern crate env_logger;
 
 use std::path::PathBuf;
 use std::io::Write;
+use std::io::Read;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
@@ -82,7 +83,30 @@ fn main() {
                                     "Direct interface to the store. Use with great care!",
                                     build_ui);
 
-    let ids = rt.cli().values_of("id").unwrap().map(PathBuf::from); // enforced by clap
+    let ids : Vec<PathBuf> = rt
+        .cli()
+        .values_of("id")
+        .map(|vals| {
+            vals.map(PathBuf::from).collect()
+        }).unwrap_or_else(|| {
+            if !rt.cli().is_present("ids-from-stdin") {
+                error!("No ids");
+                ::std::process::exit(1)
+            }
+
+            let stdin = rt.stdin().unwrap_or_else(|| {
+                error!("Cannot get handle to stdin");
+                ::std::process::exit(1)
+            });
+
+            let mut buf = String::new();
+            let _ = stdin.lock().read_to_string(&mut buf).unwrap_or_else(|_| {
+                error!("Failed to read from stdin");
+                ::std::process::exit(1)
+            });
+
+            buf.lines().map(PathBuf::from).collect()
+        });
 
     rt.cli()
         .subcommand_name()

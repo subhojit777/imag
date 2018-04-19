@@ -30,6 +30,14 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                 .value_name("ID")
                 .help("Entry to use"))
 
+        .arg(Arg::with_name("ids-from-stdin")
+                .long("ids-from-stdin")
+                .short("I")
+                .takes_value(false)
+                .required(false)
+                .multiple(false)
+                .help("Read store ids to tag from stdin"))
+
         .subcommand(SubCommand::with_name("add")
                    .about("Add tags")
                    .version("0.1")
