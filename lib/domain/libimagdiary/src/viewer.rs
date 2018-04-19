@@ -19,14 +19,16 @@
 
 //! A diary viewer built on libimagentryview.
 
-use entry::DiaryEntry;
-use error::DiaryErrorKind as DEK;
-use error::ResultExt;
-use error::Result;
+use std::io::Write;
+use std::ops::Deref;
 
-use libimagstore::store::FileLockEntry;
+use libimagstore::store::Entry;
 use libimagentryview::viewer::Viewer;
+use libimagentryview::error::ViewErrorKind as VEK;
+use libimagentryview::error::ResultExt;
+use libimagentryview::error::Result as ViewResult;
 use libimagentryview::builtin::plain::PlainViewer;
+use entry::DiaryEntry;
 
 /// This viewer does _not_ implement libimagentryview::viewer::Viewer because we need to be able to
 /// call some diary-type specific functions on the entries passed to this.
@@ -45,24 +47,35 @@ impl DiaryViewer {
         DiaryViewer(PlainViewer::new(show_header))
     }
 
+}
+
+impl Viewer for DiaryViewer {
+
+    fn view_entry<W>(&self, e: &Entry, sink: &mut W) -> ViewResult<()>
+        where W: Write
+    {
+        self.0.view_entry(e, sink)
+    }
+
     /// View all entries from the iterator, or stop immediately if an error occurs, returning that
     /// error.
-    pub fn view_entries<'a, I: Iterator<Item = FileLockEntry<'a>>>(&self, entries: I) -> Result<()> {
+    fn view_entries<I, E, W>(&self, entries: I, sink: &mut W) -> ViewResult<()>
+        where I: Iterator<Item = E>,
+              E: Deref<Target = Entry>,
+              W: Write
+    {
         let mut entries = entries
-            .map(|e| e.diary_id().map(|id| (id, e)))
-            .collect::<Result<Vec<_>>>()?;
+            .map(|e| e.deref().diary_id().map(|id| (id, e)).chain_err(|| VEK::ViewError))
+            .collect::<ViewResult<Vec<_>>>()?;
 
         entries.sort_by_key(|&(ref id, _)| {
             [id.year() as u32, id.month(), id.day(), id.hour(), id.minute(), id.second()]
         });
 
         for (id, entry) in entries.into_iter() {
-            println!("{} :\n", id);
-            let _ = self.0
-                         .view_entry(&entry)
-                         .chain_err(|| DEK::ViewError)
-                         .chain_err(|| DEK::IOError)?;
-            println!("\n---\n");
+            writeln!(sink, "{} :\n", id)?;
+            let _ = self.0.view_entry(entry.deref(), sink)?;
+            writeln!(sink, "\n---\n")?;
         }
 
         Ok(())
