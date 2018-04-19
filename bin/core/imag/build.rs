@@ -77,6 +77,7 @@ gen_mods_buildui!(
     ("../../../bin/core/imag-annotate/src/ui.rs",    imagannotate),
     ("../../../bin/core/imag-diagnostics/src/ui.rs", imagdiagnostics),
     ("../../../bin/core/imag-edit/src/ui.rs",        imagedit),
+    ("../../../bin/core/imag-git/src/ui.rs",         imaggit),
     ("../../../bin/core/imag-gps/src/ui.rs",         imaggps),
     ("../../../bin/core/imag-grep/src/ui.rs",        imaggrep),
     ("../../../bin/core/imag-ids/src/ui.rs",         imagids),
@@ -109,6 +110,7 @@ fn main() {
         .subcommand(build_subcommand!("annotate",    imagannotate,      version))
         .subcommand(build_subcommand!("diagnostics", imagdiagnostics,   version))
         .subcommand(build_subcommand!("edit",        imagedit,          version))
+        .subcommand(build_subcommand!("git",         imaggit,           version))
         .subcommand(build_subcommand!("gps",         imaggps,           version))
         .subcommand(build_subcommand!("grep",        imaggrep,          version))
         .subcommand(build_subcommand!("ids",         imagids,           version))
