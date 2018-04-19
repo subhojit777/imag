@@ -40,6 +40,17 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                .args(&["id", "entries-from-stdin"])
                .required(true))
 
+        .arg(Arg::with_name("autowrap")
+            .long("autowrap")
+            .short("w")
+            .takes_value(true)
+            .required(false)
+            .multiple(false)
+            .value_name("WIDTH")
+            .default_value("80")
+            .validator(::libimagutil::cli_validators::is_integer)
+            .help("Automatically wrap long lines. Has only an effect when using stdout as output."))
+
         .arg(Arg::with_name("view-header")
             .long("header")
             .short("h")
