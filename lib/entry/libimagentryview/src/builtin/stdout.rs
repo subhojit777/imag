@@ -27,6 +27,7 @@ use error::Result;
 pub struct StdoutViewer {
     view_header: bool,
     view_content: bool,
+    wrap_content: Option<usize>,
 }
 
 impl StdoutViewer {
@@ -35,7 +36,12 @@ impl StdoutViewer {
         StdoutViewer {
             view_header: view_header,
             view_content: view_content,
+            wrap_content: None,
         }
+    }
+
+    pub fn wrap_at(&mut self, wrap: usize) {
+        self.wrap_content = Some(wrap)
     }
 
 }
@@ -48,7 +54,12 @@ impl Viewer for StdoutViewer {
         }
 
         if self.view_content {
-            println!("{}", e.get_content());
+            match self.wrap_content {
+                Some(limit) => ::textwrap::wrap(e.get_content(), limit).iter().for_each(|line| {
+                    println!("{}", line)
+                }),
+                None => println!("{}", e.get_content()),
+            }
         }
 
         Ok(())

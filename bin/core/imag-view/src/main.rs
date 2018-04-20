@@ -43,7 +43,9 @@ extern crate libimagentryview;
 extern crate libimagerror;
 #[macro_use] extern crate libimagrt;
 extern crate libimagstore;
+extern crate libimagutil;
 
+use std::str::FromStr;
 use std::collections::BTreeMap;
 use std::io::Write;
 use std::io::Read;
@@ -81,7 +83,6 @@ fn main() {
     let entry_ids    = entry_ids(&rt);
     let view_header  = rt.cli().is_present("view-header");
     let hide_content = rt.cli().is_present("not-view-content");
-
 
     if rt.cli().is_present("in") {
         let files = entry_ids
@@ -170,7 +171,19 @@ fn main() {
 
         drop(files);
     } else {
-        let viewer = StdoutViewer::new(view_header, !hide_content);
+        let mut viewer = StdoutViewer::new(view_header, !hide_content);
+
+        if rt.cli().is_present("autowrap") {
+            let width = rt.cli().value_of("autowrap").unwrap(); // ensured by clap
+            let width = usize::from_str(width).unwrap_or_else(|e| {
+                error!("Failed to parse argument to number: autowrap = {:?}",
+                       rt.cli().value_of("autowrap").map(String::from));
+                error!("-> {:?}", e);
+                ::std::process::exit(1)
+            });
+
+            viewer.wrap_at(width);
+        }
 
         entry_ids
             .into_iter()
