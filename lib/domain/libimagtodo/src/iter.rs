@@ -17,39 +17,32 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#![recursion_limit="256"]
+use libimagstore::storeid::StoreIdIterator;
+use libimagstore::storeid::StoreId;
 
-#![deny(
-    dead_code,
-    non_camel_case_types,
-    non_snake_case,
-    path_statements,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_allocation,
-    unused_import_braces,
-    unused_imports,
-    unused_must_use,
-    unused_mut,
-    unused_qualifications,
-    while_true,
-)]
+pub struct TaskIdIterator(StoreIdIterator);
 
-extern crate uuid;
-extern crate toml;
-extern crate toml_query;
-#[macro_use] extern crate log;
-extern crate serde_json;
-#[macro_use] extern crate error_chain;
+impl TaskIdIterator {
 
-#[macro_use] extern crate libimagstore;
-extern crate libimagerror;
-extern crate task_hookrs;
+    pub fn new(inner: StoreIdIterator) -> Self {
+        TaskIdIterator(inner)
+    }
 
-module_entry_path_mod!("todo");
+}
 
-pub mod error;
-pub mod task;
-pub mod taskstore;
-pub mod iter;
+impl Iterator for TaskIdIterator {
+    type Item = StoreId;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.0.next() {
+                None    => return None,
+                Some(n) => if n.is_in_collection(&["todo", "taskwarrior"]) {
+                    return Some(n)
+                }, // else continue
+            }
+        }
+    }
+
+}
 
