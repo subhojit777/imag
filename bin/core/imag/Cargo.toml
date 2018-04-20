@@ -17,7 +17,6 @@ build = "build.rs"
 
 [build-dependencies]
 clap = ">=2.16.1"
-version = "2.0"
 libimagrt       = { version = "0.8.0", path = "../../../lib/core/libimagrt" }
 libimagentrytag = { version = "0.8.0", path = "../../../lib/entry/libimagentrytag" }
 libimagutil     = { version = "0.8.0", path = "../../../lib/etc/libimagutil" }
