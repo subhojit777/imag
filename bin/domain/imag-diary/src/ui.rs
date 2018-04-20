@@ -28,6 +28,10 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .required(false)
             .help("Use other than default diary"))
 
+       .subcommand(SubCommand::with_name("diaries")
+                   .about("List all available diaries")
+                   .version("0.1"))
+
         .subcommand(SubCommand::with_name("create")
                    .about("Create a diary entry")
                    .version("0.1")

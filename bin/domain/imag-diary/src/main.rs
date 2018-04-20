@@ -37,6 +37,7 @@ extern crate clap;
 extern crate chrono;
 extern crate toml;
 extern crate toml_query;
+extern crate itertools;
 
 extern crate libimagdiary;
 extern crate libimagentryedit;
@@ -47,8 +48,13 @@ extern crate libimagstore;
 extern crate libimagtimeui;
 extern crate libimagutil;
 
+use std::io::Write;
+
 use libimagrt::setup::generate_runtime_setup;
+use libimagrt::runtime::Runtime;
 use libimagerror::trace::MapErrTrace;
+
+use itertools::Itertools;
 
 mod create;
 mod delete;
@@ -76,6 +82,7 @@ fn main() {
         .map(|name| {
             debug!("Call {}", name);
             match name {
+                "diaries" => diaries(&rt),
                 "create" => create(&rt),
                 "delete" => delete(&rt),
                 "edit" => edit(&rt),
@@ -90,5 +97,22 @@ fn main() {
                 },
             }
         });
+}
+
+fn diaries(rt: &Runtime) {
+    use libimagdiary::diary::Diary;
+    use libimagerror::io::ToExitCode;
+    use libimagerror::exit::ExitUnwrap;
+    use libimagerror::iter::TraceIterator;
+
+    let out         = rt.stdout();
+    let mut outlock = out.lock();
+
+    rt.store()
+        .diary_names()
+        .map_err_trace_exit_unwrap(1)
+        .trace_unwrap_exit(1)
+        .unique()
+        .for_each(|n| writeln!(outlock, "{}", n).to_exit_code().unwrap_or_exit())
 }
 

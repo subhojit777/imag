@@ -26,6 +26,7 @@ chrono = "0.4"
 log = "0.4.0"
 toml = "0.4"
 toml-query = "0.6"
+itertools = "0.7"
 
 libimagerror       = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
 libimagstore       = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
