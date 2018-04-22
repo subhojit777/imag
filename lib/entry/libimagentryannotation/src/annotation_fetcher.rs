@@ -31,9 +31,7 @@ pub trait AnnotationFetcher<'a> {
 impl<'a> AnnotationFetcher<'a> for Store {
 
     fn all_annotations(&'a self) -> Result<AnnotationIter<'a>> {
-        self.retrieve_for_module("annotations")
-            .map(|iter| AnnotationIter::new(iter, self))
-            .map_err(Into::into)
+        Ok(AnnotationIter::new(self.entries()?.without_store(), self))
     }
 
 }
