@@ -37,8 +37,6 @@ pub fn cont(rt: &Runtime) -> i32 {
         .get_timetrackings()
         .map_err_trace_exit_unwrap(1)
         .trace_unwrap()
-        .filter(Option::is_some)
-        .map(Option::unwrap)
         .filter(|e| has_end_time.filter(&e))
         .group_by(|elem| match elem.get_end_datetime() { // Now group them by the end time
             Ok(Some(dt)) => dt,

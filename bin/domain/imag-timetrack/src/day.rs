@@ -90,8 +90,6 @@ pub fn day(rt: &Runtime) -> i32 {
         .get_timetrackings()
         .map_err_trace_exit_unwrap(1)
         .trace_unwrap()
-        .filter(Option::is_some)
-        .map(Option::unwrap)
         .filter(|e| filter.filter(e))
         .map(|e| -> Result<_, TTE> {
             debug!("Processing {:?}", e.get_location());
