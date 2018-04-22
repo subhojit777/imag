@@ -36,7 +36,7 @@ use error::ResultExt;
 
 use module_path::ModuleEntryPath;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq)]
 pub struct DiaryId {
     name: String,
     year: i32,
