@@ -170,7 +170,19 @@ fn main() {
 
         drop(files);
     } else {
-        let viewer = StdoutViewer::new(view_header, !hide_content);
+        let mut viewer = StdoutViewer::new(view_header, !hide_content);
+
+        if rt.cli().occurrences_of("autowrap") != 0 {
+            let width = rt.cli().value_of("autowrap").unwrap(); // ensured by clap
+            let width = usize::from_str(width).unwrap_or_else(|e| {
+                error!("Failed to parse argument to number: autowrap = {:?}",
+                       rt.cli().value_of("autowrap").map(String::from));
+                error!("-> {:?}", e);
+                ::std::process::exit(1)
+            });
+
+            viewer.wrap_at(width);
+        }
 
         entry_ids
             .into_iter()
