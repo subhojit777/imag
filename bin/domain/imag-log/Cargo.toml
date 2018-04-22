@@ -26,6 +26,7 @@ log = "0.3"
 toml = "0.4"
 toml-query = "0.6"
 is-match = "0.1"
+itertools = "0.7"
 
 libimagstore = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
 libimagrt    = { version = "0.7.0", path = "../../../lib/core/libimagrt" }

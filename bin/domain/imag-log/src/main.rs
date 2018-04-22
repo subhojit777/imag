@@ -37,6 +37,7 @@ extern crate clap;
 #[macro_use] extern crate log;
 extern crate toml;
 extern crate toml_query;
+extern crate itertools;
 
 extern crate libimaglog;
 #[macro_use] extern crate libimagrt;
@@ -51,6 +52,7 @@ use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::io::ToExitCode;
 use libimagerror::exit::ExitUnwrap;
+use libimagerror::iter::TraceIterator;
 use libimagdiary::diary::Diary;
 use libimaglog::log::Log;
 use libimaglog::error::LogError as LE;
@@ -60,6 +62,7 @@ mod ui;
 use ui::build_ui;
 
 use toml::Value;
+use itertools::Itertools;
 
 fn main() {
     let version = make_imag_version!();
@@ -126,33 +129,34 @@ fn show(rt: &Runtime) {
     };
 
     for iter in iters {
-        let _ = iter.into_get_iter(rt.store()).map(|element| {
-            let e  = element.map_err_trace_exit_unwrap(1);
+        let _ = iter
+            .into_get_iter(rt.store())
+            .trace_unwrap_exit(1)
+            .filter_map(|opt| {
+                if opt.is_none() {
+                    warn!("Failed to retrieve an entry from an existing store id");
+                }
 
-            if e.is_none() {
-                warn!("Failed to retrieve an entry from an existing store id");
-                return Ok(())
-            }
-            let e = e.unwrap(); // safe with above check
-
-            if !e.is_log().map_err_trace_exit_unwrap(1) {
-                return Ok(());
-            }
-
-            let id = e.diary_id().map_err_trace_exit_unwrap(1);
-            writeln!(rt.stdout(),
-                    "{dname: >10} - {y: >4}-{m:0>2}-{d:0>2}T{H:0>2}:{M:0>2} - {text}",
-                     dname = id.diary_name(),
-                     y = id.year(),
-                     m = id.month(),
-                     d = id.day(),
-                     H = id.hour(),
-                     M = id.minute(),
-                     text = e.get_content())
-                .to_exit_code()
-        })
-        .collect::<Result<Vec<()>, _>>()
-        .unwrap_or_exit();
+                opt
+            })
+            .filter(|e| e.is_log().map_err_trace_exit_unwrap(1))
+            .map(|entry| (entry.diary_id().map_err_trace_exit_unwrap(1), entry))
+            .sorted_by_key(|&(ref id, _)| id.clone())
+            .into_iter()
+            .map(|(id, entry)| {
+                writeln!(rt.stdout(),
+                        "{dname: >10} - {y: >4}-{m:0>2}-{d:0>2}T{H:0>2}:{M:0>2} - {text}",
+                         dname = id.diary_name(),
+                         y = id.year(),
+                         m = id.month(),
+                         d = id.day(),
+                         H = id.hour(),
+                         M = id.minute(),
+                         text = entry.get_content())
+                    .to_exit_code()
+            })
+            .collect::<Result<Vec<()>, _>>()
+            .unwrap_or_exit();
     }
 }
 
