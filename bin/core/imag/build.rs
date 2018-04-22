@@ -18,10 +18,10 @@
 //
 
 extern crate clap;
+#[macro_use]
 extern crate libimagrt;
 extern crate libimagentrytag;
 extern crate libimagutil;
-#[macro_use] extern crate version;
 
 use clap::Shell;
 use libimagrt::runtime::Runtime;
@@ -67,8 +67,8 @@ macro_rules! gen_mods_buildui {
 /// output of this script is a completion script, which
 /// does not contain information about the version at all.
 macro_rules! build_subcommand {
-    ($name:expr, $module:ident) => (
-        $module::build_ui(Runtime::get_default_cli_builder($name, &version!()[..], $name))
+    ($name:expr, $module:ident, $version:ident) => (
+        $module::build_ui(Runtime::get_default_cli_builder($name, &$version, $name))
     )
 }
 
@@ -100,33 +100,34 @@ gen_mods_buildui!(
 
 fn main() {
     // Make the `imag`-App...
+    let version = make_imag_version!();
     let mut app = Runtime::get_default_cli_builder(
         "imag",
-        &version!()[..],
+        &version[..],
         "imag")
         // and add all the subapps as subcommands.
-        .subcommand(build_subcommand!("annotate",    imagannotate))
-        .subcommand(build_subcommand!("diagnostics", imagdiagnostics))
-        .subcommand(build_subcommand!("edit",        imagedit))
-        .subcommand(build_subcommand!("gps",         imaggps))
-        .subcommand(build_subcommand!("grep",        imaggrep))
-        .subcommand(build_subcommand!("ids",         imagids))
-        .subcommand(build_subcommand!("init",        imaginit))
-        .subcommand(build_subcommand!("link",        imaglink))
-        .subcommand(build_subcommand!("mv",          imagmv))
-        .subcommand(build_subcommand!("ref",         imagref))
-        .subcommand(build_subcommand!("store",       imagstore))
-        .subcommand(build_subcommand!("tag",         imagtag))
-        .subcommand(build_subcommand!("view",        imagview))
-        .subcommand(build_subcommand!("bookmark",    imagbookmark))
-        .subcommand(build_subcommand!("contact",     imagcontact))
-        .subcommand(build_subcommand!("diary",       imagdiary))
-        .subcommand(build_subcommand!("habit",       imaghabit))
-        .subcommand(build_subcommand!("log",         imaglog))
-        .subcommand(build_subcommand!("mail",        imagmail))
-        .subcommand(build_subcommand!("notes",       imagnotes))
-        .subcommand(build_subcommand!("timetrack",   imagtimetrack))
-        .subcommand(build_subcommand!("todo",        imagtodo));
+        .subcommand(build_subcommand!("annotate",    imagannotate,      version))
+        .subcommand(build_subcommand!("diagnostics", imagdiagnostics,   version))
+        .subcommand(build_subcommand!("edit",        imagedit,          version))
+        .subcommand(build_subcommand!("gps",         imaggps,           version))
+        .subcommand(build_subcommand!("grep",        imaggrep,          version))
+        .subcommand(build_subcommand!("ids",         imagids,           version))
+        .subcommand(build_subcommand!("init",        imaginit,          version))
+        .subcommand(build_subcommand!("link",        imaglink,          version))
+        .subcommand(build_subcommand!("mv",          imagmv,            version))
+        .subcommand(build_subcommand!("ref",         imagref,           version))
+        .subcommand(build_subcommand!("store",       imagstore,         version))
+        .subcommand(build_subcommand!("tag",         imagtag,           version))
+        .subcommand(build_subcommand!("view",        imagview,          version))
+        .subcommand(build_subcommand!("bookmark",    imagbookmark,      version))
+        .subcommand(build_subcommand!("contact",     imagcontact,       version))
+        .subcommand(build_subcommand!("diary",       imagdiary,         version))
+        .subcommand(build_subcommand!("habit",       imaghabit,         version))
+        .subcommand(build_subcommand!("log",         imaglog,           version))
+        .subcommand(build_subcommand!("mail",        imagmail,          version))
+        .subcommand(build_subcommand!("notes",       imagnotes,         version))
+        .subcommand(build_subcommand!("timetrack",   imagtimetrack,     version))
+        .subcommand(build_subcommand!("todo",        imagtodo,          version));
 
     // Actually generates the completion files
     app.gen_completions("imag", Shell::Bash, "../../../target/");

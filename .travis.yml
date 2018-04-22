@@ -14,6 +14,7 @@ matrix:
             - bash ./scripts/find-dead-symlinks
             - bash ./scripts/license-headers-updated
             - bash ./scripts/branch-contains-no-tmp-commits
+            - bash ./scripts/version-updated
         - language: rust
           rust: 1.23.0
           cache:
