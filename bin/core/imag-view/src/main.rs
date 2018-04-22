@@ -173,7 +173,7 @@ fn main() {
     } else {
         let mut viewer = StdoutViewer::new(view_header, !hide_content);
 
-        if rt.cli().is_present("autowrap") {
+        if rt.cli().occurrences_of("autowrap") != 0 {
             let width = rt.cli().value_of("autowrap").unwrap(); // ensured by clap
             let width = usize::from_str(width).unwrap_or_else(|e| {
                 error!("Failed to parse argument to number: autowrap = {:?}",
