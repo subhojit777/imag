@@ -125,6 +125,7 @@ impl Diary for Store {
                         }
                     })
                     .into_iter()
+                    .rev()
                     //.map(|sidres| sidres.map(|sid| DiaryId::from_storeid(&sid)))
                     .next()
             }
