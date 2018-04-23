@@ -141,8 +141,9 @@ fn list(rt: &Runtime) {
     }
 
     let _ = rt.store()
-        .retrieve_for_module("ref")
+        .entries()
         .map_err_trace_exit_unwrap(1)
+        .filter(|id| id.is_in_collection(&["mail"]))
         .filter_map(|id| {
             rt.store()
                 .get(id)
