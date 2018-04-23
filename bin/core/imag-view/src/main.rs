@@ -185,6 +185,9 @@ fn main() {
             viewer.wrap_at(width);
         }
 
+        let output      = rt.stdout();
+        let mut lockout = output.lock();
+
         entry_ids
             .into_iter()
             .into_get_iter(rt.store())
@@ -195,7 +198,7 @@ fn main() {
                      .map_err_trace_exit_unwrap(1)
             })
             .for_each(|e| {
-                viewer.view_entry(&e).map_err_trace_exit_unwrap(1);
+                viewer.view_entry(&e, &mut lockout).map_err_trace_exit_unwrap(1);
             });
     }
 }
