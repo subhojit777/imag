@@ -1,16 +1,12 @@
 #!/usr/bin/env bash
 
-COMMIT_RANGE=""
-
-if [[ $TRAVIS ]]; then
-    if [[ -z "$TRAVIS_COMMIT_RANGE" ]]; then
-        COMMIT_RANGE=HEAD^..HEAD
-    else
-        COMMIT_RANGE=$TRAVIS_COMMIT_RANGE
-    fi
-else
-    COMMIT_RANGE=$(git merge-base master  HEAD)..HEAD
-fi
+# Because travis _SUCKS_ really hard, we cannot find the "master" commit or any
+# commit where the current branch is derived from (if this is not master).
+# So we simply use HEAD~49..HEAD as the range to check. This might break some
+# day, I don't know.
+# But as travis only clones 50 commits and does not provide ANY usable
+# information about the commits, this is the only thing we can do.
+COMMIT_RANGE="HEAD~49..HEAD"
 
 logfreeof() {
     git log --format="%s" $COMMIT_RANGE |\
