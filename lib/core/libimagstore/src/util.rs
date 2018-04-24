@@ -61,7 +61,7 @@ pub fn entry_buffer_to_header_content(buf: &str) -> Result<(Value, String)> {
         }
     }
 
-    Ok((Value::parse(&header)?, String::from(content)))
+    Ok((Value::parse(&header)?, content))
 }
 
 #[cfg(test)]
