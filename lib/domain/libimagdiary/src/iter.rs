@@ -140,18 +140,21 @@ impl Iterator for DiaryNameIterator {
     type Item = Result<String>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0
-            .next()
-            .map(|s| {
-                s.to_str()
+        while let Some(next) = self.0.next() {
+            if next.is_in_collection(&["diary"]) {
+                return Some(next
+                    .to_str()
                     .chain_err(|| DEK::DiaryNameFindingError)
                     .and_then(|s| {
                         s.split("diary/")
                             .nth(1)
                             .and_then(|n| n.split("/").nth(0).map(String::from))
                             .ok_or(DE::from_kind(DEK::DiaryNameFindingError))
-                    })
-            })
+                    }))
+            }
+        }
+
+        None
     }
 
 }
