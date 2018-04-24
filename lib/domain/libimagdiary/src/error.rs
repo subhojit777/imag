@@ -23,6 +23,7 @@ error_chain! {
     }
 
     links {
+        StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
         EntryUtilError(::libimagentryutil::error::EntryUtilError, ::libimagentryutil::error::EntryUtilErrorKind);
     }
 

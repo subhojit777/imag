@@ -84,7 +84,8 @@ impl<'a> NoteStore<'a> for Store {
     }
 
     fn all_notes(&'a self) -> Result<NoteIterator> {
-        self.retrieve_for_module("notes")
+        self.entries()
+            .map(|it| it.without_store())
             .map(NoteIterator::new)
             .map_err(NE::from)
     }

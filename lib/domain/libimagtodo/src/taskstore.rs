@@ -28,13 +28,14 @@ use task_hookrs::task::Task as TTask;
 use task_hookrs::import::{import_task, import_tasks};
 
 use libimagstore::store::{FileLockEntry, Store};
-use libimagstore::storeid::{IntoStoreId, StoreIdIterator};
+use libimagstore::storeid::IntoStoreId;
 use module_path::ModuleEntryPath;
 
 use error::TodoErrorKind as TEK;
 use error::TodoError as TE;
 use error::Result;
 use error::ResultExt;
+use iter::TaskIdIterator;
 
 /// Task struct containing a `FileLockEntry`
 pub trait TaskStore<'a> {
@@ -46,7 +47,7 @@ pub trait TaskStore<'a> {
     fn retrieve_task_from_string(&'a self, s: String) -> Result<FileLockEntry<'a>>;
     fn delete_tasks_by_imports<R: BufRead>(&self, r: R) -> Result<()>;
     fn delete_task_by_uuid(&self, uuid: Uuid) -> Result<()>;
-    fn all_tasks(&self) -> Result<StoreIdIterator>;
+    fn all_tasks(&self) -> Result<TaskIdIterator>;
     fn new_from_twtask(&'a self, task: TTask) -> Result<FileLockEntry<'a>>;
 }
 
@@ -167,8 +168,9 @@ impl<'a> TaskStore<'a> for Store {
             .chain_err(|| TEK::StoreError)
     }
 
-    fn all_tasks(&self) -> Result<StoreIdIterator> {
-        self.retrieve_for_module("todo/taskwarrior")
+    fn all_tasks(&self) -> Result<TaskIdIterator> {
+        self.entries()
+            .map(|i| TaskIdIterator::new(i.without_store()))
             .chain_err(|| TEK::StoreError)
     }
 

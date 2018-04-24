@@ -134,9 +134,9 @@ impl Diary for Store {
 
     /// Get all diary names
     fn diary_names(&self) -> Result<DiaryNameIterator> {
-        self.retrieve_for_module("diary")
-            .chain_err(|| DEK::StoreReadError)
-            .map(DiaryNameIterator::new)
+        self.entries()
+            .map(|it| DiaryNameIterator::new(it.without_store()))
+            .map_err(::error::DiaryError::from)
     }
 
 }

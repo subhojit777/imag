@@ -121,8 +121,6 @@ pub fn list_impl(rt: &Runtime,
         .get_timetrackings()
         .map_err_trace_exit_unwrap(1)
         .trace_unwrap()
-        .filter(Option::is_some)
-        .map(Option::unwrap)
         .filter(|e| filter.filter(e))
         .fold(Ok(table), |acc: Result<_>, e| {
             acc.and_then(|mut tab: Table| {

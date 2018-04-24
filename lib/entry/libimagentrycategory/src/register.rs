@@ -101,9 +101,7 @@ impl CategoryRegister for Store {
 
     /// Get all category names
     fn all_category_names(&self) -> Result<CategoryNameIter> {
-        self.retrieve_for_module("category")
-            .chain_err(|| CEK::StoreReadError)
-            .map(|iter| CategoryNameIter::new(self, iter))
+        Ok(CategoryNameIter::new(self, self.entries()?.without_store()))
     }
 
     /// Get a category by its name
@@ -268,18 +266,24 @@ impl<'a> Iterator for CategoryNameIter<'a> {
         // TODO: Optimize me with lazy_static
         let query = CATEGORY_REGISTER_NAME_FIELD_PATH;
 
-        self.1
-            .next()
-            .map(|sid| {
-                self.0
-                    .get(sid)?
-                    .ok_or_else(|| CE::from_kind(CEK::StoreReadError))?
-                    .get_header()
-                    .read_string(query)
-                    .chain_err(|| CEK::HeaderReadError)?
-                    .map(Category::from)
-                    .ok_or_else(|| CE::from_kind(CEK::StoreReadError))
-            })
+        while let Some(sid) = self.1.next() {
+            if sid.is_in_collection(&["category"]) {
+                let func = |store: &Store| { // hack for returning Some(Result<_, _>)
+                    store
+                        .get(sid)?
+                        .ok_or_else(|| CE::from_kind(CEK::StoreReadError))?
+                        .get_header()
+                        .read_string(query)
+                        .chain_err(|| CEK::HeaderReadError)?
+                        .map(Category::from)
+                        .ok_or_else(|| CE::from_kind(CEK::StoreReadError))
+                };
+
+                return Some(func(&self.0))
+            } // else continue
+        }
+
+        None
     }
 }
 
