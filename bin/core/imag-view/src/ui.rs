@@ -73,6 +73,16 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .conflicts_with("not-view-content")
             .conflicts_with("autowrap")) // markdown viewer does not support wrapping
 
+        .arg(Arg::with_name("seperator")
+            .long("seperate")
+            .short("s")
+            .required(false)
+            .takes_value(true)
+            .value_name("SEPCHR")
+            .default_value("-")
+            .help("Do seperate entries with a string if viewing multiple entries"))
+
+
         .arg(Arg::with_name("in")
             .long("in")
             .takes_value(true)
