@@ -143,7 +143,7 @@ pub trait TraceIterator<T, E> : Iterator<Item = Result<T, E>> + Sized {
     fn unwrap_with<F>(self, f: F) -> UnwrapWith<Self, F>
         where F: FnMut(E)
     {
-        UnwrapWith { iter: self, f: f }
+        UnwrapWith { iter: self, f }
     }
 }
 

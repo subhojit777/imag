@@ -30,11 +30,7 @@ pub struct Time {
 impl Time {
 
     pub fn new(hour: u32, minute: u32, second: u32) -> Time {
-        Time {
-            hour: hour,
-            minute: minute,
-            second: second
-        }
+        Time { hour, minute, second }
     }
 
     pub fn hour(&self) -> u32 {

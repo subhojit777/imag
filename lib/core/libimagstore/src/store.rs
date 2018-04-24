@@ -148,7 +148,7 @@ impl StoreEntry {
         }
 
         Ok(StoreEntry {
-            id: id,
+            id,
             file: backend.new_instance(pb),
             status: StoreEntryStatus::Present,
         })
@@ -758,10 +758,7 @@ impl<'a> FileLockEntry<'a, > {
     ///
     /// Only for internal use.
     fn new(store: &'a Store, entry: Entry) -> FileLockEntry<'a> {
-        FileLockEntry {
-            store: store,
-            entry: entry,
-        }
+        FileLockEntry { store, entry }
     }
 }
 
@@ -883,8 +880,8 @@ impl Entry {
 
         Ok(Entry {
             location: loc.into_storeid()?,
-            header: header,
-            content: content,
+            header,
+            content,
         })
     }
 

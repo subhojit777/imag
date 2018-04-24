@@ -80,7 +80,7 @@ impl StoreId {
             debug!("Building Storeid object baseless");
             Ok(StoreId {
                 base: None,
-                id: id
+                id
             })
         }
     }
@@ -255,9 +255,7 @@ impl Debug for StoreIdIterator {
 impl StoreIdIterator {
 
     pub fn new(iter: Box<Iterator<Item = StoreId>>) -> StoreIdIterator {
-        StoreIdIterator {
-            iter: iter,
-        }
+        StoreIdIterator { iter }
     }
 
 }
