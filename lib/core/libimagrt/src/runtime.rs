@@ -368,50 +368,6 @@ impl<'a> Runtime<'a> {
         &self.store
     }
 
-    /// Change the store backend to stdout
-    ///
-    /// For the documentation on purpose and cavecats, have a look at the documentation of the
-    /// `Store::reset_backend()` function.
-    ///
-    pub fn store_backend_to_stdio(&mut self) -> Result<(), RuntimeError> {
-        use libimagstore::file_abstraction::stdio::*;
-        use libimagstore::file_abstraction::stdio::mapper::json::JsonMapper;
-        use std::rc::Rc;
-        use std::cell::RefCell;
-
-        let mut input = ::std::io::stdin();
-        let output    = ::std::io::stdout();
-        let output    = Rc::new(RefCell::new(output));
-        let mapper    = JsonMapper::new();
-
-        StdIoFileAbstraction::new(&mut input, output, mapper)
-            .chain_err(|| RuntimeErrorKind::Instantiate)
-            .and_then(|backend| {
-                self.store
-                    .reset_backend(Box::new(backend))
-                    .chain_err(|| RuntimeErrorKind::Instantiate)
-            })
-    }
-
-    pub fn store_backend_to_stdout(&mut self) -> Result<(), RuntimeError> {
-        use libimagstore::file_abstraction::stdio::mapper::json::JsonMapper;
-        use libimagstore::file_abstraction::stdio::out::StdoutFileAbstraction;
-        use std::rc::Rc;
-        use std::cell::RefCell;
-
-        let output    = ::std::io::stdout();
-        let output    = Rc::new(RefCell::new(output));
-        let mapper    = JsonMapper::new();
-
-        StdoutFileAbstraction::new(output, mapper)
-            .chain_err(|| RuntimeErrorKind::Instantiate)
-            .and_then(|backend| {
-                self.store
-                    .reset_backend(Box::new(backend))
-                    .chain_err(|| RuntimeErrorKind::Instantiate)
-            })
-    }
-
     /// Get a editor command object which can be called to open the $EDITOR
     pub fn editor(&self) -> Result<Option<Command>, RuntimeError> {
         self.cli()
