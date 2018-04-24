@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::io::Write;
+
 use libimagstore::store::Entry;
 use libimagrt::runtime::Runtime;
 use libimagentryedit::edit::edit_in_tmpfile;
@@ -35,7 +37,9 @@ impl<'a> EditorView<'a> {
 }
 
 impl<'a> Viewer for EditorView<'a> {
-    fn view_entry(&self, e: &Entry) -> Result<()> {
+    fn view_entry<W>(&self, e: &Entry, _sink: &mut W) -> Result<()>
+        where W: Write
+    {
         let mut entry = e.to_str()?.clone().to_string();
         edit_in_tmpfile(self.0, &mut entry).chain_err(|| VEK::ViewError)
     }

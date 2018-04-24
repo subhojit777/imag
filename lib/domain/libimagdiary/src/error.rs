@@ -22,6 +22,10 @@ error_chain! {
         DiaryError, DiaryErrorKind, ResultExt, Result;
     }
 
+    foreign_links {
+        Io(::std::io::Error);
+    }
+
     links {
         StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
         EntryUtilError(::libimagentryutil::error::EntryUtilError, ::libimagentryutil::error::EntryUtilErrorKind);

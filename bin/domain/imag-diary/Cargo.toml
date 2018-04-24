@@ -33,6 +33,7 @@ libimagstore       = { version = "0.8.0", path = "../../../lib/core/libimagstore
 libimagrt          = { version = "0.8.0", path = "../../../lib/core/libimagrt" }
 libimagdiary       = { version = "0.8.0", path = "../../../lib/domain/libimagdiary" }
 libimagentryedit   = { version = "0.8.0", path = "../../../lib/entry/libimagentryedit" }
+libimagentryview   = { version = "0.8.0", path = "../../../lib/entry/libimagentryview" }
 libimaginteraction = { version = "0.8.0", path = "../../../lib/etc/libimaginteraction" }
 libimagutil        = { version = "0.8.0", path = "../../../lib/etc/libimagutil" }
 libimagtimeui      = { version = "0.8.0", path = "../../../lib/etc/libimagtimeui" }

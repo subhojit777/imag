@@ -22,6 +22,10 @@ error_chain! {
         ViewError, ViewErrorKind, ResultExt, Result;
     }
 
+    foreign_links {
+        IO(::std::io::Error);
+    }
+
     links {
         StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
     }
