@@ -793,12 +793,9 @@ impl<'a> Drop for FileLockEntry<'a> {
     fn drop(&mut self) {
         use libimagerror::trace::trace_error_dbg;
         trace!("Dropping: {:?} - from FileLockEntry::drop()", self.get_location());
-        match self.store._update(self, true) {
-            Err(e) => {
-                trace_error_dbg(&e);
-                if_cfg_panic!("ERROR WHILE DROPPING: {:?}", e);
-            },
-            Ok(_) => { },
+        if let Err(e) = self.store._update(self, true) {
+            trace_error_dbg(&e);
+            if_cfg_panic!("ERROR WHILE DROPPING: {:?}", e);
         }
     }
 }
