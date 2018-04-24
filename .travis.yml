@@ -36,6 +36,14 @@ matrix:
           script:
             - cargo build --all --all-features -j 1  || exit 1
             - cargo test  --all --all-features -j 1  || exit 1
+        - language: rust
+          rust: nightly
+          allow_failure: true
+          cache:
+            cargo: true
+          script:
+            - cargo install clippy || exit 1
+            - cargo-clippy || exit 1
 
 
 addons:
