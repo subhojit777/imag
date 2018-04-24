@@ -131,7 +131,7 @@ impl Iterator for Walk {
             }
         }
 
-        return None;
+        None
     }
 }
 
