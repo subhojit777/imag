@@ -235,7 +235,7 @@ impl Store {
     /// - On success: Store object
     ///
     pub fn new(location: PathBuf, store_config: &Option<Value>) -> Result<Store> {
-        let backend = Box::new(FSFileAbstraction::new());
+        let backend = Box::new(FSFileAbstraction::default());
         Store::new_with_backend(location, store_config, backend)
     }
 
