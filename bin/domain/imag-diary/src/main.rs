@@ -41,6 +41,7 @@ extern crate itertools;
 
 extern crate libimagdiary;
 extern crate libimagentryedit;
+extern crate libimagentryview;
 extern crate libimagerror;
 extern crate libimaginteraction;
 #[macro_use] extern crate libimagrt;

@@ -23,6 +23,7 @@ use libimagrt::runtime::Runtime;
 use libimagerror::trace::MapErrTrace;
 use libimagutil::warn_exit::warn_exit;
 use libimagstore::iter::get::StoreIdGetIteratorExtension;
+use libimagentryview::viewer::Viewer;
 
 use util::get_diary_name;
 
@@ -39,7 +40,8 @@ pub fn view(rt: &Runtime) {
             ::std::process::exit(1)
         }));
 
-    DV::new(hdr).view_entries(entries)
+    let out = rt.stdout();
+    DV::new(hdr).view_entries(entries, &mut out.lock())
         .map_err_trace_exit_unwrap(1);
 }
 
