@@ -75,7 +75,12 @@ impl IntoKeyValue<String, String> for String {
                     .unwrap();
             }
             R.captures(&self[..])
-                .map(|c| c.name("VALUE").or(c.name("QVALUE")).map(|m| m.as_str()).unwrap_or(""))
+                .map(|c| {
+                    c.name("VALUE")
+                        .or_else(|| c.name("QVALUE"))
+                         .map(|m| m.as_str())
+                         .unwrap_or("")
+                })
         };
 
         key.and_then(|k| {
