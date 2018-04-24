@@ -28,7 +28,6 @@ use storeid::StoreId;
 mod fs;
 mod inmemory;
 mod iter;
-pub mod stdio;
 
 pub use self::fs::FSFileAbstraction;
 pub use self::fs::FSFileAbstractionInstance;

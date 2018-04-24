@@ -190,9 +190,4 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                    .about("Verify the store")
                    .version("0.1")
                    )
-
-       .subcommand(SubCommand::with_name("dump")
-                   .about("Dump the complete store to stdout. Currently does only support JSON")
-                   .version("0.1")
-                   )
 }

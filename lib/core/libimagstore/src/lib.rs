@@ -44,7 +44,6 @@ extern crate semver;
 extern crate walkdir;
 #[macro_use] extern crate is_match;
 extern crate serde_json;
-#[macro_use] extern crate serde_derive;
 #[macro_use] extern crate error_chain;
 extern crate toml_query;
 
