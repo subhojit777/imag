@@ -338,3 +338,10 @@ Address  : {{ADR}}
 logs = ["default"]
 default = "default"
 
+[git]
+# Configuration for imag-git
+#
+# if this variable is _false_, imag-git will run git in $IMAG_RTP.
+# if this variable is _true_, imag-git will run git in $IMAG_RTP/store
+execute_in_store = false
+
