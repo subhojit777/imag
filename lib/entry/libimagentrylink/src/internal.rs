@@ -784,7 +784,7 @@ mod test {
 
     pub fn get_store() -> Store {
         use libimagstore::file_abstraction::InMemoryFileAbstraction;
-        let backend = Box::new(InMemoryFileAbstraction::new());
+        let backend = Box::new(InMemoryFileAbstraction::default());
         Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
     }
 

@@ -87,18 +87,12 @@ impl FileAbstractionInstance for InMemoryFileAbstractionInstance {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct InMemoryFileAbstraction {
     virtual_filesystem: Backend,
 }
 
 impl InMemoryFileAbstraction {
-
-    pub fn new() -> InMemoryFileAbstraction {
-        InMemoryFileAbstraction {
-            virtual_filesystem: Arc::new(Mutex::new(RefCell::new(HashMap::new()))),
-        }
-    }
 
     pub fn backend(&self) -> &Backend {
         &self.virtual_filesystem

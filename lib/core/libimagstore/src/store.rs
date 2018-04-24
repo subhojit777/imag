@@ -1176,7 +1176,7 @@ mod store_tests {
     use file_abstraction::InMemoryFileAbstraction;
 
     pub fn get_store() -> Store {
-        let backend = Box::new(InMemoryFileAbstraction::new());
+        let backend = Box::new(InMemoryFileAbstraction::default());
         Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
     }
 
@@ -1361,7 +1361,7 @@ mod store_tests {
         use file_abstraction::InMemoryFileAbstraction;
 
         let mut store = {
-            let backend = InMemoryFileAbstraction::new();
+            let backend = InMemoryFileAbstraction::default();
             let backend = Box::new(backend);
 
             Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
@@ -1377,7 +1377,7 @@ mod store_tests {
         }
 
         {
-            let other_backend = InMemoryFileAbstraction::new();
+            let other_backend = InMemoryFileAbstraction::default();
             let other_backend = Box::new(other_backend);
 
             assert!(store.reset_backend(other_backend).is_ok())
