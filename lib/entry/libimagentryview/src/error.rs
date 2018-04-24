@@ -23,6 +23,7 @@ error_chain! {
     }
 
     foreign_links {
+        Failure(::failure::Compat<::failure::Error>) #[cfg(feature = "markdownviewer")];
         IO(::std::io::Error);
     }
 

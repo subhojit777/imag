@@ -17,7 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use clap::{Arg, ArgGroup, App, SubCommand};
+use clap::{Arg, ArgGroup, App};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
@@ -64,6 +64,15 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .required(false)
             .help("Do not view content"))
 
+        .arg(Arg::with_name("compile-md")
+            .long("compile")
+            .short("c")
+            .takes_value(false)
+            .required(false)
+            .help("Do compile markdown to be nice")
+            .conflicts_with("not-view-content")
+            .conflicts_with("autowrap")) // markdown viewer does not support wrapping
+
         .arg(Arg::with_name("in")
             .long("in")
             .takes_value(true)
@@ -71,23 +80,4 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
             .multiple(false)
             .help("View content. If no value is given, this fails. Possible viewers are configured via the config file."))
 
-        .subcommand(SubCommand::with_name("compile")
-                   .about("Compile content to other format for viewing, implies that the entry gets copied to /tmp")
-                   .version("0.1")
-                   .arg(Arg::with_name("from")
-                        .long("from")
-                        .short("f")
-                        .takes_value(true) // "markdown" or "textile" or "restructuredtex"
-                        .required(true)
-                        .help("Compile from")
-                        .value_name("FORMAT"))
-
-                   .arg(Arg::with_name("to")
-                        .long("to")
-                        .short("t")
-                        .takes_value(true) // "html" or "HTML" or ... json maybe?
-                        .required(true)
-                        .help("Compile to")
-                        .value_name("FORMAT"))
-                   )
 }

@@ -62,6 +62,7 @@ use libimagerror::str::ErrFromStr;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::iter::TraceIterator;
 use libimagentryview::builtin::stdout::StdoutViewer;
+use libimagentryview::builtin::md::MarkdownViewer;
 use libimagentryview::viewer::Viewer;
 use libimagentryview::error::ViewError as VE;
 use libimagstore::storeid::IntoStoreId;
@@ -171,24 +172,7 @@ fn main() {
 
         drop(files);
     } else {
-        let mut viewer = StdoutViewer::new(view_header, !hide_content);
-
-        if rt.cli().occurrences_of("autowrap") != 0 {
-            let width = rt.cli().value_of("autowrap").unwrap(); // ensured by clap
-            let width = usize::from_str(width).unwrap_or_else(|e| {
-                error!("Failed to parse argument to number: autowrap = {:?}",
-                       rt.cli().value_of("autowrap").map(String::from));
-                error!("-> {:?}", e);
-                ::std::process::exit(1)
-            });
-
-            viewer.wrap_at(width);
-        }
-
-        let output      = rt.stdout();
-        let mut lockout = output.lock();
-
-        entry_ids
+        let iter = entry_ids
             .into_iter()
             .into_get_iter(rt.store())
             .map(|e| {
@@ -196,10 +180,35 @@ fn main() {
                      .ok_or_else(|| String::from("Entry not found"))
                      .map_err(StoreError::from)
                      .map_err_trace_exit_unwrap(1)
-            })
-            .for_each(|e| {
-                viewer.view_entry(&e, &mut lockout).map_err_trace_exit_unwrap(1);
             });
+
+        let out         = rt.stdout();
+        let mut outlock = out.lock();
+
+        if rt.cli().is_present("compile-md") {
+            let viewer = MarkdownViewer::new(&rt);
+            for entry in iter {
+                viewer.view_entry(&entry, &mut outlock).map_err_trace_exit_unwrap(1);
+            }
+        } else {
+            let mut viewer = StdoutViewer::new(view_header, !hide_content);
+
+            if rt.cli().occurrences_of("autowrap") != 0 {
+                let width = rt.cli().value_of("autowrap").unwrap(); // ensured by clap
+                let width = usize::from_str(width).unwrap_or_else(|e| {
+                    error!("Failed to parse argument to number: autowrap = {:?}",
+                           rt.cli().value_of("autowrap").map(String::from));
+                    error!("-> {:?}", e);
+                    ::std::process::exit(1)
+                });
+
+                viewer.wrap_at(width);
+            }
+
+            for entry in iter {
+                viewer.view_entry(&entry, &mut outlock).map_err_trace_exit_unwrap(1);
+            }
+        }
     }
 }
 
