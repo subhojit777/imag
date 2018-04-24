@@ -62,7 +62,7 @@ pub mod err {
                 let mut n = RustNotification::new();
                 n.appname("imag");
                 n.summary("[Error]");
-                n.urgency(urgency.clone());
+                n.urgency(urgency);
                 n.body(e.description());
                 try!(n.finalize().show().map(|_| ()).chain_err(|| NEK::Unknown));
 
