@@ -39,6 +39,18 @@ extern crate toml;
 #[macro_use] extern crate error_chain;
 extern crate textwrap;
 
+#[cfg(feature = "markdownviewer")]
+extern crate mdcat;
+
+#[cfg(feature = "markdownviewer")]
+extern crate failure;
+
+#[cfg(feature = "markdownviewer")]
+extern crate pulldown_cmark;
+
+#[cfg(feature = "markdownviewer")]
+extern crate syntect;
+
 extern crate libimagstore;
 extern crate libimagrt;
 extern crate libimagerror;

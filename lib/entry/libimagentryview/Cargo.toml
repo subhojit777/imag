@@ -29,3 +29,23 @@ libimagrt        = { version = "0.8.0", path = "../../../lib/core/libimagrt" }
 libimagstore     = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
 libimagerror     = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
 libimagentryedit = { version = "0.8.0", path = "../../../lib/entry/libimagentryedit" }
+
+mdcat   = { version = "0.8", optional = true }
+failure = { version = "0.1", optional = true }
+
+[dependencies.pulldown-cmark]
+version          = "^0.1"
+optional         = true
+default-features = false
+features         = []
+
+[dependencies.syntect]
+version          = "^2"
+optional         = true
+default-features = false
+features         = ["parsing", "assets", "dump-load"]
+
+[features]
+default        = [ "markdownviewer" ]
+markdownviewer = ["mdcat", "failure", "pulldown-cmark", "syntect"]
+

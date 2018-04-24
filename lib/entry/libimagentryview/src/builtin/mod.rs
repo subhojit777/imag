@@ -20,3 +20,7 @@
 pub mod editor;
 pub mod plain;
 pub mod stdout;
+
+#[cfg(feature = "markdownviewer")]
+pub mod md;
+
