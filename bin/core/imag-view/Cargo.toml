@@ -31,8 +31,11 @@ tempfile = "2.1"
 libimagstore     = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
 libimagrt        = { version = "0.8.0", path = "../../../lib/core/libimagrt" }
 libimagerror     = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
-libimagentryview = { version = "0.8.0", path = "../../../lib/entry/libimagentryview" }
 libimagutil      = { version = "0.8.0", path = "../../../lib/etc/libimagutil" }
+
+[dependencies.libimagentryview]
+version          = "0.8.0"
+path             = "../../../lib/entry/libimagentryview"
 
 [dependencies.clap]
 version = "^2.29"
