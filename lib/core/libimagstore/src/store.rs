@@ -1007,13 +1007,13 @@ fn has_only_tables(t: &Value) -> Result<bool> {
 
 fn has_main_section(t: &Value) -> Result<bool> {
     t.read("imag")?
-        .ok_or(SE::from_kind(SEK::ConfigKeyMissingError("imag")))
+        .ok_or_else(|| SE::from_kind(SEK::ConfigKeyMissingError("imag")))
         .map(Value::is_table)
 }
 
 fn has_imag_version_in_main_section(t: &Value) -> Result<bool> {
     t.read_string("imag.version")?
-        .ok_or(SE::from_kind(SEK::ConfigKeyMissingError("imag.version")))
+        .ok_or_else(|| SE::from_kind(SEK::ConfigKeyMissingError("imag.version")))
         .map(String::from)
         .map(|s| ::semver::Version::parse(&s).is_ok())
 }

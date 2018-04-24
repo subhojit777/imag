@@ -116,7 +116,7 @@ impl StoreId {
             .unwrap_or_else(|| self.id.clone())
             .to_str()
             .map(String::from)
-            .ok_or(SE::from_kind(SEK::StoreIdHandlingError))
+            .ok_or_else(|| SE::from_kind(SEK::StoreIdHandlingError))
     }
 
     /// Returns the components of the `id` part of the StoreId object.

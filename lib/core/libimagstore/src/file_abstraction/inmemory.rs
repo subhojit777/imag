@@ -71,7 +71,7 @@ impl FileAbstractionInstance for InMemoryFileAbstractionInstance {
                 mtx.get_mut()
                     .get(&self.absent_path)
                     .cloned()
-                    .ok_or(SE::from_kind(SEK::FileNotFound))
+                    .ok_or_else(|| SE::from_kind(SEK::FileNotFound))
             })
     }
 
@@ -123,7 +123,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
             .get_mut()
             .remove(path)
             .map(|_| ())
-            .ok_or(SE::from_kind(SEK::FileNotFound))
+            .ok_or_else(|| SE::from_kind(SEK::FileNotFound))
     }
 
     fn copy(&self, from: &PathBuf, to: &PathBuf) -> Result<(), SE> {
@@ -131,7 +131,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
         let mut mtx = self.backend().lock().expect("Locking Mutex failed");
         let backend = mtx.get_mut();
 
-        let a = backend.get(from).cloned().ok_or(SE::from_kind(SEK::FileNotFound))?;
+        let a = backend.get(from).cloned().ok_or_else(|| SE::from_kind(SEK::FileNotFound))?;
         backend.insert(to.clone(), a);
         debug!("Copying: {:?} -> {:?} worked", from, to);
         Ok(())
@@ -142,7 +142,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
         let mut mtx = self.backend().lock().expect("Locking Mutex failed");
         let backend = mtx.get_mut();
 
-        let a = backend.get(from).cloned().ok_or(SE::from_kind(SEK::FileNotFound))?;
+        let a = backend.get(from).cloned().ok_or_else(|| SE::from_kind(SEK::FileNotFound))?;
         backend.insert(to.clone(), a);
         debug!("Renaming: {:?} -> {:?} worked", from, to);
         Ok(())
