@@ -25,7 +25,7 @@ pub trait ErrFromStr<T> {
 
 impl<T, E: Error> ErrFromStr<T> for Result<T, E> {
     fn err_from_str(self) -> Result<T, String> {
-        self.map_err(|e| format!("{}", e.description()))
+        self.map_err(|e| e.description().to_string())
     }
 }
 

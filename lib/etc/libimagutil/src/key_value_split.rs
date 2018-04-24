@@ -33,7 +33,7 @@ pub struct KeyValue<K, V> {
 impl<K, V> KeyValue<K, V> {
 
     pub fn new(k: K, v: V) -> KeyValue<K, V> {
-        KeyValue { k: k, v: v }
+        KeyValue { k, v }
     }
 
     pub fn key(&self) -> &K {
