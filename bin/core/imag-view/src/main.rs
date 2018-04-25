@@ -61,6 +61,8 @@ use libimagrt::runtime::Runtime;
 use libimagerror::str::ErrFromStr;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::iter::TraceIterator;
+use libimagerror::io::ToExitCode;
+use libimagerror::exit::ExitUnwrap;
 use libimagentryview::builtin::stdout::StdoutViewer;
 use libimagentryview::builtin::md::MarkdownViewer;
 use libimagentryview::viewer::Viewer;
@@ -185,10 +187,33 @@ fn main() {
         let out         = rt.stdout();
         let mut outlock = out.lock();
 
+        let basesep = if rt.cli().occurrences_of("seperator") != 0 { // checker for default value
+            rt.cli().value_of("seperator").map(String::from)
+        } else {
+            None
+        };
+
+        let mut sep_width = 80; // base width, automatically overridden by wrap width
+
+        // Helper to build the seperator with a base string `sep` and a `width`
+        let build_seperator = |sep: String, width: usize| -> String {
+            sep.repeat(width / sep.len())
+        };
+
         if rt.cli().is_present("compile-md") {
-            let viewer = MarkdownViewer::new(&rt);
-            for entry in iter {
-                viewer.view_entry(&entry, &mut outlock).map_err_trace_exit_unwrap(1);
+            let viewer    = MarkdownViewer::new(&rt);
+            let seperator = basesep.map(|s| build_seperator(s, sep_width));
+
+            for (n, entry) in iter.enumerate() {
+                if n != 0 {
+                    seperator
+                        .as_ref()
+                        .map(|s| writeln!(outlock, "{}", s).to_exit_code().unwrap_or_exit());
+                }
+
+                viewer
+                    .view_entry(&entry, &mut outlock)
+                    .map_err_trace_exit_unwrap(1);
             }
         } else {
             let mut viewer = StdoutViewer::new(view_header, !hide_content);
@@ -202,11 +227,23 @@ fn main() {
                     ::std::process::exit(1)
                 });
 
+                // Copying this value over, so that the seperator has the right len as well
+                sep_width = width;
+
                 viewer.wrap_at(width);
             }
 
-            for entry in iter {
-                viewer.view_entry(&entry, &mut outlock).map_err_trace_exit_unwrap(1);
+            let seperator = basesep.map(|s| build_seperator(s, sep_width));
+            for (n, entry) in iter.enumerate() {
+                if n != 0 {
+                    seperator
+                        .as_ref()
+                        .map(|s| writeln!(outlock, "{}", s).to_exit_code().unwrap_or_exit());
+                }
+
+                viewer
+                    .view_entry(&entry, &mut outlock)
+                    .map_err_trace_exit_unwrap(1);
             }
         }
     }
