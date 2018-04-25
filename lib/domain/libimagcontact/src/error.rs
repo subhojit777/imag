@@ -26,13 +26,14 @@ error_chain! {
 
     links {
         StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
-        RefError(::libimagentryref::error::RefError, ::libimagentryref::error::RefErrorKind);
         VObjectError(::vobject::error::VObjectError, ::vobject::error::VObjectErrorKind);
         EntryUtilError(::libimagentryutil::error::EntryUtilError, ::libimagentryutil::error::EntryUtilErrorKind);
     }
 
     foreign_links {
         Io(::std::io::Error);
+        TomlDe(::toml::de::Error);
+        TomlSer(::toml::ser::Error);
         TomlQueryError(::toml_query::error::Error);
         UuidError(::uuid::ParseError);
     }
@@ -44,14 +45,19 @@ error_chain! {
             display("Type error in header, expected {} at '{}', found other type", ty, loc)
         }
 
+        HeaderDataMissing(datapath: &'static str) {
+            description("Data missing in header")
+            display("Data missing in header at '{}'", datapath)
+        }
+
         EntryNotFound(sid: StoreId) {
             description("Entry not found with StoreId")
             display("Entry {:?} not found", sid)
         }
 
-        UidMissing(path: String) {
+        UidMissing(buf: String) {
             description("Vcard object has no UID")
-            display("Vcard at {:?} has no UID", path)
+            display("Vcard has no UID : {}", buf)
         }
 
     }

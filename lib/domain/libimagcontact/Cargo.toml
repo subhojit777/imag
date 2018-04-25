@@ -25,21 +25,11 @@ log          = "0.3"
 toml         = "0.4"
 toml-query   = "0.6"
 vobject      = "0.4"
-uuid         = { version = "0.6", features = ["v4"] }
-serde        = { version = "1", optional   = true }
-serde_derive = { version = "1", optional   = true }
+uuid         = "0.6"
+serde        = "1"
+serde_derive = "1"
 
 libimagstore     = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
 libimagerror     = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
 libimagentryutil  = { version = "0.8.0", path = "../../../lib/entry/libimagentryutil/" }
-
-[dependencies.libimagentryref]
-version          = "0.8.0"
-path             = "../../../lib/entry/libimagentryref/"
-default-features = false
-features         = ["generators", "generators-sha1"]
-
-[features]
-default = []
-deser   = ["serde", "serde_derive"]
 

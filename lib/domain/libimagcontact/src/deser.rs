@@ -20,103 +20,127 @@
 use vobject::vcard::Vcard;
 
 /// A type which can be build from a Vcard and be serialized.
-///
-/// # Details
-///
-/// Deserializing is not supported by libimagcontact yet
-/// Elements which are "empty" (as in empty list) or optional and not present are not serialized.
-///
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DeserVcard {
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     adr          : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     anniversary  : Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     bday         : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     categories   : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     clientpidmap : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     email        : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     fullname     : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     gender       : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     geo          : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     impp         : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     key          : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     lang         : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     logo         : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     member       : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     name         : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     nickname     : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     note         : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     org          : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     photo        : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     proid        : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     related      : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     rev          : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     role         : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     sound        : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     tel          : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     title        : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     tz           : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     uid          : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     url          : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     version      : Option<String>
 }
 
@@ -166,5 +190,129 @@ impl From<Vcard> for DeserVcard {
             version      : optstr!(card.version()),
         }
     }
+}
+
+impl DeserVcard {
+
+    pub fn adr(&self) -> &Vec<String> {
+        &self.adr
+    }
+
+    pub fn anniversary(&self) -> Option<&String> {
+        self.anniversary.as_ref()
+    }
+
+    pub fn bday(&self) -> Option<&String> {
+        self.bday.as_ref()
+    }
+
+    pub fn categories(&self) -> &Vec<String> {
+        &self.categories
+    }
+
+    pub fn clientpidmap(&self) -> Option<&String> {
+        self.clientpidmap.as_ref()
+    }
+
+    pub fn email(&self) -> &Vec<String> {
+        &self.email
+    }
+
+    pub fn fullname(&self) -> &Vec<String> {
+        &self.fullname
+    }
+
+    pub fn gender(&self) -> Option<&String> {
+        self.gender.as_ref()
+    }
+
+    pub fn geo(&self) -> &Vec<String> {
+        &self.geo
+    }
+
+    pub fn impp(&self) -> &Vec<String> {
+        &self.impp
+    }
+
+    pub fn key(&self) -> &Vec<String> {
+        &self.key
+    }
+
+    pub fn lang(&self) -> &Vec<String> {
+        &self.lang
+    }
+
+    pub fn logo(&self) -> &Vec<String> {
+        &self.logo
+    }
+
+    pub fn member(&self) -> &Vec<String> {
+        &self.member
+    }
+
+    pub fn name(&self) -> Option<&String> {
+        self.name.as_ref()
+    }
+
+    pub fn nickname(&self) -> &Vec<String> {
+        &self.nickname
+    }
+
+    pub fn note(&self) -> &Vec<String> {
+        &self.note
+    }
+
+    pub fn org(&self) -> &Vec<String> {
+        &self.org
+    }
+
+    pub fn photo(&self) -> &Vec<String> {
+        &self.photo
+    }
+
+    pub fn proid(&self) -> Option<&String> {
+        self.proid.as_ref()
+    }
+
+    pub fn related(&self) -> &Vec<String> {
+        &self.related
+    }
+
+    pub fn rev(&self) -> Option<&String> {
+        self.rev.as_ref()
+    }
+
+    pub fn role(&self) -> &Vec<String> {
+        &self.role
+    }
+
+    pub fn sound(&self) -> &Vec<String> {
+        &self.sound
+    }
+
+    pub fn tel(&self) -> &Vec<String> {
+        &self.tel
+    }
+
+    pub fn title(&self) -> &Vec<String> {
+        &self.title
+    }
+
+    pub fn tz(&self) -> &Vec<String> {
+        &self.tz
+    }
+
+    pub fn uid(&self) -> Option<&String> {
+        self.uid.as_ref()
+    }
+
+    pub fn url(&self) -> &Vec<String> {
+        &self.url
+    }
+
+    pub fn version(&self) -> Option<&String> {
+        self.version.as_ref()
+    }
+
 }
 
