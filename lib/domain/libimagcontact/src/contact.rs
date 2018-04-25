@@ -17,16 +17,18 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use std::ops::Deref;
-
-use vobject::Component;
+use toml::to_string as toml_to_string;
+use toml::from_str as toml_from_str;
+use toml_query::read::TomlValueReadExt;
 
 use libimagstore::store::Entry;
 use libimagentryutil::isa::Is;
 use libimagentryutil::isa::IsKindHeaderPathProvider;
 
+use deser::DeserVcard;
 use error::Result;
-use util;
+use error::ContactError as CE;
+use error::ContactErrorKind as CEK;
 
 /// Trait to be implemented on ::libimagstore::store::Entry
 pub trait Contact {
@@ -35,7 +37,7 @@ pub trait Contact {
 
     // getting data
 
-    fn get_contact_data(&self) -> Result<ContactData>;
+    fn deser(&self) -> Result<DeserVcard>;
 
     // More convenience functionality may follow
 
@@ -49,28 +51,18 @@ impl Contact for Entry {
         self.is::<IsContact>().map_err(From::from)
     }
 
-    fn get_contact_data(&self) -> Result<ContactData> {
-        unimplemented!()
+    fn deser(&self) -> Result<DeserVcard> {
+        let data = self
+            .get_header()
+            .read("contact.data")?
+            .ok_or_else(|| CE::from_kind(CEK::HeaderDataMissing("contact.data")))?;
+
+        // ugly hack
+        let data_str            = toml_to_string(&data)?;
+        let deser : DeserVcard  = toml_from_str(&data_str)?;
+
+        Ok(deser)
     }
 
 }
-
-pub struct ContactData(Component);
-
-impl ContactData {
-
-    pub fn into_inner(self) -> Component {
-        self.0
-    }
-
-}
-
-impl Deref for ContactData {
-    type Target = Component;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
 

@@ -20,13 +20,7 @@
 use vobject::vcard::Vcard;
 
 /// A type which can be build from a Vcard and be serialized.
-///
-/// # Details
-///
-/// Deserializing is not supported by libimagcontact yet
-/// Elements which are "empty" (as in empty list) or optional and not present are not serialized.
-///
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DeserVcard {
 
     #[serde(skip_serializing_if = "Vec::is_empty")]

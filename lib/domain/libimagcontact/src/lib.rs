@@ -33,12 +33,16 @@
     while_true,
 )]
 
+#![recursion_limit="128"]
+
 #[macro_use] extern crate log;
 #[macro_use] extern crate error_chain;
 extern crate vobject;
 extern crate toml;
 extern crate toml_query;
 extern crate uuid;
+extern crate serde;
+#[macro_use] extern crate serde_derive;
 
 #[macro_use] extern crate libimagstore;
 extern crate libimagerror;
@@ -50,15 +54,6 @@ pub mod contact;
 pub mod error;
 pub mod iter;
 pub mod store;
-mod util;
-
-
-#[cfg(feature = "serde")]
-extern crate serde;
-
-#[cfg(feature = "serde")]
-#[macro_use] extern crate serde_derive;
-
-#[cfg(feature = "deser")]
 pub mod deser;
+mod util;
 

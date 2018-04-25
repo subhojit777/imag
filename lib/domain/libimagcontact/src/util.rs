@@ -24,8 +24,6 @@ use std::io::Read;
 
 use error::Result;
 
-use vobject::Component;
-
 pub fn read_to_string<A: AsRef<Path> + Debug>(pb: A) -> Result<String> {
     let mut cont = String::new();
 
@@ -35,11 +33,5 @@ pub fn read_to_string<A: AsRef<Path> + Debug>(pb: A) -> Result<String> {
     debug!("Read {} bytes from {:?}", bytes, pb);
 
     Ok(cont)
-}
-
-/// Helper for chaining results nicely
-pub fn parse(buf: String) -> Result<Component> {
-    use vobject::parse_component;
-    parse_component(&buf).map_err(From::from)
 }
 
