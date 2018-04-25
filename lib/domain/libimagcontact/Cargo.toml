@@ -33,12 +33,6 @@ libimagstore     = { version = "0.8.0", path = "../../../lib/core/libimagstore" 
 libimagerror     = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
 libimagentryutil  = { version = "0.8.0", path = "../../../lib/entry/libimagentryutil/" }
 
-[dependencies.libimagentryref]
-version          = "0.8.0"
-path             = "../../../lib/entry/libimagentryref/"
-default-features = false
-features         = ["generators", "generators-sha1"]
-
 [features]
 default = []
 deser   = ["serde", "serde_derive"]

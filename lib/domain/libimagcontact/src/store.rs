@@ -26,8 +26,6 @@ use vobject::parse_component;
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreIdIterator;
-use libimagentryref::refstore::RefStore;
-use libimagentryref::refstore::UniqueRefPathGenerator;
 use libimagentryutil::isa::Is;
 
 use contact::IsContact;
@@ -36,45 +34,14 @@ use error::ContactErrorKind as CEK;
 use error::Result;
 use util;
 
-pub struct UniqueContactPathGenerator;
-impl UniqueRefPathGenerator for UniqueContactPathGenerator {
-    type Error = CE;
-
-    /// The collection the `StoreId` should be created for
-    fn collection() -> &'static str {
-        "contact"
-    }
-
-    /// A function which should generate a unique string for a Path
-    fn unique_hash<A: AsRef<Path>>(path: A) -> RResult<String, Self::Error> {
-        use vobject::vcard::Vcard;
-
-        debug!("Generating unique hash for path: {:?}", path.as_ref());
-        util::read_to_string(path.as_ref())
-            .and_then(|s| Vcard::build(&s).map_err(CE::from))
-            .and_then(|card| {
-                card.uid()
-                    .map(|u| u.raw().clone())
-                    .ok_or_else(|| {
-                        let s = path.as_ref().to_str().unwrap_or("Unknown path");
-                        CEK::UidMissing(String::from(s)).into()
-                    })
-            })
-    }
-
-}
-
-pub trait ContactStore<'a> : RefStore<'a> {
+pub trait ContactStore<'a> {
 
     // creating
 
     fn create_from_path(&'a self, p: &PathBuf) -> Result<FileLockEntry<'a>>;
 
     /// Create contact ref from buffer
-    ///
-    /// Needs the `p` argument as we're finally creating a reference by path, the buffer is only for
-    /// collecting metadata.
-    fn create_from_buf<P: AsRef<Path>>(&'a self, p: P, buf: &String) -> Result<FileLockEntry<'a>>;
+    fn create_from_buf(&'a self, buf: &String) -> Result<FileLockEntry<'a>>;
 
     // getting
 
@@ -82,30 +49,18 @@ pub trait ContactStore<'a> : RefStore<'a> {
 }
 
 /// The extension for the Store to work with contacts
-///
-/// The contact functionality is implemented by using the `libimagentryref` library, so basically
-/// we only reference vcard files from outside the store.
-///
-/// Because of this, we do not have an own store collection `/contacts` or something like that, but
-/// must stress the `libimagentryref` API for everything.
 impl<'a> ContactStore<'a> for Store {
 
     fn create_from_path(&'a self, p: &PathBuf) -> Result<FileLockEntry<'a>> {
-        util::read_to_string(p).and_then(|buf| self.create_from_buf(p, &buf))
+        util::read_to_string(p).and_then(|buf| self.create_from_buf(&buf))
     }
 
     /// Create contact ref from buffer
-    fn create_from_buf<P: AsRef<Path>>(&'a self, p: P, buf: &String) -> Result<FileLockEntry<'a>> {
+    fn create_from_buf(&'a self, buf: &String) -> Result<FileLockEntry<'a>> {
         let component = parse_component(&buf)?;
         debug!("Parsed: {:?}", component);
 
-        RefStore::create_ref::<UniqueContactPathGenerator, P>(self, p)
-            .map_err(From::from)
-            .and_then(|mut entry| {
-                entry.set_isflag::<IsContact>()
-                    .map_err(From::from)
-                    .map(|_| entry)
-            })
+        unimplemented!()
     }
 
     fn all_contacts(&'a self) -> Result<StoreIdIterator> {

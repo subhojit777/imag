@@ -29,13 +29,6 @@ use error::Result;
 pub struct ContactIter<'a>(StoreIdIterator, &'a Store);
 
 /// Iterator over contacts
-///
-/// As the libimagcontact works with libimagentryref in the backend, we must hold a reference to the
-/// Store here as well, so we can check whether a fetched StoreId actually points to a contact
-/// reference or not.
-///
-/// So, the Iterator `Store::get()`s the object pointed to by the StoreId and returns it if
-/// everything worked.
 impl<'a> ContactIter<'a> {
 
     pub fn new(sii: StoreIdIterator, store: &'a Store) -> ContactIter<'a> {

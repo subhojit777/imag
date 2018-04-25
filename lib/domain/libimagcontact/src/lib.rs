@@ -42,7 +42,6 @@ extern crate uuid;
 
 #[macro_use] extern crate libimagstore;
 extern crate libimagerror;
-extern crate libimagentryref;
 #[macro_use] extern crate libimagentryutil;
 
 module_entry_path_mod!("contact");

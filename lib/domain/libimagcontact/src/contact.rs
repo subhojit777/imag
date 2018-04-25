@@ -22,7 +22,6 @@ use std::ops::Deref;
 use vobject::Component;
 
 use libimagstore::store::Entry;
-use libimagentryref::reference::Ref;
 use libimagentryutil::isa::Is;
 use libimagentryutil::isa::IsKindHeaderPathProvider;
 
@@ -30,9 +29,7 @@ use error::Result;
 use util;
 
 /// Trait to be implemented on ::libimagstore::store::Entry
-///
-/// Based on the functionality from libimagentryref, for fetching the Ical data from disk
-pub trait Contact : Ref {
+pub trait Contact {
 
     fn is_contact(&self) -> Result<bool>;
 
@@ -53,13 +50,7 @@ impl Contact for Entry {
     }
 
     fn get_contact_data(&self) -> Result<ContactData> {
-        let component = self
-            .get_path()
-            .map_err(From::from)
-            .and_then(util::read_to_string)
-            .and_then(util::parse)?;
-
-        Ok(ContactData(component))
+        unimplemented!()
     }
 
 }
