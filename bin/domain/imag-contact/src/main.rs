@@ -48,7 +48,6 @@ extern crate libimagstore;
 extern crate libimagerror;
 extern crate libimagutil;
 extern crate libimaginteraction;
-extern crate libimagentryref;
 extern crate libimagentryedit;
 
 use std::process::exit;
@@ -57,7 +56,6 @@ use std::io::Write;
 
 use handlebars::Handlebars;
 use clap::ArgMatches;
-use vobject::vcard::Vcard;
 use toml_query::read::TomlValueReadTypeExt;
 use walkdir::WalkDir;
 
@@ -67,14 +65,12 @@ use libimagerror::str::ErrFromStr;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::io::ToExitCode;
 use libimagerror::exit::ExitUnwrap;
+use libimagerror::iter::TraceIterator;
 use libimagcontact::store::ContactStore;
-use libimagcontact::store::UniqueContactPathGenerator;
 use libimagcontact::error::ContactError as CE;
 use libimagcontact::contact::Contact;
 use libimagcontact::deser::DeserVcard;
 use libimagstore::iter::get::StoreIdGetIteratorExtension;
-use libimagentryref::reference::Ref;
-use libimagentryref::refstore::RefStore;
 
 mod ui;
 mod util;
@@ -128,24 +124,13 @@ fn list(rt: &Runtime) {
                 .ok_or_else(|| CE::from("StoreId not found".to_owned()))
                 .map_err_trace_exit_unwrap(1);
 
-            fle
-                .get_contact_data()
-                .map(|cd| (fle, cd))
-                .map(|(fle, cd)| (fle, cd.into_inner()))
-                .map(|(fle, cd)| {
-                    let card = Vcard::from_component(cd).unwrap_or_else(|e| {
-                        error!("Element is not a VCARD object: {:?}", e);
-                        exit(1)
-                    });
-                    (fle, card)
-                })
-                .map_err_trace_exit_unwrap(1)
+            fle.deser().map_err_trace_exit_unwrap(1)
         })
         .enumerate();
 
     if scmd.is_present("json") {
-        let v : Vec<DeserVcard> = iterator
-            .map(|(_, (_, vcard))| DeserVcard::from(vcard)).collect();
+        let v : Vec<DeserVcard> = iterator.map(|tpl| tpl.1).collect();
+
         match ::serde_json::to_string(&v) {
             Ok(s) => writeln!(rt.stdout(), "{}", s).to_exit_code().unwrap_or_exit(),
             Err(e) => {
@@ -155,9 +140,8 @@ fn list(rt: &Runtime) {
         }
     } else {
         iterator
-            .map(|(i, (fle, vcard))| {
-                let hash = String::from(fle.get_hash().map_err_trace_exit_unwrap(1));
-                let data = build_data_object_for_handlebars(i, hash, &vcard);
+            .map(|(i, deservcard)| {
+                let data = build_data_object_for_handlebars(i, &deservcard);
 
                 list_format.render("format", &data)
                     .err_from_str()
@@ -217,32 +201,47 @@ fn import(rt: &Runtime) {
 }
 
 fn show(rt: &Runtime) {
-    let scmd = rt.cli().subcommand_matches("show").unwrap();
-    let hash = scmd.value_of("hash").map(String::from).unwrap(); // safed by clap
-
-    let contact_data = rt.store()
-        .get_ref::<UniqueContactPathGenerator, _>(hash.clone())
-        .map_err_trace_exit_unwrap(1)
-        .ok_or(CE::from(format!("No entry for hash {}", hash)))
-        .map_err_trace_exit_unwrap(1)
-        .get_contact_data()
-        .map_err_trace_exit_unwrap(1)
-        .into_inner();
-    let vcard = Vcard::from_component(contact_data)
-        .unwrap_or_else(|e| {
-            error!("Element is not a VCARD object: {:?}", e);
-            exit(1)
-        });
-
+    let scmd        = rt.cli().subcommand_matches("show").unwrap();
+    let hash        = scmd.value_of("hash").map(String::from).unwrap(); // safed by clap
     let show_format = get_contact_print_format("contact.show_format", rt, &scmd);
-    let data = build_data_object_for_handlebars(0, hash, &vcard);
+    let out         = rt.stdout();
+    let mut outlock = out.lock();
 
-    let s = show_format
-        .render("format", &data)
-        .err_from_str()
-        .map_err(CE::from)
-        .map_err_trace_exit_unwrap(1);
-    let _ = writeln!(::std::io::stdout(), "{}", s).to_exit_code().unwrap_or_exit();
+    rt.store()
+        .all_contacts()
+        .map_err_trace_exit_unwrap(1)
+        .into_get_iter(rt.store())
+        .trace_unwrap_exit(1)
+        .map(|o| o.unwrap_or_else(|| {
+            error!("Failed to get entry");
+            exit(1)
+        }))
+        .filter_map(|entry| {
+            let deser = entry.deser().map_err_trace_exit_unwrap(1);
+
+            if deser.uid()
+                .ok_or_else(|| {
+                    error!("Could not get StoreId from Store::all_contacts(). This is a BUG!");
+                    ::std::process::exit(1)
+                })
+                .unwrap() // exited above
+                .starts_with(&hash)
+            {
+                Some(deser)
+            } else {
+                None
+            }
+        })
+        .for_each(|elem| {
+            let data = build_data_object_for_handlebars(0, &elem);
+
+            let s = show_format
+                .render("format", &data)
+                .err_from_str()
+                .map_err(CE::from)
+                .map_err_trace_exit_unwrap(1);
+            let _ = writeln!(outlock, "{}", s).to_exit_code().unwrap_or_exit();
+        });
 }
 
 fn find(rt: &Runtime) {
@@ -270,30 +269,20 @@ fn find(rt: &Runtime) {
                 })
                 .unwrap() // safed above
         })
-        .filter_map(|cont| {
-            let comp = cont
-                .get_contact_data()
-                .map_err_trace_exit_unwrap(1)
-                .into_inner();
-
-            let card = Vcard::from_component(comp)
-                .map_err(|_| {
-                    error!("Could not build Vcard from {:?}", cont.get_location());
-                    ::std::process::exit(1)
-                })
-                .unwrap(); // safed above
+        .filter_map(|entry| {
+            let card = entry.deser().map_err_trace_exit_unwrap(1);
 
             let str_contains_any = |s: &String, v: &Vec<String>| {
                 v.iter().any(|i| s.contains(i))
             };
 
-            let take = card.adr().iter().any(|a| str_contains_any(a.raw(), &grepstring))
-                || card.email().iter().any(|a| str_contains_any(a.raw(), &grepstring))
-                || card.fullname().iter().any(|a| str_contains_any(a.raw(), &grepstring));
+            let take = card.adr().iter().any(|a| str_contains_any(a, &grepstring))
+                || card.email().iter().any(|a| str_contains_any(a, &grepstring))
+                || card.fullname().iter().any(|a| str_contains_any(a, &grepstring));
 
             if take {
                 // optimization so we don't have to parse again in the next step
-                Some((cont, card))
+                Some((entry, card))
             } else {
                 None
             }
@@ -301,8 +290,8 @@ fn find(rt: &Runtime) {
         .enumerate();
 
     if scmd.is_present("json") {
-        let v : Vec<DeserVcard> = iterator
-            .map(|(_, (_, vcard))| DeserVcard::from(vcard)).collect();
+        let v : Vec<DeserVcard> = iterator.map(|(_, tlp)| tlp.1).collect();
+
         match ::serde_json::to_string(&v) {
             Ok(s) => writeln!(rt.stdout(), "{}", s).to_exit_code().unwrap_or_exit(),
             Err(e) => {
@@ -312,22 +301,22 @@ fn find(rt: &Runtime) {
         }
     } else if scmd.is_present("find-id") {
         iterator
-        .for_each(|(_i, (fle, _card))| {
-            writeln!(rt.stdout(), "{}", fle.get_location())
+        .for_each(|(_i, (entry, _))| {
+            writeln!(rt.stdout(), "{}", entry.get_location())
                 .to_exit_code()
                 .unwrap_or_exit();
         })
     } else if scmd.is_present("find-full-id") {
         let storepath = rt.store().path().display();
         iterator
-        .for_each(|(_i, (fle, _card))| {
-            writeln!(rt.stdout(), "{}/{}", storepath, fle.get_location())
+        .for_each(|(_i, (entry, _))| {
+            writeln!(rt.stdout(), "{}/{}", storepath, entry.get_location())
                 .to_exit_code()
                 .unwrap_or_exit();
         })
     } else {
         iterator
-        .for_each(|(i, (fle, card))| {
+        .for_each(|(i, (_, card))| {
             let fmt = if scmd.is_present("find-show") {
                 &show_format
             } else if scmd.is_present("find-list") {
@@ -336,8 +325,7 @@ fn find(rt: &Runtime) {
                 &list_format
             };
 
-            let hash = fle.get_hash().map(String::from).map_err_trace_exit_unwrap(1);
-            let data = build_data_object_for_handlebars(i, hash, &card);
+            let data = build_data_object_for_handlebars(i, &card);
             let s = fmt
                 .render("format", &data)
                 .err_from_str()

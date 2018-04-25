@@ -18,105 +18,58 @@
 //
 
 use std::collections::BTreeMap;
-use vobject::vcard::Vcard;
 
-pub fn build_data_object_for_handlebars<'a>(i: usize, hash: String, vcard: &Vcard) -> BTreeMap<&'static str, String> {
+use libimagcontact::deser::DeserVcard;
+
+pub fn build_data_object_for_handlebars<'a>(i: usize, vcard: &DeserVcard) -> BTreeMap<&'static str, String> {
     let mut data = BTreeMap::new();
+
+    let process_list = |list: &Vec<String>| {
+        list.iter()
+            .map(String::clone)
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+
+    let process_opt  = |opt: Option<&String>| {
+        opt.map(String::clone).unwrap_or_else(String::new)
+    };
+
     {
         data.insert("i"            , format!("{}", i));
 
         // The hash (as in libimagentryref) of the contact
-        data.insert("id"           , hash);
-
-        data.insert("ADR"          , vcard.adr()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("ANNIVERSARY"  , vcard.anniversary()
-                .map(|c| c.raw().clone()).unwrap_or(String::new()));
-
-        data.insert("BDAY"         , vcard.bday()
-                    .map(|c| c.raw().clone()).unwrap_or(String::new()));
-
-        data.insert("CATEGORIES"   , vcard.categories()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("CLIENTPIDMAP" , vcard.clientpidmap()
-                    .map(|c| c.raw().clone()).unwrap_or(String::new()));
-
-        data.insert("EMAIL"        , vcard.email()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("FN"           , vcard.fullname()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("GENDER"       , vcard.gender()
-                    .map(|c| c.raw().clone()).unwrap_or(String::new()));
-
-        data.insert("GEO"          , vcard.geo()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("IMPP"         , vcard.impp()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("KEY"          , vcard.key()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("LANG"         , vcard.lang()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("LOGO"         , vcard.logo()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("MEMBER"       , vcard.member()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("N"            , vcard.name()
-                    .map(|c| c.raw().clone()).unwrap_or(String::new()));
-
-        data.insert("NICKNAME"     , vcard.nickname()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("NOTE"         , vcard.note()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("ORG"          , vcard.org()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("PHOTO"        , vcard.photo()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("PRIOD"        , vcard.proid()
-                    .map(|c| c.raw().clone()).unwrap_or(String::new()));
-
-        data.insert("RELATED"      , vcard.related()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("REV"          , vcard.rev()
-                    .map(|c| c.raw().clone()).unwrap_or(String::new()));
-
-        data.insert("ROLE"         , vcard.role()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("SOUND"        , vcard.sound()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("TEL"          , vcard.tel()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("TITLE"        , vcard.title()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("TZ"           , vcard.tz()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("UID"          , vcard.uid()
-                    .map(|c| c.raw().clone()).unwrap_or(String::new()));
-
-        data.insert("URL"          , vcard.url()
-                    .into_iter().map(|c| c.raw().clone()).collect::<Vec<_>>().join(", "));
-
-        data.insert("VERSION"      , vcard.version()
-                    .map(|c| c.raw().clone()).unwrap_or(String::new()));
+        data.insert("id"           , process_opt(vcard.uid()));
+        data.insert("ADR"          , process_list(vcard.adr()));
+        data.insert("ANNIVERSARY"  , process_opt(vcard.anniversary()));
+        data.insert("BDAY"         , process_opt(vcard.bday()));
+        data.insert("CATEGORIES"   , process_list(vcard.categories()));
+        data.insert("CLIENTPIDMAP" , process_opt(vcard.clientpidmap()));
+        data.insert("EMAIL"        , process_list(vcard.email()));
+        data.insert("FN"           , process_list(vcard.fullname()));
+        data.insert("GENDER"       , process_opt(vcard.gender()));
+        data.insert("GEO"          , process_list(vcard.geo()));
+        data.insert("IMPP"         , process_list(vcard.impp()));
+        data.insert("KEY"          , process_list(vcard.key()));
+        data.insert("LANG"         , process_list(vcard.lang()));
+        data.insert("LOGO"         , process_list(vcard.logo()));
+        data.insert("MEMBER"       , process_list(vcard.member()));
+        data.insert("N"            , process_opt(vcard.name()));
+        data.insert("NICKNAME"     , process_list(vcard.nickname()));
+        data.insert("NOTE"         , process_list(vcard.note()));
+        data.insert("ORG"          , process_list(vcard.org()));
+        data.insert("PHOTO"        , process_list(vcard.photo()));
+        data.insert("PRIOD"        , process_opt(vcard.proid()));
+        data.insert("RELATED"      , process_list(vcard.related()));
+        data.insert("REV"          , process_opt(vcard.rev()));
+        data.insert("ROLE"         , process_list(vcard.role()));
+        data.insert("SOUND"        , process_list(vcard.sound()));
+        data.insert("TEL"          , process_list(vcard.tel()));
+        data.insert("TITLE"        , process_list(vcard.title()));
+        data.insert("TZ"           , process_list(vcard.tz()));
+        data.insert("UID"          , process_opt(vcard.uid()));
+        data.insert("URL"          , process_list(vcard.url()));
+        data.insert("VERSION"      , process_opt(vcard.version()));
     }
 
     data
