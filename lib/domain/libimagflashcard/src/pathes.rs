@@ -22,6 +22,7 @@ use std::path::PathBuf;
 use chrono::NaiveDateTime;
 
 use libimagutil::date::datetime_to_string;
+use libimagstore::storeid::StoreId;
 
 use error::Result;
 
@@ -37,5 +38,43 @@ pub fn mk_session_path(groupname: &String, datetime: &NaiveDateTime) -> PathBuf 
 pub fn mk_card_path(groupname: &String, question: &String) -> Result<PathBuf> {
     // let question = hashof(question); TODO: Hash me
     Ok(PathBuf::from(format!("groups/{group}/cards/{id}", group = groupname, id = question)))
+}
+
+
+pub trait IsGroupId {
+    fn is_group_id(&self) -> bool;
+}
+
+impl IsGroupId for StoreId {
+    fn is_group_id(&self) -> bool {
+        trace!("Checking whether '{}' is a group id", self);
+        self.is_in_collection(&["groups"]) && self.local().ends_with("group")
+    }
+}
+
+
+pub trait IsSessionId {
+    fn is_session_id(&self) -> bool;
+}
+
+impl IsSessionId for StoreId {
+    fn is_session_id(&self) -> bool {
+        trace!("Checking whether '{}' is a session id", self);
+        self.is_in_collection(&["sessions"])
+    }
+}
+
+
+pub trait IsCardId {
+    fn is_card_id(&self) -> bool;
+}
+
+impl IsCardId for StoreId {
+    fn is_card_id(&self) -> bool {
+        trace!("Checking whether '{}' is a card id", self);
+
+        self.is_in_collection(&["groups"]) &&
+            self.local().to_str().map(|s| s.contains("cards")).unwrap_or(false)
+    }
 }
 
