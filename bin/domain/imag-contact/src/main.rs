@@ -178,6 +178,11 @@ fn import(rt: &Runtime) {
     let scmd = rt.cli().subcommand_matches("import").unwrap(); // secured by main
     let path = scmd.value_of("path").map(PathBuf::from).unwrap(); // secured by clap
 
+    if !path.is_absolute() {
+        error!("Import path must be absolute. Sorry.");
+        exit(1)
+    }
+
     if !path.exists() {
         error!("Path does not exist");
         exit(1)
