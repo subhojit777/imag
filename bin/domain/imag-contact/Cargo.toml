@@ -38,12 +38,7 @@ libimagutil        = { version = "0.8.0", path = "../../../lib/etc/libimagutil" 
 libimagentryref    = { version = "0.8.0", path = "../../../lib/entry/libimagentryref" }
 libimagentryedit   = { version = "0.8.0", path = "../../../lib/entry/libimagentryedit" }
 libimaginteraction = { version = "0.8.0", path = "../../../lib/etc/libimaginteraction" }
-
-[dependencies.libimagcontact]
-version          = "0.8.0"
-path             = "../../../lib/domain/libimagcontact"
-default-features = false
-features         = ["deser"]
+libimagcontact     = { version = "0.8.0", path = "../../../lib/domain/libimagcontact" }
 
 [dependencies.clap]
 version = "^2.29"
