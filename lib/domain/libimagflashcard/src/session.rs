@@ -26,6 +26,7 @@ use libimagentryutil::isa::Is;
 use libimagentryutil::isa::IsKindHeaderPathProvider;
 use libimagutil::date::datetime_to_string;
 use libimagutil::date::datetime_from_string;
+use libimagentrylink::internal::InternalLinker;
 
 provide_kindflag_path!(pub IsSession, "flashcard.is_session");
 
@@ -57,7 +58,7 @@ pub trait Session {
     fn started_at(&self) -> Result<Option<NaiveDateTime>>;
     fn ended_at(&self)   -> Result<Option<NaiveDateTime>>;
 
-    fn answer(&mut self, card: &Card, answer: &str) -> Result<bool>;
+    fn answer<'a>(&mut self, card: &mut FileLockEntry<'a>, answer: &str) -> Result<bool>;
 
     /// Get the group this session was created for.
     fn group<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
@@ -98,12 +99,42 @@ impl Session for Entry {
         }
     }
 
-    fn answer(&mut self, card: &Card, answer: &str) -> Result<bool> {
-        unimplemented!()
-    }
+    fn answer<'a>(&mut self, card: &mut FileLockEntry<'a>, answer: &str) -> Result<bool> {
+        let question          = card.question()?;
+        let is_correct        = card.answers()?.iter().any(|valid| valid == answer);
 
-    fn group<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>> {
-        unimplemented!()
+        debug!("Answer '{}' for question '{}' is correct = {}", answer, question, is_correct);
+
+        let _                 = self.add_internal_link(card)?;
+        let correct_path_elem = if is_correct { "succeeded" } else { "failed" };
+        let storeid           = card.get_location().clone().without_base().to_str()?;
+        let header_path       = format!("flashcard.session.{}.{}", storeid, correct_path_elem);
+
+        trace!("Reading header at '{}'", header_path);
+
+        match self.get_header_mut().read_mut(&header_path)? {
+            Some(&mut Value::Integer(ref mut i)) => {
+                trace!("Inserting +1 for existing table for '{}'", storeid);
+                *i += 1;
+                return Ok(is_correct);
+            },
+            Some(_) => return Err(unimplemented!()),
+            None => {
+                // going on...
+            }
+        }
+
+        {
+            trace!("Creating new table for '{}'", storeid);
+            let mut init_tab = BTreeMap::new();
+
+            init_tab.insert("succeeded".to_string(), Value::Integer(if is_correct { 1 } else { 0 }));
+            init_tab.insert("failed".to_string(),    Value::Integer(if is_correct { 0 } else { 1 }));
+
+            self.get_header_mut().insert(&header_path, Value::Table(init_tab));
+        }
+
+        Ok(is_correct)
     }
 }
 
