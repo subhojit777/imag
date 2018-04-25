@@ -24,93 +24,123 @@ use vobject::vcard::Vcard;
 pub struct DeserVcard {
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     adr          : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     anniversary  : Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     bday         : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     categories   : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     clientpidmap : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     email        : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     fullname     : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     gender       : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     geo          : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     impp         : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     key          : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     lang         : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     logo         : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     member       : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     name         : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     nickname     : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     note         : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     org          : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     photo        : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     proid        : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     related      : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     rev          : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     role         : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     sound        : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     tel          : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     title        : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     tz           : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     uid          : Option<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
     url          : Vec<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     version      : Option<String>
 }
 
