@@ -60,8 +60,7 @@ pub trait Session {
 
     fn answer<'a>(&mut self, card: &mut FileLockEntry<'a>, answer: &str) -> Result<bool>;
 
-    /// Get the group this session was created for.
-    fn group<'a>(&self, store: &'a Store) -> Result<FileLockEntry<'a>>;
+    fn group_name(&self) -> Result<Option<String>>;
 }
 
 impl Session for Entry {
@@ -135,6 +134,12 @@ impl Session for Entry {
         }
 
         Ok(is_correct)
+    }
+
+    /// Get the name of the group this session was created for.
+    fn group_name(&self) -> Result<Option<String>> {
+        use toml_query::read::TomlValueReadTypeExt;
+        self.get_header().read_string("flashcard.group.name").map_err(FE::from)
     }
 }
 
