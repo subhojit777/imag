@@ -17,6 +17,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::collections::BTreeMap;
+
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::FileLockEntry;
 use libimagstore::store::Store;
@@ -37,6 +39,7 @@ use toml_query::insert::TomlValueInsertExt;
 use toml_query::read::TomlValueReadExt;
 
 use error::Result;
+use error::FlashcardError as FE;
 use error::FlashcardErrorKind as FCEK;
 use card::Card;
 use store::CardStore;
