@@ -43,6 +43,16 @@ error_chain! {
             description("Header field missing")
                 display("Header field missing: '{}'", name)
         }
+
+        GroupNameMissing {
+            description("Group name missing")
+                display("Group name missing")
+        }
+
+        GroupNotFound(name: String) {
+            description("Group missing")
+                display("Group missing: {}", name)
+        }
     }
 }
 
