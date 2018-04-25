@@ -68,6 +68,8 @@ pub trait Session {
 
     fn group_name(&self) -> Result<Option<String>>;
     fn learn(&self, store: &Store) -> Result<Learn>;
+
+    fn stats(&self) -> Result<Stats>;
 }
 
 impl Session for Entry {
@@ -202,6 +204,10 @@ impl Session for Entry {
         let learn = Learn::new(vec);
         debug!("Returning 'Learn' object: {:?}", learn);
         Ok(learn)
+    }
+
+    fn stats(&self) -> Result<Stats> {
+        unimplemented!()
     }
 }
 
