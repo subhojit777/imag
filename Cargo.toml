@@ -2,6 +2,7 @@
 members = [
     "bin/core/imag",
     "bin/core/imag-annotate",
+    "bin/core/imag-category",
     "bin/core/imag-diagnostics",
     "bin/core/imag-edit",
     "bin/core/imag-git",
