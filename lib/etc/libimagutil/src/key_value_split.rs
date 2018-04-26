@@ -33,7 +33,7 @@ pub struct KeyValue<K, V> {
 impl<K, V> KeyValue<K, V> {
 
     pub fn new(k: K, v: V) -> KeyValue<K, V> {
-        KeyValue { k: k, v: v }
+        KeyValue { k, v }
     }
 
     pub fn key(&self) -> &K {
@@ -75,7 +75,12 @@ impl IntoKeyValue<String, String> for String {
                     .unwrap();
             }
             R.captures(&self[..])
-                .map(|c| c.name("VALUE").or(c.name("QVALUE")).map(|m| m.as_str()).unwrap_or(""))
+                .map(|c| {
+                    c.name("VALUE")
+                        .or_else(|| c.name("QVALUE"))
+                         .map(|m| m.as_str())
+                         .unwrap_or("")
+                })
         };
 
         key.and_then(|k| {

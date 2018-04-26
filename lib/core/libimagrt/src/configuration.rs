@@ -56,12 +56,12 @@ pub fn fetch_config(searchpath: &PathBuf) -> Result<Value> {
 
     vec![
         vec![searchpath.clone()],
-        gen_vars(searchpath.clone(), variants.clone(), &modifier),
+        gen_vars(searchpath, variants.clone(), &modifier),
 
-        env::var("HOME").map(|home| gen_vars(PathBuf::from(home), variants.clone(), &modifier))
+        env::var("HOME").map(|home| gen_vars(&PathBuf::from(home), variants.clone(), &modifier))
                         .unwrap_or(vec![]),
 
-        xdg_basedir::get_data_home().map(|data_dir| gen_vars(data_dir, variants.clone(), &modifier))
+        xdg_basedir::get_data_home().map(|data_dir| gen_vars(&data_dir, variants.clone(), &modifier))
                                     .unwrap_or(vec![]),
     ].iter()
         .flatten()

@@ -132,7 +132,7 @@ impl<'a> Runtime<'a> {
         let store_result = if cli_app.use_inmemory_fs() {
             Store::new_with_backend(storepath,
                                     &config,
-                                    Box::new(InMemoryFileAbstraction::new()))
+                                    Box::new(InMemoryFileAbstraction::default()))
         } else {
             Store::new(storepath, &config)
         };

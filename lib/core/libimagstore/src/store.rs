@@ -131,7 +131,7 @@ impl Iterator for Walk {
             }
         }
 
-        return None;
+        None
     }
 }
 
@@ -148,7 +148,7 @@ impl StoreEntry {
         }
 
         Ok(StoreEntry {
-            id: id,
+            id,
             file: backend.new_instance(pb),
             status: StoreEntryStatus::Present,
         })
@@ -235,7 +235,7 @@ impl Store {
     /// - On success: Store object
     ///
     pub fn new(location: PathBuf, store_config: &Option<Value>) -> Result<Store> {
-        let backend = Box::new(FSFileAbstraction::new());
+        let backend = Box::new(FSFileAbstraction::default());
         Store::new_with_backend(location, store_config, backend)
     }
 
@@ -758,10 +758,7 @@ impl<'a> FileLockEntry<'a, > {
     ///
     /// Only for internal use.
     fn new(store: &'a Store, entry: Entry) -> FileLockEntry<'a> {
-        FileLockEntry {
-            store: store,
-            entry: entry,
-        }
+        FileLockEntry { store, entry }
     }
 }
 
@@ -796,12 +793,9 @@ impl<'a> Drop for FileLockEntry<'a> {
     fn drop(&mut self) {
         use libimagerror::trace::trace_error_dbg;
         trace!("Dropping: {:?} - from FileLockEntry::drop()", self.get_location());
-        match self.store._update(self, true) {
-            Err(e) => {
-                trace_error_dbg(&e);
-                if_cfg_panic!("ERROR WHILE DROPPING: {:?}", e);
-            },
-            Ok(_) => { },
+        if let Err(e) = self.store._update(self, true) {
+            trace_error_dbg(&e);
+            if_cfg_panic!("ERROR WHILE DROPPING: {:?}", e);
         }
     }
 }
@@ -883,8 +877,8 @@ impl Entry {
 
         Ok(Entry {
             location: loc.into_storeid()?,
-            header: header,
-            content: content,
+            header,
+            content,
         })
     }
 
@@ -1010,13 +1004,13 @@ fn has_only_tables(t: &Value) -> Result<bool> {
 
 fn has_main_section(t: &Value) -> Result<bool> {
     t.read("imag")?
-        .ok_or(SE::from_kind(SEK::ConfigKeyMissingError("imag")))
+        .ok_or_else(|| SE::from_kind(SEK::ConfigKeyMissingError("imag")))
         .map(Value::is_table)
 }
 
 fn has_imag_version_in_main_section(t: &Value) -> Result<bool> {
     t.read_string("imag.version")?
-        .ok_or(SE::from_kind(SEK::ConfigKeyMissingError("imag.version")))
+        .ok_or_else(|| SE::from_kind(SEK::ConfigKeyMissingError("imag.version")))
         .map(String::from)
         .map(|s| ::semver::Version::parse(&s).is_ok())
 }
@@ -1182,7 +1176,7 @@ mod store_tests {
     use file_abstraction::InMemoryFileAbstraction;
 
     pub fn get_store() -> Store {
-        let backend = Box::new(InMemoryFileAbstraction::new());
+        let backend = Box::new(InMemoryFileAbstraction::default());
         Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
     }
 
@@ -1367,7 +1361,7 @@ mod store_tests {
         use file_abstraction::InMemoryFileAbstraction;
 
         let mut store = {
-            let backend = InMemoryFileAbstraction::new();
+            let backend = InMemoryFileAbstraction::default();
             let backend = Box::new(backend);
 
             Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
@@ -1383,7 +1377,7 @@ mod store_tests {
         }
 
         {
-            let other_backend = InMemoryFileAbstraction::new();
+            let other_backend = InMemoryFileAbstraction::default();
             let other_backend = Box::new(other_backend);
 
             assert!(store.reset_backend(other_backend).is_ok())

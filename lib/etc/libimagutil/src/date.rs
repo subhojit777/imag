@@ -21,7 +21,7 @@ use chrono::NaiveDate;
 use chrono::NaiveDateTime;
 use chrono::format::ParseError;
 
-pub const NAIVE_DATE_STRING_FORMAT : &'static str = "%Y-%m-%d";
+pub const NAIVE_DATE_STRING_FORMAT : &str = "%Y-%m-%d";
 
 pub fn date_to_string(ndt: &NaiveDate) -> String {
     ndt.format(NAIVE_DATE_STRING_FORMAT).to_string()
@@ -33,7 +33,7 @@ pub fn date_from_string<S>(s: S) -> Result<NaiveDate, ParseError>
     NaiveDate::parse_from_str(s.as_ref(), NAIVE_DATE_STRING_FORMAT)
 }
 
-pub const NAIVE_DATETIME_STRING_FORMAT : &'static str = "%Y-%m-%d %H:%M:%S";
+pub const NAIVE_DATETIME_STRING_FORMAT : &str = "%Y-%m-%d %H:%M:%S";
 
 pub fn datetime_to_string(ndt: &NaiveDateTime) -> String {
     ndt.format(NAIVE_DATETIME_STRING_FORMAT).to_string()

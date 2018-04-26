@@ -46,26 +46,22 @@ pub fn entry_buffer_to_header_content(buf: &str) -> Result<(Value, String)> {
     let mut content         = String::new();
     let mut header_consumed = false;
 
-    let mut iter = buf.split("\n").skip(1).peekable(); // the first line is "---"
+    let mut iter = buf.split('\n').skip(1).peekable(); // the first line is "---"
 
     while let Some(line) = iter.next() {
         if line == "---" && !header_consumed {
             header_consumed = true;
             // do not further process the line
+        } else if !header_consumed {
+            let _ = writeln!(header, "{}", line)?;
+        } else if iter.peek().is_some() {
+            let _ = writeln!(content, "{}", line)?;
         } else {
-            if !header_consumed {
-                let _ = writeln!(header, "{}", line)?;
-            } else {
-                if iter.peek().is_some() {
-                    let _ = writeln!(content, "{}", line)?;
-                } else {
-                    let _ = write!(content, "{}", line)?;
-                }
-            }
+            let _ = write!(content, "{}", line)?;
         }
     }
 
-    Ok((Value::parse(&header)?, String::from(content)))
+    Ok((Value::parse(&header)?, content))
 }
 
 #[cfg(test)]

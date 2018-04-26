@@ -44,7 +44,7 @@ pub mod err {
     impl ErrorNotification {
         pub fn new(trace: usize, timeout: i32) -> ErrorNotification {
             let notif = Notification {
-                timeout: timeout,
+                timeout,
                 message: String::new(), // Not used in this special case
                 summary: "[Error]".to_owned(),
                 urgency: Urgency::High,
@@ -62,7 +62,7 @@ pub mod err {
                 let mut n = RustNotification::new();
                 n.appname("imag");
                 n.summary("[Error]");
-                n.urgency(urgency.clone());
+                n.urgency(urgency);
                 n.body(e.description());
                 try!(n.finalize().show().map(|_| ()).chain_err(|| NEK::Unknown));
 

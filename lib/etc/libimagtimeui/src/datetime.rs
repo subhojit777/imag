@@ -31,10 +31,7 @@ pub struct DateTime {
 impl DateTime {
 
     pub fn new(date: Date, time: Time) -> DateTime {
-        DateTime {
-            date: date,
-            time: time
-        }
+        DateTime { date, time }
     }
 
     pub fn date(&self) -> &Date {

@@ -30,11 +30,7 @@ pub struct Date {
 impl Date {
 
     pub fn new(year: i32, month: u32, day: u32) -> Date {
-        Date {
-            year: year,
-            month: month,
-            day: day,
-        }
+        Date { year, month, day }
     }
 
     pub fn year(&self) -> i32 {

@@ -31,7 +31,7 @@ pub fn config_implicit_store_create_allowed(config: &Option<Value>) -> Result<bo
     let key = "store.implicit-create";
 
     if let Some(ref t) = *config {
-        t.read_bool(key)?.ok_or(SE::from_kind(SEK::ConfigKeyMissingError(key)))
+        t.read_bool(key)?.ok_or_else(|| SE::from_kind(SEK::ConfigKeyMissingError(key)))
     } else {
         Ok(false)
     }

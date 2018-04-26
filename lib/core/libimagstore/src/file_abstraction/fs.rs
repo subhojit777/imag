@@ -105,15 +105,8 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
 /// `FSFileAbstraction` state type
 ///
 /// A lazy file is either absent, but a path to it is available, or it is present.
-#[derive(Debug)]
-pub struct FSFileAbstraction {
-}
-
-impl FSFileAbstraction {
-    pub fn new() -> FSFileAbstraction {
-        FSFileAbstraction { }
-    }
-}
+#[derive(Debug, Default)]
+pub struct FSFileAbstraction {}
 
 impl FileAbstraction for FSFileAbstraction {
 

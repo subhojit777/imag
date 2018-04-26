@@ -104,7 +104,7 @@ mod test {
 
     #[test]
     fn lazy_file() {
-        let fs = InMemoryFileAbstraction::new();
+        let fs = InMemoryFileAbstraction::default();
 
         let mut path = PathBuf::from("tests");
         path.set_file_name("test1");
@@ -124,7 +124,7 @@ Hello World"#, env!("CARGO_PKG_VERSION"))).unwrap();
 
     #[test]
     fn lazy_file_multiline() {
-        let fs = InMemoryFileAbstraction::new();
+        let fs = InMemoryFileAbstraction::default();
 
         let mut path = PathBuf::from("tests");
         path.set_file_name("test1");
@@ -145,7 +145,7 @@ baz"#, env!("CARGO_PKG_VERSION"))).unwrap();
 
     #[test]
     fn lazy_file_multiline_trailing_newlines() {
-        let fs = InMemoryFileAbstraction::new();
+        let fs = InMemoryFileAbstraction::default();
 
         let mut path = PathBuf::from("tests");
         path.set_file_name("test1");
