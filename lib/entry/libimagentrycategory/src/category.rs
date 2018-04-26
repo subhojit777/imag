@@ -72,12 +72,15 @@ impl EntryCategory for Entry {
     ///
     /// This function should be used by default over EntryCategory::set_category()!
     fn set_category_checked(&mut self, register: &CategoryRegister, s: Category) -> Result<()> {
-        register.category_exists(&s.0)
-            .and_then(|bl| if bl {
-                self.set_category(s)
-            } else {
-                Err(CE::from_kind(CEK::CategoryDoesNotExist))
-            })
+        let c_str        = s.clone().into();
+        let mut category = register
+            .get_category_by_name(&c_str)?
+            .ok_or_else(|| CE::from_kind(CEK::CategoryDoesNotExist))?;
+
+        let _ = self.set_category(s)?;
+        let _ = self.add_internal_link(&mut category)?;
+
+        Ok(())
     }
 
     fn get_category(&self) -> Result<Option<Category>> {
