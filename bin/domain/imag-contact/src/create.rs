@@ -86,15 +86,19 @@ pub fn create(rt: &Runtime) {
     let scmd         = rt.cli().subcommand_matches("create").unwrap();
     let mut template = String::from(TEMPLATE);
 
-    let (mut dest, location) : (Box<Write>, Option<PathBuf>) = {
+    let (mut dest, location, uuid) : (Box<Write>, Option<PathBuf>, String) = {
         if let Some(mut fl) = scmd.value_of("file-location").map(PathBuf::from) {
-            if fl.is_file() {
+            let uuid = if fl.is_file() {
                 error!("File does exist, cannot create/override");
                 exit(1);
             } else if fl.is_dir() {
-                fl.push(Uuid::new_v4().hyphenated().to_string());
+                let uuid = Uuid::new_v4().hyphenated().to_string();
+                fl.push(uuid.clone());
                 info!("Creating file: {:?}", fl);
-            }
+                Some(uuid)
+            } else {
+                None
+            };
 
             debug!("Destination = {:?}", fl);
 
@@ -107,9 +111,22 @@ pub fn create(rt: &Runtime) {
                 .map_err(CE::from)
                 .map_err_trace_exit_unwrap(1);
 
-            (Box::new(file), Some(fl))
+            let uuid_string = uuid
+                .unwrap_or_else(|| {
+                    fl.file_name()
+                        .and_then(|fname| fname.to_str())
+                        .map(String::from)
+                        .unwrap_or_else(|| {
+                            error!("Cannot calculate UUID for vcard");
+                            exit(1)
+                        })
+                });
+
+            (Box::new(file), Some(fl), uuid_string)
         } else {
-            (Box::new(rt.stdout()), None)
+            // We generate a random uuid for stdout
+            let uuid = Uuid::new_v4().hyphenated().to_string();
+            (Box::new(rt.stdout()), None, uuid)
         }
     };
 
@@ -124,7 +141,7 @@ pub fn create(rt: &Runtime) {
         }
 
         match ::toml::de::from_str(&template)
-            .map(parse_toml_into_vcard)
+            .map(|toml| parse_toml_into_vcard(toml, uuid.clone()))
             .err_from_str()
             .map_err(CE::from)
         {
@@ -172,8 +189,8 @@ pub fn create(rt: &Runtime) {
     info!("Ready");
 }
 
-fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
-    let mut vcard = Vcard::default();
+fn parse_toml_into_vcard(toml: Value, uuid: String) -> Option<Vcard> {
+    let mut vcard = Vcard::default().with_uid(uuid);
 
     { // parse name
         debug!("Parsing name");
@@ -477,12 +494,14 @@ mod test_parsing {
 
     #[test]
     fn test_template_names() {
-        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        let uid = String::from("uid");
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap(), uid);
         assert!(vcard.is_some(), "Failed to parse test template.");
         let vcard = vcard.unwrap();
 
         assert!(vcard.name().is_some());
 
+        assert_eq!(vcard.uid().unwrap().raw(), "uid");
         assert_eq!(vcard.name().unwrap().surname().unwrap(), "test");
         assert_eq!(vcard.name().unwrap().given_name().unwrap(), "test");
         assert_eq!(vcard.name().unwrap().additional_names().unwrap(), "test");
@@ -492,7 +511,8 @@ mod test_parsing {
 
     #[test]
     fn test_template_person() {
-        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        let uid = String::from("uid");
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap(), uid);
         assert!(vcard.is_some(), "Failed to parse test template.");
         let vcard = vcard.unwrap();
 
@@ -509,7 +529,8 @@ mod test_parsing {
 
     #[test]
     fn test_template_organization() {
-        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        let uid = String::from("uid");
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap(), uid);
         assert!(vcard.is_some(), "Failed to parse test template.");
         let vcard = vcard.unwrap();
 
@@ -525,7 +546,8 @@ mod test_parsing {
 
     #[test]
     fn test_template_phone() {
-        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        let uid = String::from("uid");
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap(), uid);
         assert!(vcard.is_some(), "Failed to parse test template.");
         let vcard = vcard.unwrap();
 
@@ -539,7 +561,8 @@ mod test_parsing {
 
     #[test]
     fn test_template_email() {
-        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        let uid = String::from("uid");
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap(), uid);
         assert!(vcard.is_some(), "Failed to parse test template.");
         let vcard = vcard.unwrap();
 
@@ -553,7 +576,8 @@ mod test_parsing {
 
     #[test]
     fn test_template_addresses() {
-        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        let uid = String::from("uid");
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap(), uid);
         assert!(vcard.is_some(), "Failed to parse test template.");
         let vcard = vcard.unwrap();
 
@@ -569,7 +593,8 @@ mod test_parsing {
 
     #[test]
     fn test_template_other() {
-        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap());
+        let uid = String::from("uid");
+        let vcard = parse_toml_into_vcard(::toml::de::from_str(TEMPLATE).unwrap(), uid);
         assert!(vcard.is_some(), "Failed to parse test template.");
         let vcard = vcard.unwrap();
 
