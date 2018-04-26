@@ -39,7 +39,7 @@ pub const CATEGORY_REGISTER_NAME_FIELD_PATH : &'static str = "category.register.
 /// Extension on the Store to make it a register for categories
 ///
 /// The register writes files to the
-pub trait CategoryRegister {
+pub trait CategoryStore {
 
     fn category_exists(&self, name: &str) -> Result<bool>;
 
@@ -53,7 +53,7 @@ pub trait CategoryRegister {
 
 }
 
-impl CategoryRegister for Store {
+impl CategoryStore for Store {
 
     /// Check whether a category exists
     fn category_exists(&self, name: &str) -> Result<bool> {
@@ -64,39 +64,23 @@ impl CategoryRegister for Store {
     /// Create a category
     ///
     /// Fails if the category already exists (returns false then)
-    fn create_category(&self, name: &str) -> Result<bool> {
-        use libimagstore::error::StoreErrorKind as SEK;
+    fn create_category(&self, name: &str) -> Result<FileLockEntry<'a>> {
+        let sid         = mk_category_storeid(self.path().clone(), name)?;
+        let mut entry   = self.create(sid)?;
 
-        let sid = mk_category_storeid(self.path().clone(), name)?;
+        entry.set_isflag::<IsCategory>()?;
 
+        let _   = entry
+            .get_header_mut()
+            .insert(CATEGORY_REGISTER_NAME_FIELD_PATH, Value::String(String::from(name)))?;
 
-        match self.create(sid) {
-            Ok(mut entry) => {
-                let val = Value::String(String::from(name));
-                entry.get_header_mut()
-                    .insert(CATEGORY_REGISTER_NAME_FIELD_PATH, val)
-                    .map(|opt| if opt.is_none() {
-                        debug!("Setting category header worked")
-                    } else {
-                        warn!("Setting category header replaced existing value: {:?}", opt);
-                    })
-                    .map(|_| true)
-                    .chain_err(|| CEK::HeaderWriteError)
-                    .chain_err(|| CEK::StoreWriteError)
-            }
-            Err(store_error) => if is_match!(store_error.kind(), &SEK::EntryAlreadyExists(_)) {
-                Ok(false)
-            } else {
-                Err(store_error).chain_err(|| CEK::StoreWriteError)
-            }
-        }
+        Ok(entry)
     }
 
     /// Delete a category
     fn delete_category(&self, name: &str) -> Result<()> {
         let sid = mk_category_storeid(self.path().clone(), name)?;
-
-        self.delete(sid).chain_err(|| CEK::StoreWriteError)
+        self.delete(sid).map_err(CE::from)
     }
 
     /// Get all category names
