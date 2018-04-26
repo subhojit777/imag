@@ -177,18 +177,18 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
 
     { // parse name
         debug!("Parsing name");
-        let firstname = read_str_from_toml(&toml, "name.first");
+        let firstname = read_str_from_toml(&toml, "name.first", true);
         trace!("firstname = {:?}", firstname);
 
-        let lastname  = read_str_from_toml(&toml, "name.last");
+        let lastname  = read_str_from_toml(&toml, "name.last", true);
         trace!("lastname = {:?}", lastname);
 
         vcard = vcard.with_name(parameters!(),
-            read_str_from_toml(&toml, "name.prefix"),
+            read_str_from_toml(&toml, "name.prefix", false),
             firstname.clone(),
-            read_str_from_toml(&toml, "name.additional"),
+            read_str_from_toml(&toml, "name.additional", false),
             lastname.clone(),
-            read_str_from_toml(&toml, "name.suffix"));
+            read_str_from_toml(&toml, "name.suffix", false));
 
         if let (Some(first), Some(last)) = (firstname, lastname) {
             trace!("Building fullname: '{} {}'", first, last);
@@ -198,7 +198,7 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
 
     { // parse personal
         debug!("Parsing person information");
-        let birthday = read_str_from_toml(&toml, "person.birthday");
+        let birthday = read_str_from_toml(&toml, "person.birthday", false);
         trace!("birthday = {:?}", birthday);
 
         if let Some(bday) = birthday {
@@ -211,7 +211,7 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
         match toml.read("nickname").map_err_trace_exit_unwrap(1) {
             Some(&Value::Array(ref ary)) => {
                 for (i, element) in ary.iter().enumerate() {
-                    let nicktype = match read_str_from_toml(element, "type") {
+                    let nicktype = match read_str_from_toml(element, "type", false) {
                         None    => BTreeMap::new(),
                         Some(p) => {
                             let mut m = BTreeMap::new();
@@ -220,7 +220,7 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
                         },
                     };
 
-                    let name = match read_str_from_toml(element, "name") {
+                    let name = match read_str_from_toml(element, "name", false) {
                         Some(p) => p,
                         None    => {
                             error!("Key 'nickname.[{}].name' missing", i);
@@ -255,17 +255,14 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
         if let Some(orgs) = read_strary_from_toml(&toml, "organisation.name") {
             trace!("orgs = {:?}", orgs);
             vcard = vcard.with_org(orgs);
-        } else {
-            error!("Key 'organisation.name' missing");
-            ask_continue! { yes => return None; no => exit(1) };
         }
 
-        if let Some(title) = read_str_from_toml(&toml, "organisation.title") {
+        if let Some(title) = read_str_from_toml(&toml, "organisation.title", false) {
             trace!("title = {:?}", title);
             vcard = vcard.with_title(title);
         }
 
-        if let Some(role) = read_str_from_toml(&toml, "organisation.role") {
+        if let Some(role) = read_str_from_toml(&toml, "organisation.role", false) {
             trace!("role = {:?}", role);
             vcard = vcard.with_role(role);
         }
@@ -276,7 +273,7 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
         match toml.read("person.phone").map_err_trace_exit_unwrap(1) {
             Some(&Value::Array(ref ary)) => {
                 for (i, element) in ary.iter().enumerate() {
-                    let phonetype = match read_str_from_toml(element, "type") {
+                    let phonetype = match read_str_from_toml(element, "type", false) {
                         Some(p) => p,
                         None => {
                             error!("Key 'phones.[{}].type' missing", i);
@@ -284,7 +281,7 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
                         }
                     };
 
-                    let number = match read_str_from_toml(element, "number") {
+                    let number = match read_str_from_toml(element, "number", false) {
                         Some(p) => p,
                         None => {
                             error!("Key 'phones.[{}].number' missing", i);
@@ -314,7 +311,7 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
         match toml.read("addresses").map_err_trace_exit_unwrap(1) {
             Some(&Value::Array(ref ary)) => {
                 for (i, element) in ary.iter().enumerate() {
-                    let adrtype  = match read_str_from_toml(element, "type") {
+                    let adrtype  = match read_str_from_toml(element, "type", false) {
                         None => {
                             error!("Key 'adresses.[{}].type' missing", i);
                             ask_continue! { yes => return None; no => exit(1) };
@@ -323,13 +320,13 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
                     };
                     trace!("adrtype = {:?}", adrtype);
 
-                    let bx       = read_str_from_toml(element, "box");
-                    let extended = read_str_from_toml(element, "extended");
-                    let street   = read_str_from_toml(element, "street");
-                    let code     = read_str_from_toml(element, "code");
-                    let city     = read_str_from_toml(element, "city");
-                    let region   = read_str_from_toml(element, "region");
-                    let country  = read_str_from_toml(element, "country");
+                    let bx       = read_str_from_toml(element, "box", false);
+                    let extended = read_str_from_toml(element, "extended", false);
+                    let street   = read_str_from_toml(element, "street", false);
+                    let code     = read_str_from_toml(element, "code", false);
+                    let city     = read_str_from_toml(element, "city", false);
+                    let region   = read_str_from_toml(element, "region", false);
+                    let country  = read_str_from_toml(element, "country", false);
 
                     trace!("bx       = {:?}", bx);
                     trace!("extended = {:?}", extended);
@@ -361,7 +358,7 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
         match toml.read("person.email").map_err_trace_exit_unwrap(1) {
             Some(&Value::Array(ref ary)) => {
                 for (i, element) in ary.iter().enumerate() {
-                    let mailtype  = match read_str_from_toml(element, "type") {
+                    let mailtype  = match read_str_from_toml(element, "type", false) {
                         None => {
                             error!("Error: 'email.[{}].type' missing", i);
                             ask_continue! { yes => return None; no => exit(1) };
@@ -369,7 +366,7 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
                         Some(p) => p,
                     }; // TODO: Unused, because unsupported by vobject
 
-                    let mail = match read_str_from_toml(element, "addr") {
+                    let mail = match read_str_from_toml(element, "addr", false) {
                         None => {
                             error!("Error: 'email.[{}].addr' missing", i);
                             ask_continue! { yes => return None; no => exit(1) };
@@ -402,13 +399,13 @@ fn parse_toml_into_vcard(toml: Value) -> Option<Vcard> {
             debug!("No categories");
         }
 
-        if let Some(webpage) = read_str_from_toml(&toml, "other.webpage") {
+        if let Some(webpage) = read_str_from_toml(&toml, "other.webpage", false) {
             vcard = vcard.with_url(webpage);
         } else {
             debug!("No webpage");
         }
 
-        if let Some(note) = read_str_from_toml(&toml, "other.note") {
+        if let Some(note) = read_str_from_toml(&toml, "other.note", false) {
             vcard = vcard.with_note(note);
         } else {
             debug!("No note");
@@ -448,7 +445,7 @@ fn read_strary_from_toml(toml: &Value, path: &'static str) -> Option<Vec<String>
     }
 }
 
-fn read_str_from_toml(toml: &Value, path: &'static str) -> Option<String> {
+fn read_str_from_toml(toml: &Value, path: &'static str, must_be_there: bool) -> Option<String> {
     let v = toml.read(path)
         .map_warn_err_str(&format!("Failed to read value at '{}'", path));
 
@@ -459,7 +456,9 @@ fn read_str_from_toml(toml: &Value, path: &'static str) -> Option<String> {
             None
         },
         Ok(None) => {
-            error!("Expected '{}' to be present, but is not.", path);
+            if must_be_there {
+                error!("Expected '{}' to be present, but is not.", path);
+            }
             None
         },
         Err(e) => {
