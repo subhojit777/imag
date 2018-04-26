@@ -24,6 +24,8 @@ error_chain! {
 
     links {
         StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
+        LinkError(::libimagentrylink::error::LinkError, ::libimagentrylink::error::LinkErrorKind);
+        EntryUtilError(::libimagentryutil::error::EntryUtilError, ::libimagentryutil::error::EntryUtilErrorKind);
     }
 
     foreign_links {
@@ -64,6 +66,11 @@ error_chain! {
         TypeError {
             description("Type Error")
             display("Type Error")
+        }
+
+        CategoryNameMissing {
+            description("Category name is missing")
+            display("Category name is missing")
         }
     }
 }

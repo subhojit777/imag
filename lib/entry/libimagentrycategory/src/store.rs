@@ -26,14 +26,14 @@ use toml::Value;
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
-use libimagstore::storeid::StoreIdIterator;
+use libimagentryutil::isa::Is;
 
-use category::Category;
 use error::CategoryErrorKind as CEK;
 use error::CategoryError as CE;
 use error::ResultExt;
 use error::Result;
 use iter::CategoryNameIter;
+use category::IsCategory;
 
 pub const CATEGORY_REGISTER_NAME_FIELD_PATH : &'static str = "category.register.name";
 
@@ -44,7 +44,7 @@ pub trait CategoryStore {
 
     fn category_exists(&self, name: &str) -> Result<bool>;
 
-    fn create_category(&self, name: &str) -> Result<bool>;
+    fn create_category<'a>(&'a self, name: &str) -> Result<FileLockEntry<'a>>;
 
     fn delete_category(&self, name: &str) -> Result<()>;
 
@@ -58,6 +58,7 @@ impl CategoryStore for Store {
 
     /// Check whether a category exists
     fn category_exists(&self, name: &str) -> Result<bool> {
+        trace!("Category exists? '{}'", name);
         let sid = mk_category_storeid(self.path().clone(), name)?;
         represents_category(self, sid, name)
     }
@@ -65,7 +66,8 @@ impl CategoryStore for Store {
     /// Create a category
     ///
     /// Fails if the category already exists (returns false then)
-    fn create_category(&self, name: &str) -> Result<FileLockEntry<'a>> {
+    fn create_category<'a>(&'a self, name: &str) -> Result<FileLockEntry<'a>> {
+        trace!("Creating category: '{}'", name);
         let sid         = mk_category_storeid(self.path().clone(), name)?;
         let mut entry   = self.create(sid)?;
 
@@ -75,17 +77,20 @@ impl CategoryStore for Store {
             .get_header_mut()
             .insert(CATEGORY_REGISTER_NAME_FIELD_PATH, Value::String(String::from(name)))?;
 
+        trace!("Creating category worked: '{}'", name);
         Ok(entry)
     }
 
     /// Delete a category
     fn delete_category(&self, name: &str) -> Result<()> {
+        trace!("Deleting category: '{}'", name);
         let sid = mk_category_storeid(self.path().clone(), name)?;
         self.delete(sid).map_err(CE::from)
     }
 
     /// Get all category names
     fn all_category_names(&self) -> Result<CategoryNameIter> {
+        trace!("Getting all category names");
         Ok(CategoryNameIter::new(self, self.entries()?.without_store()))
     }
 
@@ -94,6 +99,7 @@ impl CategoryStore for Store {
     /// Returns the FileLockEntry which represents the category, so one can link to it and use it
     /// like a normal file in the store (which is exactly what it is).
     fn get_category_by_name(&self, name: &str) -> Result<Option<FileLockEntry>> {
+        trace!("Getting category by name: '{}'", name);
         let sid = mk_category_storeid(self.path().clone(), name)?;
 
         self.get(sid)

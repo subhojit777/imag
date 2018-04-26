@@ -19,11 +19,16 @@
 
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::store::Store;
+use libimagstore::store::FileLockEntry;
+
+use toml_query::read::TomlValueReadTypeExt;
 
 use error::Result;
 use error::CategoryError as CE;
 use error::CategoryErrorKind as CEK;
 use store::CATEGORY_REGISTER_NAME_FIELD_PATH;
+use entry::EntryCategory;
+use error::ResultExt;
 
 /// Iterator for Category names
 ///
@@ -41,14 +46,14 @@ pub struct CategoryNameIter<'a>(&'a Store, StoreIdIterator);
 
 impl<'a> CategoryNameIter<'a> {
 
-    fn new(store: &'a Store, sidit: StoreIdIterator) -> CategoryNameIter<'a> {
+    pub(crate) fn new(store: &'a Store, sidit: StoreIdIterator) -> CategoryNameIter<'a> {
         CategoryNameIter(store, sidit)
     }
 
 }
 
 impl<'a> Iterator for CategoryNameIter<'a> {
-    type Item = Result<Category>;
+    type Item = Result<String>;
 
     fn next(&mut self) -> Option<Self::Item> {
         // TODO: Optimize me with lazy_static
@@ -63,7 +68,6 @@ impl<'a> Iterator for CategoryNameIter<'a> {
                         .get_header()
                         .read_string(query)
                         .chain_err(|| CEK::HeaderReadError)?
-                        .map(Category::from)
                         .ok_or_else(|| CE::from_kind(CEK::StoreReadError))
                 };
 
@@ -75,3 +79,38 @@ impl<'a> Iterator for CategoryNameIter<'a> {
     }
 }
 
+pub struct CategoryEntryIterator<'a>(&'a Store, StoreIdIterator, String);
+
+impl<'a> CategoryEntryIterator<'a> {
+    pub(crate) fn new(store: &'a Store, sit: StoreIdIterator, name: String) -> Self {
+        CategoryEntryIterator(store, sit, name)
+    }
+}
+
+impl<'a> Iterator for CategoryEntryIterator<'a> {
+    type Item = Result<FileLockEntry<'a>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(next) = self.1.next() {
+            let getter = |next| -> Result<(String, FileLockEntry<'a>)> {
+                let entry = self.0
+                    .get(next)?
+                    .ok_or_else(|| CE::from_kind(CEK::StoreReadError))?;
+                Ok((entry.get_category()?, entry))
+            };
+
+            match getter(next) {
+                Err(e)     => return Some(Err(e)),
+                Ok((c, e)) => {
+                    if c == self.2 {
+                        return Some(Ok(e))
+                    // } else {
+                    // continue
+                    }
+                }
+            }
+        }
+
+        None
+    }
+}

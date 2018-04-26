@@ -19,16 +19,25 @@
 
 use libimagentryutil::isa::Is;
 use libimagentryutil::isa::IsKindHeaderPathProvider;
+use libimagstore::store::Entry;
+use libimagstore::store::Store;
+use libimagstore::storeid::StoreIdIterator;
+use libimagentrylink::internal::InternalLinker;
 
+use toml_query::read::TomlValueReadTypeExt;
+
+use error::Result;
 use error::CategoryError as CE;
+use error::CategoryErrorKind as CEK;
 use store::CATEGORY_REGISTER_NAME_FIELD_PATH;
+use iter::CategoryEntryIterator;
 
 provide_kindflag_path!(pub IsCategory, "category.is_category");
 
 pub trait Category {
-    fn is_category(&self)                   -> Result<bool>;
-    fn get_name(&self)                      -> Result<String>;
-    fn get_entries(&self, store: &Store)    -> Result<StoreIdIterator>;
+    fn is_category(&self) -> Result<bool>;
+    fn get_name(&self)    -> Result<String>;
+    fn get_entries<'a>(&self, store: &'a Store) -> Result<CategoryEntryIterator<'a>>;
 }
 
 impl Category for Entry {
@@ -37,11 +46,19 @@ impl Category for Entry {
     }
 
     fn get_name(&self) -> Result<String> {
-        self.get_header().read_string(CATEGORY_REGISTER_NAME_FIELD_PATH).map_err(CE::from)
+        trace!("Getting category name of '{:?}'", self.get_location());
+        self.get_header()
+            .read_string(CATEGORY_REGISTER_NAME_FIELD_PATH)
+            .map_err(CE::from)?
+            .ok_or_else(|| CE::from_kind(CEK::CategoryNameMissing))
     }
 
-    fn get_entries(&self, store: &Store) -> Result<CategoryIdIterator> {
-        unimplemented!()
+    fn get_entries<'a>(&self, store: &'a Store) -> Result<CategoryEntryIterator<'a>> {
+        trace!("Getting linked entries for category '{:?}'", self.get_location());
+        let sit  = self.get_internal_links()?.map(|l| l.get_store_id().clone());
+        let sit  = StoreIdIterator::new(Box::new(sit));
+        let name = self.get_name()?;
+        Ok(CategoryEntryIterator::new(store, sit, name))
     }
 }
 

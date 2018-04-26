@@ -23,37 +23,21 @@ use toml_query::read::TomlValueReadTypeExt;
 use toml::Value;
 
 use libimagstore::store::Entry;
+use libimagentrylink::internal::InternalLinker;
 
 use error::CategoryErrorKind as CEK;
 use error::CategoryError as CE;
 use error::ResultExt;
 use error::Result;
-use register::CategoryRegister;
-
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub struct Category(String);
-
-impl From<String> for Category {
-
-    fn from(s: String) -> Category {
-        Category(s)
-    }
-
-}
-
-impl Into<String> for Category {
-    fn into(self) -> String {
-        self.0
-    }
-}
+use store::CategoryStore;
 
 pub trait EntryCategory {
 
-    fn set_category(&mut self, s: Category) -> Result<()>;
+    fn set_category(&mut self, s: &str) -> Result<()>;
 
-    fn set_category_checked(&mut self, register: &CategoryRegister, s: Category) -> Result<()>;
+    fn set_category_checked(&mut self, register: &CategoryStore, s: &str) -> Result<()>;
 
-    fn get_category(&self) -> Result<Option<Category>>;
+    fn get_category(&self) -> Result<String>;
 
     fn has_category(&self) -> Result<bool>;
 
@@ -61,9 +45,10 @@ pub trait EntryCategory {
 
 impl EntryCategory for Entry {
 
-    fn set_category(&mut self, s: Category) -> Result<()> {
+    fn set_category(&mut self, s: &str) -> Result<()> {
+        trace!("Setting category '{}' UNCHECKED", s);
         self.get_header_mut()
-            .insert(&String::from("category.value"), Value::String(s.into()))
+            .insert(&String::from("category.value"), Value::String(s.to_string()))
             .chain_err(|| CEK::HeaderWriteError)
             .map(|_| ())
     }
@@ -71,10 +56,10 @@ impl EntryCategory for Entry {
     /// Check whether a category exists before setting it.
     ///
     /// This function should be used by default over EntryCategory::set_category()!
-    fn set_category_checked(&mut self, register: &CategoryRegister, s: Category) -> Result<()> {
-        let c_str        = s.clone().into();
+    fn set_category_checked(&mut self, register: &CategoryStore, s: &str) -> Result<()> {
+        trace!("Setting category '{}' checked", s);
         let mut category = register
-            .get_category_by_name(&c_str)?
+            .get_category_by_name(s)?
             .ok_or_else(|| CE::from_kind(CEK::CategoryDoesNotExist))?;
 
         let _ = self.set_category(s)?;
@@ -83,15 +68,15 @@ impl EntryCategory for Entry {
         Ok(())
     }
 
-    fn get_category(&self) -> Result<Option<Category>> {
+    fn get_category(&self) -> Result<String> {
+        trace!("Getting category from '{}'", self.get_location());
         self.get_header()
-            .read_string("category.value")
-            .chain_err(|| CEK::HeaderReadError)
-            .and_then(|o| o.map(Category::from).ok_or(CE::from_kind(CEK::TypeError)))
-            .map(Some)
+            .read_string("category.value")?
+            .ok_or_else(|| CE::from_kind(CEK::CategoryNameMissing))
     }
 
     fn has_category(&self) -> Result<bool> {
+        trace!("Has category? '{}'", self.get_location());
         self.get_header().read("category.value")
             .chain_err(|| CEK::HeaderReadError)
             .map(|x| x.is_some())
