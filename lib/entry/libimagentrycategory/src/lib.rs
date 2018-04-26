@@ -51,6 +51,7 @@ pub mod category;
 pub mod entry;
 pub mod error;
 pub mod store;
+pub mod iter;
 
 module_entry_path_mod!("category");
 
