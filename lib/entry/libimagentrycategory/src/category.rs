@@ -17,40 +17,31 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#![recursion_limit="256"]
+use libimagentryutil::isa::Is;
+use libimagentryutil::isa::IsKindHeaderPathProvider;
 
-#![deny(
-    dead_code,
-    non_camel_case_types,
-    non_snake_case,
-    path_statements,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_allocation,
-    unused_import_braces,
-    unused_imports,
-    unused_must_use,
-    unused_mut,
-    unused_qualifications,
-    while_true,
-)]
+use error::CategoryError as CE;
+use store::CATEGORY_REGISTER_NAME_FIELD_PATH;
 
-extern crate toml_query;
-extern crate toml;
-#[macro_use]
-extern crate is_match;
-#[macro_use]
-extern crate log;
-#[macro_use] extern crate error_chain;
+provide_kindflag_path!(pub IsCategory, "category.is_category");
 
-extern crate libimagerror;
-#[macro_use]
-extern crate libimagstore;
+pub trait Category {
+    fn is_category(&self)                   -> Result<bool>;
+    fn get_name(&self)                      -> Result<String>;
+    fn get_entries(&self, store: &Store)    -> Result<StoreIdIterator>;
+}
 
-pub mod category;
-pub mod entry;
-pub mod error;
-pub mod register;
+impl Category for Entry {
+    fn is_category(&self) -> Result<bool> {
+        self.is::<IsCategory>().map_err(CE::from)
+    }
 
-module_entry_path_mod!("category");
+    fn get_name(&self) -> Result<String> {
+        self.get_header().read_string(CATEGORY_REGISTER_NAME_FIELD_PATH).map_err(CE::from)
+    }
+
+    fn get_entries(&self, store: &Store) -> Result<CategoryIdIterator> {
+        unimplemented!()
+    }
+}
 
