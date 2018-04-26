@@ -139,8 +139,6 @@ mod tests {
         let res           = store.create_category(category_name);
 
         assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
-        let res = res.unwrap();
-        assert!(res);
     }
 
     #[test]
@@ -148,11 +146,10 @@ mod tests {
         let category_name = "examplecategory";
         let store         = get_store();
 
-        let res           = store.create_category(category_name);
-
-        assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
-        let res = res.unwrap();
-        assert!(res);
+        {
+            let res = store.create_category(category_name);
+            assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
+        }
 
         let category = store.get(PathBuf::from(format!("category/{}", category_name)));
 
@@ -167,11 +164,11 @@ mod tests {
         let _ = env_logger::try_init();
         let category_name = "examplecategory";
         let store         = get_store();
-        let res           = store.create_category(category_name);
 
-        assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
-        let res = res.unwrap();
-        assert!(res);
+        {
+            let res = store.create_category(category_name);
+            assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
+        }
 
         let id = PathBuf::from(format!("category/{}", category_name));
         println!("Trying: {:?}", id);
