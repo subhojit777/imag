@@ -45,7 +45,7 @@ pub fn build_data_object_for_handlebars<'a>(i: usize, vcard: &DeserVcard) -> BTr
         data.insert("BDAY"         , process_opt(vcard.bday()));
         data.insert("CATEGORIES"   , process_list(vcard.categories()));
         data.insert("CLIENTPIDMAP" , process_opt(vcard.clientpidmap()));
-        data.insert("EMAIL"        , process_list(vcard.email()));
+        data.insert("EMAIL"        , process_list(&vcard.email().iter().map(|a| a.address.clone()).collect()));
         data.insert("FN"           , process_list(vcard.fullname()));
         data.insert("GENDER"       , process_opt(vcard.gender()));
         data.insert("GEO"          , process_list(vcard.geo()));
