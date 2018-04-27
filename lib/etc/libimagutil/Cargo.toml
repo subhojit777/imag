@@ -1,6 +1,6 @@
 [package]
 name = "libimagutil"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"

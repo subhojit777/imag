@@ -1,6 +1,6 @@
 [package]
 name = "imag-mv"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag command"
@@ -24,10 +24,10 @@ maintenance                       = { status     = "actively-developed" }
 [dependencies]
 log = "0.4.0"
 
-libimagrt        = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
-libimagerror     = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
-libimagstore     = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
-libimagentrylink = { version = "0.7.0", path = "../../../lib/entry/libimagentrylink" }
+libimagrt        = { version = "0.7.1", path = "../../../lib/core/libimagrt" }
+libimagerror     = { version = "0.7.1", path = "../../../lib/core/libimagerror" }
+libimagstore     = { version = "0.7.1", path = "../../../lib/core/libimagstore" }
+libimagentrylink = { version = "0.7.1", path = "../../../lib/entry/libimagentrylink" }
 
 [dependencies.clap]
 version = "^2.29"

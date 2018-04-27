@@ -1,6 +1,6 @@
 [package]
 name = "imag-mail"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-notes command"
@@ -24,10 +24,10 @@ maintenance                       = { status     = "actively-developed" }
 [dependencies]
 log = "0.4.0"
 
-libimagrt       = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
-libimagerror    = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
-libimagmail     = { version = "0.7.0", path = "../../../lib/domain/libimagmail" }
-libimagutil     = { version = "0.7.0", path = "../../../lib/etc/libimagutil" }
+libimagrt       = { version = "0.7.1", path = "../../../lib/core/libimagrt" }
+libimagerror    = { version = "0.7.1", path = "../../../lib/core/libimagerror" }
+libimagmail     = { version = "0.7.1", path = "../../../lib/domain/libimagmail" }
+libimagutil     = { version = "0.7.1", path = "../../../lib/etc/libimagutil" }
 
 [dependencies.clap]
 version = "^2.29"

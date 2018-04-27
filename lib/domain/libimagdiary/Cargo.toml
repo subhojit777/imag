@@ -1,6 +1,6 @@
 [package]
 name = "libimagdiary"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -28,10 +28,10 @@ itertools = "0.7"
 error-chain = "0.11"
 filters = "0.2"
 
-libimagstore     = { version = "0.7.0", path = "../../../lib/core/libimagstore" }
-libimagerror     = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
-libimagrt        = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
-libimagentryedit = { version = "0.7.0", path = "../../../lib/entry/libimagentryedit" }
-libimagentryview = { version = "0.7.0", path = "../../../lib/entry/libimagentryview" }
-libimagentryutil = { version = "0.7.0", path = "../../../lib/entry/libimagentryutil" }
+libimagstore     = { version = "0.7.1", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.7.1", path = "../../../lib/core/libimagerror" }
+libimagrt        = { version = "0.7.1", path = "../../../lib/core/libimagrt" }
+libimagentryedit = { version = "0.7.1", path = "../../../lib/entry/libimagentryedit" }
+libimagentryview = { version = "0.7.1", path = "../../../lib/entry/libimagentryview" }
+libimagentryutil = { version = "0.7.1", path = "../../../lib/entry/libimagentryutil" }
 

@@ -1,6 +1,6 @@
 [package]
 name = "imag-init"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-init command"
@@ -22,8 +22,8 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-libimagerror = { version = "0.7.0", path = "../../../lib/core/libimagerror" }
-libimagrt    = { version = "0.7.0", path = "../../../lib/core/libimagrt" }
+libimagerror = { version = "0.7.1", path = "../../../lib/core/libimagerror" }
+libimagrt    = { version = "0.7.1", path = "../../../lib/core/libimagrt" }
 
 [dependencies.clap]
 version = "^2.29"
