@@ -94,9 +94,27 @@ pub fn create(rt: &Runtime) {
             } else if fl.is_dir() {
                 let uuid = Uuid::new_v4().hyphenated().to_string();
                 fl.push(uuid.clone());
+                fl.set_extension("vcf");
                 info!("Creating file: {:?}", fl);
                 Some(uuid)
             } else {
+                let has_vcf_ext = fl
+                    .extension()
+                    .and_then(|ext| ext.to_str())
+                    .map(|ext| ext == "vcf")
+                    .unwrap_or(false);
+
+                if !has_vcf_ext {
+                    let f = fl.file_name()
+                        .and_then(|ext| ext.to_str())
+                        .map(|f| format!(" '{}' ", f))          // ugly
+                        .unwrap_or_else(|| String::from(" "));  // hack
+
+                    warn!("File{}has no extension 'vcf'", f);   // ahead
+                    warn!("other tools might not recognize this as contact.");
+                    warn!("Continuing...");
+                }
+
                 None
             };
 
