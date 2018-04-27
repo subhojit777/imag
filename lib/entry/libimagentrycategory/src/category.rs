@@ -17,81 +17,48 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use toml_query::insert::TomlValueInsertExt;
-use toml_query::read::TomlValueReadExt;
-use toml_query::read::TomlValueReadTypeExt;
-use toml::Value;
-
+use libimagentryutil::isa::Is;
+use libimagentryutil::isa::IsKindHeaderPathProvider;
 use libimagstore::store::Entry;
+use libimagstore::store::Store;
+use libimagstore::storeid::StoreIdIterator;
+use libimagentrylink::internal::InternalLinker;
 
-use error::CategoryErrorKind as CEK;
-use error::CategoryError as CE;
-use error::ResultExt;
+use toml_query::read::TomlValueReadTypeExt;
+
 use error::Result;
-use register::CategoryRegister;
+use error::CategoryError as CE;
+use error::CategoryErrorKind as CEK;
+use store::CATEGORY_REGISTER_NAME_FIELD_PATH;
+use iter::CategoryEntryIterator;
 
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub struct Category(String);
+provide_kindflag_path!(pub IsCategory, "category.is_category");
 
-impl From<String> for Category {
-
-    fn from(s: String) -> Category {
-        Category(s)
-    }
-
+pub trait Category {
+    fn is_category(&self) -> Result<bool>;
+    fn get_name(&self)    -> Result<String>;
+    fn get_entries<'a>(&self, store: &'a Store) -> Result<CategoryEntryIterator<'a>>;
 }
 
-impl Into<String> for Category {
-    fn into(self) -> String {
-        self.0
-    }
-}
-
-pub trait EntryCategory {
-
-    fn set_category(&mut self, s: Category) -> Result<()>;
-
-    fn set_category_checked(&mut self, register: &CategoryRegister, s: Category) -> Result<()>;
-
-    fn get_category(&self) -> Result<Option<Category>>;
-
-    fn has_category(&self) -> Result<bool>;
-
-}
-
-impl EntryCategory for Entry {
-
-    fn set_category(&mut self, s: Category) -> Result<()> {
-        self.get_header_mut()
-            .insert(&String::from("category.value"), Value::String(s.into()))
-            .chain_err(|| CEK::HeaderWriteError)
-            .map(|_| ())
+impl Category for Entry {
+    fn is_category(&self) -> Result<bool> {
+        self.is::<IsCategory>().map_err(CE::from)
     }
 
-    /// Check whether a category exists before setting it.
-    ///
-    /// This function should be used by default over EntryCategory::set_category()!
-    fn set_category_checked(&mut self, register: &CategoryRegister, s: Category) -> Result<()> {
-        register.category_exists(&s.0)
-            .and_then(|bl| if bl {
-                self.set_category(s)
-            } else {
-                Err(CE::from_kind(CEK::CategoryDoesNotExist))
-            })
-    }
-
-    fn get_category(&self) -> Result<Option<Category>> {
+    fn get_name(&self) -> Result<String> {
+        trace!("Getting category name of '{:?}'", self.get_location());
         self.get_header()
-            .read_string("category.value")
-            .chain_err(|| CEK::HeaderReadError)
-            .and_then(|o| o.map(Category::from).ok_or(CE::from_kind(CEK::TypeError)))
-            .map(Some)
+            .read_string(CATEGORY_REGISTER_NAME_FIELD_PATH)
+            .map_err(CE::from)?
+            .ok_or_else(|| CE::from_kind(CEK::CategoryNameMissing))
     }
 
-    fn has_category(&self) -> Result<bool> {
-        self.get_header().read("category.value")
-            .chain_err(|| CEK::HeaderReadError)
-            .map(|x| x.is_some())
+    fn get_entries<'a>(&self, store: &'a Store) -> Result<CategoryEntryIterator<'a>> {
+        trace!("Getting linked entries for category '{:?}'", self.get_location());
+        let sit  = self.get_internal_links()?.map(|l| l.get_store_id().clone());
+        let sit  = StoreIdIterator::new(Box::new(sit));
+        let name = self.get_name()?;
+        Ok(CategoryEntryIterator::new(store, sit, name))
     }
-
 }
+

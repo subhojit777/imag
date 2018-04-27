@@ -26,24 +26,25 @@ use toml::Value;
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreId;
-use libimagstore::storeid::StoreIdIterator;
+use libimagentryutil::isa::Is;
 
-use category::Category;
 use error::CategoryErrorKind as CEK;
 use error::CategoryError as CE;
 use error::ResultExt;
 use error::Result;
+use iter::CategoryNameIter;
+use category::IsCategory;
 
 pub const CATEGORY_REGISTER_NAME_FIELD_PATH : &'static str = "category.register.name";
 
 /// Extension on the Store to make it a register for categories
 ///
 /// The register writes files to the
-pub trait CategoryRegister {
+pub trait CategoryStore {
 
     fn category_exists(&self, name: &str) -> Result<bool>;
 
-    fn create_category(&self, name: &str) -> Result<bool>;
+    fn create_category<'a>(&'a self, name: &str) -> Result<FileLockEntry<'a>>;
 
     fn delete_category(&self, name: &str) -> Result<()>;
 
@@ -53,10 +54,11 @@ pub trait CategoryRegister {
 
 }
 
-impl CategoryRegister for Store {
+impl CategoryStore for Store {
 
     /// Check whether a category exists
     fn category_exists(&self, name: &str) -> Result<bool> {
+        trace!("Category exists? '{}'", name);
         let sid = mk_category_storeid(self.path().clone(), name)?;
         represents_category(self, sid, name)
     }
@@ -64,43 +66,31 @@ impl CategoryRegister for Store {
     /// Create a category
     ///
     /// Fails if the category already exists (returns false then)
-    fn create_category(&self, name: &str) -> Result<bool> {
-        use libimagstore::error::StoreErrorKind as SEK;
+    fn create_category<'a>(&'a self, name: &str) -> Result<FileLockEntry<'a>> {
+        trace!("Creating category: '{}'", name);
+        let sid         = mk_category_storeid(self.path().clone(), name)?;
+        let mut entry   = self.create(sid)?;
 
-        let sid = mk_category_storeid(self.path().clone(), name)?;
+        entry.set_isflag::<IsCategory>()?;
 
+        let _   = entry
+            .get_header_mut()
+            .insert(CATEGORY_REGISTER_NAME_FIELD_PATH, Value::String(String::from(name)))?;
 
-        match self.create(sid) {
-            Ok(mut entry) => {
-                let val = Value::String(String::from(name));
-                entry.get_header_mut()
-                    .insert(CATEGORY_REGISTER_NAME_FIELD_PATH, val)
-                    .map(|opt| if opt.is_none() {
-                        debug!("Setting category header worked")
-                    } else {
-                        warn!("Setting category header replaced existing value: {:?}", opt);
-                    })
-                    .map(|_| true)
-                    .chain_err(|| CEK::HeaderWriteError)
-                    .chain_err(|| CEK::StoreWriteError)
-            }
-            Err(store_error) => if is_match!(store_error.kind(), &SEK::EntryAlreadyExists(_)) {
-                Ok(false)
-            } else {
-                Err(store_error).chain_err(|| CEK::StoreWriteError)
-            }
-        }
+        trace!("Creating category worked: '{}'", name);
+        Ok(entry)
     }
 
     /// Delete a category
     fn delete_category(&self, name: &str) -> Result<()> {
+        trace!("Deleting category: '{}'", name);
         let sid = mk_category_storeid(self.path().clone(), name)?;
-
-        self.delete(sid).chain_err(|| CEK::StoreWriteError)
+        self.delete(sid).map_err(CE::from)
     }
 
     /// Get all category names
     fn all_category_names(&self) -> Result<CategoryNameIter> {
+        trace!("Getting all category names");
         Ok(CategoryNameIter::new(self, self.entries()?.without_store()))
     }
 
@@ -109,6 +99,7 @@ impl CategoryRegister for Store {
     /// Returns the FileLockEntry which represents the category, so one can link to it and use it
     /// like a normal file in the store (which is exactly what it is).
     fn get_category_by_name(&self, name: &str) -> Result<Option<FileLockEntry>> {
+        trace!("Getting category by name: '{}'", name);
         let sid = mk_category_storeid(self.path().clone(), name)?;
 
         self.get(sid)
@@ -148,8 +139,6 @@ mod tests {
         let res           = store.create_category(category_name);
 
         assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
-        let res = res.unwrap();
-        assert!(res);
     }
 
     #[test]
@@ -157,11 +146,10 @@ mod tests {
         let category_name = "examplecategory";
         let store         = get_store();
 
-        let res           = store.create_category(category_name);
-
-        assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
-        let res = res.unwrap();
-        assert!(res);
+        {
+            let res = store.create_category(category_name);
+            assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
+        }
 
         let category = store.get(PathBuf::from(format!("category/{}", category_name)));
 
@@ -176,11 +164,11 @@ mod tests {
         let _ = env_logger::try_init();
         let category_name = "examplecategory";
         let store         = get_store();
-        let res           = store.create_category(category_name);
 
-        assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
-        let res = res.unwrap();
-        assert!(res);
+        {
+            let res = store.create_category(category_name);
+            assert!(res.is_ok(), format!("Expected Ok(_), got: {:?}", res));
+        }
 
         let id = PathBuf::from(format!("category/{}", category_name));
         println!("Trying: {:?}", id);
@@ -235,55 +223,5 @@ fn represents_category(store: &Store, sid: StoreId, name: &str) -> Result<bool> 
                 Ok(bl) // false
             }
         })
-}
-
-/// Iterator for Category names
-///
-/// Iterates over Result<Category>
-///
-/// # Return values
-///
-/// In each iteration, a Option<Result<Category>> is returned. Error kinds are as follows:
-///
-/// * CategoryErrorKind::StoreReadError if a name could not be fetched from the store
-/// * CategoryErrorKind::HeaderReadError if the header of the fetched item couldn't be read
-/// * CategoryErrorKind::TypeError if the name could not be fetched because it is not a String
-///
-pub struct CategoryNameIter<'a>(&'a Store, StoreIdIterator);
-
-impl<'a> CategoryNameIter<'a> {
-
-    fn new(store: &'a Store, sidit: StoreIdIterator) -> CategoryNameIter<'a> {
-        CategoryNameIter(store, sidit)
-    }
-
-}
-
-impl<'a> Iterator for CategoryNameIter<'a> {
-    type Item = Result<Category>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        // TODO: Optimize me with lazy_static
-        let query = CATEGORY_REGISTER_NAME_FIELD_PATH;
-
-        while let Some(sid) = self.1.next() {
-            if sid.is_in_collection(&["category"]) {
-                let func = |store: &Store| { // hack for returning Some(Result<_, _>)
-                    store
-                        .get(sid)?
-                        .ok_or_else(|| CE::from_kind(CEK::StoreReadError))?
-                        .get_header()
-                        .read_string(query)
-                        .chain_err(|| CEK::HeaderReadError)?
-                        .map(Category::from)
-                        .ok_or_else(|| CE::from_kind(CEK::StoreReadError))
-                };
-
-                return Some(func(&self.0))
-            } // else continue
-        }
-
-        None
-    }
 }
 

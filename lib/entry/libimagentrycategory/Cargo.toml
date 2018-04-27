@@ -20,14 +20,16 @@ is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
 maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
-log = "0.4.0"
-toml = "0.4"
-toml-query = "0.6"
-is-match = "0.1"
+log         = "0.4.0"
+toml        = "0.4"
+toml-query  = "0.6"
 error-chain = "0.11"
 
-libimagerror = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
-libimagstore = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
+libimagstore     = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
+libimagutil      = { version = "0.8.0", path = "../../../lib/etc/libimagutil" }
+libimagentryutil = { version = "0.8.0", path = "../../../lib/entry/libimagentryutil" }
+libimagentrylink = { version = "0.8.0", path = "../../../lib/entry/libimagentrylink" }
 
 [dev-dependencies]
 env_logger = "0.5"
