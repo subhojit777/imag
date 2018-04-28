@@ -277,7 +277,7 @@ fn find(rt: &Runtime) {
             };
 
             let take = card.adr().iter().any(|a| str_contains_any(a, &grepstring))
-                || card.email().iter().any(|a| str_contains_any(a, &grepstring))
+                || card.email().iter().any(|a| str_contains_any(&a.address, &grepstring))
                 || card.fullname().iter().any(|a| str_contains_any(a, &grepstring));
 
             if take {

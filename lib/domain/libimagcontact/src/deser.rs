@@ -17,7 +17,27 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+use std::collections::BTreeMap;
+
 use vobject::vcard::Vcard;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Email {
+    pub address: String,
+
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    #[serde(default)]
+    pub properties: BTreeMap<String, String>,
+}
+
+impl From<::vobject::vcard::Email> for Email {
+    fn from(voemail: ::vobject::vcard::Email) -> Self {
+        let address    = voemail.raw().clone();
+        let properties = voemail.params().clone();
+
+        Email { address, properties }
+    }
+}
 
 /// A type which can be build from a Vcard and be serialized.
 #[derive(Serialize, Deserialize, Debug)]
@@ -42,10 +62,6 @@ pub struct DeserVcard {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
     clientpidmap : Option<String>,
-
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    #[serde(default)]
-    email        : Vec<String>,
 
     #[serde(skip_serializing_if = "Vec::is_empty")]
     #[serde(default)]
@@ -141,7 +157,11 @@ pub struct DeserVcard {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
-    version      : Option<String>
+    version      : Option<String>,
+
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(default)]
+    email        : Vec<Email>,
 }
 
 impl From<Vcard> for DeserVcard {
@@ -163,7 +183,7 @@ impl From<Vcard> for DeserVcard {
             bday         : optstr!(card.bday()),
             categories   : arystr!(card.categories()),
             clientpidmap : optstr!(card.clientpidmap()),
-            email        : arystr!(card.email()),
+            email        : card.email().into_iter().map(Email::from).collect::<Vec<Email>>(),
             fullname     : arystr!(card.fullname()),
             gender       : optstr!(card.gender()),
             geo          : arystr!(card.geo()),
@@ -214,7 +234,7 @@ impl DeserVcard {
         self.clientpidmap.as_ref()
     }
 
-    pub fn email(&self) -> &Vec<String> {
+    pub fn email(&self) -> &Vec<Email> {
         &self.email
     }
 
