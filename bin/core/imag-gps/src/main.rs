@@ -94,21 +94,35 @@ fn add(rt: &Runtime) {
         .map_err_trace_exit_unwrap(1);
 
     let c = {
-        let parse = |value: &str| -> Vec<i8> {
-            value.split(".")
+        let parse = |value: &str| -> (i64, i64, i64) {
+            debug!("Parsing '{}' into degree, minute and second", value);
+            let ary = value.split(".")
+                .map(|v| {debug!("Parsing = {}", v); v})
                 .map(FromStr::from_str)
                 .map(|elem| {
                     elem.or_else(|_| Err(GE::from(GEK::NumberConversionError)))
                         .map_err_trace_exit_unwrap(1)
                 })
-                .collect::<Vec<i8>>()
+                .collect::<Vec<i64>>();
+
+            let degree = ary.get(0).unwrap_or_else(|| {
+                error!("Degree missing. This value is required.");
+                exit(1)
+            });
+            let minute = ary.get(1).unwrap_or_else(|| {
+                error!("Degree missing. This value is required.");
+                exit(1)
+            });
+            let second = ary.get(2).unwrap_or(&0);
+
+            (*degree, *minute, *second)
         };
 
         let long = parse(scmd.value_of("longitude").unwrap()); // unwrap safed by clap
         let lati = parse(scmd.value_of("latitude").unwrap()); // unwrap safed by clap
 
-        let long = GPSValue::new(long[0], long[1], long[2]);
-        let lati = GPSValue::new(lati[0], lati[1], lati[2]);
+        let long = GPSValue::new(long.0, long.1, long.2);
+        let lati = GPSValue::new(lati.0, lati.1, lati.2);
 
         Coordinates::new(long, lati)
     };
