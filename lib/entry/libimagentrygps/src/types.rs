@@ -34,14 +34,14 @@ pub trait FromValue : Sized {
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct GPSValue {
-    pub degree:  i8,
-    pub minutes: i8,
-    pub seconds: i8
+    pub degree:  i32,
+    pub minutes: i32,
+    pub seconds: i32,
 }
 
 impl GPSValue {
 
-    pub fn new(d: i8, m: i8, s: i8) -> GPSValue {
+    pub fn new(d: i32, m: i32, s: i32) -> GPSValue {
         GPSValue {
             degree:  d,
             minutes: m,
@@ -49,15 +49,15 @@ impl GPSValue {
         }
     }
 
-    pub fn degree(&self) -> i8 {
+    pub fn degree(&self) -> i32 {
         self.degree
     }
 
-    pub fn minutes(&self) -> i8 {
+    pub fn minutes(&self) -> i32 {
         self.minutes
     }
 
-    pub fn seconds(&self) -> i8 {
+    pub fn seconds(&self) -> i32 {
         self.seconds
     }
 
@@ -80,7 +80,7 @@ impl FromValue for GPSValue {
     fn from_value(v: &Value) -> Result<Self> {
         let int_to_appropriate_width = |v: &Value| {
             v.as_integer()
-             .ok_or(GPSE::from_kind(GPSEK::HeaderTypeError)).and_then(i64_to_i8)
+             .ok_or(GPSE::from_kind(GPSEK::HeaderTypeError)).and_then(i64_to_i32)
         };
 
         match *v {
@@ -172,12 +172,12 @@ impl Display for Coordinates {
     }
 }
 
-/// Helper to convert a i64 to i8 or return an error if this doesn't work.
-fn i64_to_i8(i: i64) -> Result<i8> {
-    if i > (<i8>::max_value() as i64) {
+/// Helper to convert a i64 to i32 or return an error if this doesn't work.
+fn i64_to_i32(i: i64) -> Result<i32> {
+    if i > (<i32>::max_value() as i64) {
         Err(GPSE::from_kind(GPSEK::NumberConversionError))
     } else {
-        Ok(i as i8)
+        Ok(i as i32)
     }
 }
 
