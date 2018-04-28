@@ -94,7 +94,7 @@ fn add(rt: &Runtime) {
         .map_err_trace_exit_unwrap(1);
 
     let c = {
-        let parse = |value: &str| -> (i32, i32, i32) {
+        let parse = |value: &str| -> (i64, i64, i64) {
             debug!("Parsing '{}' into degree, minute and second", value);
             let ary = value.split(".")
                 .map(|v| {debug!("Parsing = {}", v); v})
@@ -103,7 +103,7 @@ fn add(rt: &Runtime) {
                     elem.or_else(|_| Err(GE::from(GEK::NumberConversionError)))
                         .map_err_trace_exit_unwrap(1)
                 })
-                .collect::<Vec<i32>>();
+                .collect::<Vec<i64>>();
 
             let degree = ary.get(0).unwrap_or_else(|| {
                 error!("Degree missing. This value is required.");
