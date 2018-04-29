@@ -17,3 +17,18 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
+error_chain! {
+
+    types {
+        FilterError, FilterErrorKind, ResultExt, Result;
+    }
+
+    foreign_links {
+        TomlQueryError(::toml_query::error::Error);
+    }
+
+    errors {
+    }
+
+}
+

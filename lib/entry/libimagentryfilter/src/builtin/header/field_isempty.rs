@@ -21,7 +21,9 @@ use libimagstore::store::Entry;
 use toml_query::read::TomlValueReadExt;
 
 use builtin::header::field_path::FieldPath;
-use filters::filter::Filter;
+use filters::failable::filter::FailableFilter;
+use error::Result;
+use error::FilterError as FE;
 
 use toml::Value;
 
@@ -39,23 +41,25 @@ impl FieldIsEmpty {
 
 }
 
-impl Filter<Entry> for FieldIsEmpty {
+impl FailableFilter<Entry> for FieldIsEmpty {
+    type Error = FE;
 
-    fn filter(&self, e: &Entry) -> bool {
-        e.get_header()
-            .read(&self.header_field_path[..])
-            .map(|v| {
-                match v {
-                    Some(&Value::Array(ref a))   => a.is_empty(),
-                    Some(&Value::String(ref s))  => s.is_empty(),
-                    Some(&Value::Table(ref t))   => t.is_empty(),
-                    Some(&Value::Boolean(_)) |
-                    Some(&Value::Float(_))   |
-                    Some(&Value::Integer(_)) => false,
-                    _                       => true,
-                }
-            })
-            .unwrap_or(false)
+    fn filter(&self, e: &Entry) -> Result<bool> {
+        Ok(e
+             .get_header()
+             .read(&self.header_field_path[..])?
+             .map(|v| {
+                 match v {
+                     &Value::Array(ref a)   => a.is_empty(),
+                     &Value::String(ref s)  => s.is_empty(),
+                     &Value::Table(ref t)   => t.is_empty(),
+                     &Value::Boolean(_)  |
+                     &Value::Float(_)    |
+                     &Value::Datetime(_) |
+                     &Value::Integer(_)  => false,
+                 }
+             })
+             .unwrap_or(true))
     }
 
 }

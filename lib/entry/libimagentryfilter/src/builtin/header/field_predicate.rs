@@ -20,17 +20,22 @@
 use libimagstore::store::Entry;
 
 use toml_query::read::TomlValueReadExt;
+use toml::Value;
 
 use builtin::header::field_path::FieldPath;
-use filters::filter::Filter;
-
-use toml::Value;
+use filters::failable::filter::FailableFilter;
+use error::Result;
+use error::FilterError as FE;
 
 pub trait Predicate {
     fn evaluate(&self, &Value) -> bool;
 }
 
 /// Check whether certain header field in a entry is equal to a value
+///
+/// # Notice
+///
+/// Returns false if the value is not present.
 pub struct FieldPredicate<P: Predicate> {
     header_field_path: FieldPath,
     predicate: Box<P>,
@@ -47,15 +52,16 @@ impl<P: Predicate> FieldPredicate<P> {
 
 }
 
-impl<P: Predicate> Filter<Entry> for FieldPredicate<P> {
+impl<P: Predicate> FailableFilter<Entry> for FieldPredicate<P> {
+    type Error = FE;
 
-    fn filter(&self, e: &Entry) -> bool {
-        e.get_header()
-            .read(&self.header_field_path[..])
-            .map(|val| val.map(|v| (*self.predicate).evaluate(v)).unwrap_or(false))
+    fn filter(&self, e: &Entry) -> Result<bool> {
+        Ok(e.get_header()
+            .read(&self.header_field_path[..])?
+            .map(|v| (*self.predicate).evaluate(v))
             .unwrap_or(false)
+            )
     }
 
 }
-
 
