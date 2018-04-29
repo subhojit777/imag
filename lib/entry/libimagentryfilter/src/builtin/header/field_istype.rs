@@ -22,7 +22,9 @@ use libimagstore::store::Entry;
 use builtin::header::field_path::FieldPath;
 use builtin::header::field_predicate::FieldPredicate;
 use builtin::header::field_predicate::Predicate;
-use filters::filter::Filter;
+use filters::failable::filter::FailableFilter;
+use error::Result;
+use error::FilterError as FE;
 
 use toml::Value;
 
@@ -78,9 +80,10 @@ impl FieldIsType {
 
 }
 
-impl Filter<Entry> for FieldIsType {
+impl FailableFilter<Entry> for FieldIsType {
+    type Error = FE;
 
-    fn filter(&self, e: &Entry) -> bool {
+    fn filter(&self, e: &Entry) -> Result<bool> {
         self.filter.filter(e)
     }
 

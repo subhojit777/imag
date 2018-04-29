@@ -25,7 +25,9 @@ use libimagstore::store::Entry;
 use builtin::header::field_path::FieldPath;
 use builtin::header::field_predicate::FieldPredicate;
 use builtin::header::field_predicate::Predicate;
-use filters::filter::Filter;
+use filters::failable::filter::FailableFilter;
+use error::Result;
+use error::FilterError as FE;
 
 struct EqGrep{
     regex: Regex
@@ -57,9 +59,10 @@ impl FieldGrep {
 
 }
 
-impl Filter<Entry> for FieldGrep {
+impl FailableFilter<Entry> for FieldGrep {
+    type Error = FE;
 
-    fn filter(&self, e: &Entry) -> bool {
+    fn filter(&self, e: &Entry) -> Result<bool> {
         self.filter.filter(e)
     }
 

@@ -20,7 +20,9 @@
 use libimagstore::store::Entry;
 
 use toml_query::read::TomlValueReadExt;
-use filters::filter::Filter;
+use filters::failable::filter::FailableFilter;
+use error::Result;
+use error::FilterError as FE;
 
 use builtin::header::field_path::FieldPath;
 
@@ -38,10 +40,11 @@ impl FieldExists {
 
 }
 
-impl Filter<Entry> for FieldExists {
+impl FailableFilter<Entry> for FieldExists {
+    type Error = FE;
 
-    fn filter(&self, e: &Entry) -> bool {
-        e.get_header().read(&self.header_field_path[..]).is_ok()
+    fn filter(&self, e: &Entry) -> Result<bool> {
+        e.get_header().read(&self.header_field_path[..]).map_err(FE::from).map(|o| o.is_some())
     }
 
 }
