@@ -45,7 +45,6 @@ extern crate libimagentrytag;
 // core functionality modules of the crate,
 // these depend only on libimagstore
 
-pub mod cli;
 pub mod builtin;
 
 // extended functionality of the crate
