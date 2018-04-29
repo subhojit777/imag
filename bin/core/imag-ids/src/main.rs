@@ -48,25 +48,12 @@ use libimagerror::trace::MapErrTrace;
 use libimagerror::iter::TraceIterator;
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
-use libimagstore::storeid::StoreId;
 
+mod id_filters;
 mod ui;
+
 use ui::build_ui;
-
-
-pub struct IsInCollectionsFilter<'a, A>(Option<A>, ::std::marker::PhantomData<&'a str>)
-    where A: AsRef<[&'a str]>;
-
-impl<'a, A> Filter<StoreId> for IsInCollectionsFilter<'a, A>
-    where A: AsRef<[&'a str]> + 'a
-{
-    fn filter(&self, sid: &StoreId) -> bool {
-        match self.0 {
-            Some(ref colls) => sid.is_in_collection(colls),
-            None => true,
-        }
-    }
-}
+use id_filters::IsInCollectionsFilter;
 
 fn main() {
     let version = make_imag_version!();
@@ -82,7 +69,7 @@ fn main() {
         .values_of("in-collection-filter")
         .map(|v| v.collect::<Vec<&str>>());
 
-    let collection_filter = IsInCollectionsFilter(values, ::std::marker::PhantomData);
+    let collection_filter = IsInCollectionsFilter::new(values);
 
     rt.store()
         .entries()
