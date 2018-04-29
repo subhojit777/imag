@@ -34,6 +34,14 @@
 
 extern crate clap;
 extern crate filters;
+#[macro_use] extern crate nom;
+#[macro_use] extern crate log;
+#[macro_use] extern crate is_match;
+extern crate toml;
+extern crate toml_query;
+
+#[cfg(test)]
+extern crate env_logger;
 
 extern crate libimagerror;
 extern crate libimagstore;
