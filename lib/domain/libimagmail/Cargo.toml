@@ -22,7 +22,7 @@ maintenance                       = { status     = "actively-developed" }
 [dependencies]
 log = "0.4.0"
 email = "0.0.17"
-filters = "0.2"
+filters = "0.3"
 error-chain = "0.11"
 
 libimagstore    = { version = "0.8.0", path = "../../../lib/core/libimagstore" }

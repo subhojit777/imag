@@ -23,7 +23,7 @@ maintenance                       = { status     = "actively-developed" }
 toml = "0.4"
 toml-query = "0.6"
 error-chain = "0.11"
-filters = "0.2"
+filters = "0.3"
 
 libimagstore = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
 libimagerror = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
