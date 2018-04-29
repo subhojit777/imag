@@ -17,7 +17,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-use clap::{Arg, App};
+use clap::{Arg, App, SubCommand};
 
 pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
     app
@@ -36,5 +36,15 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
              .multiple(true)
              .value_names(&["COLLECTION"])
              .help("Filter for ids which are only in these collections"))
+
+        .subcommand(SubCommand::with_name("where")
+                    .arg(Arg::with_name("where-filter")
+                         .index(1)
+                         .required(true)
+                         .takes_value(true)
+                         .multiple(false)
+                         .value_names(&["QUERY"])
+                         .help("Query the header of the entries and filter them"))
+                   )
 }
 
