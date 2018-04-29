@@ -43,3 +43,49 @@ impl<'a, A> Filter<StoreId> for IsInCollectionsFilter<'a, A>
     }
 }
 
+/// Language definition for the header-filter language
+///
+/// # Notes
+///
+/// Here are some notes how the language should look like:
+///
+/// ```ignore
+/// query = filter (operator filter)*
+///
+/// filter = unary? ((function "(" selector ")" ) | selector ) compare_op compare_val
+///
+/// unary = "not"
+///
+/// compare_op =
+///     "is"     |
+///     "in"     |
+///     "==/eq"  |
+///     "!=/neq" |
+///     ">="     |
+///     "<="     |
+///     "<"      |
+///     ">"      |
+///     "any"    |
+///     "all"
+///
+/// compare_val = val | listofval
+///
+/// val         = string | int | float | bool
+/// listofval   = "[" (val ",")* "]"
+///
+/// operator =
+///     "or"      |
+///     "or_not"  |
+///     "and"     |
+///     "and_not" |
+///     "xor"
+///
+/// function =
+///     "length" |
+///     "keys"   |
+///     "values"
+/// ```
+///
+mod header_filter_lang {
+}
+
