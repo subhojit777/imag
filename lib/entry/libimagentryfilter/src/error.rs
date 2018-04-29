@@ -17,40 +17,18 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
-#![deny(
-    dead_code,
-    non_camel_case_types,
-    non_snake_case,
-    path_statements,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_allocation,
-    unused_import_braces,
-    unused_imports,
-    unused_must_use,
-    unused_mut,
-    unused_qualifications,
-    while_true,
-)]
+error_chain! {
 
-extern crate filters;
-extern crate regex;
-extern crate semver;
-extern crate toml;
-extern crate toml_query;
-#[macro_use] extern crate error_chain;
+    types {
+        FilterError, FilterErrorKind, ResultExt, Result;
+    }
 
-extern crate libimagstore;
-extern crate libimagentrytag;
+    foreign_links {
+        TomlQueryError(::toml_query::error::Error);
+    }
 
-// core functionality modules of the crate,
-// these depend only on libimagstore
+    errors {
+    }
 
-pub mod builtin;
-pub mod error;
+}
 
-// extended functionality of the crate
-// these depend on other internal libraries than libimagstore and use the upper core modules for
-// their functionality
-
-pub mod tags;
