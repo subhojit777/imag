@@ -327,7 +327,7 @@ impl Store {
             .read()
             .map(|map| map.contains_key(&id))
             .map_err(|_| SE::from_kind(SEK::LockPoisoned))
-            .chain_err(|| SEK::CreateCallError)?;
+            .chain_err(|| SEK::CreateCallError(id.clone()))?;
 
         if exists {
             debug!("Entry exists: {:?}", id);
@@ -339,12 +339,12 @@ impl Store {
                 .entries
                 .write()
                 .map_err(|_| SE::from_kind(SEK::LockPoisoned))
-                .chain_err(|| SEK::CreateCallError)?;
+                .chain_err(|| SEK::CreateCallError(id.clone()))?;
 
             if hsmap.contains_key(&id) {
                 debug!("Cannot create, internal cache already contains: '{}'", id);
                 return Err(SE::from_kind(SEK::EntryAlreadyExists(id.clone())))
-                           .chain_err(|| SEK::CreateCallError);
+                           .chain_err(|| SEK::CreateCallError(id.clone()));
             }
             hsmap.insert(id.clone(), {
                 debug!("Creating: '{}'", id);
@@ -387,7 +387,7 @@ impl Store {
                 se.status = StoreEntryStatus::Borrowed;
                 entry
             })
-            .chain_err(|| SEK::RetrieveCallError)?;
+            .chain_err(|| SEK::RetrieveCallError(id.clone()))?;
 
         debug!("Constructing FileLockEntry: '{}'", id);
         Ok(FileLockEntry::new(self, entry))
@@ -412,14 +412,14 @@ impl Store {
             .read()
             .map(|map| map.contains_key(&id))
             .map_err(|_| SE::from_kind(SEK::LockPoisoned))
-            .chain_err(|| SEK::GetCallError)?;
+            .chain_err(|| SEK::GetCallError(id.clone()))?;
 
         if !exists {
             debug!("Does not exist in internal cache or filesystem: {:?}", id);
             return Ok(None);
         }
 
-        self.retrieve(id).map(Some).chain_err(|| SEK::GetCallError)
+        self.retrieve(id.clone()).map(Some).chain_err(|| SEK::GetCallError(id))
     }
 
     /// Walk the store tree for the module
@@ -445,7 +445,7 @@ impl Store {
     ///
     pub fn update<'a>(&'a self, entry: &mut FileLockEntry<'a>) -> Result<()> {
         debug!("Updating FileLockEntry at '{}'", entry.get_location());
-        self._update(entry, false).chain_err(|| SEK::UpdateCallError)
+        self._update(entry, false).chain_err(|| SEK::UpdateCallError(entry.get_location().clone()))
     }
 
     /// Internal method to write to the filesystem store.
@@ -493,11 +493,11 @@ impl Store {
         debug!("Retrieving copy of '{}'", id);
         let entries = self.entries.write()
             .map_err(|_| SE::from_kind(SEK::LockPoisoned))
-            .chain_err(|| SEK::RetrieveCopyCallError)?;
+            .chain_err(|| SEK::RetrieveCopyCallError(id.clone()))?;
 
         // if the entry is currently modified by the user, we cannot drop it
         if entries.get(&id).map(|e| e.is_borrowed()).unwrap_or(false) {
-            return Err(SE::from_kind(SEK::IdLocked)).chain_err(|| SEK::RetrieveCopyCallError);
+            return Err(SE::from_kind(SEK::IdLocked)).chain_err(|| SEK::RetrieveCopyCallError(id));
         }
 
         StoreEntry::new(id, &self.backend)?.get_entry()
@@ -524,7 +524,7 @@ impl Store {
                 .entries
                 .write()
                 .map_err(|_| SE::from_kind(SEK::LockPoisoned))
-                .chain_err(|| SEK::DeleteCallError)?;
+                .chain_err(|| SEK::DeleteCallError(id.clone()))?;
 
             // if the entry is currently modified by the user, we cannot drop it
             match entries.get(&id) {
@@ -536,7 +536,7 @@ impl Store {
                     // StoreId::exists(), a PathBuf object gets allocated. So we simply get a
                     // PathBuf here, check whether it is there and if it is, we can re-use it to
                     // delete the filesystem file.
-                    let pb = id.into_pathbuf()?;
+                    let pb = id.clone().into_pathbuf()?;
 
                     if pb.exists() {
                         // looks like we're deleting a not-loaded file from the store.
@@ -545,11 +545,12 @@ impl Store {
                     } else {
                         debug!("Seems like {:?} is not even on the FS", pb);
                         return Err(SE::from_kind(SEK::FileNotFound))
-                            .chain_err(|| SEK::DeleteCallError)
+                            .chain_err(|| SEK::DeleteCallError(id))
                     }
                 },
                 Some(e) => if e.is_borrowed() {
-                    return Err(SE::from_kind(SEK::IdLocked)).chain_err(|| SEK::DeleteCallError)
+                    return Err(SE::from_kind(SEK::IdLocked))
+                        .chain_err(|| SEK::DeleteCallError(id))
                 }
             }
 
@@ -560,7 +561,7 @@ impl Store {
                 .backend
                 .remove_file(&pb)
                 .chain_err(|| SEK::FileError)
-                .chain_err(|| SEK::DeleteCallError)?;
+                .chain_err(|| SEK::DeleteCallError(id))?;
         }
 
         debug!("Deleted");
@@ -588,11 +589,11 @@ impl Store {
             .entries
             .write()
             .map_err(|_| SE::from_kind(SEK::LockPoisoned))
-            .chain_err(|| SEK::MoveCallError)?;
+            .chain_err(|| SEK::MoveCallError(entry.get_location().clone(), new_id.clone()))?;
 
         if hsmap.contains_key(&new_id) {
             return Err(SE::from_kind(SEK::EntryAlreadyExists(new_id.clone())))
-                .chain_err(|| SEK::MoveCallError)
+                .chain_err(|| SEK::MoveCallError(entry.get_location().clone(), new_id.clone()))
         }
 
         let old_id = entry.get_location().clone();
@@ -608,7 +609,7 @@ impl Store {
                 Ok(())
             })
             .chain_err(|| SEK::FileError)
-            .chain_err(|| SEK::MoveCallError)
+            .chain_err(|| SEK::MoveCallError(old_id, new_id))
     }
 
     /// Move an entry without loading

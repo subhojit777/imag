@@ -192,54 +192,39 @@ error_chain! {
             display("StoreId has no 'base' part: {:?}", pb)
         }
 
-        CreateCallError            {
+        CreateCallError(sid: StoreId) {
             description("Error when calling create()")
-            display("Error when calling create()")
+            display("Error when calling create({:?})", sid)
         }
 
-        RetrieveCallError          {
+        RetrieveCallError(sid: StoreId) {
             description("Error when calling retrieve()")
-            display("Error when calling retrieve()")
+            display("Error when calling retrieve({:?})", sid)
         }
 
-        GetCallError               {
+        GetCallError(sid: StoreId) {
             description("Error when calling get()")
-            display("Error when calling get()")
+            display("Error when calling get({:?})", sid)
         }
 
-        GetAllVersionsCallError    {
-            description("Error when calling get_all_versions()")
-            display("Error when calling get_all_versions()")
-        }
-
-        RetrieveForModuleCallError {
-            description("Error when calling retrieve_for_module()")
-            display("Error when calling retrieve_for_module()")
-        }
-
-        UpdateCallError            {
+        UpdateCallError(sid: StoreId) {
             description("Error when calling update()")
-            display("Error when calling update()")
+            display("Error when calling update({:?})", sid)
         }
 
-        RetrieveCopyCallError      {
+        RetrieveCopyCallError(sid: StoreId) {
             description("Error when calling retrieve_copy()")
-            display("Error when calling retrieve_copy()")
+            display("Error when calling retrieve_copy({:?})", sid)
         }
 
-        DeleteCallError            {
+        DeleteCallError(sid: StoreId) {
             description("Error when calling delete()")
-            display("Error when calling delete()")
+            display("Error when calling delete({:?})", sid)
         }
 
-        MoveCallError              {
+        MoveCallError(old: StoreId, new: StoreId) {
             description("Error when calling move()")
-            display("Error when calling move()")
-        }
-
-        MoveByIdCallError          {
-            description("Error when calling move_by_id()")
-            display("Error when calling move_by_id()")
+            display("Error when calling move({:?} -> {:?})", old, new)
         }
 
         // Parser-related errors
