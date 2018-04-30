@@ -95,6 +95,20 @@ impl Diagnostic {
     }
 }
 
+macro_rules! do_write {
+    ($dest:ident, $pattern:tt) => {
+        let _ = writeln!($dest, $pattern)
+            .to_exit_code()
+            .unwrap_or_exit();
+    };
+
+    ($dest:ident, $pattern:tt, $( $args:expr ),*) => {
+        let _ = writeln!($dest, $pattern, $( $args ),*)
+            .to_exit_code()
+            .unwrap_or_exit();
+    }
+}
+
 fn main() {
     let version = make_imag_version!();
     let rt = generate_runtime_setup("imag-diagnostics",
@@ -158,64 +172,43 @@ fn main() {
 
     let mut out = rt.stdout();
 
-    let _ = writeln!(out, "imag version {}", env!("CARGO_PKG_VERSION"))
-        .to_exit_code()
-        .unwrap_or_exit();
-    let _ = writeln!(out, "")
-        .to_exit_code()
-        .unwrap_or_exit();
-    let _ = writeln!(out, "{} entries", n)
-        .to_exit_code()
-        .unwrap_or_exit();
+    do_write!(out, "imag version {}", { env!("CARGO_PKG_VERSION") });
+    do_write!(out, "");
+    do_write!(out, "{} entries", n);
+
     for (k, v) in version_counts {
-        let _ = writeln!(out, "{} entries with store version '{}'", v, k)
-            .to_exit_code()
-            .unwrap_or_exit();
+        do_write!(out, "{} entries with store version '{}'", v, k);
     }
     if n != 0 {
-        let _ = writeln!(out, "{} header sections in the average entry", sum_header_sections / n)
-            .to_exit_code()
-            .unwrap_or_exit();
-        let _ = writeln!(out, "{} average content bytecount", sum_bytecount_content / n)
-            .to_exit_code()
-            .unwrap_or_exit();
-        let _ = writeln!(out, "{} average overall bytecount", sum_overall_byte_size / n)
-            .to_exit_code()
-            .unwrap_or_exit();
+        do_write!(out, "{} header sections in the average entry", sum_header_sections / n);
+        do_write!(out, "{} average content bytecount", sum_bytecount_content / n);
+        do_write!(out, "{} average overall bytecount", sum_overall_byte_size / n);
+
         if let Some((num, path)) = max_overall_byte_size {
-            let _ = writeln!(out,
-                             "Largest Entry ({bytes} bytes): {path}",
-                             bytes = num,
-                             path = path
-                                 .into_pathbuf()
-                                 .map_err_trace_exit_unwrap(1)
-                                 .to_str()
-                                 .unwrap_or("Failed converting path to string")
-                )
-                .to_exit_code()
-                .unwrap_or_exit();
+            do_write!(out, "Largest Entry ({} bytes): {}",
+                num,
+                path
+                    .into_pathbuf()
+                    .map_err_trace_exit_unwrap(1)
+                    .to_str()
+                    .unwrap_or("Failed converting path to string")
+            );
         }
-        let _ = writeln!(out, "{} average internal link count per entry", num_internal_links / n)
-            .to_exit_code()
-            .unwrap_or_exit();
+
+        do_write!(out, "{} average internal link count per entry", num_internal_links / n);
+
         if let Some((num, path)) = max_internal_links {
-            let _ = writeln!(out, "Entry with most internal links ({count}): {path}",
-                     count = num,
-                     path = path
+            do_write!(out, "Entry with most internal links ({}): {}",
+                     num,
+                     path
                         .into_pathbuf()
                         .map_err_trace_exit_unwrap(1)
                         .to_str()
                         .unwrap_or("Failed converting path to string")
-            )
-            .to_exit_code()
-            .unwrap_or_exit();
+            );
         }
-        let _ = writeln!(out, "{} verified entries", verified_count)
-            .to_exit_code()
-            .unwrap_or_exit();
-        let _ = writeln!(out, "{} unverified entries", unverified_count)
-            .to_exit_code()
-            .unwrap_or_exit();
+        do_write!(out, "{} verified entries", verified_count);
+        do_write!(out, "{} unverified entries", unverified_count);
     }
 }
 
