@@ -43,8 +43,9 @@ impl<'a> Iterator for ContactIter<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             match self.0.next() {
-                None      => return None,
-                Some(sid) => match self.1.get(sid.clone()).map_err(From::from) {
+                None          => return None,
+                Some(Err(e))  => return Some(Err(e).map_err(CE::from)),
+                Some(Ok(sid)) => match self.1.get(sid.clone()).map_err(From::from) {
                     Err(e)          => return Some(Err(e)),
                     Ok(None)        => return Some(Err(CE::from_kind(CEK::EntryNotFound(sid)))),
                     Ok(Some(entry)) => match entry.is_contact().map_err(From::from) {
