@@ -103,16 +103,17 @@ impl Filter<StoreId> for DiaryEntryIterator {
 }
 
 impl Iterator for DiaryEntryIterator {
-    type Item = StoreId;
+    type Item = Result<StoreId>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             match self.iter.next() {
-                None    => return None,
-                Some(s) => {
+                None         => return None,
+                Some(Err(e)) => return Some(Err(e).map_err(DE::from)),
+                Some(Ok(s))  => {
                     debug!("Next element: {:?}", s);
                     if Filter::filter(self, &s) {
-                        return Some(s)
+                        return Some(Ok(s))
                     } else {
                         continue
                     }
@@ -141,16 +142,19 @@ impl Iterator for DiaryNameIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(next) = self.0.next() {
-            if next.is_in_collection(&["diary"]) {
-                return Some(next
-                    .to_str()
-                    .chain_err(|| DEK::DiaryNameFindingError)
-                    .and_then(|s| {
-                        s.split("diary/")
-                            .nth(1)
-                            .and_then(|n| n.split("/").nth(0).map(String::from))
-                            .ok_or(DE::from_kind(DEK::DiaryNameFindingError))
-                    }))
+            match next {
+                Err(e) => return Some(Err(e).map_err(DE::from)),
+                Ok(next) => if next.is_in_collection(&["diary"]) {
+                    return Some(next
+                        .to_str()
+                        .chain_err(|| DEK::DiaryNameFindingError)
+                        .and_then(|s| {
+                            s.split("diary/")
+                                .nth(1)
+                                .and_then(|n| n.split("/").nth(0).map(String::from))
+                                .ok_or(DE::from_kind(DEK::DiaryNameFindingError))
+                        }));
+                },
             }
         }
 
