@@ -19,19 +19,21 @@
 
 use std::path::PathBuf;
 
+use error::Result;
+
 /// A wrapper for an iterator over `PathBuf`s
-pub struct PathIterator(Box<Iterator<Item = PathBuf>>);
+pub struct PathIterator(Box<Iterator<Item = Result<PathBuf>>>);
 
 impl PathIterator {
 
-    pub fn new(iter: Box<Iterator<Item = PathBuf>>) -> PathIterator {
+    pub fn new(iter: Box<Iterator<Item = Result<PathBuf>>>) -> PathIterator {
         PathIterator(iter)
     }
 
 }
 
 impl Iterator for PathIterator {
-    type Item = PathBuf;
+    type Item = Result<PathBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()

@@ -183,15 +183,15 @@ impl FileAbstraction for InMemoryFileAbstraction {
 
     fn pathes_recursively(&self, _basepath: PathBuf) -> Result<PathIterator, SE> {
         debug!("Getting all pathes");
-        let keys : Vec<PathBuf> = self
+        let keys : Vec<Result<PathBuf, SE>> = self
             .backend()
             .lock()
             .map_err(|_| SE::from_kind(SEK::FileError))?
             .get_mut()
             .keys()
             .map(PathBuf::from)
-            .collect();
-        // we collect here as this happens only in tests and in memory anyways, so no problem
+            .map(Ok)
+            .collect(); // we have to collect() because of the lock() above.
 
         Ok(PathIterator::new(Box::new(keys.into_iter())))
     }
