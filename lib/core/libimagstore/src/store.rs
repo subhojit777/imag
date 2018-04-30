@@ -477,6 +477,49 @@ impl Store {
         Ok(())
     }
 
+    /// Flush the store internal cache
+    ///
+    /// This is helpful if a lot of entries are beeing read/written, because the store holds the
+    /// file handles internally. At some point, the OS simply errors with "Too many files open".
+    /// With this function, not-borrowed entries can be flushed back to disk and thus file handles
+    /// are dropped.
+    ///
+    /// After the flushables are dropped, the internal cache is shrinked to fit the number of
+    /// elements still in the cache.
+    ///
+    pub fn flush_cache(&self) -> Result<()> {
+        // We borrow this early so that between the aggregation of the flushables and the actual
+        // flush, there is no borrowing from the store.
+        let mut hsmap = self.entries.write().map_err(|_| SE::from_kind(SEK::LockPoisoned))?;
+        let mut to_flush = vec![];
+
+        for (storeid, se) in hsmap.deref() {
+            if !se.is_borrowed() {
+                to_flush.push(storeid.clone());
+            }
+        }
+
+        for id in to_flush {
+            let _ = hsmap.remove(&id);
+        }
+
+        hsmap.shrink_to_fit();
+
+        Ok(())
+    }
+
+    /// The number of elements in the internal cache
+    pub fn cache_size(&self) -> Result<usize> {
+        let hsmap = self.entries.read().map_err(|_| SE::from_kind(SEK::LockPoisoned))?;
+        Ok(hsmap.iter().count())
+    }
+
+    /// The size of the internal cache
+    pub fn cache_capacity(&self) -> Result<usize> {
+        let hsmap = self.entries.read().map_err(|_| SE::from_kind(SEK::LockPoisoned))?;
+        Ok(hsmap.capacity())
+    }
+
     /// Get a copy of a given entry, this cannot be used to mutate the one on disk
     ///
     /// # Return value
