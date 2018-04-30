@@ -131,7 +131,8 @@ impl HabitTemplate for Entry {
         let iter = self
             .get_internal_links()?
             .map(|link| link.get_store_id().clone())
-            .filter(IsHabitCheck::is_habit_instance);
+            .filter(IsHabitCheck::is_habit_instance)
+            .map(Ok);
 
         let sidi = StoreIdIterator::new(Box::new(iter));
         Ok(HabitInstanceStoreIdIterator::new(sidi))

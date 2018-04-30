@@ -22,16 +22,21 @@ use libimagstore::storeid::StoreIdIteratorWithStore;
 use libimagstore::storeid::StoreId;
 
 use util::IsHabitCheck;
+use error::Result;
+use error::HabitError as HE;
 
 pub struct HabitTemplateStoreIdIterator(StoreIdIterator);
 
 impl Iterator for HabitTemplateStoreIdIterator {
-    type Item = StoreId;
+    type Item = Result<StoreId>;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(n) = self.0.next() {
-            if n.is_habit_template() {
-                return Some(n)
+            match n {
+                Ok(n) => if n.is_habit_template() {
+                    return Some(Ok(n))
+                },
+                Err(e) => return Some(Err(e).map_err(HE::from)),
             }
         }
         None
@@ -59,12 +64,15 @@ impl HabitInstanceStoreIdIterator {
 }
 
 impl Iterator for HabitInstanceStoreIdIterator {
-    type Item = StoreId;
+    type Item = Result<StoreId>;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(n) = self.0.next() {
-            if n.is_habit_instance() {
-                return Some(n)
+            match n {
+                Ok(n) => if n.is_habit_instance() {
+                    return Some(Ok(n));
+                },
+                Err(e) => return Some(Err(e).map_err(HE::from)),
             }
         }
         None
