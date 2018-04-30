@@ -96,6 +96,7 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
         };
         *self = FSFileAbstractionInstance::File(file, path);
         if let FSFileAbstractionInstance::File(ref mut f, _) = *self {
+            trace!("Writing buffer...");
             return f.write_all(&buf).chain_err(|| SEK::FileNotWritten);
         }
         unreachable!();
