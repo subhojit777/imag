@@ -35,6 +35,7 @@
 extern crate clap;
 extern crate toml;
 extern crate toml_query;
+#[macro_use] extern crate log;
 
 #[macro_use] extern crate libimagrt;
 extern crate libimagerror;
@@ -59,6 +60,7 @@ use std::collections::BTreeMap;
 
 mod ui;
 
+#[derive(Debug)]
 struct Diagnostic {
     pub id: StoreId,
     pub entry_store_version: String,
@@ -71,7 +73,7 @@ struct Diagnostic {
 
 impl Diagnostic {
 
-    fn for_entry<'a>(entry: FileLockEntry<'a>) -> Result<Diagnostic, ::libimagstore::error::StoreError> {
+    fn for_entry<'a>(entry: &FileLockEntry<'a>) -> Result<Diagnostic, ::libimagstore::error::StoreError> {
         Ok(Diagnostic {
             id: entry.get_location().clone(),
             entry_store_version: entry
@@ -102,6 +104,7 @@ fn main() {
                                     "Print diagnostics about imag and the imag store",
                                     ui::build_ui);
 
+    let mut entries_counter = 0;
     let diags = rt.store()
         .entries()
         .map_err_trace_exit_unwrap(1)
@@ -111,7 +114,24 @@ fn main() {
                 .ok_or(Error::from("Unable to get entry".to_owned()))
                 .map_err_trace_exit_unwrap(1)
         })
-        .map(Diagnostic::for_entry)
+        .map(|e| {
+            let diag = Diagnostic::for_entry(&e);
+            debug!("Diagnostic for '{:?}' = {:?}", e.get_location(), diag);
+            drop(e);
+
+            entries_counter += 1;
+
+            // because we're effectively reading _all_ store entries here.
+            //
+            // The store has an API for it, but the cache size calculation is O(n) and we can do
+            // better by simply flushing the cache each 100 entries
+            if entries_counter > 100 {
+                let _ = rt.store().flush_cache().map_err_trace_exit_unwrap(1);
+                entries_counter = 0;
+            }
+
+            diag
+        })
         .collect::<Result<Vec<_>, _>>()
         .map_err_trace_exit_unwrap(1);
 

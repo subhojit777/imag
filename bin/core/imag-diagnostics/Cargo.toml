@@ -16,6 +16,7 @@ homepage      = "http://imag-pim.org"
 build = "../../../build.rs"
 
 [dependencies]
+log  = "0.4"
 toml = "0.4"
 toml-query = "0.6"
 
