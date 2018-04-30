@@ -101,7 +101,7 @@ impl<'a> TaskStore<'a> for Store {
         ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
             .into_storeid()
             .and_then(|store_id| self.get(store_id))
-            .chain_err(|| TEK::StoreError)
+            .map_err(TE::from)
     }
 
     /// Same as Task::get_from_import() but uses Store::retrieve() rather than Store::get(), to
@@ -165,13 +165,13 @@ impl<'a> TaskStore<'a> for Store {
         ModuleEntryPath::new(format!("taskwarrior/{}", uuid))
             .into_storeid()
             .and_then(|id| self.delete(id))
-            .chain_err(|| TEK::StoreError)
+            .map_err(TE::from)
     }
 
     fn all_tasks(&self) -> Result<TaskIdIterator> {
         self.entries()
             .map(|i| TaskIdIterator::new(i.without_store()))
-            .chain_err(|| TEK::StoreError)
+            .map_err(TE::from)
     }
 
     fn new_from_twtask(&'a self, task: TTask) -> Result<FileLockEntry<'a>> {
@@ -184,18 +184,15 @@ impl<'a> TaskStore<'a> for Store {
             .chain_err(|| TEK::StoreIdError)
             .and_then(|id| {
                 self.retrieve(id)
-                    .chain_err(|| TEK::StoreError)
+                    .map_err(TE::from)
                     .and_then(|mut fle| {
                         {
                             let hdr = fle.get_header_mut();
-                            if hdr.read("todo").chain_err(|| TEK::StoreError)?.is_none() {
-                                hdr
-                                    .set("todo", Value::Table(BTreeMap::new()))
-                                    .chain_err(|| TEK::StoreError)?;
+                            if hdr.read("todo")?.is_none() {
+                                hdr.set("todo", Value::Table(BTreeMap::new()))?;
                             }
 
-                            hdr.set("todo.uuid", Value::String(format!("{}",uuid)))
-                                 .chain_err(|| TEK::StoreError)?;
+                            hdr.set("todo.uuid", Value::String(format!("{}",uuid)))?;
                         }
 
                         // If none of the errors above have returned the function, everything is fine
