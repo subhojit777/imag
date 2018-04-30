@@ -27,7 +27,7 @@ use storeid::StoreId;
 
 mod fs;
 mod inmemory;
-mod iter;
+pub(crate) mod iter;
 
 pub use self::fs::FSFileAbstraction;
 pub use self::fs::FSFileAbstractionInstance;

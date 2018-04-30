@@ -741,25 +741,12 @@ impl Store {
     }
 
     /// Get _all_ entries in the store (by id as iterator)
-    pub fn entries<'a>(&'a self) -> Result<StoreIdIteratorWithStore<'a>> {
+    pub fn entries(&self) -> Result<StoreIdIteratorWithStore> {
         self.backend
             .pathes_recursively(self.path().clone())
-            .and_then(|iter| {
-                let mut elems = vec![];
-                for element in iter {
-                    let is_file = {
-                        let mut base = self.path().clone();
-                        base.push(element.clone());
-                        self.backend.is_file(&base)?
-                    };
-
-                    if is_file {
-                        let sid = StoreId::from_full_path(self.path(), element)?;
-                        elems.push(sid);
-                    }
-                }
-                Ok(StoreIdIteratorWithStore::new(Box::new(elems.into_iter()), self))
-            })
+            .map(|i| i.store_id_constructing(self.path().clone()))
+            .map(Box::new)
+            .map(|it| StoreIdIteratorWithStore::new(it, self))
     }
 
     /// Gets the path where this store is on the disk

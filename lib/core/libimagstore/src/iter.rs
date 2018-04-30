@@ -32,10 +32,10 @@ macro_rules! mk_iterator {
         use store::Store;
         use error::Result;
 
-        pub struct $itername<'a>(Box<Iterator<Item = StoreId> + 'a>, &'a Store);
+        pub struct $itername<'a>(Box<Iterator<Item = Result<StoreId>> + 'a>, &'a Store);
 
         impl<'a> $itername<'a> {
-            pub fn new(inner: Box<Iterator<Item = StoreId> + 'a>, store: &'a Store) -> Self {
+            pub fn new(inner: Box<Iterator<Item = Result<StoreId>> + 'a>, store: &'a Store) -> Self {
                 $itername(inner, store)
             }
         }
@@ -44,7 +44,7 @@ macro_rules! mk_iterator {
             type Item = Result<$yield>;
 
             fn next(&mut self) -> Option<Self::Item> {
-                self.0.next().map(|id| $fun(id, self.1))
+                self.0.next().map(|id| $fun(id?, self.1))
             }
         }
 
@@ -53,7 +53,7 @@ macro_rules! mk_iterator {
         }
 
         impl<'a, I> $extname<'a> for I
-            where I: Iterator<Item = StoreId> + 'a
+            where I: Iterator<Item = Result<StoreId>> + 'a
         {
             fn $extfnname(self, store: &'a Store) -> $itername<'a> {
                 $itername(Box::new(self), store)

@@ -20,6 +20,7 @@
 use std::path::PathBuf;
 
 use error::Result;
+use storeid::StoreId;
 
 /// A wrapper for an iterator over `PathBuf`s
 pub struct PathIterator(Box<Iterator<Item = Result<PathBuf>>>);
@@ -30,6 +31,10 @@ impl PathIterator {
         PathIterator(iter)
     }
 
+    pub fn store_id_constructing(self, storepath: PathBuf) -> StoreIdConstructingIterator {
+        StoreIdConstructingIterator(self, storepath)
+    }
+
 }
 
 impl Iterator for PathIterator {
@@ -37,6 +42,32 @@ impl Iterator for PathIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
+    }
+
+}
+
+
+/// Helper type for constructing StoreIds from a PathIterator.
+///
+/// Automatically ignores non-files.
+pub struct StoreIdConstructingIterator(PathIterator, PathBuf);
+
+impl Iterator for StoreIdConstructingIterator {
+    type Item = Result<StoreId>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(next) = self.0.next() {
+            match next {
+                Err(e)  => return Some(Err(e)),
+                Ok(next) => if next.is_file() {
+                    return Some(StoreId::from_full_path(&self.1, next))
+                } else {
+                    continue
+                }
+            }
+        }
+
+        None
     }
 
 }
