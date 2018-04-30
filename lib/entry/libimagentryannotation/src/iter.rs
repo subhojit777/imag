@@ -24,6 +24,7 @@ use libimagstore::store::FileLockEntry;
 use libimagstore::storeid::StoreIdIterator;
 
 use error::Result;
+use error::AnnotationError as AE;
 use error::AnnotationErrorKind as AEK;
 use error::ResultExt;
 
@@ -43,18 +44,21 @@ impl<'a> Iterator for AnnotationIter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            match self.0.next().map(|id| self.1.get(id)) {
-                Some(Ok(Some(entry))) => {
-                    match entry.get_header().read_bool("annotation.is_annotation").chain_err(|| AEK::HeaderReadError) {
-                        Ok(None)        => continue, // not an annotation
-                        Ok(Some(false)) => continue,
-                        Ok(Some(true))  => return Some(Ok(entry)),
-                        Err(e)          => return Some(Err(e)),
-                    }
-                },
-                Some(Ok(None)) => continue,
-                Some(Err(e))   => return Some(Err(e).chain_err(|| AEK::StoreReadError)),
-                None           => return None, // iterator consumed
+            match self.0.next() {
+                None         => return None, // iterator consumed
+                Some(Err(e)) => return Some(Err(e).map_err(AE::from)),
+                Some(Ok(id)) => match self.1.get(id) {
+                    Err(e)          => return Some(Err(e).chain_err(|| AEK::StoreReadError)),
+                    Ok(Some(entry)) => {
+                        match entry.get_header().read_bool("annotation.is_annotation").chain_err(|| AEK::HeaderReadError) {
+                            Ok(None)        => continue, // not an annotation
+                            Ok(Some(false)) => continue,
+                            Ok(Some(true))  => return Some(Ok(entry)),
+                            Err(e)          => return Some(Err(e)),
+                        }
+                    },
+                    Ok(None) => continue,
+                }
             }
         }
     }

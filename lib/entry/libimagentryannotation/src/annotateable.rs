@@ -92,7 +92,7 @@ impl Annotateable for Entry {
     fn annotations<'a>(&self, store: &'a Store) -> Result<AnnotationIter<'a>> {
         self.get_internal_links()
             .map_err(From::from)
-            .map(|iter| StoreIdIterator::new(Box::new(iter.map(|e| e.get_store_id().clone()))))
+            .map(|iter| StoreIdIterator::new(Box::new(iter.map(|e| e.get_store_id().clone()).map(Ok))))
             .map(|i| AnnotationIter::new(i, store))
     }
 
