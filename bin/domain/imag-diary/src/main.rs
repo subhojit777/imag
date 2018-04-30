@@ -59,7 +59,6 @@ use itertools::Itertools;
 
 mod create;
 mod delete;
-mod edit;
 mod list;
 mod ui;
 mod util;
@@ -67,7 +66,6 @@ mod view;
 
 use create::create;
 use delete::delete;
-use edit::edit;
 use list::list;
 use view::view;
 
@@ -86,7 +84,6 @@ fn main() {
                 "diaries" => diaries(&rt),
                 "create" => create(&rt),
                 "delete" => delete(&rt),
-                "edit" => edit(&rt),
                 "list" => list(&rt),
                 "view" => view(&rt),
                 other    => {
