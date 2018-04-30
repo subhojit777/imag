@@ -21,6 +21,8 @@ use libimagstore::storeid::StoreId;
 use libimagstore::storeid::StoreIdIterator;
 
 use notestoreid::*;
+use error::Result;
+use error::NoteError as NE;
 
 #[derive(Debug)]
 pub struct NoteIterator(StoreIdIterator);
@@ -34,12 +36,15 @@ impl NoteIterator {
 }
 
 impl Iterator for NoteIterator {
-    type Item = StoreId;
+    type Item = Result<StoreId>;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(n) = self.0.next() {
-            if n.is_note_id() {
-                return Some(n);
+            match n {
+                Ok(n) => if n.is_note_id() {
+                    return Some(Ok(n));
+                },
+                Err(e) => return Some(Err(e).map_err(NE::from)),
             }
         }
 
