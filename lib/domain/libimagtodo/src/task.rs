@@ -34,8 +34,7 @@ pub trait Task {
 impl Task for Entry {
     fn get_uuid(&self) -> Result<Uuid> {
         self.get_header()
-            .read_string("todo.uuid")
-            .chain_err(|| TEK::StoreError)?
+            .read_string("todo.uuid")?
             .ok_or(TE::from_kind(TEK::HeaderFieldMissing))
             .and_then(|u| Uuid::parse_str(&u).chain_err(|| TEK::UuidParserError))
     }

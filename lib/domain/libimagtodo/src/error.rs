@@ -22,15 +22,18 @@ error_chain! {
         TodoError, TodoErrorKind, ResultExt, Result;
     }
 
+    links {
+        StoreError(::libimagstore::error::StoreError, ::libimagstore::error::StoreErrorKind);
+    }
+
+    foreign_links {
+        TomlQueryError(::toml_query::error::Error);
+    }
+
     errors {
         ConversionError     {
             description("Conversion Error")
             display("Conversion Error")
-        }
-
-        StoreError          {
-            description("Store Error")
-            display("Store Error")
         }
 
         StoreIdError        {
