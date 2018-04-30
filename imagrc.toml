@@ -4,6 +4,16 @@
 [rt]
 editor = "vim"
 
+# If the command uses a progress bar to indicate progress, this is the template
+# for it.
+#
+# The docs for the template language can be found at
+#
+#     https://docs.rs/indicatif
+#
+progressbar_style = "[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}"
+progressticker_chars = "|/-\-/-\"
+
 #
 # imag supports templates when specifying formats. The templates support several
 # functionalities, from colorizing to underlining and such things.

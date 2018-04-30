@@ -35,6 +35,7 @@
 extern crate clap;
 extern crate toml;
 extern crate toml_query;
+extern crate indicatif;
 #[macro_use] extern crate log;
 
 #[macro_use] extern crate libimagrt;
@@ -44,6 +45,7 @@ extern crate libimagstore;
 
 use std::io::Write;
 
+use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::io::ToExitCode;
@@ -55,6 +57,7 @@ use libimagentrylink::internal::*;
 
 use toml::Value;
 use toml_query::read::TomlValueReadExt;
+use indicatif::{ProgressBar, ProgressStyle};
 
 use std::collections::BTreeMap;
 
@@ -119,6 +122,20 @@ fn main() {
                                     ui::build_ui);
 
     let mut entries_counter = 0;
+    let template            = get_config(&rt, "rt.progressbar_style");
+    let tick_chars          = get_config(&rt, "rt.progressticker_chars");
+
+    let style = if let Some(tick_chars) = tick_chars {
+        ProgressStyle::default_spinner().tick_chars(&tick_chars)
+    } else {
+        ProgressStyle::default_spinner()
+    };
+
+    let spinner = ProgressBar::new_spinner();
+    spinner.enable_steady_tick(100);
+    spinner.set_style(style);
+    spinner.set_message("Accumulating data");
+
     let diags = rt.store()
         .entries()
         .map_err_trace_exit_unwrap(1)
@@ -148,6 +165,17 @@ fn main() {
         })
         .collect::<Result<Vec<_>, _>>()
         .map_err_trace_exit_unwrap(1);
+
+    spinner.finish();
+    let n                = diags.len();
+    let progress         = ProgressBar::new(n as u64);
+    let style            = if let Some(template) = template {
+        ProgressStyle::default_bar().template(&template)
+    } else {
+        ProgressStyle::default_bar()
+    };
+    progress.set_style(style);
+    progress.set_message("Calculating stats");
 
     let mut version_counts        : BTreeMap<String, usize> = BTreeMap::new();
     let mut sum_header_sections   = 0;
@@ -186,9 +214,11 @@ fn main() {
                 max_internal_links = Some((diag.num_internal_links, diag.id.clone()));
             }
         }
+
+        progress.inc(1);
     }
 
-    let n = diags.len();
+    progress.finish();
 
     let mut out = rt.stdout();
 
@@ -230,5 +260,19 @@ fn main() {
         do_write!(out, "{} verified entries", verified_count);
         do_write!(out, "{} unverified entries", unverified_count);
     }
+}
+
+fn get_config(rt: &Runtime, s: &'static str) -> Option<String> {
+    rt.config().and_then(|cfg| {
+        cfg.read(s)
+            .map_err_trace_exit_unwrap(1)
+            .map(|opt| match opt {
+                &Value::String(ref s) => s.to_owned(),
+                _ => {
+                    error!("Config type wrong: 'rt.progressbar_style' should be a string");
+                    ::std::process::exit(1)
+                }
+            })
+    })
 }
 
