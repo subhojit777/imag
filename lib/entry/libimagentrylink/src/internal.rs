@@ -388,6 +388,8 @@ pub mod iter {
 impl InternalLinker for Entry {
 
     fn get_internal_links(&self) -> Result<LinkIter> {
+        debug!("Getting internal links");
+        trace!("Getting internal links from header of '{}' = {:?}", self.get_location(), self.get_header());
         let res = self
             .get_header()
             .read("links.internal")
@@ -399,6 +401,8 @@ impl InternalLinker for Entry {
     /// Set the links in a header and return the old links, if any.
     fn set_internal_links(&mut self, links: Vec<&mut Entry>) -> Result<LinkIter> {
         use internal::iter::IntoValues;
+
+        debug!("Setting internal links");
 
         let self_location = self.get_location().clone();
         let mut new_links = vec![];
@@ -430,11 +434,13 @@ impl InternalLinker for Entry {
     }
 
     fn add_internal_link(&mut self, link: &mut Entry) -> Result<()> {
+        debug!("Adding internal link: {:?}", link);
         let location = link.get_location().clone().into();
         add_internal_link_with_instance(self, link, location)
     }
 
     fn remove_internal_link(&mut self, link: &mut Entry) -> Result<()> {
+        debug!("Removing internal link: {:?}", link);
         let own_loc   = self.get_location().clone().without_base();
         let other_loc = link.get_location().clone().without_base();
 
