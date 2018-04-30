@@ -207,16 +207,6 @@ error_chain! {
             display("Error when calling get({:?})", sid)
         }
 
-        GetAllVersionsCallError    {
-            description("Error when calling get_all_versions()")
-            display("Error when calling get_all_versions()")
-        }
-
-        RetrieveForModuleCallError {
-            description("Error when calling retrieve_for_module()")
-            display("Error when calling retrieve_for_module()")
-        }
-
         UpdateCallError(sid: StoreId) {
             description("Error when calling update()")
             display("Error when calling update({:?})", sid)
@@ -235,11 +225,6 @@ error_chain! {
         MoveCallError(old: StoreId, new: StoreId) {
             description("Error when calling move()")
             display("Error when calling move({:?} -> {:?})", old, new)
-        }
-
-        MoveByIdCallError          {
-            description("Error when calling move_by_id()")
-            display("Error when calling move_by_id()")
         }
 
         // Parser-related errors
