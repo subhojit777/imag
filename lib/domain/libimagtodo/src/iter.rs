@@ -20,6 +20,9 @@
 use libimagstore::storeid::StoreIdIterator;
 use libimagstore::storeid::StoreId;
 
+use error::Result;
+use error::TodoError as TE;
+
 pub struct TaskIdIterator(StoreIdIterator);
 
 impl TaskIdIterator {
@@ -31,14 +34,15 @@ impl TaskIdIterator {
 }
 
 impl Iterator for TaskIdIterator {
-    type Item = StoreId;
+    type Item = Result<StoreId>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             match self.0.next() {
                 None    => return None,
-                Some(n) => if n.is_in_collection(&["todo", "taskwarrior"]) {
-                    return Some(n)
+                Some(Err(e)) => return Some(Err(e).map_err(TE::from)),
+                Some(Ok(n)) => if n.is_in_collection(&["todo", "taskwarrior"]) {
+                    return Some(Ok(n))
                 }, // else continue
             }
         }
