@@ -45,6 +45,7 @@ use filters::filter::Filter;
 
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::iter::TraceIterator;
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
 use libimagstore::storeid::StoreId;
@@ -86,6 +87,7 @@ fn main() {
     rt.store()
         .entries()
         .map_err_trace_exit_unwrap(1)
+        .trace_unwrap_exit(1)
         .filter(|id| collection_filter.filter(id))
         .map(|id| if print_storepath {
             id

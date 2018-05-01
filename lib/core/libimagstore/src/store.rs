@@ -137,7 +137,7 @@ impl Iterator for Walk {
 
 impl StoreEntry {
 
-    fn new(id: StoreId, backend: &Box<FileAbstraction>) -> Result<StoreEntry> {
+    fn new(id: StoreId, backend: &Arc<FileAbstraction>) -> Result<StoreEntry> {
         let pb = id.clone().into_pathbuf()?;
 
         #[cfg(feature = "fs-lock")]
@@ -214,7 +214,7 @@ pub struct Store {
     /// The backend to use
     ///
     /// This provides the filesystem-operation functions (or pretends to)
-    backend: Box<FileAbstraction>,
+    backend: Arc<FileAbstraction>,
 }
 
 impl Store {
@@ -235,7 +235,7 @@ impl Store {
     /// - On success: Store object
     ///
     pub fn new(location: PathBuf, store_config: &Option<Value>) -> Result<Store> {
-        let backend = Box::new(FSFileAbstraction::default());
+        let backend = Arc::new(FSFileAbstraction::default());
         Store::new_with_backend(location, store_config, backend)
     }
 
@@ -245,7 +245,7 @@ impl Store {
     /// Do not use directly, only for testing purposes.
     pub fn new_with_backend(location: PathBuf,
                             store_config: &Option<Value>,
-                            backend: Box<FileAbstraction>) -> Result<Store> {
+                            backend: Arc<FileAbstraction>) -> Result<Store> {
         use configuration::*;
 
         debug!("Building new Store object");
@@ -277,33 +277,6 @@ impl Store {
         debug!("------------------------");
 
         Ok(store)
-    }
-
-    /// Reset the backend of the store during runtime
-    ///
-    /// # Warning
-    ///
-    /// This is dangerous!
-    /// You should not be able to do that in application code, only the libimagrt should be used to
-    /// do this via safe and careful wrapper functions!
-    ///
-    /// If you are able to do this without using `libimagrt`, please file an issue report.
-    ///
-    /// # Purpose
-    ///
-    /// With the I/O backend of the store, the store is able to pipe itself out via (for example)
-    /// JSON. But because we need a functionality where we load contents from the filesystem and
-    /// then pipe it to stdout, we need to be able to replace the backend during runtime.
-    ///
-    /// This also applies the other way round: If we get the store from stdin and have to persist it
-    /// to stdout, we need to be able to replace the in-memory backend with the real filesystem
-    /// backend.
-    ///
-    pub fn reset_backend(&mut self, mut backend: Box<FileAbstraction>) -> Result<()> {
-        self.backend
-            .drain()
-            .and_then(|drain| backend.fill(drain))
-            .map(|_| self.backend = backend)
     }
 
     /// Creates the Entry at the given location (inside the entry)
@@ -741,25 +714,12 @@ impl Store {
     }
 
     /// Get _all_ entries in the store (by id as iterator)
-    pub fn entries<'a>(&'a self) -> Result<StoreIdIteratorWithStore<'a>> {
+    pub fn entries(&self) -> Result<StoreIdIteratorWithStore> {
         self.backend
             .pathes_recursively(self.path().clone())
-            .and_then(|iter| {
-                let mut elems = vec![];
-                for element in iter {
-                    let is_file = {
-                        let mut base = self.path().clone();
-                        base.push(element.clone());
-                        self.backend.is_file(&base)?
-                    };
-
-                    if is_file {
-                        let sid = StoreId::from_full_path(self.path(), element)?;
-                        elems.push(sid);
-                    }
-                }
-                Ok(StoreIdIteratorWithStore::new(Box::new(elems.into_iter()), self))
-            })
+            .map(|i| i.store_id_constructing(self.path().clone(), self.backend.clone()))
+            .map(Box::new)
+            .map(|it| StoreIdIteratorWithStore::new(it, self))
     }
 
     /// Gets the path where this store is on the disk
@@ -1215,12 +1175,13 @@ Hai
 #[cfg(test)]
 mod store_tests {
     use std::path::PathBuf;
+    use std::sync::Arc;
 
     use super::Store;
     use file_abstraction::InMemoryFileAbstraction;
 
     pub fn get_store() -> Store {
-        let backend = Box::new(InMemoryFileAbstraction::default());
+        let backend = Arc::new(InMemoryFileAbstraction::default());
         Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
     }
 
@@ -1397,51 +1358,6 @@ mod store_tests {
                 assert!(match store.get(id_mv.clone()) { Ok(Some(_)) => true, _ => false },
                         "New id ({:?}) is not in store...", id_mv);
             }
-        }
-    }
-
-    #[test]
-    fn test_swap_backend_during_runtime() {
-        use file_abstraction::InMemoryFileAbstraction;
-
-        let mut store = {
-            let backend = InMemoryFileAbstraction::default();
-            let backend = Box::new(backend);
-
-            Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
-        };
-
-        for n in 1..100 {
-            let s = format!("test-{}", n);
-            let entry = store.create(PathBuf::from(s.clone())).unwrap();
-            assert!(entry.verify().is_ok());
-            let loc = entry.get_location().clone().into_pathbuf().unwrap();
-            assert!(loc.starts_with("/"));
-            assert!(loc.ends_with(s));
-        }
-
-        {
-            let other_backend = InMemoryFileAbstraction::default();
-            let other_backend = Box::new(other_backend);
-
-            assert!(store.reset_backend(other_backend).is_ok())
-        }
-
-        for n in 1..100 {
-            let s = format!("test-{}", n);
-            let entry = store.get(PathBuf::from(s.clone()));
-
-            assert!(entry.is_ok());
-            let entry = entry.unwrap();
-
-            assert!(entry.is_some());
-            let entry = entry.unwrap();
-
-            assert!(entry.verify().is_ok());
-
-            let loc = entry.get_location().clone().into_pathbuf().unwrap();
-            assert!(loc.starts_with("/"));
-            assert!(loc.ends_with(s));
         }
     }
 

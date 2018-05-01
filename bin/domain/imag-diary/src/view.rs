@@ -21,6 +21,7 @@ use libimagdiary::diary::Diary;
 use libimagdiary::viewer::DiaryViewer as DV;
 use libimagrt::runtime::Runtime;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::iter::TraceIterator;
 use libimagutil::warn_exit::warn_exit;
 use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagentryview::viewer::Viewer;
@@ -34,7 +35,7 @@ pub fn view(rt: &Runtime) {
     let entries = Diary::entries(rt.store(), &diaryname)
         .map_err_trace_exit_unwrap(1)
         .into_get_iter(rt.store())
-        .filter_map(Result::ok)
+        .trace_unwrap_exit(1)
         .map(|e| e.unwrap_or_else(|| {
             error!("Failed to fetch entry");
             ::std::process::exit(1)

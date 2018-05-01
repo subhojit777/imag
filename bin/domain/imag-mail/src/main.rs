@@ -43,6 +43,7 @@ extern crate libimagutil;
 use std::io::Write;
 
 use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagerror::iter::TraceIterator;
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
 use libimagmail::mail::Mail;
@@ -143,6 +144,7 @@ fn list(rt: &Runtime) {
     let _ = rt.store()
         .entries()
         .map_err_trace_exit_unwrap(1)
+        .trace_unwrap_exit(1)
         .filter(|id| id.is_in_collection(&["mail"]))
         .filter_map(|id| {
             rt.store()

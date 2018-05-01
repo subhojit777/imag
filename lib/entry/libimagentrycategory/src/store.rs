@@ -111,6 +111,7 @@ impl CategoryStore for Store {
 mod tests {
     extern crate env_logger;
     use std::path::PathBuf;
+    use std::sync::Arc;
 
     use super::*;
 
@@ -118,7 +119,7 @@ mod tests {
 
     pub fn get_store() -> Store {
         use libimagstore::store::InMemoryFileAbstraction;
-        let backend = Box::new(InMemoryFileAbstraction::default());
+        let backend = Arc::new(InMemoryFileAbstraction::default());
         Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
     }
 

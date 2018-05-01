@@ -49,9 +49,11 @@ use std::path::PathBuf;
 
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::iter::TraceIterator;
 use libimagstore::storeid::StoreId;
 use libimagstore::store::Store;
 use libimagstore::store::FileLockEntry;
+use libimagstore::error::StoreError;
 use libimagentrylink::internal::InternalLinker;
 use libimagstore::iter::get::StoreIdGetIteratorExtension;
 
@@ -91,11 +93,11 @@ fn main() {
             })
             .get_internal_links()
             .map_err_trace_exit_unwrap(1)
-            .map(|link| link.get_store_id().clone())
+            .map(|link| Ok(link.get_store_id().clone()) as Result<_, StoreError>)
             .into_get_iter(rt.store())
+            .trace_unwrap_exit(1)
             .map(|e| {
-                e.map_err_trace_exit_unwrap(1)
-                .unwrap_or_else(|| {
+                e.unwrap_or_else(|| {
                     error!("Linked entry does not exist");
                     exit(1)
                 })

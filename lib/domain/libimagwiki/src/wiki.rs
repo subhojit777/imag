@@ -108,12 +108,15 @@ impl<'a, 'b> Wiki<'a, 'b> {
 pub struct WikiIdIterator<'a>(StoreIdIteratorWithStore<'a>, IdIsInWikiFilter<'a>);
 
 impl<'a> Iterator for WikiIdIterator<'a> {
-    type Item = StoreId;
+    type Item = Result<StoreId>;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(next) = self.0.next() {
-            if self.1.filter(&next) {
-                return Some(next)
+            match next {
+                Ok(next) => if self.1.filter(&next) {
+                    return Some(Ok(next));
+                },
+                Err(e) => return Some(Err(e).map_err(WE::from)),
             }
         }
 

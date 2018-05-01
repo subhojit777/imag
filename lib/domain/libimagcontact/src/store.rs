@@ -81,7 +81,10 @@ impl<'a> ContactStore<'a> for Store {
         let iter = self
             .entries()?
             .without_store()
-            .filter(|id| id.is_in_collection(&["contact"]));
+            .filter(|id| match *id {
+                Ok(ref id) => id.is_in_collection(&["contact"]),
+                Err(_) => true,
+            });
 
         Ok(StoreIdIterator::new(Box::new(iter)))
     }

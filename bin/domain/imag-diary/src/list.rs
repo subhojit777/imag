@@ -23,6 +23,7 @@ use libimagdiary::diary::Diary;
 use libimagrt::runtime::Runtime;
 use libimagutil::warn_exit::warn_exit;
 use libimagerror::trace::MapErrTrace;
+use libimagerror::iter::TraceIterator;
 use libimagerror::io::ToExitCode;
 use libimagerror::exit::ExitUnwrap;
 use libimagutil::debug_result::*;
@@ -40,6 +41,7 @@ pub fn list(rt: &Runtime) {
     let mut ids = Diary::entries(rt.store(), &diaryname)
         .map_dbg_str("Ok")
         .map_err_trace_exit_unwrap(1)
+        .trace_unwrap_exit(1)
         .map(|id| DiaryId::from_storeid(&id))
         .collect::<Result<Vec<_>>>()
         .map_err_trace_exit_unwrap(1);

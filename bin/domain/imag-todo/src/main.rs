@@ -50,6 +50,7 @@ use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagtodo::taskstore::TaskStore;
 use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagerror::iter::TraceIterator;
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
 
@@ -124,7 +125,7 @@ fn list(rt: &Runtime) {
     let res = rt.store().all_tasks() // get all tasks
         .map(|iter| { // and if this succeeded
             // filter out the ones were we can read the uuid
-            let uuids : Vec<_> = iter.filter_map(|storeid| {
+            let uuids : Vec<_> = iter.trace_unwrap_exit(1).filter_map(|storeid| {
                 match rt.store().retrieve(storeid) {
                     Ok(fle) => {
                         match fle.get_header().read_string("todo.uuid") {

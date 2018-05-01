@@ -60,18 +60,23 @@ impl<'a> Iterator for CategoryNameIter<'a> {
         let query = CATEGORY_REGISTER_NAME_FIELD_PATH;
 
         while let Some(sid) = self.1.next() {
-            if sid.is_in_collection(&["category"]) {
-                let func = |store: &Store| { // hack for returning Some(Result<_, _>)
-                    store
-                        .get(sid)?
-                        .ok_or_else(|| CE::from_kind(CEK::StoreReadError))?
-                        .get_header()
-                        .read_string(query)
-                        .chain_err(|| CEK::HeaderReadError)?
-                        .ok_or_else(|| CE::from_kind(CEK::StoreReadError))
-                };
+            match sid {
+                Err(e) => return Some(Err(e).map_err(CE::from)),
+                Ok(sid) => {
+                    if sid.is_in_collection(&["category"]) {
+                        let func = |store: &Store| { // hack for returning Some(Result<_, _>)
+                            store
+                                .get(sid)?
+                                .ok_or_else(|| CE::from_kind(CEK::StoreReadError))?
+                                .get_header()
+                                .read_string(query)
+                                .chain_err(|| CEK::HeaderReadError)?
+                                .ok_or_else(|| CE::from_kind(CEK::StoreReadError))
+                        };
 
-                return Some(func(&self.0))
+                    return Some(func(&self.0))
+                    }
+                },
             } // else continue
         }
 
@@ -92,20 +97,25 @@ impl<'a> Iterator for CategoryEntryIterator<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(next) = self.1.next() {
-            let getter = |next| -> Result<(String, FileLockEntry<'a>)> {
-                let entry = self.0
-                    .get(next)?
-                    .ok_or_else(|| CE::from_kind(CEK::StoreReadError))?;
-                Ok((entry.get_category()?, entry))
-            };
+            match next {
+                Err(e) => return Some(Err(e).map_err(CE::from)),
+                Ok(next) => {
+                    let getter = |next| -> Result<(String, FileLockEntry<'a>)> {
+                        let entry = self.0
+                            .get(next)?
+                            .ok_or_else(|| CE::from_kind(CEK::StoreReadError))?;
+                        Ok((entry.get_category()?, entry))
+                    };
 
-            match getter(next) {
-                Err(e)     => return Some(Err(e)),
-                Ok((c, e)) => {
-                    if c == self.2 {
-                        return Some(Ok(e))
-                    // } else {
-                    // continue
+                    match getter(next) {
+                        Err(e)     => return Some(Err(e)),
+                        Ok((c, e)) => {
+                            if c == self.2 {
+                                return Some(Ok(e))
+                            // } else {
+                            // continue
+                            }
+                        }
                     }
                 }
             }

@@ -57,6 +57,7 @@ use prettytable::row::Row;
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
 use libimagerror::trace::{MapErrTrace, trace_error};
+use libimagerror::iter::TraceIterator;
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
 use libimaghabit::store::HabitStore;
@@ -167,6 +168,7 @@ fn delete(rt: &Runtime) {
         .store()
         .all_habit_templates()
         .map_err_trace_exit_unwrap(1)
+        .trace_unwrap_exit(1)
         .map(|sid| (sid.clone(), rt.store().get(sid).map_err_trace_exit_unwrap(1))) // get the FileLockEntry
         .filter(|&(_, ref habit)| match habit { // filter for name of habit == name we look for
             &Some(ref h) => h.habit_name().map_err_trace_exit_unwrap(1) == name,
@@ -198,6 +200,7 @@ fn delete(rt: &Runtime) {
                 fle
                     .linked_instances()
                     .map_err_trace_exit_unwrap(1)
+                    .trace_unwrap_exit(1)
                     .filter_map(get_instance)
                     .filter(has_template_name)
                     .map(instance_location)
@@ -249,6 +252,7 @@ fn today(rt: &Runtime, future: bool) {
             .store()
             .all_habit_templates()
             .map_err_trace_exit_unwrap(1)
+            .trace_unwrap_exit(1)
             .filter_map(|id| match rt.store().get(id.clone()) {
                 Ok(Some(h)) => Some(h),
                 Ok(None) => {
@@ -396,6 +400,7 @@ fn list(rt: &Runtime) {
         .store()
         .all_habit_templates()
         .map_err_trace_exit_unwrap(1)
+        .trace_unwrap_exit(1)
         .filter_map(|id| match rt.store().get(id.clone()) {
             Ok(Some(h)) => Some(h),
             Ok(None) => {
@@ -451,6 +456,7 @@ fn show(rt: &Runtime) {
         .store()
         .all_habit_templates()
         .map_err_trace_exit_unwrap(1)
+        .trace_unwrap_exit(1)
         .filter_map(|id| get_from_store(rt.store(), id))
         .filter(|h| h.habit_name().map(|n| name == n).map_err_trace_exit_unwrap(1))
         .enumerate()
@@ -474,6 +480,7 @@ fn show(rt: &Runtime) {
             let _ = habit
                 .linked_instances()
                 .map_err_trace_exit_unwrap(1)
+                .trace_unwrap_exit(1)
                 .filter_map(|instance_id| {
                     debug!("Getting: {:?}", instance_id);
                     rt.store().get(instance_id).map_err_trace_exit_unwrap(1)
@@ -505,6 +512,7 @@ fn done(rt: &Runtime) {
             .store()
             .all_habit_templates()
             .map_err_trace_exit_unwrap(1)
+            .trace_unwrap_exit(1)
             .filter_map(|id| get_from_store(rt.store(), id))
             .filter(|h| {
                 let due = h.next_instance_date().map_err_trace_exit_unwrap(1);

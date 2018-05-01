@@ -94,13 +94,27 @@ impl Diary for Store {
             .chain_err(|| DEK::StoreReadError)
     }
 
+    /// get the id of the youngest entry
+    ///
+    /// TODO: We collect internally here. We shouldn't do that. Solution unclear.
     fn get_youngest_entry_id(&self, diary_name: &str) -> Option<Result<DiaryId>> {
+        use error::DiaryError as DE;
+
         match Diary::entries(self, diary_name) {
             Err(e) => Some(Err(e)),
             Ok(entries) => {
-                entries
-                    .map(|e| DiaryId::from_storeid(&e))
-                    .sorted_by(|a, b| {
+                let mut sorted_entries = vec![];
+
+                for entry in entries {
+                    let entry = match entry {
+                        Ok(e) => DiaryId::from_storeid(&e),
+                        Err(e) => return Some(Err(e).map_err(DE::from)),
+                    };
+
+                    sorted_entries.push(entry);
+                }
+
+                sorted_entries.into_iter().sorted_by(|a, b| {
                         match (a, b) {
                             (&Ok(ref a), &Ok(ref b)) => {
                                 let a : NaiveDateTime = a.clone().into();

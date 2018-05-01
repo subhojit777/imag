@@ -406,6 +406,7 @@ impl ExternalLinker for Entry {
 mod tests {
     use super::*;
     use std::path::PathBuf;
+    use std::sync::Arc;
 
     use libimagstore::store::Store;
 
@@ -416,7 +417,7 @@ mod tests {
 
     pub fn get_store() -> Store {
         use libimagstore::file_abstraction::InMemoryFileAbstraction;
-        let backend = Box::new(InMemoryFileAbstraction::default());
+        let backend = Arc::new(InMemoryFileAbstraction::default());
         Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
     }
 

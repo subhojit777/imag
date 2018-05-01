@@ -241,7 +241,7 @@ macro_rules! module_entry_path_mod {
 }
 
 pub struct StoreIdIterator {
-    iter: Box<Iterator<Item = StoreId>>,
+    iter: Box<Iterator<Item = Result<StoreId>>>,
 }
 
 impl Debug for StoreIdIterator {
@@ -254,16 +254,16 @@ impl Debug for StoreIdIterator {
 
 impl StoreIdIterator {
 
-    pub fn new(iter: Box<Iterator<Item = StoreId>>) -> StoreIdIterator {
+    pub fn new(iter: Box<Iterator<Item = Result<StoreId>>>) -> StoreIdIterator {
         StoreIdIterator { iter }
     }
 
 }
 
 impl Iterator for StoreIdIterator {
-    type Item = StoreId;
+    type Item = Result<StoreId>;
 
-    fn next(&mut self) -> Option<StoreId> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.iter.next()
     }
 
@@ -280,16 +280,18 @@ impl<'a> Deref for StoreIdIteratorWithStore<'a> {
 }
 
 impl<'a> Iterator for StoreIdIteratorWithStore<'a> {
-    type Item = StoreId;
+    type Item = Result<StoreId>;
 
-    fn next(&mut self) -> Option<StoreId> {
+    fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
     }
 }
 
+use error::StoreError;
+
 impl<'a> StoreIdIteratorWithStore<'a> {
 
-    pub fn new(iter: Box<Iterator<Item = StoreId>>, store: &'a Store) -> Self {
+    pub fn new(iter: Box<Iterator<Item = Result<StoreId>>>, store: &'a Store) -> Self {
         StoreIdIteratorWithStore(StoreIdIterator::new(iter), store)
     }
 
@@ -300,7 +302,7 @@ impl<'a> StoreIdIteratorWithStore<'a> {
     /// Transform the iterator into a StoreCreateIterator
     ///
     /// This immitates the API from `libimagstore::iter`.
-    pub fn into_create_iter(self) -> StoreCreateIterator<'a> {
+    pub fn into_create_iter(self) -> StoreCreateIterator<'a, StoreError> {
         StoreCreateIterator::new(Box::new(self.0), self.1)
     }
 
@@ -308,7 +310,7 @@ impl<'a> StoreIdIteratorWithStore<'a> {
     ///
     ///
     /// This immitates the API from `libimagstore::iter`.
-    pub fn into_delete_iter(self) -> StoreDeleteIterator<'a> {
+    pub fn into_delete_iter(self) -> StoreDeleteIterator<'a, StoreError> {
         StoreDeleteIterator::new(Box::new(self.0), self.1)
     }
 
@@ -316,7 +318,7 @@ impl<'a> StoreIdIteratorWithStore<'a> {
     ///
     ///
     /// This immitates the API from `libimagstore::iter`.
-    pub fn into_get_iter(self) -> StoreGetIterator<'a> {
+    pub fn into_get_iter(self) -> StoreGetIterator<'a, StoreError> {
         StoreGetIterator::new(Box::new(self.0), self.1)
     }
 
@@ -324,7 +326,7 @@ impl<'a> StoreIdIteratorWithStore<'a> {
     ///
     ///
     /// This immitates the API from `libimagstore::iter`.
-    pub fn into_retrieve_iter(self) -> StoreRetrieveIterator<'a> {
+    pub fn into_retrieve_iter(self) -> StoreRetrieveIterator<'a, StoreError> {
         StoreRetrieveIterator::new(Box::new(self.0), self.1)
     }
 

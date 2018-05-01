@@ -34,6 +34,7 @@ use std::io::Write;
 
 use libimagrt::runtime::Runtime;
 use libimagrt::setup::generate_runtime_setup;
+use libimagerror::iter::TraceIterator;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
@@ -90,6 +91,7 @@ fn ids(rt: &Runtime, wiki_name: &str) {
         })
         .all_ids()
         .map_err_trace_exit_unwrap(1)
+        .trace_unwrap_exit(1)
         .for_each(|id| {
             let _ = writeln!(outlock, "{}{}", prefix, id)
                 .to_exit_code()

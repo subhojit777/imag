@@ -168,20 +168,15 @@ impl FileAbstraction for FSFileAbstraction {
     fn pathes_recursively(&self, basepath: PathBuf) -> Result<PathIterator, SE> {
         use walkdir::WalkDir;
 
-        let i : Result<Vec<PathBuf>, SE> = WalkDir::new(basepath)
+        let i = WalkDir::new(basepath)
             .min_depth(1)
+            .max_open(100)
             .into_iter()
             .map(|r| {
-                r.map(|e| PathBuf::from(e.path()))
-                    .chain_err(|| SE::from_kind(SEK::FileError))
-            })
-            .fold(Ok(vec![]), |acc, e| {
-                acc.and_then(move |mut a| {
-                    a.push(e?);
-                    Ok(a)
-                })
+                r.map(|e| PathBuf::from(e.path())).chain_err(|| SE::from_kind(SEK::FileError))
             });
-        Ok(PathIterator::new(Box::new(i?.into_iter())))
+
+        Ok(PathIterator::new(Box::new(i)))
     }
 }
 

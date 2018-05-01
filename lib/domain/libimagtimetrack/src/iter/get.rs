@@ -37,12 +37,15 @@ impl<'a> Iterator for TimeTrackingsGetIterator<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(next) = self.0.next() {
-            if next.is_in_collection(&[CRATE_NAME]) {
-                return match self.1.get(next) {
-                    Ok(Some(fle)) => Some(Ok(fle)),
-                    Ok(None)      => continue,
-                    Err(e)        => Some(Err(e))
-                };
+            match next {
+                Err(e)   => return Some(Err(e)),
+                Ok(next) => if next.is_in_collection(&[CRATE_NAME]) {
+                    return match self.1.get(next) {
+                        Ok(Some(fle)) => Some(Ok(fle)),
+                        Ok(None)      => continue,
+                        Err(e)        => Some(Err(e))
+                    };
+                }
             }
         }
 

@@ -233,6 +233,7 @@ mod tests {
     use super::*;
 
     use std::path::PathBuf;
+    use std::sync::Arc;
 
     use libimagstore::store::Store;
     use libimagentrylink::internal::InternalLinker;
@@ -244,7 +245,7 @@ mod tests {
     pub fn get_store() -> Store {
         use libimagstore::file_abstraction::InMemoryFileAbstraction;
         let fs = InMemoryFileAbstraction::default();
-        Store::new_with_backend(PathBuf::from("/"), &None, Box::new(fs)).unwrap()
+        Store::new_with_backend(PathBuf::from("/"), &None, Arc::new(fs)).unwrap()
     }
 
     #[test]
