@@ -279,33 +279,6 @@ impl Store {
         Ok(store)
     }
 
-    /// Reset the backend of the store during runtime
-    ///
-    /// # Warning
-    ///
-    /// This is dangerous!
-    /// You should not be able to do that in application code, only the libimagrt should be used to
-    /// do this via safe and careful wrapper functions!
-    ///
-    /// If you are able to do this without using `libimagrt`, please file an issue report.
-    ///
-    /// # Purpose
-    ///
-    /// With the I/O backend of the store, the store is able to pipe itself out via (for example)
-    /// JSON. But because we need a functionality where we load contents from the filesystem and
-    /// then pipe it to stdout, we need to be able to replace the backend during runtime.
-    ///
-    /// This also applies the other way round: If we get the store from stdin and have to persist it
-    /// to stdout, we need to be able to replace the in-memory backend with the real filesystem
-    /// backend.
-    ///
-    pub fn reset_backend(&mut self, mut backend: Arc<FileAbstraction>) -> Result<()> {
-        self.backend
-            .drain()
-            .and_then(|drain| backend.fill(drain))
-            .map(|_| self.backend = backend)
-    }
-
     /// Creates the Entry at the given location (inside the entry)
     ///
     /// # Return value
@@ -1385,52 +1358,6 @@ mod store_tests {
                 assert!(match store.get(id_mv.clone()) { Ok(Some(_)) => true, _ => false },
                         "New id ({:?}) is not in store...", id_mv);
             }
-        }
-    }
-
-    #[test]
-    fn test_swap_backend_during_runtime() {
-        use file_abstraction::InMemoryFileAbstraction;
-        use std::sync::Arc;
-
-        let mut store = {
-            let backend = InMemoryFileAbstraction::default();
-            let backend = Arc::new(backend);
-
-            Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
-        };
-
-        for n in 1..100 {
-            let s = format!("test-{}", n);
-            let entry = store.create(PathBuf::from(s.clone())).unwrap();
-            assert!(entry.verify().is_ok());
-            let loc = entry.get_location().clone().into_pathbuf().unwrap();
-            assert!(loc.starts_with("/"));
-            assert!(loc.ends_with(s));
-        }
-
-        {
-            let other_backend = InMemoryFileAbstraction::default();
-            let other_backend = Arc::new(other_backend);
-
-            assert!(store.reset_backend(other_backend).is_ok())
-        }
-
-        for n in 1..100 {
-            let s = format!("test-{}", n);
-            let entry = store.get(PathBuf::from(s.clone()));
-
-            assert!(entry.is_ok());
-            let entry = entry.unwrap();
-
-            assert!(entry.is_some());
-            let entry = entry.unwrap();
-
-            assert!(entry.verify().is_ok());
-
-            let loc = entry.get_location().clone().into_pathbuf().unwrap();
-            assert!(loc.starts_with("/"));
-            assert!(loc.ends_with(s));
         }
     }
 
