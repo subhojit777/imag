@@ -26,6 +26,8 @@ pub mod tag;
 
 #[cfg(test)]
 mod test {
+    use std::sync::Arc;
+
     use chrono::naive::NaiveDate;
 
     use libimagstore::store::Store;
@@ -37,7 +39,7 @@ mod test {
         use std::path::PathBuf;
         use libimagstore::file_abstraction::InMemoryFileAbstraction;
 
-        let backend = Box::new(InMemoryFileAbstraction::default());
+        let backend = Arc::new(InMemoryFileAbstraction::default());
         Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
     }
 

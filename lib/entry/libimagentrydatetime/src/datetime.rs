@@ -195,7 +195,7 @@ fn val_to_ndt(v: &Value) -> Result<NaiveDateTime> {
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
-    use toml_query::read::TomlValueReadExt;
+    use std::sync::Arc;
 
     use super::*;
 
@@ -204,10 +204,11 @@ mod tests {
     use chrono::naive::NaiveDateTime;
     use chrono::naive::NaiveDate;
     use chrono::naive::NaiveTime;
+    use toml_query::read::TomlValueReadExt;
 
     pub fn get_store() -> Store {
         use libimagstore::store::InMemoryFileAbstraction;
-        let backend = Box::new(InMemoryFileAbstraction::default());
+        let backend = Arc::new(InMemoryFileAbstraction::default());
         Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
     }
 

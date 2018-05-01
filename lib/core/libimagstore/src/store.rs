@@ -1202,12 +1202,13 @@ Hai
 #[cfg(test)]
 mod store_tests {
     use std::path::PathBuf;
+    use std::sync::Arc;
 
     use super::Store;
     use file_abstraction::InMemoryFileAbstraction;
 
     pub fn get_store() -> Store {
-        let backend = Box::new(InMemoryFileAbstraction::default());
+        let backend = Arc::new(InMemoryFileAbstraction::default());
         Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
     }
 
@@ -1390,10 +1391,11 @@ mod store_tests {
     #[test]
     fn test_swap_backend_during_runtime() {
         use file_abstraction::InMemoryFileAbstraction;
+        use std::sync::Arc;
 
         let mut store = {
             let backend = InMemoryFileAbstraction::default();
-            let backend = Box::new(backend);
+            let backend = Arc::new(backend);
 
             Store::new_with_backend(PathBuf::from("/"), &None, backend).unwrap()
         };
@@ -1409,7 +1411,7 @@ mod store_tests {
 
         {
             let other_backend = InMemoryFileAbstraction::default();
-            let other_backend = Box::new(other_backend);
+            let other_backend = Arc::new(other_backend);
 
             assert!(store.reset_backend(other_backend).is_ok())
         }

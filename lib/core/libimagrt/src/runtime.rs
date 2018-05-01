@@ -22,6 +22,7 @@ use std::process::Command;
 use std::env;
 use std::process::exit;
 use std::io::Stdin;
+use std::sync::Arc;
 
 pub use clap::App;
 use clap::AppSettings;
@@ -132,7 +133,7 @@ impl<'a> Runtime<'a> {
         let store_result = if cli_app.use_inmemory_fs() {
             Store::new_with_backend(storepath,
                                     &config,
-                                    Box::new(InMemoryFileAbstraction::default()))
+                                    Arc::new(InMemoryFileAbstraction::default()))
         } else {
             Store::new(storepath, &config)
         };
