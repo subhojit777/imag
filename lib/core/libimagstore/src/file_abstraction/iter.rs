@@ -18,9 +18,11 @@
 //
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use error::Result;
 use storeid::StoreId;
+use file_abstraction::FileAbstraction;
 
 /// A wrapper for an iterator over `PathBuf`s
 pub struct PathIterator(Box<Iterator<Item = Result<PathBuf>>>);
@@ -31,8 +33,10 @@ impl PathIterator {
         PathIterator(iter)
     }
 
-    pub fn store_id_constructing(self, storepath: PathBuf) -> StoreIdConstructingIterator {
-        StoreIdConstructingIterator(self, storepath)
+    pub fn store_id_constructing(self, storepath: PathBuf, backend: Arc<FileAbstraction>)
+        -> StoreIdConstructingIterator
+    {
+        StoreIdConstructingIterator(self, storepath, backend)
     }
 
 }
@@ -50,7 +54,7 @@ impl Iterator for PathIterator {
 /// Helper type for constructing StoreIds from a PathIterator.
 ///
 /// Automatically ignores non-files.
-pub struct StoreIdConstructingIterator(PathIterator, PathBuf);
+pub struct StoreIdConstructingIterator(PathIterator, PathBuf, Arc<FileAbstraction>);
 
 impl Iterator for StoreIdConstructingIterator {
     type Item = Result<StoreId>;
@@ -59,10 +63,10 @@ impl Iterator for StoreIdConstructingIterator {
         while let Some(next) = self.0.next() {
             match next {
                 Err(e)  => return Some(Err(e)),
-                Ok(next) => if next.is_file() {
-                    return Some(StoreId::from_full_path(&self.1, next))
-                } else {
-                    continue
+                Ok(next) => match self.2.exists(&next) {
+                    Err(e)    => return Some(Err(e)),
+                    Ok(true)  => return Some(StoreId::from_full_path(&self.1, next)),
+                    Ok(false) => { continue },
                 }
             }
         }

@@ -137,7 +137,7 @@ impl Iterator for Walk {
 
 impl StoreEntry {
 
-    fn new(id: StoreId, backend: &Box<FileAbstraction>) -> Result<StoreEntry> {
+    fn new(id: StoreId, backend: &Arc<FileAbstraction>) -> Result<StoreEntry> {
         let pb = id.clone().into_pathbuf()?;
 
         #[cfg(feature = "fs-lock")]
@@ -214,7 +214,7 @@ pub struct Store {
     /// The backend to use
     ///
     /// This provides the filesystem-operation functions (or pretends to)
-    backend: Box<FileAbstraction>,
+    backend: Arc<FileAbstraction>,
 }
 
 impl Store {
@@ -235,7 +235,7 @@ impl Store {
     /// - On success: Store object
     ///
     pub fn new(location: PathBuf, store_config: &Option<Value>) -> Result<Store> {
-        let backend = Box::new(FSFileAbstraction::default());
+        let backend = Arc::new(FSFileAbstraction::default());
         Store::new_with_backend(location, store_config, backend)
     }
 
@@ -245,7 +245,7 @@ impl Store {
     /// Do not use directly, only for testing purposes.
     pub fn new_with_backend(location: PathBuf,
                             store_config: &Option<Value>,
-                            backend: Box<FileAbstraction>) -> Result<Store> {
+                            backend: Arc<FileAbstraction>) -> Result<Store> {
         use configuration::*;
 
         debug!("Building new Store object");
@@ -299,7 +299,7 @@ impl Store {
     /// to stdout, we need to be able to replace the in-memory backend with the real filesystem
     /// backend.
     ///
-    pub fn reset_backend(&mut self, mut backend: Box<FileAbstraction>) -> Result<()> {
+    pub fn reset_backend(&mut self, mut backend: Arc<FileAbstraction>) -> Result<()> {
         self.backend
             .drain()
             .and_then(|drain| backend.fill(drain))
@@ -744,7 +744,7 @@ impl Store {
     pub fn entries(&self) -> Result<StoreIdIteratorWithStore> {
         self.backend
             .pathes_recursively(self.path().clone())
-            .map(|i| i.store_id_constructing(self.path().clone()))
+            .map(|i| i.store_id_constructing(self.path().clone(), self.backend.clone()))
             .map(Box::new)
             .map(|it| StoreIdIteratorWithStore::new(it, self))
     }
