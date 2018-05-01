@@ -89,7 +89,7 @@ fn main() {
     let edit_header = rt.cli().is_present("edit-header");
     let edit_header_only = rt.cli().is_present("edit-header-only");
 
-    StoreIdIterator::new(Box::new(sids.into_iter()))
+    StoreIdIterator::new(Box::new(sids.into_iter().map(Ok)))
         .into_get_iter(rt.store())
         .trace_unwrap_exit(1)
         .map(|o| o.unwrap_or_else(|| {
