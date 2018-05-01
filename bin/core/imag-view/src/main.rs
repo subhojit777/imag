@@ -68,10 +68,10 @@ use libimagentryview::builtin::md::MarkdownViewer;
 use libimagentryview::viewer::Viewer;
 use libimagentryview::error::ViewError as VE;
 use libimagstore::storeid::IntoStoreId;
+use libimagstore::storeid::StoreIdIterator;
 use libimagstore::error::StoreError;
 use libimagstore::iter::get::StoreIdGetIteratorExtension;
 use libimagstore::store::FileLockEntry;
-use libimagstore::storeid::StoreId;
 
 mod ui;
 use ui::build_ui;
@@ -89,11 +89,10 @@ fn main() {
 
     if rt.cli().is_present("in") {
         let files = entry_ids
-            .into_iter()
             .into_get_iter(rt.store())
+            .trace_unwrap_exit(1)
             .map(|e| {
-                 e.map_err_trace_exit_unwrap(1)
-                     .ok_or_else(|| String::from("Entry not found"))
+                 e.ok_or_else(|| String::from("Entry not found"))
                      .map_err(StoreError::from)
                      .map_err_trace_exit_unwrap(1)
             })
@@ -175,7 +174,6 @@ fn main() {
         drop(files);
     } else {
         let iter = entry_ids
-            .into_iter()
             .into_get_iter(rt.store())
             .map(|e| {
                  e.map_err_trace_exit_unwrap(1)
@@ -249,13 +247,13 @@ fn main() {
     }
 }
 
-fn entry_ids(rt: &Runtime) -> Vec<StoreId> {
+fn entry_ids(rt: &Runtime) -> StoreIdIterator {
     match rt.cli().values_of("id") {
-        Some(pathes) => pathes
-            .map(PathBuf::from)
-            .map(PathBuf::into_storeid)
-            .trace_unwrap_exit(1)
-            .collect(),
+        Some(p) => {
+            let pathes : Vec<String> = p.map(String::from).collect();
+            let iter  = pathes.into_iter().map(PathBuf::from).map(PathBuf::into_storeid);
+            StoreIdIterator::new(Box::new(iter))
+        },
 
         None => if rt.cli().is_present("entries-from-stdin") {
             let stdin = rt.stdin().unwrap_or_else(|| {
@@ -269,11 +267,10 @@ fn entry_ids(rt: &Runtime) -> Vec<StoreId> {
                 ::std::process::exit(1)
             });
 
-            buf.lines()
-                .map(PathBuf::from)
-                .map(PathBuf::into_storeid)
-                .trace_unwrap_exit(1)
-                .collect()
+            let lines : Vec<String> = buf.lines().map(String::from).collect();
+            let iter  = lines.into_iter().map(PathBuf::from).map(PathBuf::into_storeid);
+
+            StoreIdIterator::new(Box::new(iter))
         } else {
             error!("Something weird happened. I was not able to find the path of the entries to edit");
             ::std::process::exit(1)
