@@ -10,7 +10,7 @@ fi
 for rev in $(git rev-list "$since"..HEAD | tac); do
     if git notes --ref=changelog list $rev &> /dev/null; then
         output=$(git notes --ref=changelog show $rev | sed '2,$s/^/  /')
-        echo "* $output"
+        echo "* [$(echo ${rev:0:10})] $output"
     fi
 done
 

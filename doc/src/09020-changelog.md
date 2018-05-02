@@ -22,6 +22,20 @@ This section contains the changelog from the last release to the next release.
 * Minor changes
 * Bugfixes
 
+## 0.7.1
+
+Bugfix release for fixing:
+
+* `libimagdiary` did not return the youngest, but the oldest entry id on `::get_youngest_entry_id()`.
+* `imag-view` should not always wrap the text, only if -w is passed
+* `imag-log show` should order by date
+* `imag` does not inherit stdout if detecting imag command versions.
+* `imag-contact import` does only allow absolute pathes
+* `imag-contact` has most fields optional now, only name is required
+* `imag-contact` automatically creates UID
+* `imag-contact` automatically generates/warns about missing file extension
+
+
 ## 0.7.0
 
 * Major changes

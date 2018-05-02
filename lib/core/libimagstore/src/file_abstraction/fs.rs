@@ -96,6 +96,7 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
         };
         *self = FSFileAbstractionInstance::File(file, path);
         if let FSFileAbstractionInstance::File(ref mut f, _) = *self {
+            trace!("Writing buffer...");
             return f.write_all(&buf).chain_err(|| SEK::FileNotWritten);
         }
         unreachable!();
@@ -186,9 +187,12 @@ fn open_file<A: AsRef<Path>>(p: A) -> ::std::io::Result<File> {
 
 fn create_file<A: AsRef<Path>>(p: A) -> ::std::io::Result<File> {
     if let Some(parent) = p.as_ref().parent() {
-        debug!("Implicitely creating directory: {:?}", parent);
-        if let Err(e) = create_dir_all(parent) {
-            return Err(e);
+        trace!("'{}' is directory = {}", parent.display(), parent.is_dir());
+        if !parent.is_dir() {
+            trace!("Implicitely creating directory: {:?}", parent);
+            if let Err(e) = create_dir_all(parent) {
+                return Err(e);
+            }
         }
     }
     OpenOptions::new().write(true).read(true).create(true).open(p)

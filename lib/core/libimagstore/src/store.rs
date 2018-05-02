@@ -177,6 +177,7 @@ impl StoreEntry {
     fn write_entry(&mut self, entry: &Entry) -> Result<()> {
         if self.is_borrowed() {
             assert_eq!(self.id, entry.location);
+            trace!("Writing entry...");
             self.file
                 .write_file_content(entry)
                 .map(|_| ())
@@ -442,11 +443,13 @@ impl Store {
 
         debug!("Writing Entry");
         se.write_entry(&entry.entry)?;
+        trace!("Entry written");
         if modify_presence {
             debug!("Modifying presence of {} -> Present", entry.get_location());
             se.status = StoreEntryStatus::Present;
         }
 
+        trace!("Entry updated successfully");
         Ok(())
     }
 
@@ -798,6 +801,7 @@ impl<'a> Drop for FileLockEntry<'a> {
         use libimagerror::trace::trace_error_dbg;
         trace!("Dropping: {:?} - from FileLockEntry::drop()", self.get_location());
         if let Err(e) = self.store._update(self, true) {
+            trace!("Error happened in FileLockEntry::drop() while Store::update()ing");
             trace_error_dbg(&e);
             if_cfg_panic!("ERROR WHILE DROPPING: {:?}", e);
         }

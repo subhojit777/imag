@@ -68,6 +68,48 @@ install-directory is in your `$PATH`), or install the `imag` binary to call `ima
 <modulename>` (also if everything is in your `$PATH`).
 
 
+## Example usage
+
+As imag is a big and complex project, we cannot show all tools of the suite
+here. But to give you some idea, here's an example:
+
+```bash
+# Lets initialize imag
+imag init
+
+# Recursively import vcf files
+imag contact import /home/user/contacts
+
+# Create a contact (vcf) in the private collection
+imag contact create --file /home/user/contacts/private
+
+# Add a diary entry
+imag diary -p private create
+
+# Uh, I forgot something in a diary entry, select one and edit it
+# use the `fzf` tool here (not a part of imag) to select from the IDs
+imag diary -p private list | fzf -m | imag edit -I
+
+# Link a contact to the diary entry
+imag link diary/private/2018/01/01/00:00:00 contact/bc222298-casf-40a4-bda1-50aa980a68c9
+
+# Annotate a contact with some notes
+imag annotate add contact/bc222298-casf-40a4-bda1-50aa980a68c9 contact-notes
+
+# Write down some notes named "pineapple"
+imag notes create "pineapple"
+
+# Where was that contact again?
+imag grep Eva
+# Okay, we need to add some imag-internal notes to that contact
+imag grep Eva -l | imag edit -I
+
+# Now save our work
+imag git add . # "imag-git" simply calls git in the imag store
+imag git commit -m 'Commit message'
+```
+
+
 ## Staying up-to-date
 
 We have a [official website for imag](https://imag-pim.org), where I post
