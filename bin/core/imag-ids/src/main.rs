@@ -91,6 +91,14 @@ fn main() {
         .entries()
         .map_err_trace_exit_unwrap(1)
         .trace_unwrap_exit(1)
+        .enumerate()
+        .map(|(i, e)| {
+            if i % 100 == 0 {
+                let _ = rt.store().flush_cache();
+            }
+
+            e
+        })
         .filter(|id| collection_filter.filter(id))
         .filter(|id| match query_filter.as_ref() {
             None     => true,
