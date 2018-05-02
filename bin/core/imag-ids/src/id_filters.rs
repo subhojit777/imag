@@ -306,64 +306,88 @@ pub mod header_filter_lang {
             match *self.0 {
                 CO::OpIs => match self.1 {
                     &CV::Values(_) => error_exit("Cannot check whether a header field is the same type as mulitple values!"),
-                    &CV::Value(ref v) => match v {
-                        &Value::Boolean(_) => is_match!(*val, TVal::Boolean(_)),
-                        &Value::Integer(_) => is_match!(*val, TVal::Integer(_)),
-                        &Value::String(_)  => is_match!(val, &TVal::String(_)),
+                    &CV::Value(ref v) => {
+                        trace!("Checking whether {:?} and {:?} have same type", v, val);
+                        match v {
+                            &Value::Boolean(_) => is_match!(*val, TVal::Boolean(_)),
+                            &Value::Integer(_) => is_match!(*val, TVal::Integer(_)),
+                            &Value::String(_)  => is_match!(val, &TVal::String(_)),
+                        }
                     },
                 },
-                CO::OpIn => match (self.1, val) {
-                    (&CV::Value(Value::Boolean(i)), &TVal::Boolean(j))       => i == j,
-                    (&CV::Value(Value::Integer(i)), &TVal::Integer(j))       => i == j,
-                    (&CV::Value(Value::String(ref s)), &TVal::String(ref b)) => s.contains(b),
-                    (&CV::Value(_), _)                                       => false,
+                CO::OpIn => {
+                    trace!("Checking whether {:?} is in {:?}", self.1, val);
+                    match (self.1, val) {
+                        (&CV::Value(Value::Boolean(i)), &TVal::Boolean(j))       => i == j,
+                        (&CV::Value(Value::Integer(i)), &TVal::Integer(j))       => i == j,
+                        (&CV::Value(Value::String(ref s)), &TVal::String(ref b)) => s.contains(b),
+                        (&CV::Value(_), _)                                       => false,
 
-                    (&CV::Values(ref v), &TVal::Integer(j)) => v.iter().any(|e| match e {
-                        &Value::Integer(i) => i == j,
-                        _                  => false
-                    }),
-                    (&CV::Values(ref v), &TVal::String(ref b)) => v.iter().any(|e| match e {
-                        &Value::String(ref s) => s == b,
-                        _                     => false
-                    }),
-                    (&CV::Values(_), _) => false,
+                        (&CV::Values(ref v), &TVal::Integer(j)) => v.iter().any(|e| match e {
+                            &Value::Integer(i) => i == j,
+                            _                  => false
+                        }),
+                        (&CV::Values(ref v), &TVal::String(ref b)) => v.iter().any(|e| match e {
+                            &Value::String(ref s) => s == b,
+                            _                     => false
+                        }),
+                        (&CV::Values(_), _) => false,
+                    }
                 },
-                CO::OpEq => match (self.1, val) {
-                    (&CV::Value(Value::Boolean(i)), &TVal::Boolean(j))       => i == j,
-                    (&CV::Value(Value::Integer(i)), &TVal::Integer(j))       => i == j,
-                    (&CV::Value(Value::String(ref s)), &TVal::String(ref b)) => s == b,
-                    (&CV::Value(_), _)  => false,
-                    (&CV::Values(_), _) => error_exit("Cannot check a header field for equality to multiple header fields!"),
+                CO::OpEq => {
+                    trace!("Checking whether {:?} == {:?}", self.1, val);
+                    match (self.1, val) {
+                        (&CV::Value(Value::Boolean(i)), &TVal::Boolean(j))       => i == j,
+                        (&CV::Value(Value::Integer(i)), &TVal::Integer(j))       => i == j,
+                        (&CV::Value(Value::String(ref s)), &TVal::String(ref b)) => s == b,
+                        (&CV::Value(_), _)  => false,
+                        (&CV::Values(_), _) => error_exit("Cannot check a header field for equality to multiple header fields!"),
+                    }
                 },
-                CO::OpNeq => match (self.1, val) {
-                    (&CV::Value(Value::Boolean(i)), &TVal::Boolean(j))       => i != j,
-                    (&CV::Value(Value::Integer(i)), &TVal::Integer(j)) => i != j,
-                    (&CV::Value(Value::String(ref s)), &TVal::String(ref b))  => s != b,
-                    (&CV::Value(_), _) => false,
-                    (&CV::Values(_), _) => error_exit("Cannot check a header field for inequality to multiple header fields!"),
+                CO::OpNeq => {
+                    trace!("Checking whether {:?} != {:?}", self.1, val);
+                    match (self.1, val) {
+                        (&CV::Value(Value::Boolean(i)), &TVal::Boolean(j))       => i != j,
+                        (&CV::Value(Value::Integer(i)), &TVal::Integer(j))       => i != j,
+                        (&CV::Value(Value::String(ref s)), &TVal::String(ref b)) => s != b,
+                        (&CV::Value(_), _) => false,
+                        (&CV::Values(_), _) => error_exit("Cannot check a header field for inequality to multiple header fields!"),
+                    }
                 },
-                CO::OpGte => match (self.1, val) {
-                    (&CV::Value(Value::Integer(i)), &TVal::Integer(j)) => i >= j,
-                    (&CV::Value(_), _)  => false,
-                    (&CV::Values(_), _) => error_exit("Cannot check a header field for greater_than_equal to multiple header fields!"),
+                CO::OpGte => {
+                    trace!("Checking whether {:?} >= {:?}", self.1, val);
+                    match (self.1, val) {
+                        (&CV::Value(Value::Integer(i)), &TVal::Integer(j)) => i >= j,
+                        (&CV::Value(_), _)  => false,
+                        (&CV::Values(_), _) => error_exit("Cannot check a header field for greater_than_equal to multiple header fields!"),
+                    }
                 },
-                CO::OpLte => match (self.1, val) {
-                    (&CV::Value(Value::Integer(i)), &TVal::Integer(j)) => i <= j,
-                    (&CV::Value(_), _)  => false,
-                    (&CV::Values(_), _) => error_exit("Cannot check a header field for lesser_than_equal to multiple header fields!"),
+                CO::OpLte => {
+                    trace!("Checking whether {:?} <= {:?}", self.1, val);
+                    match (self.1, val) {
+                        (&CV::Value(Value::Integer(i)), &TVal::Integer(j)) => i <= j,
+                        (&CV::Value(_), _)  => false,
+                        (&CV::Values(_), _) => error_exit("Cannot check a header field for lesser_than_equal to multiple header fields!"),
+                    }
                 },
-                CO::OpLt => match (self.1, val) {
-                    (&CV::Value(Value::Integer(i)), &TVal::Integer(j)) => i < j,
-                    (&CV::Value(_), _)  => false,
-                    (&CV::Values(_), _) => error_exit("Cannot check a header field for lesser_than to multiple header fields!"),
+                CO::OpLt => {
+                    trace!("Checking whether {:?} < {:?}", self.1, val);
+                    match (self.1, val) {
+                        (&CV::Value(Value::Integer(i)), &TVal::Integer(j)) => i < j,
+                        (&CV::Value(_), _)  => false,
+                        (&CV::Values(_), _) => error_exit("Cannot check a header field for lesser_than to multiple header fields!"),
+                    }
                 },
-                CO::OpGt => match (self.1, val) {
-                    (&CV::Value(Value::Integer(i)), &TVal::Integer(j)) => i > j,
-                    (&CV::Value(_), _)  => false,
-                    (&CV::Values(_), _) => {
-                        error!("Cannot check a header field for greater_than to multiple header fields!");
-                        exit(1)
-                    },
+                CO::OpGt => {
+                    trace!("Checking whether {:?} > {:?}", self.1, val);
+                    match (self.1, val) {
+                        (&CV::Value(Value::Integer(i)), &TVal::Integer(j)) => i > j,
+                        (&CV::Value(_), _)  => false,
+                        (&CV::Values(_), _) => {
+                            error!("Cannot check a header field for greater_than to multiple header fields!");
+                            exit(1)
+                        },
+                    }
                 },
             }
         }
@@ -373,9 +397,12 @@ pub mod header_filter_lang {
         fn filter(&self, entry: &Entry) -> bool {
             use toml_query::read::TomlValueReadExt;
 
+            let selector_str = self.selector.selector_str();
+            trace!("Filtering {} at {}", entry.get_location(), selector_str);
+
             entry
                 .get_header()
-                .read(self.selector.selector_str())
+                .read(selector_str)
                 .map_err_trace_exit_unwrap(1)
                 .map(|value| {
                     let comp = Comparator(&self.compare_operator, &self.compare_value);
@@ -433,21 +460,27 @@ pub mod header_filter_lang {
     impl ::filters::filter::Filter<Entry> for Query {
 
         fn filter(&self, entry: &Entry) -> bool {
+            trace!("Filtering = {}", entry.get_location());
             let mut res = self.filter.filter(entry);
+            trace!("First filter = {}", res);
 
             for &(ref operator, ref next) in self.next_filters.iter() {
                 match *operator {
                     Operator::Or => {
+                        trace!("Operator = {} OR {:?}", res, next);
                         res = res || ::filters::filter::Filter::filter(next, entry);
                     },
                     Operator::And => {
+                        trace!("Operator = {} AND {:?}", res, next);
                         res = res && ::filters::filter::Filter::filter(next, entry);
                     },
                     Operator::Xor => {
+                        trace!("Operator = {} XOR {:?}", res, next);
                         let other = ::filters::filter::Filter::filter(next, entry);
                         res = (res && !other) || (!res && other);
                     },
                 }
+                trace!("After applying next filter = {}", res);
             }
 
             res
