@@ -32,8 +32,6 @@ use std::fmt::Debug;
 use std::fmt::Error as FMTError;
 
 use toml::Value;
-use walkdir::WalkDir;
-use walkdir::Iter as WalkDirIter;
 use toml_query::read::TomlValueReadExt;
 use toml_query::read::TomlValueReadTypeExt;
 
@@ -47,7 +45,6 @@ pub use file_abstraction::FileAbstraction;
 pub use file_abstraction::FSFileAbstraction;
 pub use file_abstraction::InMemoryFileAbstraction;
 
-use libimagerror::trace::trace_error;
 use libimagutil::debug_result::*;
 
 /// The Result Type returned by any interaction with the store that could fail
@@ -67,72 +64,6 @@ struct StoreEntry {
     id: StoreId,
     file: Box<FileAbstractionInstance>,
     status: StoreEntryStatus,
-}
-
-pub enum StoreObject {
-    Id(StoreId),
-    Collection(PathBuf),
-}
-
-pub struct Walk {
-    store_path: PathBuf,
-    dirwalker: WalkDirIter,
-}
-
-impl Walk {
-
-    fn new(mut store_path: PathBuf, mod_name: &str) -> Walk {
-        let pb = store_path.clone();
-        store_path.push(mod_name);
-        Walk {
-            store_path: pb,
-            dirwalker: WalkDir::new(store_path).into_iter(),
-        }
-    }
-}
-
-impl ::std::ops::Deref for Walk {
-    type Target = WalkDirIter;
-
-    fn deref(&self) -> &Self::Target {
-        &self.dirwalker
-    }
-}
-
-impl Iterator for Walk {
-    type Item = StoreObject;
-
-    fn next(&mut self) -> Option<Self::Item> {
-
-        while let Some(something) = self.dirwalker.next() {
-            debug!("[Walk] Processing next item: {:?}", something);
-            match something {
-                Ok(next) => if next.file_type().is_dir() {
-                    debug!("Found directory...");
-                    return Some(StoreObject::Collection(next.path().to_path_buf()))
-                } else /* if next.file_type().is_file() */ {
-                    debug!("Found file...");
-                    let n   = next.path().to_path_buf();
-                    let sid = match StoreId::from_full_path(&self.store_path, n) {
-                        Err(e) => {
-                            debug!("Could not construct StoreId object from it");
-                            trace_error(&e);
-                            continue;
-                        },
-                        Ok(o) => o,
-                    };
-                    return Some(StoreObject::Id(sid))
-                },
-                Err(e) => {
-                    warn!("Error in Walker");
-                    debug!("{:?}", e);
-                    return None;
-                }
-            }
-        }
-
-        None
-    }
 }
 
 impl StoreEntry {
@@ -394,15 +325,6 @@ impl Store {
         }
 
         self.retrieve(id.clone()).map(Some).chain_err(|| SEK::GetCallError(id))
-    }
-
-    /// Walk the store tree for the module
-    ///
-    /// The difference between a `Walk` and a `StoreIdIterator` is that with a `Walk`, one can find
-    /// "collections" (folders).
-    pub fn walk<'a>(&'a self, mod_name: &str) -> Walk {
-        debug!("Creating Walk object for {}", mod_name);
-        Walk::new(self.path().clone(), mod_name)
     }
 
     /// Write (update) the `FileLockEntry` to disk
@@ -813,6 +735,8 @@ impl<'a> Drop for FileLockEntry<'a> {
 
     /// This will not silently ignore errors but prints the result of the _update() call for testing
     fn drop(&mut self) {
+        use libimagerror::trace::trace_error;
+
         trace!("Dropping: {:?} - from FileLockEntry::drop() (test impl)", self.get_location());
         let _ = self.store._update(self, true).map_err(|e| trace_error(&e));
     }
