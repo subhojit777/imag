@@ -63,7 +63,7 @@ impl Iterator for StoreIdConstructingIterator {
         while let Some(next) = self.0.next() {
             match next {
                 Err(e)  => return Some(Err(e)),
-                Ok(next) => match self.2.exists(&next) {
+                Ok(next) => match self.2.is_file(&next) {
                     Err(e)    => return Some(Err(e)),
                     Ok(true)  => return Some(StoreId::from_full_path(&self.1, next)),
                     Ok(false) => { continue },
