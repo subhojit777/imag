@@ -46,5 +46,6 @@ pub fn build_ui<'a>(app: App<'a, 'a>) -> App<'a, 'a> {
                          .value_names(&["QUERY"])
                          .help("Query the header of the entries and filter them"))
                    )
+        .after_help(include_str!("../static/language-doc.md"))
 }
 
