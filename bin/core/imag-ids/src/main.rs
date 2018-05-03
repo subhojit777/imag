@@ -34,12 +34,21 @@
 
 extern crate clap;
 extern crate filters;
+#[macro_use] extern crate nom;
+#[macro_use] extern crate log;
+#[macro_use] extern crate is_match;
+extern crate toml;
+extern crate toml_query;
+
+#[cfg(test)]
+extern crate env_logger;
 
 extern crate libimagerror;
 extern crate libimagstore;
 #[macro_use] extern crate libimagrt;
 
 use std::io::Write;
+use std::process::exit;
 
 use filters::filter::Filter;
 
@@ -48,25 +57,12 @@ use libimagerror::trace::MapErrTrace;
 use libimagerror::iter::TraceIterator;
 use libimagerror::exit::ExitUnwrap;
 use libimagerror::io::ToExitCode;
-use libimagstore::storeid::StoreId;
 
+mod id_filters;
 mod ui;
+
 use ui::build_ui;
-
-
-pub struct IsInCollectionsFilter<'a, A>(Option<A>, ::std::marker::PhantomData<&'a str>)
-    where A: AsRef<[&'a str]>;
-
-impl<'a, A> Filter<StoreId> for IsInCollectionsFilter<'a, A>
-    where A: AsRef<[&'a str]> + 'a
-{
-    fn filter(&self, sid: &StoreId) -> bool {
-        match self.0 {
-            Some(ref colls) => sid.is_in_collection(colls),
-            None => true,
-        }
-    }
-}
+use id_filters::IsInCollectionsFilter;
 
 fn main() {
     let version = make_imag_version!();
@@ -82,13 +78,43 @@ fn main() {
         .values_of("in-collection-filter")
         .map(|v| v.collect::<Vec<&str>>());
 
-    let collection_filter = IsInCollectionsFilter(values, ::std::marker::PhantomData);
+    let collection_filter = IsInCollectionsFilter::new(values);
+    let query_filter      : Option<id_filters::header_filter_lang::Query> = rt
+        .cli()
+        .subcommand_matches("where")
+        .map(|matches| {
+            let query = matches.value_of("where-filter").unwrap(); // safe by clap
+            id_filters::header_filter_lang::parse(&query)
+        });
 
     rt.store()
         .entries()
         .map_err_trace_exit_unwrap(1)
         .trace_unwrap_exit(1)
+        .enumerate()
+        .map(|(i, e)| {
+            if i % 100 == 0 {
+                let _ = rt.store().flush_cache();
+            }
+
+            e
+        })
         .filter(|id| collection_filter.filter(id))
+        .filter(|id| match query_filter.as_ref() {
+            None     => true,
+            Some(qf) => {
+                let entry = rt
+                    .store()
+                    .get(id.clone())
+                    .map_err_trace_exit_unwrap(1)
+                    .unwrap_or_else(|| {
+                        error!("Tried to get '{}', but it does not exist!", id);
+                        exit(1)
+                    });
+
+                qf.filter(&entry)
+            }
+        })
         .map(|id| if print_storepath {
             id
         } else {
