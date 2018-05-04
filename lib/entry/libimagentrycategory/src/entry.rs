@@ -41,6 +41,8 @@ pub trait EntryCategory {
 
     fn has_category(&self) -> Result<bool>;
 
+    fn remove_category(&mut self) -> Result<()>;
+
 }
 
 impl EntryCategory for Entry {
@@ -81,5 +83,21 @@ impl EntryCategory for Entry {
             .chain_err(|| CEK::HeaderReadError)
             .map(|x| x.is_some())
     }
+
+    /// Remove the category setting
+    ///
+    /// # Warning
+    ///
+    /// This does _only_ remove the category setting in the header. This does _not_ remove the
+    /// internal link to the category entry, nor does it remove the category from the store.
+    fn remove_category(&mut self) -> Result<()> {
+        use toml_query::delete::TomlValueDeleteExt;
+
+        self.get_header_mut()
+            .delete("category.value")
+            .chain_err(|| CEK::HeaderWriteError)
+            .map(|_| ())
+    }
+
 
 }
