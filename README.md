@@ -12,6 +12,17 @@
 but we do not consider anything stable or usable at this moment. Feel free to
 play around anyways.**
 
+## Vacation notice
+
+**Notice:** I, the author of imag, will be on vacation from mid-May 2018 until
+early 2019. I hope I can continue develop imag during that time, but I cannot
+guarantee that. I hope I can continue development of imag after that and I
+certainly plan to do so.
+
+But from May 2018 until early 2019, expect long response times on issues and
+pull requests.
+
+
 ## Goal / What is imag?
 
 Our (long-term) goal is to
