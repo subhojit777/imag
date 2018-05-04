@@ -184,7 +184,7 @@ impl<'a> Runtime<'a> {
 
             .arg(Arg::with_name(Runtime::arg_debugging_name())
                 .long("debug")
-                .help("Enables debugging output")
+                .help("Enables debugging output. Shortcut for '--verbose debug'")
                 .required(false)
                 .takes_value(false))
 
