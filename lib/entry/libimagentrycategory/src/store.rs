@@ -82,9 +82,26 @@ impl CategoryStore for Store {
     }
 
     /// Delete a category
+    ///
+    /// Automatically removes all category settings from entries which are linked to this category.
     fn delete_category(&self, name: &str) -> Result<()> {
+        use libimagentrylink::internal::InternalLinker;
+        use category::Category;
+
         trace!("Deleting category: '{}'", name);
         let sid = mk_category_storeid(self.path().clone(), name)?;
+
+        {
+            let mut category = self.get(sid.clone())?
+                .ok_or_else(|| CEK::CategoryDoesNotExist)
+                .map_err(CE::from_kind)?;
+
+            for entry in category.get_entries(self)? {
+                let mut entry = entry?;
+                let _         = category.remove_internal_link(&mut entry)?;
+            }
+        }
+
         self.delete(sid).map_err(CE::from)
     }
 
