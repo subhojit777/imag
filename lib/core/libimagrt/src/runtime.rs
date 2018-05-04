@@ -198,6 +198,7 @@ impl<'a> Runtime<'a> {
                 .long("config")
                 .help("Path to alternative config file")
                 .required(false)
+                .validator(::libimagutil::cli_validators::is_existing_path)
                 .takes_value(true))
 
             .arg(Arg::with_name(Runtime::arg_config_override_name())
@@ -210,12 +211,14 @@ impl<'a> Runtime<'a> {
                 .long("rtp")
                 .help("Alternative runtimepath")
                 .required(false)
+                .validator(::libimagutil::cli_validators::is_directory)
                 .takes_value(true))
 
             .arg(Arg::with_name(Runtime::arg_storepath_name())
                 .long("store")
                 .help("Alternative storepath. Must be specified as full path, can be outside of the RTP")
                 .required(false)
+                .validator(::libimagutil::cli_validators::is_directory)
                 .takes_value(true))
 
             .arg(Arg::with_name(Runtime::arg_editor_name())
