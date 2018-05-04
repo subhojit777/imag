@@ -175,7 +175,7 @@ impl<'a> Runtime<'a> {
             .arg(Arg::with_name(Runtime::arg_verbosity_name())
                 .short("v")
                 .long("verbose")
-                .help("Enables verbosity, can be used to set log level to one of 'trace', 'debug', 'info', 'warn' or 'error'")
+                .help("Set log level")
                 .required(false)
                 .takes_value(true)
                 .possible_values(&["trace", "debug", "info", "warn", "error"])
