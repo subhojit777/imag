@@ -14,13 +14,227 @@ the changelog (though updating of dependencies is).
 Please note that we do not have a "Breaking changes" section as we are in
 Version 0.y.z and thus we can break the API like we want and need to.
 
-## Next
+## 0.8.0
 
-This section contains the changelog from the last release to the next release.
+After the last release (0.7.0), we changed how we keep our changelog from manual
+adding things to the list, to using `git-notes`. Hence, there's no
+categorization anymore.
 
-* Major changes
-* Minor changes
-* Bugfixes
+* Add imag-diary functionality to list existing diaries
+
+* `libimagentryview`s `StdoutViewer` is now able to wrap lines
+
+* `imag-view` can wrap output now
+
+* `imag tag` is now able to read store ids from stdin
+
+* `libimagrt` automatically suggests "imag init" if config is not found
+
+* A changelog-generation script was added to the scripts/ directory
+
+* Fix: `libimagdiary` did not return the youngest, but the oldest entry id on
+  `::get_youngest_entry_id()`.
+
+* Fix: imag-view should not always wrap the text, only if -w is passed
+
+* Fix: `imag-log show` should order by date
+
+* `imag` does not inherit stdout if detecting imag command versions.
+
+* The `Store::retrieve_for_module()` function was removed.
+
+* `imag-git` was added, a convenient way to call `git` in the imag RTP.
+
+* `libimagentryview` was refactored.
+  The crate was refactored so that the "sink" - the thing the view should be
+  written to - can be passed.
+
+* A `imag-view` feature was added where markdown output can be formatted nicely
+  for the terminal
+
+* The libimagstore lib got its stdio backend removed.
+
+  First, `imag store dump` was removed as it was based on this feature.
+  Then, `libimagrt` got the ability removed to change the store backend to stdio.
+  After that, we were able to remove the stdio backend and the JSON mapper
+  functionality that came with it.
+
+  This shrinked the codebase about 1kloc.
+
+  The `imag store dump` feature can be reimplemented rather simply, if desired.
+
+* `imag-view` is now able to seperate printed entries with a user-defined
+  character (default: "-")
+
+* Fix: Deny non-absolute import pathes in imag-contact
+
+* libimagcontact is not based on libimagentryref anymore
+
+  This is because we encountered a serious problem: When syncing contacts with an
+  external tool (for example `vdirsyncer`), the files are renamed on the other
+  host. Syncing the imag store to the other device now creates dead links, as the
+  `path` stored by the ref is not valid anymore.
+
+  Now that libimagcontact is not based on libimagentryref anymore, this issue does
+  not exist anymore. libimagcontact stores all contact information inside the
+  store now.
+
+  imag-contact was rewritten for that change.
+
+* Fix: imag-contact does only require the name field, all others are optional
+  now
+
+* Fix: imag-contact automatically creates a UID now
+
+* `libimagcategory` was rewritten
+
+  It creates entries for categories now and automatically links categorized
+  entries to the "category" entries.
+
+  Its codebase got a bit simpler with these changes, despite the increase of
+  functionality.
+
+* `imag-contact` automatically generates/warns about missing file extension
+
+* `libimagcontact` does export email properties now.
+
+  `imag-contact` reads email properties and can output them in its JSON output.
+  This is helpful for passing email adresses to external tools like mutt.
+
+* `libimagentrygps` and `imag-gps` work with 64 bit signed values now
+
+  Both the library and the command use i64 (64 bit signed) for GPS value fragments
+  now.
+
+  Also: The `imag-gps` tool does not require a "second" value fragment now, it
+  defaults to 0 (zero) if not present.
+
+* The `filters` dependency was updated to 0.3
+
+* `libimagentryfilter` filters headers not with a failable filter.
+
+* `imag-diary` has no longer an `edit` command. `imag-edit` shall be used
+  instead.
+
+* `libimagtodo` got a error handling refactoring, so that more chaining happens.
+
+* Errors in `libimagstore` contain more details in the error message about what
+  StoreId caused the error
+  Unused errors were removed.
+
+* The Store API got functions to get data about the internal cache and flush it
+
+* imag-diagnostics flushes the cache each 100 entries processed
+
+* The iterator interface of libimagstore was refactored
+
+  Originally, the iterator interface of libimagstore did not return errors which
+  could happen during the construction of a `StoreId` object.
+  This was refactored, effectively changing the `StoreIdIterator` type to not
+  iterate over `StoreId` anymore, but over `Result<StoreId, StoreError>`.
+  That cause a lot of changes in the overall iterator interface. All iterator
+  extensions (like `.into_get_iter()` for example) had to be rewritten to be
+  applicable on iterators over `Result<StoreId, E>` where `E` is a generic that
+  can be constructed `From<StoreError>`.
+
+  This all was triggered by the fact that `Store::entries()` did a
+  `.collect::<Vec<_>>()` call, which is time consuming.
+  Consider a tool which calls `Store::entries()` and then only use the first 10
+  entries returned (for some user-facing output for example). This would
+  effectively cause the complexe store to be accessed (on the filesystem level),
+  which could be thousands of entries. All relevant pathes would have been written
+  to memory and then be filtered for the first 10.
+  Not very optimized.
+
+  After this was done, the store interface changed. This caused a lot of changes
+  in almost all crates.
+
+  Internally, in the store, the `FileAbstraction` object is not passed around in a
+  `Box` anymore, but in an `Arc`, as a intermediate (store-private) iterator type
+  needs to access the backend for file-system level checks.
+  This is not user-facing.
+
+  In the process, the `Store::reset_backend()` interface was removed (as this is
+  no longer supported and should've been removed already). Rewriting it just for
+  the sake of this patch and then removing it would've been to difficult and time-
+  consuming, hence it was simply removed during that patchset.
+
+  The overall performance was somewhat improved by this patchset.
+  A rather non-scientifically performed test shows increased performance in debug
+  builds (but slowing down in release builds).
+
+  The test was done on master before the merge and after the merge, with a debug
+  build and a release build. Each time, `imag-ids` was executed 10 times with its
+  output piped to /dev/null. The local store used for this contained 5743 entries
+  during the measurements and was not changed in between. `time` showed the
+  following data (real, user, sys):
+
+  Before, Debug build:
+
+      0,075;0,052;0,023
+      0,077;0,051;0,026
+      0,083;0,063;0,020
+      0,079;0,054;0,025
+      0,076;0,057;0,019
+      0,077;0,059;0,017
+      0,074;0,052;0,022
+      0,077;0,045;0,032
+      0,080;0,060;0,020
+      0,080;0,058;0,022
+
+  After, Debug build:
+
+      0,071;0,050;0,021
+      0,073;0,053;0,021
+      0,075;0,060;0,015
+      0,076;0,047;0,029
+      0,072;0,055;0,018
+      0,077;0,061;0,016
+      0,071;0,053;0,019
+      0,070;0,053;0,016
+      0,074;0,050;0,025
+      0,076;0,052;0,024
+
+  Before, Release build:
+
+      0,034;0,015;0,019
+      0,034;0,017;0,017
+      0,034;0,019;0,015
+      0,033;0,012;0,022
+      0,034;0,011;0,023
+      0,034;0,015;0,019
+      0,034;0,010;0,024
+      0,033;0,015;0,018
+      0,037;0,017;0,020
+      0,033;0,013;0,021
+
+  After, Release build:
+
+      0,037;0,015;0,022
+      0,036;0,016;0,020
+      0,036;0,018;0,018
+      0,036;0,014;0,022
+      0,036;0,015;0,021
+      0,036;0,018;0,018
+      0,037;0,016;0,020
+      0,036;0,018;0,018
+      0,039;0,015;0,023
+      0,037;0,016;0,021
+
+* The `Store::walk()` function was removed.
+
+* `imag-ids` got the ability to filter by header
+
+  The language introduced here is subject to change, but a good first step into
+  the direction of a generic filter language.
+
+  Language documentation was added as well and is printed with `imag ids --help`.
+
+* `imag-category` was added
+
+* The standard CLI interface in `libimagrt` was updated and validations were
+  added
+
 
 ## 0.7.1
 
