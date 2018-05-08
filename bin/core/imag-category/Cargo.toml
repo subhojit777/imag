@@ -1,6 +1,6 @@
 [package]
 name = "imag-category"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Part of the imag core distribution: imag-category command"
@@ -26,11 +26,11 @@ log = "0.4.0"
 toml = "0.4"
 toml-query = "0.6"
 
-libimagstore           = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
-libimagrt              = { version = "0.8.0", path = "../../../lib/core/libimagrt" }
-libimagerror           = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
-libimagentrycategory   = { version = "0.8.0", path = "../../../lib/entry/libimagentrycategory" }
-libimaginteraction     = { version = "0.8.0", path = "../../../lib/etc/libimaginteraction" }
+libimagstore           = { version = "0.9.0", path = "../../../lib/core/libimagstore" }
+libimagrt              = { version = "0.9.0", path = "../../../lib/core/libimagrt" }
+libimagerror           = { version = "0.9.0", path = "../../../lib/core/libimagerror" }
+libimagentrycategory   = { version = "0.9.0", path = "../../../lib/entry/libimagentrycategory" }
+libimaginteraction     = { version = "0.9.0", path = "../../../lib/etc/libimaginteraction" }
 
 [dependencies.clap]
 version          = "^2.29"

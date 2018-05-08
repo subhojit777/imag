@@ -1,6 +1,6 @@
 [package]
 name = "libimagentryref"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -26,9 +26,9 @@ toml = "0.4"
 toml-query = "0.6"
 error-chain = "0.11"
 
-libimagstore     = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
-libimagerror     = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
-libimagentryutil = { version = "0.8.0", path = "../../../lib/entry/libimagentryutil" }
+libimagstore     = { version = "0.9.0", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.9.0", path = "../../../lib/core/libimagerror" }
+libimagentryutil = { version = "0.9.0", path = "../../../lib/entry/libimagentryutil" }
 
 [dependencies.rust-crypto]
 version = "0.2"

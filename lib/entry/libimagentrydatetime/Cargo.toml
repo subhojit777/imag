@@ -1,6 +1,6 @@
 [package]
 name = "libimagentrydatetime"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -26,6 +26,6 @@ lazy_static = "0.2"
 toml = "0.4"
 error-chain = "0.11"
 
-libimagerror = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
-libimagstore = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
+libimagerror = { version = "0.9.0", path = "../../../lib/core/libimagerror" }
+libimagstore = { version = "0.9.0", path = "../../../lib/core/libimagstore" }
 
