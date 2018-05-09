@@ -16,7 +16,6 @@ CRATES=(
     ./lib/etc/libimagnotification
     ./lib/etc/libimaginteraction
     ./lib/core/libimagrt
-    ./lib/entry/libimagentrycategory
     ./lib/entry/libimagentrylink
     ./lib/entry/libimagentrytag
     ./lib/entry/libimagentryfilter
@@ -25,6 +24,7 @@ CRATES=(
     ./lib/entry/libimagentryview
     ./lib/entry/libimagentrydatetime
     ./lib/entry/libimagentryutil
+    ./lib/entry/libimagentrycategory
     ./lib/entry/libimagentryref
     ./lib/entry/libimagentrymarkdown
     ./lib/entry/libimagentryannotation
