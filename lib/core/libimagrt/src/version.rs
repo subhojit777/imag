@@ -31,7 +31,7 @@ macro_rules! make_imag_version {
             },
 
             // imag is not beeing build with cargo... we have to set it by hand here.
-            _ => String::from("0.8.0"),
+            _ => String::from("0.9.0"),
         }
     }}
 }

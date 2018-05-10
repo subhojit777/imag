@@ -1,6 +1,6 @@
 [package]
 name = "libimagentrymarkdown"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -26,13 +26,13 @@ url = "1.5"
 error-chain = "0.11"
 env_logger = "0.5"
 
-libimagstore     = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
-libimagerror     = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
-libimagentrylink = { version = "0.8.0", path = "../../../lib/entry/libimagentrylink/" }
-libimagutil      = { version = "0.8.0", path = "../../../lib/etc/libimagutil/" }
+libimagstore     = { version = "0.9.0", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.9.0", path = "../../../lib/core/libimagerror" }
+libimagentrylink = { version = "0.9.0", path = "../../../lib/entry/libimagentrylink/" }
+libimagutil      = { version = "0.9.0", path = "../../../lib/etc/libimagutil/" }
 
 [dependencies.libimagentryref]
-version          = "0.8.0"
+version          = "0.9.0"
 path             = "../../../lib/entry/libimagentryref/"
 default-features = false
 features         = [ "generators", "generators-sha512" ]

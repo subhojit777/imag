@@ -1,6 +1,6 @@
 [package]
 name = "libimagentryview"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
 description = "Library for the imag core distribution"
@@ -25,10 +25,10 @@ toml = "0.4"
 error-chain = "0.11"
 textwrap = "0.9"
 
-libimagrt        = { version = "0.8.0", path = "../../../lib/core/libimagrt" }
-libimagstore     = { version = "0.8.0", path = "../../../lib/core/libimagstore" }
-libimagerror     = { version = "0.8.0", path = "../../../lib/core/libimagerror" }
-libimagentryedit = { version = "0.8.0", path = "../../../lib/entry/libimagentryedit" }
+libimagrt        = { version = "0.9.0", path = "../../../lib/core/libimagrt" }
+libimagstore     = { version = "0.9.0", path = "../../../lib/core/libimagstore" }
+libimagerror     = { version = "0.9.0", path = "../../../lib/core/libimagerror" }
+libimagentryedit = { version = "0.9.0", path = "../../../lib/entry/libimagentryedit" }
 
 mdcat   = { version = "0.8", optional = true }
 failure = { version = "0.1", optional = true }
