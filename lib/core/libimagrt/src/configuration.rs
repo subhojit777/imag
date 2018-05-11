@@ -54,7 +54,7 @@ pub fn fetch_config(searchpath: &PathBuf) -> Result<Value> {
         base
     };
 
-    vec![
+    let vals = vec![
         vec![searchpath.clone()],
         gen_vars(searchpath, variants.clone(), &modifier),
 
@@ -63,8 +63,9 @@ pub fn fetch_config(searchpath: &PathBuf) -> Result<Value> {
 
         xdg_basedir::get_data_home().map(|data_dir| gen_vars(&data_dir, variants.clone(), &modifier))
                                     .unwrap_or(vec![]),
-    ].iter()
-        .flatten()
+    ];
+
+    Itertools::flatten(vals.iter())
         .filter(|path| path.exists() && path.is_file())
         .filter_map(|path| {
             let content = {
