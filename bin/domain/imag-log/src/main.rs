@@ -104,6 +104,8 @@ fn main() {
 }
 
 fn show(rt: &Runtime) {
+    use std::borrow::Cow;
+
     use libimagdiary::iter::DiaryEntryIterator;
     use libimagdiary::entry::DiaryEntry;
 
@@ -114,13 +116,19 @@ fn show(rt: &Runtime) {
             .collect(),
 
         None => if scmd.is_present("show-all") {
+            debug!("Showing for all diaries");
             rt.store()
                 .diary_names()
                 .map_err_trace_exit_unwrap(1)
                 .map(|diary_name| {
                     let diary_name = diary_name.map_err_trace_exit_unwrap(1);
-                    Diary::entries(rt.store(), &diary_name).map_err_trace_exit_unwrap(1)
+                    debug!("Getting entries for Diary: {}", diary_name);
+                    let entries = Diary::entries(rt.store(), &diary_name).map_err_trace_exit_unwrap(1);
+                    let diary_name = Cow::from(diary_name);
+                    (entries, diary_name)
                 })
+                .unique_by(|tpl| tpl.1.clone())
+                .map(|tpl| tpl.0)
                 .collect()
         } else {
             // showing default logs
@@ -144,6 +152,7 @@ fn show(rt: &Runtime) {
             .sorted_by_key(|&(ref id, _)| id.clone())
             .into_iter()
             .map(|(id, entry)| {
+                debug!("Found entry: {:?}", entry);
                 writeln!(rt.stdout(),
                         "{dname: >10} - {y: >4}-{m:0>2}-{d:0>2}T{H:0>2}:{M:0>2} - {text}",
                          dname = id.diary_name(),
