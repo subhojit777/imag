@@ -134,12 +134,14 @@ pub mod iter {
     /// The boolean value defines, how to interpret the `is_external_link_storeid()` return value
     /// (here as "pred"):
     ///
+    /// ```ignore
     ///     pred | bool | xor | take?
     ///     ---- | ---- | --- | ----
     ///        0 |    0 |   0 |   1
     ///        0 |    1 |   1 |   0
     ///        1 |    0 |   1 |   0
     ///        1 |    1 |   0 |   1
+    /// ```
     ///
     /// If `bool` says "take if return value is false", we take the element if the `pred` returns
     /// false... and so on.
