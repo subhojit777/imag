@@ -144,3 +144,71 @@ mod compile_test {
     }
 }
 
+/// Iterator for iterating over all (or a subset of all) entries
+///
+/// The iterator now has functionality to optimize the iteration, if only a subdirectory of the
+/// store is required, for example `$STORE/foo`.
+///
+/// This is done via functionality where the underlying iterator gets
+/// altered.
+///
+/// As the (for the filesystem backend underlying) `walkdir::WalkDir` type is not as nice as it
+/// could be, iterating over two subdirectories with one iterator is not possible. Thus, iterators
+/// for two collections in the store should be build like this (untested):
+///
+/// ```ignore
+///     store
+///         .entries()?
+///         .in_collection("foo")
+///         .chain(store.entries()?.in_collection("bar"))
+/// ```
+///
+/// Functionality to exclude subdirectories is not possible with the current implementation and has
+/// to be done during iteration, with filtering (as usual).
+pub struct Entries<'a>(PathIterator, &'a Store)
+
+impl<'a> Entries<'a> {
+
+    pub(crate) fn new(pi: PathIterator, store: &'a Store) -> Self {
+        Entries(pi, store)
+    }
+
+    pub fn in_collection<C: AsRef<str>>(self, c: C) -> Self {
+        self.0.in_collection(c)
+    }
+
+    pub fn without_store(self) -> StoreIdIterator {
+        StoreIdIterator::new(Box::new(self.0))
+    }
+
+    /// Transform the iterator into a StoreDeleteIterator
+    ///
+    /// This immitates the API from `libimagstore::iter`.
+    pub fn into_delete_iter(self) -> StoreDeleteIterator<'a, StoreError> {
+        StoreDeleteIterator::new(Box::new(self.0), self.1)
+    }
+
+    /// Transform the iterator into a StoreGetIterator
+    ///
+    /// This immitates the API from `libimagstore::iter`.
+    pub fn into_get_iter(self) -> StoreGetIterator<'a, StoreError> {
+        StoreGetIterator::new(Box::new(self.0), self.1)
+    }
+
+    /// Transform the iterator into a StoreRetrieveIterator
+    ///
+    /// This immitates the API from `libimagstore::iter`.
+    pub fn into_retrieve_iter(self) -> StoreRetrieveIterator<'a, StoreError> {
+        StoreRetrieveIterator::new(Box::new(self.0), self.1)
+    }
+
+}
+
+impl Iterator for Entries {
+    type Item = Result<StoreId>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
+}
+

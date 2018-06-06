@@ -31,6 +31,8 @@ use store::Entry;
 use storeid::StoreId;
 use file_abstraction::iter::PathIterator;
 
+use walkdir::WalkDir;
+
 #[derive(Debug)]
 pub enum FSFileAbstractionInstance {
     Absent(PathBuf),
@@ -166,18 +168,36 @@ impl FileAbstraction for FSFileAbstraction {
             })
     }
 
-    fn pathes_recursively(&self, basepath: PathBuf) -> Result<PathIterator, SE> {
-        use walkdir::WalkDir;
+    fn pathes_recursively(&self,
+                          basepath: PathBuf,
+                          storepath: PathBuf,
+                          backend: Arc<FileAbstraction>)
+        -> Result<PathIterator, SE>
+    {
+        trace!("Building PathIterator object");
+        Ok(PathIterator::new(Box::new(WalkDirPathIterBuilder { basepath }), storepath, backend))
+    }
+}
 
-        let i = WalkDir::new(basepath)
+pub(crate) struct WalkDirPathIterBuilder {
+    basepath: PathBuf
+}
+
+impl PathIterBuilder for WalkDirPathIterBuilder {
+    type Output: WalkDir::IntoIter;
+
+    fn build_iter(&self) -> Self::Output {
+        WalkDir::new(self.basepath.clone())
             .min_depth(1)
             .max_open(100)
             .into_iter()
             .map(|r| {
                 r.map(|e| PathBuf::from(e.path())).chain_err(|| SE::from_kind(SEK::FileError))
-            });
+            })
+    }
 
-        Ok(PathIterator::new(Box::new(i)))
+    fn in_collection<C: AsRef<str>>(&mut self, c: C) {
+        self.basepath.push(c.as_ref());
     }
 }
 

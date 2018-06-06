@@ -181,8 +181,8 @@ impl FileAbstraction for InMemoryFileAbstraction {
         Ok(())
     }
 
-    fn pathes_recursively(&self, _basepath: PathBuf) -> Result<PathIterator, SE> {
-        debug!("Getting all pathes");
+    fn pathes_recursively(&self, basepath: PathBuf, storepath: PathBuf, backend: Arc<FileAbstraction>) -> Result<PathIterator, SE> {
+        trace!("Building PathIterator object (inmemory implementation)");
         let keys : Vec<Result<PathBuf, SE>> = self
             .backend()
             .lock()
@@ -193,7 +193,21 @@ impl FileAbstraction for InMemoryFileAbstraction {
             .map(Ok)
             .collect(); // we have to collect() because of the lock() above.
 
-        Ok(PathIterator::new(Box::new(keys.into_iter())))
+        Ok(PathIterator::new(Box::new(InMemPathIterBuilder(key)), storepath, backend))
+    }
+}
+
+pub(crate) struct InMemPathIterBuilder(Vec<PathBuf>);
+
+impl PathIterBuilder for InMemPathIterBuilder {
+    type Output: Vec<PathBuf>::IntoIter;
+
+    fn build_iter(&self) -> Self::Output {
+        self.0.into_iter()
+    }
+
+    fn in_collection<C: AsRef<str>>(&mut self, c: C) {
+        self.0 = self.0.into_iter().filter(|p| p.starts_with(c)).collect();
     }
 }
 

@@ -50,7 +50,7 @@ pub trait FileAbstraction : Debug {
     fn drain(&self) -> Result<Drain, SE>;
     fn fill<'a>(&'a mut self, d: Drain) -> Result<(), SE>;
 
-    fn pathes_recursively(&self, basepath: PathBuf) -> Result<PathIterator, SE>;
+    fn pathes_recursively(&self, basepath: PathBuf, storepath: PathBuf, backend: Arc<FileAbstraction>) -> Result<PathIterator, SE>;
 }
 
 /// An abstraction trait over actions on files

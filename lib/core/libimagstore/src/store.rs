@@ -639,12 +639,11 @@ impl Store {
     }
 
     /// Get _all_ entries in the store (by id as iterator)
-    pub fn entries(&self) -> Result<StoreIdIteratorWithStore> {
+    pub fn entries(&self) -> Result<Entries<'a>> {
+        trace!("Building 'Entries' iterator");
         self.backend
-            .pathes_recursively(self.path().clone())
-            .map(|i| i.store_id_constructing(self.path().clone(), self.backend.clone()))
-            .map(Box::new)
-            .map(|it| StoreIdIteratorWithStore::new(it, self))
+            .pathes_recursively(self.path().clone(), self.path().clone(), self.backend.clone())
+            .map(|i| Entries::new(i, self))
     }
 
     /// Gets the path where this store is on the disk

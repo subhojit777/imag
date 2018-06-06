@@ -24,48 +24,65 @@ use error::Result;
 use storeid::StoreId;
 use file_abstraction::FileAbstraction;
 
+/// See documentation for PathIterator
+pub(crate) trait PathIterBuilder {
+    type Output: Iterator<Item = Result<PathBuf>>;
+
+    fn build_iter(&self) -> Self::Output;
+    fn in_collection(&mut self);
+}
+
 /// A wrapper for an iterator over `PathBuf`s
-pub struct PathIterator(Box<Iterator<Item = Result<PathBuf>>>);
+///
+/// As the backend defines how "iterating over all entries" is implemented, this type holds a
+/// `PathIterBuilder` internally. This type is used to create new iterator instances every time the
+/// "settings" for how the iterator behaves are changed. This basically means: If the PathIterator
+/// is requested to not iterate over a directory "a" but rather its subdirectory "a/b", the
+/// implementation asks the `PathIterBuilder` to create a new iterator for that.
+///
+/// The `PathIterBuilder` can then yield a new iterator instance which is optimized for the new
+/// requirements (which basically means: Construct a new WalkDir object which does traverse the
+/// subdirectory instead of the parent).
+///
+/// This means quite a few allocations down the road, as the PathIterator itself is not generic, but
+/// this seems to be the best way to implement this.
+pub struct PathIterator {
+    iter_builder: Box<PathIterBuilder>,
+    iter:         Box<Iterator<Item = Result<PathBuf>>>,
+    storepath:    PathBuf,
+    backend:      Arc<FileAbstraction>,
+}
 
 impl PathIterator {
 
-    pub fn new(iter: Box<Iterator<Item = Result<PathBuf>>>) -> PathIterator {
-        PathIterator(iter)
+    pub fn new(iter_builder: Box<PathIterBuilder>,
+               storepath: PathBuf,
+               backend: Arc<FileAbstraction>)
+        -> PathIterator
+    {
+        trace!("Generating iterator object with PathIterBuilder");
+        let iter = iter_builder.build_iter();
+        PathIterator { iter_builder, iter, storepath, backend }
     }
 
-    pub fn store_id_constructing(self, storepath: PathBuf, backend: Arc<FileAbstraction>)
-        -> StoreIdConstructingIterator
-    {
-        StoreIdConstructingIterator(self, storepath, backend)
+    pub(crate) in_collection<C: AsRef<str>>(self, c: C) -> Self {
+        trace!("Generating iterator object for collection: {}", c.as_ref());
+        self.iter = self.iter_builder.in_collection(c);
+        self
     }
 
 }
 
 impl Iterator for PathIterator {
-    type Item = Result<PathBuf>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
-    }
-
-}
-
-
-/// Helper type for constructing StoreIds from a PathIterator.
-///
-/// Automatically ignores non-files.
-pub struct StoreIdConstructingIterator(PathIterator, PathBuf, Arc<FileAbstraction>);
-
-impl Iterator for StoreIdConstructingIterator {
     type Item = Result<StoreId>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(next) = self.0.next() {
+        while let Some(next) = self.iter.next() {
             match next {
-                Err(e)  => return Some(Err(e)),
-                Ok(next) => match self.2.is_file(&next) {
+                Err(e)   => return Some(Err(e)),
+                Ok(next) => match self.backend.is_file(&next) {
                     Err(e)    => return Some(Err(e)),
-                    Ok(true)  => return Some(StoreId::from_full_path(&self.1, next)),
+                    Ok(true)  => return Some(StoreId::from_full_path(&self.storepath, next)),
                     Ok(false) => { continue },
                 }
             }
