@@ -22,7 +22,6 @@ use std::fmt::Write;
 use toml::Value;
 
 use store::Result;
-use store::Header;
 
 #[cfg(feature = "early-panic")]
 #[macro_export]
@@ -61,7 +60,7 @@ pub fn entry_buffer_to_header_content(buf: &str) -> Result<(Value, String)> {
         }
     }
 
-    Ok((Value::parse(&header)?, content))
+    ::toml::de::from_str(&header).map_err(From::from).map(|h| (h, content))
 }
 
 #[cfg(test)]

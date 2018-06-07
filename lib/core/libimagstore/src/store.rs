@@ -888,24 +888,6 @@ impl PartialEq for Entry {
 
 }
 
-/// Extension trait for top-level toml::Value::Table, will only yield correct results on the
-/// top-level Value::Table, but not on intermediate tables.
-pub trait Header {
-    fn parse(s: &str) -> Result<Value>;
-}
-
-impl Header for Value {
-
-    fn parse(s: &str) -> Result<Value> {
-        use toml::de::from_str;
-
-        from_str(s)
-            .map_err(From::from)
-            .and_then(|h: Value| h.verify().map(|_| h))
-    }
-
-}
-
 fn has_only_tables(t: &Value) -> Result<bool> {
     debug!("Verifying that table has only tables");
     match *t {
