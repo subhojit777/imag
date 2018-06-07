@@ -665,19 +665,6 @@ impl Debug for Store {
 
 }
 
-impl Drop for Store {
-
-    ///
-    /// Unlock all files on drop
-    //
-    /// TODO: Unlock them
-    ///
-    fn drop(&mut self) {
-        debug!("Dropping store");
-    }
-
-}
-
 /// A struct that allows you to borrow an Entry
 pub struct FileLockEntry<'a> {
     store: &'a Store,
