@@ -444,7 +444,7 @@ impl Store {
         StoreEntry::new(id, &self.backend)?.get_entry()
     }
 
-    /// Delete an entry
+    /// Delete an entry and the corrosponding file on disk
     ///
     /// # Return value
     ///
@@ -460,6 +460,12 @@ impl Store {
 
         debug!("Deleting id: '{}'", id);
 
+        // Small optimization: We need the pathbuf for deleting, but when calling
+        // StoreId::exists(), a PathBuf object gets allocated. So we simply get a
+        // PathBuf here, check whether it is there and if it is, we can re-use it to
+        // delete the filesystem file.
+        let pb = id.clone().into_pathbuf()?;
+
         {
             let mut entries = self
                 .entries
@@ -467,43 +473,40 @@ impl Store {
                 .map_err(|_| SE::from_kind(SEK::LockPoisoned))
                 .chain_err(|| SEK::DeleteCallError(id.clone()))?;
 
-            // if the entry is currently modified by the user, we cannot drop it
-            match entries.get(&id) {
+            let do_remove = match entries.get(&id) {
+                Some(e) => if e.is_borrowed() { // entry is currently borrowed, we cannot delete it
+                    return Err(SE::from_kind(SEK::IdLocked)).chain_err(|| SEK::DeleteCallError(id));
+                    // false
+                } else { // Entry is in the cache
+                    // Remove Entry from the cache
+                    true
+                },
+
                 None => {
                     // The entry is not in the internal cache. But maybe on the filesystem?
                     debug!("Seems like {:?} is not in the internal cache", id);
 
-                    // Small optimization: We need the pathbuf for deleting, but when calling
-                    // StoreId::exists(), a PathBuf object gets allocated. So we simply get a
-                    // PathBuf here, check whether it is there and if it is, we can re-use it to
-                    // delete the filesystem file.
-                    let pb = id.clone().into_pathbuf()?;
-
-                    if self.backend.exists(&pb)? {
-                        // looks like we're deleting a not-loaded file from the store.
-                        debug!("Seems like {:?} is on the FS", pb);
-                        return self.backend.remove_file(&pb)
-                    } else {
+                    if !self.backend.exists(&pb)? {
                         debug!("Seems like {:?} is not even on the FS", pb);
                         return Err(SE::from_kind(SEK::FileNotFound))
                             .chain_err(|| SEK::DeleteCallError(id))
-                    }
-                },
-                Some(e) => if e.is_borrowed() {
-                    return Err(SE::from_kind(SEK::IdLocked))
-                        .chain_err(|| SEK::DeleteCallError(id))
-                }
-            }
+                    } // else { continue }
 
-            // remove the entry first, then the file
-            entries.remove(&id);
-            let pb = id.clone().with_base(self.path().clone()).into_pathbuf()?;
-            let _ = self
-                .backend
-                .remove_file(&pb)
-                .chain_err(|| SEK::FileError)
-                .chain_err(|| SEK::DeleteCallError(id))?;
+                    false
+                },
+            };
+
+            if do_remove {
+                let _ = entries.remove(&id);
+            }
         }
+
+        debug!("Seems like {:?} is on the FS", pb);
+        let _ = self
+            .backend
+            .remove_file(&pb)
+            .chain_err(|| SEK::FileError)
+            .chain_err(|| SEK::DeleteCallError(id))?;
 
         debug!("Deleted");
         Ok(())
