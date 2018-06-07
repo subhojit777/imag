@@ -766,7 +766,18 @@ impl Entry {
     /// This function should be used to get a new Header, as the default header may change. Via
     /// this function, compatibility is ensured.
     pub fn default_header() -> Value { // BTreeMap<String, Value>
-        Value::default_header()
+        let mut m = BTreeMap::new();
+
+        m.insert(String::from("imag"), {
+            let mut imag_map = BTreeMap::<String, Value>::new();
+
+            imag_map.insert(String::from("version"),
+                Value::String(String::from(env!("CARGO_PKG_VERSION"))));
+
+            Value::Table(imag_map)
+        });
+
+        Value::Table(m)
     }
 
     /// See `Entry::from_str()`, as this function is used internally. This is just a wrapper for
@@ -873,22 +884,11 @@ impl PartialEq for Entry {
 pub trait Header {
     fn verify(&self) -> Result<()>;
     fn parse(s: &str) -> Result<Value>;
-    fn default_header() -> Value;
 }
 
 impl Header for Value {
 
     fn verify(&self) -> Result<()> {
-        if !has_main_section(self)? {
-            Err(SE::from_kind(SEK::MissingMainSection))
-        } else if !has_imag_version_in_main_section(self)? {
-            Err(SE::from_kind(SEK::MissingVersionInfo))
-        } else if !has_only_tables(self)? {
-            debug!("Could not verify that it only has tables in its base table");
-            Err(SE::from_kind(SEK::NonTableInBaseTable))
-        } else {
-            Ok(())
-        }
     }
 
     fn parse(s: &str) -> Result<Value> {
@@ -897,21 +897,6 @@ impl Header for Value {
         from_str(s)
             .map_err(From::from)
             .and_then(|h: Value| h.verify().map(|_| h))
-    }
-
-    fn default_header() -> Value {
-        let mut m = BTreeMap::new();
-
-        m.insert(String::from("imag"), {
-            let mut imag_map = BTreeMap::<String, Value>::new();
-
-            imag_map.insert(String::from("version"),
-                Value::String(String::from(env!("CARGO_PKG_VERSION"))));
-
-            Value::Table(imag_map)
-        });
-
-        Value::Table(m)
     }
 
 }
