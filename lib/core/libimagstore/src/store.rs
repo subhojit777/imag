@@ -864,7 +864,16 @@ impl Entry {
     ///
     /// Currently, this only verifies the header. This might change in the future.
     pub fn verify(&self) -> Result<()> {
-        self.header.verify()
+        if !has_main_section(&self.header)? {
+            Err(SE::from_kind(SEK::MissingMainSection))
+        } else if !has_imag_version_in_main_section(&self.header)? {
+            Err(SE::from_kind(SEK::MissingVersionInfo))
+        } else if !has_only_tables(&self.header)? {
+            debug!("Could not verify that it only has tables in its base table");
+            Err(SE::from_kind(SEK::NonTableInBaseTable))
+        } else {
+            Ok(())
+        }
     }
 
 }
@@ -882,14 +891,10 @@ impl PartialEq for Entry {
 /// Extension trait for top-level toml::Value::Table, will only yield correct results on the
 /// top-level Value::Table, but not on intermediate tables.
 pub trait Header {
-    fn verify(&self) -> Result<()>;
     fn parse(s: &str) -> Result<Value>;
 }
 
 impl Header for Value {
-
-    fn verify(&self) -> Result<()> {
-    }
 
     fn parse(s: &str) -> Result<Value> {
         use toml::de::from_str;
@@ -929,7 +934,6 @@ mod test {
 
     use std::collections::BTreeMap;
     use storeid::StoreId;
-    use store::Header;
     use store::has_main_section;
     use store::has_imag_version_in_main_section;
 
@@ -977,52 +981,6 @@ mod test {
         map.insert("imag".into(), Value::Table(sub));
 
         assert!(has_imag_version_in_main_section(&Value::Table(map)).is_err());
-    }
-
-    #[test]
-    fn test_verification_good() {
-        let mut header = BTreeMap::new();
-        let sub = {
-            let mut sub = BTreeMap::new();
-            sub.insert("version".into(), Value::String(String::from("0.0.0")));
-
-            Value::Table(sub)
-        };
-
-        header.insert("imag".into(), sub);
-
-        assert!(Value::Table(header).verify().is_ok());
-    }
-
-    #[test]
-    fn test_verification_invalid_versionstring() {
-        let mut header = BTreeMap::new();
-        let sub = {
-            let mut sub = BTreeMap::new();
-            sub.insert("version".into(), Value::String(String::from("000")));
-
-            Value::Table(sub)
-        };
-
-        header.insert("imag".into(), sub);
-
-        assert!(!Value::Table(header).verify().is_ok());
-    }
-
-
-    #[test]
-    fn test_verification_current_version() {
-        let mut header = BTreeMap::new();
-        let sub = {
-            let mut sub = BTreeMap::new();
-            sub.insert("version".into(), Value::String(String::from(env!("CARGO_PKG_VERSION"))));
-
-            Value::Table(sub)
-        };
-
-        header.insert("imag".into(), sub);
-
-        assert!(Value::Table(header).verify().is_ok());
     }
 
     static TEST_ENTRY : &'static str = "---
