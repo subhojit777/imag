@@ -479,7 +479,7 @@ impl Store {
                     // delete the filesystem file.
                     let pb = id.clone().into_pathbuf()?;
 
-                    if pb.exists() {
+                    if self.backend.exists(&pb)? {
                         // looks like we're deleting a not-loaded file from the store.
                         debug!("Seems like {:?} is on the FS", pb);
                         return self.backend.remove_file(&pb)
