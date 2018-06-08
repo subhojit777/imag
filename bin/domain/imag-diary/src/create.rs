@@ -20,6 +20,7 @@
 use clap::ArgMatches;
 use chrono::NaiveDateTime;
 use chrono::Local;
+use chrono::Timelike;
 
 use libimagdiary::diary::Diary;
 use libimagdiary::error::DiaryErrorKind as DEK;
@@ -73,8 +74,8 @@ fn create_entry<'a>(diary: &'a Store, diaryname: &str, rt: &Runtime) -> FileLock
             }
         })
         .map(|timed| {
-            let id = create_id_from_clispec(&create, &diaryname, timed);
-            diary.retrieve(id).chain_err(|| DEK::StoreReadError)
+            let time = create_id_from_clispec(&create, &diaryname, timed);
+            diary.new_entry_at(&diaryname, &time).chain_err(|| DEK::StoreWriteError)
         })
         .unwrap_or_else(|| {
             debug!("Creating non-timed entry");
@@ -88,41 +89,31 @@ fn create_entry<'a>(diary: &'a Store, diaryname: &str, rt: &Runtime) -> FileLock
 }
 
 
-fn create_id_from_clispec(create: &ArgMatches, diaryname: &str, timed_type: Timed) -> DiaryId {
+fn create_id_from_clispec(create: &ArgMatches, diaryname: &str, timed_type: Timed) -> NaiveDateTime {
     use std::str::FromStr;
 
-    let get_hourly_id = |create: &ArgMatches| -> DiaryId {
-        let time = DiaryId::now(String::from(diaryname));
-        let hr = create
-            .value_of("hour")
-            .map(|v| { debug!("Creating hourly entry with hour = {:?}", v); v })
-            .and_then(|s| {
-                FromStr::from_str(s)
-                    .map_err(|_| warn!("Could not parse hour: '{}'", s))
-                    .ok()
-            })
-            .unwrap_or(time.hour());
-
-        time.with_hour(hr)
-    };
+    let dt  = Local::now();
+    let ndt = dt.naive_local();
 
     match timed_type {
         Timed::Daily => {
             debug!("Creating daily-timed entry");
-            get_hourly_id(create)
-                .with_hour(0)
+            ndt.with_hour(0)
+                .unwrap() // safe because hour = 0 is safe
                 .with_minute(0)
+                .unwrap() // safe because minute = 0 is safe
                 .with_second(0)
+                .unwrap() // safe because second = 0 is safe
         },
         Timed::Hourly => {
             debug!("Creating hourly-timed entry");
-            get_hourly_id(create)
-                .with_minute(0)
+            ndt.with_minute(0)
+                .unwrap() // safe because minute = 0 is safe
                 .with_second(0)
+                .unwrap() // safe because second = 0 is safe
         },
 
         Timed::Minutely => {
-            let time = get_hourly_id(create);
             let min = create
                 .value_of("minute")
                 .map(|m| { debug!("minute = {:?}", m); m })
@@ -133,12 +124,16 @@ fn create_id_from_clispec(create: &ArgMatches, diaryname: &str, timed_type: Time
                 })
                 .unwrap_or(ndt.minute());
 
-            time.with_minute(min)
+            ndt.with_minute(min)
+                .unwrap_or_else(|| {
+                    error!("Cannot set {} as minute, would yield invalid time!", min);
+                    ::std::process::exit(1)
+                })
                 .with_second(0)
+                .unwrap() // safe because second = 0 is safe
         },
 
         Timed::Secondly => {
-            let time = get_hourly_id(create);
             let min = create
                 .value_of("minute")
                 .map(|m| { debug!("minute = {:?}", m); m })
@@ -159,7 +154,16 @@ fn create_id_from_clispec(create: &ArgMatches, diaryname: &str, timed_type: Time
                 })
                 .unwrap_or(ndt.second());
 
-            time.with_minute(min).with_second(sec)
+            ndt.with_minute(min)
+                .unwrap_or_else(|| {
+                    error!("Cannot set {} as minute, would yield invalid time!", min);
+                    ::std::process::exit(1)
+                })
+                .with_second(sec)
+                .unwrap_or_else(|| {
+                    error!("Cannot set {} as second, would yield invalid time!", sec);
+                    ::std::process::exit(1)
+                })
         },
     }
 }
