@@ -47,6 +47,8 @@ pub trait Diary {
     // create or get a new entry for now
     fn new_entry_now(&self, diary_name: &str) -> Result<FileLockEntry>;
 
+    fn new_entry_at(&self, diary_name: &str, ndt: &NaiveDateTime) -> Result<FileLockEntry>;
+
     // Get an iterator for iterating over all entries of a Diary
     fn entries(&self, diary_name: &str) -> Result<DiaryEntryIterator>;
 
@@ -73,6 +75,10 @@ impl Diary for Store {
     fn new_entry_now(&self, diary_name: &str) -> Result<FileLockEntry> {
         let dt  = Local::now();
         let ndt = dt.naive_local();
+        self.new_entry_at(diary_name, &ndt)
+    }
+
+    fn new_entry_at(&self, diary_name: &str, ndt: &NaiveDateTime) -> Result<FileLockEntry> {
         let id  = DiaryId::new(String::from(diary_name),
                                ndt.year(),
                                ndt.month(),
