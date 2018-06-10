@@ -20,6 +20,7 @@
 use std::path::PathBuf;
 use std::fmt::Debug;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use error::StoreError as SE;
 use store::Entry;

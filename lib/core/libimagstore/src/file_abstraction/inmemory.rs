@@ -33,6 +33,7 @@ use super::Drain;
 use store::Entry;
 use storeid::StoreId;
 use file_abstraction::iter::PathIterator;
+use file_abstraction::iter::PathIterBuilder;
 
 type Backend = Arc<Mutex<RefCell<HashMap<PathBuf, Entry>>>>;
 
@@ -193,7 +194,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
             .map(Ok)
             .collect(); // we have to collect() because of the lock() above.
 
-        Ok(PathIterator::new(Box::new(InMemPathIterBuilder(key)), storepath, backend))
+        Ok(PathIterator::new(Box::new(InMemPathIterBuilder(keys)), storepath, backend))
     }
 }
 
