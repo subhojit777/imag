@@ -20,6 +20,7 @@
 use std::fs::{File, OpenOptions, create_dir_all, remove_file, copy, rename};
 use std::io::{Seek, SeekFrom, Read};
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::ResultExt;
@@ -30,6 +31,7 @@ use super::Drain;
 use store::Entry;
 use storeid::StoreId;
 use file_abstraction::iter::PathIterator;
+use file_abstraction::iter::PathIterBuilder;
 
 use walkdir::WalkDir;
 
@@ -184,7 +186,7 @@ pub(crate) struct WalkDirPathIterBuilder {
 }
 
 impl PathIterBuilder for WalkDirPathIterBuilder {
-    type Output: WalkDir::IntoIter;
+    type Output = WalkDir::IntoIter;
 
     fn build_iter(&self) -> Self::Output {
         WalkDir::new(self.basepath.clone())

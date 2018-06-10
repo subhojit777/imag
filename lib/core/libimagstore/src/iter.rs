@@ -144,6 +144,15 @@ mod compile_test {
     }
 }
 
+use storeid::StoreId;
+use storeid::StoreIdIterator;
+use self::delete::StoreDeleteIterator;
+use self::get::StoreGetIterator;
+use self::retrieve::StoreRetrieveIterator;
+use file_abstraction::iter::PathIterator;
+use store::Store;
+use error::StoreError;
+
 /// Iterator for iterating over all (or a subset of all) entries
 ///
 /// The iterator now has functionality to optimize the iteration, if only a subdirectory of the
@@ -204,7 +213,7 @@ impl<'a> Entries<'a> {
 
 }
 
-impl Iterator for Entries {
+impl<'a> Iterator for Entries<'a> {
     type Item = Result<StoreId>;
 
     fn next(&mut self) -> Option<Self::Item> {

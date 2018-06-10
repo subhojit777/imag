@@ -65,7 +65,7 @@ impl PathIterator {
         PathIterator { iter_builder, iter, storepath, backend }
     }
 
-    pub(crate) in_collection<C: AsRef<str>>(self, c: C) -> Self {
+    pub(crate) fn in_collection<C: AsRef<str>>(self, c: C) -> Self {
         trace!("Generating iterator object for collection: {}", c.as_ref());
         self.iter = self.iter_builder.in_collection(c);
         self
