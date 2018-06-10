@@ -165,7 +165,7 @@ mod compile_test {
 ///
 /// Functionality to exclude subdirectories is not possible with the current implementation and has
 /// to be done during iteration, with filtering (as usual).
-pub struct Entries<'a>(PathIterator, &'a Store)
+pub struct Entries<'a>(PathIterator, &'a Store);
 
 impl<'a> Entries<'a> {
 
