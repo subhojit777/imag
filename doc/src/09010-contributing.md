@@ -7,10 +7,6 @@ All contributors agree to the
 by contributing to imag.
 
 
-## Without Github
-
-Contributing without a github account is perfectly fine and actually encouraged
-as we try to move away from github step by step.
 Feel free to contact [us via our mailinglist](http://imag-pim.org/mailinglist/)
 and/or submit patches via mail (use `git format-patch` and
 `git send-email`, always add a cover letter to describe your submission).
@@ -22,24 +18,10 @@ By adding that line, you agree to our
 If you do not add the "Signed-off-by: " line, I reserve the right to kindly
 reject your patch.
 
-Once _I am_ okay with your patchset, I will
-submit it as PR in the github repository (as long as we're using github),
-so CI can test it.
-I might come back to you if something broke in CI or someone has a suggestion
-how to improve your PR. I will keep you as author of the commits.
+Make sure to test-compile your patchset and, if available, run tests.
 
 
 ## Finding an issue
-
-Finding an issue is simple: We have
-[a special label in our issues section](https://github.com/matthiasbeyer/imag/issues?q=is%3Aissue+is%3Aopen+label%3Acomplexity%2Feasy)
-for easy-to-solve issues. You can start there, don't hesitate to ask questions
-if you do not understand the issue comment!
-If there are currently no issues with that tag, just browse the issues or the
-code... you'll always find things to improve!
-
-Also, if you've found bugs or outdated stuff in our documentation, feel free to
-file issues about them or even better: Write a pull request to fix them!
 
 
 ## Prerequisites
@@ -71,36 +53,13 @@ All dependencies are installable with the nix package manager by using a
 
 ## Commit guidelines
 
-Please don't refer to issues or PRs from inside a commit message, if possible.
-Make sure your PR does not contain "Fixup" commits when publishing it, but feel
-free to push "Fixup" commits in the review process. We will ask you to clean
-your history before merging! If you're submitting via patch-mail, I will do the
-fixup squashing myself. If it fails I will come back to you.
-
-Make sure to prefix your commits with `"doc: "` if you change the documentation.
-Do not change document and code in one commit, always separate them.
-
-If your changes are user-visible (new commandline flags, other semantics in the
-commandline, etc), make sure to add a note in the `CHANGELOG.md` file (in the
-same commit if it is a simple change).
-**If it is a bugfix**, do add the changelog entry in a new commit (best would
-be: one commit for a testcase which shows the bug, one commit for the fix, more
-if the fix is complicated, and one commit for the changelog entry).
-Changelog entries for bug fixes should be extra commits, because backporting
-bugfixes gets simpler this way.
+Make sure your patchset does not contain "Fixup" commits when publishing it, but feel
+free to send  "Fixup" commits in the review process. 
+If squashing fails I will come back to you.
 
 We do not follow some official Rust styleguide for our codebase, but we try to
-write minimal and readable code. 100 characters per line, as few lines as
-possible, avoid noise in the codebase, ... you get it.
-
-Not all of your commits have to be buildable. But your PR has to be before it
-will be merged to master.
-
-
-## Feature branches
-
-Use feature branches. If you could name them "<module name>/<what you do>",
-for example "libimagstore/add-debugging-calls", that would be awesome.
+write minimal and readable code. 100 characters per line, avoid noise in the
+codebase, ... you get it.
 
 
 ## Code of Conduct
