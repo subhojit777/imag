@@ -1,4 +1,4 @@
-# Contributing to imag
+# Contributing to imag {#sec:contributing}
 
 So you want to contribute to imag! Thank you, that's awesome!
 
