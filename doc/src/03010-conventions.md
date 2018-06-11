@@ -43,22 +43,23 @@ cross-read it for better understanding of the imag project.
 
 ### Library naming
 
-Libraries which provide functionality for entries or the store (most likely
-entries or both) should be named "libimagentrything" whereas "thing" stands for
+Libraries which provide functionality for entries or the store but no
+domain-functionality should be named "libimagentrything" whereas "thing" stands for
 what the library provides.
 
-All other libraries should be prefixed with "libimag" at least. Most likely, one
-will not write such a library but rather a "libimagentrything" library.
+All domain libraries should be prefixed with "libimag". 
+
 
 ### Library scope
 
 A library should never introduce utility functionality which could be useful for
 other libraries as well. If there is no such functionality available, the
 "libimagutil" or "libimagentryutil" might be a place where such a function
-would be put.
+would go to.
 
 If a library has to introduce free functions in its public interface, one should
 think hard whether this is really necessary.
+
 
 ### Library error types/kinds
 
@@ -72,6 +73,7 @@ as many error kinds as required.
 ### Libraries with commandline frontends
 
 Libraries with commandline frontends provide end-user functionality.
+They are called "domain" libraries.
 Normally,
 they depend on one or more "libimagentrything" libraries. They should be named
 "libimagthing", though. For example: "libimagdiary", "libimagtimetrack" or
@@ -83,8 +85,6 @@ If such a library needs to depend on another "libimagthing", for example if
 whether the functionality could be outsourced to a more general
 "libimagentrything".
 
-A library which implements a functionality for imag may contain helper functions
-for commandline stuff, but that is discouraged.
 
 ### Library testing
 
@@ -96,6 +96,11 @@ possible without a lot of effort, but still: more tests = better!
 The commandline tools are the CLI-frontends for their respective libraries.
 So `libimagdiary` has a CLI frontend `imag-diary`.
 
-Those CLI frontends use functionality from `libimagrt` to build a consistent
-commandline interface.
+Those CLI frontends use functionality from `libimagrt` to build a 
+commandline interface which is consistent with the rest of the ecosystem.
+
+Commandline interfaces should receive store IDs as positional arguments.
+Commandline interfaces should also provide a flag "-I" (that's a big i) which
+marks that the store IDs shall be read from stdin and are not passed via the
+commandline.
 
