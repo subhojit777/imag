@@ -94,7 +94,7 @@ fn add(rt: &Runtime) {
 
     let mut collection = BookmarkCollectionStore::get(rt.store(), &coll)
         .map_err_trace_exit_unwrap(1)
-        .ok_or(BE::from(format!("No BookmarkcollectionStore '{}' found", coll)))
+        .ok_or(BE::from(format!("No bookmark collection '{}' found", coll)))
         .map_err_trace_exit_unwrap(1);
 
     for url in scmd.values_of("urls").unwrap() { // unwrap saved by clap
@@ -135,7 +135,7 @@ fn list(rt: &Runtime) {
 
     let collection = BookmarkCollectionStore::get(rt.store(), &coll)
         .map_err_trace_exit_unwrap(1)
-        .ok_or(BE::from(format!("No BookmarkcollectionStore '{}' found", coll)))
+        .ok_or(BE::from(format!("No bookmark collection '{}' found", coll)))
         .map_err_trace_exit_unwrap(1);
 
     let links   = collection.links(rt.store()).map_err_trace_exit_unwrap(1);
@@ -157,7 +157,7 @@ fn remove(rt: &Runtime) {
 
     let mut collection = BookmarkCollectionStore::get(rt.store(), &coll)
         .map_err_trace_exit_unwrap(1)
-        .ok_or(BE::from(format!("No BookmarkcollectionStore '{}' found", coll)))
+        .ok_or(BE::from(format!("No bookmark collection '{}' found", coll)))
         .map_err_trace_exit_unwrap(1);
 
     for url in scmd.values_of("urls").unwrap() { // enforced by clap
