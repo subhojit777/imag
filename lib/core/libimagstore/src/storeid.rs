@@ -157,14 +157,13 @@ impl StoreId {
         self.id
             .components()
             .zip(colls.as_ref().iter())
-            .map(|(component, pred_coll)| match component {
+            .all(|(component, pred_coll)| match component {
                 Component::Normal(ref s) => s
                     .to_str()
                     .map(|ref s| s == &pred_coll.as_ref())
                     .unwrap_or(false),
                 _ => false
             })
-            .all(|x| x)
     }
 
     pub fn local_push<P: AsRef<Path>>(&mut self, path: P) {
