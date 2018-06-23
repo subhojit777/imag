@@ -16,14 +16,14 @@ matrix:
             - bash ./scripts/branch-contains-no-tmp-commits
             - bash ./scripts/version-updated
         - language: rust
-          rust: 1.24.0
+          rust: 1.25.0
           cache:
             cargo: true
           script:
             - cargo build --all --all-features -j 1  || exit 1
             - cargo test  --all --all-features -j 1  || exit 1
         - language: rust
-          rust: 1.25.0
+          rust: 1.26.0
           cache:
             cargo: true
           script:
