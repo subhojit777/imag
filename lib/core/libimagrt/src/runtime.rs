@@ -319,6 +319,12 @@ impl<'a> Runtime<'a> {
     }
 
     /// Initialize the internal logger
+    ///
+    /// If the environment variable "IMAG_LOG_ENV" is set, this simply
+    /// initializes a env-logger instance. Errors are ignored in this case.
+    /// If the environment variable is not set, this initializes the internal imag logger. On
+    /// error, this exits (as there is nothing we can do about that)
+    ///
     fn init_logger(matches: &ArgMatches, config: Option<&Value>) {
         use log::set_max_level;
         use log::set_boxed_logger;

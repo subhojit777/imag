@@ -47,3 +47,8 @@ Not implemented yet:
         of pathes, or does depth-first-search rather than
         breadth-first-search.
 
+### Known problems
+
+The functionality this library provides fails to work when syncing the imag
+store between two devices where the data layout is different on each device.
+

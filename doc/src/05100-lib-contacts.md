@@ -44,6 +44,3 @@ The architecture of indirections is as follows:
 
 ```
 
-As the library is build upon `libimagentryref`, it does not create a new
-subcollection in the store `/contacts`, but uses the infrastructure of
-`libimagentryref` which automatically puts all references in `/ref`.
