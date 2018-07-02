@@ -197,7 +197,7 @@ fn delete(rt: &Runtime) {
                     }
                 };
 
-                fle
+                let _ = fle
                     .linked_instances()
                     .map_err_trace_exit_unwrap(1)
                     .trace_unwrap_exit(1)
