@@ -152,6 +152,7 @@ use self::retrieve::StoreRetrieveIterator;
 use file_abstraction::iter::PathIterator;
 use store::Store;
 use error::StoreError;
+use error::Result;
 
 /// Iterator for iterating over all (or a subset of all) entries
 ///
