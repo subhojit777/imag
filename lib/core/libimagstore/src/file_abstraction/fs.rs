@@ -188,14 +188,14 @@ pub(crate) struct WalkDirPathIterBuilder {
 impl PathIterBuilder for WalkDirPathIterBuilder {
     type Output = <WalkDir as IntoIterator>::IntoIter;
 
-    fn build_iter(&self) -> Self::Output {
-        WalkDir::new(self.basepath.clone())
+    fn build_iter(&self) -> Box<Iterator<Item = Result<PathBuf>>> {
+        Box::new(WalkDir::new(self.basepath.clone())
             .min_depth(1)
             .max_open(100)
             .into_iter()
             .map(|r| {
                 r.map(|e| PathBuf::from(e.path())).chain_err(|| SE::from_kind(SEK::FileError))
-            })
+            }))
     }
 
     fn in_collection<C: AsRef<str>>(&mut self, c: C) {

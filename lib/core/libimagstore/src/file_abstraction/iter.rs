@@ -26,9 +26,7 @@ use file_abstraction::FileAbstraction;
 
 /// See documentation for PathIterator
 pub(crate) trait PathIterBuilder {
-    type Output: Iterator<Item = Result<PathBuf>>;
-
-    fn build_iter(&self) -> Self::Output;
+    fn build_iter(&self) -> Box<Iterator<Item = Result<PathBuf>>>;
     fn in_collection(&mut self);
 }
 
