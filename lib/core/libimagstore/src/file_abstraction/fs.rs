@@ -24,7 +24,6 @@ use std::sync::Arc;
 
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::ResultExt;
-use error::Result;
 
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
