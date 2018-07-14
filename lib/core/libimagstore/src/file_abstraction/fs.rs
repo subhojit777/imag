@@ -24,6 +24,7 @@ use std::sync::Arc;
 
 use error::{StoreError as SE, StoreErrorKind as SEK};
 use error::ResultExt;
+use error::Result;
 
 use super::FileAbstraction;
 use super::FileAbstractionInstance;
@@ -186,8 +187,6 @@ pub(crate) struct WalkDirPathIterBuilder {
 }
 
 impl PathIterBuilder for WalkDirPathIterBuilder {
-    type Output = <WalkDir as IntoIterator>::IntoIter;
-
     fn build_iter(&self) -> Box<Iterator<Item = Result<PathBuf>>> {
         Box::new(WalkDir::new(self.basepath.clone())
             .min_depth(1)
