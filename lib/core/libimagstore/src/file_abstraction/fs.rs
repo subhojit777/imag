@@ -186,7 +186,7 @@ pub(crate) struct WalkDirPathIterBuilder {
 }
 
 impl PathIterBuilder for WalkDirPathIterBuilder {
-    type Output = WalkDir::IntoIter;
+    type Output = <WalkDir as IntoIterator>::IntoIter;
 
     fn build_iter(&self) -> Self::Output {
         WalkDir::new(self.basepath.clone())

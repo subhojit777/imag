@@ -201,7 +201,7 @@ impl FileAbstraction for InMemoryFileAbstraction {
 pub(crate) struct InMemPathIterBuilder(Vec<PathBuf>);
 
 impl PathIterBuilder for InMemPathIterBuilder {
-    type Output = Vec<PathBuf>::IntoIter;
+    type Output = <Vec<PathBuf> as IntoIterator>::IntoIter;
 
     fn build_iter(&self) -> Self::Output {
         self.0.into_iter()
