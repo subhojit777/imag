@@ -183,7 +183,7 @@ impl<'a> Entries<'a> {
         Entries(pi, store)
     }
 
-    pub fn in_collection<C: AsRef<str>>(self, c: C) -> Self {
+    pub fn in_collection(self, c: &str) -> Self {
         self.0.in_collection(c)
     }
 
