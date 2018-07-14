@@ -205,7 +205,7 @@ impl PathIterBuilder for InMemPathIterBuilder {
         self.0.into_iter()
     }
 
-    fn in_collection<C: AsRef<str>>(&mut self, c: C) {
+    fn in_collection(&mut self, c: &str) {
         self.0 = self.0.into_iter().filter(|p| p.starts_with(c)).collect();
     }
 }

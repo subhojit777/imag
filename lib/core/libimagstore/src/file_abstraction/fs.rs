@@ -196,8 +196,8 @@ impl PathIterBuilder for WalkDirPathIterBuilder {
             }))
     }
 
-    fn in_collection<C: AsRef<str>>(&mut self, c: C) {
-        self.basepath.push(c.as_ref());
+    fn in_collection(&mut self, c: &str) {
+        self.basepath.push(c);
     }
 }
 

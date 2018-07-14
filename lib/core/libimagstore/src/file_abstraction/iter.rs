@@ -27,7 +27,7 @@ use file_abstraction::FileAbstraction;
 /// See documentation for PathIterator
 pub(crate) trait PathIterBuilder {
     fn build_iter(&self) -> Box<Iterator<Item = Result<PathBuf>>>;
-    fn in_collection<C: AsRef<str>>(&mut self, c: C);
+    fn in_collection(&mut self, c: &str);
 }
 
 /// A wrapper for an iterator over `PathBuf`s
@@ -63,7 +63,7 @@ impl PathIterator {
         PathIterator { iter_builder, iter, storepath, backend }
     }
 
-    pub(crate) fn in_collection<C: AsRef<str>>(self, c: C) -> Self {
+    pub(crate) fn in_collection(self, c: &str) -> Self {
         trace!("Generating iterator object for collection: {}", c.as_ref());
         self.iter = self.iter_builder.in_collection(c);
         self
