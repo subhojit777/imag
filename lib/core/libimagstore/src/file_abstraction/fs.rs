@@ -187,7 +187,7 @@ pub(crate) struct WalkDirPathIterBuilder {
 }
 
 impl PathIterBuilder for WalkDirPathIterBuilder {
-    fn build_iter(&self) -> Box<Iterator<Item = Result<PathBuf>>> {
+    fn build_iter(&self) -> Box<Iterator<Item = Result<PathBuf, SE>>> {
         Box::new(WalkDir::new(self.basepath.clone())
             .min_depth(1)
             .max_open(100)
