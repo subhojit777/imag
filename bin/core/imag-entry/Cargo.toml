@@ -1,0 +1,46 @@
+[package]
+name = "imag-entry"
+version = "0.9.0"
+authors = ["Matthias Beyer <mail@beyermatthias.de>"]
+
+description = "Part of the imag core distribution: imag-entry command"
+
+keywords    = ["imag", "PIM", "personal", "information", "management"]
+readme      = "../../../README.md"
+license     = "LGPL-2.1"
+
+documentation = "https://imag-pim.org/doc/"
+repository    = "https://github.com/matthiasbeyer/imag"
+homepage      = "http://imag-pim.org"
+
+build = "../../../build.rs"
+
+[badges]
+travis-ci                         = { repository = "matthiasbeyer/imag" }
+is-it-maintained-issue-resolution = { repository = "matthiasbeyer/imag" }
+is-it-maintained-open-issues      = { repository = "matthiasbeyer/imag" }
+maintenance                       = { status     = "actively-developed" }
+
+[dependencies]
+log          =  "0.3"
+version      =  "2.0.1"
+toml         =  "0.4"
+toml-query   =  "0.6"
+
+libimagstore     = { version = "0.9.0", path = "../../../lib/core/libimagstore" }
+libimagrt        = { version = "0.9.0", path = "../../../lib/core/libimagrt" }
+libimagerror     = { version = "0.9.0", path = "../../../lib/core/libimagerror" }
+libimagutil      = { version = "0.9.0", path = "../../../lib/etc/libimagutil" }
+libimagentryedit = { version = "0.9.0", path = "../../../lib/entry/libimagentryedit" }
+
+[dependencies.clap]
+version = "^2.29"
+default-features = false
+features = ["color", "suggestions", "wrap_help"]
+
+[dev-dependencies.libimagrt]
+version          = "0.9.0"
+path             = "../../../lib/core/libimagrt"
+default-features = false
+features         = ["testing"]
+
