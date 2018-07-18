@@ -40,7 +40,8 @@ extern crate itertools;
 extern crate toml;
 extern crate toml_query;
 extern crate url;
-extern crate crypto;
+extern crate sha1;
+extern crate hex;
 #[macro_use] extern crate is_match;
 #[macro_use] extern crate error_chain;
 
