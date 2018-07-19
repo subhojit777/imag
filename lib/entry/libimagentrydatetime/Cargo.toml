@@ -21,7 +21,7 @@ maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
 chrono = "0.4"
-toml-query = "0.6"
+toml-query = "0.7"
 lazy_static = "0.2"
 toml = "0.4"
 error-chain = "0.12"

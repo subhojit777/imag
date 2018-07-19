@@ -25,7 +25,7 @@ maintenance                       = { status     = "actively-developed" }
 chrono = "0.4"
 log = "0.3"
 toml = "0.4"
-toml-query = "0.6"
+toml-query = "0.7"
 kairos = "0.1.0"
 prettytable-rs = "0.6"
 

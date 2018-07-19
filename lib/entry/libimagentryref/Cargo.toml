@@ -23,7 +23,7 @@ maintenance                       = { status     = "actively-developed" }
 itertools = "0.7"
 log = "0.4.0"
 toml = "0.4"
-toml-query = "0.6"
+toml-query = "0.7"
 error-chain = "0.12"
 sha-1 = { version = "0.7", optional = true }
 sha2 = { version = "0.7", optional = true }
