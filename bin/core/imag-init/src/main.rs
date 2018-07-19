@@ -267,8 +267,11 @@ mod tests {
 
     #[test]
     fn test_config() {
-        assert!(from_str::<Value>(&get_config()[..]).is_ok());
-        assert!(from_str::<Value>(&get_config_devel()[..]).is_ok());
+        let val = from_str::<Value>(&get_config()[..]);
+        assert!(val.is_ok(), "Config parsing errored: {:?}", val);
+
+        let val = from_str::<Value>(&get_config_devel()[..]);
+        assert!(val.is_ok(), "Config parsing errored: {:?}", val);
     }
 
 }
