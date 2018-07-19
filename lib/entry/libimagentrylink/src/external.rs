@@ -54,8 +54,8 @@ use self::iter::*;
 
 use toml::Value;
 use url::Url;
-use crypto::sha1::Sha1;
-use crypto::digest::Digest;
+use sha1::{Sha1, Digest};
+use hex;
 
 pub trait Link {
 
@@ -318,11 +318,7 @@ impl ExternalLinker for Entry {
 
         debug!("Iterating {} links = {:?}", links.len(), links);
         for link in links { // for all links
-            let hash = {
-                let mut s = Sha1::new();
-                s.input_str(&link.as_str()[..]);
-                s.result_str()
-            };
+            let hash = hex::encode(Sha1::digest(&link.as_str().as_bytes()));
             let file_id =
                 ModuleEntryPath::new(format!("external/{}", hash)).into_storeid()
                     .map_dbg_err(|_| {

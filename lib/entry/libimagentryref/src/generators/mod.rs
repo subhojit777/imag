@@ -175,7 +175,7 @@ macro_rules! make_sha_mod {
 
             use error::RefError as RE;
 
-            use crypto::digest::Digest;
+            use hex;
             make_unique_ref_path_generator! (
                 pub $hashname
                 over generators::base::Base
@@ -235,59 +235,53 @@ macro_rules! make_sha_mod {
 #[cfg(feature = "generators-sha1")]
 make_sha_mod! {
     sha1, Sha1, |buffer: String| {
-        let mut hasher = ::crypto::sha1::Sha1::new();
+        use sha1::{Sha1, Digest};
 
         trace!("Hashing: '{:?}'", buffer);
-        hasher.input_str(&buffer);
-        let res = hasher.result_str();
+        let res = hex::encode(Sha1::digest(buffer.as_bytes()));
         trace!("Hash => '{:?}'", res);
 
-        Ok(String::from(res))
+        Ok(res)
     }
 }
 
 #[cfg(feature = "generators-sha224")]
 make_sha_mod! {
     sha224, Sha224, |buffer: String| {
-        let mut hasher = ::crypto::sha2::Sha224::new();
-        hasher.input_str(&buffer);
-        Ok(String::from(hasher.result_str()))
+        use sha2::{Sha224, Digest};
+        Ok(hex::encode(Sha224::digest(buffer.as_bytes())))
     }
 }
 
 #[cfg(feature = "generators-sha256")]
 make_sha_mod! {
     sha256, Sha256, |buffer: String| {
-        let mut hasher = ::crypto::sha2::Sha256::new();
-        hasher.input_str(&buffer);
-        Ok(String::from(hasher.result_str()))
+        use sha2::{Sha256, Digest};
+        Ok(hex::encode(Sha256::digest(buffer.as_bytes())))
     }
 }
 
 #[cfg(feature = "generators-sha384")]
 make_sha_mod! {
     sha384, Sha384, |buffer: String| {
-        let mut hasher = ::crypto::sha2::Sha384::new();
-        hasher.input_str(&buffer);
-        Ok(String::from(hasher.result_str()))
+        use sha2::{Sha384, Digest};
+        Ok(hex::encode(Sha384::digest(buffer.as_bytes())))
     }
 }
 
 #[cfg(feature = "generators-sha512")]
 make_sha_mod! {
     sha512, Sha512, |buffer: String| {
-        let mut hasher = ::crypto::sha2::Sha512::new();
-        hasher.input_str(&buffer);
-        Ok(String::from(hasher.result_str()))
+        use sha2::{Sha512, Digest};
+        Ok(hex::encode(Sha512::digest(buffer.as_bytes())))
     }
 }
 
 #[cfg(feature = "generators-sha3")]
 make_sha_mod! {
     sha3, Sha3, |buffer: String| {
-        let mut hasher = ::crypto::sha3::Sha3::sha3_256();
-        hasher.input_str(&buffer);
-        Ok(String::from(hasher.result_str()))
+        use sha3::{Sha3_256, Digest};
+        Ok(hex::encode(Sha3_256::digest(buffer.as_bytes())))
     }
 }
 
