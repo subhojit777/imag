@@ -21,7 +21,7 @@ maintenance                       = { status     = "actively-developed" }
 
 [dependencies]
 notify-rust = "3.4.2"
-error-chain = "0.11"
+error-chain = "0.12"
 
 libimagerror       = { version = "0.9.0", path = "../../../lib/core/libimagerror" }
 

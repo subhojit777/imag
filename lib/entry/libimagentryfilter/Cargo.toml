@@ -27,7 +27,7 @@ regex = "0.2"
 semver = "0.8"
 toml = "0.4"
 toml-query = "0.6"
-error-chain = "0.11"
+error-chain = "0.12"
 
 libimagstore    = { version = "0.9.0", path = "../../../lib/core/libimagstore" }
 libimagentrytag = { version = "0.9.0", path = "../../../lib/entry/libimagentrytag" }

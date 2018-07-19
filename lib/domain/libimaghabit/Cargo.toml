@@ -24,7 +24,7 @@ chrono = "0.4"
 log = "0.3"
 toml = "0.4"
 toml-query = "0.6"
-error-chain = "0.11"
+error-chain = "0.12"
 kairos = "0.1.0"
 
 libimagstore     = { version = "0.9.0", path = "../../../lib/core/libimagstore" }

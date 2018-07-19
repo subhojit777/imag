@@ -23,7 +23,7 @@ maintenance                       = { status     = "actively-developed" }
 log = "0.4.0"
 email = "0.0.17"
 filters = "0.3"
-error-chain = "0.11"
+error-chain = "0.12"
 
 libimagstore    = { version = "0.9.0", path = "../../../lib/core/libimagstore" }
 libimagerror    = { version = "0.9.0", path = "../../../lib/core/libimagerror" }

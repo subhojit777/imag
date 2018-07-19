@@ -22,7 +22,7 @@ maintenance                       = { status     = "actively-developed" }
 [dependencies]
 log = "0.4.0"
 toml = "0.4"
-error-chain = "0.11"
+error-chain = "0.12"
 textwrap = "0.9"
 
 libimagrt        = { version = "0.9.0", path = "../../../lib/core/libimagrt" }
