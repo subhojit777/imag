@@ -23,7 +23,6 @@ use libimagrt::runtime::Runtime;
 use libimagutil::warn_exit::warn_exit;
 use libimagerror::trace::MapErrTrace;
 use libimagerror::iter::TraceIterator;
-use libimagstore::store::Header;
 
 /// Verify the store.
 ///
@@ -41,13 +40,13 @@ pub fn verify(rt: &Runtime) {
         .all(|fle| {
             let p           = fle.get_location();
             let content_len = fle.get_content().len();
-            let (header, status) = if fle.get_header().verify().is_ok() {
+            let (verify, status) = if fle.verify().is_ok() {
                 ("ok", true)
             } else {
                 ("broken", false)
             };
 
-            info!("{: >6} | {: >14} | {:?}", header, content_len, p.deref());
+            info!("{: >6} | {: >14} | {:?}", verify, content_len, p.deref());
             status
         });
 

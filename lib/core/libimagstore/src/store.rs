@@ -444,7 +444,7 @@ impl Store {
         StoreEntry::new(id, &self.backend)?.get_entry()
     }
 
-    /// Delete an entry
+    /// Delete an entry and the corrosponding file on disk
     ///
     /// # Return value
     ///
@@ -460,6 +460,12 @@ impl Store {
 
         debug!("Deleting id: '{}'", id);
 
+        // Small optimization: We need the pathbuf for deleting, but when calling
+        // StoreId::exists(), a PathBuf object gets allocated. So we simply get a
+        // PathBuf here, check whether it is there and if it is, we can re-use it to
+        // delete the filesystem file.
+        let pb = id.clone().into_pathbuf()?;
+
         {
             let mut entries = self
                 .entries
@@ -467,43 +473,40 @@ impl Store {
                 .map_err(|_| SE::from_kind(SEK::LockPoisoned))
                 .chain_err(|| SEK::DeleteCallError(id.clone()))?;
 
-            // if the entry is currently modified by the user, we cannot drop it
-            match entries.get(&id) {
+            let do_remove = match entries.get(&id) {
+                Some(e) => if e.is_borrowed() { // entry is currently borrowed, we cannot delete it
+                    return Err(SE::from_kind(SEK::IdLocked)).chain_err(|| SEK::DeleteCallError(id));
+                    // false
+                } else { // Entry is in the cache
+                    // Remove Entry from the cache
+                    true
+                },
+
                 None => {
                     // The entry is not in the internal cache. But maybe on the filesystem?
                     debug!("Seems like {:?} is not in the internal cache", id);
 
-                    // Small optimization: We need the pathbuf for deleting, but when calling
-                    // StoreId::exists(), a PathBuf object gets allocated. So we simply get a
-                    // PathBuf here, check whether it is there and if it is, we can re-use it to
-                    // delete the filesystem file.
-                    let pb = id.clone().into_pathbuf()?;
-
-                    if pb.exists() {
-                        // looks like we're deleting a not-loaded file from the store.
-                        debug!("Seems like {:?} is on the FS", pb);
-                        return self.backend.remove_file(&pb)
-                    } else {
+                    if !self.backend.exists(&pb)? {
                         debug!("Seems like {:?} is not even on the FS", pb);
                         return Err(SE::from_kind(SEK::FileNotFound))
                             .chain_err(|| SEK::DeleteCallError(id))
-                    }
-                },
-                Some(e) => if e.is_borrowed() {
-                    return Err(SE::from_kind(SEK::IdLocked))
-                        .chain_err(|| SEK::DeleteCallError(id))
-                }
-            }
+                    } // else { continue }
 
-            // remove the entry first, then the file
-            entries.remove(&id);
-            let pb = id.clone().with_base(self.path().clone()).into_pathbuf()?;
-            let _ = self
-                .backend
-                .remove_file(&pb)
-                .chain_err(|| SEK::FileError)
-                .chain_err(|| SEK::DeleteCallError(id))?;
+                    false
+                },
+            };
+
+            if do_remove {
+                let _ = entries.remove(&id);
+            }
         }
+
+        debug!("Seems like {:?} is on the FS", pb);
+        let _ = self
+            .backend
+            .remove_file(&pb)
+            .chain_err(|| SEK::FileError)
+            .chain_err(|| SEK::DeleteCallError(id))?;
 
         debug!("Deleted");
         Ok(())
@@ -662,19 +665,6 @@ impl Debug for Store {
 
 }
 
-impl Drop for Store {
-
-    ///
-    /// Unlock all files on drop
-    //
-    /// TODO: Unlock them
-    ///
-    fn drop(&mut self) {
-        debug!("Dropping store");
-    }
-
-}
-
 /// A struct that allows you to borrow an Entry
 pub struct FileLockEntry<'a> {
     store: &'a Store,
@@ -776,7 +766,18 @@ impl Entry {
     /// This function should be used to get a new Header, as the default header may change. Via
     /// this function, compatibility is ensured.
     pub fn default_header() -> Value { // BTreeMap<String, Value>
-        Value::default_header()
+        let mut m = BTreeMap::new();
+
+        m.insert(String::from("imag"), {
+            let mut imag_map = BTreeMap::<String, Value>::new();
+
+            imag_map.insert(String::from("version"),
+                Value::String(String::from(env!("CARGO_PKG_VERSION"))));
+
+            Value::Table(imag_map)
+        });
+
+        Value::Table(m)
     }
 
     /// See `Entry::from_str()`, as this function is used internally. This is just a wrapper for
@@ -863,7 +864,16 @@ impl Entry {
     ///
     /// Currently, this only verifies the header. This might change in the future.
     pub fn verify(&self) -> Result<()> {
-        self.header.verify()
+        if !has_main_section(&self.header)? {
+            Err(SE::from_kind(SEK::MissingMainSection))
+        } else if !has_imag_version_in_main_section(&self.header)? {
+            Err(SE::from_kind(SEK::MissingVersionInfo))
+        } else if !has_only_tables(&self.header)? {
+            debug!("Could not verify that it only has tables in its base table");
+            Err(SE::from_kind(SEK::NonTableInBaseTable))
+        } else {
+            Ok(())
+        }
     }
 
 }
@@ -874,54 +884,6 @@ impl PartialEq for Entry {
         self.location == other.location && // As the location only compares from the store root
             self.header == other.header && // and the other Entry could be from another store (not
             self.content == other.content  // implemented by now, but we think ahead here)
-    }
-
-}
-
-/// Extension trait for top-level toml::Value::Table, will only yield correct results on the
-/// top-level Value::Table, but not on intermediate tables.
-pub trait Header {
-    fn verify(&self) -> Result<()>;
-    fn parse(s: &str) -> Result<Value>;
-    fn default_header() -> Value;
-}
-
-impl Header for Value {
-
-    fn verify(&self) -> Result<()> {
-        if !has_main_section(self)? {
-            Err(SE::from_kind(SEK::MissingMainSection))
-        } else if !has_imag_version_in_main_section(self)? {
-            Err(SE::from_kind(SEK::MissingVersionInfo))
-        } else if !has_only_tables(self)? {
-            debug!("Could not verify that it only has tables in its base table");
-            Err(SE::from_kind(SEK::NonTableInBaseTable))
-        } else {
-            Ok(())
-        }
-    }
-
-    fn parse(s: &str) -> Result<Value> {
-        use toml::de::from_str;
-
-        from_str(s)
-            .map_err(From::from)
-            .and_then(|h: Value| h.verify().map(|_| h))
-    }
-
-    fn default_header() -> Value {
-        let mut m = BTreeMap::new();
-
-        m.insert(String::from("imag"), {
-            let mut imag_map = BTreeMap::<String, Value>::new();
-
-            imag_map.insert(String::from("version"),
-                Value::String(String::from(env!("CARGO_PKG_VERSION"))));
-
-            Value::Table(imag_map)
-        });
-
-        Value::Table(m)
     }
 
 }
@@ -954,7 +916,6 @@ mod test {
 
     use std::collections::BTreeMap;
     use storeid::StoreId;
-    use store::Header;
     use store::has_main_section;
     use store::has_imag_version_in_main_section;
 
@@ -1002,52 +963,6 @@ mod test {
         map.insert("imag".into(), Value::Table(sub));
 
         assert!(has_imag_version_in_main_section(&Value::Table(map)).is_err());
-    }
-
-    #[test]
-    fn test_verification_good() {
-        let mut header = BTreeMap::new();
-        let sub = {
-            let mut sub = BTreeMap::new();
-            sub.insert("version".into(), Value::String(String::from("0.0.0")));
-
-            Value::Table(sub)
-        };
-
-        header.insert("imag".into(), sub);
-
-        assert!(Value::Table(header).verify().is_ok());
-    }
-
-    #[test]
-    fn test_verification_invalid_versionstring() {
-        let mut header = BTreeMap::new();
-        let sub = {
-            let mut sub = BTreeMap::new();
-            sub.insert("version".into(), Value::String(String::from("000")));
-
-            Value::Table(sub)
-        };
-
-        header.insert("imag".into(), sub);
-
-        assert!(!Value::Table(header).verify().is_ok());
-    }
-
-
-    #[test]
-    fn test_verification_current_version() {
-        let mut header = BTreeMap::new();
-        let sub = {
-            let mut sub = BTreeMap::new();
-            sub.insert("version".into(), Value::String(String::from(env!("CARGO_PKG_VERSION"))));
-
-            Value::Table(sub)
-        };
-
-        header.insert("imag".into(), sub);
-
-        assert!(Value::Table(header).verify().is_ok());
     }
 
     static TEST_ENTRY : &'static str = "---
