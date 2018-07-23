@@ -26,14 +26,17 @@ for the outgoing mails.
 
 The CLI of the imag-mail module is planned as follows:
 
-    imag mail track <path> [opts...]  # track a new mail, mail file passed as path
-    imag mail scan <path> [opts...]   # scan a maildir and track all untracked mails
-    imag mail box <name|path>         # work with the mailbox specified by <name|path>, name mappings from config
-    imag mail list <args...>          # list mails in a given mailbox for a given account or the default account
-    imag mail show <args...>          # open new mails in the pager
-    imag mail thread list <args...>   # list mails from a thread
-    imag mail thread show <args...>   # open new mails from a thread in the pager or call a script with them
-    imag mail new <args...>           # craft a new mail and safe it in the <outgoing> folder
-    imag mail send <args...>          # send emails from the outgoing folder, optionally also move them to archice boxes
-    imag mail mv <srcbox> <dstbox>    # move a mail (or thread) from one mailbox to another
+    imag mail track <path> [opts...]        # track a new mail, mail file passed as path
+    imag mail scan <path> [opts...]         # scan a maildir and track all untracked mails
+    imag mail box <name|path>               # work with the mailbox specified by <name|path>, name mappings from config
+    imag mail list <args...>                # list mails in a given mailbox for a given account or the default account
+    imag mail show <args...>                # open new mails in the pager
+    imag mail thread list <args...>         # list mails from a thread
+    imag mail thread show <args...>         # open new mails from a thread in the pager or call a script with them
+    imag mail new <args...>                 # craft a new mail and safe it in the <outgoing> folder
+    imag mail compose <args...>             # same as 'new'
+    imag mail send <args...>                # send emails from the outgoing folder, optionally also move them to archive boxes
+    imag mail mv <src mail> <dstbox>        # move a mail to another mailbox
+    imag mail mv thread <src mail> <dstbox> # move the thread of the mail to another mailbox
+    imag mail find <args...>                # search for a mail (by header field (msgid, from, to, cc, subject, date, date-range), body, ...)
 
