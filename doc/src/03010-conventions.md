@@ -104,3 +104,14 @@ Commandline interfaces should also provide a flag "-I" (that's a big i) which
 marks that the store IDs shall be read from stdin and are not passed via the
 commandline.
 
+
+### IO
+
+There are minor restrictions how imag tools should do IO. A good rule of thumb
+is (but most certainly only applicable when programming an imag tool in Rust):
+use `libimagrt` to do IO of any kind.
+
+For more information, or if not using Rust as programming language: the
+documentation of `libimagrt` describes how IO should happen (which output
+stream to use, how input should be done).
+
