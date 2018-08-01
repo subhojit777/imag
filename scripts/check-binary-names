@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+for file in `find bin -type f -name Cargo.toml -o -name main.rs -o -name ui.rs`;
+do
+    echo "$file" | grep Cargo.toml > /dev/null 2>/dev/null && {
+        name=$(cat $file | grep description | sed 's,.*: ,,; s, .*,,')
+        
+        echo "$file" | grep "$name" > /dev/null 2>/dev/null || {
+            echo "Crate in $file is named $name"
+            exit 1
+        }
+    }
+
+done
