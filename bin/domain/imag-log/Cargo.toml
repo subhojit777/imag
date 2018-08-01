@@ -3,7 +3,7 @@ name = "imag-log"
 version = "0.9.0"
 authors = ["Matthias Beyer <mail@beyermatthias.de>"]
 
-description = "Part of the imag core distribution: imag-bookmark command"
+description = "Part of the imag core distribution: imag-log command"
 
 keywords    = ["imag", "PIM", "personal", "information", "management"]
 readme      = "../../../README.md"
