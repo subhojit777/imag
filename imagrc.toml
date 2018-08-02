@@ -313,13 +313,7 @@ web    = "chromium {{entries}}"
 #
 # Multiple lines shouldn't be used, as this is for listing multiple entries.
 #
-# Note: Abbreviating the hash ("id") is not yet supported in the "show" command,
-# thus we print the id here without abbreviating it. To abbreviate it to 5
-# characters, use:
-#
-#  {{abbrev 5 id}}
-#
-list_format = "{{lpad 5 i}} | {{id}} | {{FN}} | {{mail}} | {{adr}}"
+list_format = "{{lpad 5 i}} | {{abbrev 5 id}} | {{FN}} | {{mail}} | {{adr}}"
 
 # The format when printing a single contact
 #
