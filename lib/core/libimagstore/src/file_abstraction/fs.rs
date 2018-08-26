@@ -32,10 +32,7 @@ use storeid::StoreId;
 use file_abstraction::iter::PathIterator;
 
 #[derive(Debug)]
-pub enum FSFileAbstractionInstance {
-    Absent(PathBuf),
-    File(File, PathBuf)
-}
+pub struct FSFileAbstractionInstance(PathBuf);
 
 impl FileAbstractionInstance for FSFileAbstractionInstance {
 
@@ -44,32 +41,18 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
      */
     fn get_file_content(&mut self, id: StoreId) -> Result<Entry, SE> {
         debug!("Getting lazy file: {:?}", self);
-        let (file, path) = match *self {
-            FSFileAbstractionInstance::File(ref mut f, _) => return {
-                // We seek to the beginning of the file since we expect each
-                // access to the file to be in a different context
-                f.seek(SeekFrom::Start(0))
-                    .chain_err(|| SEK::FileNotSeeked)?;
 
-                let mut s = String::new();
-                f.read_to_string(&mut s)
-                    .chain_err(|| SEK::IoError)
-                    .map(|_| s)
-                    .and_then(|s| Entry::from_str(id, &s))
-            },
-            FSFileAbstractionInstance::Absent(ref p) =>
-                (open_file(p).chain_err(|| SEK::FileNotFound)?, p.clone()),
-        };
-        *self = FSFileAbstractionInstance::File(file, path);
-        if let FSFileAbstractionInstance::File(ref mut f, _) = *self {
-            let mut s = String::new();
-            f.read_to_string(&mut s)
-                .chain_err(|| SEK::IoError)
-                .map(|_| s)
-                .and_then(|s| Entry::from_str(id, &s))
-        } else {
-            unreachable!()
-        }
+        let mut file = open_file(&self.0)
+            .chain_err(|| SEK::FileNotFound)?;
+
+        file.seek(SeekFrom::Start(0)).chain_err(|| SEK::FileNotSeeked)?;
+
+        let mut s = String::new();
+
+        file.read_to_string(&mut s)
+            .chain_err(|| SEK::IoError)
+            .map(|_| s)
+            .and_then(|s| Entry::from_str(id, &s))
     }
 
     /**
@@ -78,28 +61,12 @@ impl FileAbstractionInstance for FSFileAbstractionInstance {
     fn write_file_content(&mut self, buf: &Entry) -> Result<(), SE> {
         use std::io::Write;
 
-        let buf = buf.to_str()?.into_bytes();
+        let buf      = buf.to_str()?.into_bytes();
+        let mut file = create_file(&self.0).chain_err(|| SEK::FileNotCreated)?;
 
-        let (file, path) = match *self {
-            FSFileAbstractionInstance::File(ref mut f, _) => return {
-                // We seek to the beginning of the file since we expect each
-                // access to the file to be in a different context
-                f.seek(SeekFrom::Start(0))
-                    .chain_err(|| SEK::FileNotCreated)?;
-
-                f.set_len(buf.len() as u64).chain_err(|| SEK::FileNotWritten)?;
-
-                f.write_all(&buf).chain_err(|| SEK::FileNotWritten)
-            },
-            FSFileAbstractionInstance::Absent(ref p) =>
-                (create_file(p).chain_err(|| SEK::FileNotCreated)?, p.clone()),
-        };
-        *self = FSFileAbstractionInstance::File(file, path);
-        if let FSFileAbstractionInstance::File(ref mut f, _) = *self {
-            trace!("Writing buffer...");
-            return f.write_all(&buf).chain_err(|| SEK::FileNotWritten);
-        }
-        unreachable!();
+        file.seek(SeekFrom::Start(0)).chain_err(|| SEK::FileNotCreated)?;
+        file.set_len(buf.len() as u64).chain_err(|| SEK::FileNotWritten)?;
+        file.write_all(&buf).chain_err(|| SEK::FileNotWritten)
     }
 }
 
@@ -149,7 +116,7 @@ impl FileAbstraction for FSFileAbstraction {
     }
 
     fn new_instance(&self, p: PathBuf) -> Box<FileAbstractionInstance> {
-        Box::new(FSFileAbstractionInstance::Absent(p))
+        Box::new(FSFileAbstractionInstance(p))
     }
 
     /// We return nothing from the FS here.
